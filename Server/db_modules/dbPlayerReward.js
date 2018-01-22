@@ -314,125 +314,41 @@ let dbPlayerReward = {
 
     getRandBonusInfo: (playerId, rewardCode, platformId) => {
         let player, platform, playerLevel, firstProm, event, intervalTime;
-        let list = [];
         let Open = [];
         let get = [];
         let giveup = [];
         let bonusList = [];
-        let canApply = false;
-        let isRewardAmountDynamic = false;
         let currentTime = new Date();
 
         console.log('playerId',playerId);
         console.log('rewardCode',rewardCode);
         console.log('platformId',platformId);
 
-        function addParamToOpen(openData, status) {
-            console.log('EVENT111111======', event);
+        function addParamToOpen(openData) {
+            console.log('OPEN====');
             if (!openData) {
                 return false;
             }
 
-            if (status === 0) {
-                console.log('status 1====');
-            }
-
-            if (status === 1) {
-                console.log('status 2====');
-            }
-
-            // let openItem = {
-            //     startTime: openData.startTime,
-            //     endTime: openData.endTime,
-            //     minDeposit: openData.minTopUpAmount,
-            //     timeLeft: openData.timeLeft,
-            //     status,
-            //     condition: {
-            //         availableDeposit: 100,
-            //         availableDepositTimes: player.name
-            //     }
-            // };
-
-            let openItem = openData;
-            openItem.status = status;
-
-            if (isRewardAmountDynamic) {
-                openItem.promoRate = (openData.rewardPercentage * 100) + "%";
-                openItem.promoLimit = openData.maxRewardInSingleTopUp;
-                openItem.betTimes = openData.spendingTimes;
-            }
-            else {
-                openItem.promoAmount = openData.rewardAmount;
-                openItem.betTimes = openData.spendingTimesOnReward;
-            }
-
-            Open.push(openItem);
+            Open.push(openData);
         }
 
-        function addParamToGet(getData, status) {
+        function addParamToGet(getData) {
+            console.log('GET====');
             if (!getData) {
                 return false;
             }
 
-            if (status !== 2) {
-                console.log('ERROR status 2====');
-            }
-            console.log('STATUS 2====');
-
-            // let getItem = {
-            //     minDeposit: selectedParam.minTopUpAmount,
-            //     status,
-            //     condition: {
-            //         availableDeposit: 100,
-            //         availableDepositTimes: player.name
-            //     }
-            // };
-
-            let getItem = getData;
-            getItem.status = status;
-
-            if (isRewardAmountDynamic) {
-                getItem.promoRate = (getData.rewardPercentage * 100) + "%";
-                getItem.promoLimit = getData.maxRewardInSingleTopUp;
-                getItem.betTimes = getData.spendingTimes;
-            }
-            else {
-                getItem.promoAmount = getData.rewardAmount;
-                getItem.betTimes = getData.spendingTimesOnReward;
-            }
-
-            get.push(getItem);
+            get.push(getData);
         }
 
-        function addParamToGiveup(selectedParam, status) {
-            if (!selectedParam) {
+        function addParamToGiveup(giveupData) {
+            console.log('GIVEUP====');
+            if (!giveupData) {
                 return false;
             }
 
-            if (status !== 2) {
-                console.log('ERROR status 2====');
-            }
-
-            let giveupItem = {
-                minDeposit: selectedParam.minTopUpAmount,
-                status,
-                condition: {
-                    availableDeposit: 100,
-                    availableDepositTimes: player.name
-                }
-            };
-
-            if (isRewardAmountDynamic) {
-                giveupItem.promoRate = (selectedParam.rewardPercentage * 100) + "%";
-                giveupItem.promoLimit = selectedParam.maxRewardInSingleTopUp;
-                giveupItem.betTimes = selectedParam.spendingTimes;
-            }
-            else {
-                giveupItem.promoAmount = selectedParam.rewardAmount;
-                giveupItem.betTimes = selectedParam.spendingTimesOnReward;
-            }
-
-            giveup.push(giveupItem);
+            giveup.push(giveupData);
         }
 
         // display all players who applied for random reward within reward interval period
@@ -443,9 +359,6 @@ let dbPlayerReward = {
             }
 
             for (let z = 0; z < bonusListRewardProposals.length; z++) {
-                console.log('bonusListRewardProposals.data.playerName',bonusListRewardProposals[z].data.playerName);
-                console.log('bonusListRewardProposals.data.rewardAmount',bonusListRewardProposals[z].data.rewardAmount);
-                console.log('bonusListRewardProposals.settleTime',bonusListRewardProposals[z].settleTime);
                 bonusList[z] = {
                     accountNo: bonusListRewardProposals[z].data.playerName,
                     bonus: bonusListRewardProposals[z].data.rewardAmount,
@@ -485,9 +398,6 @@ let dbPlayerReward = {
             return dbRewardEvent.getPlatformRewardEventWithTypeName(platform._id, constRewardType.PLAYER_RANDOM_REWARD_GROUP, rewardCode);
         }).then(eventData => {
             console.log('eventData',eventData);
-            // console.log('player',player);
-            // console.log('platform',platform);
-            // console.log('playerLevel',playerLevel);
             event = eventData;
             if (!event) {
                 return Promise.reject({
@@ -561,7 +471,6 @@ let dbPlayerReward = {
             console.log('rewardProposals', rewardProposals);
             console.log('topUpRecords', topUpRecords);
             console.log('consumptionProposals', consumptionProposals);
-            // console.log('bonusListRewardProposals', bonusListRewardProposals);
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -572,13 +481,9 @@ let dbPlayerReward = {
                 });
             }
 
-            let isReachCountLimit = event.param && event.param.countInRewardInterval && rewardProposals.length > event.param.countInRewardInterval;
-            isRewardAmountDynamic = event.condition.isDynamicRewardAmount || isRewardAmountDynamic;
             let paramOfLevel = event.param.rewardParam[0].value;
             let selectedParam = null;
 
-            console.log('isReachCountLimit', isReachCountLimit);
-            console.log('event.param.countInRewardInterval', event.param.countInRewardInterval);
             console.log('event.condition.isPlayerLevelDiff', event.condition.isPlayerLevelDiff);
 
             // find param for matching player level
@@ -593,55 +498,9 @@ let dbPlayerReward = {
                 console.log('selectedParam', selectedParam);
             }
 
-            if (event.param.isSteppingReward) {
-                console.log('STEPPING=====');
-                for (let i = 0; i < rewardProposals.length; i++) {
-                    let selectedParamIndex = Math.min(i, paramOfLevel.length - 1);
-                    let selectedParam = paramOfLevel[selectedParamIndex];
-
-                    addParamToOpen(selectedParam, 2); // applied
-                }
-
-                let nextRewardParamIndex = Math.min(list.length, paramOfLevel.length - 1);
-                let nextRewardParam = paramOfLevel[nextRewardParamIndex];
-
-                if (!isReachCountLimit && topUpRecords && topUpRecords.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: topUpRecords})) {
-                    canApply = true;
-                    addParamToOpen(nextRewardParam, 1); // applicable
-                }
-
-                for (let i = list.length; i < paramOfLevel.length; i++) {
-                    let selectedParam = paramOfLevel[i];
-                    addParamToOpen(selectedParam, 0); // not applicable
-                }
-            }
-            else {
-                console.log('NO--STEPPING=====');
-                let applicableParamIndex = -1;
-                if (!isReachCountLimit && topUpRecords && topUpRecords.amount) {
-                    for (let i = 0; i < paramOfLevel.length; i++) {
-                        let selectedParam = paramOfLevel[i];
-                        if (selectedParam.minTopUpAmount <= topUpRecords.amount) {
-                            canApply = true;
-                            applicableParamIndex = i;
-                        }
-                    }
-                }
-                console.log('paramOfLevel', paramOfLevel);
-                console.log('paramOfLevel.length=====', paramOfLevel.length);
-
-                for (let i = 0; i < paramOfLevel.length; i++) {
-                    let selectedParam = paramOfLevel[i];
-                    let status = applicableParamIndex === i ? 1 : 0; // applicable : not applicable
-                    // addParamToOpen(selectedParam, status);
-                    // addParamToGet(selectedParam, status);
-                }
-            }
-
             console.log('selectedParam=======', selectedParam);
             console.log('event.condition.rewardAppearPeriod',event.condition.rewardAppearPeriod);
             if (event.condition.rewardAppearPeriod) {
-                // let isValid = false;
                 let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
                 console.log('todayWeekOfDay',todayWeekOfDay);
                 let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
@@ -673,9 +532,6 @@ let dbPlayerReward = {
 
                 // find amountList // list of reward amount that has applied
                 for (let z = 0; z < rewardProposals.length; z++) {
-                    // if (rewardProposals[z].amount >= selectedParam.requiredConsumptionAmount) {
-                    //     listValidRewardAmount += rewardProposals[z].amount;
-                    // }
                     let listAmount = rewardProposals[z].data.rewardAmount;
                     console.log('rewardProposals[z].data.rewardAmount',rewardProposals[z].data.rewardAmount);
                     listValidRewardAmount.push(listAmount);
@@ -684,17 +540,10 @@ let dbPlayerReward = {
 
                 event.condition.rewardAppearPeriod.forEach(appearPeriod => {
                     console.log('appearPeriod',appearPeriod);
+                    console.log('TRUE1');
 
-                    if (appearPeriod.startDate <= todayWeekOfDay && appearPeriod.startTime <= dayOfHour &&
-                        appearPeriod.endDate >= todayWeekOfDay && appearPeriod.endTime > dayOfHour
-                    ) {
-                        console.log('TRUE1');
-                        // isValid = true;
-                    }
-                    console.log('TRUE2');
-
-                    // status 0
-                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime >= dayOfHour) {
+                    // status 0 - reward event not yet started, countdown to start time
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime > dayOfHour && appearPeriod.endTime > dayOfHour) {
                         openID++;
                         console.log('openID11',openID);
 
@@ -705,10 +554,11 @@ let dbPlayerReward = {
                             id: openID,
                             startTime: appearPeriod.startTime,
                             endTime: appearPeriod.endTime,
-                            timeLeft: countdownToStartTime, //todo: in seconds
+                            timeLeft: countdownToStartTime,
+                            status: 0,
                             condition: {
                                 availableDeposit: totalValidTopup,
-                                availableDepositTimes: topUpRecords.length, //todo: find for unused topup
+                                availableDepositTimes: topUpRecords.length,
                                 requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 availableBetAmount: totalValidConsumption,
@@ -724,19 +574,14 @@ let dbPlayerReward = {
                             },
                             bonusCondition: {
                                 bet: selectedParam.spendingTimesOnReward,
-                                lockedGroup: 100
+                                lockedGroup: event.condition.providerGroup
                             }
                         };
-                        addParamToOpen(openData, 0);
+                        addParamToOpen(openData);
                     }
 
-                    // let rewardProposals = data[0];
-                    // let topUpRecords = data[1];
-                    // let consumptionProposals = data[2];
-                    // let bonusListRewardProposals = data[3];
-
-                    // status 1
-                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour) {
+                    // status 1 - reward event started
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour && appearPeriod.endTime > dayOfHour) {
                         openID++;
                         console.log('openID22',openID);
 
@@ -745,9 +590,10 @@ let dbPlayerReward = {
                             id: openID,
                             startTime: appearPeriod.startTime,
                             endTime: appearPeriod.endTime,
+                            status: 1,
                             condition: {
                                 availableDeposit: totalValidTopup,
-                                availableDepositTimes: topUpRecords.length, //todo: find for unused topup
+                                availableDepositTimes: topUpRecords.length,
                                 requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 availableBetAmount: totalValidConsumption,
@@ -763,14 +609,14 @@ let dbPlayerReward = {
                             },
                             bonusCondition: {
                                 bet: selectedParam.spendingTimesOnReward,
-                                lockedGroup: 100
+                                lockedGroup: event.condition.providerGroup
                             }
                         };
-                        addParamToOpen(openData, 1);
+                        addParamToOpen(openData);
                     }
 
-                    // status 2
-                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.endTime <= dayOfHour) {
+                    // status 2 - display already applied reward, within reward interval period (daily)
+                    if (appearPeriod.startDate == todayWeekOfDay) {
                         getID++;
 
                         console.log('status 2',appearPeriod);
@@ -778,10 +624,10 @@ let dbPlayerReward = {
                             id: getID,
                             startTime: appearPeriod.startTime,
                             endTime: appearPeriod.endTime,
+                            status: 2,
                             amountList: listValidRewardAmount,
-                            amountList2: [100,200,300],
                             condition: {
-                                availableDepositTimes: topUpRecords.length, //todo: find for unused topup
+                                availableDepositTimes: topUpRecords.length,
                                 requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 requestBetAmount: selectedParam.requiredConsumptionAmount,
@@ -793,28 +639,42 @@ let dbPlayerReward = {
                             },
                             bonusCondition: {
                                 bet: selectedParam.spendingTimesOnReward,
-                                lockedGroup: 100
+                                lockedGroup: event.condition.providerGroup
                             }
                         };
-
-                        giveupData = {
-                            startTime: appearPeriod.startTime,
-                            endTime: appearPeriod.endTime
-                        };
-
-                        addParamToGet(getData, 2);
-                        addParamToGiveup(giveupData, 3);
+                        addParamToGet(getData);
                     }
-                    console.log('TRUE3');
-                });
 
-                // if (!isValid) {
-                //     return Q.reject({
-                //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                //         name: "DataError",
-                //         message: "The period of the reward has not yet opened"
-                //     });
-                // }
+                    // status 3 - display reward event did not apply, event already ended
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime < dayOfHour && appearPeriod.endTime < dayOfHour) {
+                        giveupID++;
+
+                        console.log('status 3',appearPeriod);
+                        giveupData = {
+                            id: giveupID,
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime,
+                            status: 3,
+                            condition: {
+                                availableDepositTimes: topUpRecords.length,
+                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                betSource: event.condition.consumptionProvider,
+                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                grade: playerLevel._id,
+                                depositDevice: event.condition.userAgent,
+                                depositType: event.condition.topupType,
+                                onlineTopupType: event.condition.onlineTopUpType,
+                                bankCardType: event.condition.bankCardType
+                            },
+                            bonusCondition: {
+                                bet: selectedParam.spendingTimesOnReward,
+                                lockedGroup: event.condition.providerGroup
+                            }
+                        };
+                        addParamToGiveup(giveupData);
+                    }
+                    console.log('TRUE2');
+                });
             }
 
             if (bonusListRewardProposals) {
@@ -829,16 +689,6 @@ let dbPlayerReward = {
                 giveup: giveup,
                 bonusList: bonusList
             };
-
-            if (canApply) {
-                outputObject.topUpRecordId = topUpRecords._id;
-            }
-
-            if (event.param.countInRewardInterval) {
-                outputObject.maxApplyTimes = event.param.countInRewardInterval;
-                outputObject.appliedTimes = rewardProposals.length;
-            }
-
             return outputObject;
         });
     },
