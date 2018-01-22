@@ -312,6 +312,359 @@ let dbPlayerReward = {
         });
     },
 
+    getRandBonusInfo: (playerId, rewardCode, platformId) => {
+        let player, platform, playerLevel, firstProm, event, intervalTime;
+        let Open = [];
+        let get = [];
+        let giveup = [];
+        let bonusList = [];
+        let currentTime = new Date();
+
+        function addParamToOpen(openData) {
+            if (!openData) {
+                return false;
+            }
+
+            Open.push(openData);
+        }
+
+        function addParamToGet(getData) {
+            if (!getData) {
+                return false;
+            }
+
+            get.push(getData);
+        }
+
+        function addParamToGiveup(giveupData) {
+            if (!giveupData) {
+                return false;
+            }
+
+            giveup.push(giveupData);
+        }
+
+        // display all players who applied for random reward within reward interval period
+        function addParamToBonusList(bonusListRewardProposals) {
+            if (!bonusListRewardProposals) {
+                return false;
+            }
+
+            for (let z = 0; z < bonusListRewardProposals.length; z++) {
+                bonusList[z] = {
+                    accountNo: bonusListRewardProposals[z].data.playerName,
+                    bonus: bonusListRewardProposals[z].data.rewardAmount,
+                    time: bonusListRewardProposals[z].settleTime
+                };
+            }
+        }
+
+        if (playerId) {
+            let playerProm = dbConfig.collection_players.findOne({playerId})
+                .populate({path: "playerLevel", model: dbConfig.collection_playerLevel})
+                .populate({path: "platform", model: dbConfig.collection_platform})
+                .lean().then(playerData => {
+                    if (!playerData) {
+                        return Promise.reject({name: "DataError", message: "Invalid player data"});
+                    }
+
+                    player = playerData;
+                    platform = playerData.platform;
+                    playerLevel = playerData.playerLevel;
+                });
+            firstProm = playerProm;
+        } else {
+            let platformProm = dbConfig.collection_platform.findOne({platformId}).lean().then(platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Invalid player data"});
+                }
+
+                platform = platformData;
+            });
+            firstProm = platformProm;
+        }
+
+        return firstProm.then(() => {
+            return dbRewardEvent.getPlatformRewardEventWithTypeName(platform._id, constRewardType.PLAYER_RANDOM_REWARD_GROUP, rewardCode);
+        }).then(eventData => {
+            event = eventData;
+            if (!event) {
+                return Promise.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DataError",
+                    message: "Error in getting rewardEvent"
+                });
+            }
+
+            if (event.validStartTime && event.validStartTime > currentTime || event.validEndTime && event.validEndTime < currentTime) {
+                return Promise.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DataError",
+                    message: "This reward event is not valid anymore"
+                });
+            }
+
+            intervalTime = getIntervalPeriodFromEvent(event);
+
+            let similarRewardProposalProm = Promise.resolve([]);
+            let similarTopUpProm = Promise.resolve([]);
+            let similarConsumptionProposalProm = Promise.resolve([]);
+            let bonusListRewardProposalProm = Promise.resolve([]);
+
+            if (!player) {
+                return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm]);
+            }
+
+            // queries
+            let rewardProposalQuery = {
+                "data.platformObjId": platform._id,
+                "data.playerObjId": player._id,
+                "data.eventId": event._id,
+                status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            };
+            let topUpRecordQuery = {playerId: player._id};
+            let consumptionProposalQuery = {playerId: player._id};
+            let bonusListRewardProposalQuery = {
+                "data.platformObjId": platform._id,
+                "data.eventId": event._id,
+                status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            };
+
+            // check query is within reward interval period
+            if (intervalTime) {
+                rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                topUpRecordQuery.settlementTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                consumptionProposalQuery.insertTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                bonusListRewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+            }
+
+            similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
+            similarTopUpProm = dbConfig.collection_playerTopUpRecord.find(topUpRecordQuery).sort({createTime: -1}).lean();
+            similarConsumptionProposalProm = dbConfig.collection_playerConsumptionRecord.find(consumptionProposalQuery).sort({createTime: -1}).lean();
+            bonusListRewardProposalProm = dbConfig.collection_proposal.find(bonusListRewardProposalQuery).sort({createTime: -1}).lean();
+
+            return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm]);
+        }).then(data => {
+            if (!data || !data[0] || !data[1] || !data[2] || !data[3]) {
+                return Promise.reject({
+                    status: constServerCode.DOCUMENT_NOT_FOUND,
+                    message: "Error in finding proposal"
+                });
+            }
+            let rewardProposals = data[0];
+            let topUpRecords = data[1];
+            let consumptionProposals = data[2];
+            let bonusListRewardProposals = data[3];
+
+            // big big null check
+            if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
+                return Promise.reject({
+                    status: constServerCode.REWARD_EVENT_INVALID,
+                    name: "DataError",
+                    message: "Invalid reward event"
+                });
+            }
+
+            let paramOfLevel = event.param.rewardParam[0].value;
+            let selectedParam = null;
+
+            // find param for matching player level
+            if (event.condition.isPlayerLevelDiff && player) {
+                let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
+                if (rewardParam && rewardParam[0] && rewardParam[0].value) {
+                    paramOfLevel = rewardParam[0].value;
+                }
+            } else {
+                selectedParam = paramOfLevel[0];
+            }
+
+            if (event.condition.rewardAppearPeriod) {
+                let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
+                let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
+
+                let openData, getData, giveupData;
+                let totalValidTopup = 0;
+                let totalAvailableTopup = 0;
+                let totalValidConsumption = 0;
+                let listValidRewardAmount = [];
+                let openID = 0;
+                let getID = 0;
+                let giveupID = 0;
+
+                // find availableDeposit // total top up amount that is valid
+                for (let w = 0; w < topUpRecords.length; w++) {
+                    if (topUpRecords[w].amount >= selectedParam.requiredTopUpAmount) {
+                        totalValidTopup += topUpRecords[w].amount;
+                    }
+                }
+
+                // find availableDepositTimes // total number of valid top up that is still unused or available to apply reward
+                for (let x = 0; x < topUpRecords.length; x++) {
+                    if (topUpRecords[x].amount >= selectedParam.requiredTopUpAmount && topUpRecords[x].bDirty === false) {
+                        totalAvailableTopup++;
+                    }
+                }
+
+                // find availableBetAmount // total consumption amount that is valid
+                for (let y = 0; y < consumptionProposals.length; y++) {
+                    if (consumptionProposals[y].amount >= selectedParam.requiredConsumptionAmount) {
+                        totalValidConsumption += consumptionProposals[y].amount;
+                    }
+                }
+
+                // find amountList // list of reward amount that has applied
+                for (let z = 0; z < rewardProposals.length; z++) {
+                    let listAmount = rewardProposals[z].data.rewardAmount;
+                    listValidRewardAmount.push(listAmount);
+                }
+
+                event.condition.rewardAppearPeriod.forEach(appearPeriod => {
+
+                    // status 0 - reward event not yet started, countdown to start time
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime > dayOfHour && appearPeriod.endTime > dayOfHour) {
+                        openID++;
+                        let startTimeInt = parseInt(appearPeriod.startTime);
+                        let startTimeSetHours = currentTime.setHours(startTimeInt,0,0);
+                        let countdownToStartTime = parseInt((startTimeSetHours - new Date().getTime()) / 1000);
+
+                        openData = {
+                            id: openID,
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime,
+                            timeLeft: countdownToStartTime,
+                            status: 0,
+                            condition: {
+                                availableDeposit: totalValidTopup,
+                                availableDepositTimes: totalAvailableTopup,
+                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                betSource: event.condition.consumptionProvider,
+                                availableBetAmount: totalValidConsumption,
+                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                availableChances: selectedParam.numberParticipation - rewardProposals.length,
+                                usedChances: rewardProposals.length,
+                                totalChances: selectedParam.numberParticipation,
+                                grade: playerLevel._id,
+                                depositDevice: event.condition.userAgent,
+                                depositType: event.condition.topupType,
+                                onlineTopupType: event.condition.onlineTopUpType,
+                                bankCardType: event.condition.bankCardType
+                            },
+                            bonusCondition: {
+                                bet: selectedParam.spendingTimesOnReward,
+                                lockedGroup: event.condition.providerGroup
+                            }
+                        };
+                        addParamToOpen(openData);
+                    }
+
+                    // status 1 - reward event started
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour && appearPeriod.endTime > dayOfHour) {
+                        openID++;
+
+                        openData = {
+                            id: openID,
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime,
+                            status: 1,
+                            condition: {
+                                availableDeposit: totalValidTopup,
+                                availableDepositTimes: totalAvailableTopup,
+                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                betSource: event.condition.consumptionProvider,
+                                availableBetAmount: totalValidConsumption,
+                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                availableChances: selectedParam.numberParticipation - rewardProposals.length,
+                                usedChances: rewardProposals.length,
+                                totalChances: selectedParam.numberParticipation,
+                                grade: playerLevel._id,
+                                depositDevice: event.condition.userAgent,
+                                depositType: event.condition.topupType,
+                                onlineTopupType: event.condition.onlineTopUpType,
+                                bankCardType: event.condition.bankCardType
+                            },
+                            bonusCondition: {
+                                bet: selectedParam.spendingTimesOnReward,
+                                lockedGroup: event.condition.providerGroup
+                            }
+                        };
+                        addParamToOpen(openData);
+                    }
+
+                    // status 2 - display already applied reward, within reward interval period (daily)
+                    if (appearPeriod.startDate == todayWeekOfDay) {
+                        getID++;
+
+                        getData = {
+                            id: getID,
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime,
+                            status: 2,
+                            amountList: listValidRewardAmount,
+                            condition: {
+                                availableDepositTimes: totalAvailableTopup,
+                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                betSource: event.condition.consumptionProvider,
+                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                grade: playerLevel._id,
+                                depositDevice: event.condition.userAgent,
+                                depositType: event.condition.topupType,
+                                onlineTopupType: event.condition.onlineTopUpType,
+                                bankCardType: event.condition.bankCardType
+                            },
+                            bonusCondition: {
+                                bet: selectedParam.spendingTimesOnReward,
+                                lockedGroup: event.condition.providerGroup
+                            }
+                        };
+                        addParamToGet(getData);
+                    }
+
+                    // status 3 - display reward event did not apply, event already ended
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime < dayOfHour && appearPeriod.endTime < dayOfHour) {
+                        giveupID++;
+
+                        giveupData = {
+                            id: giveupID,
+                            startTime: appearPeriod.startTime,
+                            endTime: appearPeriod.endTime,
+                            status: 3,
+                            condition: {
+                                availableDepositTimes: totalAvailableTopup,
+                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                betSource: event.condition.consumptionProvider,
+                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                grade: playerLevel._id,
+                                depositDevice: event.condition.userAgent,
+                                depositType: event.condition.topupType,
+                                onlineTopupType: event.condition.onlineTopUpType,
+                                bankCardType: event.condition.bankCardType
+                            },
+                            bonusCondition: {
+                                bet: selectedParam.spendingTimesOnReward,
+                                lockedGroup: event.condition.providerGroup
+                            }
+                        };
+                        addParamToGiveup(giveupData);
+                    }
+                });
+            }
+
+            if (bonusListRewardProposals) {
+                addParamToBonusList(bonusListRewardProposals);
+            }
+
+            let outputObject = {
+                startTime: intervalTime.startTime,
+                endTime: intervalTime.endTime,
+                open: Open,
+                get: get,
+                giveup: giveup,
+                bonusList: bonusList
+            };
+            return outputObject;
+        });
+    },
+
     getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform, applyTargetTime) => {
         // reward event code is an optional value, getting the latest relevant event by default
         let currentTime = applyTargetTime || new Date();
