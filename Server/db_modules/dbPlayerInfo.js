@@ -2063,6 +2063,9 @@ let dbPlayerInfo = {
                 if (query.dirty != null) {
                     queryObject.bDirty = query.dirty;
                 }
+                if (!games) {
+                    queryObject.cpGameType = query.gameName;
+                }
                 if (bGameSearch) {
                     queryObject.gameId = {
                         $in: gamesId
