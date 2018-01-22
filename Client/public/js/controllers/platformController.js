@@ -4612,7 +4612,13 @@ define(['js/app'], function (myApp) {
                             sClass: "wordWrap realNameCell",
                             advSearch: true
                         },
-                        {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
+                        {
+                            title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight",
+                            render: function (data, type, row) {
+                                let value = (Math.floor( data * 10 ) / 10).toFixed(1);
+                                return value;
+                            }
+                        },
                         // {
                         //     title: $translate('STATUS'), data: 'status',
                         //     render: function (data, type, row) {
@@ -16033,6 +16039,12 @@ define(['js/app'], function (myApp) {
                 vm.smsGroups.push({smsName:smsSetting.name ,smsParentSmsId: smsSetting.group, platformObjId:vm.selectedPlatform.data._id});
                 vm.noGroupSmsSetting.splice(index, 1);
             }
+
+            vm.filterSmsSettingGroup = (parentSmsId) => {
+                return (smsSettingGroup) => {
+                    return smsSettingGroup.smsParentSmsId == parentSmsId;
+                }
+            };
 
             vm.addNewSmsGroup = () => {
                 socketService.$socket($scope.AppSocket, 'addNewSmsGroup', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
