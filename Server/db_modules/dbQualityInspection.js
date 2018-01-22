@@ -29,7 +29,7 @@ var dbQualityInspection = {
         var deferred = Q.defer();
         var connection = dbQualityInspection.connectMysql();
         connection.connect();
-        connection.query("SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:10:00' AS DATETIME);", function (error, results, fields) {
+        connection.query("SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:5:00' AS DATETIME);", function (error, results, fields) {
             console.log('yeah');
             if (error) throw error;
             console.log('The solution is: ', results);

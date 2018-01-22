@@ -16,6 +16,7 @@ define(['js/app'], function (myApp) {
                 APPEALING: 1,
                 APPEAL_COMPLETED: 1
             };
+<<<<<<< HEAD
 
             vm.constQualityInspectionStatus = {
                 1: "PENDING",
@@ -29,6 +30,23 @@ define(['js/app'], function (myApp) {
 
             vm.unseenEvaluationSelectedRecord = [];
 
+=======
+            vm.roleType = {
+                1: '客服',
+                2: '访客',
+                3: 'System'
+            }
+            vm.conversationStatus = {
+                1: 'pending',
+                2: 'completed(unread)',
+                3: 'completed(read)',
+                4: 'completed',
+                5: 'appealing',
+                6: 'appeal completed',
+                7: 'not evaluated(invalid)'
+            }
+            vm.rateMsgId = null;
+>>>>>>> mark/mark_live801
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("qualityInspection") + "->" + $translate(vm.qualityInspectionPageName);
@@ -165,23 +183,57 @@ define(['js/app'], function (myApp) {
                     console.log(data);
                     vm.conversationForm = [];
                     data.data.forEach(item=>{
+                        console.log(item);
+                        let live800Chat = {conversation:[]};
+                        live800Chat.messageId = item.msg_id;
+                        live800Chat.status = vm.conversationStatus[1];
+                        live800Chat.qualityAssessor = '';
+                        live800Chat.fpmsAcc = item.operator_name;
+                        live800Chat.process_time = null;
+                        live800Chat.appeal_reason = '';
+
+                        live800Chat.operator_id = item.operator_id;
+                        live800Chat.operator_name = item.operator_name;
+
                         let content = $.parseHTML(item.content);
                         let contentArr = [];
                         $.each(content, function(i, el){
-                            console.log(el);
-                            contentArr.push(String(el));
+                            let type;
+                            if(el.localName=='i'){
+                                type = 1;
+                            }else if(el.localName=='he'){
+                                type = 2;
+                            }else{
+                                type = 3;
+                            }
+                            let dialog = {
+                                'time':el['attributes'][0] ?el['attributes'][0].value:'' ,
+                                'roles':type,
+                                'roleName':vm.roleType[type],
+                                'create_time':el['attributes'][0] ?el['attributes'][0].value:'' ,
+                                'timeout_rate':0,
+                                'inspection_rate':0,
+                                'review':'',
+                                'content':el.innerHTML ? el.innerHTML :''
+                            }
+                            contentArr.push(dialog);
+                            live800Chat.conversation.push(dialog);
+
                         })
-                        item.content = contentArr;
-                        console.log(contentArr);
-                        vm.conversationForm.push(item);
+                        //item.contents = contentArr;
+
+                        vm.conversationForm.push(live800Chat);
 
                     })
                     console.log(vm.conversationForm);
                     // $scope.safeApply();
                 }
             }
+            vm.rateconversation = function(msgId){
+                vm.rateMsgId = msgId;
+                alert('example: '+vm.rateMsgId);
+            }
             vm.showLive800 = function(){
-
                 setTimeout(function(){
                     $scope.safeApply();
                 },0)

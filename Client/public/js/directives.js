@@ -336,10 +336,14 @@ angular.module('myApp.directives', [])
             controllerAs:'vm',
             translude: true,
             scope: {
-                cform:'='
+                cform:'=',
+                rateconversation:"&"
             },
             template: $('#conversationForm').html(),
             link:function(scope, element, attr){
+                scope.rateIt = function(id){
+                    scope.rateMsgId = id;
+                }
 
             }
         };
@@ -349,13 +353,14 @@ angular.module('myApp.directives', [])
             retrict: 'EA',
             replace: true,
             controllerAs:'vm',
-            translude: true,
+            transclude: true,
             scope: {
                 qform:'='
             },
             template: $('#QAForm').html(),
             link:function(scope, element, attr){
-            }
+                console.log(attr);
+           }
         };
     })
     // sheetjs.com js-xlsx - spreadsheet parser and writer

@@ -133,6 +133,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
     #QAForm
         div.row
             div.col-md-1(style='display:inline-block;padding-left:5px;')
+<<<<<<< HEAD
                 //label {{qform.conversation}}
                 input.form-control(type="checkbox",ng-model="qform.checkBox", value="{{qform.messageId}}", ng-change="vm.gatherCheckedRecord()")
             div.col-md-1(style='display:inline-block;padding-left:5px;') {{qform.status | translate}}
@@ -145,6 +146,19 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                     div.col-md-1 {{convert.timeoutRate}}
                     div.col-md-1 {{convert.inspectionRate}}
                     div.col-md-1 {{convert.review}}
+=======
+                input.form-control(type="checkbox", value="{{qform.messageId}}")
+            div.col-md-1(style='display:inline-block;padding-left:5px;') {{qform.status}}
+            div.col-md-7
+                div.innerConversation.row(ng-repeat='tt in qform.conversation')
+                    //div.col-md-1 {{qform.fpmsAcc}}
+                    div(style="width:10%") {{tt.roles}}
+                    div(style="width:10%") {{tt.createTime}}
+                    div(style="width:50%") {{tt.content}}
+                    div(style="width:10%") {{tt.timeoutRate}}
+                    div(style="width:10%") {{tt.inspectionRate}}
+                    div(style="width:10%") {{tt.review}}
+>>>>>>> mark/mark_live801
 
             div.col-md-1(style='display:inline-block;padding-left:5px;') {{qform.qualityAssessor}}
             div.col-md-1(style='display:inline-block;padding-left:5px;') {{qform.processTime}}
