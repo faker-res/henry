@@ -422,7 +422,8 @@ var proposalExecutor = {
                     isRepaired => {
                         if (!isRepaired) {
                             setTransferIdAsRepaired(proposalData.data.transferId).catch(errorUtils.reportError);
-                            proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+
+                            return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean();
                         }
                         else {
                             deferred.reject({name: "DataError", message: "This transfer has been repaired."});
@@ -430,6 +431,16 @@ var proposalExecutor = {
                     },
                     err => {
                         deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error(err)});
+                    }
+                ).then(
+                    platform => {
+                        if (platform && platform.useProviderGroup) {
+                            fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
+                                deferred.resolve, deferred.reject);
+                        }
+                        else {
+                            proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                        }
                     }
                 );
             },
@@ -3271,6 +3282,127 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
             } else {
                 return Q.reject(error);
             }
+        }
+    );
+}
+
+function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalData) {
+    let transferLog, providerGroup, player, provider;
+    let changedValidCredit = 0, changedLockedCredit = 0;
+    return dbconfig.collection_playerCreditTransferLog.findOne({transferId}).lean().then(
+        transferLogData => {
+            if (!transferLogData) {
+                return;
+            }
+
+            transferLog = transferLogData;
+
+            return dbconfig.collection_gameProvider.findOne({providerId: transferLog.providerId}).lean();
+        }
+    ).then(
+        providerData => {
+            if (!providerData) {
+                return;
+            }
+
+            provider = providerData;
+
+            let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({
+                platform: transferLog.platformObjId,
+                providers: provider._id,
+            }).lean();
+
+            let playerProm = dbconfig.collection_players.findOne({_id: transferLog.playerObjId}).lean();
+
+            return Promise.all([gameProviderGroupProm, playerProm]);
+        }
+    ).then(
+        data => {
+            if (!data || !data[0] || !data[1]) {
+                return;
+            }
+            providerGroup = data[0];
+            player = data[1];
+
+            return dbconfig.collection_rewardTaskGroup.findOne({
+                platformId: transferLog.platformObjId,
+                playerId: transferLog.playerObjId,
+                providerGroup: providerGroup._id,
+                status: {$in: [constRewardTaskStatus.STARTED]}
+            }).lean();
+        }
+    ).then(
+        rewardTaskGroup => {
+            if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
+                changedValidCredit = rewardTaskGroup._inputFreeAmt;
+                changedLockedCredit = rewardTaskGroup._inputRewardAmt;
+                let lockedAmount = rewardTaskGroup.rewardAmt + rewardTaskGroup._inputRewardAmt;
+                let validCredit = rewardTaskGroup._inputFreeAmt;
+
+                let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                    _id: rewardTaskGroup._id,
+                    platformId: rewardTaskGroup.platformId
+                }, {
+                    rewardAmt: lockedAmount,
+                    _inputRewardAmt: 0,
+                    _inputFreeAmt: 0,
+                    inProvider: false
+                }, {
+                    new: true
+                }).lean();
+
+                let updateValidCredit = dbconfig.collection_players.findOneAndUpdate({
+                    _id: player._id,
+                    platform: player.platform
+                }, {
+                    $inc: {
+                        validCredit: validCredit > 0 ? validCredit : 0
+                    }
+                }, {
+                    new: true
+                });
+
+                return Promise.all([updateValidCredit, updateRewardTaskGroupProm]);
+            }
+            else {
+                changedValidCredit = creditAmount;
+
+                let updateValidCredit = dbconfig.collection_players.findOneAndUpdate({
+                    _id: player._id,
+                    platform: player.platform
+                }, {
+                    $inc: {
+                        validCredit: creditAmount > 0 ? creditAmount : 0
+                    }
+                }, {
+                    new: true
+                });
+
+                return Promise.all([updateValidCredit]);
+            }
+        }
+    ).then(
+        updatedData => {
+            if (!updatedData || !updatedData[0]) {
+                return;
+            }
+
+            let updatedPlayer = updatedData[0];
+            if (updatedPlayer.validCredit < 0) {
+                updatedPlayer.validCredit = 0;
+            }
+            if (updatedPlayer.lockedCredit < 0) {
+                updatedPlayer.lockedCredit = 0;
+            }
+            return updatedPlayer.save();
+        },
+        error => {
+            return Promise.reject({name: "DBError", message: "Error updating player.", error: error});
+        }
+    ).then(
+        updatedPlayer => {
+            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, player.validCredit, null, changedLockedCredit, null, proposalData);
+            return updatedPlayer;
         }
     );
 }
