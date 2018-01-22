@@ -3,7 +3,7 @@
  * Please don't change the order/sequence of status
  */
 const constQualityInspectionStatus = {
-    PENDING: 1,
+    PENDINGTOPROCESS: 1,
     COMPLETED_UNREAD: 2,
     COMPLETED_READ: 3,
     COMPLETED:4,
