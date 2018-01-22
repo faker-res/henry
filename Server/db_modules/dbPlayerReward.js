@@ -326,7 +326,17 @@ let dbPlayerReward = {
             if (!gradeListData) {
                 return false;
             }
-            gradeList = {};
+
+            for (let z = 0; z < gradeListData.length; z++) {
+                gradeList[z] = {
+                    gradeId: gradeListData[z].levelId,
+                    gradeName: gradeListData[z].levelId,
+                    requestDeposit: gradeListData[z].value[0].requiredTopUpAmount,
+                    requestBetAmount: gradeListData[z].value[0].requiredConsumptionAmount,
+                    totalChances: gradeListData[z].value[0].numberParticipation,
+                    bet: gradeListData[z].value[0].spendingTimesOnReward
+                };
+            }
         }
 
         function addParamToOpen(openData) {
