@@ -491,9 +491,9 @@ let dbPlayerReward = {
                 let getID = 0;
                 let giveupID = 0;
 
-                // find availableDeposit // total top up amount that is valid
+                // find availableDeposit // total top up amount that is valid and still unused to apply reward
                 for (let w = 0; w < topUpRecords.length; w++) {
-                    if (topUpRecords[w].amount >= selectedParam.requiredTopUpAmount) {
+                    if (topUpRecords[w].amount >= selectedParam.requiredTopUpAmount && topUpRecords[w].bDirty === false) {
                         totalValidTopup += topUpRecords[w].amount;
                     }
                 }
