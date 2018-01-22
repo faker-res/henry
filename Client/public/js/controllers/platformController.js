@@ -4347,8 +4347,8 @@ define(['js/app'], function (myApp) {
                         item.commissionAmount$ = item.commissionAmount.toFixed(2);
                         item.canConsumptionReturn$ = Boolean(!item.bDirty) ? $translate('ABLE') : $translate('UNABLE');
                         item.roundResult$ = item.result || "";
-                        item.roundId$ = item.playNo || "";
-                        item.matchId$ = item.roundNo || "";
+                        item.roundId$ = item.roundNo || "";
+                        item.matchId$ = item.playNo || "";
                         item.gameType$ = item.cpGameType || item.gameId.name || "";
                         item.betType$ = item.betType ||"";
                         item.remark$ = item.playDetail || "";
@@ -9498,8 +9498,8 @@ define(['js/app'], function (myApp) {
                             // record.bDirty$ = record.bDirty ? $translate('Yes') : $translate('No');
                             record.bDirty$ = record.bDirty ? $translate('UNABLE') : $translate('ABLE');
                             record.roundResult$ = record.result || "";
-                            record.roundId$ = record.playNo || "";
-                            record.matchId$ = record.roundNo || "";
+                            record.roundId$ = record.roundNo || "";
+                            record.matchId$ = record.playNo || "";
                             record.gameType$ = record.cpGameType || record.gameId.name || "";
                             record.betType$ = record.betType ||"";
                             record.remark$ = record.playDetail || "";
