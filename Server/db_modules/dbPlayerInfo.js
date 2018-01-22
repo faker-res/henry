@@ -4664,6 +4664,13 @@ let dbPlayerInfo = {
                         if (bTransfered) {
                             console.error(err);
                             if (err && err.errorMessage && err.errorMessage.indexOf('Request timeout') > -1) {
+                                // Log credit change when transfer timeout
+                                dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -amount, constPlayerCreditChangeType.TRANSFER_IN_FAILED, playerCredit, 0, -rewardAmount, null, {
+                                    providerId: providerShortId,
+                                    providerName: cpName,
+                                    transferId: transferId,
+                                    adminName: adminName
+                                });
                             } else {
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {_id: playerObjId, platform: platform},
