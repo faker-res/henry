@@ -218,7 +218,13 @@ var dbQualityInspection = {
                 data.qualityAssessor = adminName;
                 return dbconfig.collection_qualityInspection(data).save();
             }else{
-                deferred.reject({name: "DBError", message: "It's Exist"})
+                dbconfig.collection_qualityInspection.findOneAndUpdate(
+                    {messageId: data.messageId},
+                    data
+                ).then(data=>{
+                    console.log(data);
+                })
+                // deferred.reject({name: "DBError", message: "It's Exist"})
             }
         })
         return deferred.promise;

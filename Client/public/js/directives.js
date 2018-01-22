@@ -342,10 +342,12 @@ angular.module('myApp.directives', [])
             },
             template: $('#conversationForm').html(),
             link:function(scope, element, attr){
-                scope.rateIt = function(id){
-                    scope.rateMsgId = id;
+                scope.rateIt = function(conversation){
+                    conversation.editable = true;
                 }
-
+                scope.cancelrate = function(conversation){
+                    conversation.editable = false;
+                }
             }
         };
     })

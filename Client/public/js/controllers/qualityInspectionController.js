@@ -186,6 +186,7 @@ define(['js/app'], function (myApp) {
                         item.conversation.forEach(function(cv){
                             cv.roleName = vm.roleType[item.type];
                         })
+                        item.editable = false;
                     });
                     $scope.safeApply();
                 }
@@ -197,9 +198,7 @@ define(['js/app'], function (myApp) {
             vm.confirmRate = function(rate){
                 console.log(rate);
                 socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
-
                     console.log(data);
-
                 });
             }
             vm.showLive800 = function(){
