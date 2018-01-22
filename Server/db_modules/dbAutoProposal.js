@@ -69,7 +69,7 @@ let dbAutoProposal = {
                 // System log for selected proposals to auto audit
                 console.log('Processing auto audit proposals: ', proposal.proposalId);
 
-                return useProviderGroup ? checkRewardTaskGroup(proposal, platformObj) : checkProposalConsumption(proposal, platformObj)
+                return (platformObj.useProviderGroup || useProviderGroup)  ? checkRewardTaskGroup(proposal, platformObj) : checkProposalConsumption(proposal, platformObj)
             }));
         }
     },

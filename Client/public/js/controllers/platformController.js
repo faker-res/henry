@@ -5096,12 +5096,12 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-comment margin-right-5 ' + (perm.SMSFeedBack === false ? "text-danger" : "text-primary"),
                                 }));
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.PlayerLimitedOfferReward === false ? "limitedRewardRed.png" : "limitedRewardBlue.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
+                                // link.append($('<img>', {
+                                //     'class': 'margin-right-5 ',
+                                //     'src': "images/icon/" + (perm.PlayerLimitedOfferReward === false ? "limitedRewardRed.png" : "limitedRewardBlue.png"),
+                                //     height: "14px",
+                                //     width: "14px",
+                                // }));
 
                                 link.append($('<i>', {
                                     'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
@@ -5872,12 +5872,12 @@ define(['js/app'], function (myApp) {
                                     // PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"},
                                     phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone"},
                                     SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment"},
-                                    PlayerLimitedOfferReward: {
-                                        imgType: 'img',
-                                        src: "images/icon/limitedRewardBlue.png",
-                                        width: "26px",
-                                        height: '26px'
-                                    },
+                                    // PlayerLimitedOfferReward: {
+                                    //     imgType: 'img',
+                                    //     src: "images/icon/limitedRewardBlue.png",
+                                    //     width: "26px",
+                                    //     height: '26px'
+                                    // },
                                     banReward: {imgType: 'i', iconClass: "fa fa-gift"},
                                     rewardPointsTask: {
                                         imgType: 'img',

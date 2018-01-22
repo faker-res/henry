@@ -1983,11 +1983,12 @@ let dbPlayerInfo = {
         var deferred = Q.defer();
         dbconfig.collection_players.findOneAndUpdate(
             {_id: playerId, platform: platformId},
-            {$inc: {validCredit: amount}}
+            {$inc: {validCredit: amount}},
+            {new: true}
         ).then(
             function (res) {
                 if (res) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, type, res.validCredit, operatorId, data);
+                    dbLogger.createCreditChangeLogWithLockedCredit(playerId, platformId, amount, type, res.validCredit, 0, 0, operatorId, data);
                     deferred.resolve(res);
                 }
                 else {
@@ -2401,7 +2402,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, constPlayerCreditChangeType.PURCHASE, data.validCredit);
+                    dbLogger.createCreditChangeLogWithLockedCredit(playerId, platformId, amount, constPlayerCreditChangeType.PURCHASE, data.validCredit, 0, 0);
                     var recordData = {
                         playerId: playerId,
                         platformId: platformId,
@@ -3069,7 +3070,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                dbLogger.createCreditChangeLog(data[1]._id, data[1].platform, -amount, constRewardType.GAME_PROVIDER_REWARD, data[1].validCredit, null, proposalData.data);
+                dbLogger.createCreditChangeLogWithLockedCredit(data[1]._id, data[1].platform, -amount, constRewardType.GAME_PROVIDER_REWARD, data[1].validCredit, 0, 0, null, proposalData.data);
                 deferred.resolve(data[0]);
             }, function (error) {
                 deferred.reject({name: "DBError", message: "Error creating proposal", error: error});
@@ -7631,14 +7632,13 @@ let dbPlayerInfo = {
             ).then(
                 RTGs => {
                     if (!RTGs) {
-                        // if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
-                        //     || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                        //         name: "DataError",
-                        //         errorMessage: "Player does not have valid payment information"
-                        //     });
-                        // }
+                        if (!player.bankName || !player.bankAccountName || !player.bankAccount ) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                                name: "DataError",
+                                errorMessage: "Player does not have valid payment information"
+                            });
+                        }
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
 
@@ -7795,7 +7795,7 @@ let dbPlayerInfo = {
                 proposal => {
                     if (proposal) {
                         if (bUpdateCredit) {
-                            dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
+                            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, 0, 0, null, proposal);
                         }
                         dbConsumptionReturnWithdraw.reduceXimaWithdraw(player._id, ximaWithdrawUsed).catch(errorUtils.reportError);
                         return proposal;
@@ -10866,7 +10866,7 @@ let dbPlayerInfo = {
                 if (!player) {
                     return Q.reject({name: "DataError", message: "Can't update player credit: player not found."});
                 }
-                dbLogger.createCreditChangeLog(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, null, data);
+                dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, 0, 0, null, data);
                 return player;
             },
             error => {
