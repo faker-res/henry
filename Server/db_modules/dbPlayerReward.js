@@ -491,9 +491,9 @@ let dbPlayerReward = {
                 let getID = 0;
                 let giveupID = 0;
 
-                // find availableDeposit // total top up amount that is valid
+                // find availableDeposit // total top up amount that is valid and still unused to apply reward
                 for (let w = 0; w < topUpRecords.length; w++) {
-                    if (topUpRecords[w].amount >= selectedParam.requiredTopUpAmount) {
+                    if (topUpRecords[w].amount >= selectedParam.requiredTopUpAmount && topUpRecords[w].bDirty === false) {
                         totalValidTopup += topUpRecords[w].amount;
                     }
                 }
@@ -519,10 +519,12 @@ let dbPlayerReward = {
                 }
 
                 event.condition.rewardAppearPeriod.forEach(appearPeriod => {
-
                     // status 0 - reward event not yet started, countdown to start time
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime > dayOfHour && appearPeriod.endTime > dayOfHour) {
                         openID++;
+                        let openIDStr = openID.toString();
+                        openID = openIDStr.padStart(3, "0");
+
                         let startTimeInt = parseInt(appearPeriod.startTime);
                         let startTimeSetHours = currentTime.setHours(startTimeInt,0,0);
                         let countdownToStartTime = parseInt((startTimeSetHours - new Date().getTime()) / 1000);
@@ -560,6 +562,8 @@ let dbPlayerReward = {
                     // status 1 - reward event started
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour && appearPeriod.endTime > dayOfHour) {
                         openID++;
+                        let openIDStr = openID.toString();
+                        openID = openIDStr.padStart(3, "0");
 
                         openData = {
                             id: openID,
@@ -593,6 +597,8 @@ let dbPlayerReward = {
                     // status 2 - display already applied reward, within reward interval period (daily)
                     if (appearPeriod.startDate == todayWeekOfDay) {
                         getID++;
+                        let getIDStr = getID.toString();
+                        getID = getIDStr.padStart(3, "0");
 
                         getData = {
                             id: getID,
@@ -622,6 +628,8 @@ let dbPlayerReward = {
                     // status 3 - display reward event did not apply, event already ended
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime < dayOfHour && appearPeriod.endTime < dayOfHour) {
                         giveupID++;
+                        let giveupIDStr = giveupID.toString();
+                        giveupID = giveupIDStr.padStart(3, "0");
 
                         giveupData = {
                             id: giveupID,
