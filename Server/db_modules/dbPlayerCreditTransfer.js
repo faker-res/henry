@@ -1419,10 +1419,19 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                     } else if (curGameCredit < totalInputCredit) {
                         // Scenario 2: User loses
                         let userLoses = totalInputCredit - curGameCredit;
+                        let rewardAmt = rewardGroupObj._inputRewardAmt;
+                        let freeAmt = rewardGroupObj._inputFreeAmt - userLoses;
+
+                        if (userLoses > rewardGroupObj._inputFreeAmt){
+                            freeAmt = 0;
+                            let userLosesLeft = userLoses - rewardGroupObj._inputFreeAmt;
+
+                            rewardAmt = (userLosesLeft >= rewardGroupObj._inputRewardAmt) ? 0 : rewardGroupObj._inputRewardAmt - userLosesLeft;
+                        }
 
                         updateObj = {
-                            rewardAmt: rewardGroupObj._inputRewardAmt,
-                            freeAmt: rewardGroupObj._inputFreeAmt - userLoses,
+                            rewardAmt: rewardAmt,
+                            freeAmt: freeAmt,
                             _inputRewardAmt: 0,
                             _inputFreeAmt: 0
                         };
