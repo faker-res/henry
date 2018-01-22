@@ -201,6 +201,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPayment, [userAgent, data.query, {forbidTopUpType: data.updateData.forbidTopUpType}, true], actionName, isValidData);
         },
 
+        updatePlayerForbidPaymentType: function updatePlayerForbidPaymentType(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidPaymentType, [data.query, data.updateData.forbidTopUpType], actionName, isValidData);
+        },
+
         /**
          * Update player status
          * @param {json} data - It has to contain _id, status and reason

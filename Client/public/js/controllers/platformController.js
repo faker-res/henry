@@ -9843,7 +9843,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 console.log('sendData', sendData)
-                socketService.$socket($scope.AppSocket, 'updatePlayerPayment', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'updatePlayerForbidPaymentType', sendData, function (data) {
                     vm.getPlatformPlayersData();
                     let forbidTopUpNames = [];
                     for (let i = 0; i < data.data.forbidTopUpType.length; i++) {
