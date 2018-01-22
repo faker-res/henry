@@ -2109,6 +2109,8 @@
   "Provider Monitor": "投注记录监控",
   "Consumption monitor": "投注记录监控",
   "Caller ID": "座席号",
+  "LIVE800 COMPANYID": "Live800公司ID（可多个用逗号区分）",
+  "LIVE800 ACC": "Live800账号（可多个用逗号区分）",
   "Disabled Providers": "禁用游戏供应商",
   "PlayerTopUpReward": "玩家充值大冒险优惠",
   "PlayerReferralReward": "玩家推荐优惠",
