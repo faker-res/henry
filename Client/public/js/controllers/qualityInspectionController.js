@@ -16,7 +16,6 @@ define(['js/app'], function (myApp) {
                 APPEALING: 1,
                 APPEAL_COMPLETED: 1
             };
-<<<<<<< HEAD
 
             vm.constQualityInspectionStatus = {
                 1: "PENDING",
@@ -30,7 +29,6 @@ define(['js/app'], function (myApp) {
 
             vm.unseenEvaluationSelectedRecord = [];
 
-=======
             vm.roleType = {
                 1: '客服',
                 2: '访客',
@@ -46,7 +44,7 @@ define(['js/app'], function (myApp) {
                 7: 'not evaluated(invalid)'
             }
             vm.rateMsgId = null;
->>>>>>> mark/mark_live801
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("qualityInspection") + "->" + $translate(vm.qualityInspectionPageName);
