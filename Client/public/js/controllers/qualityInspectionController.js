@@ -179,60 +179,28 @@ define(['js/app'], function (myApp) {
 
             vm.searchLive800 = function(){
                 socketService.$socket($scope.AppSocket, 'searchLive800', {}, success);
-
                 function success(data) {
-                    console.log(data);
-                    vm.conversationForm = [];
+                    vm.conversationForm = data.data;
                     data.data.forEach(item=>{
-                        console.log(item);
-                        let live800Chat = {conversation:[]};
-                        live800Chat.messageId = item.msg_id;
-                        live800Chat.status = vm.conversationStatus[1];
-                        live800Chat.qualityAssessor = '';
-                        live800Chat.fpmsAcc = item.operator_name;
-                        live800Chat.process_time = null;
-                        live800Chat.appeal_reason = '';
-
-                        live800Chat.operator_id = item.operator_id;
-                        live800Chat.operator_name = item.operator_name;
-
-                        let content = $.parseHTML(item.content);
-                        let contentArr = [];
-                        $.each(content, function(i, el){
-                            let type;
-                            if(el.localName=='i'){
-                                type = 1;
-                            }else if(el.localName=='he'){
-                                type = 2;
-                            }else{
-                                type = 3;
-                            }
-                            let dialog = {
-                                'time':el['attributes'][0] ?el['attributes'][0].value:'' ,
-                                'roles':type,
-                                'roleName':vm.roleType[type],
-                                'create_time':el['attributes'][0] ?el['attributes'][0].value:'' ,
-                                'timeout_rate':0,
-                                'inspection_rate':0,
-                                'review':'',
-                                'content':el.innerHTML ? el.innerHTML :''
-                            }
-                            contentArr.push(dialog);
-                            live800Chat.conversation.push(dialog);
-
+                        item.statusName = item.status ? vm.conversationStatus[item.status]:vm.conversationStatus[1];
+                        item.conversation.forEach(function(cv){
+                            cv.roleName = vm.roleType[item.type];
                         })
-                        //item.contents = contentArr;
-
-                        vm.conversationForm.push(live800Chat);
-
-                    })
-                    console.log(vm.conversationForm);
-                    // $scope.safeApply();
+                    });
+                    $scope.safeApply();
                 }
             }
             vm.rateconversation = function(msgId){
                 vm.rateMsgId = msgId;
                 alert('example: '+vm.rateMsgId);
+            }
+            vm.confirmRate = function(rate){
+                console.log(rate);
+                socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
+
+                    console.log(data);
+
+                });
             }
             vm.showLive800 = function(){
                 setTimeout(function(){

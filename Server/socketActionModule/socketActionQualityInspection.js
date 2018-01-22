@@ -6,6 +6,10 @@ function socketActionQualityInspection(socketIO, socket) {
     this.socketIO = socketIO;
     this.socket = socket;
 
+    function getAdminName() {
+        return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
+
     var self = this;
     this.actions = {
 
@@ -57,6 +61,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data.appealDetailArr);
             socketUtil.emitter(self.socket, dbQualityInspection.appealEvaluation, [data.appealDetailArr], actionName, isDataValid);
         },
+        rateCSConversation: function rateCSConversation(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.rateCSConversation, [data, getAdminName()], actionName, isDataValid);
+        }
     };
 
     socketActionQualityInspection.actions = this.actions;

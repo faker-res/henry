@@ -337,7 +337,8 @@ angular.module('myApp.directives', [])
             translude: true,
             scope: {
                 cform:'=',
-                rateconversation:"&"
+                rateconversation:"&",
+                confirmrate:"&"
             },
             template: $('#conversationForm').html(),
             link:function(scope, element, attr){
