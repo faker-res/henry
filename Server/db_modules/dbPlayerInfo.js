@@ -1882,6 +1882,23 @@ let dbPlayerInfo = {
         });
     },
 
+    updatePlayerForbidPaymentType: (query, forbidTopUpTypes) => {
+        return dbconfig.collection_players.findOne(query).lean().then(playerData => {
+            if (playerData) {
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {_id: playerData._id, platform: playerData.platform},
+                    {forbidTopUpType: forbidTopUpTypes},
+                    {new: true}
+                ).lean();
+            }
+
+            return Promise.reject({
+                name: "DataError",
+                message: "Invalid player data"
+            });
+        });
+    },
+
     /**
      * Update player status info and record change rason
      * @param {objectId}  playerObjId
