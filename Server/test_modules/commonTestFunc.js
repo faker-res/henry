@@ -366,9 +366,12 @@ var commonTestFunc = {
 
         let pmT = dbconfig.collection_promoCode.remove({platformObjId:platformObjId});
 
+        let pmU = dbconfig.collection_messageTemplate.remove({platform:platformObjId});
+        let pmU1 = dbconfig.collection_playerMail.remove({platformId:platformObjId});
+
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
             pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3,
-            pmP, pmQ, pmR, pmR2, pmR1, pmS, pmS1, pmT]);
+            pmP, pmQ, pmR, pmR2, pmR1, pmS, pmS1, pmT, pmU, pmU1]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {
