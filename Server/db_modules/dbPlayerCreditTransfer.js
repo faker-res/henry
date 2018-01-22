@@ -966,7 +966,7 @@ let dbPlayerCreditTransfer = {
 
                     // Logging Transfer Success
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform,
-                        platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, rewardAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                        platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, lockedTransferAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
                     return {
                         playerId: player.playerId,
