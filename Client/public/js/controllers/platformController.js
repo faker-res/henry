@@ -4612,7 +4612,13 @@ define(['js/app'], function (myApp) {
                             sClass: "wordWrap realNameCell",
                             advSearch: true
                         },
-                        {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
+                        {
+                            title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight",
+                            render: function (data, type, row) {
+                                let value = (Math.floor( data * 10 ) / 10).toFixed(1);
+                                return value;
+                            }
+                        },
                         // {
                         //     title: $translate('STATUS'), data: 'status',
                         //     render: function (data, type, row) {

@@ -2975,6 +2975,15 @@ let dbPlayerReward = {
         }).lean().then(
             playerData => {
                 if (playerData) {
+
+                    if (playerData.permission && playerData.permission.banReward) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "Player do not have permission for reward"
+                        });
+                    }
+
                     playerObj = playerData;
                     platformObj = playerData.platform;
 
