@@ -5390,8 +5390,10 @@ define(['js/app'], function (myApp) {
                                 if (vm.selectedPlatform.data.useProviderGroup) {
                                     vm.getRewardTaskGroupDetail(row._id, function (data) {
                                         vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
-                                            if (group.providerGroup.name == "LOCAL_CREDIT")
+                                            if (group.providerGroup.name == "LOCAL_CREDIT") {
                                                 group.validCredit = row.validCredit;
+                                                group.curConsumption = group.curConsumption.toFixed(2);
+                                            }
                                             return group;
                                         });
                                         $scope.safeApply();
