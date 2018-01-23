@@ -502,10 +502,10 @@ define(['js/app'], function (myApp) {
                 tableOptions = $.extend(true, {}, vm.generalDataTableOptions, vm.commonProviderGameTableOPtions, tableOptions);
                 vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                 utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                    3: summary.validAmountAll,
-                    4: summary.amountAll,
-                    6: summary.bonusAmountAll,
-                    7: summary.commissionAmountAll
+                    4: summary.validAmountAll,
+                    5: summary.amountAll,
+                    7: summary.bonusAmountAll,
+                    8: summary.commissionAmountAll
                 });
                 $('#providerExpenseTable').off('order.dt');
                 $('#providerExpenseTable').on('order.dt', function (event, a, b) {
