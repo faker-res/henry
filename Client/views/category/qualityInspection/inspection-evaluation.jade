@@ -1,44 +1,26 @@
-style.
-    .bg-secondary {
-        background-color: #868E96;
-    }
-.col-sm-12(ng-if='!vm.curPlatformText')
-    .text-center
+.text-center
+    p(ng-if="!vm.curPlatformText")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.row(ng-if='vm.curPlatformText')
-    .col-md-2
+div(ng-if="vm.curPlatformText", style='padding-left:0')
+    .panel.panel-primary(ng-if="checkViewPermission('QualityInspection', 'Evaluation','Read')")
         .panel-body.common-right-panel-body
             .tab-content
-                    //div(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL'")
-                    #proposalDataTableDiv.tab-pane.fade.in.active
-                        #search
-                            .inlineBlk
-                                label {{"REGISTRATION_AGENT"|translate}}
-                                select.form-control(ng-model="vm.proposalInputDevice")
-                                    option(value='') {{'all'|translate}}
-                                    option(value=0) {{'Backstage'|translate}}
-                                    option(value=1) {{'Web Player'|translate}}
-                                    option(value=2) {{'Web Agent'|translate}}
-                                    option(value=3) {{'HTML5 Player'|translate}}
-                                    option(value=4) {{'HTML5 Agent'|translate}}
-                                    option(value=5) {{'APP Player'|translate}}
-                                    option(value=6) {{'APP Agent'|translate}}
-                            .inlineBlk.selectProposalTypeDiv(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalType')")
-                                label {{'FILTER_PROPOSAL_TYPE' | translate}}
-                                //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
-                                //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
+                .panel.panel-primary
+                    .panel-heading.common-left-panel-heading
+                        ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                            #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
 
                             li.active(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')" style="margin-left: 20px;")
-                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='unreadEvaluation'" )
+                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='unreadEvaluation';vm.initUnreadEvaluation();" )
                                     .fa.fa-wrench.margin-right-5
                                     text.span {{"UNREAD EVALUATION" | translate}}
                             li(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')")
                                 //a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.submitPlayerFeedbackQuery();vm.platformPageName='Feedback';vm.updatePageTile();")
-                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='readEvaluation'")
+                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='readEvaluation';vm.initReadEvaluation();")
                                     .fa.fa-file-text.margin-right-5
                                     text.span {{"READ EVALUATION" | translate}}
                             li(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')")
-                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='appealEvaluation'")
+                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='appealEvaluation';vm.initAppealEvaluation();")
                                     .fa.fa-file-text.margin-right-5
                                     text.span {{"APPEAL EVALUATION" | translate}}
                     .panel-body.common-right-panel-body
@@ -73,7 +55,7 @@ style.
                                             div.col-md-1 '超时评分（+/-)'
                                             div.col-md-1 '质简评分（+/-)'
                                             div.col-md-1 '质检评语'
-                                    div.col-md-1(style='display:inline-block;padding-left:5px;') 质检评估员1
+                                    div.col-md-1(style='display:inline-block;padding-left:5px;') 质检评估员
                                     div.col-md-1(style='display:inline-block;padding-left:5px;') 评估时间
                                     div.col-md-1(style='display:inline-block;padding-left:5px;background-color:red') 申诉内容
 

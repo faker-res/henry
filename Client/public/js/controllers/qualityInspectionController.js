@@ -83,10 +83,16 @@ define(['js/app'], function (myApp) {
                         vm.searchAndSelectPlatform(storedPlatform, option);
                     }
 
-                    vm.initUnreadEvaluation();
-                    vm.initReadEvaluation();
-                    vm.initAppealEvaluation();
-                    vm.initWorkloadProgress();
+                    // if(vm.qualityInspectionPageName =='MY EVALUATION'){
+                    //     vm.initUnreadEvaluation();
+                    //     vm.initReadEvaluation();
+                    //     vm.initAppealEvaluation();
+                    // }
+                    // else if(vm.qualityInspectionPageName =='INSPECTION REPORT'){
+                    //     vm.initWorkloadProgress();
+                    // }
+
+
                 }, function (err) {
                     vm.showPlatformSpin = false;
                 });
@@ -751,7 +757,7 @@ define(['js/app'], function (myApp) {
             }
 
             $scope.$on(eventName, function (e, d) {
-
+                vm.loadPlatformData();
                 setTimeout(
                     function () {
                         vm.generalDataTableOptions = {
