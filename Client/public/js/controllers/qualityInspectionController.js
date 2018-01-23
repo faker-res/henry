@@ -146,6 +146,7 @@ define(['js/app'], function (myApp) {
 
                 // Initial Loading
                 vm.evaluationTab = 'unreadEvaluation';
+                vm.inspectionReportTab ='workloadReport'
                 // Initial setting for setting in qualityInspection
                 vm.getOvertimeSetting();
                 // create the conversationDefinition object for old platform
@@ -268,7 +269,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.initUnreadEvaluation = function(){
-                vm.evaluationTab = 'unreadEvaluation';
+                //vm.evaluationTab = 'unreadEvaluation';
 
                 $('#unreadEvaluationStartDatetimePicker').datetimepicker({
                     language: 'en',
@@ -340,7 +341,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.initWorkloadProgress = function(){
-                vm.inspectionReportTab = 'workloadReport';
+                //vm.inspectionReportTab = 'workloadReport';
 
                 $('#reportConversationStartDatetimePicker').datetimepicker({
                     language: 'en',
@@ -379,6 +380,11 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.endLoadMultipleSelect = function () {
+                $timeout(function () {
+                    $('.spicker').selectpicker('refresh');
+                }, 0);
+            };
 
             //////////////////////////////////////////////////////////Start of Evaluation Tab///////////////////////////////////////////////////////////////////
             vm.getUnreadEvaluationRecord = function() {
