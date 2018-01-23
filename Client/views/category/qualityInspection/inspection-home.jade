@@ -16,7 +16,7 @@
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"800 RECORD" | translate}}
                         li(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Evaluation", ng-click="vm.qualityInspectionPageName='MY EVALUATION';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Evaluation", ng-click="vm.qualityInspectionPageName='MY EVALUATION';vm.updatePageTile();vm.initUnreadEvaluation();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"MY EVALUATION" | translate}}
                         li(ng-show="checkViewPermission('QualityInspection', 'CSReport', 'Read')")
@@ -24,7 +24,7 @@
                                 .fa.fa-table.margin-right-5
                                 text.span {{"CS REPORT" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Game', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Report", ng-click="vm.qualityInspectionPageName='INSPECTION REPORT';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Report", ng-click="vm.qualityInspectionPageName='INSPECTION REPORT';vm.updatePageTile();vm.initWorkloadProgress();")
                                 .fa.fa-table.margin-right-5
                                 text.span {{"INSPECTION REPORT" | translate}}
 
