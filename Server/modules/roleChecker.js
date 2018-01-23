@@ -613,20 +613,16 @@ var roleChecker = {
                 definition: []
             },
             Record: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             },
             Evaluation: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             },
             CSReport: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             },
             Report: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             }
 
 

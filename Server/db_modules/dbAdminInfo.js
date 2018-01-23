@@ -70,6 +70,9 @@ var dbAdminInfo = {
     getAdminInfo: function (query) {
         return dbconfig.collection_admin.findOne(query).exec();
     },
+    getAdminsInfo: function (query) {
+        return dbconfig.collection_admin.find(query).exec();
+    },
 
     /**
      * Get all admin users detailed info
@@ -87,6 +90,17 @@ var dbAdminInfo = {
      */
     updateAdminInfo: function (query, data) {
         return dbconfig.collection_admin.findOneAndUpdate(query, data).exec();
+    },
+
+    /**
+     * Get all live800 account
+     * @param live800Acc
+     */
+    checkLive800AccValidity: function(live800Acc,adminName){
+        return dbconfig.collection_admin.find({live800Acc: {$in:live800Acc}, adminName: {$ne:adminName}}).count().then(
+            adminCount => {
+                return adminCount > 0 ? false : true;
+            });
     },
 
     /**

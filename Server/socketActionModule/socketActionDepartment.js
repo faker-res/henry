@@ -45,6 +45,10 @@ function socketActionDepartment(socketIO, socket) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbDepartment.getDepartments, [{}], actionName);
         },
+        getDepartmentsbyPlatformObjId: function getDepartmentsbyPlatformObjId(data) {
+            var actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbDepartment.getDepartmentsbyPlatformObjId, [data], actionName);
+        },
 
         /**
          * Update admin department

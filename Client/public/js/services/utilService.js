@@ -249,10 +249,6 @@ define([], function () {
             var n = $.isNumeric(n) ? parseInt(n) : 0;
             return new Date(util.getTodayStartTime().getTime() - 24 * 60 * 60 * 1000 * n);
         }
-        this.getNdaylaterStartTime = function (n) {
-            var n = $.isNumeric(n) ? parseInt(n) : 0;
-            return new Date(util.getTodayStartTime().getTime() + 24 * 60 * 60 * 1000 * n);
-        }
         this.actionAfterLoaded = function (id, func) {
             if ($(id) && $(id)[0] && func) {
                 return func();

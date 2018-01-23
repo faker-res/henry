@@ -337,14 +337,17 @@ angular.module('myApp.directives', [])
             translude: true,
             scope: {
                 cform:'=',
-                rateconversation:"&"
+                rateconversation:"&",
+                confirmrate:"&"
             },
             template: $('#conversationForm').html(),
             link:function(scope, element, attr){
-                scope.rateIt = function(id){
-                    scope.rateMsgId = id;
+                scope.rateIt = function(conversation){
+                    conversation.editable = true;
                 }
-
+                scope.cancelrate = function(conversation){
+                    conversation.editable = false;
+                }
             }
         };
     })

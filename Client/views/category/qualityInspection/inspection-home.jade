@@ -20,7 +20,7 @@
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"MY EVALUATION" | translate}}
                         li(ng-show="checkViewPermission('QualityInspection', 'CSReport', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#CSReport", ng-click="vm.qualityInspectionPageName='CS REPORT';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#CSReport", ng-click="vm.qualityInspectionPageName='CS REPORT';vm.prepareShowQIReport();vm.updatePageTile();")
                                 .fa.fa-table.margin-right-5
                                 text.span {{"CS REPORT" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Game', 'Read')")

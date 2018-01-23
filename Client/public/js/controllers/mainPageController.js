@@ -634,9 +634,28 @@ define(['js/app'], function (myApp) {
 
             vm.createUser = function () {
                 vm.newAdmin.departments = [vm.SelectedDepartmentNode.id];
+                vm.reArrangeArr(vm.newAdmin.live800CompanyId, 'live800CompanyId', vm.newAdmin);
+                vm.reArrangeArr(vm.newAdmin.live800Acc, 'live800Acc', vm.newAdmin);
                 console.log(vm.newAdmin);
-                socketService.$socket($scope.AppSocket, 'createAdminForDepartment', vm.newAdmin, success);
-                function success(data) {
+                if(vm.newAdmin.live800Acc.toString() != ''){
+                    socketService.$socket($scope.AppSocket, 'checkLive800AccValidity', {live800Acc: vm.newAdmin.live800Acc, adminName: vm.newAdmin.adminName}, function(data) {
+                        if (data && !data.data) {
+                            vm.live800AccResult = {
+                                Status: false,
+                                Message: 'Live800 Account already exist!'
+                            };
+                            $scope.safeApply();
+                        } else {
+                            vm.createUserForDepartment();
+                        }
+                    });
+                } else {
+                    vm.createUserForDepartment();
+                }
+            };
+
+            vm.createUserForDepartment = function () {
+                socketService.$socket($scope.AppSocket, 'createAdminForDepartment', vm.newAdmin, function(data){
                     vm.departmentNodes[vm.SelectedDepartmentNode.id].departData.users.push(data.data._id);
                     //vm.getDepartmentFullData();
                     //vm.getAllDepartmentData();
@@ -644,14 +663,19 @@ define(['js/app'], function (myApp) {
                     vm.SelectedDepartmentText = vm.SelectedDepartmentNode.text;
                     console.log("SelectedDepartmentNode", vm.SelectedDepartmentNode);
                     vm.pageActionStatus = "null";
+                    vm.live800AccResult = {
+                        Status: true
+                    };
+                    $('#modalCreateUser').modal('hide');
+                    $(".modal-backdrop").hide();
                     vm.clearAllBlink();
                     vm.getDepartmentFullData(vm.activatePlatformTab);
                     vm.getFullDepartmentPath();
                     vm.activatePlatformTab();
 
                     $scope.safeApply();
-                }
-            };
+                });
+            }
 
             vm.passwordLengthCheck = function (password) {
                 if (password) {
@@ -659,23 +683,21 @@ define(['js/app'], function (myApp) {
                 }
                 else return false;
             };
+
             vm.reArrangeTXT = function(arr){
                 let result = '';
-                if(arr.length >0 ){
-                    arr.forEach(function(val, index){
-                        if(index == arr.length){
-                            result += val;
-                        }else{
-                            result += val+','
-                        }
-                    })
+                let delimiter = ',';
+                if(arr.length > 0){
+                    result = arr.join(delimiter);
                 }
                 return result;
             };
 
-            vm.reArrangeArr = function(oriTXT, targetField, targetArr){
-                let convertArr = oriTXT.split(',');
-                targetArr[targetField] = convertArr;
+            vm.reArrangeArr = function(oriTXT, targetField, targetArr) {
+                if (typeof(oriTXT) == 'string') {
+                    let convertArr = oriTXT.split(',');
+                    targetArr[targetField] = convertArr;
+                }
             };
 
             vm.editUserDialog = function () {
@@ -694,23 +716,50 @@ define(['js/app'], function (myApp) {
                     live800CompanyIdTXT: vm.reArrangeTXT(vm.curUser.live800CompanyId),
                     live800AccTXT: vm.reArrangeTXT(vm.curUser.live800Acc),
                 };
-                console.log("vm.newAdmin", vm.newAdmin);
             };
-            vm.submitEditUser = function () {
-                var adminId = vm.curUser._id;
-                vm.reArrangeArr(vm.updateAdminLive800.live800CompanyIdTXT ,  'live800CompanyId', vm.newAdmin,);
-                vm.reArrangeArr(vm.updateAdminLive800.live800AccTXT , 'live800Acc', vm.newAdmin);
 
+            vm.submitEditUser = function () {
+                vm.reArrangeArr(vm.updateAdminLive800.live800CompanyIdTXT ,  'live800CompanyId', vm.newAdmin);
+                vm.reArrangeArr(vm.updateAdminLive800.live800AccTXT , 'live800Acc', vm.newAdmin);
+                if((vm.curUser.live800Acc.toString() != vm.newAdmin.live800Acc.toString()) && vm.newAdmin.live800Acc.toString() != '') {
+                    socketService.$socket($scope.AppSocket, 'checkLive800AccValidity', {live800Acc: vm.newAdmin.live800Acc, adminName: vm.newAdmin.adminName}, function(data){
+                        if (data && !data.data) {
+                            vm.live800AccResult = {
+                                Status: false,
+                                Message: 'Live800 Account already exist!'
+                            };
+                            $scope.safeApply();
+                        }
+                        else {
+                            vm.updateEditUser();
+                        }
+                    });
+                }else {
+                    vm.updateEditUser();
+                }
+            };
+
+            vm.updateEditUser = function(){
                 socketService.$socket($scope.AppSocket, 'updateAdmin', {
                     query: {_id: vm.curUser._id},
                     updateData: vm.newAdmin
-                }, success, null, true);
-                function success(data) {
+                }, function(data){
                     //vm.getAllDepartmentData();
+                    $('#modalEditUser').modal('hide');
+                    $(".modal-backdrop").hide();
+                    vm.live800AccResult = {
+                        Status: true
+                    };
                     vm.getDepartmentUsersData();
                     console.log("edit ok");
                     $scope.safeApply();
-                }
+                });
+            };
+
+            vm.cancelCreateOrEditUser = function(){
+                vm.live800AccResult = {
+                    Status: true
+                };
             }
 
             vm.deleteUsers = function () {
