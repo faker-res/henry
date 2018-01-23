@@ -2182,6 +2182,7 @@ var proposalExecutor = {
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: 0,
+                        rewardAppearPeriod: proposalData.data.rewardAppearPeriod,
                         providerGroup: proposalData.data.providerGroup
                     };
                     let deferred1 = Q.defer();

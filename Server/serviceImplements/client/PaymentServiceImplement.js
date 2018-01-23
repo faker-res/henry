@@ -164,7 +164,9 @@ var PaymentServiceImplement = function () {
         // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
         //     isValidData = false;
         // }
+
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), data.userAgent, conn.playerId, data.amount, data.wechatName, data.wechatAccount, data.bonusCode, "CLIENT", null, null, null, null, data.limitedOfferObjId], isValidData);
+
     };
 
     this.cancelManualTopupRequest.expectsData = 'proposalId: String';

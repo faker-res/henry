@@ -3510,6 +3510,7 @@ let dbPlayerReward = {
         let selectedTopUp;
         let updateTopupRecordIds = [];
         let updateConsumptionRecordIds = [];
+        let showRewardPeriod = {};
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
@@ -3582,6 +3583,12 @@ let dbPlayerReward = {
                         appearPeriod.endDate >= todayWeekOfDay && appearPeriod.endTime > dayOfHour
                     ) {
                         isValid = true;
+
+                        // to display reward event appear time in proposal
+                        showRewardPeriod.startDate = appearPeriod.startDate;
+                        showRewardPeriod.startTime = appearPeriod.startTime;
+                        showRewardPeriod.endDate = appearPeriod.endDate;
+                        showRewardPeriod.endTime = appearPeriod.endTime;
                     }
                 });
 
@@ -4660,6 +4667,10 @@ let dbPlayerReward = {
                         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
                             proposalData.data.lastLoginIp = playerData.lastLoginIp;
                             proposalData.data.phoneNumber = playerData.phoneNumber;
+                        }
+
+                        if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
+                            proposalData.data.rewardAppearPeriod = showRewardPeriod;
                         }
 
                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
