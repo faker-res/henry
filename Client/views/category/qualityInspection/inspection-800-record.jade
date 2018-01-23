@@ -6,10 +6,7 @@
         .well.feedbackQueryDiv
             .inlineBlk
                 label {{"Product"|translate}}
-                select.form-control(style='max-width:300px', ng-model="vm.playerFeedbackQuery.playerType")
-                    option(value='Real Player (all)') {{'Any' | translate}}
-                    option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
-
+                select.form-control(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.bankTypeId', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
             .inlineBlk
                 label {{"FPMS CS Acc" | translate}}
                 select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel')
@@ -23,18 +20,22 @@
                     option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
 
             .inlineBlk
-                label {{"startTime" | translate}}
-                input.form-control(type="number" )
-
+                label.control-label {{'Start date' | translate}}
+                #live800StartDatetimePicker.input-append.form-control
+                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                    span.add-on
+                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
             .inlineBlk
-                label {{"endTime" | translate}}
-                input.form-control(type="number" )
-
+                label.control-label {{'End date' | translate}}
+                #live800endDatetimePicker.input-append.form-control
+                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                    span.add-on
+                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
             .inlineBlk
                 label {{"Rating Status" | translate}}
-                select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel')
+                select.form-control(ng-model='vm.qualityInspectionStatus')
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                    option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}') {{v | translate}}
             .inlineBlk
                 label {{"QA" | translate}}
                 select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel')
