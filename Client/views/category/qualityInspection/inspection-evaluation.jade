@@ -104,7 +104,7 @@ style.
                                     //button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
                                     button.common-button.btn.btn-primary(ng-click='vm.markEvaluationRecordAsRead()') {{'MARK_AS_READ' | translate}}
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-warning(ng-click='vm.appealEvaluatedRecord()') {{'I_WANT_TO_APPEAL' | translate}}
+                                    button.common-button.btn.btn-warning(ng-click='vm.appealEvaluation()') {{'I_WANT_TO_APPEAL' | translate}}
 
                         div(ng-show="vm.evaluationTab == 'readEvaluation'")
                             #readEvaluationDiv.tab-pane.fade.in.active
