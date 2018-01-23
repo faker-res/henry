@@ -185,12 +185,12 @@ define(['js/app'], function (myApp) {
                         item.statusName = item.status ? vm.conversationStatus[item.status]:vm.conversationStatus[1];
                         item.conversation.forEach(function(cv){
                             cv.roleName = vm.roleType[item.type];
-                        })
+                        });
                         item.editable = false;
                     });
                     $scope.safeApply();
                 }
-            }
+            };
             vm.rateconversation = function(msgId){
                 vm.rateMsgId = msgId;
                 alert('example: '+vm.rateMsgId);

@@ -9,7 +9,6 @@ const { JSDOM } = jsdom;
 
 var dbQualityInspection = {
     connectMysql: function(){
-        console.log('first step');
         var connection = mysql.createConnection({
             host     : '203.192.151.12',
             user     : 'devselect',
@@ -18,24 +17,17 @@ var dbQualityInspection = {
             port: '3320'
         });
         return connection;
-        // connection.query('show tables', function (error, results, fields) {
-        //     console.log('yeah')
-        //     if (error) throw error;
-        //     console.log('The solution is: ', results[0].solution);
-        // });
-        //SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATE) AND CAST('2018-01-16 02:00:00' AS DATE);
-        //SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATE) AND CAST('2018-01-16 02:00:00' AS DATE);
-        // connection.end();
     },
     searchLive800: function () {
         var deferred = Q.defer();
         var connection = dbQualityInspection.connectMysql();
+        let conversationForm = [];
+        let proms = [];
+
         connection.connect();
         connection.query("SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:5:00' AS DATETIME);", function (error, results, fields) {
             console.log('yeah');
             if (error) throw error;
-            let conversationForm = [];
-            // console.log(results.data);
             results.forEach(item => {
                 let live800Chat = {conversation: []};
                 live800Chat.messageId = item.msg_id;
@@ -48,10 +40,7 @@ var dbQualityInspection = {
                 live800Chat.operatorId = item.operator_id;
                 live800Chat.operatorName = item.operator_name;
 
-                //console.log(item.content);
                 let dom = new JSDOM(item.content);
-                // let ccontent = dom.window.document.createElement("cname");
-                // ccontent.innerText = item.content;
                 let content = [];
                 let sys = dom.window.document.getElementsByTagName("sys");
                 let he = dom.window.document.getElementsByTagName("he");
@@ -66,11 +55,30 @@ var dbQualityInspection = {
                 })
 
                 live800Chat.conversation = content;
-                conversationForm.push(live800Chat);
+
+                let prom = dbconfig.collection_qualityInspection.find({messageId:String(item.msg_id)})
+                    .then(qaData=>{
+
+                        if(qaData.length > 0){
+                            live800Chat.conversation = qaData[0].conversation;
+                            live800Chat.qualityAssessor = qaData[0].qualityAssessor;
+                            live800Chat.processTime = qaData[0].processTime;
+                            live800Chat.appealReason = qaData[0].appealReason;
+                        }
+
+                        return live800Chat;
+                    })
+                /*
+
+                */
+                proms.push(prom);
             });
-            deferred.resolve(conversationForm);
-            connection.end();
+            return Q.all(proms).then(data=>{
+                deferred.resolve(data);
+                connection.end();
+            })
         });
+
         return deferred.promise;
     },
     reGroup: function(arrs,type){
@@ -208,14 +216,13 @@ var dbQualityInspection = {
     },
     rateCSConversation: function (data , adminName) {
         var deferred = Q.defer();
-
         console.log(data);
         return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
-            console.log(qaData);
-            console.log(data);
             delete data.statusName;
+            data.qualityAssessor = adminName;
+            data.processTime = new Date.now();
+
             if (qaData.length == 0) {
-                data.qualityAssessor = adminName;
                 return dbconfig.collection_qualityInspection(data).save();
             }else{
                 dbconfig.collection_qualityInspection.findOneAndUpdate(
@@ -224,13 +231,10 @@ var dbQualityInspection = {
                 ).then(data=>{
                     console.log(data);
                 })
-                // deferred.reject({name: "DBError", message: "It's Exist"})
             }
         })
         return deferred.promise;
     }
-// ×ValidationError: fpmsAcc: Path `fpmsAcc` is required., qualityAssessor: Path `qualityAssessor` is required., messageId: Path `messageId` is required.
 
 };
-
 module.exports = dbQualityInspection;
