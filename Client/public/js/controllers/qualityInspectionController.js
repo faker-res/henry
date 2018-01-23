@@ -229,7 +229,14 @@ define(['js/app'], function (myApp) {
 
 
             vm.searchLive800 = function(){
-                socketService.$socket($scope.AppSocket, 'searchLive800', {}, success);
+                var query = {
+                        'companyId':270,
+                        'operatorId':764,
+                        'startTime':'2018-01-16 00:00:00',
+                        'endTime':'2018-01-16 00:05:00',
+                        'status':5
+                };
+                socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
                     vm.conversationForm = data.data;
                     data.data.forEach(item=>{
