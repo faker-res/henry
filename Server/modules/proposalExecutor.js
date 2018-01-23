@@ -3402,7 +3402,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
         }
     ).then(
         updatedPlayer => {
-            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, player.validCredit, null, changedLockedCredit, null, proposalData);
+            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, updatedPlayer.validCredit, null, changedLockedCredit, null, proposalData);
             return updatedPlayer;
         }
     );
