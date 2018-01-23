@@ -19,22 +19,27 @@ const dbPlayerUtility = {
 
     /**
      * Enforce some API calls can only be execute once concurrently, typically when applying rewards
+     * To use a new state, please add the stateName into playerState.js schema first
      * @param playerObjId
      * @param stateName
      * @returns {Promise|Promise.<TResult>}
      */
     setPlayerState: (playerObjId, stateName) => {
-        let matchQ = {player: playerObjId};
+        stateName = "last" + stateName;
 
-        return dbconfig.collection_playerState.findOne({player: playerObjId}).then(
+        let matchQ = {player: playerObjId};
+        let updateQChild = {};
+        updateQChild[stateName] = true;
+        let updateQ = {$currentDate: updateQChild};
+
+        return dbconfig.collection_playerState.findOne({player: playerObjId}).lean().then(
             stateRec => {
                 if (!stateRec) {
                     return new dbconfig.collection_playerState(matchQ).save();
                 } else {
-                    matchQ[stateName] = {$lt: new Date() - 1000};
-                    let updateQChild = {};
-                    updateQChild[stateName] = true;
-                    let updateQ = {$currentDate: updateQChild};
+                    if (stateRec[stateName]) {
+                        matchQ[stateName] = {$lt: new Date() - 1000};
+                    }
 
                     return dbconfig.collection_playerState.findOneAndUpdate(matchQ, updateQ, {new: true});
                 }

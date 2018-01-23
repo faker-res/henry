@@ -8435,39 +8435,62 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    return dbconfig.collection_platformGameStatus.findOne({
-                        platform: playerData.platform._id,
-                        game: gameData._id
-                    }).then(
-                        platformGame => {
-                            if (platformGame) {
-                                if (platformGame.status != constGameStatus.ENABLE) {
-                                    return Q.reject({
-                                        status: constServerCode.CP_NOT_AVAILABLE,
-                                        name: "DataError",
-                                        message: "Game is not available on platform",
-                                        gameStatus: gameData.status
-                                    });
+                    if (playerData.platform.useProviderGroup) {
+                        return dbconfig.collection_rewardTaskGroup.find({
+                            platformId: playerData.platform._id,
+                            playerId: playerData._id,
+                            status: {$in: [constRewardTaskStatus.STARTED]}
+                        }).then(
+                            rewardGroupData => {
+                                let retData = {
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: 0
+                                };
+
+                                if (rewardGroupData) {
+                                    retData.rewardCredit = rewardGroupData.reduce(
+                                        (arr, inc) => arr + inc.rewardAmt, 0
+                                    );
                                 }
 
-                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
-                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                                return retData;
+                            }
+                        )
+                    } else {
+                        return dbconfig.collection_platformGameStatus.findOne({
+                            platform: playerData.platform._id,
+                            game: gameData._id
+                        }).then(
+                            platformGame => {
+                                if (platformGame) {
+                                    if (platformGame.status != constGameStatus.ENABLE) {
+                                        return Promise.reject({
+                                            status: constServerCode.CP_NOT_AVAILABLE,
+                                            name: "DataError",
+                                            message: "Game is not available on platform",
+                                            gameStatus: gameData.status
+                                        });
+                                    }
+
+                                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                        return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                                    }
+                                    else {
+                                        return {
+                                            playerCredit: playerData.validCredit,
+                                            rewardCredit: playerData.lockedCredit
+                                        };
+                                    }
                                 }
                                 else {
-                                    return {
-                                        playerCredit: playerData.validCredit,
-                                        rewardCredit: playerData.lockedCredit
-                                    };
+                                    return Promise.reject({name: "DataError", message: "Cannot find platform game data"});
                                 }
                             }
-                            else {
-                                return Q.reject({name: "DataError", message: "Cannot find platform game data"});
-                            }
-                        }
-                    );
+                        );
+                    }
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Cannot find player or game"});
+                    return Promise.reject({name: "DataError", message: "Cannot find player or game"});
                 }
             }
         ).then(
