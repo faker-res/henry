@@ -220,7 +220,8 @@ var dbQualityInspection = {
         return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
             delete data.statusName;
             data.qualityAssessor = adminName;
-            data.processTime = new Date.now();
+            data.processTime = new Date().now();
+            data.status = 2;
 
             if (qaData.length == 0) {
                 return dbconfig.collection_qualityInspection(data).save();
