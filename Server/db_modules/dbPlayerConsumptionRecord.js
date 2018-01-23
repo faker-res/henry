@@ -223,10 +223,9 @@ var dbPlayerConsumptionRecord = {
                     {
                         $group: {
                             _id: null,
-                            topUpAmount$: {$sum: "$topUpAmount$"},
-                            bonusAmount$: {$sum: "$bonusAmount$"},
-                            requiredBonusAmount$: {$sum: "$requiredBonusAmount$"},
-                            currentAmount$: {$sum: "$currentAmount$"},
+                            validAmount: {$sum: "$validAmount"},
+                            bonusAmount: {$sum: "$bonusAmount"},
+                            amount: {$sum: "$amount"},
                         }
                     });
                 return Q.all([a, b, c]);
