@@ -1,32 +1,14 @@
-style.
-    .bg-secondary {
-        background-color: #868E96;
-    }
-.col-sm-12(ng-if='!vm.curPlatformText')
-    .text-center
+.text-center
+    p(ng-if="!vm.curPlatformText")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.row(ng-if='vm.curPlatformText')
-    .col-md-2
+div(ng-if="vm.curPlatformText", style='padding-left:0')
+    .panel.panel-primary(ng-if="checkViewPermission('QualityInspection', 'Evaluation','Read')")
         .panel-body.common-right-panel-body
             .tab-content
-                    //div(ng-show="vm.rightPanelTitle == 'ALL_PROPOSAL'")
-                    #proposalDataTableDiv.tab-pane.fade.in.active
-                        #search
-                            .inlineBlk
-                                label {{"REGISTRATION_AGENT"|translate}}
-                                select.form-control(ng-model="vm.proposalInputDevice")
-                                    option(value='') {{'all'|translate}}
-                                    option(value=0) {{'Backstage'|translate}}
-                                    option(value=1) {{'Web Player'|translate}}
-                                    option(value=2) {{'Web Agent'|translate}}
-                                    option(value=3) {{'HTML5 Player'|translate}}
-                                    option(value=4) {{'HTML5 Agent'|translate}}
-                                    option(value=5) {{'APP Player'|translate}}
-                                    option(value=6) {{'APP Agent'|translate}}
-                            .inlineBlk.selectProposalTypeDiv(ng-show="checkViewPermission('Operation', 'Proposal', 'queryByProposalType')")
-                                label {{'FILTER_PROPOSAL_TYPE' | translate}}
-                                //select.form-control#selectProposalType(multiple="multiple", style='min-width:100px')
-                                //    option(ng-repeat='(i,v) in vm.allProposalType', value='{{i}}') {{v.name | translate}}
+                .panel.panel-primary
+                    .panel-heading.common-left-panel-heading
+                        ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                            #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
 
                             li.active(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'Read')" style="margin-left: 20px;")
                                 a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='unreadEvaluation'" )
@@ -104,7 +86,7 @@ style.
                                     //button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
                                     button.common-button.btn.btn-primary(ng-click='vm.markEvaluationRecordAsRead()') {{'MARK_AS_READ' | translate}}
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-warning(ng-click='vm.appealEvaluatedRecord()') {{'I_WANT_TO_APPEAL' | translate}}
+                                    button.common-button.btn.btn-warning(ng-click='vm.appealEvaluation()') {{'I_WANT_TO_APPEAL' | translate}}
 
                         div(ng-show="vm.evaluationTab == 'readEvaluation'")
                             #readEvaluationDiv.tab-pane.fade.in.active
