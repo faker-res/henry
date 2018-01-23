@@ -11112,11 +11112,12 @@ define(['js/app'], function (myApp) {
                         vm.simpleRewardProposalData = vm.constructProposalData(data.data.data);
                         let summary = data.data.summary;
                         let result = data.data.data;
+                        let usedTopUp = [];
                         result.forEach((item,index) => {
                             item.proposalId = item.proposalId || item.data.proposalId;
                             item['createTime$'] = vm.dateReformat(item.data.createTime$);
                             item.useConsumption = item.data.useConsumption;
-                            item.topUpProposal = item.data.topUpProposalId;
+                            item.topUpProposal = item.data.topUpProposalId?item.data.topUpProposalId: item.data.topUpProposal;
                             item.topUpAmount = item.data.topUpAmount;
                             item.bonusAmount = item.data.rewardAmount;
                             item.applyAmount = item.data.applyAmount || item.data.amount;
@@ -11154,12 +11155,27 @@ define(['js/app'], function (myApp) {
                                 } else {
                                     item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
                                     vm.rtgBonusAmt[item.data.providerGroup] = 0;
+                                    item.archivedAmt$ = item.archivedAmt$? item.archivedAmt$: 0;
                                 }
                             }
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$
 
+                            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)){
+                                usedTopUp.push(item.topUpProposal)
+                            }
+
                         });
+
+                        if (usedTopUp.length > 0) {
+                            result = result.filter(item => {
+                                for (let i = 0; i < usedTopUp.length; i++) {
+                                    if (usedTopUp.indexOf(item.proposalId) < 0) {
+                                        return item;
+                                    }
+                                }
+                            });
+                        }
 
                         console.log("vm.getRewardTaskGroupProposal", result);
 
