@@ -58,6 +58,7 @@ function socketActionReward(socketIO, socket) {
                         constRewardType.PLAYER_CONSECUTIVE_LOGIN_REWARD,
                         constRewardType.PLAYER_EASTER_EGG_REWARD,
                         constRewardType.PLAYER_PACKET_RAIN_REWARD,
+                        constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
                     ],
                     canSettle: [
                         constRewardType.PLAYER_CONSUMPTION_RETURN,
