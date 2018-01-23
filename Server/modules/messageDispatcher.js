@@ -32,7 +32,8 @@ const messageDispatcher = {
                 metaData.senderType = 'System';
                 metaData.platformId = proposalData.data.platformId;
                 //const platformId = metaData.proposalData.data.platformId;
-                const platformId = metaData.platformId;
+                // const platformId = metaData.platformId;
+                const platformId = player.platform;
                 return messageDispatcher.dispatchMessagesOfType(platformId, messageType, metaData);
             }
         )

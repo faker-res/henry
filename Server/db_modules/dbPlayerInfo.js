@@ -1245,6 +1245,7 @@ let dbPlayerInfo = {
                         _id: playerData._id,
                         name: playerData.name,
                         platformId: playerData.platform.platformId,
+                        platform: playerData.platform._id,
                         validCredit: playerData.validCredit,
                         realName: playerData.realName
                     }
