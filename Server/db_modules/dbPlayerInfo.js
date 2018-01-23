@@ -2224,7 +2224,7 @@ let dbPlayerInfo = {
             }
         ]);
 
-        var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
+        var logThatHaveNoProposal = ['TransferIn', 'TransferOut', 'TransferInFailed'];
         return Q.all([a, b, c, totalProm]).then(
             data => {
                 let creditChangeLogs = data[1];
@@ -8345,7 +8345,6 @@ let dbPlayerInfo = {
     },
 
     getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
-        var platformData = null;
         var providerData = null;
         var playerData = null;
         var bTransferIn = false;
@@ -8359,14 +8358,15 @@ let dbPlayerInfo = {
             path: "provider",
             model: dbconfig.collection_gameProvider
         }).lean();
-        return Q.all([playerProm, gameProm]).then(
+
+        return Promise.all([playerProm, gameProm]).then(
             data => {
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
                     // check if the player is forbidden totally
                     if (playerData.permission.forbidPlayerFromLogin) {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             name: "DataError",
                             message: "Player is forbidden",
@@ -8378,7 +8378,7 @@ let dbPlayerInfo = {
                     else if (playerData.permission.forbidPlayerFromEnteringGame) {
                         // var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
                         // if (isForbidden) {
-                        return Q.reject({
+                        return Promise.reject({
                             name: "DataError",
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             message: "Player is forbidden to the game",
@@ -8398,7 +8398,7 @@ let dbPlayerInfo = {
                         for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
                             let forbidProvider = playerData.forbidProviders[i];
                             if (gameData.provider._id.toString() === forbidProvider.toString()) {
-                                return Q.reject({
+                                return Promise.reject({
                                     name: "DataError",
                                     status: constServerCode.PLAYER_IS_FORBIDDEN,
                                     message: "Player is forbidden to the game",
@@ -8410,7 +8410,7 @@ let dbPlayerInfo = {
 
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
                             message: "Game is not available",
@@ -8435,43 +8435,58 @@ let dbPlayerInfo = {
                         });
                     }
 
-                    if (playerData.platform.useProviderGroup) {
-                        return dbconfig.collection_rewardTaskGroup.find({
-                            platformId: playerData.platform._id,
-                            playerId: playerData._id,
-                            status: {$in: [constRewardTaskStatus.STARTED]}
-                        }).then(
-                            rewardGroupData => {
-                                let retData = {
-                                    playerCredit: playerData.validCredit,
-                                    rewardCredit: 0
-                                };
-
-                                if (rewardGroupData) {
-                                    retData.rewardCredit = rewardGroupData.reduce(
-                                        (arr, inc) => arr + inc.rewardAmt, 0
-                                    );
+                    return dbconfig.collection_platformGameStatus.findOne({
+                        platform: playerData.platform._id,
+                        game: gameData._id
+                    }).then(
+                        platformGame => {
+                            if (platformGame) {
+                                if (platformGame.status != constGameStatus.ENABLE) {
+                                    return Promise.reject({
+                                        status: constServerCode.CP_NOT_AVAILABLE,
+                                        name: "DataError",
+                                        message: "Game is not available on platform",
+                                        gameStatus: gameData.status
+                                    });
                                 }
 
-                                return retData;
-                            }
-                        )
-                    } else {
-                        return dbconfig.collection_platformGameStatus.findOne({
-                            platform: playerData.platform._id,
-                            game: gameData._id
-                        }).then(
-                            platformGame => {
-                                if (platformGame) {
-                                    if (platformGame.status != constGameStatus.ENABLE) {
-                                        return Promise.reject({
-                                            status: constServerCode.CP_NOT_AVAILABLE,
-                                            name: "DataError",
-                                            message: "Game is not available on platform",
-                                            gameStatus: gameData.status
-                                        });
-                                    }
+                                if (playerData.platform.useProviderGroup) {
+                                    let retData = {
+                                        playerCredit: playerData.validCredit,
+                                        rewardCredit: 0
+                                    };
 
+                                    if (playerData.validCredit >= 1) {
+                                        return retData;
+                                    } else {
+                                        // Not enough credit to play with local credit
+                                        // Check credits in reward task group
+                                        return dbconfig.collection_rewardTaskGroup.find({
+                                            platformId: playerData.platform._id,
+                                            playerId: playerData._id,
+                                            status: {$in: [constRewardTaskStatus.STARTED]}
+                                        }).then(
+                                            rewardGroupData => {
+                                                if (rewardGroupData) {
+                                                    retData.rewardCredit = rewardGroupData.reduce(
+                                                        (arr, inc) => arr + inc.rewardAmt, 0
+                                                    );
+                                                }
+
+                                                // Still not enough credit in RTG, transfer out from last provider
+                                                if (retData.rewardCredit < 1
+                                                    && playerData.lastPlayedProvider
+                                                    && playerData.lastPlayedProvider.status == constGameStatus.ENABLE
+                                                    && playerData.lastPlayedProvider.providerId != gameData.provider.providerId)
+                                                {
+                                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                                                }
+
+                                                return retData;
+                                            }
+                                        )
+                                    }
+                                } else {
                                     if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                         return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
                                     }
@@ -8482,12 +8497,12 @@ let dbPlayerInfo = {
                                         };
                                     }
                                 }
-                                else {
-                                    return Promise.reject({name: "DataError", message: "Cannot find platform game data"});
-                                }
                             }
-                        );
-                    }
+                            else {
+                                return Promise.reject({name: "DataError", message: "Cannot find platform game data"});
+                            }
+                        }
+                    )
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Cannot find player or game"});
@@ -8496,6 +8511,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 bTransferIn = (data && ((parseFloat(data.playerCredit) + parseFloat(data.rewardCredit)) >= 1)) ? true : false;
+
                 //console.log("bTransferIn:", bTransferIn, data);
                 if (data && gameData && gameData.provider) {
                     if (gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
