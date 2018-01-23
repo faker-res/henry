@@ -125,8 +125,8 @@ function socketActionAdmin(socketIO, socket) {
          */
         checkLive800AccValidity: function checkLive800AccValidity(data){
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.live800Acc);
-            socketUtil.emitter(self.socket, dbAdminInfo.checkLive800AccValidity, [data.live800Acc], actionName, isValidData);
+            var isValidData = Boolean(data && data.live800Acc && data.adminName);
+            socketUtil.emitter(self.socket, dbAdminInfo.checkLive800AccValidity, [data.live800Acc, data.adminName], actionName, isValidData);
         },
 
         /**

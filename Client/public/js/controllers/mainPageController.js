@@ -638,7 +638,7 @@ define(['js/app'], function (myApp) {
                 vm.reArrangeArr(vm.newAdmin.live800Acc, 'live800Acc', vm.newAdmin);
                 console.log(vm.newAdmin);
                 if(vm.newAdmin.live800Acc.toString() != ''){
-                    socketService.$socket($scope.AppSocket, 'checkLive800AccValidity', {live800Acc: vm.newAdmin.live800Acc}, function(data) {
+                    socketService.$socket($scope.AppSocket, 'checkLive800AccValidity', {live800Acc: vm.newAdmin.live800Acc, adminName: vm.newAdmin.adminName}, function(data) {
                         if (data && !data.data) {
                             vm.live800AccResult = {
                                 Status: false,
@@ -722,7 +722,7 @@ define(['js/app'], function (myApp) {
                 vm.reArrangeArr(vm.updateAdminLive800.live800CompanyIdTXT ,  'live800CompanyId', vm.newAdmin);
                 vm.reArrangeArr(vm.updateAdminLive800.live800AccTXT , 'live800Acc', vm.newAdmin);
                 if((vm.curUser.live800Acc.toString() != vm.newAdmin.live800Acc.toString()) && vm.newAdmin.live800Acc.toString() != '') {
-                    socketService.$socket($scope.AppSocket, 'checkLive800AccValidity', {live800Acc: vm.newAdmin.live800Acc}, function(data){
+                    socketService.$socket($scope.AppSocket, 'checkLive800AccValidity', {live800Acc: vm.newAdmin.live800Acc, adminName: vm.newAdmin.adminName}, function(data){
                         if (data && !data.data) {
                             vm.live800AccResult = {
                                 Status: false,
