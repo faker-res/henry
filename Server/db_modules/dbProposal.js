@@ -123,9 +123,9 @@ var proposal = {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && proposalData.isPartner) {
                     return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);
                 }
-                else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
-                    return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
-                }
+                // else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) { // note :: 52-24
+                //     return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
+                // }
                 return true;
             }
         ).then(
