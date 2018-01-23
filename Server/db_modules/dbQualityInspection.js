@@ -3,6 +3,7 @@ var log = require("./../modules/logger");
 var Q = require("q");
 var dbUtil = require('./../modules/dbutility');
 var mysql = require("mysql");
+const constQualityInspectionStatus = require('./../const/constQualityInspectionStatus');
 
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
@@ -70,7 +71,6 @@ var dbQualityInspection = {
                         return live800Chat;
                     })
                 /*
-
                 */
                 proms.push(prom);
             });
