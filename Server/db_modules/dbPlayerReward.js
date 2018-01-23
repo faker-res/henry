@@ -486,7 +486,6 @@ let dbPlayerReward = {
                 let totalValidTopup = 0;
                 let totalAvailableTopup = 0;
                 let totalValidConsumption = 0;
-                let listValidRewardAmount = [];
                 let openID = 0;
                 let getID = 0;
                 let giveupID = 0;
@@ -510,12 +509,6 @@ let dbPlayerReward = {
                     if (consumptionProposals[y].amount >= selectedParam.requiredConsumptionAmount) {
                         totalValidConsumption += consumptionProposals[y].amount;
                     }
-                }
-
-                // find amountList // list of reward amount that has applied
-                for (let z = 0; z < rewardProposals.length; z++) {
-                    let listAmount = rewardProposals[z].data.rewardAmount;
-                    listValidRewardAmount.push(listAmount);
                 }
 
                 event.condition.rewardAppearPeriod.forEach(appearPeriod => {
@@ -595,64 +588,93 @@ let dbPlayerReward = {
                     }
 
                     // status 2 - display already applied reward, within reward interval period (daily)
-                    if (appearPeriod.startDate == todayWeekOfDay) {
-                        getID++;
-                        let getIDStr = getID.toString();
-                        getID = getIDStr.padStart(3, "0");
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour) { // same day and event already started
+                        let isValidGet = false;
+                        let listValidRewardAmount = [];
 
-                        getData = {
-                            id: getID,
-                            startTime: appearPeriod.startTime,
-                            endTime: appearPeriod.endTime,
-                            status: 2,
-                            amountList: listValidRewardAmount,
-                            condition: {
-                                availableDepositTimes: totalAvailableTopup,
-                                requestDeposit: selectedParam.requiredTopUpAmount,
-                                betSource: event.condition.consumptionProvider,
-                                requestBetAmount: selectedParam.requiredConsumptionAmount,
-                                grade: playerLevel._id,
-                                depositDevice: event.condition.userAgent,
-                                depositType: event.condition.topupType,
-                                onlineTopupType: event.condition.onlineTopUpType,
-                                bankCardType: event.condition.bankCardType
-                            },
-                            bonusCondition: {
-                                bet: selectedParam.spendingTimesOnReward,
-                                lockedGroup: event.condition.providerGroup
+                        for (let z = 0; z < rewardProposals.length; z++) {
+                            let showRewardPeriod = rewardProposals[z].data.rewardAppearPeriod;
+
+                            // if found matching proposal, display getData; player already applied reward during this period
+                            if (appearPeriod.startTime === showRewardPeriod.startTime && appearPeriod.endTime === showRewardPeriod.endTime) {
+                                let listAmount = rewardProposals[z].data.rewardAmount;
+                                listValidRewardAmount.push(listAmount);
+                                isValidGet = true;
                             }
-                        };
-                        addParamToGet(getData);
+                        }
+
+                        if (isValidGet) {
+                            getID++;
+                            let getIDStr = getID.toString();
+                            getID = getIDStr.padStart(3, "0");
+
+                            getData = {
+                                id: getID,
+                                startTime: appearPeriod.startTime,
+                                endTime: appearPeriod.endTime,
+                                status: 2,
+                                amountList: listValidRewardAmount,
+                                condition: {
+                                    availableDepositTimes: totalAvailableTopup,
+                                    requestDeposit: selectedParam.requiredTopUpAmount,
+                                    betSource: event.condition.consumptionProvider,
+                                    requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                    grade: playerLevel._id,
+                                    depositDevice: event.condition.userAgent,
+                                    depositType: event.condition.topupType,
+                                    onlineTopupType: event.condition.onlineTopUpType,
+                                    bankCardType: event.condition.bankCardType
+                                },
+                                bonusCondition: {
+                                    bet: selectedParam.spendingTimesOnReward,
+                                    lockedGroup: event.condition.providerGroup
+                                }
+                            };
+                            addParamToGet(getData);
+                        }
                     }
 
                     // status 3 - display reward event did not apply, event already ended
-                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime < dayOfHour && appearPeriod.endTime < dayOfHour) {
-                        giveupID++;
-                        let giveupIDStr = giveupID.toString();
-                        giveupID = giveupIDStr.padStart(3, "0");
+                    if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime < dayOfHour && appearPeriod.endTime < dayOfHour) { // same day and event already ended
+                        let isValidGiveup = true;
 
-                        giveupData = {
-                            id: giveupID,
-                            startTime: appearPeriod.startTime,
-                            endTime: appearPeriod.endTime,
-                            status: 3,
-                            condition: {
-                                availableDepositTimes: totalAvailableTopup,
-                                requestDeposit: selectedParam.requiredTopUpAmount,
-                                betSource: event.condition.consumptionProvider,
-                                requestBetAmount: selectedParam.requiredConsumptionAmount,
-                                grade: playerLevel._id,
-                                depositDevice: event.condition.userAgent,
-                                depositType: event.condition.topupType,
-                                onlineTopupType: event.condition.onlineTopUpType,
-                                bankCardType: event.condition.bankCardType
-                            },
-                            bonusCondition: {
-                                bet: selectedParam.spendingTimesOnReward,
-                                lockedGroup: event.condition.providerGroup
+                        for (let z = 0; z < rewardProposals.length; z++) {
+                            let showRewardPeriod = rewardProposals[z].data.rewardAppearPeriod;
+
+                            // if found matching proposal, don't display; player already applied reward during this period
+                            if (appearPeriod.startTime === showRewardPeriod.startTime && appearPeriod.endTime === showRewardPeriod.endTime) {
+                                isValidGiveup = false;
                             }
-                        };
-                        addParamToGiveup(giveupData);
+                        }
+
+                        if (isValidGiveup) {
+                            giveupID++;
+                            let giveupIDStr = giveupID.toString();
+                            giveupID = giveupIDStr.padStart(3, "0");
+
+                            giveupData = {
+                                id: giveupID,
+                                startTime: appearPeriod.startTime,
+                                endTime: appearPeriod.endTime,
+                                status: 3,
+                                condition: {
+                                    availableDepositTimes: totalAvailableTopup,
+                                    requestDeposit: selectedParam.requiredTopUpAmount,
+                                    betSource: event.condition.consumptionProvider,
+                                    requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                    grade: playerLevel._id,
+                                    depositDevice: event.condition.userAgent,
+                                    depositType: event.condition.topupType,
+                                    onlineTopupType: event.condition.onlineTopUpType,
+                                    bankCardType: event.condition.bankCardType
+                                },
+                                bonusCondition: {
+                                    bet: selectedParam.spendingTimesOnReward,
+                                    lockedGroup: event.condition.providerGroup
+                                }
+                            };
+                            addParamToGiveup(giveupData);
+                        }
                     }
                 });
             }
