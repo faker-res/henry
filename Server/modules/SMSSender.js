@@ -48,6 +48,8 @@ const SMSSender = {
                                 if(proposalData){
                                     template.content = template.content.replace('{{proposalData.createTime}}', moment(proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
                                     let metaData = {proposalData: proposalData};
+                                    if(proposalData.rewardAmount)
+                                        proposalData.rewardAmount = proposalData.rewardAmount.toFixed(2);
                                     template.content = renderTemplate(template.content, metaData);
                                 }
 

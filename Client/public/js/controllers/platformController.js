@@ -4423,9 +4423,9 @@ define(['js/app'], function (myApp) {
                     tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                     vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                     utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                        5: summary.validAmountAll,
-                        6: summary.amountAll,
-                        7: summary.bonusAmountAll,
+                        10: summary.validAmount,
+                        11: summary.bonusAmount,
+                        12: summary.amount,
                         // 8: summary.commissionAmountAll
                     });
                     $('#providerExpenseTable').off('order.dt');
@@ -8986,6 +8986,9 @@ define(['js/app'], function (myApp) {
                             vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount).toFixed(2);
                             vm.playerApplyRewardShow.consumptionReturnData[key].ratio = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].ratio).toFixed(4);
                             vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')] = vm.playerApplyRewardShow.consumptionReturnData[key];
+                            // hide consumption type that is not in current selecting platform
+                            if(vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')].ratio ==0)
+                                delete vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')]
                             delete vm.playerApplyRewardShow.consumptionReturnData[key];
                         }
                         $scope.safeApply();

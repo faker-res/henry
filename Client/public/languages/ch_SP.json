@@ -2417,6 +2417,7 @@
   "requestAlipayTopup": "支付宝充值",
   "cancelAlipayTopup": "取消支付宝充值",
   "getAlipayTopupRequestList": "获取手工充值申请列表",
+  "WechatTopUp": "微信充值",
   "requestWechatTopup": "微信充值",
   "cancelWechatTopup": "取消微信充值",
   "getPlayerWechatPayStatus": "微信充值状态",
