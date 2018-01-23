@@ -46,7 +46,10 @@ const SMSSender = {
                                 if(template.type === constMessageType.UPDATE_PASSWORD)
                                     template.content = template.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
                                 if(proposalData){
+                                    template.content = template.content.replace('{{proposalData.createTime}}', moment(proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
                                     let metaData = {proposalData: proposalData};
+                                    if(proposalData.rewardAmount)
+                                        proposalData.rewardAmount = proposalData.rewardAmount.toFixed(2);
                                     template.content = renderTemplate(template.content, metaData);
                                 }
 
@@ -104,7 +107,7 @@ const SMSSender = {
         ).then().catch(errorUtils.reportError);
     },
 
-    sendPromoCodeSMSByPlayerId(playerObjId, promoData){
+    sendPromoCodeSMSByPlayerId(playerObjId, promoData, adminObjId, adminName){
         var defaultChannel = null;
         var platformId = null;
         var phoneNumber = null;
@@ -121,11 +124,8 @@ const SMSSender = {
                     //get sms channel
                     smsAPI.channel_getChannelList({}).then(
                         channelData => {
-                            if (channelData && channelData.channels && channelData.channels.length > 0) {
-                                defaultChannel = channelData.channels[0];
-                                if( channelData.channels.length > 1 ){
-                                    nextChannel = channelData.channels[1];
-                                }
+                            if (channelData && channelData.channels && channelData.channels.length > 1) {
+                                defaultChannel = channelData.channels[1];
 
                                 let messageContent = SMSSender.contentModifier(promoData.promoCodeType.smsContent,promoData);
 
@@ -145,24 +145,15 @@ const SMSSender = {
                                     message: messageContent
                                 }
 
+                                let adminObjId$ = adminObjId ? adminObjId : null;
+                                let adminName$ = adminName ? adminName : null;
+
                                 return smsAPI.sending_sendMessage(messageData).then(
                                     () => {
-                                        dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'success');
+                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'success');
                                     },
                                     error => {
-                                        dbLogger.createSMSLog(null, null, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'failure');
-                                        //todo::refactor this to properly while loop
-                                        if( nextChannel != null ){
-                                            var nextMessageData = {
-                                                channel: nextChannel,
-                                                tel: playerData.phoneNumber,
-                                                platformId: platformId,
-                                                message: messageContent,
-                                                delay: 0
-                                            };
-
-                                            return smsAPI.sending_sendMessage(nextMessageData);
-                                        }
+                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'failure');
                                     }
                                 );
                             }

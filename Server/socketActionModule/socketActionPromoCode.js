@@ -68,7 +68,7 @@ function socketActionPromoCode(socketIO, socket) {
         generatePromoCode: function generatePromoCode(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry);
-            socketUtil.emitter(self.socket, dbPlayerReward.generatePromoCode, [ObjectId(data.platformObjId), data.newPromoCodeEntry], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerReward.generatePromoCode, [ObjectId(data.platformObjId), data.newPromoCodeEntry, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
         savePromoCodeUserGroup: function savePromoCodeUserGroup(data) {
@@ -116,7 +116,7 @@ function socketActionPromoCode(socketIO, socket) {
 
         updatePromoCodesActive: function updatePromoCodesActive(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.startCreateTime && data.endCreateTime && data.flag);
+            let isValidData = Boolean(data && data.platformObjId && data.startAcceptedTime && data.endAcceptedTime && data.flag);
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodesActive, [ObjectId(data.platformObjId), data], actionName, isValidData);
         },
 

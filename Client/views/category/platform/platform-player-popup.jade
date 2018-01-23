@@ -720,7 +720,7 @@
                                         label.control-label {{'REMARKS' | translate}}
                                     .col-md-12.textareaDetail
                                         textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
-                                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+                                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status != 2 && vm.linkedPlayerTransfer.status != 5)', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
 
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log'")
                             #playerCreditLogQuery.well
@@ -905,7 +905,7 @@
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}})</b>
+                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}}) - {{v.status | translate}}</b>
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
@@ -1410,7 +1410,7 @@
 
             .modal-footer
                 div(ng-show="vm.selectedReapplyLostOrderTab == 'credit'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status != 2 && vm.linkedPlayerTransfer.status != 5)', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                 div(ng-show="vm.selectedReapplyLostOrderTab == 'payment'")
                     button.common-button.margin-right-5.btn.btn-success(ng-if="vm.repairProposalId && vm.submitRepairePayementStep!=2" ng-click='vm.submitRepairPayment()')

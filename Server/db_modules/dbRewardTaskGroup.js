@@ -142,7 +142,7 @@ let dbRewardTaskGroup = {
     },
 
     getPlayerAllRewardTaskGroupDetailByPlayerObjId: (query) => {
-        return dbconfig.collection_players.findOne(query).then(
+        return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 if (playerData) {
                     let playerObjId = playerData._id;
@@ -231,7 +231,18 @@ let dbRewardTaskGroup = {
         return Promise.all(promsArr);
     },
 
-
+    unlockPlayerRewardTask: (playerObjId) => {
+        return dbconfig.collection_rewardTaskGroup.find(
+            {
+                playerId: ObjectId(playerObjId),
+                status: constRewardTaskStatus.STARTED
+            }
+        ).lean().then(
+            rewardTaskGroups => {
+                return dbRewardTaskGroup.performUnlockPlatformProviderGroup(rewardTaskGroups);
+            }
+        );
+    },
 
 
 

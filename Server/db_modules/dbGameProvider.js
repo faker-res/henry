@@ -1,5 +1,9 @@
 "use strict";
 
+var dbGameProviderFunc = function () {
+};
+module.exports = new dbGameProviderFunc();
+
 var dbconfig = require('./../modules/dbproperties');
 var constServerCode = require('./../const/constServerCode');
 var dbGame = require('./../db_modules/dbGame');
@@ -457,4 +461,8 @@ var dbGameProvider = {
     },
 };
 
+var proto = dbGameProviderFunc.prototype;
+proto = Object.assign(proto, dbGameProvider);
+
+// This make WebStorm navigation work
 module.exports = dbGameProvider;

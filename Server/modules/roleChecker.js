@@ -385,7 +385,9 @@ var roleChecker = {
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
                 Credibility: ['updateCredibilityRemarksInBulk'],
-                providerGroup: ['deletePlatformProviderGroup']
+                providerGroup: ['deletePlatformProviderGroup'],
+                smsGroup: [],
+                DownloadTranslationCSV: ['downloadTranslationCSV']
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -601,6 +603,33 @@ var roleChecker = {
             Payment:{
                 Read: ['getPaymentMonitorResult']
             }
+        },
+        QualityInspection: {
+            Setting: {
+                Read: [],
+                queryByProposalDate: [],
+                Edit: ['updatePlatform'],
+                setting: [],
+                definition: []
+            },
+            Record: {
+                Read: [],
+                queryByProposalDate: [],
+            },
+            Evaluation: {
+                Read: [],
+                queryByProposalDate: [],
+            },
+            CSReport: {
+                Read: [],
+                queryByProposalDate: [],
+            },
+            Report: {
+                Read: [],
+                queryByProposalDate: [],
+            }
+
+
         }
     },
 

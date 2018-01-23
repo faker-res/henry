@@ -184,7 +184,27 @@ var platformSchema = new Schema({
     }],
     jiguangAppKey: {type: String},
     jiguangMasterKey: {type: String},
-    bonusSetting: {type: JSON,default:{}}
+    bonusSetting: {type: JSON,default:{}},
+    // promocode last config setting set isActive time
+    promoCodeStartTime: {type: Date},
+    promoCodeEndTime: {type: Date},
+    // promocode last config setting
+    promoCodeIsActive: {type: Boolean, default: false},
+    //the definition for effective conversation
+    conversationDefinition: {
+        // sec used for an conversation
+        totalSec: {type: Number, min: 0, default: 40},
+        // the number of sentences that the player asks
+        askingSentence: {type: Number, min: 0, default: 2},
+        // the number of sentences that the admin replies
+        replyingSentence: {type: Number, min: 0, default: 2},
+    },
+    //the setting for overtime conversation
+    overtimeSetting: [{
+        conversationInterval: {type: Number, min: 0, default: 0},
+        presetMark: {type: Number},
+        color: {type: String}
+    }],
 });
 
 //add platform id before save

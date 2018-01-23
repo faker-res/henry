@@ -1,0 +1,173 @@
+.row
+    .col-md-3
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                .fa.fa-wrench
+                label &nbsp;{{"CONFIGURATION" | translate}}
+            .panel-body.common-left-sub-panel-body
+                p(ng-if="!vm.curPlatformText")
+                    label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+                ul.list-group.treeview(style="height: 430px; overflow-y: auto;", ng-if="vm.curPlatformText")
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "definition"}', ng-click='vm.configTabClicked("definition")')
+                        span {{"EFFECTIVE_CONVERSATION_DEFINITION" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "setting"}', ng-click='vm.configTabClicked("setting")')
+                        span {{"OVERTIME_CONVERSATION_SETTING" | translate}}
+
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"CONFIGURATION_DETAIL" | translate}}
+            .panel-body.common-right-sub-panel-body(ng-if="!vm.curPlatformText")
+            .panel-body.common-right-sub-panel-body(ng-if="vm.curPlatformText")
+                .text-center(ng-if='!vm.selectedConfigTab')
+                    label.text-danger {{'Please select a type' | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="definition" && checkViewPermission("QualityInspection", "Setting", "definition")')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style='width:30%') {{'PROFILE' | translate}}
+                                th(colspan=2) {{'CONFIGURATION_DETAIL' | translate}}
+
+                        tbody
+                            tr
+                                td(rowspan=3) {{'EFFECTIVE_CONVERSATION_DEFINITION' | translate}}
+                                td
+                                    text {{'totalSec' | translate}} (>=)
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.conversationDefinition.totalSec}}
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.totalSec')
+                            tr
+                                td
+                                    text ({{'AND' | translate}}) {{'askingSentence' | translate}} (>=)
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.conversationDefinition.askingSentence}}
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.askingSentence')
+                            tr
+                                td
+                                    text ({{'AND' | translate}}) {{'replyingSentence' | translate}} (>=)
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.conversationDefinition.replyingSentence}}
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.replyingSentence')
+                            br
+                            // !!! take not on checkViewPermission !!!!
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'Setting', 'Edit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("definition")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("definition")') {{"CONFIRM" | translate}}
+
+
+                div(ng-if='vm.selectedConfigTab=="setting" && checkViewPermission("QualityInspection", "Setting", "setting")')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style='width:20%') {{'PROFILE' | translate}}
+                                th(colspan=4) {{'CONFIGURATION_DETAIL' | translate}}
+
+                        tbody
+                            tr
+                                td(rowspan="{{vm.overtimeSetting.length+1}}") {{'OVERTIME_CONVERSATION_SETTING' | translate}}
+                                td
+                                    text {{'ConversationInterval' | translate}}
+                                td
+                                    text {{'presetMark' | translate}}
+                                td
+                                    text {{'COLOR_MARK' | translate}}
+                                td
+                                    text {{'ACTION_BUTTON' | translate}}
+
+                            // before editing
+                            tr(ng-repeat="(i,v) in vm.overtimeSetting", ng-show='!vm.configTableEdit')
+                                td
+                                    text {{v.conversationInterval}}
+                                td
+                                    text {{v.presetMark}}
+                                td(style="background-color: {{v.color}}") {{v.color}}
+                                td
+                                    button.btn.btn-primary.common-button(ng-click="vm.configTableEdit=true")
+                                        i.fa.fa-pencil-square-o
+                                        text {{'EDIT' | translate}}
+                                    button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteSetting', ng-click="vm.getDeleteIndex = [v._id, $index, v.conversationInterval]")
+                                        i.fa.fa-trash
+                                        text {{'DELETE' | translate}} {{vm.configDeleteIndex}}
+
+                            tr(ng-repeat="(i,v) in vm.overtimeSetting", ng-show='vm.configTableEdit')
+                                td
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="v.conversationInterval")
+
+                                td
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="v.presetMark")
+                                td(style="background-color: {{v.color}}")
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", colorpicker="rgb", type="text", ng-model="v.color")
+                                td
+                                    button.btn.btn-success.common-button(ng-click='vm.configTableEdit=false; vm.configSubmitUpdate("setting")')
+                                        i.fa.fa-floppy-o
+                                        text {{'SAVE' | translate}}
+                                    button.btn.btn-danger.common-button(ng-click="vm.configTableEdit=false")
+                                        i.fa.fa-times
+                                        text {{'CANCEL' | translate}}
+
+                            tr(ng-if='vm.overtimeSettingAdd')
+                                td(colspan="5")
+                                    strong {{'ADD_CONFIGURATION_DETAIL' | translate}}
+                            tr(ng-if='vm.overtimeSettingAdd')
+                                td
+                                td
+                                    input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.newOvertimeSetting.conversationInterval", required)
+                                td
+                                    input.form-control(type='text', ng-model='vm.newOvertimeSetting.presetMark', required)
+                                td
+                                    input.form-control(colorpicker="rgb", style="background-color:{{vm.newOvertimeSetting.color}}", type="text", placeholder="{{'COLOR_CODE' | translate}}", ng-model="vm.newOvertimeSetting.color")
+                                td(ng-click='vm.overtimeSetting.push(vm.newOvertimeSetting); vm.newOvertimeSetting={};')
+                                    i.fa.fa-plus(style="font-size:2em", ng-if='vm.newOvertimeSetting.conversationInterval && vm.newOvertimeSetting.presetMark')
+                            br
+                            // !!! take not on checkViewPermission !!!!
+                    .pull-right
+                        button.btn.btn-primary.common-button(ng-if="!vm.overtimeSettingAdd", ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd')
+                            i.fa.fa-plus
+                            text {{'ADD' | translate}}
+                        button.btn.btn-danger.common-button(ng-if='vm.overtimeSettingAdd||vm.confirmDelete', ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd;')
+                            i.fa.fa-ban
+                            text {{"CANCEL" | translate}}
+                        button.btn.btn-success.common-button(ng-if='vm.overtimeSettingAdd', ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd;vm.configSubmitUpdate("setting")')
+                            i.fa.fa-check
+                            text {{"SAVE" | translate}}
+
+//
+//.row(ng-if="checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
+//    .col-md-3
+//    .col-md-9(style="padding-left:0;padding-right:15px")
+//        .panel.panel-primary
+//            .panel-heading.panel-heading-sm
+//                label {{"CHINESE_TRANSLATION_CSV" | translate}}
+//            .panel-body
+//                button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
+//                    i.fa.fa-cog
+//                    text {{"PREPARE_CSV" | translate}}
+//                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-click='vm.prepareTranslationCSV=!vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='{{vm.fileNameCSV}}.csv')
+//                    i.fa.fa-download
+//                    text {{"DOWNLOAD_CSV" | translate}}
+
+#modalDeleteSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete this"|translate}}
+                                    strong.text-danger &nbsp; {{"ConversationInterval" | translate}} = {{vm.getDeleteIndex[2]}}
+                                    label ?
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click='vm.settingDeleteIndex(vm.getDeleteIndex);vm.configSubmitUpdate("setting")')
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}

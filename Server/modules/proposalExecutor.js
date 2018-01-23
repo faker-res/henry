@@ -418,7 +418,32 @@ var proposalExecutor = {
              * execution function for fix player credit transfer
              */
             executeFixPlayerCreditTransfer: function (proposalData, deferred) {
-                proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                isTransferIdRepaired(proposalData.data.transferId).then(
+                    isRepaired => {
+                        if (!isRepaired) {
+                            setTransferIdAsRepaired(proposalData.data.transferId).catch(errorUtils.reportError);
+
+                            return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean();
+                        }
+                        else {
+                            deferred.reject({name: "DataError", message: "This transfer has been repaired."});
+                        }
+                    },
+                    err => {
+                        deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error(err)});
+                    }
+                ).then(
+                    platform => {
+                        if (platform && platform.useProviderGroup) {
+                            proposalData.data.proposalId = proposalData.proposalId;
+                            fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
+                                deferred.resolve, deferred.reject);
+                        }
+                        else {
+                            proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                        }
+                    }
+                );
             },
 
             /**
@@ -576,6 +601,8 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate._id;
                                 delete playerUpdate.name;
+                                if(playerUpdate.updateGamePassword || playerUpdate.updatePassword)
+                                    delete playerUpdate.remark;
 
                                 proms.push(
                                     dbconfig.collection_players.findOneAndUpdate(
@@ -1329,12 +1356,12 @@ var proposalExecutor = {
                             {new: true}
                         ).lean().then(
                             function (data) {
-                                dbLogger.createCreditChangeLog(
+                                dbLogger.createCreditChangeLogWithLockedCredit(
                                     data._id, data.platform,
                                     proposalData.data.rewardAmount,
                                     proposalData.type.name,
                                     data.validCredit,
-                                    null, proposalData);
+                                    0, 0, null, proposalData);
                                 deferred.resolve(data);
                             },
                             function (err) {
@@ -1861,12 +1888,12 @@ var proposalExecutor = {
                         platform: proposalData.data.platformId
                     }, updatePlayer, {new: true}).lean().then(
                         function (data) {
-                            dbLogger.createCreditChangeLog(
+                            dbLogger.createCreditChangeLogWithLockedCredit(
                                 data._id, data.platform,
                                 proposalData.data.rewardAmount,
                                 proposalData.type.name,
                                 data.validCredit,
-                                null, proposalData);
+                                0, 0, null, proposalData);
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -1939,7 +1966,31 @@ var proposalExecutor = {
              * execution function for player intention proposal
              */
             executePlayerRegistrationIntention: function (proposalData, deferred) {
-                sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                // for message template
+                if(proposalData.data && proposalData.data.realName && proposalData.status === constProposalStatus.APPROVED) {
+                    let platformObjId =proposalData.data.platform?proposalData.data.platform:proposalData.data.platformId;
+                    // this proposal data's player name no include platform prefix;
+                    dbconfig.collection_platform.findOne({_id:platformObjId}).then(
+                        (platform) => {
+                            let playerName = platform.prefix + proposalData.data.name;
+                            return dbconfig.collection_players.findOne({name:playerName,platform:platform._id})
+                                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel});
+                        }
+                    ).then(
+                        (player) => {
+                            if(player) {
+                                dbconfig.collection_proposal.update({
+                                    _id: proposalData._id,
+                                }, {"data.playerLevelName": player.playerLevel.name}).exec();
+                                proposalData.data.playerName = proposalData.data.name;
+                                proposalData.data.playerObjId = player._id;
+                                proposalData.data.platformId = proposalData.data.platform;
+                                sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                            }
+
+                        }
+                    );
+                }
                 deferred.resolve(proposalData);
             },
 
@@ -1990,7 +2041,8 @@ var proposalExecutor = {
                         initAmount: proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId,
                         useLockedCredit: proposalData.data.useLockedCredit,
-                        useConsumption: Boolean(proposalData.data.useConsumption)
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        applyAmount: proposalData.data.applyAmount
                     };
 
                     // Target providers or providerGroup
@@ -2131,6 +2183,7 @@ var proposalExecutor = {
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: 0,
+                        rewardAppearPeriod: proposalData.data.rewardAppearPeriod,
                         providerGroup: proposalData.data.providerGroup
                     };
                     let deferred1 = Q.defer();
@@ -3035,7 +3088,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         })
                     );
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
-                    if (proposalData.data.isDynamicRewardAmount) {
+                    if (proposalData.data.isDynamicRewardAmount || proposalData.data.promoCode) {
                         dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
                             dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         }).catch(
@@ -3133,9 +3186,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
     if(needSendMessageRewardTypes.indexOf(type)!==-1){
          messageType = type + 'Success';
     }
-
-    if(proposalData.createTime)
-        proposalData.createTime = moment(proposalData.createTime).format("YYYY/MM/DD HH:mm:ss");
+    
     SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
     // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
     // Changing into async function
@@ -3233,6 +3284,139 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
             } else {
                 return Q.reject(error);
             }
+        }
+    );
+}
+
+function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalData) {
+    let transferLog, providerGroup, player, provider;
+    let changedValidCredit = 0, changedLockedCredit = 0;
+    return dbconfig.collection_playerCreditTransferLog.findOne({transferId}).lean().then(
+        transferLogData => {
+            if (!transferLogData) {
+                return;
+            }
+
+            transferLog = transferLogData;
+
+            return dbconfig.collection_gameProvider.findOne({providerId: transferLog.providerId}).lean();
+        }
+    ).then(
+        providerData => {
+            if (!providerData) {
+                return;
+            }
+
+            provider = providerData;
+
+            let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({
+                platform: transferLog.platformObjId,
+                providers: provider._id,
+            }).lean();
+
+            let playerProm = dbconfig.collection_players.findOne({_id: transferLog.playerObjId}).lean();
+
+            return Promise.all([gameProviderGroupProm, playerProm]);
+        }
+    ).then(
+        data => {
+            if (!data || !data[0] || !data[1]) {
+                return;
+            }
+            providerGroup = data[0];
+            player = data[1];
+
+            return dbconfig.collection_rewardTaskGroup.findOne({
+                platformId: transferLog.platformObjId,
+                playerId: transferLog.playerObjId,
+                providerGroup: providerGroup._id,
+                status: {$in: [constRewardTaskStatus.STARTED]}
+            }).lean();
+        }
+    ).then(
+        rewardTaskGroup => {
+            if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
+                changedValidCredit = rewardTaskGroup._inputFreeAmt;
+                changedLockedCredit = rewardTaskGroup._inputRewardAmt;
+                let lockedAmount = rewardTaskGroup.rewardAmt + rewardTaskGroup._inputRewardAmt;
+                let validCredit = rewardTaskGroup._inputFreeAmt;
+
+                let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                    _id: rewardTaskGroup._id,
+                    platformId: rewardTaskGroup.platformId
+                }, {
+                    rewardAmt: lockedAmount,
+                    _inputRewardAmt: 0,
+                    _inputFreeAmt: 0,
+                    inProvider: false
+                }, {
+                    new: true
+                }).lean();
+
+                let updateValidCredit = dbconfig.collection_players.findOneAndUpdate({
+                    _id: player._id,
+                    platform: player.platform
+                }, {
+                    $inc: {
+                        validCredit: validCredit > 0 ? validCredit : 0
+                    }
+                }, {
+                    new: true
+                });
+
+                return Promise.all([updateValidCredit, updateRewardTaskGroupProm]);
+            }
+            else {
+                changedValidCredit = creditAmount;
+
+                let updateValidCredit = dbconfig.collection_players.findOneAndUpdate({
+                    _id: player._id,
+                    platform: player.platform
+                }, {
+                    $inc: {
+                        validCredit: creditAmount > 0 ? creditAmount : 0
+                    }
+                }, {
+                    new: true
+                });
+
+                return Promise.all([updateValidCredit]);
+            }
+        }
+    ).then(
+        updatedData => {
+            if (!updatedData || !updatedData[0]) {
+                return;
+            }
+
+            let updatedPlayer = updatedData[0];
+            if (updatedPlayer.validCredit < 0) {
+                updatedPlayer.validCredit = 0;
+            }
+            if (updatedPlayer.lockedCredit < 0) {
+                updatedPlayer.lockedCredit = 0;
+            }
+            return updatedPlayer.save();
+        },
+        error => {
+            return Promise.reject({name: "DBError", message: "Error updating player.", error: error});
+        }
+    ).then(
+        updatedPlayer => {
+            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, updatedPlayer.validCredit, null, changedLockedCredit, null, proposalData);
+            return updatedPlayer;
+        }
+    );
+}
+
+function setTransferIdAsRepaired(transferId) {
+    return dbconfig.collection_playerCreditTransferLog.update({transferId}, {isRepaired: true}, {multi: true});
+}
+
+function isTransferIdRepaired(transferId) {
+    return dbconfig.collection_playerCreditTransferLog.find({transferId, isRepaired: true}, {_id: 1}).limit(1).lean().then(
+        log => {
+            return Boolean(log && log[0]);
         }
     );
 }

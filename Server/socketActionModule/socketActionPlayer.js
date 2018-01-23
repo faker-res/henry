@@ -201,6 +201,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPayment, [userAgent, data.query, {forbidTopUpType: data.updateData.forbidTopUpType}, true], actionName, isValidData);
         },
 
+        updatePlayerForbidPaymentType: function updatePlayerForbidPaymentType(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidPaymentType, [data.query, data.updateData.forbidTopUpType], actionName, isValidData);
+        },
+
         /**
          * Update player status
          * @param {json} data - It has to contain _id, status and reason
@@ -367,7 +373,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let newPassword = (data && data.newPassword) ? data.newPassword : chance.hash({length: constSystemParam.PASSWORD_LENGTH});
             let isValidData = Boolean(data && data.playerId && newPassword && newPassword.length >= 6);
-            socketUtil.emitter(self.socket, dbPlayerInfo.resetPlayerPassword, [data.playerId, newPassword, data.platform, data.resetPartnerPassword], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.resetPlayerPassword, [data.playerId, newPassword, data.platform, data.resetPartnerPassword, null, data.creator], actionName, isValidData);
         },
 
         // /**
@@ -1031,9 +1037,9 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         downloadTranslationCSV: function downloadTranslationCSV(data){
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbPlayerInfo.downloadTranslationCSV, [data], actionName, isValidData);
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.downloadTranslationCSV, [data.platformId], actionName, isValidData);
         },
 
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {

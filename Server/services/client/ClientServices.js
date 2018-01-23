@@ -59,6 +59,8 @@
                 "updatePassword",
                 "updatePasswordPlayerPartner",
                 "updateSMSSetting",
+                "getSmsStatus",
+                "setSmsStatus",
                 "isValidUsername",
                 "isValidRealName",
                 "authenticate",
@@ -107,7 +109,9 @@
                 "getPlatformDetails",
                 "getPlatformAnnouncements",
                 "getConfig",
-                "getLiveStream"
+                "getLiveStream",
+                "playerPhoneChat",
+                "searchConsumptionRecord"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -277,6 +281,7 @@
                 "getSignInfo",
                 "getSignBonus",
                 "getSlotInfo",
+                "getRandBonusInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

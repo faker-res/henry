@@ -10,7 +10,6 @@ const dbconfig = require('./../modules/dbproperties');
 const dataUtility = require('./../modules/encrypt');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbProposal = require('./../db_modules/dbProposal');
-const dbProposalType = require('./../db_modules/dbProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
 const constSystemParam = require('./../const/constSystemParam');
 const constProposalType = require('./../const/constProposalType');
@@ -30,6 +29,8 @@ const moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
 const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 const dbPromoCode = require("../db_modules/dbPromoCode");
+
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
 var dbPlayerTopUpRecord = {
     /**
@@ -636,12 +637,7 @@ var dbPlayerTopUpRecord = {
                         playerId: player._id
                     };
                     if (topUpType) {
-                        if (topUpType == 2) {
-                            queryObj.topUpType = parseInt(topUpType);
-                        }
-                        else {
-                            queryObj.topUpType = {$ne: 2};
-                        }
+                        queryObj.topUpType = parseInt(topUpType);
                     }
                     if (queryStartTime || queryEndTime) {
                         queryObj.createTime = {};
@@ -1065,6 +1061,7 @@ var dbPlayerTopUpRecord = {
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                     if(inputData.limitedOfferObjId)
                         proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                 }
@@ -1834,6 +1831,7 @@ var dbPlayerTopUpRecord = {
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                         if(limitedOfferObjId)
                             proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                     }
@@ -2047,13 +2045,19 @@ var dbPlayerTopUpRecord = {
 
     /**
      * add wechat topup records of the player
+     * @param useQR
+     * @param userAgent
      * @param playerId
      * @param amount
-     * @param alipayName
-     * @param alipayAccount
+     * @param wechatName
+     * @param wechatAccount
+     * @param bonusCode
      * @param entryType
      * @param adminId
      * @param adminName
+     * @param remark
+     * @param createTime
+     * @param limitedOfferObjId
      */
 
     requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId) {
@@ -2062,6 +2066,7 @@ var dbPlayerTopUpRecord = {
         let proposal = null;
         let request = null;
         let pmsData = null;
+
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}
@@ -2070,6 +2075,14 @@ var dbPlayerTopUpRecord = {
                     if (playerData) {
                         player = playerData;
 
+                        return dbPlayerUtil.setPlayerState(player._id, "WechatTopUp");
+                    } else {
+                        return Promise.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    }
+                }
+            ).then(
+                playerState => {
+                    if (playerState) {
                         let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                         let proms = [checkLimitedOfferProm];
 
@@ -2080,7 +2093,7 @@ var dbPlayerTopUpRecord = {
 
                         return Promise.all(proms);
                     } else {
-                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                        return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
                     }
                 }
             ).then(
@@ -2148,6 +2161,7 @@ var dbPlayerTopUpRecord = {
                         // Check Limited Offer Intention
                         if (limitedOfferTopUp) {
                             proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                            proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                             if(limitedOfferObjId)
                                 proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                         }
@@ -2364,6 +2378,7 @@ var dbPlayerTopUpRecord = {
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                     }
 
                     let newProposal = {

@@ -9,8 +9,9 @@ const emailer = require("../modules/emailer");
 const serverInstance = require("./serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constPromoCodeLegend = require("../const/constPromoCodeLegend.js");
+const constMessageType = require("../const/constMessageType.js");
 const assert = require('assert');
-
+const moment = require('moment-timezone');
 const messageDispatcher = {
 
     /**
@@ -31,7 +32,8 @@ const messageDispatcher = {
                 metaData.senderType = 'System';
                 metaData.platformId = proposalData.data.platformId;
                 //const platformId = metaData.proposalData.data.platformId;
-                const platformId = metaData.platformId;
+                // const platformId = metaData.platformId;
+                const platformId = player.platform;
                 return messageDispatcher.dispatchMessagesOfType(platformId, messageType, metaData);
             }
         )
@@ -49,7 +51,7 @@ const messageDispatcher = {
         );
     },
 
-    dispatchMessagesForPromoCode: function (platformObjId, metaData) {
+    dispatchMessagesForPromoCode: function (platformObjId, metaData, adminName) {
         let providerNameList = [];
         const playerId = metaData.playerObjId;
         // Fetch any data which might be used in the template
@@ -60,7 +62,7 @@ const messageDispatcher = {
                 metaData.recipientId = player._id;
                 metaData.recipientType = 'player';
                 metaData.senderType = 'admin';
-                metaData.senderName = 'OPERATOR';
+                metaData.senderName = adminName ? adminName: "";
                 metaData.platformId = platformObjId;
                 const platformId = platformObjId;
 
@@ -77,8 +79,16 @@ const messageDispatcher = {
             }
         ).then(
             data => {
-                if(data && data[0] && data[0].length > 0){
-                    metaData.allowedProviders = data[0];
+                if(data){
+                    if(metaData.isProviderGroup) {
+                        if(data.length > 0 && data[0].name){
+                            metaData.allowedProviders = data[0].name;
+                        }
+                    }else{
+                        if(data[0] && data[0].length > 0){
+                            metaData.allowedProviders = data[0]
+                        }
+                    }
                 }
 
                 let messageContent = messageDispatcher.contentModifier(metaData.promoCodeType.smsContent,metaData);
@@ -95,27 +105,7 @@ const messageDispatcher = {
     },
 
     getProviderNameByProviderGroupId: function(providerGroupId){
-        let gameProviderProm = [];
-        let gameProviderNameArr =[];
-        return dbconfig.collection_gameProviderGroup.findOne({_id: providerGroupId}).then(
-            gameProviderGroupData => {
-                if(gameProviderGroupData && gameProviderGroupData.providers && gameProviderGroupData.providers.length > 0){
-                    gameProviderGroupData.providers.forEach(gameProviderId => {
-                        gameProviderProm.push(dbconfig.collection_gameProvider.findOne({_id: gameProviderId}));
-                    })
-                }
-                return Promise.all(gameProviderProm);
-            }
-        ).then(
-            gameProviderData => {
-                if(gameProviderData && gameProviderData.length > 0){
-                    gameProviderData.forEach(gameProvider => {
-                        gameProviderNameArr.push(gameProvider.name);
-                    })
-                }
-                return gameProviderNameArr;
-            }
-        );
+        return dbconfig.collection_gameProviderGroup.findOne({_id: providerGroupId},{name: 1});
     },
 
     getProviderNameByProviderId(providerIdArr){
@@ -192,6 +182,15 @@ const messageDispatcher = {
     renderTemplateAndSendMessage: function (messageTemplate, metaData) {
         const renderedSubject = typeof messageTemplate.subject === 'string' && renderTemplate(messageTemplate.subject, metaData);
         const contentIsHTML = isHTML(messageTemplate.content);
+        if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
+            messageTemplate.content = messageTemplate.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
+        if (metaData.proposalData) {
+            if(metaData.proposalData.createTime)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.createTime}}', moment(metaData.proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
+            if(metaData.proposalData.rewardAmount)
+                metaData.proposalData.rewardAmount = metaData.proposalData.rewardAmount.toFixed(2);
+        }
+        
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },
@@ -220,7 +219,7 @@ const messageDispatcher = {
                 platformId: metaData.platformId,
                 senderType: metaData.senderType,
                 senderId: metaData.senderId,
-                senderName: metaData.senderName,
+                //senderName: metaData.senderName,
                 recipientType: metaData.recipientType,
                 recipientId: metaData.recipientId,
                 // playerId: metaData.player._id,

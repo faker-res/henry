@@ -27,12 +27,14 @@ var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
+var errorUtils = require("../modules/errorUtils.js");
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
 const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constMaxDateTime = require("../const/constMaxDateTime");
+const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTransferStatus");
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -121,15 +123,42 @@ var proposal = {
                 if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && proposalData.isPartner) {
                     return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);
                 }
-                else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
-                    return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
-                }
+                // else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) { // note :: 52-24
+                //     return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
+                // }
                 return true;
             }
         ).then(
             () => {
                 return proposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
             })
+    },
+
+    applyRepairCreditTransfer: function (platformId, proposalData) {
+        function isRepairableTransfer(transferId) {
+            return dbconfig.collection_playerCreditTransferLog.find({
+                transferId,
+                isRepaired: {$ne: true},
+                status: {$in: [constPlayerCreditTransferStatus.FAIL, constPlayerCreditTransferStatus.TIMEOUT]}
+            }, {_id: 1}).limit(1).lean().then(
+                log => {
+                    return Boolean(log && log[0]);
+                }
+            );
+        }
+
+        return isRepairableTransfer(proposalData.data.transferId).then(
+            isRepairable => {
+                if (!isRepairable) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "This transfer is not repairable."
+                    });
+                }
+
+                return proposal.createProposalWithTypeNameWithProcessInfo(platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, proposalData);
+            }
+        );
     },
 
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
@@ -306,15 +335,6 @@ var proposal = {
                                 });
                             }
                             else {
-
-                                if (proposalData.data.isPlayerInit){
-                                    proposalData.creator = {
-                                        type: 'player',
-                                        name: proposalData.data.playerName || "",
-                                        id: proposalData.data.playerId || ""
-                                    };
-                                }
-
                                 var proposalProm = proposal.createProposal(proposalData);
                                 var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                 return Q.all([proposalProm, platProm, data[0].expirationDuration]);
@@ -445,7 +465,7 @@ var proposal = {
         updateData['data.remarks'] = remarks;
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
-    updateTopupProposal: function (proposalId, status, requestId, orderStatus) {
+    updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark) {
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
@@ -494,9 +514,9 @@ var proposal = {
         ).then(
             data => {
                 if (status == constProposalStatus.SUCCESS) {
-                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true);
+                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark);
                 } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false);
+                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark);
                 }
                 else {
                     //update proposal for experiation
@@ -801,6 +821,39 @@ var proposal = {
             );
     },
 
+    autoCancelProposal: function (proposalData) {
+        if (proposalData) {
+            var reject = true;
+            var proposalStatus = proposalData.status || proposalData.process.status;
+
+            if (proposalStatus != constProposalStatus.PENDING) {
+                reject = false;
+            }
+
+            if (reject) {
+                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
+                    .then(successData => {
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {
+                                noSteps: true,
+                                process: null,
+                                status: constProposalStatus.CANCEL,
+                                "data.cancelBy": "秒杀礼包已过期"
+                            },
+                            {new: true}
+                        );
+                    })
+            }
+            else {
+                return Q.reject({message: "incorrect proposal status or authentication."});
+            }
+        }
+        else {
+            return Q.reject({message: "incorrect proposal data!"});
+        }
+    },
+
     getAllPlatformAvailableProposalsForAdminId: function (adminId, platform) {
         var platformArr = [];
         return proposal.getAvailableProposalsByAdminId(adminId, platform)
@@ -1101,6 +1154,15 @@ var proposal = {
         var finalSummary = [];
         size = Math.min(size, constSystemParam.REPORT_MAX_RECORD_NUM);
 
+        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+        let searchInterval = Math.abs(new Date(startTime).getTime() - new Date(endTime).getTime());
+        if (searchInterval > maxDiffTime) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Exceed proposal search max time frame"
+            });
+        }
+
         var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).exec();
         var prom2 = dbconfig.collection_admin.findOne({_id: adminId}).exec();
         return Q.all([prom1, prom2]).then(
@@ -1303,6 +1365,15 @@ var proposal = {
                             }
                         };
 
+                        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+                        let searchInterval = Math.abs(queryObj.createTime.$gte.getTime() - queryObj.createTime.$lt.getTime());
+                        if (searchInterval > maxDiffTime) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Exceed proposal search max time frame"
+                            });
+                        }
+
                         if (statusArr) {
                             queryObj.status = {$in: statusArr}
                         }
@@ -1367,7 +1438,7 @@ var proposal = {
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
-                            dbconfig.collection_proposal.find(queryObj)
+                            dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred")
                                 .populate({path: 'type', model: dbconfig.collection_proposalType})
                                 .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
@@ -1456,7 +1527,7 @@ var proposal = {
                                     }
                                     return Q.all(retData);
                                 }).read("secondaryPreferred");
-                        var b = dbconfig.collection_proposal.find(queryObj).count();
+                        var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
                             {
                                 $match: queryObj
@@ -3149,6 +3220,30 @@ var proposal = {
         );
     },
 
+    checkLimitedOfferTopUpExpiration: function () {
+        return dbconfig.collection_proposal.find({
+            status: constProposalStatus.PENDING,
+            mainType: {$in: [constProposalMainType.PlayerWechatTopUp, constProposalMainType.ManualPlayerTopUp, constProposalMainType.PlayerAlipayTopUp]},
+            "data.expirationTime": {$lt: new Date()},
+            "data.limitedOfferObjId": {$exists: true}
+        })
+            .populate({path: "process", model: dbconfig.collection_proposalProcess})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean()
+            .then(
+                proposalData => {
+                    if (proposalData && proposalData.length > 0) {
+                        let proms = [];
+                        proposalData.forEach(proposal => {
+                           proms.push(this.autoCancelProposal(proposal));
+                        });
+                        return Promise.all(proms).catch(errorUtils.reportError);
+                    }
+
+                }
+            )
+
+    },
+
     checkProposalExpiration: function () {
         return dbconfig.collection_proposal.update(
             {
@@ -3322,6 +3417,15 @@ var proposal = {
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+        let searchInterval = Math.abs(query.createTime.$gte.getTime() - query.createTime.$lt.getTime());
+        if (searchInterval > maxDiffTime) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Exceed proposal search max time frame"
+            });
+        }
+
 
         if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
             query['$or'] = [
@@ -3340,7 +3444,7 @@ var proposal = {
                 item.forEach(sItem => {
                     mGroupList.push(sItem)
                 })
-            })
+            });
             query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 
