@@ -207,6 +207,7 @@ define(['js/app'], function (myApp) {
                 setTimeout(function(){
                     $scope.safeApply();
                 },0)
+
             }
 
             var eventName = "$viewContentLoaded";
@@ -556,8 +557,7 @@ define(['js/app'], function (myApp) {
                 }
             };
         };
-
-            qualityInspectionController.$inject = injectParams;
-            myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);
-        }
+    qualityInspectionController.$inject = injectParams;
+        myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);
+    }
 );

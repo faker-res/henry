@@ -606,24 +606,19 @@ var roleChecker = {
         },
         QualityInspection: {
             Setting: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             },
             Record: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             },
             Evaluation: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             },
             CSReport: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             },
             Report: {
-                Read: [],
-                queryByProposalDate: [],
+                Read: []
             }
 
 

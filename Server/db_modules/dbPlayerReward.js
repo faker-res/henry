@@ -4386,16 +4386,6 @@ let dbPlayerReward = {
                                         }
                                     }
 
-                                    if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
-                                        let randomRewardRes = {
-                                            amount: rewardAmount
-                                        }
-                                        return Promise.all(postPropPromArr).then(
-                                            () => {
-                                                return Promise.resolve(randomRewardRes);
-                                            }
-                                        );
-                                    }
                                     return Promise.all(postPropPromArr);
                                 }
                                 else {

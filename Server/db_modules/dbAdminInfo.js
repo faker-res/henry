@@ -90,6 +90,17 @@ var dbAdminInfo = {
     },
 
     /**
+     * Get all live800 account
+     * @param live800Acc
+     */
+    checkLive800AccValidity: function(live800Acc,adminName){
+        return dbconfig.collection_admin.find({live800Acc: {$in:live800Acc}, adminName: {$ne:adminName}}).count().then(
+            adminCount => {
+                return adminCount > 0 ? false : true;
+            });
+    },
+
+    /**
      * Remove admin user by query
      * @param {String} query - The query string
      */
