@@ -185,11 +185,12 @@ define(['js/app'], function (myApp) {
                         item.statusName = item.status ? vm.conversationStatus[item.status]:vm.conversationStatus[1];
                         item.conversation.forEach(function(cv){
                             cv.roleName = vm.roleType[item.type];
-                        })
+                        });
+                        item.editable = false;
                     });
                     $scope.safeApply();
                 }
-            }
+            };
             vm.rateconversation = function(msgId){
                 vm.rateMsgId = msgId;
                 alert('example: '+vm.rateMsgId);
@@ -197,9 +198,7 @@ define(['js/app'], function (myApp) {
             vm.confirmRate = function(rate){
                 console.log(rate);
                 socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
-
                     console.log(data);
-
                 });
             }
             vm.showLive800 = function(){
