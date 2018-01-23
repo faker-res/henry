@@ -472,7 +472,7 @@ let dbPlayerReward = {
             if (event.condition.isPlayerLevelDiff && player) {
                 let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
                 if (rewardParam && rewardParam[0] && rewardParam[0].value) {
-                    paramOfLevel = rewardParam[0].value;
+                    selectedParam = rewardParam[0].value[0];
                 }
             } else {
                 selectedParam = paramOfLevel[0];
