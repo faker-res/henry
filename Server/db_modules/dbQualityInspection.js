@@ -27,14 +27,15 @@ var dbQualityInspection = {
 
         connection.connect();
         let queryObj = "";
-        if(query.companyId){
-            queryObj +=" company_id='"+query.company_id+"'";
-        }
-        if(query.operatorId){
-            queryObj +=" msg_id='"+query.operator_id+"'";
-        }
-        if(query.startTime && query.endTime){
-        }
+        // if(query.companyId){
+        //     queryObj +=" company_id='"+query.company_id+"'";
+        // }
+        // if(query.operatorId){
+        //     queryObj +=" msg_id='"+query.operator_id+"'";
+        // }
+        // if(query.startTime && query.endTime){
+        //     queryObj +=" WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:5:00' AS DATETIME)";
+        // }
 
         connection.query("SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:5:00' AS DATETIME);", function (error, results, fields) {
             console.log('yeah');
