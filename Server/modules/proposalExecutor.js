@@ -435,6 +435,7 @@ var proposalExecutor = {
                 ).then(
                     platform => {
                         if (platform && platform.useProviderGroup) {
+                            proposalData.data.proposalId = proposalData.proposalId;
                             fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
                                 deferred.resolve, deferred.reject);
                         }
@@ -3402,7 +3403,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
         }
     ).then(
         updatedPlayer => {
-            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, player.validCredit, null, changedLockedCredit, null, proposalData);
+            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, updatedPlayer.validCredit, null, changedLockedCredit, null, proposalData);
             return updatedPlayer;
         }
     );
