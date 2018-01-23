@@ -19,17 +19,28 @@ var dbQualityInspection = {
         });
         return connection;
     },
-    searchLive800: function () {
+    searchLive800: function (query) {
         var deferred = Q.defer();
         var connection = dbQualityInspection.connectMysql();
         let conversationForm = [];
         let proms = [];
 
         connection.connect();
+        let queryObj = "";
+        if(query.companyId){
+            queryObj +=" company_id='"+query.company_id+"'";
+        }
+        if(query.operatorId){
+            queryObj +=" msg_id='"+query.operator_id+"'";
+        }
+        if(query.startTime && query.endTime){
+        }
+
         connection.query("SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:5:00' AS DATETIME);", function (error, results, fields) {
             console.log('yeah');
             if (error) throw error;
             results.forEach(item => {
+                console.log(item);
                 let live800Chat = {conversation: []};
                 live800Chat.messageId = item.msg_id;
                 live800Chat.status = item.status;
