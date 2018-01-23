@@ -18,7 +18,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.constQualityInspectionStatus = {
-                1: "PENDING",
+                1: "PENDINGTOPROCESS",
                 2: "COMPLETED_UNREAD",
                 3: "COMPLETED_READ",
                 4: "COMPLETED",
@@ -415,6 +415,26 @@ define(['js/app'], function (myApp) {
                 $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
             }
 
+            vm.commonSortChangeHandler = function (a, objName, searchFunc) {
+                if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
+                var sortCol = a.aaSorting[0][0];
+                var sortDire = a.aaSorting[0][1];
+                var temp = a.aoColumns[sortCol];
+                var sortKey = temp ? temp.sortCol : '';
+                // console.log(a, sortCol, sortKey);
+                vm[objName].aaSorting = a.aaSorting;
+                if (sortKey) {
+                    vm[objName].sortCol = vm[objName].sortCol || {};
+                    var preVal = vm[objName].sortCol[sortKey];
+                    vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                    if (vm[objName].sortCol[sortKey] != preVal) {
+                        vm[objName].sortCol = {};
+                        vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                        searchFunc.call(this);
+                    }
+                }
+            }
+
 
             //////////////////////////////////////////////////////////Start of Evaluation Tab///////////////////////////////////////////////////////////////////
             vm.getUnreadEvaluationRecord = function() {
@@ -654,9 +674,183 @@ define(['js/app'], function (myApp) {
             //////////////////////////////////////////////////////////End of Evaluation Tab///////////////////////////////////////////////////////////////////
 
             //////////////////////////////////////////////////////////Start of Report Tab///////////////////////////////////////////////////////////////////
-            vm.getWorkloadReport = function() {
+            vm.getWorkloadReport = function(newSearch) {
+                var startTime = $('#reportConversationStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#reportConversationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime,
+                }
+
+                if(vm.qcAccount){
+                    sendData.qualityAssessor = vm.qcAccount;
+                }
+
+                let resultArr = [];
+
+                socketService.$socket($scope.AppSocket, 'getWorkloadReport', sendData, function (data) {
+                    if(data && data.data && data.data.length > 0){
+
+                        data.data.map(data => {
+                            if(data && data.status){
+                                data.status = vm.constQualityInspectionStatus[data.status];
+                            }
+
+                            let index = resultArr.findIndex(r => r.qcAccount == data.qcAccount)
+
+                            if(index != -1){
+                                if(data.status == "COMPLETED_UNREAD"){
+                                    resultArr[index].completedUnread = data.count;
+                                }
+
+                                if(data.status == "COMPLETED_READ"){
+                                    resultArr[index].completedRead = data.count;
+                                }
+
+                                if(data.status == "COMPLETED"){
+                                    resultArr[index].completed = data.count;
+                                }
+
+                                if(data.status == "APPEALING"){
+                                    resultArr[index].appealing = data.count;
+                                }
+
+                                if(data.status == "APPEAL_COMPLETED"){
+                                    resultArr[index].appealCompleted = data.count;
+                                }
+                            }else{
+                                let resultObj = {
+                                    qcAccount: data.qcAccount,
+                                    completedUnread: 0,
+                                    completedRead: 0,
+                                    completed: 0,
+                                    appealing: 0,
+                                    appealCompleted: 0
+                                }
+
+                                if(data.status == "COMPLETED_UNREAD"){
+                                    resultObj.completedUnread = data.count;
+                                }
+
+                                if(data.status == "COMPLETED_READ"){
+                                    resultObj.completedRead = data.count;
+                                }
+
+                                if(data.status == "COMPLETED"){
+                                    resultObj.completed = data.count;
+                                }
+
+                                if(data.status == "APPEALING"){
+                                    resultObj.appealing = data.count;
+                                }
+
+                                if(data.status == "APPEAL_COMPLETED"){
+                                    resultObj.appealCompleted = data.count;
+                                }
+
+                                resultArr.push(resultObj);
+                            }
+
+                            return data;
+                        })
+
+                        let tableData = resultArr;
+
+                        var option = $.extend({}, vm.generalDataTableOptions, {
+                            data: tableData,
+                            aoColumnDefs: [
+                                {'sortCol': 'qcAccount', bSortable: true, 'aTargets': [0]},
+                                {'sortCol': 'completedUnread', bSortable: true, 'aTargets': [1]},
+                                {'sortCol': 'completedRead', bSortable: true, 'aTargets': [2]},
+                                {'sortCol': 'completed', bSortable: true, 'aTargets': [3]},
+                                {'sortCol': 'appealing', bSortable: true, 'aTargets': [4]},
+                                {'sortCol': 'appealCompleted', bSortable: true, 'aTargets': [5]},
+
+                            ],
+                            columns: [
+                                {title: $translate('QC ACCOUNT'), data: "qcAccount"},
+                                {title: $translate('COMPLETED_UNREAD'), data: "completedUnread"},
+                                {title: $translate('COMPLETED_READ'), data: "completedRead"},
+                                {title: $translate('COMPLETED'), data: "completed"},
+                                {title: $translate('APPEALING'), data: "appealing"},
+                                {title: $translate('APPEAL_COMPLETED'), data: "appealCompleted"}
+                            ],
+                            bSortClasses: false,
+                            destroy: true,
+                            paging: false,
+                            autoWidth: true,
+                            initComplete: function (data, type, row) {
+                                $scope.safeApply();
+                            },
+                            createdRow: function (row, data, dataIndex) {
+                                $compile(angular.element(row).contents())($scope);
+
+                            },
+                            //fnRowCallback: vm.playerListTableRow
+                        });
+
+                        var a = utilService.createDatatableWithFooter('#workloadReportTable', option, {});
+
+                        //vm.workloadReportRecords.pageObj.init({maxCount: vm.workloadReportRecords.totalCount}, newSearch);
+                        $('#workloadReportTable').off('order.dt');
+                        $('#workloadReportTable').on('order.dt', function (event, a, b) {
+                            vm.commonSortChangeHandler(a, 'workloadReportRecords', vm.getWorkloadReport);
+                        });
+                        setTimeout(function () {
+                            $('#workloadReportTable').resize();
+                        }, 300);
+
+
+                        $scope.safeApply();
+
+
+                    }else{
+                        vm.appealEvaluationTable = "";
+                        $scope.safeApply();
+                    }
+                });
             }
+
+            $scope.$on(eventName, function (e, d) {
+
+                setTimeout(
+                    function () {
+                        vm.generalDataTableOptions = {
+                            "paging": true,
+                            columnDefs: [{targets: '_all', defaultContent: ' '}],
+                            dom: 'tpl',
+                            "aaSorting": [],
+                            destroy: true,
+                            "scrollX": true,
+                            // sScrollY: 350,
+                            scrollCollapse: true,
+                            // order: [[0, "desc"]],
+                            lengthMenu: [
+                                [10, 25, 50, -1],
+                                ['10', '25', '50', $translate('Show All')]
+                            ],
+                            "language": {
+                                "info": "",
+                                "emptyTable": "",
+                                "paginate": {
+                                    "previous": $translate("PREVIOUS_PAGE"),
+                                    "next": $translate("NEXT_PAGE"),
+                                },
+                                "lengthMenu": $translate("lengthMenuText"),
+                                sZeroRecords: ""
+                            },
+                            "drawCallback": function (settings) {
+                                setTimeout(function () {
+                                    $(window).trigger('resize');
+                                }, 100)
+                            }
+                        }
+                        //TODO::TEST CODE
+
+                    }
+                );
+            });
 
             var _ = {
                 clone: function (obj) {
