@@ -176,6 +176,57 @@ var dbQualityInspection = {
         return dbconfig.collection_qualityInspection.find(query).lean();
     },
 
+    getWorkloadReport: function(startTime, endTime, qcAccount){
+
+        let query ={
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            }
+            //status: constQualityInspectionStatus.COMPLETED_READ
+        }
+
+        if(qcAccount != "all"){
+            query.qcAccount = qcAccount;
+        }
+
+        return dbconfig.collection_qualityInspection.aggregate([
+            {
+                $match: {
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                    //qualityAssessor: qcAccount
+                },
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "qualityAssessor": "$qualityAssessor",
+                        "status": "$status"
+                    },
+                    "count": {"$sum": 1},
+                }
+            }
+        ]).then(data => {
+            let resultArr = [];
+            if(data && data.length > 0){
+                data.forEach(d => {
+                    if(d){
+                        resultArr.push({
+                            qcAccount: d._id.qualityAssessor,
+                            status: d._id.status,
+                            count: d.count
+                        });
+                    }
+                });
+
+                return resultArr;
+            }
+
+        })
+
+        //return dbconfig.collection_qualityInspection.find(query).lean();
+    },
+
     markEvaluationRecordAsRead: function(appealRecordArr, status){
         if(appealRecordArr && appealRecordArr.length > 0){
             let messageIdArr = [];
