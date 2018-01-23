@@ -11,6 +11,7 @@ const constPlayerCreditChangeType = {
     REWARD: "Reward",
     REWARD_TASK: "RewardTask",
     TRANSFER_IN: "TransferIn",
+    TRANSFER_IN_FAILED: "TransferInFailed",
     TRANSFER_OUT: "TransferOut",
     PURCHASE: "Purchase",
     APPLY_FIRST_TOP_UP_REWARD_REFUND: "applyFirstTopUpReward:ProposalFailedRefund",

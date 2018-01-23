@@ -4346,12 +4346,12 @@ define(['js/app'], function (myApp) {
                         item.bonusAmount$ = item.bonusAmount.toFixed(2);
                         item.commissionAmount$ = item.commissionAmount.toFixed(2);
                         item.canConsumptionReturn$ = Boolean(!item.bDirty) ? $translate('ABLE') : $translate('UNABLE');
-                        item.roundResult$ = "";
-                        item.roundId$ = "";
-                        item.matchId$ = "";
-                        item.gameType$ = "";
-                        item.betType$ = "";
-                        item.remark$ = "";
+                        item.roundResult$ = item.result || "";
+                        item.roundId$ = item.roundNo || "";
+                        item.matchId$ = item.playNo || "";
+                        item.gameType$ = item.cpGameType || item.gameId.name || "";
+                        item.betType$ = item.betType ||"";
+                        item.remark$ = item.playDetail || "";
 
                         return item;
                     }) : [];
@@ -4359,18 +4359,19 @@ define(['js/app'], function (myApp) {
                     var summary = data.data.summary || {};
                     var tableOptions = {
                         data: tableData,
-                        "order": vm.expenseQuery.aaSorting || [[9, 'desc']],
+                        "order": vm.expenseQuery.aaSorting || [[8, 'desc']],
                     };
 
                     vm.commonProviderGameTableOptions = {
                         columnDefs: [
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [9]},
-                            // {'sortCol': 'playerId', bSortable: true, 'aTargets': [2]},
-                            // {'sortCol': 'validAmount', bSortable: true, 'aTargets': [5]},
-                            // {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
-                            // {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [7]},
-                            // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
-                            {targets: '_all', bSortable: false, defaultContent: ' '}
+                            {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'gameId', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                            {targets: '_all', defaultContent: ' ', bSortable: false}
                         ],
                         columns: [
                             {title: $translate('orderId'), data: "orderNo"},
@@ -4380,8 +4381,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('ROUND_ID'), data: "roundId$"},
                             {title: $translate('MATCH_ID'), data: "matchId$"},
                             {title: $translate('GAME_TYPE'), data: "gameType$"},
-                            {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
-                            {title: $translate('BET_TYPE'), data: "betType$"},
+                            {title: $translate('BET_TYPE'), data: "betType$", sClass: 'sumText'},
                             {title: $translate('BET_TIME'), data: "createTime$"},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
@@ -4423,9 +4423,9 @@ define(['js/app'], function (myApp) {
                     tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                     vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                     utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                        5: summary.validAmountAll,
-                        6: summary.amountAll,
-                        7: summary.bonusAmountAll,
+                        10: summary.validAmount,
+                        11: summary.bonusAmount,
+                        12: summary.amount,
                         // 8: summary.commissionAmountAll
                     });
                     $('#providerExpenseTable').off('order.dt');
@@ -4612,7 +4612,13 @@ define(['js/app'], function (myApp) {
                             sClass: "wordWrap realNameCell",
                             advSearch: true
                         },
-                        {title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight"},
+                        {
+                            title: $translate("PLAYER_VALUE"), data: "valueScore", orderable: false, "sClass": "alignRight",
+                            render: function (data, type, row) {
+                                let value = (Math.floor( data * 10 ) / 10).toFixed(1);
+                                return value;
+                            }
+                        },
                         // {
                         //     title: $translate('STATUS'), data: 'status',
                         //     render: function (data, type, row) {
@@ -5035,7 +5041,7 @@ define(['js/app'], function (myApp) {
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
-                                    'data-placement': 'bottom',
+                                    'data-placement': 'left',
                                     'data-container': 'body',
                                 });
 
@@ -5183,7 +5189,7 @@ define(['js/app'], function (myApp) {
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
-                                    'data-placement': 'right',
+                                    'data-placement': 'left',
                                     'data-trigger': 'focus',
                                     'type': 'button',
                                     'data-html': true,
@@ -5199,7 +5205,7 @@ define(['js/app'], function (myApp) {
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
-                                    'data-placement': 'right',
+                                    'data-placement': 'left',
                                     'data-trigger': 'focus',
                                     'type': 'button',
                                     'data-html': true,
@@ -5215,7 +5221,7 @@ define(['js/app'], function (myApp) {
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
-                                    'data-placement': 'right',
+                                    'data-placement': 'left',
                                     'data-trigger': 'focus',
                                     'type': 'button',
                                     'data-html': true,
@@ -5231,7 +5237,7 @@ define(['js/app'], function (myApp) {
                                     'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
-                                    'data-placement': 'right',
+                                    'data-placement': 'left',
                                     'data-trigger': 'focus',
                                     'type': 'button',
                                     'data-html': true,
@@ -8980,6 +8986,9 @@ define(['js/app'], function (myApp) {
                             vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount).toFixed(2);
                             vm.playerApplyRewardShow.consumptionReturnData[key].ratio = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].ratio).toFixed(4);
                             vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')] = vm.playerApplyRewardShow.consumptionReturnData[key];
+                            // hide consumption type that is not in current selecting platform
+                            if(vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')].ratio ==0)
+                                delete vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')]
                             delete vm.playerApplyRewardShow.consumptionReturnData[key];
                         }
                         $scope.safeApply();
@@ -9500,7 +9509,7 @@ define(['js/app'], function (myApp) {
                             record.roundResult$ = record.result || "";
                             record.roundId$ = record.roundNo || "";
                             record.matchId$ = record.playNo || "";
-                            record.gameType$ = record.cpGameType || "";
+                            record.gameType$ = record.cpGameType || record.gameId.name || "";
                             record.betType$ = record.betType ||"";
                             record.remark$ = record.playDetail || "";
                             return record
@@ -9534,8 +9543,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('ROUND_ID'), data: "roundId$"},
                             {title: $translate('MATCH_ID'), data: "matchId$"},
                             {title: $translate('GAME_TYPE'), data: "gameType$"},
-                            {title: $translate('GAME_TITLE'), data: "gameId.name", sClass: 'sumText'},
-                            {title: $translate('BET_TYPE'), data: "betType$"},
+                            {title: $translate('BET_TYPE'), data: "betType$", sClass: 'sumText'},
                             {title: $translate('BET_TIME'), data: "createTime$"},
                             {title: $translate('VALID_AMOUNT'), data: "validAmount$", sClass: 'alignRight sumFloat'},
                             {
@@ -16034,6 +16042,12 @@ define(['js/app'], function (myApp) {
                 vm.smsGroups.push({smsName:smsSetting.name ,smsParentSmsId: smsSetting.group, platformObjId:vm.selectedPlatform.data._id});
                 vm.noGroupSmsSetting.splice(index, 1);
             }
+
+            vm.filterSmsSettingGroup = (parentSmsId) => {
+                return (smsSettingGroup) => {
+                    return smsSettingGroup.smsParentSmsId == parentSmsId;
+                }
+            };
 
             vm.addNewSmsGroup = () => {
                 socketService.$socket($scope.AppSocket, 'addNewSmsGroup', {platformObjId: vm.selectedPlatform.data._id}, function (data) {

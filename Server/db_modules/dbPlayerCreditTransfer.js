@@ -939,10 +939,11 @@ let dbPlayerCreditTransfer = {
                                 res => res,
                                 error => {
                                     // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
-                                    let status = (error.error && error.error.errorMessage && error.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
+                                    let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                                     // Third log - transfer in failed
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform, platformId, "transferIn",
                                         id, providerShortId, transferAmount, lockedTransferAmount, adminName, error, status);
+
                                     error.hasLog = true;
                                     return Q.reject(error);
                                 }
@@ -965,7 +966,7 @@ let dbPlayerCreditTransfer = {
 
                     // Logging Transfer Success
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform,
-                        platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, rewardAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                        platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, lockedTransferAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
                     return {
                         playerId: player.playerId,
@@ -990,6 +991,13 @@ let dbPlayerCreditTransfer = {
                         if (bTransfered) {
                             console.error(err);
                             if (err && err.errorMessage && err.errorMessage.indexOf('Request timeout') > -1) {
+                                // Log credit change also when request timeout since amount already deducted
+                                dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN_FAILED, playerCredit, 0, -lockedTransferAmount, null, {
+                                    providerId: providerShortId,
+                                    providerName: cpName,
+                                    transferId: transferId,
+                                    adminName: adminName
+                                });
                             } else {
                                 return playerCreditChangeWithRewardTaskGroup(player._id, player.platform, rewardTaskGroupObjId, validTransferAmount, lockedTransferAmount, providerId, true).then(
                                     () => Promise.reject({
@@ -1411,10 +1419,19 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                     } else if (curGameCredit < totalInputCredit) {
                         // Scenario 2: User loses
                         let userLoses = totalInputCredit - curGameCredit;
+                        let rewardAmt = rewardGroupObj._inputRewardAmt;
+                        let freeAmt = rewardGroupObj._inputFreeAmt - userLoses;
+
+                        if (userLoses > rewardGroupObj._inputFreeAmt){
+                            freeAmt = 0;
+                            let userLosesLeft = userLoses - rewardGroupObj._inputFreeAmt;
+
+                            rewardAmt = (userLosesLeft >= rewardGroupObj._inputRewardAmt) ? 0 : rewardGroupObj._inputRewardAmt - userLosesLeft;
+                        }
 
                         updateObj = {
-                            rewardAmt: rewardGroupObj._inputRewardAmt,
-                            freeAmt: rewardGroupObj._inputFreeAmt - userLoses,
+                            rewardAmt: rewardAmt,
+                            freeAmt: freeAmt,
                             _inputRewardAmt: 0,
                             _inputFreeAmt: 0
                         };
