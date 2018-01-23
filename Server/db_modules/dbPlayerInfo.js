@@ -2224,7 +2224,7 @@ let dbPlayerInfo = {
             }
         ]);
 
-        var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
+        var logThatHaveNoProposal = ['TransferIn', 'TransferOut', 'TransferInFailed'];
         return Q.all([a, b, c, totalProm]).then(
             data => {
                 let creditChangeLogs = data[1];
