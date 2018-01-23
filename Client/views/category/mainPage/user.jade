@@ -28,6 +28,10 @@
                 strong.span.text-primary {{vm.curUser.did}}
             li {{"Caller ID" | translate}} :&nbsp;
                 strong.span.text-primary {{vm.curUser.callerId}}
+            li {{"LIVE800 COMPANYID Without Desc" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.reArrangeTXT(vm.curUser.live800CompanyId)}}
+            li {{"LIVE800 ACC Without Desc" | translate}} :&nbsp;
+                strong.span.text-primary {{vm.reArrangeTXT(vm.curUser.live800Acc)}}
 .col-md-12.padding-left-right-1
     .btn-group(role="user")
         a.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Create')" ng-disabled="!vm.canCreateUser()", data-toggle="{{vm.canCreateUser() ? 'modal' : ''}}", data-target='#modalCreateUser', ng-click="vm.pageTag='createAdmin'; vm.initNewUser()")
