@@ -245,7 +245,8 @@ var simplifiedChinese = {
     "PlayerFreeTrialRewardGroupSuccess": "免费体验金（组）（成功）",
     "PlayerRegisterIntentionSuccess": "玩家注册意象（手动、成功）",
     "PlayerPromoCodeRewardSuccess": "优惠代码（成功）",
-    "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。"
+    "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。",
+    "Concurrent issue detected": "请联系客服",
     //todo::add missing messages here
 
     /*
