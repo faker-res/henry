@@ -234,7 +234,7 @@ define(['js/app'], function (myApp) {
                         'operatorId':764,
                         'startTime':'2018-01-16 00:00:00',
                         'endTime':'2018-01-16 00:05:00',
-                        'status':5
+                        'status':'all'
                 };
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
