@@ -72,6 +72,8 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.rateCSConversation, [data, getAdminName()], actionName, isDataValid);
         }
+
+
     };
 
     socketActionQualityInspection.actions = this.actions;

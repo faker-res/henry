@@ -109,7 +109,9 @@
                 "getPlatformDetails",
                 "getPlatformAnnouncements",
                 "getConfig",
-                "getLiveStream"
+                "getLiveStream",
+                "playerPhoneChat",
+                "searchConsumptionRecord"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -279,6 +281,7 @@
                 "getSignInfo",
                 "getSignBonus",
                 "getSlotInfo",
+                "getRandBonusInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

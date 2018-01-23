@@ -661,9 +661,9 @@ include modalGameCreditLog
             td(style='text-align:left')
 
                 label {{"FORBID_REWARD" | translate}}
-                div
-                    label {{"advanceConsumptionReward" | translate}}
-                        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='advanceConsumptionReward', ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf("advanceConsumptionReward")>-1')
+                //div
+                //    label {{"advanceConsumptionReward" | translate}}
+                //        input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='advanceConsumptionReward', ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf("advanceConsumptionReward")>-1')
                 div(ng-repeat='(i,v) in vm.allRewardEvent')
                     label {{v.name}}
                         input.playerRewardEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-checked='vm.forbidRewardEventPopover.forbidRewardEvents.indexOf(v._id)>-1')
@@ -2037,7 +2037,7 @@ include modalGameCreditLog
                                     label.control-label {{'REMARKS' | translate}}
                                 .col-md-12.textareaDetail
                                     textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
-                            button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+                            button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status != 2 && vm.linkedPlayerTransfer.status != 5)', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
 #modalProviderExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content

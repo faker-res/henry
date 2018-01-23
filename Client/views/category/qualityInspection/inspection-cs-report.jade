@@ -1,0 +1,38 @@
+#QIReportQuery.well.block-query.col-md-12.well
+    //div
+        label &nbsp;
+        button.btn.btn-primary(ng-click='vm.resetTopupRecord()') {{'Reset' | translate}}
+    div(style='width:200px')
+        label {{'PRODUCT' | translate}}
+        select.form-control#selectProduct(multiple="multiple", ng-options='product.data._id as product.data.name for product in vm.platformList track by product.data.name ', ng-model='vm.selectedPlatformID', ng-change="vm.checkSelectedPlatformID(vm.selectedPlatformID)")
+        //select.form-control#selectProduct(multiple="multiple", ng-options='product.id as product.text for product in vm.platformList', ng-model='vm.selectedPlatformID')
+        //select.form-control(ng-change='vm.filterProduct()', ng-model='vm.selectedPlatformID', ng-options='product.id as product.text for product in vm.platformList', multiple, bsp, data-actions-box='true',ng-init="vm.initSelectedPlatform()")
+    div(style='width:200px')
+        label FPMS {{'CS Account' | translate}}
+        select.form-control#selectCSAccount(multiple="multiple", ng-options='cs._id as cs.adminName for cs in vm.selectedCSAccount track by cs.adminName', ng-model='vm.selectedCS', ng-change="vm.checkSelectedCSAcc(vm.selectedCS)")
+        //select.form-control#selectCSAccount(multiple="multiple", ng-options='cs._id as cs.adminName for cs in vm.selectedCSAccount track by cs.adminName', ng-model='vm.selectedCS')
+        //select.form-control.#selectCSAccount(ng-change='', ng-model='',ng-options='i._id as i.adminName for (k,i) in ( vm.selectedCSAccount | unique: "adminName" ) track by i.adminName', multiple, bsp, data-actions-box='true')
+    div(style='width:200px')
+        label Live800 {{'Account' | translate}} {{vm.selectedLive800Acc[0].adminName}}
+        select.form-control#selectLive800Account(multiple="multiple", ng-options="v.live800Acc as v.live800Acc for (i,v) in ( vm.selectedLive800Acc | unique: 'adminName' ) track by v.adminName ", ng-model='vm.checkLive800Acc')
+        //select.form-control#selectLive800Account(multiple="multiple", ng-options='v.adminName as v.adminName | group by v.adminName for (i,v) in vm.selectedLive800Acc', ng-model='vm.selectedLive800Acc')
+            // i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name
+    div
+        label.control-label {{'Start date' | translate}}
+        .startTime
+    div
+        label.control-label {{'End date' | translate}}
+        .endTime
+    div
+        label &nbsp;
+        button.button.common-button.btn.btn-primary(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
+        span#QIReportTableSpin.collapse
+            i.fa.fa-spinner.fa-spin
+.clearfix
+label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}}
+table#topupTable.common-table.display(style="min-width:100% ;overflow: scroll")
+#QIReportTablePage
+
+
+
+

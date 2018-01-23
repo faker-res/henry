@@ -146,7 +146,7 @@ var ProposalServiceImplement = function () {
                 isValidData = false;
                 break;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbProposal.updateTopupProposal, [data.proposalId, statusText, data.depositId, data.orderStatus], isValidData, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbProposal.updateTopupProposal, [data.proposalId, statusText, data.depositId, data.orderStatus, data.remark], isValidData, true, true).then(
             res => {
                 resLogHandler(conn, wsFunc, data, res, "setTopupProposalStatus");
             },

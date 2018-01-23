@@ -247,6 +247,13 @@
         this.rewardService.getSlotInfo.once(callback);
     };
 
+    proto.getRandBonusInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardService.getRandBonusInfo.request(data);
+        this.rewardService.getRandBonusInfo.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {

@@ -128,6 +128,12 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getSlotInfo, [conn.playerId, data.code, data.platformId], isValidData, false, false, Boolean(data.platformId));
     };
 
+    this.getRandBonusInfo.expectsData = '';
+    this.getRandBonusInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getRandBonusInfo, [conn.playerId, data.rewardCode, conn.platformId], isValidData);
+    };
+
     this.getTopUpPromoList.expectsData = 'clientType: Number';
     this.getTopUpPromoList.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.clientType && conn.playerId);

@@ -66,9 +66,9 @@ const constProviderStatus = require("./../const/constProviderStatus");
 
 // db_common
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbPropUtil = require("../db_common/dbProposalUtility");
 
 // db_modules
-let dbGeoIp = require('./../db_modules/dbGeoIp');
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
@@ -1245,6 +1245,7 @@ let dbPlayerInfo = {
                         _id: playerData._id,
                         name: playerData.name,
                         platformId: playerData.platform.platformId,
+                        platform: playerData.platform._id,
                         validCredit: playerData.validCredit,
                         realName: playerData.realName
                     }
@@ -1498,9 +1499,10 @@ let dbPlayerInfo = {
      * @param {objectId} platform - player's platform
      * @param {boolean} resetPartnerPassword - reset partner password also if true
      */
-    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword) {
+    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword, creator) {
         let deferred = Q.defer();
         let playerObj;
+
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
             if (err) {
                 deferred.reject({
@@ -1546,12 +1548,35 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     data => {
-                        SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
-                        let messageData = {
-                            data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                        let proposalData = {
+                            creator: creator? creator :
+                                {
+                                    type: 'player',
+                                    name: playerObj.name,
+                                    id: playerObj._id
+                                },
+                            data: {
+                                _id:playerObj._id,
+                                playerId: playerObj.playerId,
+                                platformId: playerObj.platform,
+                                isIgnoreAudit: true,
+                                updatePassword: true,
+                                remark: '修改密码'
+
+                            },
+                            entryType: creator ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: constProposalUserType.PLAYERS,
                         };
-                        messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
-                        return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                        dbProposal.createProposalWithTypeName(playerObj.platform,constProposalType.UPDATE_PLAYER_INFO,proposalData).then(
+                            () => {
+                                SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                let messageData = {
+                                    data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                };
+                                messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                                return deferred.resolve(dontReturnPassword ? "" : newPassword);
+                            }
+                        )
                     },
                     error => deferred.reject({
                         name: "DBError",
@@ -1652,16 +1677,39 @@ let dbPlayerInfo = {
                             }
                             // player.password = hash;
                             // next();
+
                             dbconfig.collection_players.findOneAndUpdate(
                                 {_id: playerObj._id, platform: playerObj.platform}, {password: hash}
                             ).then(
                                 () => {
-                                    SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
-                                    let messageData = {
-                                        data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                    let proposalData = {
+                                        creator:
+                                            {
+                                                type: 'player',
+                                                name: playerObj.name,
+                                                id: playerObj._id
+                                            },
+                                        data: {
+                                            _id:playerObj._id,
+                                            playerId: playerObj.playerId,
+                                            platformId: playerObj.platform,
+                                            isIgnoreAudit: true,
+                                            updatePassword: true,
+                                            remark: '修改密码'
+                                        },
+                                        entryType: constProposalEntryType.CLIENT,
+                                        userType: constProposalUserType.PLAYERS,
                                     };
-                                    messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
-                                    deferred.resolve();
+                                    dbProposal.createProposalWithTypeName(playerObj.platform,constProposalType.UPDATE_PLAYER_INFO,proposalData).then(
+                                        () => {
+                                            SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                            let messageData = {
+                                                data:{platformId:playerObj.platform,playerObjId:playerObj._id}
+                                            };
+                                            messageDispatcher.dispatchMessagesForPlayerProposal(messageData, constPlayerSMSSetting.UPDATE_PASSWORD, {}).catch(err=>{console.error(err)});
+                                            deferred.resolve();
+                                        }
+                                    )
                                 }, deferred.reject
                             );
                         });
@@ -1802,6 +1850,7 @@ let dbPlayerInfo = {
                 // If user modified their own, no proposal needed
                 if (!skipProposal) {
                     dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                        creator: {type: "player", name: playerObj.name, id: playerObj._id},
                         data: updateData,
                         inputDevice: inputDeviceData
                     }, smsLogData);
@@ -1831,6 +1880,23 @@ let dbPlayerInfo = {
             }
         }, error => {
             return error;
+        });
+    },
+
+    updatePlayerForbidPaymentType: (query, forbidTopUpTypes) => {
+        return dbconfig.collection_players.findOne(query).lean().then(playerData => {
+            if (playerData) {
+                return dbconfig.collection_players.findOneAndUpdate(
+                    {_id: playerData._id, platform: playerData.platform},
+                    {forbidTopUpType: forbidTopUpTypes},
+                    {new: true}
+                ).lean();
+            }
+
+            return Promise.reject({
+                name: "DataError",
+                message: "Invalid player data"
+            });
         });
     },
 
@@ -1935,11 +2001,12 @@ let dbPlayerInfo = {
         var deferred = Q.defer();
         dbconfig.collection_players.findOneAndUpdate(
             {_id: playerId, platform: platformId},
-            {$inc: {validCredit: amount}}
+            {$inc: {validCredit: amount}},
+            {new: true}
         ).then(
             function (res) {
                 if (res) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, type, res.validCredit, operatorId, data);
+                    dbLogger.createCreditChangeLogWithLockedCredit(playerId, platformId, amount, type, res.validCredit, 0, 0, operatorId, data);
                     deferred.resolve(res);
                 }
                 else {
@@ -1996,6 +2063,9 @@ let dbPlayerInfo = {
                 }
                 if (query.dirty != null) {
                     queryObject.bDirty = query.dirty;
+                }
+                if (!games) {
+                    queryObject.cpGameType = query.gameName;
                 }
                 if (bGameSearch) {
                     queryObject.gameId = {
@@ -2277,7 +2347,7 @@ let dbPlayerInfo = {
                             type = constPlayerCreditChangeType.TOP_UP;
                             break;
                     }
-                    var logProm = dbLogger.createCreditChangeLog(playerId, data.platform, amount, type, data.validCredit, null, logData);
+                    var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
                     var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
                     let promArr;
 
@@ -2353,7 +2423,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data) {
-                    dbLogger.createCreditChangeLog(playerId, platformId, amount, constPlayerCreditChangeType.PURCHASE, data.validCredit);
+                    dbLogger.createCreditChangeLogWithLockedCredit(playerId, platformId, amount, constPlayerCreditChangeType.PURCHASE, data.validCredit, 0, 0);
                     var recordData = {
                         playerId: playerId,
                         platformId: platformId,
@@ -3021,7 +3091,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                dbLogger.createCreditChangeLog(data[1]._id, data[1].platform, -amount, constRewardType.GAME_PROVIDER_REWARD, data[1].validCredit, null, proposalData.data);
+                dbLogger.createCreditChangeLogWithLockedCredit(data[1]._id, data[1].platform, -amount, constRewardType.GAME_PROVIDER_REWARD, data[1].validCredit, 0, 0, null, proposalData.data);
                 deferred.resolve(data[0]);
             }, function (error) {
                 deferred.reject({name: "DBError", message: "Error creating proposal", error: error});
@@ -4598,6 +4668,13 @@ let dbPlayerInfo = {
                         if (bTransfered) {
                             console.error(err);
                             if (err && err.errorMessage && err.errorMessage.indexOf('Request timeout') > -1) {
+                                // Log credit change when transfer timeout
+                                dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -amount, constPlayerCreditChangeType.TRANSFER_IN_FAILED, playerCredit, 0, -rewardAmount, null, {
+                                    providerId: providerShortId,
+                                    providerName: cpName,
+                                    transferId: transferId,
+                                    adminName: adminName
+                                });
                             } else {
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {_id: playerObjId, platform: platform},
@@ -7518,34 +7595,18 @@ let dbPlayerInfo = {
                 playerData => {
                     //check if player has pending proposal to update bank info
                     if (playerData) {
-                        return dbconfig.collection_proposalType.findOne({
-                            platformId: playerData.platform._id,
-                            name: constProposalType.UPDATE_PLAYER_BANK_INFO
-                        }).then(
-                            proposalType => {
-                                if (proposalType) {
-                                    return dbconfig.collection_proposal.find({
-                                        type: proposalType._id,
-                                        "data._id": String(playerData._id)
-                                    }).populate(
-                                        {path: "process", model: dbconfig.collection_proposalProcess}
-                                    ).lean();
-                                }
-                                else {
-                                    return Q.reject({
-                                        name: "DataError",
-                                        errorMessage: "Cannot find proposal type"
-                                    });
-                                }
-                            }
-                        ).then(
+                        let propQ = {
+                            "data._id": String(playerData._id)
+                        };
+
+                        return dbPropUtil.getProposalDataOfType(playerData.platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, propQ).then(
                             proposals => {
                                 if (proposals && proposals.length > 0) {
-                                    var bExist = false;
+                                    let bExist = false;
                                     proposals.forEach(
                                         proposal => {
                                             if (proposal.status == constProposalStatus.PENDING ||
-                                                ( proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
+                                                (proposal.process && proposal.process.status == constProposalStatus.PENDING)) {
                                                 bExist = true;
                                             }
                                         }
@@ -7554,7 +7615,7 @@ let dbPlayerInfo = {
                                         return playerData;
                                     }
                                     else {
-                                        return Q.reject({
+                                        return Promise.reject({
                                             name: "DataError",
                                             errorMessage: "Player is updating bank info"
                                         });
@@ -7567,33 +7628,50 @@ let dbPlayerInfo = {
                         );
                     }
                     else {
-                        return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
+                        return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
                     }
                 }
             ).then(
                 playerData => {
                     if (playerData) {
-                        // if ((!playerData.permission || !playerData.permission.applyBonus) && !bForce) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_NO_PERMISSION,
-                        //         name: "DataError",
-                        //         errorMessage: "Player does not have this permission"
-                        //     });
-                        // }
-                        // if (!playerData.bankName || !playerData.bankAccountName || !playerData.bankAccountType || !playerData.bankAccountCity
-                        //     || !playerData.bankAccount || !playerData.bankAddress || !playerData.phoneNumber) {
-                        //     return Q.reject({
-                        //         status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
-                        //         name: "DataError",
-                        //         errorMessage: "Player does not have valid payment information"
-                        //     });
-                        // }
+                        player = playerData;
 
+                        if (player.platform && player.platform.useProviderGroup) {
+                            let unlockAllGroups = Promise.resolve(true);
+                            if (bForce) {
+                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id).catch(errorUtils.reportError);
+                            }
+                            return unlockAllGroups.then(
+                                () => {
+                                    return dbconfig.collection_rewardTaskGroup.findOne({
+                                        platformId: playerData.platform,
+                                        playerId: playerData._id,
+                                        status: {$in: [constRewardTaskStatus.STARTED]}
+                                    }).lean();
+                                }
+                            );
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return Promise.reject({name: "DataError", errorMessage: "Cannot find player"});
+                    }
+                }
+            ).then(
+                RTGs => {
+                    if (!RTGs) {
+                        if (!player.bankName || !player.bankAccountName || !player.bankAccount ) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
+                                name: "DataError",
+                                errorMessage: "Player does not have valid payment information"
+                            });
+                        }
                         let todayTime = dbUtility.getTodaySGTime();
                         let creditProm = Q.resolve();
 
-                        if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE) {
-                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                        if (player.lastPlayedProvider && player.lastPlayedProvider.status == constGameStatus.ENABLE) {
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true);
                         }
 
                         return creditProm.then(
@@ -7635,16 +7713,16 @@ let dbPlayerInfo = {
                                 let creditCharge = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
-                                if (playerData.platform.bonusSetting) {
+                                if (player.platform.bonusSetting) {
                                     // let bonusSetting = playerData.platform.bonusSetting.find((item) => {
                                     //     return item.value == playerLevelVal
                                     // });
 
                                     let bonusSetting = {};
 
-                                    for(let x in playerData.platform.bonusSetting){
-                                        if(playerData.platform.bonusSetting[x].value == playerLevelVal){
-                                            bonusSetting = playerData.platform.bonusSetting[x];
+                                    for(let x in player.platform.bonusSetting){
+                                        if(player.platform.bonusSetting[x].value == playerLevelVal){
+                                            bonusSetting = player.platform.bonusSetting[x];
                                         }
                                     }
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
@@ -7653,8 +7731,8 @@ let dbPlayerInfo = {
                                     }
                                 }
 
-                                if (playerData.ximaWithdraw) {
-                                    ximaWithdrawUsed = Math.min(amount, playerData.ximaWithdraw);
+                                if (player.ximaWithdraw) {
+                                    ximaWithdrawUsed = Math.min(amount, player.ximaWithdraw);
                                 }
 
                                 return dbconfig.collection_players.findOneAndUpdate(
@@ -7732,19 +7810,20 @@ let dbPlayerInfo = {
                                                 userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                                             };
                                             newProposal.inputDevice = dbUtility.getInputDevice(userAgent,false);
+
                                             return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
                                         }
                                     });
                             });
                     } else {
-                        return Q.reject({name: "DataError", errorMessage: "Cannot find player"});
+                        return Promise.reject({name: "DataError", errorMessage: "There are available reward task group to complete"});
                     }
                 }
             ).then(
                 proposal => {
                     if (proposal) {
                         if (bUpdateCredit) {
-                            dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, null, proposal);
+                            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, 0, 0, null, proposal);
                         }
                         dbConsumptionReturnWithdraw.reduceXimaWithdraw(player._id, ximaWithdrawUsed).catch(errorUtils.reportError);
                         return proposal;
@@ -7997,7 +8076,7 @@ let dbPlayerInfo = {
     /*
      * update top up proposal
      */
-    updatePlayerTopupProposal: function (proposalId, bSuccess) {
+    updatePlayerTopupProposal: function (proposalId, bSuccess, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}).then(
                 data => {
@@ -8020,7 +8099,8 @@ let dbPlayerInfo = {
                                             {_id: data._id, createTime: data.createTime},
                                             {
                                                 status: status,
-                                                "data.lastSettleTime": lastSettleTime
+                                                "data.lastSettleTime": lastSettleTime,
+                                                "data.remark": remark
                                             }
                                         )
                                     );
@@ -10814,7 +10894,7 @@ let dbPlayerInfo = {
                 if (!player) {
                     return Q.reject({name: "DataError", message: "Can't update player credit: player not found."});
                 }
-                dbLogger.createCreditChangeLog(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, null, data);
+                dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platformObjId, updateAmount, reasonType, player.validCredit, 0, 0, null, data);
                 return player;
             },
             error => {
@@ -12089,9 +12169,11 @@ let dbPlayerInfo = {
         let statusGroups = status.split(",");
         let playerSmsSetting = {};
         let updateData = {};
-        return dbconfig.collection_players.findOne({playerId:playerId}).then(
+        let playerData;
+        return dbconfig.collection_players.findOne({playerId:playerId}).lean().then(
             (player) => {
                 if(!player) return Q.reject({name: "DataError", message: "Cant find player"});
+                playerData = player;
                 playerSmsSetting = player.smsSetting;
                 return dbSmsGroup.getPlatformSmsGroups(player.platform);
             }
@@ -12129,7 +12211,16 @@ let dbPlayerInfo = {
 
         ).then(
             () => {
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players);
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
+                    () => {
+                        return dbPlayerInfo.getPlayerSmsStatus(playerData.playerId).then(
+                            (smsSetting) => {
+                                playerData.smsSetting = smsSetting;
+                                return playerData;
+                            }
+                        );
+                    }
+                );
             }
         );
     },
@@ -12453,7 +12544,7 @@ let dbPlayerInfo = {
                                 status: constRewardTaskStatus.STARTED
                             }
                             let rewardProm = dbconfig.collection_rewardTaskGroup.find(sendQuery)
-                                .populate({path: "providerGroup", select: 'name', model: dbconfig.collection_gameProviderGroup}).lean()
+                                .populate({path: "providerGroup", select: 'name providerGroupId', model: dbconfig.collection_gameProviderGroup}).lean()
                                 .then(rewardDetails => {
                                     if(!rewardDetails){
                                         return "";
@@ -12461,17 +12552,24 @@ let dbPlayerInfo = {
                                     let lockListArr = [];
                                     rewardDetails.map(r =>{
                                         if(r){
-                                            let providerGroupName = "";
+                                            let providerGroupName = "", providerGroupId;
                                             let targetCon = r.targetConsumption ? r.targetConsumption : 0;
                                             let ximaAmt = r.forbidXIMAAmt ? r.forbidXIMAAmt : 0;
                                             let curCon = r.curConsumption ? r.curConsumption : 0;
-                                            if(r.providerGroup){
+
+                                            if (r.providerGroup) {
                                                 providerGroupName = r.providerGroup.name ? r.providerGroup.name : "";
-                                            }else{
+                                                providerGroupId = r.providerGroup.providerGroupId
+                                            } else {
                                                 providerGroupName = "LOCAL_CREDIT";
                                             }
 
-                                            lockListArr.push({name: providerGroupName, lockAmount: targetCon + ximaAmt, currentLockAmount: curCon});
+                                            lockListArr.push({
+                                                name: providerGroupName,
+                                                lockAmount: targetCon + ximaAmt,
+                                                currentLockAmount: curCon,
+                                                providerGrpId: providerGroupId
+                                            });
                                         }
                                     });
 

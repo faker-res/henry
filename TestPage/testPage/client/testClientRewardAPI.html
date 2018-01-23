@@ -434,6 +434,21 @@
     </div>
 </div>
 
+<h3>GET RANDOM BONUS INFO (获取随机抽奖信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Reward Code
+            <input type=text name="rewardCode">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getRandBonusInfo" data-api-name="getRandBonusInfo">Get Random Bonus Info</button>
+    </div>
+</div>
+
     <script>
         require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

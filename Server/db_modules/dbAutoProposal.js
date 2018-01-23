@@ -3,23 +3,16 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
-const constPlayerLevel = require('../const/constPlayerLevel');
 const constPlayerStatus = require('../const/constPlayerStatus');
 const constProposalStatus = require('../const/constProposalStatus');
 const constProposalType = require('../const/constProposalType');
-const constRewardTaskStatus = require('../const/constRewardTaskStatus');
-const constServerCode = require('../const/constServerCode');
-const constSystemLogLevel = require('./../const/constSystemLogLevel');
 const constSystemParam = require('./../const/constSystemParam');
-const constShardKeys = require('../const/constShardKeys');
 const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTransferStatus');
-
-const dbProposal = require('./../db_modules/dbProposal');
-
-const pmsAPI = require("../externalAPI/pmsAPI.js");
 
 const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
+
+const dbRewardTaskGroup = require("./../db_modules/dbRewardTaskGroup");
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const proposalExecutor = require('../modules/proposalExecutor');
@@ -58,7 +51,8 @@ let dbAutoProposal = {
                                 makeRequest: function (proposals, request) {
                                     request("player", "processAutoProposals", {
                                         proposals: proposals,
-                                        platformObj: platformData
+                                        platformObj: platformData,
+                                        useProviderGroup: platformData.useProviderGroup
                                     });
                                 }
                             }
@@ -69,13 +63,13 @@ let dbAutoProposal = {
         )
     },
 
-    processAutoProposals: (proposals, platformObj) => {
+    processAutoProposals: (proposals, platformObj, useProviderGroup) => {
         if (proposals && proposals.length > 0) {
             return Promise.all(proposals.map(proposal => {
                 // System log for selected proposals to auto audit
                 console.log('Processing auto audit proposals: ', proposal.proposalId);
 
-                return checkProposalConsumption(proposal, platformObj)
+                return (platformObj.useProviderGroup || useProviderGroup)  ? checkRewardTaskGroup(proposal, platformObj) : checkProposalConsumption(proposal, platformObj)
             }));
         }
     },
@@ -92,6 +86,196 @@ let dbAutoProposal = {
         });
     }
 };
+
+/**
+ * Audit reward task group auto audit proposal
+ */
+function checkRewardTaskGroup(proposal, platformObj) {
+    let todayBonusAmount = 0;
+    let bFirstWithdraw = false;
+    let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
+    let dLastWithdraw, initialTransferTime;
+    let abnormalMessage = "";
+    let abnormalMessageChinese = "";
+    let checkMsg, checkMsgChinese;
+    let bTransferAbnormal = false;
+
+    return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
+        bonusRecord => {
+            todayBonusAmount = bonusRecord && bonusRecord[0] && bonusRecord[0].amount ? bonusRecord[0].amount : 0;
+
+            return getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type);
+        }
+    ).then(
+        lastWithdrawDate => {
+            // settleTime of last withdraw proposal
+            bFirstWithdraw = !lastWithdrawDate;
+
+            let transferLogQuery = {
+                platformObjId: ObjectId(proposal.data.platformId),
+                playerObjId: ObjectId(proposal.data.playerObjId),
+                createTime: {$lt: proposal.createTime},
+                status: constPlayerCreditTransferStatus.SUCCESS.toString()
+            };
+
+            let playerQuery = {
+                _id: ObjectId(proposal.data.playerObjId),
+                platform: ObjectId(proposal.data.platformId)
+            };
+
+            let allProposalQuery = {
+                'data.platformId': ObjectId(proposal.data.platformId),
+                createTime: {$lt: proposal.createTime},
+                $or: [{'data.playerObjId': ObjectId(proposal.data.playerObjId)}]
+            };
+
+            let creditLogQuery = {
+                platformId: ObjectId(proposal.data.platformId),
+                playerId: ObjectId(proposal.data.playerObjId),
+                operationTime: {$lt: proposal.createTime},
+            };
+
+            if (lastWithdrawDate) {
+                dLastWithdraw = lastWithdrawDate;
+                transferLogQuery.createTime["$gt"] = lastWithdrawDate;
+                creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
+            }
+
+            let RTGPromise = dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: proposal.data.playerObjId});
+            let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
+            let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
+            let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
+
+            if (proposal.data.playerId) {
+                allProposalQuery["$or"].push({'data.playerId': proposal.data.playerId});
+            }
+            if (proposal.data.playerName) {
+                allProposalQuery["$or"].push({'data.playerName': proposal.data.playerName});
+            }
+            let proposalsPromise = dbconfig.collection_proposal.find(allProposalQuery).populate(
+                {path: "type", model: dbconfig.collection_proposalType}
+            ).sort({createTime: -1}).lean();
+
+            let promises = [RTGPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise];
+            return Promise.all(promises);
+        }
+    ).then(
+        data => {
+            // Check abnormal transfer in and out amount
+            if (data && data[0] && data[2]) {
+                let transferInRec = data[0].filter(rec => rec.type == "TransferIn");
+
+                if (transferInRec && transferInRec[0]) {
+                    initialAmount = transferInRec[0].amount;
+                    initialTransferTime = transferInRec[0].createTime;
+                }
+
+                let transferLogs = data[0];
+                let creditChangeLogs = data[2];
+
+                return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
+                    transferAbnormalities => {
+                        if (transferAbnormalities) {
+                            for (let i = 0; i < transferAbnormalities.length; i++) {
+                                abnormalMessage += transferAbnormalities[i].en + "; ";
+                                abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+                                bTransferAbnormal = true;
+                            }
+                        }
+                        return data;
+                    }
+                )
+            }
+
+            return data;
+        }
+    ).then(
+        data => {
+            let RTGs, allProposals, playerData;
+            let bNoBonusPermission = false;
+            let bPendingPaymentInfo = false;
+
+            if (data && data[3]) {
+                allProposals = data[3];
+                bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
+            }
+
+            if (data && data[2]) {
+                playerData = data[2];
+                bNoBonusPermission = !playerData.permission.applyBonus;
+            }
+
+            let isApprove = false, canApprove = true;
+
+            if (data && data[0] && data[0].length > 0) {
+                RTGs = data[0];
+
+                let curConsumptionAmount = 0, totalConsumptionAmout = 0;
+
+                RTGs.forEach(RTG => {
+                    curConsumptionAmount += RTG.curConsumption;
+                    totalConsumptionAmout += RTG.targetConsumption + RTG.forbidXIMAAmt;
+                });
+
+                checkMsg += "Insufficient consumption: Consumption " + curConsumptionAmount + ", Required Bet " + totalConsumptionAmout + "; ";
+                checkMsgChinese += "投注额不足：投注额 " + curConsumptionAmount + " ，需求投注额 " + totalConsumptionAmout + "; ";
+
+                // Consumption reached, check for other conditions
+                if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
+                    checkMsg += " Denied: Single limit;";
+                    checkMsgChinese += " 失败：单限;";
+                    canApprove = false;
+                }
+                if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
+                    checkMsg += " Denied: Daily limit;";
+                    checkMsgChinese += " 失败：日限;";
+                    canApprove = false;
+                }
+                if (proposal.data.playerStatus == constPlayerStatus.BAN_PLAYER_BONUS || bNoBonusPermission) {
+                    checkMsg += " Denied: Not allowed;";
+                    checkMsgChinese += " 失败：禁提;";
+                    canApprove = false;
+                }
+
+                if (bFirstWithdraw) {
+                    checkMsg += " Denied: First withdrawal;";
+                    checkMsgChinese += " 失败：首提;";
+                    canApprove = false;
+                }
+
+                if (bTransferAbnormal) {
+                    checkMsg += ' Denied: Abnormal Transfer;';
+                    checkMsgChinese += ' 失败：转账异常;';
+                    canApprove = false;
+                }
+
+                if (bPendingPaymentInfo) {
+                    checkMsg += ' Denied: Rebank;';
+                    checkMsgChinese += ' 失败：银改;';
+                    canApprove = false;
+                }
+
+                if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
+                    && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
+                    checkMsg += ' Denied: Max profit times;';
+                    checkMsgChinese += ' 失败：盈利十倍;';
+                    canApprove = false;
+                }
+            } else {
+                // No RTG exist
+                // Approve this withdrawal
+                isApprove = true;
+            }
+
+            // Check consumption approved or not
+            if (isApprove && canApprove) {
+                sendToApprove(proposal._id);
+            } else {
+                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+            }
+        }
+    )
+}
 
 /**
  *
@@ -552,16 +736,19 @@ function checkProposalConsumption(proposal, platformObj) {
                         checkMsgChinese += " 失败：禁提;";
                         canApprove = false;
                     }
+
                     if (bFirstWithdraw) {
                         checkMsg += " Denied: First withdrawal;";
                         checkMsgChinese += " 失败：首提;";
                         canApprove = false;
                     }
+
                     if (bTransferAbnormal) {
                         checkMsg += ' Denied: Abnormal Transfer;';
                         checkMsgChinese += ' 失败：转账异常;';
                         canApprove = false;
                     }
+
                     if (bPendingPaymentInfo) {
                         checkMsg += ' Denied: Rebank;';
                         checkMsgChinese += ' 失败：银改;';

@@ -811,7 +811,7 @@ let dbPlayerCreditTransfer = {
 
                 // Add player's current validCredit to transferAmount first
                 // If amount is less than 0, means transfer all
-                validTransferAmount += amount > 0 ? amount : parseFloat(player.validCredit.toFixed(2));
+                validTransferAmount += amount > 0 ? amount : Math.floor(parseFloat(player.validCredit.toFixed(2)));
                 validTransferAmount = Math.floor(validTransferAmount);
 
                 if (gameProviderGroup) {
@@ -939,10 +939,11 @@ let dbPlayerCreditTransfer = {
                                 res => res,
                                 error => {
                                     // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
-                                    let status = (error.error && error.error.errorMessage && error.error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
+                                    let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
                                     // Third log - transfer in failed
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform, platformId, "transferIn",
                                         id, providerShortId, transferAmount, lockedTransferAmount, adminName, error, status);
+
                                     error.hasLog = true;
                                     return Q.reject(error);
                                 }
@@ -965,7 +966,7 @@ let dbPlayerCreditTransfer = {
 
                     // Logging Transfer Success
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform,
-                        platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, rewardAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                        platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, lockedTransferAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
                     return {
                         playerId: player.playerId,
@@ -990,6 +991,13 @@ let dbPlayerCreditTransfer = {
                         if (bTransfered) {
                             console.error(err);
                             if (err && err.errorMessage && err.errorMessage.indexOf('Request timeout') > -1) {
+                                // Log credit change also when request timeout since amount already deducted
+                                dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN_FAILED, playerCredit, 0, -lockedTransferAmount, null, {
+                                    providerId: providerShortId,
+                                    providerName: cpName,
+                                    transferId: transferId,
+                                    adminName: adminName
+                                });
                             } else {
                                 return playerCreditChangeWithRewardTaskGroup(player._id, player.platform, rewardTaskGroupObjId, validTransferAmount, lockedTransferAmount, providerId, true).then(
                                     () => Promise.reject({
@@ -1020,7 +1028,7 @@ let dbPlayerCreditTransfer = {
      * @param platformId
      * @param adminName
      * @param cpName
-     * @param bResolve
+     * @param bResolve - Flag to force resolve this transfer out due to certain condition
      * @param maxReward
      * @param forSync
      */
@@ -1033,23 +1041,59 @@ let dbPlayerCreditTransfer = {
         let playerCredit = 0;
         let rewardTaskCredit = 0;
         let transferId = new Date().getTime();
+        let providerPlayerObj = 0;
 
-        let player, rewardGroupObj;
+        let rewardGroupObj;
         let updateObj = {};
+        let checkBResolve = false;
 
-        let playerProm = dbConfig.collection_players.findOne({_id: playerObjId}).populate(
-            {path: "lastPlayedProvider", model: dbConfig.collection_gameProvider}
-        ).lean();
+        // First, need to make sure there's money in provider first
+        let creditQuery = forSync ?
+            Promise.resolve({credit: amount})
+            :
+            cpmsAPI.player_queryCredit(
+                {
+                    username: userName,
+                    platformId: platformId,
+                    providerId: providerShortId
+                }
+            );
 
-        // Search provider group
-        return playerProm.then(
-            playerData => {
-                if (playerData) {
-                    player = playerData;
+        return creditQuery.then(
+            res => {
+                if (res) {
+                    providerPlayerObj = {gameCredit: res.credit ? parseFloat(res.credit) : 0};
+
+                    // Player has insufficient credit to transfer out, check bResolve
+                    if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
+                        if (bResolve) {
+                            checkBResolve = true;
+                            throw new Error("Insufficient amount to transfer out");
+                        }
+                        else {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                                name: "DataError",
+                                errorMessage: "Player does not have enough credit."
+                            });
+                        }
+                    }
 
                     return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync);
                 } else {
-                    return Promise.reject({name: "DataError", message: "Can't find player information."});
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cant find player credit in provider."
+                    });
+                }
+            },
+            err => {
+                if (bResolve) {
+                    checkBResolve = true;
+                    throw new Error("Error when querying CPMS");
+                }
+                else{
+                    return Promise.reject(err);
                 }
             }
         ).then(
@@ -1151,7 +1195,7 @@ let dbPlayerCreditTransfer = {
                 });
             }
         ).then(
-            function (res) {
+            res => {
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
@@ -1165,7 +1209,7 @@ let dbPlayerCreditTransfer = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
                         platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, lockedCredit, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
-                    return Q.resolve(
+                    return Promise.resolve(
                         {
                             playerId: playerId,
                             providerId: providerShortId,
@@ -1180,11 +1224,29 @@ let dbPlayerCreditTransfer = {
                     );
                 }
                 else {
-                    return Q.reject({name: "DBError", message: "Failed to increase player credit."})
+                    return Promise.reject({name: "DBError", message: "Failed to increase player credit."})
                 }
             },
-            function (err) {
-                return Q.reject({name: "DBError", message: "Error in increasing player credit.", error: err});
+            err => {
+                return Promise.reject({name: "DBError", message: "Error in increasing player credit.", error: err});
+            }
+        ).catch(
+            err => {
+                if (bResolve && checkBResolve) {
+                    return dbConfig.collection_players.findOne({_id: playerObjId}).lean().then(
+                        playerData => {
+                            return Promise.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: providerPlayerObj.gameCredit,
+                                    playerCredit: playerData.validCredit,
+                                    rewardCredit: playerData.lockedCredit
+                                }
+                            );
+                        }
+                    );
+                }
             }
         );
     }
@@ -1357,10 +1419,19 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                     } else if (curGameCredit < totalInputCredit) {
                         // Scenario 2: User loses
                         let userLoses = totalInputCredit - curGameCredit;
+                        let rewardAmt = rewardGroupObj._inputRewardAmt;
+                        let freeAmt = rewardGroupObj._inputFreeAmt - userLoses;
+
+                        if (userLoses > rewardGroupObj._inputFreeAmt){
+                            freeAmt = 0;
+                            let userLosesLeft = userLoses - rewardGroupObj._inputFreeAmt;
+
+                            rewardAmt = (userLosesLeft >= rewardGroupObj._inputRewardAmt) ? 0 : rewardGroupObj._inputRewardAmt - userLosesLeft;
+                        }
 
                         updateObj = {
-                            rewardAmt: rewardGroupObj._inputRewardAmt,
-                            freeAmt: rewardGroupObj._inputFreeAmt - userLoses,
+                            rewardAmt: rewardAmt,
+                            freeAmt: freeAmt,
                             _inputRewardAmt: 0,
                             _inputFreeAmt: 0
                         };

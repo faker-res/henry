@@ -606,7 +606,11 @@ var roleChecker = {
         },
         QualityInspection: {
             Setting: {
-                Read: []
+                Read: [],
+                queryByProposalDate: [],
+                Edit: ['updatePlatform'],
+                setting: [],
+                definition: []
             },
             Record: {
                 Read: []

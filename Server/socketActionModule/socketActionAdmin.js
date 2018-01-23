@@ -89,8 +89,14 @@ function socketActionAdmin(socketIO, socket) {
          */
         getAdminInfo: function getAdminInfo(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && (data.adminName || data._id));
+            var isValidData = Boolean(data && (data.adminName || data._id || data.departments));
             socketUtil.emitter(self.socket, dbAdminInfo.getAdminInfo, [data], actionName, isValidData);
+        },
+
+        getAdminsInfo: function getAdminsInfo(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.adminName || data._id || data.departments));
+            socketUtil.emitter(self.socket, dbAdminInfo.getAdminsInfo, [data], actionName, isValidData);
         },
 
         /**

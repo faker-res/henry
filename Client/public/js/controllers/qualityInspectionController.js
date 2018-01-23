@@ -139,8 +139,52 @@ define(['js/app'], function (myApp) {
                 }
 
                 // Initial Loading
+                vm.evaluationTab = 'unreadEvaluation';
+                // Initial setting for setting in qualityInspection
+                vm.getOvertimeSetting();
+                // create the conversationDefinition object for old platform
+                let query = {_id: vm.selectedPlatform.id, conversationDefinition: {$exists: true}};
+                socketService.$socket($scope.AppSocket, 'getPlatformSetting', query, function (data) {
+                    if (data.data.length === 0) {
+                        let sendData = {
+                            query: {_id: vm.selectedPlatform.id},
+                            updateData: {
+                                'conversationDefinition.totalSec': 40,
+                                'conversationDefinition.askingSentence': 2,
+                                'conversationDefinition.replyingSentence': 2
+                            }
+                        };
+                        socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                            vm.loadPlatformData({loadAll: false});
+                            $scope.safeApply();
+                        });
 
-                $scope.safeApply();
+                    }
+                });
+
+                socketService.$socket($scope.AppSocket, 'getDepartmentsbyPlatformObjId', [], function (data){
+                    let sendQuery ={
+                        departments: {$in: data.data}
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
+                        vm.selectedCSAccount = [];
+                        if (data && data.data){
+                            data.data.forEach(acc => {
+                                if (acc.live800Acc && acc.live800Acc.length > 0){
+                                    vm.selectedCSAccount.push(acc);
+                                }
+                            });
+                        }
+                        console.log("vm.selectedCSAccount", vm.selectedCSAccount);
+                       // $scope.safeApply();
+                        // // have to re-initiate the #selectCSAccount to show data
+                        // setTimeout(function () {
+                        //     $('select#selectCSAccount').multipleSelect();
+                        // });
+
+                    });
+                });
+
             };
 
             //create platform node for platform list
@@ -155,7 +199,8 @@ define(['js/app'], function (myApp) {
                         width: 30,
                         height: 30,
                     }
-                };vm.rightPanelTitle == 'ALL_PROPOSAL'
+                };
+                vm.rightPanelTitle == 'ALL_PROPOSAL'
                 return obj;
             };
 
@@ -167,11 +212,11 @@ define(['js/app'], function (myApp) {
 
             vm.showPlatformDetailTab = function (tabName) {
                 vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
-                if(tabName && tabName == "player-display-data"){
+                if (tabName && tabName == "player-display-data") {
                     vm.initPlayerDisplayDataModal();
-                }else if(tabName && tabName == "partner-display-data"){
+                } else if (tabName && tabName == "partner-display-data") {
                     vm.initPartnerDisplayDataModal();
-                }else if(tabName && tabName == "system-settlement"){
+                } else if (tabName && tabName == "system-settlement") {
                     vm.prepareSettlementHistory();
                 }
             };
@@ -750,6 +795,473 @@ define(['js/app'], function (myApp) {
                     return $.extend({}, obj);
                 }
             };
+
+            vm.configTabClicked = function (choice) {
+                vm.selectedConfigTab = choice;
+                vm.configTableEdit = false;
+                vm.overtimeSettingAdd = false;
+                vm.confirmDelete = false;
+
+                switch (choice) {
+                    case 'definition':
+                        vm.getConversationDefinition();
+                        break;
+                    case 'setting':
+                        vm.newOvertimeSetting = {};
+                        vm.getOvertimeSetting();
+                        break;
+                }
+            };
+
+            vm.configSubmitUpdate = function (choice) {
+                switch (choice) {
+                    case 'definition':
+                        updateConversationDefinition(vm.conversationDefinition);
+                        break;
+                    case 'setting':
+                        updateOvertimeSetting(vm.overtimeSetting);
+                        break;
+                }
+            };
+
+
+            function updateConversationDefinition(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {
+                        'conversationDefinition.totalSec': srcData.totalSec,
+                        'conversationDefinition.askingSentence': srcData.askingSentence,
+                        'conversationDefinition.replyingSentence': srcData.replyingSentence
+                    }
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                    $scope.safeApply();
+                });
+            }
+
+            function updateOvertimeSetting(srcData) {
+                let sendData = {
+                    query: {_id: vm.selectedPlatform.id},
+                    updateData: {overtimeSetting: srcData}
+                };
+                socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                    vm.loadPlatformData({loadAll: false});
+                    $scope.safeApply();
+                });
+            }
+
+
+            vm.getConversationDefinition = function () {
+                vm.conversationDefinition = vm.conversationDefinition || {};
+                vm.conversationDefinition.totalSec = vm.selectedPlatform.data.conversationDefinition.totalSec;
+                vm.conversationDefinition.askingSentence = vm.selectedPlatform.data.conversationDefinition.askingSentence;
+                vm.conversationDefinition.replyingSentence = vm.selectedPlatform.data.conversationDefinition.replyingSentence;
+
+            };
+
+            vm.getOvertimeSetting = function () {
+                vm.overtimeSetting = vm.overtimeSetting || {};
+                // initiate a basic setting if the setting is empty
+                if (!vm.selectedPlatform.data.overtimeSetting || vm.selectedPlatform.data.overtimeSetting.length === 0) {
+
+                    let overtimeSetting = [{
+                        conversationInterval: 30,
+                        presetMark: 1,
+                        color: ""
+                    },
+                        {
+                            conversationInterval: 60,
+                            presetMark: 0,
+                            color: ""
+                        },
+                        {
+                            conversationInterval: 90,
+                            presetMark: -1.5,
+                            color: ""
+                        },
+                        {
+                            conversationInterval: 120,
+                            presetMark: -2,
+                            color: ""
+
+                        }];
+
+                    let sendData = {
+                        query: {_id: vm.selectedPlatform.id},
+                        updateData: {overtimeSetting: overtimeSetting}
+                    };
+                    socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                        vm.loadPlatformData({loadAll: false});
+                    });
+
+                    vm.overtimeSetting = overtimeSetting;
+                }
+                else {
+                    vm.overtimeSetting = vm.selectedPlatform.data.overtimeSetting;
+                }
+
+                vm.overtimeSetting.sort(function (a, b) {
+                    return a.conversationInterval - b.conversationInterval;
+                });
+
+            };
+
+            vm.settingDeleteIndex = function (param) {
+                // param[0] is the _id; param[1] is the $index
+                // just remove from the vm.overtimeSetting if it is not saving into the DB yet by using the $index
+                if (param) {
+                    if (param[0]) {
+                        vm.overtimeSetting.forEach((item, index) => {
+                            if (item._id === param[0]) {
+                                vm.overtimeSetting.splice(index, 1);
+                            }
+                        });
+                    } else {
+                        vm.overtimeSetting.splice(param[1], 1);
+                    }
+                }
+                else {
+                    socketService.showErrorMessage($translate("Can't get the to-be-deleted item"));
+                }
+            };
+
+            vm.checkSelectedPlatformID = function(seletedProductsId){
+               // vm.selectedCSAccount = [];
+                if (seletedProductsId.length !== vm.platformList.length && seletedProductsId.length>0) {
+                    console.log("-----------------", seletedProductsId);
+                    // select the CS account that bound to the selected platform
+                    vm.selectedCSAccount = [];
+                    socketService.$socket($scope.AppSocket, 'getDepartmentsbyPlatformObjId', seletedProductsId, function (data){
+
+                        let sendQuery ={
+                            departments: {$in: data.data}
+                        };
+                        socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
+
+                            if (data && data.data){
+                                data.data.forEach(acc => {
+                                    if (acc.live800Acc && acc.live800Acc.length > 0){
+                                        vm.selectedCSAccount.push(acc);
+                                    }
+                                });
+                            }
+                            console.log("vm.selectedCSAccount", vm.selectedCSAccount);
+
+                            //$scope.safeApply();
+                            // have to re-initiate the #selectCSAccount to show data
+                            // setTimeout(function () {
+                            //     $('select#selectCSAccount').multipleSelect();
+                            // });
+
+                        });
+                    });
+
+                } else {
+                    // select all by default
+                    vm.selectedCSAccount = [];
+                    socketService.$socket($scope.AppSocket, 'getDepartmentsbyPlatformObjId', [], function (data){
+                        let sendQuery ={
+                            departments: {$in: data.data}
+                        };
+                        socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
+
+                            if (data && data.data){
+                                data.data.forEach(acc => {
+                                    if (acc.live800Acc && acc.live800Acc.length > 0){
+                                        vm.selectedCSAccount.push(acc);
+                                    }
+                                });
+                            }
+                            console.log("vm.selectedCSAccount", vm.selectedCSAccount);
+
+                            //$scope.safeApply();
+                            // have to re-initiate the #selectCSAccount to show data
+                            // setTimeout(function () {
+                            //     $('select#selectCSAccount').multipleSelect({
+                            //         allSelected: $translate("All Selected"),
+                            //         selectAllText: $translate("Select All"),
+                            //         displayValues: true,
+                            //         countSelected: $translate('# of % selected'),
+                            //     });
+                            //     var $multiCSAccount = ($('select#selectCSAccount').next().find('.ms-choice'))[0];
+                            //     $('select#selectCSAccount').next().on('click', 'li input[type=checkbox]', function () {
+                            //         var upText = $($multiCSAccount).text().split(',').map(item => {
+                            //             return $translate(item);
+                            //         }).join(',');
+                            //         $($multiCSAccount).find('span').text(upText)
+                            //     });
+                            //     $("select#selectCSAccount").multipleSelect("checkAll");
+                            // });
+
+                        });
+                    });
+
+                }
+                $scope.safeApply();
+                // have to re-initiate the #selectCSAccount to show data
+                setTimeout(function () {
+                    $('select#selectCSAccount').multipleSelect();
+                });
+
+            };
+
+            vm.checkSelectedCSAcc= function (csAcc){
+
+                // vm.selectedLive800Acc = [];
+                // vm.selectedAdminName = [];
+                if (csAcc.length !== vm.selectedCSAccount.length && csAcc.length>0) {
+                    vm.selectedLive800Acc = [];
+                    vm.selectedAdminName = [];
+                    console.log("-----------------", csAcc);
+                    //select the Live800 account that bound to the selected CS account
+                    csAcc.forEach(filterAcc => {
+                        vm.selectedCSAccount.forEach(acc => {
+                            if (acc._id.indexOf(filterAcc) > -1) {
+                                vm.selectedAdminName.push(acc.adminName);
+                                acc.live800Acc.forEach(liveAcc => {
+                                    vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                });
+
+                            }
+                        });
+                    });
+
+                    //
+                    // $scope.safeApply();
+                    // setTimeout(function () {
+                    //     $('select#selectLive800Account').multipleSelect();
+                    // });
+                    //have to re-initiate the #selectCSAccount to show data
+                    // console.log("vm.selectedAdminName",vm.selectedAdminName)
+                    // console.log("vm.selectedLive800Acc",vm.selectedLive800Acc)
+                    //
+                    // socketService.$socket($scope.AppSocket, 'getDepartmentsbyPlatformObjId', seletedProductsId, function (data){
+                    //
+                    //     console.log("-+_+_+_+_+_",data.data);
+                    //     let sendQuery ={
+                    //         departments: {$in: data.data}
+                    //     };
+                    //     socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
+                    //         vm.selectedCSAccount = [];
+                    //         if (data && data.data){
+                    //             data.data.forEach(acc => {
+                    //                 if (acc.live800Acc && acc.live800Acc.length > 0){
+                    //                     vm.selectedCSAccount.push(acc);
+                    //                 }
+                    //             });
+                    //         }
+                    //         console.log("vm.selectedCSAccount", vm.selectedCSAccount);
+                    //
+                    //         $scope.safeApply();
+                    //         // have to re-initiate the #selectCSAccount to show data
+                    //         $('select#selectCSAccount').multipleSelect();
+                    //     });
+                    // });
+
+                } else {
+                    // select all by default
+                    vm.selectedLive800Acc = [];
+                    vm.selectedAdminName = [];
+                    console.log("-----------------", csAcc);
+                    //select the Live800 account that bound to the selected CS account
+                    vm.selectedCSAccount.forEach(acc => {
+                        vm.selectedAdminName.push(acc.adminName);
+                        acc.live800Acc.forEach(liveAcc => {
+                            vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                        });
+                    });
+
+                }
+                $scope.safeApply();
+                console.log("vm.selectedAdminName",vm.selectedAdminName)
+                console.log("vm.selectedLive800Acc",vm.selectedLive800Acc)
+                setTimeout(function () {
+                    $('select#selectLive800Account').multipleSelect();
+                });
+
+            };
+
+            vm.commonInitTime = function (obj, queryId) {
+                if (!obj) return;
+                obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
+                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
+                var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+                obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
+
+                obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
+                    language: 'en',
+                    format: 'yyyy/MM/dd hh:mm:ss'
+                });
+                obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayEndTime()));
+            };
+
+            vm.prepareShowQIReport = function () {
+
+                vm.QIReportQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
+                //vm.QIReportQuery.status = 'all';
+                //vm.QIReportQuery.promoType = '';
+                vm.QIReportQuery.totalCount = 0;
+                //vm.QIReportQuery.proposalTypeId = '';
+                utilService.actionAfterLoaded("#QIReportTablePage", function () {
+                    vm.commonInitTime(vm.QIReportQuery, '#QIReportQuery');
+                    //set time out to solve $rootScope:inprog error
+                    setTimeout(function () {
+                        $('select#selectProduct').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiProduct = ($('select#selectProduct').next().find('.ms-choice'))[0];
+                        $('select#selectProduct').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiProduct).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multiProduct).find('span').text(upText)
+                        });
+                        $("select#selectProduct").multipleSelect("checkAll");
+                        //
+                        $('select#selectCSAccount').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiCSAccount = ($('select#selectCSAccount').next().find('.ms-choice'))[0];
+                        $('select#selectCSAccount').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiCSAccount).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multiCSAccount).find('span').text(upText)
+                        });
+                        $("select#selectCSAccount").multipleSelect("checkAll");
+
+                        $('select#selectLive800Account').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiLiveAcc = ($('select#selectLive800Account').next().find('.ms-choice'))[0];
+                        $('select#selectLive800Account').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiLiveAcc).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multiLiveAcc).find('span').text(upText)
+                        });
+                        $("select#selectLive800Account").multipleSelect("checkAll");
+
+                        // vm.QIReportQuery.pageObj = utilService.createPageForPagingTable("#QIReportTablePage", {}, $translate, vm.QIReportTablePageChange);
+                    });
+                });
+                $scope.safeApply()
+            };
+
+
+            vm.QIReportTablePageChange = function (curP, pageSize) {
+                vm.commonPageChangeHandler(curP, pageSize, "QIReportQuery", vm.searchQIRecord)
+            };
+
+            vm.searchQIRecord = function (newSearch) {
+                vm.curPlatformId = vm.selectedPlatform._id;
+
+                let newQIReportQuery = $.extend(true, {}, vm.QIReportQuery);
+                newQIReportQuery.productId = [];
+                newQIReportQuery.CSAccount = [];
+                newQIReportQuery.Live800Account = [];
+
+                let product = $('select#selectProduct').multipleSelect("getSelects");
+                let CSAccount = $('select#selectCSAccount').multipleSelect("getSelects");
+                let Live800Account = $('select#selectLive800Account').multipleSelect("getSelects");
+
+                if (vm.platformList.length != product.length) {
+                    vm.platformList.filter(item => {
+                        if (product.indexOf(item.data._id) > -1) {
+                            newQIReportQuery.productId.push(item.data._id);
+                            console.log("+++++++++++++++++",newQIReportQuery.productId)
+                        }
+                    });
+                }
+
+                // if (vm.rewardList.length != rewardTypes.length) {
+                //     vm.rewardList.filter(item => {
+                //         if (rewardTypes.indexOf(item.name) > -1) {
+                //             newproposalQuery.rewardTypeName.push(item.name);
+                //         }
+                //     });
+                // }
+                //
+                // if (vm.promoTypeList.length != promoType.length) {
+                //     vm.promoTypeList.filter(item => {
+                //         if (promoType.indexOf(item.name) > -1) {
+                //             newproposalQuery.promoTypeName.push(item.name);
+                //         }
+                //     });
+                // }
+
+
+                /* pending
+                $('#QIReportTableSpin').show();
+                newQIReportQuery.limit = newQIReportQuery.limit || 10;
+
+
+                var sendData = {
+                    startTime: newQIReportQuery.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: newQIReportQuery.endTime.data('datetimepicker').getLocalDate(),
+
+                    proposalTypeId: newQIReportQuery.productId,
+                    inputDevice: newQIReportQuery.CSAccount,
+                    rewardTypeName: newQIReportQuery.Live800Account,
+
+
+                    index: newSearch ? 0 : (newQIReportQuery.index || 0),
+                    limit: newQIReportQuery.limit,
+                    sortCol: newQIReportQuery.sortCol
+                };
+                console.log("newQIReportQuery", newQIReportQuery);
+
+                socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
+                    // $('#operationTableSpin').hide();
+                    $('#proposalTable').show();
+                    console.log('proposal data', data);
+                    var datatoDraw = data.data.data.map(item => {
+                        item.involveAmount$ = 0;
+                        if (item.data.updateAmount) {
+                            item.involveAmount$ = item.data.updateAmount;
+                        } else if (item.data.amount) {
+                            item.involveAmount$ = item.data.amount;
+                        } else if (item.data.rewardAmount) {
+                            item.involveAmount$ = item.data.rewardAmount;
+                        } else if (item.data.commissionAmount) {
+                            item.involveAmount$ = item.data.commissionAmount;
+                        } else if (item.data.negativeProfitAmount) {
+                            item.involveAmount$ = item.data.negativeProfitAmount;
+                        }
+                        item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                        item.typeName = $translate(item.type.name || "Unknown");
+                        item.mainType$ = $translate(item.mainType || "Unknown");
+                        if (item.mainType === "PlayerBonus")
+                            item.mainType$ = $translate("Bonus");
+                        item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
+                        if (item.data && item.data.remark) {
+                            item.remark$ = item.data.remark;
+                        }
+                        item.status$ = $translate(vm.getStatusStrfromRow(item));
+
+                        return item;
+                    })
+                    $('#proposalTableSpin').hide();
+                    vm.proposalQuery.totalCount = data.data.size;
+                    $scope.safeApply();
+                    vm.drawProposalReportNew(datatoDraw, vm.proposalQuery.totalCount, data.data.summary, newSearch);
+                }, function (err) {
+                    $('#proposalTableSpin').hide();
+
+                }, true);*/
+            }
+
+
         };
     qualityInspectionController.$inject = injectParams;
         myApp.register.controller('qualityInspectionCtrl', qualityInspectionController);

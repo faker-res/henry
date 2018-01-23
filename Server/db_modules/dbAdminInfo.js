@@ -70,6 +70,9 @@ var dbAdminInfo = {
     getAdminInfo: function (query) {
         return dbconfig.collection_admin.findOne(query).exec();
     },
+    getAdminsInfo: function (query) {
+        return dbconfig.collection_admin.find(query).exec();
+    },
 
     /**
      * Get all admin users detailed info
