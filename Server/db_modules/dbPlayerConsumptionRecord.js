@@ -1978,8 +1978,7 @@ var dbPlayerConsumptionRecord = {
     winRateReport: function (startTime, endTime, providerId, platformId) {
         const matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
-            platformId: ObjectId(platformId),
-            isDuplicate: {$ne: true}
+            platformId: ObjectId(platformId)
         };
 
         if (providerId && providerId !== 'all') {

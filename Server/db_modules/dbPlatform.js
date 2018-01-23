@@ -2189,7 +2189,7 @@ var dbPlatform = {
                             returnedObj.live800 = data.csUrl;
                         }
                         if(data.platformId){
-                            return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id, inputDevice: inputDevice}).sort({orderNo: 1}).lean();
+                            return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id, inputDevice: inputDevice}).sort({orderNo: 1});
                         }
                     }else{
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
@@ -2206,10 +2206,6 @@ var dbPlatform = {
 
                             if(info.title && info.title.length > 0){
                                 activityListObj.title = info.title;
-                            }
-
-                            if(info.hasOwnProperty('status')){
-                                activityListObj.status = info.status;
                             }
 
                             if(info.backgroundBannerImage && info.backgroundBannerImage.hyperLink){

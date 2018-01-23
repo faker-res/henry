@@ -4,6 +4,7 @@ var Q = require("q");
 var dbUtil = require('./../modules/dbutility');
 var mysql = require("mysql");
 const constQualityInspectionStatus = require('./../const/constQualityInspectionStatus');
+
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
@@ -60,6 +61,7 @@ var dbQualityInspection = {
                     .then(qaData=>{
 
                         if(qaData.length > 0){
+                            live800Chat.status = qaData[0].status;
                             live800Chat.conversation = qaData[0].conversation;
                             live800Chat.qualityAssessor = qaData[0].qualityAssessor;
                             live800Chat.processTime = qaData[0].processTime;
@@ -69,7 +71,6 @@ var dbQualityInspection = {
                         return live800Chat;
                     })
                 /*
-
                 */
                 proms.push(prom);
             });
@@ -271,7 +272,8 @@ var dbQualityInspection = {
         return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
             delete data.statusName;
             data.qualityAssessor = adminName;
-            data.processTime = new Date.now();
+            data.processTime = Date.now();
+            data.status = 2;
 
             if (qaData.length == 0) {
                 return dbconfig.collection_qualityInspection(data).save();
@@ -286,6 +288,7 @@ var dbQualityInspection = {
         })
         return deferred.promise;
     }
+
 
 };
 module.exports = dbQualityInspection;
