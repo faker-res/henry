@@ -787,7 +787,6 @@ let dbPlayerCreditTransfer = {
         let bTransfered = false;
         let transferId = new Date().getTime();
         let transferAmount = 0;
-        let gameCredit = 0;
 
         let player, gameProviderGroup, rewardTaskGroupObjId;
 
@@ -815,40 +814,25 @@ let dbPlayerCreditTransfer = {
                 validTransferAmount += amount > 0 ? amount : Math.floor(parseFloat(player.validCredit.toFixed(2)));
                 validTransferAmount = Math.floor(validTransferAmount);
 
-                if (gameProviderGroup) {
+                // Check if there's provider not in a group
+                if (gameProviderGroup || !providerId) {
+                    let providerGroupId = gameProviderGroup ? gameProviderGroup._id : providerId;
+
                     // Search for reward task group of this player on this provider
-                    let gameCreditProm = Promise.resolve(false);
-                    let rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
+                    return dbConfig.collection_rewardTaskGroup.findOne({
                         platformId: platform,
                         playerId: playerObjId,
-                        providerGroup: gameProviderGroup._id,
+                        providerGroup: providerGroupId,
                         status: {$in: [constRewardTaskStatus.STARTED]}
                     }).lean();
-
-                    // get game credit from other provider if last played is not this provider
-                    if (player && player.lastPlayedProvider && player.lastPlayedProvider.providerId) {
-                        if (String(providerId) != String(player.lastPlayedProvider.providerId)) {
-                            gameCreditProm = dPCT.getPlayerGameCredit(
-                                {
-                                    username: userName,
-                                    platformId: platformId,
-                                    providerId: player.lastPlayedProvider.providerId
-                                }
-                            );
-                        }
-                    }
-
-                    return Promise.all([rewardTaskGroupProm, gameCreditProm]);
                 } else {
                     // Group not exist, may be due to provider are not added in a group yet
-                    return Q.reject({name: "DataError", message: "Provider are not added in a group yet."});
+                    return Promise.reject({name: "DataError", message: "Provider are not added in a group yet."});
                 }
             }
         ).then(
             res => {
-                let rewardTaskGroup = res[0];
-
-                gameCredit = (res[1] && res[1].credit) ? parseFloat(res[1].credit) : 0;
+                let rewardTaskGroup = res;
 
                 if (rewardTaskGroup) {
                     // There is on-going reward task group
@@ -863,7 +847,7 @@ let dbPlayerCreditTransfer = {
                 // Check player have enough credit
                 if (transferAmount < 1 || amount == 0) {
                     // There is no enough credit to transfer
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                         name: "NumError",
                         errorMessage: "Player does not have enough credit."
@@ -882,7 +866,7 @@ let dbPlayerCreditTransfer = {
                     if (updatedPlayerData.validCredit < -0.02) {
                         // Player credit is less than expected after deduct, revert the decrement
                         return playerCreditChangeWithRewardTaskGroup(player._id, player.platform, rewardTaskGroupObjId, validTransferAmount, lockedTransferAmount, providerId, true).then(
-                            () => Q.reject({
+                            () => Promise.reject({
                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                                 name: "NumError",
                                 errorMessage: "Player does not have enough credit."
@@ -946,7 +930,7 @@ let dbPlayerCreditTransfer = {
                                         id, providerShortId, transferAmount, lockedTransferAmount, adminName, error, status);
 
                                     error.hasLog = true;
-                                    return Q.reject(error);
+                                    return Promise.reject(error);
                                 }
                             );
                         }
@@ -969,10 +953,10 @@ let dbPlayerCreditTransfer = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform,
                         platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, lockedTransferAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
-                    return {
+                    let responseData = {
                         playerId: player.playerId,
                         providerId: providerShortId,
-                        providerCredit: parseFloat(transferAmount + gameCredit).toFixed(2),
+                        providerCredit: parseFloat(res.credit).toFixed(2),
                         playerCredit: parseFloat(playerCredit).toFixed(2),
                         rewardCredit: parseFloat(rewardTaskAmount).toFixed(2),
                         transferCredit: {
@@ -980,6 +964,8 @@ let dbPlayerCreditTransfer = {
                             rewardCredit: parseFloat(rewardAmount).toFixed(2)
                         }
                     };
+
+                    return responseData;
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Error transfer player credit to provider."});
@@ -1224,6 +1210,7 @@ let dbPlayerCreditTransfer = {
                             }
                             lockedAmount = lockedCreditPlayer ? lockedCreditPlayer : 0;
                             rewardTaskCredit = lockedAmount;
+
                             return Promise.resolve(
                                 {
                                     playerId: playerId,
@@ -1263,6 +1250,11 @@ let dbPlayerCreditTransfer = {
                             );
                         }
                     );
+                } else {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: err
+                    })
                 }
             }
         );

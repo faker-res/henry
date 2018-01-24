@@ -6774,6 +6774,9 @@ define(['js/app'], function (myApp) {
 
             vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
                 var isChange = false;
+                if (!curP) {
+                    curP = 1;
+                }
                 if (pageSize != vm[objKey].limit) {
                     isChange = true;
                     vm[objKey].limit = pageSize;
@@ -20491,6 +20494,9 @@ define(['js/app'], function (myApp) {
 
             vm.commonPageChangeHandler = function (curP, pageSize, objKey, serchFunc) {
                 var isChange = false;
+                if (!curP) {
+                    curP = 1;
+                }
                 if (vm[objKey] && pageSize != vm[objKey].limit) {
                     isChange = true;
                     vm[objKey].limit = pageSize;
