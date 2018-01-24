@@ -687,7 +687,7 @@ define(['js/app'], function (myApp) {
             vm.reArrangeTXT = function(arr){
                 let result = '';
                 let delimiter = ',';
-                if(arr.length > 0){
+                if(arr && arr.length > 0){
                     result = arr.join(delimiter);
                 }
                 return result;
