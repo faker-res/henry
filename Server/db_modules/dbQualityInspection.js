@@ -328,11 +328,29 @@ var dbQualityInspection = {
         return deferred.promise;
     },
     getEvaluationRecordYearMonth: function (platformObjId) {
-        return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
-            platformDetail => {
-                if(platformDetail){
+        // return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
+        //     platformDetail => {
+        //         if(platformDetail){
+        //
+        //         }
+        //     }
+        // )
 
+        return dbconfig.collection_qualityInspection.aggregate(
+            // { "$project": {
+            //     "year":{"$year":"$createTime"},
+            //     "month":{"$month":"$createTime"},
+            //     }
+            // }
+            {
+                "$group": {
+                    "_id": {"month": {"$month": "$createTime"}, "year": {"$year": "$createTime"}},
+                    //"count": {"$sum": 1}
                 }
+            }
+        ).then(
+            data => {
+                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",data)
             }
         )
 

@@ -15,7 +15,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     .fa.fa-wrench.margin-right-5
                                     text.span {{"WORKLOAD REPORT" | translate}}
                             li(ng-show="checkViewPermission('QualityInspection', 'Report', 'Read')")
-                                a.common-tab(data-toggle="tab", ng-click="vm.inspectionReportTab ='evaluationProgress'")
+                                a.common-tab(data-toggle="tab", ng-click="vm.inspectionReportTab ='evaluationProgress';vm.initEvaluationProgress()")
                                     .fa.fa-file-text.margin-right-5
                                     text.span {{"EVALUATION PROGRESS" | translate}}
                     .panel-body.common-right-panel-body

@@ -376,22 +376,22 @@ define(['js/app'], function (myApp) {
                 //     endTime: endTime
                 // }
 
-                socketService.$socket($scope.AppSocket, 'getEvaluationRecordYearMonth', {platformObjId: vm.selectedPlatform._id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getEvaluationRecordYearMonth', {platformObjId: vm.selectedPlatform.id}, function (data) {
 
                     if(data && data.data && data.data.length > 0){
 
-                        data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
-                            }
-
-                            return data;
-                        })
-                        vm.unreadEvaluationTable = data.data;
-                        $scope.safeApply();
+                        // data.data.map(data => {
+                        //     if(data && data.status){
+                        //         data.status = vm.constQualityInspectionStatus[data.status];
+                        //     }
+                        //
+                        //     return data;
+                        // })
+                        // vm.unreadEvaluationTable = data.data;
+                        // $scope.safeApply();
                     }else{
-                        vm.unreadEvaluationTable = "";
-                        $scope.safeApply();
+                        // vm.unreadEvaluationTable = "";
+                        // $scope.safeApply();
                     }
                 });
             }
