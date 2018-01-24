@@ -354,7 +354,7 @@ var proposalExecutor = {
                         data => {
                             var updateObj = {
                                 $inc: {
-                                    validCredit: proposalData.data.updateAmount > 0 ? proposalData.data.updateAmount : 0
+                                    validCredit: proposalData.data.updateAmount// > 0 ? proposalData.data.updateAmount : 0
                                 }
                             };
                             if (proposalData.data.updateLockedAmount != null) {
