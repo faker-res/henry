@@ -814,17 +814,20 @@ let dbPlayerCreditTransfer = {
                 validTransferAmount += amount > 0 ? amount : Math.floor(parseFloat(player.validCredit.toFixed(2)));
                 validTransferAmount = Math.floor(validTransferAmount);
 
-                if (gameProviderGroup) {
+                // Check if there's provider not in a group
+                if (gameProviderGroup || !providerId) {
+                    let providerGroupId = gameProviderGroup ? gameProviderGroup._id : providerId;
+
                     // Search for reward task group of this player on this provider
                     return dbConfig.collection_rewardTaskGroup.findOne({
                         platformId: platform,
                         playerId: playerObjId,
-                        providerGroup: gameProviderGroup._id,
+                        providerGroup: providerGroupId,
                         status: {$in: [constRewardTaskStatus.STARTED]}
                     }).lean();
                 } else {
                     // Group not exist, may be due to provider are not added in a group yet
-                    return Q.reject({name: "DataError", message: "Provider are not added in a group yet."});
+                    return Promise.reject({name: "DataError", message: "Provider are not added in a group yet."});
                 }
             }
         ).then(
