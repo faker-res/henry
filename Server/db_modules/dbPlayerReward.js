@@ -481,15 +481,11 @@ let dbPlayerReward = {
             // find param for matching player level
             if (event.condition.isPlayerLevelDiff && player) {
                 rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
-                console.log('rewardParam',rewardParam);
-                console.log('event.param.rewardParam',event.param.rewardParam);
                 if (rewardParam && rewardParam[0] && rewardParam[0].value) {
                     selectedParam = rewardParam[0].value[0];
-                    console.log('selectedParam1',selectedParam);
                 }
             } else {
                 selectedParam = paramOfLevel[0];
-                console.log('selectedParam2',selectedParam);
             }
 
             if (event.condition.rewardAppearPeriod) {
@@ -548,23 +544,15 @@ let dbPlayerReward = {
                             condition: {
                                 availableDeposit: totalValidTopup,
                                 availableDepositTimes: totalAvailableTopup,
-                                // requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 availableBetAmount: totalValidConsumption,
-                                // requestBetAmount: selectedParam.requiredConsumptionAmount,
                                 availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                 usedChances: rewardProposals.length,
-                                // totalChances: selectedParam.numberParticipation,
-                                // grade: playerLevel._id,
                                 depositDevice: event.condition.userAgent,
                                 depositType: event.condition.topupType,
                                 onlineTopupType: event.condition.onlineTopUpType,
                                 bankCardType: event.condition.bankCardType
                             }
-                            // bonusCondition: {
-                            //     bet: selectedParam.spendingTimesOnReward,
-                            //     lockedGroup: event.condition.providerGroup
-                            // }
                         };
                         addParamToOpen(openData);
                     }
@@ -582,23 +570,15 @@ let dbPlayerReward = {
                             condition: {
                                 availableDeposit: totalValidTopup,
                                 availableDepositTimes: totalAvailableTopup,
-                                // requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 availableBetAmount: totalValidConsumption,
-                                // requestBetAmount: selectedParam.requiredConsumptionAmount,
                                 availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                 usedChances: rewardProposals.length,
-                                // totalChances: selectedParam.numberParticipation,
-                                // grade: playerLevel._id,
                                 depositDevice: event.condition.userAgent,
                                 depositType: event.condition.topupType,
                                 onlineTopupType: event.condition.onlineTopUpType,
                                 bankCardType: event.condition.bankCardType
                             }
-                            // bonusCondition: {
-                            //     bet: selectedParam.spendingTimesOnReward,
-                            //     lockedGroup: event.condition.providerGroup
-                            // }
                         };
                         addParamToOpen(openData);
                     }
@@ -632,13 +612,10 @@ let dbPlayerReward = {
                                 condition: {
                                     availableDeposit: totalValidTopup,
                                     availableDepositTimes: totalAvailableTopup,
-                                    // requestDeposit: selectedParam.requiredTopUpAmount,
                                     betSource: event.condition.consumptionProvider,
                                     availableBetAmount: totalValidConsumption,
                                     availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                     usedChances: rewardProposals.length,
-                                    // requestBetAmount: selectedParam.requiredConsumptionAmount,
-                                    // grade: playerLevel._id,
                                     depositDevice: event.condition.userAgent,
                                     depositType: event.condition.topupType,
                                     onlineTopupType: event.condition.onlineTopUpType,
@@ -674,13 +651,10 @@ let dbPlayerReward = {
                                 condition: {
                                     availableDeposit: totalValidTopup,
                                     availableDepositTimes: totalAvailableTopup,
-                                    // requestDeposit: selectedParam.requiredTopUpAmount,
                                     betSource: event.condition.consumptionProvider,
                                     availableBetAmount: totalValidConsumption,
                                     availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                     usedChances: rewardProposals.length,
-                                    // requestBetAmount: selectedParam.requiredConsumptionAmount,
-                                    // grade: playerLevel._id,
                                     depositDevice: event.condition.userAgent,
                                     depositType: event.condition.topupType,
                                     onlineTopupType: event.condition.onlineTopUpType,
