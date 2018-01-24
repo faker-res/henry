@@ -51,9 +51,8 @@ function socketActionQualityInspection(socketIO, socket) {
         },
         searchLive800: function searchLive800(data){
             var actionName = arguments.callee.name;
-            data = true;
             var isDataValid = Boolean(data);
-            socketUtil.emitter(self.socket, dbQualityInspection.searchLive800, [], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.searchLive800, [data], actionName, isDataValid);
         },
         markEvaluationRecordAsRead: function markEvaluationRecordAsRead(data){
             var actionName = arguments.callee.name;

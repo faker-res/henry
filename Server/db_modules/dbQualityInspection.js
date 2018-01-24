@@ -19,17 +19,61 @@ var dbQualityInspection = {
         });
         return connection;
     },
-    searchLive800: function () {
-        var deferred = Q.defer();
-        var connection = dbQualityInspection.connectMysql();
+    searchLive800: function (query) {
         let conversationForm = [];
-        let proms = [];
+        let queryObj = "";
+        console.log(query);
+        if (query.companyId) {
+            queryObj += " company_id=" + query.companyId + " AND ";
+        }
+        if (query.operatorId) {
+            queryObj += " operator_id=" + query.operatorId + " AND ";
+        }
+        if (query.startTime && query.endTime) {
+            queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
+        }
+        if(query.status!='all'){
+            conversationForm = dbQualityInspection.searchMongoDB(query);
+        }else{
+            let connection = dbQualityInspection.connectMysql();
+            connection.connect();
+            conversationForm = dbQualityInspection.searchMySQLDB(queryObj,connection);
+        }
+        return conversationForm;
+    },
+    searchMongoDB:function(query){
+        let queryQA = {};
+        console.log(query);
+        if (query.status) {
+            queryQA.status = query.status;
+        }
+        console.log(queryQA);
+        return dbconfig.collection_qualityInspection.find(queryQA)
+            .then(results => {
+                console.log(results);
+                results.forEach(item => {
+                    let live800Chat = {conversation: []};
+                    live800Chat.messageId = item.msg_id;
+                    live800Chat.status = item.status;
+                    live800Chat.qualityAssessor = item.qualityAssessor;
+                    live800Chat.fpmsAcc = item.fpmsAcc;
+                    live800Chat.processTime = item.processTime;
+                    live800Chat.appealReason = item.appealReason;
+                    live800Chat.conversation = item.conversation;
+                    return live800Chat;
+                });
 
-        connection.connect();
-        connection.query("SELECT * FROM chat_content WHERE store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:5:00' AS DATETIME);", function (error, results, fields) {
+                return results;
+            })
+    },
+    searchMySQLDB:function(queryObj,connection){
+        var deferred = Q.defer();
+        let proms = [];
+        connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
             console.log('yeah');
             if (error) throw error;
             results.forEach(item => {
+                console.log(item);
                 let live800Chat = {conversation: []};
                 live800Chat.messageId = item.msg_id;
                 live800Chat.status = item.status;
@@ -51,39 +95,34 @@ var dbQualityInspection = {
                 partHe = dbQualityInspection.reGroup(he, 2);
                 partSYS = dbQualityInspection.reGroup(sys, 3);
                 content = partI.concat(partHe, partSYS);
-                content.sort(function(a,b){
+                content.sort(function (a, b) {
                     return a.time - b.time;
-                })
+                });
 
                 live800Chat.conversation = content;
 
-                let prom = dbconfig.collection_qualityInspection.find({messageId:String(item.msg_id)})
-                    .then(qaData=>{
-
-                        if(qaData.length > 0){
+                let queryQA = {messageId: String(item.msg_id)};
+                let prom = dbconfig.collection_qualityInspection.find(queryQA)
+                    .then(qaData => {
+                        if (qaData.length > 0) {
                             live800Chat.status = qaData[0].status;
                             live800Chat.conversation = qaData[0].conversation;
                             live800Chat.qualityAssessor = qaData[0].qualityAssessor;
                             live800Chat.processTime = qaData[0].processTime;
                             live800Chat.appealReason = qaData[0].appealReason;
                         }
-
                         return live800Chat;
-                    })
-                /*
-                */
+                    });
                 proms.push(prom);
             });
-            return Q.all(proms).then(data=>{
+            return Q.all(proms).then(data => {
                 deferred.resolve(data);
                 connection.end();
             })
         });
-
         return deferred.promise;
     },
     reGroup: function(arrs,type){
-
         let conversation= [] ;
         for (var t = 0; t < arrs.length; t++) {
             let timeStamp = arrs[t].getAttribute("tm");
