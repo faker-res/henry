@@ -418,6 +418,7 @@ const dbRewardTask = {
                     rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
                     rewardTaskProposalQuery.$or = [
                         {'data.providerGroup': {$exists: true, $eq: null}},
+                        {'data.providerGroup': {$exists: true, $size: 0}},
                         {'data.providerGroup': {$exists: false}},
                         {'data.providerGroup': ""},
                     ]
@@ -431,7 +432,10 @@ const dbRewardTask = {
                 }).lean().sort(sortCol);
             }).then(udata => {
                 udata.map(item => {
-                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    if(!item.data.topUpProposal) {
+                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    }
+
                     if (item.type.name) {
                         item.data.rewardType = item.type.name;
                     }
@@ -455,7 +459,9 @@ const dbRewardTask = {
                     if (rewardTaskGroup) {
                         item.data['createTime$'] = item.createTime;
                         item.data.useConsumption = rewardTaskGroup.useConsumption;
-                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        if(!item.data.topUpProposal) {
+                            item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        }
                         item.data.curConsumption = rewardTaskGroup.curConsumption;
                         if (rewardTaskGroup.providerGroup) {
                             item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"" ;

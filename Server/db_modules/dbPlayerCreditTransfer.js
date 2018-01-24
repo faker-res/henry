@@ -17,6 +17,7 @@ const counterManager = require('./../modules/counterManager');
 const dbConfig = require('./../modules/dbproperties');
 const dbLogger = require("./../modules/dbLogger");
 const errorUtils = require("./../modules/errorUtils");
+const ObjectId = mongoose.Types.ObjectId;
 
 let dbPlayerCreditTransfer = {
     // separate out api calls so it can be test easily
@@ -1107,7 +1108,7 @@ let dbPlayerCreditTransfer = {
                         function (id) {
                             transferId = id;
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
+                                providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return pCTFP.playerTransferOut(
                                 {
                                     username: userName,
@@ -1121,7 +1122,7 @@ let dbPlayerCreditTransfer = {
                                 error => {
                                     // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                        providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                        providerShortId, amount, updateObj.rewardAmt, adminName, error, constPlayerCreditTransferStatus.FAIL);
                                     error.hasLog = true;
                                     return Q.reject(error);
                                 }
@@ -1207,21 +1208,37 @@ let dbPlayerCreditTransfer = {
                     });
                     // Logging Transfer Success
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
-                        platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, lockedCredit, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
-
-                    return Promise.resolve(
-                        {
-                            playerId: playerId,
-                            providerId: providerShortId,
-                            providerCredit: parseFloat(gameCredit).toFixed(2),
-                            playerCredit: parseFloat(playerCredit).toFixed(2),
-                            rewardCredit: parseFloat(rewardTaskCredit).toFixed(2),
-                            transferCredit: {
-                                playerCredit: parseFloat(validCreditToAdd).toFixed(2),
-                                rewardCredit: parseFloat(rewardTaskTransferredAmount).toFixed(2)
+                        platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, updateObj.rewardAmt, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                    return dbConfig.collection_rewardTaskGroup.find({
+                        platformId: ObjectId(platform),
+                        playerId: ObjectId(playerObjId),
+                        status: constRewardTaskStatus.STARTED
+                    }).lean().then(
+                        rewardTaskData => {
+                            let lockedCreditPlayer = 0;
+                            if (rewardTaskData && rewardTaskData.length > 0) {
+                                for (let i = 0; i < rewardTaskData.length; i++) {
+                                    if (rewardTaskData[i].rewardAmt)
+                                        lockedCreditPlayer += rewardTaskData[i].rewardAmt;
+                                }
                             }
-                        }
-                    );
+                            lockedAmount = lockedCreditPlayer ? lockedCreditPlayer : 0;
+                            rewardTaskCredit = lockedAmount;
+                            return Promise.resolve(
+                                {
+                                    playerId: playerId,
+                                    providerId: providerShortId,
+                                    providerCredit: parseFloat(gameCredit).toFixed(2),
+                                    playerCredit: parseFloat(playerCredit).toFixed(2),
+                                    rewardCredit: parseFloat(rewardTaskCredit).toFixed(2),
+                                    transferCredit: {
+                                        playerCredit: parseFloat(validCreditToAdd).toFixed(2),
+                                        rewardCredit: parseFloat(rewardTaskTransferredAmount).toFixed(2)
+                                    }
+                                }
+                            );
+                        });
+
                 }
                 else {
                     return Promise.reject({name: "DBError", message: "Failed to increase player credit."})
