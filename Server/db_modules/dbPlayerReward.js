@@ -314,11 +314,20 @@ let dbPlayerReward = {
 
     getRandBonusInfo: (playerId, rewardCode, platformId) => {
         let player, platform, playerLevel, firstProm, event, intervalTime;
+        let gradeList = [];
         let Open = [];
         let get = [];
         let giveup = [];
         let bonusList = [];
         let currentTime = new Date();
+
+        // display all reward param for each player level
+        function addParamToGradeList(gradeListData) {
+            if (!gradeListData) {
+                return false;
+            }
+            gradeList = {};
+        }
 
         function addParamToOpen(openData) {
             if (!openData) {
@@ -467,15 +476,20 @@ let dbPlayerReward = {
 
             let paramOfLevel = event.param.rewardParam[0].value;
             let selectedParam = null;
+            let rewardParam = null;
 
             // find param for matching player level
             if (event.condition.isPlayerLevelDiff && player) {
-                let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
+                rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
+                console.log('rewardParam',rewardParam);
+                console.log('event.param.rewardParam',event.param.rewardParam);
                 if (rewardParam && rewardParam[0] && rewardParam[0].value) {
                     selectedParam = rewardParam[0].value[0];
+                    console.log('selectedParam1',selectedParam);
                 }
             } else {
                 selectedParam = paramOfLevel[0];
+                console.log('selectedParam2',selectedParam);
             }
 
             if (event.condition.rewardAppearPeriod) {
@@ -511,6 +525,10 @@ let dbPlayerReward = {
                     }
                 }
 
+                if (event.param.rewardParam) {
+                    addParamToGradeList(event.param.rewardParam);
+                }
+
                 event.condition.rewardAppearPeriod.forEach(appearPeriod => {
                     // status 0 - reward event not yet started, countdown to start time
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime > dayOfHour && appearPeriod.endTime > dayOfHour) {
@@ -530,23 +548,23 @@ let dbPlayerReward = {
                             condition: {
                                 availableDeposit: totalValidTopup,
                                 availableDepositTimes: totalAvailableTopup,
-                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                // requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 availableBetAmount: totalValidConsumption,
-                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                // requestBetAmount: selectedParam.requiredConsumptionAmount,
                                 availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                 usedChances: rewardProposals.length,
-                                totalChances: selectedParam.numberParticipation,
-                                grade: playerLevel._id,
+                                // totalChances: selectedParam.numberParticipation,
+                                // grade: playerLevel._id,
                                 depositDevice: event.condition.userAgent,
                                 depositType: event.condition.topupType,
                                 onlineTopupType: event.condition.onlineTopUpType,
                                 bankCardType: event.condition.bankCardType
-                            },
-                            bonusCondition: {
-                                bet: selectedParam.spendingTimesOnReward,
-                                lockedGroup: event.condition.providerGroup
                             }
+                            // bonusCondition: {
+                            //     bet: selectedParam.spendingTimesOnReward,
+                            //     lockedGroup: event.condition.providerGroup
+                            // }
                         };
                         addParamToOpen(openData);
                     }
@@ -564,23 +582,23 @@ let dbPlayerReward = {
                             condition: {
                                 availableDeposit: totalValidTopup,
                                 availableDepositTimes: totalAvailableTopup,
-                                requestDeposit: selectedParam.requiredTopUpAmount,
+                                // requestDeposit: selectedParam.requiredTopUpAmount,
                                 betSource: event.condition.consumptionProvider,
                                 availableBetAmount: totalValidConsumption,
-                                requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                // requestBetAmount: selectedParam.requiredConsumptionAmount,
                                 availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                 usedChances: rewardProposals.length,
-                                totalChances: selectedParam.numberParticipation,
-                                grade: playerLevel._id,
+                                // totalChances: selectedParam.numberParticipation,
+                                // grade: playerLevel._id,
                                 depositDevice: event.condition.userAgent,
                                 depositType: event.condition.topupType,
                                 onlineTopupType: event.condition.onlineTopUpType,
                                 bankCardType: event.condition.bankCardType
-                            },
-                            bonusCondition: {
-                                bet: selectedParam.spendingTimesOnReward,
-                                lockedGroup: event.condition.providerGroup
                             }
+                            // bonusCondition: {
+                            //     bet: selectedParam.spendingTimesOnReward,
+                            //     lockedGroup: event.condition.providerGroup
+                            // }
                         };
                         addParamToOpen(openData);
                     }
@@ -612,19 +630,19 @@ let dbPlayerReward = {
                                 status: 2,
                                 amountList: listValidRewardAmount,
                                 condition: {
+                                    availableDeposit: totalValidTopup,
                                     availableDepositTimes: totalAvailableTopup,
-                                    requestDeposit: selectedParam.requiredTopUpAmount,
+                                    // requestDeposit: selectedParam.requiredTopUpAmount,
                                     betSource: event.condition.consumptionProvider,
-                                    requestBetAmount: selectedParam.requiredConsumptionAmount,
-                                    grade: playerLevel._id,
+                                    availableBetAmount: totalValidConsumption,
+                                    availableChances: selectedParam.numberParticipation - rewardProposals.length,
+                                    usedChances: rewardProposals.length,
+                                    // requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                    // grade: playerLevel._id,
                                     depositDevice: event.condition.userAgent,
                                     depositType: event.condition.topupType,
                                     onlineTopupType: event.condition.onlineTopUpType,
                                     bankCardType: event.condition.bankCardType
-                                },
-                                bonusCondition: {
-                                    bet: selectedParam.spendingTimesOnReward,
-                                    lockedGroup: event.condition.providerGroup
                                 }
                             };
                             addParamToGet(getData);
@@ -654,19 +672,19 @@ let dbPlayerReward = {
                                 endTime: appearPeriod.endTime,
                                 status: 3,
                                 condition: {
+                                    availableDeposit: totalValidTopup,
                                     availableDepositTimes: totalAvailableTopup,
-                                    requestDeposit: selectedParam.requiredTopUpAmount,
+                                    // requestDeposit: selectedParam.requiredTopUpAmount,
                                     betSource: event.condition.consumptionProvider,
-                                    requestBetAmount: selectedParam.requiredConsumptionAmount,
-                                    grade: playerLevel._id,
+                                    availableBetAmount: totalValidConsumption,
+                                    availableChances: selectedParam.numberParticipation - rewardProposals.length,
+                                    usedChances: rewardProposals.length,
+                                    // requestBetAmount: selectedParam.requiredConsumptionAmount,
+                                    // grade: playerLevel._id,
                                     depositDevice: event.condition.userAgent,
                                     depositType: event.condition.topupType,
                                     onlineTopupType: event.condition.onlineTopUpType,
                                     bankCardType: event.condition.bankCardType
-                                },
-                                bonusCondition: {
-                                    bet: selectedParam.spendingTimesOnReward,
-                                    lockedGroup: event.condition.providerGroup
                                 }
                             };
                             addParamToGiveup(giveupData);
@@ -680,8 +698,10 @@ let dbPlayerReward = {
             }
 
             let outputObject = {
-                startTime: intervalTime.startTime,
-                endTime: intervalTime.endTime,
+                lockedGroup: event.condition.providerGroup,
+                currentGradeId: playerLevel._id,
+                currentGradeName: playerLevel.name,
+                gradeList: gradeList,
                 open: Open,
                 get: get,
                 giveup: giveup,
