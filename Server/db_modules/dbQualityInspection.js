@@ -326,6 +326,16 @@ var dbQualityInspection = {
             }
         })
         return deferred.promise;
+    },
+    getEvaluationRecordYearMonth: function (platformObjId) {
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
+            platformDetail => {
+                if(platformDetail){
+
+                }
+            }
+        )
+
     }
 
 
