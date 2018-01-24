@@ -4423,9 +4423,9 @@ define(['js/app'], function (myApp) {
                     tableOptions = $.extend(true, {}, vm.providerExpenseDataTableOptions, vm.commonProviderGameTableOptions, tableOptions);
                     vm.expenseQuery.pageObj.init({maxCount: vm.expenseQuery.totalCount}, newSearch);
                     utilService.createDatatableWithFooter('#providerExpenseTable', tableOptions, {
-                        10: summary.validAmount,
-                        11: summary.bonusAmount,
-                        12: summary.amount,
+                        9: summary.validAmount,
+                        10: summary.bonusAmount,
+                        11: summary.amount,
                         // 8: summary.commissionAmountAll
                     });
                     $('#providerExpenseTable').off('order.dt');
@@ -9567,9 +9567,9 @@ define(['js/app'], function (myApp) {
                     });
                     // $('#playerExpenseTable').DataTable(option);
                     var a = utilService.createDatatableWithFooter('#playerExpenseTable', option, {
-                        9: summary.validAmountSum,
-                        10: summary.bonusAmountSum,
-                        11: summary.amountSum,
+                        8: summary.validAmountSum,
+                        9: summary.bonusAmountSum,
+                        10: summary.amountSum,
                         // 8: summary.commissionAmountSum
                     });
                     vm.playerExpenseLog.pageObj.init({maxCount: vm.playerExpenseLog.totalCount}, newSearch);

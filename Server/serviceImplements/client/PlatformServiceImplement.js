@@ -29,9 +29,8 @@ var PlatformServiceImplement = function () {
         var isValidData = Boolean(data && data.platformId);
         data = data || {};
 
-        //let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], false);
         if(!data.device){
-            data.device = constPlayerRegistrationInterface.WEB_PLAYER;
+            data.device = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], false);
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId,data.device], isValidData, null, null, true);
     };
