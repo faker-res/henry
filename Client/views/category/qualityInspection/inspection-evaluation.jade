@@ -65,7 +65,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     #unreadEvaluationForm(ng-repeat='unreadTable in vm.unreadEvaluationTable')
                                         div.row
                                             div.col-md-1(style='display:inline-block;padding-left:5px;')
-                                                input.form-control(type="checkbox", value="{{unreadTable.messageId}}",ng-model="unreadTable.isChecked", ng-change="vm.gatherCheckedRecord(unreadTable.isChecked,unreadTable.messageId,unreadTable.appealReason);unreadTable.appealReasonFreeze=unreadTable.isChecked")
+                                                input.form-control(type="checkbox", value="{{unreadTable.messageId}}",ng-model="unreadTable.isChecked", ng-change="vm.gatherCheckedRecord(unreadTable.isChecked,unreadTable.messageId,unreadTable.appealReason)")
                                             div.col-md-1(style='display:inline-block;padding-left:5px;') {{unreadTable.status | translate}}
                                             div.col-md-7(style='display:inline-block;padding-left:5px;background-color:#CECECE;border-bottom:1px solid black')
                                                 div.row(ng-repeat='c in unreadTable.conversation')
@@ -80,7 +80,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                             div.col-md-1(style='display:inline-block;padding-left:5px;') {{unreadTable.qualityAssessor}}
                                             div.col-md-1(style='display:inline-block;padding-left:5px;') {{unreadTable.processTime}}
                                             div.col-md-1(style='display:inline-block;padding-left:5px;')
-                                                input.form-control(type="textarea", value="{{unreadTable.appealReason}}", ng-model="unreadTable.appealReason")
+                                                input.form-control(type="textarea", value="{{unreadTable.appealReason}}", ng-model="unreadTable.appealReason", ng-change="vm.ammendCheckedRecord(unreadTable.messageId,unreadTable.appealReason);")
 
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                                     //button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
@@ -125,8 +125,6 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .row
                                     #readEvaluationForm(ng-repeat='readTable in vm.readEvaluationTable')
                                         div.row
-                                            //div.col-md-1(style='display:inline-block;padding-left:5px;')
-                                                input.form-control(type="checkbox", value="{{readTable.messageId}}",ng-model="readTable.isChecked", ng-change="vm.gatherCheckedRecord(readTable.isChecked,readTable.messageId,readTable.appealReason);readTable.appealReasonFreeze=readTable.isChecked")
                                             div.col-md-1(style='display:inline-block;padding-left:10px;') {{readTable.status | translate}}
                                             div.col-md-7(style='display:inline-block;padding-left:5px;background-color:#CECECE;border-bottom:1px solid black')
                                                 div.row(ng-repeat='c in readTable.conversation')
@@ -200,8 +198,6 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .row
                                     #appealEvaluationForm(ng-repeat='appealTable in vm.appealEvaluationTable')
                                         div.row
-                                            //div.col-md-1(style='display:inline-block;padding-left:5px;')
-                                                input.form-control(type="checkbox", value="{{readTable.messageId}}",ng-model="readTable.isChecked", ng-change="vm.gatherCheckedRecord(readTable.isChecked,readTable.messageId,readTable.appealReason);readTable.appealReasonFreeze=readTable.isChecked")
                                             div.col-md-1(style='display:inline-block;padding-left:10px;') {{appealTable.status | translate}}
                                             div.col-md-7(style='display:inline-block;padding-left:5px;background-color:#CECECE;border-bottom:1px solid black')
                                                 div.row(ng-repeat='c in appealTable.conversation')

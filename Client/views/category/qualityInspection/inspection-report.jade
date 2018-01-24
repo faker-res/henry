@@ -66,7 +66,6 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 //            div.col-md-1(style='display:inline-block;padding-left:5px;') {{workloadReportTable.appealing | translate}}
                                 //            div.col-md-1(style='display:inline-block;padding-left:5px;') {{workloadReportTable.appealCompleted | translate}}
                                 //            //div.col-md-1(style='display:inline-block;padding-left:5px;')
-                                //            //    input.form-control(type="checkbox", value="{{workloadReportTable.messageId}}",ng-model="workloadReportTable.isChecked", ng-change="vm.gatherCheckedRecord(workloadReportTable.isChecked,workloadReportTable.messageId,workloadReportTable.appealReason);workloadReportTable.appealReasonFreeze=workloadReportTable.isChecked")
                                 //            //div.col-md-1(style='display:inline-block;padding-left:5px;') {{workloadReportTable.status | translate}}
                                 //            //div.col-md-7(style='display:inline-block;padding-left:5px;background-color:#CECECE;border-bottom:1px solid black')
                                 //            //    div.row(ng-repeat='c in workloadReportTable.conversation')
@@ -87,14 +86,13 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             #evaluationProgressDiv.tab-pane.fade.in.active
                                 .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
                                     label {{'YEAR - MONTH' | translate}}
-                                    select.form-control#selectYearMonth(ng-model="vm.yearMonth" ng-init='vm.yearMonth="all"')
+                                    select.form-control(ng-model="vm.yearMonth" ng-init='vm.yearMonth="all"')
                                         option(value='all' selected="true") {{'ALL' | translate}}
                                         option(ng-repeat='(i,v) in vm.yearMonth', value='{{v}}') {{i|translate}}
                                 .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
                                     label {{'PRODUCT(DEPARTMENT)' | translate}}
-                                    select.form-control#selectProductDepartment(ng-model="vm.productDepartment" ng-init='vm.productDepartment="all"')
-                                        option(value='all' selected="true") {{'ALL' | translate}}
-                                        option(ng-repeat='(i,v) in vm.productDepartment', value='{{v}}') {{i|translate}}
+                                    select.spicker.form-control(ng-model='vm.playerDomain', multiple, data-actions-box='true', bsp)
+                                        option(ng-repeat='(i,v) in vm.platformList', value='{{v.data._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.data.name}}
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                                     button.common-button.btn.btn-primary(ng-click='vm.getReadEvaluationRecord()') {{'SEARCH' | translate}}
 
@@ -105,8 +103,6 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .row
                                     #readEvaluationForm(ng-repeat='readTable in vm.readEvaluationTable')
                                         div.row
-                                            //div.col-md-1(style='display:inline-block;padding-left:5px;')
-                                                input.form-control(type="checkbox", value="{{readTable.messageId}}",ng-model="readTable.isChecked", ng-change="vm.gatherCheckedRecord(readTable.isChecked,readTable.messageId,readTable.appealReason);readTable.appealReasonFreeze=readTable.isChecked")
                                             div.col-md-1(style='display:inline-block;padding-left:10px;') {{readTable.status | translate}}
                                             div.col-md-7(style='display:inline-block;padding-left:5px;background-color:#CECECE;border-bottom:1px solid black')
                                                 div.row(ng-repeat='c in readTable.conversation')
