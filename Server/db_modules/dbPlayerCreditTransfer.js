@@ -1108,7 +1108,7 @@ let dbPlayerCreditTransfer = {
                         function (id) {
                             transferId = id;
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                providerShortId, amount, lockedAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
+                                providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND);
                             return pCTFP.playerTransferOut(
                                 {
                                     username: userName,
@@ -1122,7 +1122,7 @@ let dbPlayerCreditTransfer = {
                                 error => {
                                     // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                        providerShortId, amount, lockedAmount, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                        providerShortId, amount, updateObj.rewardAmt, adminName, error, constPlayerCreditTransferStatus.FAIL);
                                     error.hasLog = true;
                                     return Q.reject(error);
                                 }
@@ -1208,7 +1208,7 @@ let dbPlayerCreditTransfer = {
                     });
                     // Logging Transfer Success
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
-                        platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, lockedCredit, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                        platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, updateObj.rewardAmt, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
                     return dbConfig.collection_rewardTaskGroup.find({
                         platformId: ObjectId(platform),
                         playerId: ObjectId(playerObjId),
