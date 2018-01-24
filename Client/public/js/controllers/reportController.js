@@ -5163,6 +5163,8 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.filterNoNewAccountPromoteWay = promoteWay => promoteWay.totalNewAccount != 0;
+        vm.filterNoValidPlayerPromoteWay = promoteWay => promoteWay.validPlayer != 0;
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.curPlatformId})
                 .then(function (data) {
