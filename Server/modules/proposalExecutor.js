@@ -354,7 +354,7 @@ var proposalExecutor = {
                         data => {
                             var updateObj = {
                                 $inc: {
-                                    validCredit: proposalData.data.updateAmount// > 0 ? proposalData.data.updateAmount : 0
+                                    validCredit: proposalData.data.updateAmount > 0 ? proposalData.data.updateAmount : 0
                                 }
                             };
                             if (proposalData.data.updateLockedAmount != null) {
@@ -400,8 +400,10 @@ var proposalExecutor = {
 
                             proposalData.data.proposalId = proposalData.proposalId;
 
-                            dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
-                                changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            if (proposalData.data.updateAmount > 0) {
+                                dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
+                                    changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            }
                             deferred.resolve(player);
                         },
                         error => {
