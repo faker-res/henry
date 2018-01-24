@@ -6774,6 +6774,9 @@ define(['js/app'], function (myApp) {
 
             vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
                 var isChange = false;
+                if (!curP) {
+                    curP = 1;
+                }
                 if (pageSize != vm[objKey].limit) {
                     isChange = true;
                     vm[objKey].limit = pageSize;
@@ -9460,7 +9463,7 @@ define(['js/app'], function (myApp) {
                     startTime: vm.queryPara.playerExpense.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.queryPara.playerExpense.endTime.data('datetimepicker').getLocalDate(),
                     playerId: vm.isOneSelectedPlayer()._id,
-                    index: newSearch ? 0 : (vm.playerExpenseLog.index || 0),
+                    index: newSearch ? 0 : (vm.playerExpenseLog.index),
                     limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                     sortCol: vm.playerExpenseLog.sortCol || null
                 };
@@ -20491,6 +20494,9 @@ define(['js/app'], function (myApp) {
 
             vm.commonPageChangeHandler = function (curP, pageSize, objKey, serchFunc) {
                 var isChange = false;
+                if (!curP) {
+                    curP = 1;
+                }
                 if (vm[objKey] && pageSize != vm[objKey].limit) {
                     isChange = true;
                     vm[objKey].limit = pageSize;
