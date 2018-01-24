@@ -472,7 +472,7 @@ let dbPlayerReward = {
             if (event.condition.isPlayerLevelDiff && player) {
                 let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
                 if (rewardParam && rewardParam[0] && rewardParam[0].value) {
-                    paramOfLevel = rewardParam[0].value;
+                    selectedParam = rewardParam[0].value[0];
                 }
             } else {
                 selectedParam = paramOfLevel[0];
@@ -515,8 +515,7 @@ let dbPlayerReward = {
                     // status 0 - reward event not yet started, countdown to start time
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime > dayOfHour && appearPeriod.endTime > dayOfHour) {
                         openID++;
-                        let openIDStr = openID.toString();
-                        openID = openIDStr.padStart(3, "0");
+                        openID = ('000' + openID).slice(-3);
 
                         let startTimeInt = parseInt(appearPeriod.startTime);
                         let startTimeSetHours = currentTime.setHours(startTimeInt,0,0);
@@ -555,8 +554,7 @@ let dbPlayerReward = {
                     // status 1 - reward event started
                     if (appearPeriod.startDate == todayWeekOfDay && appearPeriod.startTime <= dayOfHour && appearPeriod.endTime > dayOfHour) {
                         openID++;
-                        let openIDStr = openID.toString();
-                        openID = openIDStr.padStart(3, "0");
+                        openID = ('000' + openID).slice(-3);
 
                         openData = {
                             id: openID,
@@ -605,8 +603,7 @@ let dbPlayerReward = {
 
                         if (isValidGet) {
                             getID++;
-                            let getIDStr = getID.toString();
-                            getID = getIDStr.padStart(3, "0");
+                            getID = ('000' + getID).slice(-3);
 
                             getData = {
                                 id: getID,
@@ -649,8 +646,7 @@ let dbPlayerReward = {
 
                         if (isValidGiveup) {
                             giveupID++;
-                            let giveupIDStr = giveupID.toString();
-                            giveupID = giveupIDStr.padStart(3, "0");
+                            giveupID = ('000' + giveupID).slice(-3);
 
                             giveupData = {
                                 id: giveupID,
