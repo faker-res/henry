@@ -829,7 +829,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                let rewardTaskGroup = res[0];
+                let rewardTaskGroup = res;
 
                 if (rewardTaskGroup) {
                     // There is on-going reward task group
