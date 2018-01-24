@@ -417,6 +417,7 @@ const dbRewardTask = {
                 if (!query._id) {
                     rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
                     rewardTaskProposalQuery.$or = [
+                        {'data.providerGroup': {$exists: true, $eq: null}},
                         {'data.providerGroup': {$exists: true, $size: 0}},
                         {'data.providerGroup': {$exists: false}},
                         {'data.providerGroup': ""},
