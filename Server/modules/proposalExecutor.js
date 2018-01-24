@@ -3345,10 +3345,13 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                     _id: rewardTaskGroup._id,
                     platformId: rewardTaskGroup.platformId
                 }, {
-                    rewardAmt: lockedAmount,
-                    _inputRewardAmt: 0,
-                    _inputFreeAmt: 0,
-                    inProvider: false
+                    // rewardAmt: lockedAmount,
+                    $inc: {
+                        rewardAmt: lockedAmount,
+                    },
+                    // _inputRewardAmt: 0,
+                    // _inputFreeAmt: 0,
+                    // inProvider: false
                 }, {
                     new: true
                 }).lean();
