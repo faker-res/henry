@@ -30,8 +30,7 @@ var PlatformServiceImplement = function () {
         data = data || {};
 
         if(!data.device){
-            let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], false);
-            data.device = inputDevice;
+            data.device = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], false);
         }
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId,data.device], isValidData, null, null, true);
     };
