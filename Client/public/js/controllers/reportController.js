@@ -5115,6 +5115,46 @@ define(['js/app'], function (myApp) {
                 });
                 vm.newPlayerQuery.totalTopupPlayerCount = retData[3];
                 vm.newPlayerQuery.totalTopupMultipleTimesPlayerCount = retData[4];
+                vm.newPlayerQuery.newPlayers = retData[5];
+
+                Q.all([vm.getAllPromoteWay(),vm.getPartnerLevelConfig()]).then(
+                    () => {
+                        vm.newPlayerQuery.totalNewPlayerWithTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 0).length;
+                        vm.newPlayerQuery.totalNewPlayerWithMultiTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 1).length;
+                        vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes );
+                        vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
+                        // promote way new player
+                        vm.newPlayerQuery.promoteWayData = vm.allPromoteWay.map(
+                            promoteWay => {
+                                let promoteWayPlayers =vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay == promoteWay.name);
+                                let validPlayer = promoteWayPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes ).length;
+                                return {
+                                    promoteWayName: promoteWay.name,
+                                    totalNewAccount: promoteWayPlayers.length,
+                                    playerWithTopup: promoteWayPlayers.filter(player => player.topUpTimes > 0).length,
+                                    playerWithMultiTopup: promoteWayPlayers.filter(player => player.topUpTimes > 1).length,
+                                    validPlayer: validPlayer,
+                                    ratio: (validPlayer !== 0 ? validPlayer / vm.newPlayerQuery.totalNewValidPlayer * 100 : 0).toFixed(2)
+                                }
+                            }
+                        );
+                        // no promote way new player
+                        let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay == null);
+                        let noPromoteWayValidPlayer = noPromoteWayPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes ).length;
+                        vm.newPlayerQuery.promoteWayData.push(
+                            {
+                                promoteWayName: $translate('No Promote Way'),
+                                totalNewAccount: noPromoteWayPlayers.length,
+                                playerWithTopup: noPromoteWayPlayers.filter(player => player.topUpTimes > 0).length,
+                                playerWithMultiTopup: noPromoteWayPlayers.filter(player => player.topUpTimes > 1).length,
+                                validPlayer: noPromoteWayValidPlayer,
+                                ratio: (noPromoteWayValidPlayer !== 0 ? noPromoteWayValidPlayer / vm.newPlayerQuery.totalNewValidPlayer *100 : 0).toFixed(2)
+                            }
+                        );
+                        vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData);
+                        $scope.safeApply();
+                    }
+                );
                 vm.drawDomainPlayerGraph(domainData);
                 vm.drawDomainPlayerTable(domainData);
                 vm.drawPartnerPlayerGraph(partnerData);
@@ -5122,6 +5162,44 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         }
+
+        vm.getPartnerLevelConfig = function () {
+            return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.curPlatformId})
+                .then(function (data) {
+                    vm.partnerLevelConfig = data.data[0];
+                    console.log("vm.partnerLevelConfig", data.data[0]);
+                    $scope.safeApply();
+                });
+        };
+
+        vm.getAllPromoteWay = function () {
+            vm.allPromoteWay = {};
+            let query = {
+                platformId: vm.curPlatformId,
+            };
+            return $scope.$socketPromise('getAllPromoteWay', query).then(
+                data => {
+                    vm.allPromoteWay = data.data;
+                    console.log("vm.allPromoteWay", vm.allPromoteWay);
+                    $scope.safeApply();
+                }
+            )
+        };
+
+        vm.drawValidPlayerGraph = function (promoteWayData, highlightPromoteWay) {
+            let pieData = promoteWayData.map(promoteWay => {
+                let data = {
+                    label: promoteWay.promoteWayName, data: promoteWay.validPlayer
+                };
+                if(highlightPromoteWay && highlightPromoteWay === promoteWay.promoteWayName)
+                    data.color = "#EFAB02";
+                else if(highlightPromoteWay)
+                    data.color = "#9B9B9B";
+                return data;
+            });
+            socketService.$plotPie("#validPlayerPie", pieData, {}, 'validPlayerPieClickData');
+        };
+
         vm.drawPartnerPlayerGraph = function (data) {
             var pieData = data.filter(function (obj) {
                 return (obj._id);

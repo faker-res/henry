@@ -6721,6 +6721,7 @@ let dbPlayerInfo = {
             platform: platform,
             registrationTime: timeQuery
         };
+
         var a = dbconfig.collection_players.find(query).count();
         var b = dbconfig.collection_players.aggregate([{
             $match: query,
@@ -6761,6 +6762,9 @@ let dbPlayerInfo = {
         }
 
         let e = dbconfig.collection_players.find(topUpMultipleTimesQuery).count();
+        let f = dbconfig.collection_players.find(query)
+            .populate({path: "partner", model: dbconfig.collection_partner})
+            .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
         // var d = dbconfig.collection_players.find(query, {_id: 1}).lean().then(
         //     players => {
         //         if (players && players.length > 0) {
@@ -6795,7 +6799,7 @@ let dbPlayerInfo = {
         //     }
         // );
 
-        return Q.all([a, b, c, d, e]).then(
+        return Q.all([a, b, c, d, e, f]).then(
             data => {
                 retData = data;
                 var prop = [];
