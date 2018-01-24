@@ -400,8 +400,10 @@ var proposalExecutor = {
 
                             proposalData.data.proposalId = proposalData.proposalId;
 
-                            dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
-                                changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            if (proposalData.data.updateAmount > 0) {
+                                dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
+                                    changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            }
                             deferred.resolve(player);
                         },
                         error => {
@@ -3345,10 +3347,13 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                     _id: rewardTaskGroup._id,
                     platformId: rewardTaskGroup.platformId
                 }, {
-                    rewardAmt: lockedAmount,
-                    _inputRewardAmt: 0,
-                    _inputFreeAmt: 0,
-                    inProvider: false
+                    // rewardAmt: lockedAmount,
+                    $inc: {
+                        rewardAmt: lockedAmount,
+                    },
+                    // _inputRewardAmt: 0,
+                    // _inputFreeAmt: 0,
+                    // inProvider: false
                 }, {
                     new: true
                 }).lean();
