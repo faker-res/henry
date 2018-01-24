@@ -9463,7 +9463,7 @@ define(['js/app'], function (myApp) {
                     startTime: vm.queryPara.playerExpense.startTime.data('datetimepicker').getLocalDate(),
                     endTime: vm.queryPara.playerExpense.endTime.data('datetimepicker').getLocalDate(),
                     playerId: vm.isOneSelectedPlayer()._id,
-                    index: newSearch ? 0 : (vm.playerExpenseLog.index),
+                    index: newSearch ? 0 : (vm.playerExpenseLog.index || 10),
                     limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                     sortCol: vm.playerExpenseLog.sortCol || null
                 };
