@@ -330,7 +330,7 @@
                             th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "playerWithMultiTopup" ? "-playerWithMultiTopup":"playerWithMultiTopup"') {{"Player with Top-ups Multiple Times" | translate}}
                             th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
                     tbody
-                        tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.promoteWaySort | filter: {totalNewAccount: "!0"}')
+                        tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.promoteWaySort | filter: vm.filterNoNewAccountPromoteWay')
                             td
                                 span {{v.promoteWayName}}
                             td
@@ -368,7 +368,7 @@
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
                                 tbody
-                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.validPlayerGraphSort | filter: {validPlayer: "!0"}')
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.validPlayerGraphSort | filter: vm.filterNoValidPlayerPromoteWay')
                                         td
                                             a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData, v.promoteWayName);vm.newPlayerQuery.validPlayerGraphPromoteWay = v.promoteWayName=="无推广方式" ? "!":v.promoteWayName') {{v.promoteWayName}}
                                         td
@@ -383,8 +383,8 @@
                                         td
                                             span 100%
                     .col-md-12(ng-if="vm.newPlayerQuery.validPlayerGraphPromoteWay" style='padding-top:10px')
-                        .text-center
-                            table.common-table
+                        .text-center(style='overflow:auto')
+                            table.common-table.playerLvlTable
                                 thead
                                     tr
                                         th {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}

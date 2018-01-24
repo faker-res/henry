@@ -5151,7 +5151,7 @@ define(['js/app'], function (myApp) {
                                 ratio: (noPromoteWayValidPlayer !== 0 ? noPromoteWayValidPlayer / vm.newPlayerQuery.totalNewValidPlayer *100 : 0).toFixed(2)
                             }
                         );
-                        vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData);
+                        vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData.filter(promoteWay => promoteWay.validPlayer > 0));
                         $scope.safeApply();
                     }
                 );
@@ -5163,6 +5163,8 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.filterNoNewAccountPromoteWay = promoteWay => promoteWay.totalNewAccount != 0;
+        vm.filterNoValidPlayerPromoteWay = promoteWay => promoteWay.validPlayer != 0;
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.curPlatformId})
                 .then(function (data) {
