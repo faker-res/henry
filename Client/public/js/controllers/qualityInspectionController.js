@@ -120,6 +120,23 @@ define(['js/app'], function (myApp) {
                     vm.selectPlatformNode(data);
                 });
             };
+            vm.filterPlatform = function(){
+              let platforms = vm.platformList.filter(item=>{
+                 if(vm.inspection800.platform.indexOf(item.data._id)!=-1){
+                   return item;
+                 }
+              });
+              platforms.map(item=>{
+                item.csDepartment.map(cItem=>{
+                  let fpmsACC = {
+                      id:cItem._id,
+                      name:cItem.departmentName
+                  }
+                  // vm.fpmsAcc.push(fpmsACC)
+                })
+              })
+              // vm.fpmsACCList = platform
+            }
 
             //search and select platform node
             vm.searchAndSelectPlatform = function (text, option) {

@@ -6,12 +6,12 @@
         .well.feedbackQueryDiv
             .inlineBlk
                 label {{"Product"|translate}}
-                select.form-control(style='max-width:155px',ng-change='vm.filterMerchant()',ng-model='vm.paymentMonitorQuery.bankTypeId', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
+                select.form-control(style='max-width:155px',ng-change='vm.filterPlatform()',ng-model='vm.inspection800.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
             .inlineBlk
                 label {{"FPMS CS Acc" | translate}}
-                select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel')
+                select.form-control(ng-model='vm.inspection800.fpms')
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v._id}}') {{v.name | translate}}
 
             .inlineBlk
                 label {{"Live800 Acc" | translate}}
