@@ -354,7 +354,7 @@ var proposalExecutor = {
                         data => {
                             var updateObj = {
                                 $inc: {
-                                    validCredit: proposalData.data.updateAmount > 0 ? proposalData.data.updateAmount : 0
+                                    validCredit: proposalData.data.updateAmount// > 0 ? proposalData.data.updateAmount : 0
                                 }
                             };
                             if (proposalData.data.updateLockedAmount != null) {
@@ -3345,10 +3345,13 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                     _id: rewardTaskGroup._id,
                     platformId: rewardTaskGroup.platformId
                 }, {
-                    rewardAmt: lockedAmount,
-                    _inputRewardAmt: 0,
-                    _inputFreeAmt: 0,
-                    inProvider: false
+                    // rewardAmt: lockedAmount,
+                    $inc: {
+                        rewardAmt: lockedAmount,
+                    },
+                    // _inputRewardAmt: 0,
+                    // _inputFreeAmt: 0,
+                    // inProvider: false
                 }, {
                     new: true
                 }).lean();
