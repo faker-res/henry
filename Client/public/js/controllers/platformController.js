@@ -415,30 +415,54 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
-            vm.isValidDepartment = function(departments){
-              console.log('-----------------')
-                socketService.$socket($scope.AppSocket, 'getAllDepartments', {}, function (data) {
-                    let allDpt = data.data;
-                    let noExist = 0;
-                    let result = [];
-                    let departArr = departments.split(',').map(item=>{ return item.trim(); })
-                    let errMsg = '';
-                    for(var d in departArr){
-                        let dpExist = allDpt.filter(item=>{
-                            if(item.departmentName == departArr[d]){
-                              result.push(item);
-                              return item;
-                            }
-                        });
-                        if(dpExist.length <=0 ){
-                            errMsg += departArr[d] + ' is not Exist, ';
-                        }
-                    }
-                    console.log(errMsg);
-                    $scope.safeApply();
-                }, function (err) {
-                });
+            vm.isValidCSDepartment = function(departments){
+              let result = vm.getDepartmentObjId(departments);
+              Q.all([result]).then(data=>{
+                vm.showPlatform.csDepartment = data[0]?data[0]:[];
+                console.log(vm.showPlatform.csDepartment);
+              })
+            };
+            vm.isValidQIDepartment = function(departments){
+              let result = vm.getDepartmentObjId(departments);
+              Q.all([result]).then(data=>{
+                vm.showPlatform.qiDepartment = data[0]?data[0]:[];
+                console.log(vm.showPlatform.qiDepartment);
+              })
+
+            };
+            vm.getDepartmentObjId = function(departments){
+              var deferred = Q.defer();
+              socketService.$socket($scope.AppSocket, 'getAllDepartments', {}, function (data) {
+                  let allDpt = data.data;
+                  let noExist = 0;
+                  let result = [];
+                  let departmentObjId = [];
+                  let departArr = departments.split(',').map(item=>{ return item.trim(); })
+                  let errMsg = '';
+                  for(var d in departArr){
+                      let dpExist = allDpt.filter(item=>{
+                          if(item.departmentName == departArr[d]){
+                            result.push(item);
+                            departmentObjId.push(item._id)
+                            return item;
+                          }
+                      });
+                      if(dpExist.length <= 0 ){
+                          errMsg += departArr[d] + ' is not Exist, ';
+                      }
+                  }
+                  console.log(departmentObjId);
+                  deferred.resolve(departmentObjId);
+                  console.log(errMsg);
+                  $scope.safeApply();
+              }, function (err) {
+                deferred.reject({});
+              });
+              return deferred.promise;
             }
+
+
+
             vm.getAllGameProviders = function (platformId) {
                 if (!platformId) return;
                 socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
