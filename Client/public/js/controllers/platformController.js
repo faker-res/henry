@@ -6703,6 +6703,7 @@ define(['js/app'], function (myApp) {
                 vm.phoneDuplicate.pageObj = utilService.createPageForPagingTable("#samePhoneNumTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "phoneDuplicate", vm.loadPhoneNumberRecord)
                 });
+                vm.getAllPromoteWay();
             }
             vm.editPlayerStatus = function (id) {
                 console.log(id);
