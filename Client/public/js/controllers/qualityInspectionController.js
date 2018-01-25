@@ -265,10 +265,10 @@ define(['js/app'], function (myApp) {
 
             vm.searchLive800 = function(){
                 var query = {
-                        'companyId':270,
-                        'operatorId':764,
-                        'startTime':'2018-01-16 00:00:00',
-                        'endTime':'2018-01-16 00:05:00',
+                        // 'companyId':270,
+                        // 'operatorId':764,
+                        'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
+                        'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
                         'status':'all'
                 };
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
@@ -292,6 +292,7 @@ define(['js/app'], function (myApp) {
             }
             vm.confirmRate = function(rate){
                 console.log(rate);
+                rate.editable = false;
                 socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
                     console.log(data);
                 });

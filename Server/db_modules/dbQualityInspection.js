@@ -30,7 +30,9 @@ var dbQualityInspection = {
             queryObj += " operator_id=" + query.operatorId + " AND ";
         }
         if (query.startTime && query.endTime) {
-            queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
+            // queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
+            console.log(query.startTime);
+            queryObj += " store_time BETWEEN CAST('"+query.startTime+"' as DATETIME) AND CAST('"+query.endTime+"' AS DATETIME)";
         }
         if(query.status!='all'){
             conversationForm = dbQualityInspection.searchMongoDB(query);
@@ -75,7 +77,7 @@ var dbQualityInspection = {
             if (error) throw error;
             results.forEach(item => {
                 console.log(item);
-                let live800Chat = {conversation: []};
+                let live800Chat = {conversation: [], live800Acc:{}};
                 live800Chat.messageId = item.msg_id;
                 live800Chat.status = item.status;
                 live800Chat.qualityAssessor = '';
@@ -84,8 +86,8 @@ var dbQualityInspection = {
                 live800Chat.appealReason = '';
                 live800Chat.companyId = item.company_id
 
-                live800Chat.live800Id = item.operator_id;
-                live800Chat.live800Name = item.operator_name;
+                live800Chat.live800Acc['id'] = item.operator_id;
+                live800Chat.live800Acc['name'] = item.operator_name;
 
                 let dom = new JSDOM(item.content);
                 let content = [];
