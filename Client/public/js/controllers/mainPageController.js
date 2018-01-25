@@ -637,7 +637,7 @@ define(['js/app'], function (myApp) {
                 vm.reArrangeArr(vm.newAdmin.live800CompanyId, 'live800CompanyId', vm.newAdmin);
                 vm.reArrangeArr(vm.newAdmin.live800Acc, 'live800Acc', vm.newAdmin);
                 console.log(vm.newAdmin);
-                if(vm.newAdmin.live800Acc.toString() != ''){
+                if(vm.newAdmin.live800Acc && vm.newAdmin.live800Acc.toString() != ''){
                     socketService.$socket($scope.AppSocket, 'checkLive800AccValidity', {live800Acc: vm.newAdmin.live800Acc, adminName: vm.newAdmin.adminName}, function(data) {
                         if (data && !data.data) {
                             vm.live800AccResult = {

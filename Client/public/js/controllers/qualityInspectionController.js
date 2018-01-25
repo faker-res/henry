@@ -126,16 +126,31 @@ define(['js/app'], function (myApp) {
                    return item;
                  }
               });
+              let departmentMember = [];
               platforms.map(item=>{
-                item.csDepartment.map(cItem=>{
-                  let fpmsACC = {
-                      id:cItem._id,
-                      name:cItem.departmentName
-                  }
-                  // vm.fpmsAcc.push(fpmsACC)
+                item.data.csDepartment.map(cItem=>{
+                  departmentMember = departmentMember.concat(cItem.users);
                 })
               })
+              vm.getDepartmentMember(departmentMember)
               // vm.fpmsACCList = platform
+            }
+            vm.getDepartmentMember = function(departmentMember){
+              socketService.$socket($scope.AppSocket, 'getMultiAdmins', {admins: departmentMember}, function (data) {
+                  console.log('all admin data', data.data);
+                  let fpmsACCList = [];
+                  data.data.forEach(item=>{
+                    let acc = {
+                      _id:item._id,
+                      name:item.adminName
+                    }
+                    fpmsACCList.push(acc);
+                  })
+                  vm.fpmsACCList = fpmsACCList
+              }, function (err) {
+              });
+
+              // departmentMember
             }
 
             //search and select platform node

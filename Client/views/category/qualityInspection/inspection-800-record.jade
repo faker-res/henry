@@ -11,7 +11,7 @@
                 label {{"FPMS CS Acc" | translate}}
                 select.form-control(ng-model='vm.inspection800.fpms')
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v._id}}') {{v.name | translate}}
+                    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v._id}}') {{v.adminName | translate}}
 
             .inlineBlk
                 label {{"Live800 Acc" | translate}}
