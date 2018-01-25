@@ -969,17 +969,32 @@ let dbPlayerCreditTransfer = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform,
                         platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, lockedTransferAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
-                    return {
-                        playerId: player.playerId,
-                        providerId: providerShortId,
-                        providerCredit: parseFloat(transferAmount + gameCredit).toFixed(2),
-                        playerCredit: parseFloat(playerCredit).toFixed(2),
-                        rewardCredit: parseFloat(rewardTaskAmount).toFixed(2),
-                        transferCredit: {
-                            playerCredit: parseFloat(gameAmount - rewardAmount).toFixed(2),
-                            rewardCredit: parseFloat(rewardAmount).toFixed(2)
-                        }
-                    };
+                    return dbConfig.collection_rewardTaskGroup.find({
+                        platformId: ObjectId(platform),
+                        playerId: ObjectId(playerObjId),
+                        status: constRewardTaskStatus.STARTED
+                    }).lean().then(
+                        rewardTaskData => {
+                            let lockedCreditPlayer = 0;
+                            if (rewardTaskData && rewardTaskData.length > 0) {
+                                for (let i = 0; i < rewardTaskData.length; i++) {
+                                    if (rewardTaskData[i].rewardAmt)
+                                        lockedCreditPlayer += rewardTaskData[i].rewardAmt;
+                                }
+                            }
+                            rewardTaskAmount = lockedCreditPlayer ? lockedCreditPlayer : 0;
+                            return {
+                                playerId: player.playerId,
+                                providerId: providerShortId,
+                                providerCredit: parseFloat(transferAmount + gameCredit).toFixed(2),
+                                playerCredit: parseFloat(playerCredit).toFixed(2),
+                                rewardCredit: parseFloat(rewardTaskAmount).toFixed(2),
+                                transferCredit: {
+                                    playerCredit: parseFloat(gameAmount - rewardAmount).toFixed(2),
+                                    rewardCredit: parseFloat(rewardAmount).toFixed(2)
+                                }
+                            };
+                        });
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Error transfer player credit to provider."});
