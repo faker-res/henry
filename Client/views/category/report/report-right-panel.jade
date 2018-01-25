@@ -431,10 +431,10 @@
                                             span {{v.accAdmin}}
                                         td
                                             span {{v.promoteWay}}
-                                        td(style='max-width: 200px')
+                                        td(style='min-width: 100px;max-width: 200px')
                                             span(data-toggle="tooltip" title='{{v.sourceUrl}}' style='max-width: 85%;overflow: hidden;display: inline-block;text-overflow: ellipsis;') {{v.sourceUrl}}
                                             a.fa.fa-clipboard.pull-right(style='top:4px; position: relative;' ng-if='v.sourceUrl' ng-click='vm.copyToClipboard(v.sourceUrl)')
-                                        td(style='max-width: 200px')
+                                        td(style='min-width: 100px;max-width: 200px')
                                             span(data-toggle="tooltip" title='{{v.domain}}' style='max-width: 85%;overflow: hidden;display: inline-block;text-overflow: ellipsis;') {{v.domain}}
                                             a.fa.fa-clipboard.pull-right(style='top: 4px;position: relative;' ng-if='v.domain' ng-click='vm.copyToClipboard(v.domain)')
                                         td
