@@ -3092,7 +3092,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         })
                     );
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
-                    if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)) {
+                    if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
+                    || proposalData.data.limitedOfferObjId) {
                         dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
                             dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         }).catch(
