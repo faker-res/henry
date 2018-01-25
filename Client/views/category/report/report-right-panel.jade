@@ -303,24 +303,149 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
-            .row.text-center
-                .col-md-2
-                    label.block {{"Total Players" | translate}}
-                    label.block.text-danger {{vm.newPlayerQuery.totalPlayerCount || 0}}
-                .col-md-2
-                    label.block {{"Player with Top-ups" | translate}}
-                    label.block.text-danger {{vm.newPlayerQuery.totalTopupPlayerCount || 0}}
-                .col-md-2
-                    label.block {{"Player with Top-ups Multiple Times" | translate}}
-                    label.block.text-danger {{vm.newPlayerQuery.totalTopupMultipleTimesPlayerCount || 0}}
-                .col-md-2
-                    label.block {{"Player with Domain" | translate}}
-                    label.block.text-danger {{vm.newPlayerQuery.totalDomainPlayerCount || 0}}
-                .col-md-2
-                    label.block {{"Player with Partner" | translate}}
-                    label.block.text-danger {{vm.newPlayerQuery.totalpartnerPlayerCount || 0}}
+                    span *搜寻在该时段开户玩家的总记录
+            //.row.text-center
+            //    .col-md-2
+            //        label.block {{"Total Players" | translate}}
+            //        label.block.text-danger {{vm.newPlayerQuery.totalPlayerCount || 0}}
+            //    .col-md-2
+            //        label.block {{"Player with Top-ups" | translate}}
+            //        label.block.text-danger {{vm.newPlayerQuery.totalTopupPlayerCount || 0}}
+            //    .col-md-2
+            //        label.block {{"Player with Top-ups Multiple Times" | translate}}
+            //        label.block.text-danger {{vm.newPlayerQuery.totalTopupMultipleTimesPlayerCount || 0}}
+            //    .col-md-2
+            //        label.block {{"Player with Domain" | translate}}
+            //        label.block.text-danger {{vm.newPlayerQuery.totalDomainPlayerCount || 0}}
+            //    .col-md-2
+            //        label.block {{"Player with Partner" | translate}}
+            //        label.block.text-danger {{vm.newPlayerQuery.totalpartnerPlayerCount || 0}}
+            .text-center
+                table.playerLvlTable(style='width:100%')
+                    thead
+                        tr
+                            th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Promotion Method" | translate}}
+                            th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "totalNewAccount" ? "-totalNewAccount":"totalNewAccount"') {{"Total New Account" | translate}}
+                            th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "playerWithTopup" ? "-playerWithTopup":"playerWithTopup"') {{"Player with Top-ups" | translate}}
+                            th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "playerWithMultiTopup" ? "-playerWithMultiTopup":"playerWithMultiTopup"') {{"Player with Top-ups Multiple Times" | translate}}
+                            th(ng-click='vm.newPlayerQuery.promoteWaySort = vm.newPlayerQuery.promoteWaySort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.promoteWaySort | filter: vm.filterNoNewAccountPromoteWay')
+                            td
+                                span {{v.promoteWayName}}
+                            td
+                                span {{v.totalNewAccount}}
+                            td
+                                span {{v.playerWithTopup}}
+                            td
+                                span {{v.playerWithMultiTopup}}
+                            td
+                                span {{v.validPlayer}}
+                        tr
+                            td
+                                span {{ "total" | translate}}
+                            td
+                                span {{ vm.newPlayerQuery.newPlayers.length}}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewPlayerWithTopup }}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewPlayerWithMultiTopup }}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewValidPlayer }}
             br
             .clearfix
+            .penal.panel-info
+                .panel-heading {{'Valid Player' | translate}}
+                .penal_body
+                    .col-md-6.padding-top-5
+                        #validPlayerPie(style="height:380px;width:100%")
+                    .col-md-6(style='padding-top:10px')
+                        .text-center
+                            table.playerLvlTable(style='width:100%')
+                                thead
+                                    tr
+                                        th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Promotion Method" | translate}}
+                                        th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
+                                        th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
+                                tbody
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.validPlayerGraphSort | filter: vm.filterNoValidPlayerPromoteWay')
+                                        td
+                                            a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData, v.promoteWayName);vm.newPlayerQuery.validPlayerGraphPromoteWay = v.promoteWayName=="无推广方式" ? "!":v.promoteWayName') {{v.promoteWayName}}
+                                        td
+                                            span {{v.validPlayer}}
+                                        td
+                                            span {{v.ratio}}%
+                                    tr
+                                        td
+                                            span {{ "total" | translate}}
+                                        td
+                                            span {{ vm.newPlayerQuery.totalNewValidPlayer }}
+                                        td
+                                            span 100%
+                    .col-md-12(ng-if="vm.newPlayerQuery.validPlayerGraphPromoteWay" style='padding-top:10px')
+                        .text-center(style='overflow:auto')
+                            table.common-table.playerLvlTable
+                                thead
+                                    tr
+                                        th {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
+                                        th {{"realName" | translate}}
+                                        th {{ "REGISTRATION_TIME" | translate}}
+                                        th {{ "PHONE_LOCATION" | translate}}
+                                        th {{ "IP_LOCATION" | translate}}
+                                        th {{ "Game Provider" | translate}}
+                                        th {{ "LAST_ACCESS_TIME" | translate}}
+                                        th {{ "LOGIN_TIMES" | translate}}
+                                        th {{ "topUpTimes" | translate}}
+                                        th {{ "PLAYER_VALUE" | translate}}
+                                        th {{ "REGISTRATION_ADMIN" | translate}}
+                                        th {{ "PROMOTE_WAY" | translate}}
+                                        th {{ "Source Domain" | translate}}
+                                        th {{ "Registration Domain" | translate}}
+                                        th {{ "REGISTRATION_AGENT" | translate}}
+                                        th {{ "OS" | translate}}
+                                        th {{ "Browser" | translate}}
+                                        th {{ "partner" | translate}}
+                                tbody
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: {promoteWay: vm.newPlayerQuery.validPlayerGraphPromoteWay}')
+                                        td
+                                            span {{v.playerId}}
+                                        td
+                                            span {{v.realName}}
+                                        td
+                                            span {{v.registrationTime}}
+                                        td
+                                            span {{v.phoneProvince}} {{v.phoneCity}}
+                                        td
+                                            span {{v.province}} {{v.city}}
+                                        td
+                                            span {{v.lastPlayedProvider.name}}
+                                        td
+                                            span {{v.lastAccessTime}}
+                                        td
+                                            span {{v.loginTimes}}
+                                        td
+                                            span {{v.topUpTimes}}
+                                        td
+                                            span {{v.valueScore}}
+                                        td
+                                            span {{v.accAdmin}}
+                                        td
+                                            span {{v.promoteWay}}
+                                        td
+                                            span {{v.sourceUrl}}
+                                        td
+                                            span {{v.domain}}
+                                        td
+                                            span {{constPlayerRegistrationInterface[v.registrationInterface] | translate}}
+                                        td
+                                            span {{v.userAgent[0].os}}
+                                        td
+                                            span {{v.userAgent[0].browser}}
+                                        td
+                                            span {{v.partner.partnerName}}
+
+            .clearfix
+            br
             .penal.panel-info
                 .panel-heading {{'PARTNER' | translate}}
                 .penal_body

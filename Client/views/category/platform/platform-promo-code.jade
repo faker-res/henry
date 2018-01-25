@@ -71,8 +71,10 @@
                                     text {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
@@ -141,8 +143,10 @@
                                     text {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
@@ -215,8 +219,10 @@
                                     text {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='true')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last && vm.endLoadWeekDay()") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code')
+                                        option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code")
