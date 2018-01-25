@@ -121,38 +121,50 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.filterPlatform = function(){
+              // vm.companyIds
               let platforms = vm.platformList.filter(item=>{
                  if(vm.inspection800.platform.indexOf(item.data._id)!=-1){
                    return item;
                  }
               });
               let departmentMember = [];
+              let companyIds = [];
               platforms.map(item=>{
+                companyIds = companyIds.concat(item.data.live800CompanyId);
                 item.data.csDepartment.map(cItem=>{
                   departmentMember = departmentMember.concat(cItem.users);
                 })
               })
-              vm.getDepartmentMember(departmentMember)
-              // vm.fpmsACCList = platform
+              vm.getDepartmentMember(departmentMember);
+              vm.companyIds = companyIds;
+              //  = platform
             }
             vm.getDepartmentMember = function(departmentMember){
               socketService.$socket($scope.AppSocket, 'getMultiAdmins', {admins: departmentMember}, function (data) {
                   console.log('all admin data', data.data);
                   let fpmsACCList = [];
+                  let live800Accs = [];
                   data.data.forEach(item=>{
                     let acc = {
                       _id:item._id,
-                      name:item.adminName
+                      name:item.adminName,
+                      live800Acc:item.live800Acc
                     }
                     fpmsACCList.push(acc);
                   })
-                  vm.fpmsACCList = fpmsACCList
+                  vm.fpmsACCList = fpmsACCList;
+
+                  $scope.safeApply();
               }, function (err) {
               });
-
-              // departmentMember
             }
-
+            vm.loadLive800Acc = function(){
+                let live800Accs = [];
+                vm.fpmsACCList.forEach(item=>{
+                    live800Accs = live800Accs.concat(item.live800Acc);
+                })
+                vm.live800Accs = live800Accs;
+            }
             //search and select platform node
             vm.searchAndSelectPlatform = function (text, option) {
                 var findNodes = $('#platformTree').treeview('search', [text, {
@@ -264,12 +276,22 @@ define(['js/app'], function (myApp) {
 
 
             vm.searchLive800 = function(){
+                let fpmsId = [];
+                if(vm.fpmsACCList.length > 0){
+                  vm.fpmsACCList.map(item=>{
+                    fpmsId.push(item._id);
+                  })
+                }
                 var query = {
                         // 'companyId':270,
                         // 'operatorId':764,
+
+                        'companyId':vm.companyIds,
+                        'fpmsAcc':fpmsId,
+                        'operatorId':vm.live800Accs,
                         'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
                         'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
-                        'status':'all'
+                        'status':vm.inspection800.status
                 };
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
@@ -286,10 +308,6 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 }
             };
-            vm.rateconversation = function(msgId){
-                vm.rateMsgId = msgId;
-                alert('example: '+vm.rateMsgId);
-            }
             vm.confirmRate = function(rate){
                 console.log(rate);
                 rate.editable = false;
@@ -298,7 +316,8 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.showLive800 = function(){
-                vm.initLive800Start()
+                vm.initLive800Start();
+                vm.fpmsACCList = [];
                 setTimeout(function(){
                     $scope.safeApply();
                 },0)

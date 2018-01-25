@@ -9,15 +9,15 @@
                 select.form-control(style='max-width:155px',ng-change='vm.filterPlatform()',ng-model='vm.inspection800.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
             .inlineBlk
                 label {{"FPMS CS Acc" | translate}}
-                select.form-control(ng-model='vm.inspection800.fpms')
+                select.form-control(ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()')
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v._id}}') {{v.adminName | translate}}
+                    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v._id}}') {{v.name | translate}}
 
             .inlineBlk
                 label {{"Live800 Acc" | translate}}
-                select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel')
+                select.form-control(ng-model='vm.inspection800.live800Accs')
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                    option(ng-repeat='(i,v) in vm.live800Accs', value='{{v}}') {{v | translate}}
 
             .inlineBlk
                 label.control-label {{'Start date' | translate}}
@@ -33,9 +33,9 @@
                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
             .inlineBlk
                 label {{"Rating Status" | translate}}
-                select.form-control(ng-model='vm.qualityInspectionStatus')
+                select.form-control(ng-model='vm.inspection800.status')
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}') {{v | translate}}
+                    option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}}') {{v | translate}}
             .inlineBlk
                 label {{"QA" | translate}}
                 select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel')

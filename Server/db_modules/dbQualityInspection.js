@@ -22,18 +22,23 @@ var dbQualityInspection = {
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
+        //companyIds;
+        //live800Accs
         console.log(query);
-        if (query.companyId) {
-            queryObj += " company_id=" + query.companyId + " AND ";
+        if (query.companyId&&query.companyId.length > 0) {
+           let companyId = query.companyId.join(',');
+            // queryObj += " company_id=" + query.companyId + " AND ";
+            queryObj += " company_id IN ('" + companyId + "') AND ";
         }
         if (query.operatorId) {
-            queryObj += " operator_id=" + query.operatorId + " AND ";
+            let operatorId = query.operatorId.join(',');
+            queryObj += " operator_id IN ('" + operatorId + "') AND ";
         }
         if (query.startTime && query.endTime) {
             // queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
-            console.log(query.startTime);
             queryObj += " store_time BETWEEN CAST('"+query.startTime+"' as DATETIME) AND CAST('"+query.endTime+"' AS DATETIME)";
         }
+        console.log(queryObj);
         if(query.status!='all'){
             conversationForm = dbQualityInspection.searchMongoDB(query);
         }else{
@@ -45,11 +50,24 @@ var dbQualityInspection = {
     },
     searchMongoDB:function(query){
         let queryQA = {};
-        console.log(query);
-        if (query.status) {
+        if (query.status){
             queryQA.status = query.status;
         }
+        if (query.startTime && query.endTime) {
+            queryQA.createTime = {'$lte':new Date(query.endTime),
+            '$gte': new Date(query.startTime)}
+        }
+        if(query.fpmsAcc && query.fpmsAcc.length > 0){
+            queryQA.fpmsAcc = {'$in':query.fpmsAcc};
+        }
+        if (query.operatorId && query.operatorId.length > 0) {
+            queryQA.live800Acc = { id:{ '$in':query.operatorId}}
+        }
+        if(query.companyId && query.companyId.length > 0 ){
+            queryQA.companyId = {'$in':query.companyId};
+        }
         console.log(queryQA);
+
         return dbconfig.collection_qualityInspection.find(queryQA)
             .then(results => {
                 console.log(results);
@@ -65,7 +83,6 @@ var dbQualityInspection = {
                     live800Chat.companyId = item.companyId;
                     return live800Chat;
                 });
-
                 return results;
             })
     },
@@ -88,7 +105,7 @@ var dbQualityInspection = {
 
                 live800Chat.live800Acc['id'] = item.operator_id;
                 live800Chat.live800Acc['name'] = item.operator_name;
-
+                live800Chat.operatorName = item.operator_name;
                 let dom = new JSDOM(item.content);
                 let content = [];
                 let sys = dom.window.document.getElementsByTagName("sys");
@@ -312,23 +329,35 @@ var dbQualityInspection = {
     rateCSConversation: function (data , adminName) {
         var deferred = Q.defer();
         console.log(data);
-        return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
-            delete data.statusName;
-            data.qualityAssessor = adminName;
-            data.processTime = Date.now();
-            data.status = 2;
-
-            if (qaData.length == 0) {
-                return dbconfig.collection_qualityInspection(data).save();
-            }else{
-                dbconfig.collection_qualityInspection.findOneAndUpdate(
-                    {messageId: data.messageId},
-                    data
-                ).then(data=>{
-                    console.log(data);
-                })
-            }
+        let query = { 'live800Acc': {$in: [data.live800Acc.id]} };
+        console.log(data.live800Acc)
+        return dbconfig.collection_admin.findOne(query).then(
+          item=>{
+              console.log(item);
+              return item.adminName
         })
+        .then(udata=>{
+            return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
+                delete data.statusName;
+                data.qualityAssessor = adminName;
+                data.processTime = Date.now();
+                data.fpmsAcc = udata;
+                data.status = 2;
+                if (qaData.length == 0) {
+                    return dbconfig.collection_qualityInspection(data).save();
+                }else{
+                    dbconfig.collection_qualityInspection.findOneAndUpdate(
+                        {messageId: data.messageId},
+                        data
+                    ).then(data=>{
+                        console.log(data);
+                    })
+                }
+            })
+
+
+        })
+
         return deferred.promise;
     },
     getEvaluationRecordYearMonth: function (platformObjId) {
@@ -339,9 +368,6 @@ var dbQualityInspection = {
                 }
             }
         )
-
     }
-
-
 };
 module.exports = dbQualityInspection;
