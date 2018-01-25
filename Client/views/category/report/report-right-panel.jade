@@ -368,16 +368,16 @@
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerGraphSort = vm.newPlayerQuery.validPlayerGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
                                 tbody
-                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.validPlayerGraphSort | filter: vm.filterNoValidPlayerPromoteWay')
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.validPlayerGraphSort | filter: vm.filterNoValidPlayer')
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphPromoteWay = v.promoteWayName') {{v.promoteWayName}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPie", vm.newPlayerQuery.promoteWayData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphPromoteWay = v.promoteWayName') {{v.promoteWayName}}
                                         td
                                             span {{v.validPlayer}}
                                         td
                                             span {{v.ratio}}%
                                     tr
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData); vm.newPlayerQuery.validPlayerGraphPromoteWay = null') {{ "total" | translate}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPie", vm.newPlayerQuery.promoteWayData); vm.newPlayerQuery.validPlayerGraphPromoteWay = null') {{ "total" | translate}}
                                         td
                                             span {{ vm.newPlayerQuery.totalNewValidPlayer }}
                                         td
@@ -430,7 +430,7 @@
                                         td
                                             span {{v.accAdmin}}
                                         td
-                                            span {{v.promoteWay}}
+                                            span {{v.partner ? 'partner' : v.promoteWay | translate}}
                                         td(style='min-width: 100px;max-width: 200px')
                                             span(data-toggle="tooltip" title='{{v.sourceUrl}}' style='max-width: 85%;overflow: hidden;display: inline-block;text-overflow: ellipsis;') {{v.sourceUrl}}
                                             a.fa.fa-clipboard.pull-right(style='top:4px; position: relative;' ng-if='v.sourceUrl' ng-click='vm.copyToClipboard(v.sourceUrl)')
@@ -448,6 +448,81 @@
 
             .clearfix
             br
+            .penal.panel-info
+                .panel-heading {{'Valid Player (cs officer analysis)' | translate}}
+                .penal_body
+                    .col-md-6.padding-top-5
+                        #validPlayerCsAnalysisPie(style="height:380px;width:100%")
+                    .col-md-6(style='padding-top:10px')
+                        .text-center
+                            table.playerLvlTable(style='width:100%')
+                                thead
+                                    tr
+                                        th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "promoteWayName" ? "-promoteWayName":"promoteWayName"') {{"Create Account Cs Name" | translate}}
+                                        th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
+                                        th(ng-click='vm.newPlayerQuery.validPlayerCsAnalysisGraphSort = vm.newPlayerQuery.validPlayerCsAnalysisGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
+                                tbody
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.csAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerCsAnalysisGraphSort | filter: vm.filterNoValidPlayer')
+                                        td
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerCsAnalysisPie", vm.newPlayerQuery.csAnalysisNewPlayerData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphCsAnalysis = v.promoteWayName') {{v.promoteWayName}}
+                                        td
+                                            span {{v.validPlayer}}
+                                        td
+                                            span {{v.ratio}}%
+                                    tr
+                                        td
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerCsAnalysisPie", vm.newPlayerQuery.csAnalysisNewPlayerData); vm.newPlayerQuery.validPlayerGraphCsAnalysis = null') {{ "total" | translate}}
+                                        td
+                                            span {{ vm.newPlayerQuery.totalNewValidPlayer }}
+                                        td
+                                            span 100%
+                    .col-md-12(ng-if="vm.newPlayerQuery.validPlayerGraphCsAnalysis" style='padding-top:10px')
+                        .text-center(style='overflow:auto')
+                            table.common-table.playerLvlTable
+                                thead
+                                    tr
+                                        th {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
+                                        th {{"realName" | translate}}
+                                        th {{ "REGISTRATION_TIME" | translate}}
+                                        th {{ "PHONE_LOCATION" | translate}}
+                                        th {{ "IP_LOCATION" | translate}}
+                                        th {{ "Game Provider" | translate}}
+                                        th {{ "LAST_ACCESS_TIME" | translate}}
+                                        th {{ "LOGIN_TIMES" | translate}}
+                                        th {{ "topUpTimes" | translate}}
+                                        th {{ "PLAYER_VALUE" | translate}}
+                                        th {{ "REGISTRATION_ADMIN" | translate}}
+                                        th {{ "PROMOTE_WAY" | translate}}
+                                tbody
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: vm.filterValidPlayerCsAnalysisTable')
+                                        td
+                                            span {{v.playerId}}
+                                        td
+                                            span {{v.realName}}
+                                        td
+                                            span {{v.registrationTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+                                        td
+                                            span {{v.phoneProvince}} {{v.phoneCity}}
+                                        td
+                                            span {{v.province}} {{v.city}}
+                                        td
+                                            span {{v.lastPlayedProvider.name}}
+                                        td
+                                            span {{v.lastAccessTime| date : 'yyyy-MM-dd HH:mm:ss'}}
+                                        td
+                                            span {{v.loginTimes}}
+                                        td
+                                            span {{v.topUpTimes}}
+                                        td
+                                            span {{v.valueScore}}
+                                        td
+                                            span {{v.accAdmin}}
+                                        td
+                                            span {{v.partner ? 'partner' : v.promoteWay | translate}}
+
+            .clearfix
+            br
+            .clearfix
             .penal.panel-info
                 .panel-heading {{'PARTNER' | translate}}
                 .penal_body

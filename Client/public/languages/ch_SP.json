@@ -3112,5 +3112,8 @@
   "Valid Player": "有效玩家",
   "No Promote Way": "无推广方式",
   "Link has copy to clipboard": "链接已复制到剪贴板",
-  "Valid Player (promote way analysis)": "有效开户（推广方式分析）"
+  "Valid Player (promote way analysis)": "有效开户（推广方式分析）",
+  "Valid Player (cs officer analysis)": "有效开户（开户客服分析）",
+  "No admin acc": "(无客服)",
+  "Create Account Cs Name": "开户客服"
 }
