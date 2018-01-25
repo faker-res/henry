@@ -111,12 +111,12 @@ var dbDepartment = {
      * @param {String} query - The query string
      */
     getDepartments: function (query) {
-        console.log("++++++++++++",query)
         return dbconfig.collection_department.find(query).exec();
     },
 
     getDepartmentsbyPlatformObjId: function (data) {
-        if (data && data.length > 0) {
+        if (data) {
+            data=[data];
             data = data.map(id => ObjectId(id));
             return dbconfig.collection_department.find({platforms: {$in: data}}).lean().then(data => {
                 if (data) {
@@ -128,6 +128,7 @@ var dbDepartment = {
                 }
             });
         }else {
+            //data = data.map(id => ObjectId(id));
             return dbconfig.collection_department.find({}).lean().then(data => {
                 console.log("innder",data)
                 if (data) {

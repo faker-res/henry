@@ -22,31 +22,58 @@ var dbQualityInspection = {
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
+<<<<<<< HEAD
         if (query.companyId) {
             queryObj += " company_id=" + query.companyId + " AND ";
+=======
+        //companyIds;
+        //live800Accs
+        console.log(query);
+        if (query.companyId&&query.companyId.length > 0) {
+           let companyId = query.companyId.join(',');
+            // queryObj += " company_id=" + query.companyId + " AND ";
+            queryObj += " company_id IN ('" + companyId + "') AND ";
+>>>>>>> mark/live800main
         }
         if (query.operatorId) {
-            queryObj += " operator_id=" + query.operatorId + " AND ";
+            let operatorId = query.operatorId.join(',');
+            queryObj += " operator_id IN ('" + operatorId + "') AND ";
         }
         if (query.startTime && query.endTime) {
-            queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
+            // queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
+            queryObj += " store_time BETWEEN CAST('"+query.startTime+"' as DATETIME) AND CAST('"+query.endTime+"' AS DATETIME)";
         }
+        console.log(queryObj);
         if(query.status!='all'){
             conversationForm = dbQualityInspection.searchMongoDB(query);
         }else{
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
-            conversationForm = dbQualityInspection.searchMySQLDB(queryObj,connection);
+            let dbResult = dbQualityInspection.searchMySQLDB(queryObj,connection);
+            conversationForm = dbQualityInspection.getMongoCV(dbResult);
         }
         return conversationForm;
     },
     searchMongoDB:function(query){
         let queryQA = {};
-        console.log(query);
-        if (query.status) {
+        if (query.status){
             queryQA.status = query.status;
         }
+        if (query.startTime && query.endTime) {
+            queryQA.createTime = {'$lte':new Date(query.endTime),
+            '$gte': new Date(query.startTime)}
+        }
+        if(query.fpmsAcc && query.fpmsAcc.length > 0){
+            queryQA.fpmsAcc = {'$in':query.fpmsAcc};
+        }
+        if (query.operatorId && query.operatorId.length > 0) {
+            queryQA.live800Acc = { id:{ '$in':query.operatorId}}
+        }
+        if(query.companyId && query.companyId.length > 0 ){
+            queryQA.companyId = {'$in':query.companyId};
+        }
         console.log(queryQA);
+
         return dbconfig.collection_qualityInspection.find(queryQA)
             .then(results => {
                 console.log(results);
@@ -59,67 +86,74 @@ var dbQualityInspection = {
                     live800Chat.processTime = item.processTime;
                     live800Chat.appealReason = item.appealReason;
                     live800Chat.conversation = item.conversation;
+                    live800Chat.companyId = item.companyId;
                     return live800Chat;
                 });
-
                 return results;
             })
     },
     searchMySQLDB:function(queryObj,connection){
         var deferred = Q.defer();
-        let proms = [];
         connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
             console.log('yeah');
             if (error) throw error;
-            results.forEach(item => {
-                console.log(item);
-                let live800Chat = {conversation: []};
-                live800Chat.messageId = item.msg_id;
-                live800Chat.status = item.status;
-                live800Chat.qualityAssessor = '';
-                live800Chat.fpmsAcc = item.operator_name;
-                live800Chat.processTime = null;
-                live800Chat.appealReason = '';
-
-                live800Chat.operatorId = item.operator_id;
-                live800Chat.operatorName = item.operator_name;
-
-                let dom = new JSDOM(item.content);
-                let content = [];
-                let sys = dom.window.document.getElementsByTagName("sys");
-                let he = dom.window.document.getElementsByTagName("he");
-                let i = dom.window.document.getElementsByTagName("i");
-
-                partI = dbQualityInspection.reGroup(i, 1);
-                partHe = dbQualityInspection.reGroup(he, 2);
-                partSYS = dbQualityInspection.reGroup(sys, 3);
-                content = partI.concat(partHe, partSYS);
-                content.sort(function (a, b) {
-                    return a.time - b.time;
-                });
-
-                live800Chat.conversation = content;
-
-                let queryQA = {messageId: String(item.msg_id)};
-                let prom = dbconfig.collection_qualityInspection.find(queryQA)
-                    .then(qaData => {
-                        if (qaData.length > 0) {
-                            live800Chat.status = qaData[0].status;
-                            live800Chat.conversation = qaData[0].conversation;
-                            live800Chat.qualityAssessor = qaData[0].qualityAssessor;
-                            live800Chat.processTime = qaData[0].processTime;
-                            live800Chat.appealReason = qaData[0].appealReason;
-                        }
-                        return live800Chat;
-                    });
-                proms.push(prom);
-            });
-            return Q.all(proms).then(data => {
-                deferred.resolve(data);
-                connection.end();
-            })
+            deferred.resolve(results);
+            connection.end();
         });
         return deferred.promise;
+    },
+    getMongoCV:function(dbResult){
+      var deferred = Q.defer();
+      let proms = [];
+      Q.all(dbResult).then(results=>{
+        console.log(results);
+        results.forEach(item => {
+            console.log(item);
+            let live800Chat = {conversation: [], live800Acc:{}};
+            live800Chat.messageId = item.msg_id;
+            live800Chat.status = item.status;
+            live800Chat.qualityAssessor = '';
+            live800Chat.fpmsAcc = item.operator_name;
+            live800Chat.processTime = null;
+            live800Chat.appealReason = '';
+            live800Chat.companyId = item.company_id
+
+            live800Chat.live800Acc['id'] = item.operator_id;
+            live800Chat.live800Acc['name'] = item.operator_name;
+            live800Chat.operatorName = item.operator_name;
+            let dom = new JSDOM(item.content);
+            let content = [];
+            let sys = dom.window.document.getElementsByTagName("sys");
+            let he = dom.window.document.getElementsByTagName("he");
+            let i = dom.window.document.getElementsByTagName("i");
+
+            partI = dbQualityInspection.reGroup(i, 1);
+            partHe = dbQualityInspection.reGroup(he, 2);
+            partSYS = dbQualityInspection.reGroup(sys, 3);
+            content = partI.concat(partHe, partSYS);
+            content.sort(function (a, b) {
+                return a.time - b.time;
+            });
+
+            live800Chat.conversation = content;
+
+            let queryQA = {messageId: String(item.msg_id)};
+            let prom = dbconfig.collection_qualityInspection.find(queryQA)
+                .then(qaData => {
+                    if (qaData.length > 0) {
+                        live800Chat.status = qaData[0].status;
+                        live800Chat.conversation = qaData[0].conversation;
+                        live800Chat.qualityAssessor = qaData[0].qualityAssessor;
+                        live800Chat.processTime = qaData[0].processTime;
+                        live800Chat.appealReason = qaData[0].appealReason;
+                    }
+                    return live800Chat;
+                });
+            proms.push(prom);
+        });
+      })
+      return deferred.promise;
+
     },
     reGroup: function(arrs,type){
         let conversation= [] ;
@@ -307,23 +341,35 @@ var dbQualityInspection = {
     rateCSConversation: function (data , adminName) {
         var deferred = Q.defer();
         console.log(data);
-        return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
-            delete data.statusName;
-            data.qualityAssessor = adminName;
-            data.processTime = Date.now();
-            data.status = 2;
-
-            if (qaData.length == 0) {
-                return dbconfig.collection_qualityInspection(data).save();
-            }else{
-                dbconfig.collection_qualityInspection.findOneAndUpdate(
-                    {messageId: data.messageId},
-                    data
-                ).then(data=>{
-                    console.log(data);
-                })
-            }
+        let query = { 'live800Acc': {$in: [data.live800Acc.id]} };
+        console.log(data.live800Acc)
+        return dbconfig.collection_admin.findOne(query).then(
+          item=>{
+              console.log(item);
+              return item.adminName
         })
+        .then(udata=>{
+            return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
+                delete data.statusName;
+                data.qualityAssessor = adminName;
+                data.processTime = Date.now();
+                data.fpmsAcc = udata;
+                data.status = 2;
+                if (qaData.length == 0) {
+                    return dbconfig.collection_qualityInspection(data).save();
+                }else{
+                    dbconfig.collection_qualityInspection.findOneAndUpdate(
+                        {messageId: data.messageId},
+                        data
+                    ).then(data=>{
+                        console.log(data);
+                    })
+                }
+            })
+
+
+        })
+
         return deferred.promise;
     },
     getEvaluationRecordYearMonth: function (platformObjId) {
@@ -517,6 +563,7 @@ var dbQualityInspection = {
                 return result;
             }
         )
+<<<<<<< HEAD
 
 
         return dbconfig.collection_qualityInspection.find(query).count().exec();
@@ -603,5 +650,8 @@ var dbQualityInspection = {
 
 
 
+=======
+    }
+>>>>>>> mark/live800main
 };
 module.exports = dbQualityInspection;
