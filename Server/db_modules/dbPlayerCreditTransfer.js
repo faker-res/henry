@@ -1142,9 +1142,11 @@ let dbPlayerCreditTransfer = {
                         return dbConfig.collection_rewardTaskGroup.findOneAndUpdate({
                             _id: rewardGroupObj._id
                         }, {
-                            rewardAmt: updateObj.rewardAmt,
-                            _inputFreeAmt: updateObj._inputFreeAmt,
-                            _inputRewardAmt: updateObj._inputRewardAmt,
+                            $inc: {
+                                rewardAmt: updateObj.rewardAmt,
+                                _inputFreeAmt: updateObj._inputFreeAmt,
+                                _inputRewardAmt: updateObj._inputRewardAmt,
+                            },
                             inProvider: false
                         }, {
                             new: true
@@ -1202,7 +1204,7 @@ let dbPlayerCreditTransfer = {
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
-                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, playerCredit, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, updateObj.rewardAmt, null, {
+                    dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, updateObj.freeAmt, constPlayerCreditChangeType.TRANSFER_OUT, playerCredit, lockedCredit, updateObj.rewardAmt, null, {
                         providerId: providerShortId,
                         providerName: cpName,
                         transferId: transferId,
@@ -1438,8 +1440,8 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                         updateObj = {
                             rewardAmt: rewardGroupObj._inputRewardAmt + userProfit,
                             freeAmt: rewardGroupObj._inputFreeAmt,
-                            _inputRewardAmt: 0,
-                            _inputFreeAmt: 0
+                            _inputRewardAmt: -rewardGroupObj._inputRewardAmt,
+                            _inputFreeAmt: -rewardGroupObj._inputFreeAmt
                         };
                     } else if (curGameCredit < totalInputCredit) {
                         // Scenario 2: User loses
@@ -1457,16 +1459,16 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                         updateObj = {
                             rewardAmt: rewardAmt,
                             freeAmt: freeAmt,
-                            _inputRewardAmt: 0,
-                            _inputFreeAmt: 0
+                            _inputRewardAmt: -rewardGroupObj._inputRewardAmt,
+                            _inputFreeAmt: -rewardGroupObj._inputFreeAmt
                         };
                     } else {
                         // Scenario 3: Break even / Didn't bet
                         updateObj = {
                             rewardAmt: rewardGroupObj._inputRewardAmt,
                             freeAmt: rewardGroupObj._inputFreeAmt,
-                            _inputRewardAmt: 0,
-                            _inputFreeAmt: 0
+                            _inputRewardAmt: -rewardGroupObj._inputRewardAmt,
+                            _inputFreeAmt: -rewardGroupObj._inputFreeAmt
                         };
                     }
                 } else {
