@@ -60,6 +60,7 @@ var dbQualityInspection = {
                     live800Chat.processTime = item.processTime;
                     live800Chat.appealReason = item.appealReason;
                     live800Chat.conversation = item.conversation;
+                    live800Chat.companyId = item.companyId;
                     return live800Chat;
                 });
 
@@ -81,9 +82,10 @@ var dbQualityInspection = {
                 live800Chat.fpmsAcc = item.operator_name;
                 live800Chat.processTime = null;
                 live800Chat.appealReason = '';
+                live800Chat.companyId = item.company_id
 
-                live800Chat.operatorId = item.operator_id;
-                live800Chat.operatorName = item.operator_name;
+                live800Chat.live800Id = item.operator_id;
+                live800Chat.live800Name = item.operator_name;
 
                 let dom = new JSDOM(item.content);
                 let content = [];
