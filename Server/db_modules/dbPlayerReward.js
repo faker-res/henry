@@ -551,13 +551,13 @@ let dbPlayerReward = {
                 if (event.condition.consumptionProvider.length === gameProviderList.length) {
                     consumptionProviderList = "所有平台";
                 } else {
-                    for (let z = 0; z < event.condition.consumptionProvider.length; z++) {
-                        for (let i = 0; i < gameProviderList.length; i++) {
-                            if (gameProviderList[i]._id.toString() === event.condition.consumptionProvider[z]) {
-                                consumptionProviderList.push(gameProviderList[i].name);
+                    event.condition.consumptionProvider.forEach(consumptionProvider => {
+                        gameProviderList.forEach(gameProvider => {
+                            if (gameProvider._id.toString() === consumptionProvider) {
+                                consumptionProviderList.push(gameProvider.name);
                             }
-                        }
-                    }
+                        })
+                    })
                 }
 
 
