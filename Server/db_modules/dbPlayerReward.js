@@ -199,9 +199,10 @@ let dbPlayerReward = {
 
             let similarRewardProposalProm = Promise.resolve([]);
             let lastTopUpProm = Promise.resolve([]);
+            let numberOfTopUpProm = Promise.resolve(0);
 
             if (!player) {
-                return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+                return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm]);
             }
 
             let rewardProposalQuery = {
@@ -222,7 +223,9 @@ let dbPlayerReward = {
 
             lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).limit(1).lean();
 
-            return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+            numberOfTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).count();
+
+            return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm]);
         }).then(data => {
             if (!data || !data[0] || !data[1]) {
                 return Promise.reject({
@@ -232,6 +235,7 @@ let dbPlayerReward = {
             }
             let rewardProposals = data[0];
             let lastTopUp = data[1][0];
+            let numberOfTopUpWithinPeriod = data[2];
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -244,6 +248,56 @@ let dbPlayerReward = {
 
             let isReachCountLimit = event.param && event.param.countInRewardInterval && rewardProposals.length > event.param.countInRewardInterval;
             isRewardAmountDynamic = event.condition.isDynamicRewardAmount || isRewardAmountDynamic;
+
+            let isTopUpCountValid = true;
+            if (event.condition.topUpCountType && (event.condition.topUpCountType[1] || event.condition.topUpCountType[2])) {
+                isTopUpCountValid = false;
+                switch(event.condition.topUpCountType[0]) {
+                    case "1":
+                        if (numberOfTopUpWithinPeriod >= event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "2":
+                        if (numberOfTopUpWithinPeriod <= event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "3":
+                        if (numberOfTopUpWithinPeriod === event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "4":
+                        if (numberOfTopUpWithinPeriod >= event.condition.topUpCountType[1] && numberOfTopUpWithinPeriod >= event.condition.topUpCountType[2]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                }
+            }
+
+            let isTopUpTypeValid = false;
+            if (lastTopUp) {
+                isTopUpTypeValid = true;
+                if (event.condition.userAgent && lastTopUp.userAgent && event.condition.userAgent.length > 0 && event.condition.userAgent.indexOf(lastTopUp.userAgent) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.topUpType && event.condition.topUpType.length > 0 && event.condition.topUpType.indexOf(lastTopUp.topUpType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.merchantTopUpType && lastTopUp.merchantTopUpType && event.condition.merchantTopUpType.length > 0 && event.condition.merchantTopUpType.indexOf(lastTopUp.merchantTopUpType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.bankCardType && lastTopUp.bankCardType && event.condition.bankCardType.length > 0 && event.condition.bankCardType.indexOf(lastTopUp.bankCardType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+            }
+
+            let isApplicableRewardCondition = isTopUpTypeValid && isTopUpCountValid && !isReachCountLimit;
+
             let paramOfLevel = event.param.rewardParam[0].value;
 
             if (event.condition.isPlayerLevelDiff && player) {
@@ -264,7 +318,7 @@ let dbPlayerReward = {
                 let nextRewardParamIndex = Math.min(list.length, paramOfLevel.length - 1);
                 let nextRewardParam = paramOfLevel[nextRewardParamIndex];
 
-                if (!isReachCountLimit && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
+                if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
                     canApply = true;
                     addParamToList(nextRewardParam, 1); // applicable
                 }
@@ -276,7 +330,7 @@ let dbPlayerReward = {
             }
             else {
                 let applicableParamIndex = -1;
-                if (!isReachCountLimit && lastTopUp && lastTopUp.amount) {
+                if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount) {
                     for (let i = 0; i < paramOfLevel.length; i++) {
                         let selectedParam = paramOfLevel[i];
                         if (selectedParam.minTopUpAmount <= lastTopUp.amount) {
