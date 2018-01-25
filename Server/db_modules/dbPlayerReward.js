@@ -326,25 +326,25 @@ let dbPlayerReward = {
             if (!gradeListData) {
                 return false;
             }
-
             let playerLevelName = null;
-            for (let z = 0; z < gradeListData.length; z++) {
-                let playerLevelId = gradeListData[z].levelId;
-                let playerLevelDatas = playerLevelData[z];
 
-                if (playerLevelDatas._id.toString() === playerLevelId) {
-                    playerLevelName = playerLevelDatas.name;
-                }
+            gradeListData.forEach(gradeListItem => {
+                playerLevelData.forEach(playerLevel => {
+                    if (playerLevel._id.toString() === gradeListItem.levelId) {
+                        playerLevelName = playerLevel.name;
+                    }
+                });
 
-                gradeList[z] = {
-                    gradeId: gradeListData[z].levelId,
+                let gradeLists = {
+                    gradeId: gradeListItem.levelId,
                     gradeName: playerLevelName, // display in chinese
-                    requestDeposit: gradeListData[z].value[0].requiredTopUpAmount,
-                    requestBetAmount: gradeListData[z].value[0].requiredConsumptionAmount,
-                    totalChances: gradeListData[z].value[0].numberParticipation,
-                    bet: gradeListData[z].value[0].spendingTimesOnReward
+                    requestDeposit: gradeListItem.value[0].requiredTopUpAmount,
+                    requestBetAmount: gradeListItem.value[0].requiredConsumptionAmount,
+                    totalChances: gradeListItem.value[0].numberParticipation,
+                    bet: gradeListItem.value[0].spendingTimesOnReward
                 };
-            }
+                gradeList.push(gradeLists);
+            });
         }
 
         function addParamToOpen(openData) {
@@ -551,13 +551,13 @@ let dbPlayerReward = {
                 if (event.condition.consumptionProvider.length === gameProviderList.length) {
                     consumptionProviderList = "所有平台";
                 } else {
-                    for (let z = 0; z < event.condition.consumptionProvider.length; z++) {
-                        for (let i = 0; i < gameProviderList.length; i++) {
-                            if (gameProviderList[i]._id.toString() === event.condition.consumptionProvider[z]) {
-                                consumptionProviderList.push(gameProviderList[i].name);
+                    event.condition.consumptionProvider.forEach(consumptionProvider => {
+                        gameProviderList.forEach(gameProvider => {
+                            if (gameProvider._id.toString() === consumptionProvider) {
+                                consumptionProviderList.push(gameProvider.name);
                             }
-                        }
-                    }
+                        })
+                    })
                 }
 
 
