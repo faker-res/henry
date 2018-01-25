@@ -47,7 +47,7 @@ function socketActionDepartment(socketIO, socket) {
         },
         getDepartmentsbyPlatformObjId: function getDepartmentsbyPlatformObjId(data) {
             var actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, dbDepartment.getDepartmentsbyPlatformObjId, [data], actionName);
+            socketUtil.emitter(self.socket, dbDepartment.getDepartmentsbyPlatformObjId, data, actionName);
         },
 
         /**

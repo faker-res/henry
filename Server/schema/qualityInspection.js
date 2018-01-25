@@ -10,16 +10,19 @@ var qualityInspectionSchema = new Schema({
     createTime:{type: Date, default: Date.now, index: true},
     appealReason: {type: String},
     companyId: {type: String, required: true,index: true},
-    conversation:[
-        {
-            time:{type: String, required: true},
-            roles:{type: Number, default: 1}, //1 = customer services, 2=user
-            createTime:{type: Date, default: Date.now, index: true},
-            timeoutRate:{type: Number, default: 0},
-            inspectionRate:{type: Number, default: 0},
-            review:{type: String}
-        }
-    ]
+    live800Acc: {
+        id: {type: String, required: true, index: true},
+        name: {type: String, required: true, index: true}
+        },
+    conversation: [{
+        time: {type: String, required: true},
+        roles: {type: Number, default: 1}, //1 = customer services, 2=user
+        createTime: {type: Date, default: Date.now, index: true},
+        timeoutRate: {type: Number, default: 0},
+        inspectionRate: {type: Number, default: 0},
+        review: {type: String}
+    }]
+
 });
 
 module.exports = qualityInspectionSchema;
