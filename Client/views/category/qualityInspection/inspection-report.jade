@@ -15,7 +15,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     .fa.fa-wrench.margin-right-5
                                     text.span {{"WORKLOAD REPORT" | translate}}
                             li(ng-show="checkViewPermission('QualityInspection', 'Report', 'Read')")
-                                a.common-tab(data-toggle="tab", ng-click="vm.inspectionReportTab ='evaluationProgress'")
+                                a.common-tab(data-toggle="tab", ng-click="vm.inspectionReportTab ='evaluationProgress';vm.initEvaluationProgress()")
                                     .fa.fa-file-text.margin-right-5
                                     text.span {{"EVALUATION PROGRESS" | translate}}
                     .panel-body.common-right-panel-body
@@ -86,19 +86,20 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             #evaluationProgressDiv.tab-pane.fade.in.active
                                 .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
                                     label {{'YEAR - MONTH' | translate}}
-                                    select.form-control(ng-model="vm.yearMonth" ng-init='vm.yearMonth="all"')
-                                        option(value='all' selected="true") {{'ALL' | translate}}
-                                        option(ng-repeat='(i,v) in vm.yearMonth', value='{{v}}') {{i|translate}}
+                                    select.form-control(ng-model="vm.yearMonth")
+                                        option(ng-repeat='v in vm.evaluationProgressYearMonth', value='{{v}}') {{v.year}} - {{v.month}}
+                                    //select.form-control(ng-model="vm.yearMonth", ng-init="vm.yearMonth = vm.yearMonth || vm.evaluationProgressYearMonth[0].date", ng-options='yearMonth.date  for yearMonth in vm.evaluationProgressYearMonth')
+                                        //option(ng-repeat='(i,v) in vm.evaluationProgressYearMonth', value='{{v.year - v.month}}') {{v.year}} - {{v.month}}
                                 .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
                                     label {{'PRODUCT(DEPARTMENT)' | translate}}
                                     select.spicker.form-control(ng-model='vm.playerDomain', multiple, data-actions-box='true', bsp)
                                         option(ng-repeat='(i,v) in vm.platformList', value='{{v.data._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.data.name}}
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-primary(ng-click='vm.getReadEvaluationRecord()') {{'SEARCH' | translate}}
+                                    button.common-button.btn.btn-primary(ng-click='vm.getEvaluationProgressRecord()') {{'SEARCH' | translate}}
 
                                 .row(style='background-color:#337ab7;margin: 5px 2px 0px 2px;padding: 10px 2px; border-bottom: 1px solid #111;')
                                     div.col-md-1(style='display:inline-block;padding-left:5px;') {{"PRODUCT_NAME" | translate}}
-                                    div.col-md-1(style='display:inline-block;padding-left:5px;') {{vm.yearMonth | translate}}
+                                    div.col-md-1(style='display:inline-block;padding-left:5px;') {{vm.yearMonth.date | translate}}
 
                                 .row
                                     #readEvaluationForm(ng-repeat='readTable in vm.readEvaluationTable')

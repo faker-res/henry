@@ -454,22 +454,27 @@ define(['js/app'], function (myApp) {
                 //     endTime: endTime
                 // }
 
-                socketService.$socket($scope.AppSocket, 'getEvaluationRecordYearMonth', {platformObjId: vm.selectedPlatform._id}, function (data) {
+                vm.evaluationProgressYearMonth = []
+                socketService.$socket($scope.AppSocket, 'getEvaluationRecordYearMonth', {platformObjId: vm.selectedPlatform.id}, function (data) {
 
                     if(data && data.data && data.data.length > 0){
 
-                        data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                        data.data.forEach(data => {
+                            if(data && data._id && data._id.month && data._id.year){
+                                let month = data._id.month.toString();
+                                if(month.length < 2){
+                                    month = "0" + month;
+                                }
+                                vm.evaluationProgressYearMonth.push({month: month, year: data._id.year});
+                                //vm.evaluationProgressYearMonth.push({date: data._id.year + " - " + month});
                             }
 
-                            return data;
                         })
-                        vm.unreadEvaluationTable = data.data;
-                        $scope.safeApply();
+
+                         $scope.safeApply();
                     }else{
-                        vm.unreadEvaluationTable = "";
-                        $scope.safeApply();
+                        // vm.unreadEvaluationTable = "";
+                        // $scope.safeApply();
                     }
                 });
             }
@@ -809,6 +814,23 @@ define(['js/app'], function (myApp) {
                     }else{
                         vm.appealEvaluationTable = "";
                         $scope.safeApply();
+                    }
+                });
+            }
+
+            vm.getEvaluationProgressRecord = function() {
+                let yearMonthObj = JSON.parse(vm.yearMonth)
+                let startDate = new Date("01-" + yearMonthObj.month + "-" + yearMonthObj.year);
+                let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    startDate: startDate,
+                    endDate: endDate
+                }
+
+                socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecord', sendData, function (data) {
+                    if(data){
+                        //vm.getUnreadEvaluationRecord();
                     }
                 });
             }

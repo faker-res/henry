@@ -22,12 +22,9 @@ var dbQualityInspection = {
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
-        //companyIds;
-        //live800Accs
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
            let companyId = query.companyId.join(',');
-            // queryObj += " company_id=" + query.companyId + " AND ";
             queryObj += " company_id IN ('" + companyId + "') AND ";
         }
         if (query.operatorId) {
@@ -368,13 +365,250 @@ var dbQualityInspection = {
         return deferred.promise;
     },
     getEvaluationRecordYearMonth: function (platformObjId) {
-        return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
-            platformDetail => {
-                if(platformDetail){
-
+        return dbconfig.collection_qualityInspection.aggregate(
+            {
+                "$group": {
+                    "_id": {"month": {"$month": "$createTime"}, "year": {"$year": "$createTime"}},
                 }
+            },
+            { $sort : { "_id.year" : -1, "_id.month" : -1}, }
+        ).exec();
+
+    },
+    getEvaluationProgressRecord: function (platformObjId, startDate, endDate) {
+        if(startDate && endDate){
+            let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime ,company_id  FROM chat_content WHERE store_time BETWEEN CAST('"+ startDate + "' as DATETIME) AND CAST('"+ endDate + "' AS DATETIME) GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd')";
+
+            if(platformObjId && platformObjId != "all"){
+                return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
+                    platformDetail => {
+                        if(platformDetail && platformDetail.companyId){
+                            queryString += "AND company_id=" + platformDetail.companyId
+                        }
+
+                        return queryString;
+                    }
+                ).then(
+                    query => {
+                        if(query){
+                            let connection = dbQualityInspection.connectMysql();
+                            connection.connect();
+                            return dbQualityInspection.getLive800RecordByMySQL(query, connection)
+                        }
+                    }
+                );
             }
-        )
-    }
+            else {
+                let connection = dbQualityInspection.connectMysql();
+                connection.connect();
+                return dbQualityInspection.getLive800RecordByMySQL(queryString, connection)
+            }
+        }
+    },
+
+    getLive800RecordByMySQL:function(queryString,connection){
+        var deferred = Q.defer();
+        let proms = [];
+        //connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+        connection.query(queryString, function (error, results, fields) {
+            console.log("live 800 result",results)
+            if (error) throw error;
+
+            results.forEach(result => {
+                console.log("oooooooooooooooooooooooooooooooooooooo",result)
+                let startTime = new Date(result.storeTime);
+                // let endTime = new Date(startTime.getDate() + 1);
+                let endTime = new Date();
+                endTime.setDate(startTime.getDate() + 1);
+
+                proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, result.company_id,result.totalRecord));
+                // console.log(item);
+                // let live800Chat = {conversation: []};
+                // live800Chat.messageId = item.msg_id;
+                // live800Chat.status = item.status;
+                // live800Chat.qualityAssessor = '';
+                // live800Chat.fpmsAcc = item.operator_name;
+                // live800Chat.processTime = null;
+                // live800Chat.appealReason = '';
+                //
+                // live800Chat.operatorId = item.operator_id;
+                // live800Chat.operatorName = item.operator_name;
+                //
+                // let dom = new JSDOM(item.content);
+                // let content = [];
+                // let sys = dom.window.document.getElementsByTagName("sys");
+                // let he = dom.window.document.getElementsByTagName("he");
+                // let i = dom.window.document.getElementsByTagName("i");
+                //
+                // partI = dbQualityInspection.reGroup(i, 1);
+                // partHe = dbQualityInspection.reGroup(he, 2);
+                // partSYS = dbQualityInspection.reGroup(sys, 3);
+                // content = partI.concat(partHe, partSYS);
+                // content.sort(function (a, b) {
+                //     return a.time - b.time;
+                // });
+                //
+                // live800Chat.conversation = content;
+                //
+                // let queryQA = {messageId: String(item.msg_id)};
+                // let prom = dbconfig.collection_qualityInspection.find(queryQA)
+                //     .then(qaData => {
+                //         if (qaData.length > 0) {
+                //             live800Chat.status = qaData[0].status;
+                //             live800Chat.conversation = qaData[0].conversation;
+                //             live800Chat.qualityAssessor = qaData[0].qualityAssessor;
+                //             live800Chat.processTime = qaData[0].processTime;
+                //             live800Chat.appealReason = qaData[0].appealReason;
+                //         }
+                //         return live800Chat;
+                //     });
+                // proms.push(prom);
+            });
+            return Q.all(proms).then(data => {
+                console.log("BBBBBBBBBBBBBBBBBBBBBBBBb",data);
+                deferred.resolve(data);
+                connection.end();
+            })
+        });
+        return deferred.promise;
+    },
+
+    calEvaluationProgress: function(startTime, endTime, companyId, totalRecordFromLive800){
+        console.log("11111111111111111111111111",startTime);
+        console.log("22222222222222222222222222",endTime);
+        console.log("33333333333333333333333333",companyId);
+        // return dbconfig.collection_qualityInspection.aggregate([
+        //     {
+        //         $match: {
+        //              createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+        //             //companyId: companyId
+        //         },
+        //     },
+        //     {
+        //         "$group": {
+        //             "_id": {
+        //                 //"qualityAssessor": "$qualityAssessor",
+        //                 "status": "$status"
+        //             },
+        //             "count": {"$sum": 1},
+        //         }
+        //     }
+        // ]
+        let platformName;
+        let query = {
+            companyId: companyId,
+            createTime: {
+                $gte: startTime,
+                $lt: endTime
+            }
+        }
+
+        return dbconfig.collection_platform({companyId: companyId})
+
+
+        return dbconfig.collection_qualityInspection.find(query).count().then(
+            data => {
+                resultArr.push({})
+        //).then(data => {
+        //     console.log("AAAAAAAAAAAAAAAAAAA",data);
+        //     let resultArr = [];
+        //     if(data && data.length > 0){
+        //         data.forEach(d => {
+        //             if(d){
+        //                 resultArr.push({
+        //                     //qcAccount: d._id.qualityAssessor,
+        //                     status: d._id.status,
+        //                     count: d.count
+        //                 });
+        //             }
+        //         });
+
+                return resultArr;
+            // }
+
+        })
+    },
+
+    // searchLive8001: function (query) {
+    //     let conversationForm = [];
+    //     let queryObj = "";
+    //     if (query.companyId) {
+    //         queryObj += " company_id=" + query.companyId + " AND ";
+    //     }
+    //     if (query.operatorId) {
+    //         queryObj += " operator_id=" + query.operatorId + " AND ";
+    //     }
+    //     if (query.startTime && query.endTime) {
+    //         queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
+    //     }
+    //     if(query.status!='all'){
+    //         conversationForm = dbQualityInspection.searchMongoDB(query);
+    //     }else{
+    //         let connection = dbQualityInspection.connectMysql();
+    //         connection.connect();
+    //         conversationForm = dbQualityInspection.searchMySQLDB(queryObj,connection);
+    //     }
+    //     return conversationForm;
+    // },
+    searchMySQLDB1:function(queryObj,connection){
+        var deferred = Q.defer();
+        let proms = [];
+        //connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+        connection.query(queryObj, function (error, results, fields) {
+            console.log('yeah');
+            if (error) throw error;
+            results.forEach(item => {
+                console.log(item);
+                let live800Chat = {conversation: []};
+                live800Chat.messageId = item.msg_id;
+                live800Chat.status = item.status;
+                live800Chat.qualityAssessor = '';
+                live800Chat.fpmsAcc = item.operator_name;
+                live800Chat.processTime = null;
+                live800Chat.appealReason = '';
+
+                live800Chat.operatorId = item.operator_id;
+                live800Chat.operatorName = item.operator_name;
+
+                let dom = new JSDOM(item.content);
+                let content = [];
+                let sys = dom.window.document.getElementsByTagName("sys");
+                let he = dom.window.document.getElementsByTagName("he");
+                let i = dom.window.document.getElementsByTagName("i");
+
+                partI = dbQualityInspection.reGroup(i, 1);
+                partHe = dbQualityInspection.reGroup(he, 2);
+                partSYS = dbQualityInspection.reGroup(sys, 3);
+                content = partI.concat(partHe, partSYS);
+                content.sort(function (a, b) {
+                    return a.time - b.time;
+                });
+
+                live800Chat.conversation = content;
+
+                let queryQA = {messageId: String(item.msg_id)};
+                let prom = dbconfig.collection_qualityInspection.find(queryQA)
+                    .then(qaData => {
+                        if (qaData.length > 0) {
+                            live800Chat.status = qaData[0].status;
+                            live800Chat.conversation = qaData[0].conversation;
+                            live800Chat.qualityAssessor = qaData[0].qualityAssessor;
+                            live800Chat.processTime = qaData[0].processTime;
+                            live800Chat.appealReason = qaData[0].appealReason;
+                        }
+                        return live800Chat;
+                    });
+                proms.push(prom);
+            });
+            return Q.all(proms).then(data => {
+                deferred.resolve(data);
+                connection.end();
+            })
+        });
+        return deferred.promise;
+    },
+
+
+
 };
 module.exports = dbQualityInspection;
