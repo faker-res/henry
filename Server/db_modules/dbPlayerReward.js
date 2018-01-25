@@ -3619,6 +3619,22 @@ let dbPlayerReward = {
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
         // reward specific promise
+        if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            if (rewardData && rewardData.selectedTopup) {
+                selectedTopUp = rewardData.selectedTopup;
+                applyAmount = rewardData.selectedTopup.amount;
+
+                let withdrawPropQuery = {
+                    'data.platformId': playerData.platform._id,
+                    'data.playerObjId': playerData._id,
+                    settleTime: {$gt: selectedTopUp.createTime},
+                    status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
+                };
+
+                promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
+            }
+        }
+
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
             let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate);
             promArr.push(playerRewardDetailProm);
@@ -4093,14 +4109,20 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
-                            selectedTopUp = rewardData.selectedTopup;
-                            applyAmount = rewardData.selectedTopup.amount;
-
                             if (!isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: "This top up did not happen within reward interval time"
+                                });
+                            }
+
+                            // Check withdrawal after top up condition
+                            if (!eventData.condition.allowApplyAfterWithdrawal && rewardSpecificData && rewardSpecificData[0]) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "There is withdrawal after topup"
                                 });
                             }
 
