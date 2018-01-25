@@ -1449,7 +1449,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                         let rewardAmt = rewardGroupObj._inputRewardAmt;
                         let freeAmt = rewardGroupObj._inputFreeAmt - userLoses;
 
-                        if (userLoses > rewardGroupObj._inputFreeAmt){
+                        if (userLoses > rewardGroupObj._inputFreeAmt || freeAmt < 0) {
                             freeAmt = 0;
                             let userLosesLeft = userLoses - rewardGroupObj._inputFreeAmt;
 
@@ -1475,6 +1475,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                     // There is no rewardGroupObj found
                     // Possibly due to reward group has archived or NO_CREDIT
                     // All amount goes to player's valid credit
+                    console.log('amount', amount)
                     updateObj.freeAmt = amount;
                 }
             } else {
