@@ -326,25 +326,25 @@ let dbPlayerReward = {
             if (!gradeListData) {
                 return false;
             }
-
             let playerLevelName = null;
-            for (let z = 0; z < gradeListData.length; z++) {
-                let playerLevelId = gradeListData[z].levelId;
-                let playerLevelDatas = playerLevelData[z];
 
-                if (playerLevelDatas._id.toString() === playerLevelId) {
-                    playerLevelName = playerLevelDatas.name;
-                }
+            gradeListData.forEach(gradeListItem => {
+                playerLevelData.forEach(playerLevel => {
+                    if (playerLevel._id.toString() === gradeListItem.levelId) {
+                        playerLevelName = playerLevel.name;
+                    }
+                });
 
-                gradeList[z] = {
-                    gradeId: gradeListData[z].levelId,
+                let gradeLists = {
+                    gradeId: gradeListItem.levelId,
                     gradeName: playerLevelName, // display in chinese
-                    requestDeposit: gradeListData[z].value[0].requiredTopUpAmount,
-                    requestBetAmount: gradeListData[z].value[0].requiredConsumptionAmount,
-                    totalChances: gradeListData[z].value[0].numberParticipation,
-                    bet: gradeListData[z].value[0].spendingTimesOnReward
+                    requestDeposit: gradeListItem.value[0].requiredTopUpAmount,
+                    requestBetAmount: gradeListItem.value[0].requiredConsumptionAmount,
+                    totalChances: gradeListItem.value[0].numberParticipation,
+                    bet: gradeListItem.value[0].spendingTimesOnReward
                 };
-            }
+                gradeList.push(gradeLists);
+            });
         }
 
         function addParamToOpen(openData) {
@@ -438,9 +438,10 @@ let dbPlayerReward = {
             let similarConsumptionProposalProm = Promise.resolve([]);
             let bonusListRewardProposalProm = Promise.resolve([]);
             let playerLevelProm = Promise.resolve([]);
+            let gameProviderProm = Promise.resolve([]);
 
             if (!player) {
-                return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm]);
+                return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm]);
             }
 
             // queries
@@ -457,6 +458,7 @@ let dbPlayerReward = {
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
+            let platformGameProviderQuery = {_id: {$in: platform.gameProviders}};
 
             // check query is within reward interval period
             if (intervalTime) {
@@ -471,10 +473,11 @@ let dbPlayerReward = {
             similarConsumptionProposalProm = dbConfig.collection_playerConsumptionRecord.find(consumptionProposalQuery).sort({createTime: -1}).lean();
             bonusListRewardProposalProm = dbConfig.collection_proposal.find(bonusListRewardProposalQuery).sort({createTime: -1}).lean();
             playerLevelProm = dbConfig.collection_playerLevel.find({platform: platform._id}).lean();
+            gameProviderProm = dbConfig.collection_gameProvider.find(platformGameProviderQuery).lean();
 
-            return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm]);
+            return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm]);
         }).then(data => {
-            if (!data || !data[0] || !data[1] || !data[2] || !data[3]) {
+            if (!data || !data[0] || !data[1] || !data[2] || !data[3] || !data[4] || !data[5]) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,
                     message: "Error in finding proposal"
@@ -485,6 +488,7 @@ let dbPlayerReward = {
             let consumptionProposals = data[2];
             let bonusListRewardProposals = data[3];
             let playerLevelData = data[4];
+            let gameProviderList = data[5];
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -498,6 +502,7 @@ let dbPlayerReward = {
             let paramOfLevel = event.param.rewardParam[0].value;
             let selectedParam = null;
             let rewardParam = null;
+            let consumptionProviderList = [];
 
             // find param for matching player level
             if (event.condition.isPlayerLevelDiff && player) {
@@ -542,6 +547,20 @@ let dbPlayerReward = {
                     }
                 }
 
+                // find betSource // display consumption provider name in chinese
+                if (event.condition.consumptionProvider.length === gameProviderList.length) {
+                    consumptionProviderList = "所有平台";
+                } else {
+                    event.condition.consumptionProvider.forEach(consumptionProvider => {
+                        gameProviderList.forEach(gameProvider => {
+                            if (gameProvider._id.toString() === consumptionProvider) {
+                                consumptionProviderList.push(gameProvider.name);
+                            }
+                        })
+                    })
+                }
+
+
                 if (event.param.rewardParam) {
                     addParamToGradeList(event.param.rewardParam, playerLevelData);
                 }
@@ -565,7 +584,7 @@ let dbPlayerReward = {
                             condition: {
                                 availableDeposit: totalValidTopup,
                                 availableDepositTimes: totalAvailableTopup,
-                                betSource: event.condition.consumptionProvider,
+                                betSource: consumptionProviderList,
                                 availableBetAmount: totalValidConsumption,
                                 availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                 usedChances: rewardProposals.length,
@@ -591,7 +610,7 @@ let dbPlayerReward = {
                             condition: {
                                 availableDeposit: totalValidTopup,
                                 availableDepositTimes: totalAvailableTopup,
-                                betSource: event.condition.consumptionProvider,
+                                betSource: consumptionProviderList,
                                 availableBetAmount: totalValidConsumption,
                                 availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                 usedChances: rewardProposals.length,
@@ -633,7 +652,7 @@ let dbPlayerReward = {
                                 condition: {
                                     availableDeposit: totalValidTopup,
                                     availableDepositTimes: totalAvailableTopup,
-                                    betSource: event.condition.consumptionProvider,
+                                    betSource: consumptionProviderList,
                                     availableBetAmount: totalValidConsumption,
                                     availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                     usedChances: rewardProposals.length,
@@ -672,7 +691,7 @@ let dbPlayerReward = {
                                 condition: {
                                     availableDeposit: totalValidTopup,
                                     availableDepositTimes: totalAvailableTopup,
-                                    betSource: event.condition.consumptionProvider,
+                                    betSource: consumptionProviderList,
                                     availableBetAmount: totalValidConsumption,
                                     availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                     usedChances: rewardProposals.length,
