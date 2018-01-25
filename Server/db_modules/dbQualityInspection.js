@@ -40,7 +40,9 @@ var dbQualityInspection = {
         }
         console.log(queryObj);
         if(query.status!='all'){
-            conversationForm = dbQualityInspection.searchMongoDB(query);
+            let dbResult = dbQualityInspection.searchMongoDB(query);
+            conversationForm = dbQualityInspection.getMySQLConversation(dbResult);
+
         }else{
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
@@ -86,6 +88,52 @@ var dbQualityInspection = {
                 });
                 return results;
             })
+    },
+    getMySQLConversation: function(results){
+        
+        let msgIds = []
+        results.forEach(item=>{
+            msgIds = results.push(item.messageId);
+        });
+        let condition = results.join(',');
+        let query = "message_id IN ('" + condition +"')";
+        let dbResult = dbQualityInspection.searchMySQLDB(query);
+        console.log(query);
+        results.map(item=>{
+            let mysqlCV = dbResult.filter(sqlItem=>{
+                return sqlItem.msg_id == item.messageId;
+            })
+            if(mysqlCV){
+                let conversation = dbQualityInspection.conversationReformat(mysqlCV.conversation);
+                item.conversation.map(cv=>{
+                    let overrideCV = conversation.filter(mycv=>{
+                        return cv.time == mycv.time;
+                    })
+                    if(overrideCV){
+                        cv.content = mycv.content;
+                    }
+                    return cv;
+                })
+            }
+        })
+        return results;
+    },
+    conversationReformat:function(myContent){
+            let dom = new JSDOM(myContent);
+            let content = [];
+            let sys = dom.window.document.getElementsByTagName("sys");
+            let he = dom.window.document.getElementsByTagName("he");
+            let i = dom.window.document.getElementsByTagName("i");
+
+            partI = dbQualityInspection.reGroup(i, 1);
+            partHe = dbQualityInspection.reGroup(he, 2);
+            partSYS = dbQualityInspection.reGroup(sys, 3);
+            content = partI.concat(partHe, partSYS);
+            content.sort(function (a, b) {
+                return a.time - b.time;
+            });
+
+            return content;
     },
     searchMySQLDB:function(queryObj,connection){
         var deferred = Q.defer();
