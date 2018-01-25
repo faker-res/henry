@@ -477,7 +477,7 @@ let dbPlayerReward = {
 
             return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm]);
         }).then(data => {
-            if (!data || !data[0] || !data[1] || !data[2] || !data[3]) {
+            if (!data || !data[0] || !data[1] || !data[2] || !data[3] || !data[4] || !data[5]) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,
                     message: "Error in finding proposal"
