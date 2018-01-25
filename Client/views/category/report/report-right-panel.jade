@@ -377,7 +377,7 @@
                                             span {{v.ratio}}%
                                     tr
                                         td
-                                            span {{ "total" | translate}}
+                                            a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData);vm.newPlayerQuery.validPlayerGraphPromoteWay = null') {{ "total" | translate}}
                                         td
                                             span {{ vm.newPlayerQuery.totalNewValidPlayer }}
                                         td
@@ -412,7 +412,7 @@
                                         td
                                             span {{v.realName}}
                                         td
-                                            span {{v.registrationTime}}
+                                            span {{v.registrationTime | date : 'yyyy-MM-dd HH:mm:ss'}}
                                         td
                                             span {{v.phoneProvince}} {{v.phoneCity}}
                                         td
@@ -420,7 +420,7 @@
                                         td
                                             span {{v.lastPlayedProvider.name}}
                                         td
-                                            span {{v.lastAccessTime}}
+                                            span {{v.lastAccessTime| date : 'yyyy-MM-dd HH:mm:ss'}}
                                         td
                                             span {{v.loginTimes}}
                                         td
@@ -431,10 +431,12 @@
                                             span {{v.accAdmin}}
                                         td
                                             span {{v.promoteWay}}
-                                        td
-                                            span {{v.sourceUrl}}
-                                        td
-                                            span {{v.domain}}
+                                        td(style='max-width: 200px')
+                                            span(data-toggle="tooltip" title='{{v.sourceUrl}}' style='max-width: 85%;overflow: hidden;display: inline-block;text-overflow: ellipsis;') {{v.sourceUrl}}
+                                            a.fa.fa-clipboard.pull-right(style='top:4px; position: relative;' ng-if='v.sourceUrl' ng-click='vm.copyToClipboard(v.sourceUrl)')
+                                        td(style='max-width: 200px')
+                                            span(data-toggle="tooltip" title='{{v.domain}}' style='max-width: 85%;overflow: hidden;display: inline-block;text-overflow: ellipsis;') {{v.domain}}
+                                            a.fa.fa-clipboard.pull-right(style='top: 4px;position: relative;' ng-if='v.domain' ng-click='vm.copyToClipboard(v.domain)')
                                         td
                                             span {{constPlayerRegistrationInterface[v.registrationInterface] | translate}}
                                         td

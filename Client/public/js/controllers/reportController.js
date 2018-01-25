@@ -5162,7 +5162,14 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         }
-
+        vm.copyToClipboard = (text) => {
+            var $temp = $("<input>");
+            $("body").append($temp);
+            $temp.val(text).select();
+            document.execCommand("copy");
+            $temp.remove();
+            socketService.showConfirmMessage($translate('Link has copy to clipboard'),3000);
+        }
         vm.filterNoNewAccountPromoteWay = promoteWay => promoteWay.totalNewAccount != 0;
         vm.filterNoValidPlayerPromoteWay = promoteWay => promoteWay.validPlayer != 0;
         vm.getPartnerLevelConfig = function () {
