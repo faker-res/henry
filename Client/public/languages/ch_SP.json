@@ -3139,5 +3139,13 @@
   "I_WANT_TO_APPEAL": "我要申诉",
   "PRODUCT": "产品",
   "CS Account": "客服帐号",
-  "Account": "帐号"
+  "Account": "帐号",
+  "TOTAL_CONVERSATION_RECORD": "总对话数量",
+  "NOT_EVALUATED_QUANTITY": "不评估(无效)数量",
+  "EFFECTIVE_CONVERSATION_QUANTITY": "有效对话数量",
+  "PROCESSING_QUANTITY":"待处理数量",
+  "TOTAL_OVERTIME_MARK": "总超时评分",
+  "TOTAL_EVALUATION_MARK": "总质简评分",
+  "AVG_DEDUCTION_MARK": "每次对话平均扣分"
+
 }

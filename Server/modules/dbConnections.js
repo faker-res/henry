@@ -20,8 +20,8 @@ function createConnection(dbURL, callback) {
             reconnectInterval: 5000,
             socketOptions: {
                 keepAlive: 1,
-                connectTimeoutMS: 100000,
-                socketTimeoutMS: 100000
+                connectTimeoutMS: 30000,
+                socketTimeoutMS: 60000
             }
         }
     };
