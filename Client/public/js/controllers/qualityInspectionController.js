@@ -820,18 +820,103 @@ define(['js/app'], function (myApp) {
 
             vm.getEvaluationProgressRecord = function() {
                 let yearMonthObj = JSON.parse(vm.yearMonth)
-                let startDate = new Date("01-" + yearMonthObj.month + "-" + yearMonthObj.year);
+                let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                 let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
+                    //platformObjId: vm.selectedPlatform.id,
                     startDate: startDate,
                     endDate: endDate
                 }
+                let resultArr = [];
 
+                let weekDay = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+
+
+
+                let rowMaxLength = 7;
                 socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecord', sendData, function (data) {
-                    if(data){
+                    if(data && data.data && data.data.length > 0){
+                        //let result = data.data.sort(function(a,b) {return (a.platformName > b.platformName) ? 1 : ((b.platformName > a.platformName) ? -1 : 0);} );
+
+                        data.data.map(result => {
+                            if(result && result.length > 0){
+                                let counter = 1;
+                                let firstRow = [];
+                                let secondRow = [];
+                                let thirdRow = [];
+                                let fouthRow = [];
+                                let fifthRow = [];
+                                result.forEach(resultByPlatform => {
+                                    if(resultByPlatform){
+                                        resultByPlatform.date = new Date(resultByPlatform.date);
+
+                                        if(resultByPlatform.date.getDate() == 1){
+                                            for(let i = 0; i < resultByPlatform.date.getDay(); i++){
+                                                firstRow.push({day: 0, isCompleted: false});
+                                            }
+                                            firstRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
+
+                                            if(firstRow.length == 7){
+                                                counter += 1;
+                                            }
+                                        }else if(counter == 1){
+                                            firstRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
+                                            if(firstRow.length == 7){
+                                                counter += 1;
+                                            }
+
+                                        }else if(counter == 2){
+                                            secondRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
+                                            if(secondRow.length == 7){
+                                                counter += 1;
+                                            }
+                                        }else if(counter == 3){
+                                            thirdRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
+                                            if(thirdRow.length == 7){
+                                                counter += 1;
+                                            }
+                                        }else if(counter == 4){
+                                            fouthRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
+                                            if(fouthRow.length == 7){
+                                                counter += 1;
+                                            }
+                                        }else if(counter == 5){
+                                            fifthRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
+                                            if(fifthRow.length == 7){
+                                                counter += 1;
+                                            }
+                                        }
+                                    }
+
+                                })
+                                let calendarData = [];
+                                calendarData.push(firstRow);
+                                calendarData.push(secondRow);
+                                calendarData.push(thirdRow);
+                                calendarData.push(fouthRow);
+                                calendarData.push(fifthRow);
+                                resultArr.push({platformName: result[0].platformName, calendarData: calendarData});
+
+
+                                console.log("AAAAAAAAAAAAAAAAAAAAA",firstRow)
+                                console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBB",secondRow)
+                                console.log("CCCCCCCCCCCCCCCCCCCCCCCCCCc",thirdRow)
+                                console.log("DDDDDDDDDDDDDDDDDDDDDDDd",fouthRow)
+                                console.log("EEEEEEEEEEEEEEEEEE",fifthRow)
+
+                                console.log("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZz",resultArr)
+                                vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
+                                vm.evaluationProgressTable = resultArr;
+                            }
+
+                        })
+
+                        $scope.safeApply();
                         //vm.getUnreadEvaluationRecord();
                     }
+
+
+
                 });
             }
 
