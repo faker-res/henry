@@ -130,30 +130,37 @@ define(['js/app'], function (myApp) {
               let departmentMember = [];
               let companyIds = [];
               platforms.map(item=>{
-                companyIds = companyIds.concat(item.data.live800CompanyId);
                 item.data.csDepartment.map(cItem=>{
                   departmentMember = departmentMember.concat(cItem.users);
                 })
               })
               vm.getDepartmentMember(departmentMember);
-              vm.companyIds = companyIds;
-              //  = platform
             }
             vm.getDepartmentMember = function(departmentMember){
               socketService.$socket($scope.AppSocket, 'getMultiAdmins', {admins: departmentMember}, function (data) {
                   console.log('all admin data', data.data);
                   let fpmsACCList = [];
                   let live800Accs = [];
+                  let companyIds = [];
                   data.data.forEach(item=>{
+                    let liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
                     let acc = {
                       _id:item._id,
                       name:item.adminName,
-                      live800Acc:item.live800Acc
+                      live800Acc:liveAccSet
                     }
                     fpmsACCList.push(acc);
+                    //dump all the companyId out for query;
+                    if(item.live800CompanyId.length > 0){
+                      item.live800CompanyId.forEach(item=>{
+                        if(companyIds.indexOf(item)==-1){
+                          companyIds.push(item);
+                        }
+                      })
+                    }
                   })
                   vm.fpmsACCList = fpmsACCList;
-
+                  vm.companyIds = companyIds;
                   $scope.safeApply();
               }, function (err) {
               });

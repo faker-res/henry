@@ -205,8 +205,6 @@ var platformSchema = new Schema({
         presetMark: {type: Number},
         color: {type: String}
     }],
-    // binding with livechat 800 company_id
-    live800CompanyId: [{type: String}],
     // get the CS Department for display livechat related conversation
     csDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
     // get the QI Department for display livechat related conversation
