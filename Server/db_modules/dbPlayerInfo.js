@@ -8363,11 +8363,46 @@ let dbPlayerInfo = {
             model: dbconfig.collection_gameProvider
         }).lean();
 
+        function transferCreditToProvider(transferAmount) {
+            bTransferIn = Boolean(transferAmount && ((parseFloat(transferAmount.playerCredit) + parseFloat(transferAmount.rewardCredit)) >= 1));
+
+            //console.log("bTransferIn:", bTransferIn, transferAmount);
+            if (transferAmount && gameData && gameData.provider) {
+                //transfer in to current provider
+                if (bTransferIn) {
+                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1);
+                }
+                else {
+                    //allow player to login if player doesn't have enough credit
+                    return Promise.resolve(true);
+                    // if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId == gameData.provider.providerId) {
+                    //     return true;
+                    // }
+                    // else {
+                    //     //todo::update code here later, for now, it doesn't require credit
+                    //     if (gameId == "19D207EB-C09C-4E87-8CFE-0C0DF71CE232") {
+                    //         return;
+                    //     }
+                    //     else {
+                    //         return Q.reject({
+                    //             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                    //             name: "DataError",
+                    //             errorMessage: "Player does not have enough credit."
+                    //         });
+                    //     }
+                    // }
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Cannot find game"});
+            }
+        }
+
         return Promise.all([playerProm, gameProm]).then(
             data => {
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
+                    providerData = gameData.provider;
                     // check if the player is forbidden totally
                     if (playerData.permission.forbidPlayerFromLogin) {
                         return Promise.reject({
@@ -8461,11 +8496,11 @@ let dbPlayerInfo = {
                                     };
 
                                     if (playerData.validCredit >= 1) {
-                                        return retData;
+                                        transferCreditToProvider(retData).catch(errorUtils.reportError);
                                     } else {
                                         // Not enough credit to play with local credit
                                         // Check credits in reward task group
-                                        return dbconfig.collection_rewardTaskGroup.find({
+                                        dbconfig.collection_rewardTaskGroup.find({
                                             platformId: playerData.platform._id,
                                             playerId: playerData._id,
                                             status: {$in: [constRewardTaskStatus.STARTED]}
@@ -8488,17 +8523,18 @@ let dbPlayerInfo = {
 
                                                 return retData;
                                             }
-                                        )
+                                        ).then(transferCreditToProvider).catch(errorUtils.reportError);
                                     }
+                                    return true;
                                 } else {
                                     if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
-                                        return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                                        return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider);
                                     }
                                     else {
-                                        return {
+                                        return transferCreditToProvider({
                                             playerCredit: playerData.validCredit,
                                             rewardCredit: playerData.lockedCredit
-                                        };
+                                        });
                                     }
                                 }
                             }
@@ -8513,46 +8549,11 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            data => {
-                bTransferIn = (data && ((parseFloat(data.playerCredit) + parseFloat(data.rewardCredit)) >= 1)) ? true : false;
-
-                //console.log("bTransferIn:", bTransferIn, data);
-                if (data && gameData && gameData.provider) {
-                    if (gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
-                        dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
-                    }
-
-                    providerData = gameData.provider;
-                    //transfer in to current provider
-                    if (bTransferIn) {
-                        return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1);
-                    }
-                    else {
-                        //allow player to login if player doesn't have enough credit
-                        return true;
-                        // if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId == gameData.provider.providerId) {
-                        //     return true;
-                        // }
-                        // else {
-                        //     //todo::update code here later, for now, it doesn't require credit
-                        //     if (gameId == "19D207EB-C09C-4E87-8CFE-0C0DF71CE232") {
-                        //         return;
-                        //     }
-                        //     else {
-                        //         return Q.reject({
-                        //             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                        //             name: "DataError",
-                        //             errorMessage: "Player does not have enough credit."
-                        //         });
-                        //     }
-                        // }
-                    }
-                } else {
-                    return Q.reject({name: "DataError", message: "Cannot find game"});
+            () => {
+                if (gameData && gameData.provider && gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
+                    dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
                 }
-            }
-        ).then(
-            data => {
+
                 if (ip == "undefined") {
                     ip = "127.0.0.1";
                 }
@@ -11445,7 +11446,7 @@ let dbPlayerInfo = {
                 outputResult = query.csPromoteWay && query.csPromoteWay.length > 0 ? outputResult.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : outputResult;
                 outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : outputResult;
 
-                return {size: result.length, data: outputResult};
+                return {size: outputResult.length, data: outputResult};
             }
         );
     },

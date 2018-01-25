@@ -181,6 +181,9 @@ const dbRewardTask = {
             providerGroup2 => {
                 if (providerGroup2) {
                     let eventName = proposalData && proposalData.data && proposalData.data.eventName ? proposalData.data.eventName : "";
+                    if (!eventName && proposalData && proposalData.data && proposalData.data.rewardType) {
+                        eventName = proposalData.data.rewardType;
+                    }
 
                     // Create credit change log for this reward
                     dbLogger.createCreditChangeLogWithLockedCredit(rewardData.playerId, rewardData.platformId, 0, eventName, 0, rewardData.initAmount, rewardData.initAmount, null, proposalData.data);

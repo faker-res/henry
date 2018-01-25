@@ -5121,13 +5121,13 @@ define(['js/app'], function (myApp) {
                     () => {
                         vm.newPlayerQuery.totalNewPlayerWithTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 0).length;
                         vm.newPlayerQuery.totalNewPlayerWithMultiTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 1).length;
-                        vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes );
+                        vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
                         vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
                         // promote way new player
                         vm.newPlayerQuery.promoteWayData = vm.allPromoteWay.map(
                             promoteWay => {
                                 let promoteWayPlayers =vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay == promoteWay.name);
-                                let validPlayer = promoteWayPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes ).length;
+                                let validPlayer = promoteWayPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue).length;
                                 return {
                                     promoteWayName: promoteWay.name,
                                     totalNewAccount: promoteWayPlayers.length,
@@ -5140,7 +5140,7 @@ define(['js/app'], function (myApp) {
                         );
                         // no promote way new player
                         let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay == null);
-                        let noPromoteWayValidPlayer = noPromoteWayPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes ).length;
+                        let noPromoteWayValidPlayer = noPromoteWayPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue).length;
                         vm.newPlayerQuery.promoteWayData.push(
                             {
                                 promoteWayName: $translate('No Promote Way'),
@@ -5162,7 +5162,14 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             });
         }
-
+        vm.copyToClipboard = (text) => {
+            var $temp = $("<input>");
+            $("body").append($temp);
+            $temp.val(text).select();
+            document.execCommand("copy");
+            $temp.remove();
+            socketService.showConfirmMessage($translate('Link has copy to clipboard'),3000);
+        }
         vm.filterNoNewAccountPromoteWay = promoteWay => promoteWay.totalNewAccount != 0;
         vm.filterNoValidPlayerPromoteWay = promoteWay => promoteWay.validPlayer != 0;
         vm.getPartnerLevelConfig = function () {
