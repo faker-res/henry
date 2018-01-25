@@ -10,10 +10,10 @@ var qualityInspectionSchema = new Schema({
     createTime:{type: Date, default: Date.now, index: true},
     appealReason: {type: String},
     companyId: {type: String, required: true,index: true},
-    live800Acc: [{
+    live800Acc: {
         id: {type: String, required: true, index: true},
         name: {type: String, required: true, index: true}
-        }],
+        },
     conversation: [{
         time: {type: String, required: true},
         roles: {type: Number, default: 1}, //1 = customer services, 2=user
