@@ -14,6 +14,8 @@ let mongoose = require('mongoose');
 let ObjectId = mongoose.Types.ObjectId;
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
 
+const constPlayerCreditChangeType = require('../const/constPlayerCreditChangeType');
+
 var dbGameProvider = {
 
     /**
@@ -459,6 +461,33 @@ var dbGameProvider = {
             }
         );
     },
+
+    checkTransferInSequence: (platformObjId, playerObjId, providerIdArr) => {
+        let promArr = [];
+        let retData = [];
+
+        providerIdArr.map(providerId => {
+            promArr.push(
+                dbconfig.collection_creditChangeLog.find({
+                    platformId: platformObjId,
+                    playerId: playerObjId,
+                    operationType: constPlayerCreditChangeType.TRANSFER_IN,
+                    'data.providerId': providerId
+                }).sort({operationTime: -1}).limit(1).lean().then(
+                    changeLog => {
+                        if (changeLog && changeLog[0]) {
+                            retData.push({
+                                providerId: providerId,
+                                operationTime: changeLog[0].operationTime
+                            });
+                        }
+                    }
+                )
+            )
+        });
+
+        return Promise.all(promArr).then(() => retData);
+    }
 };
 
 var proto = dbGameProviderFunc.prototype;

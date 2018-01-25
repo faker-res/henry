@@ -8331,43 +8331,61 @@ define(['js/app'], function (myApp) {
 
             vm.transferAllCreditToPlayer = function () {
                 vm.transferAllCredit.isProcessing = true;
-                $.each(vm.playerCredit, function (i, v) {
-                    if (jQuery.isNumeric(v.gameCredit) && v.gameCredit > 0) {
-                        var sendData = {
-                            platform: vm.selectedPlatform.data.platformId,
-                            playerId: vm.selectedSinglePlayer.playerId,
-                            providerId: v.providerId,
-                            amount: parseInt(v.gameCredit),
-                            adminName: authService.adminName
-                        }
 
-                        vm.transferAllCredit[v.providerId] = {finished: false};
-                        console.log('will send', sendData, 'transferPlayerCreditFromProvider');
-                        socketService.$socket($scope.AppSocket, 'transferPlayerCreditFromProvider', sendData, function (data) {
-                            vm.transferAllCredit[v.providerId].text = "Success";
-                            vm.transferAllCredit[v.providerId].finished = true;
-                            $scope.safeApply();
-                        }, function (data) {
-                            console.log('transfer finish Fail', data);
-                            var msg = 'unknown';
-                            try {
-                                msg = JSON.parse(data.error.error).errorMsg;
-                            }
-                            catch (err) {
-                                console.log(err);
-                            }
-                            vm.transferAllCredit[v.providerId].text = msg;
-                            vm.transferAllCredit[v.providerId].finished = true;
-                            $scope.safeApply();
-                        })
+                let transferProviderId = [];
+
+                for (let provider in vm.playerCredit) {
+                    if (parseFloat(vm.playerCredit[provider].gameCredit) >= 1) {
+                        transferProviderId.push(vm.playerCredit[provider].providerId);
                     }
-                })
+                }
+
+                if (transferProviderId.length > 0) {
+                    $scope.$socketPromise('checkTransferInSequence', {
+                        platformObjId: vm.isOneSelectedPlayer().platform,
+                        playerObjId: vm.isOneSelectedPlayer()._id,
+                        providerIdArr: transferProviderId
+                    }).then(
+                        res => {
+                            if (res && res.data && res.data.length > 0) {
+                                res.data.sort((a, b) => new Date(a.operationTime).getTime() - new Date(b.operationTime).getTime());
+
+                                let p = Promise.resolve();
+
+                                for(let i = 0; i < res.data.length; i++) {
+                                    let sendData = {
+                                        platform: vm.selectedPlatform.data.platformId,
+                                        playerId: vm.selectedSinglePlayer.playerId,
+                                        providerId: res.data[i].providerId,
+                                        amount: parseInt(vm.playerCredit[res.data[i].providerId].gameCredit),
+                                        adminName: authService.adminName
+                                    };
+
+                                    $scope.$evalAsync(() => vm.transferAllCredit[res.data[i].providerId] = {finished: false});
+                                    console.log('will send', sendData, 'transferPlayerCreditFromProvider');
+
+                                    p = p.then(function () {
+                                        return $scope.$socketPromise('transferPlayerCreditFromProvider', sendData).then(transferRes => {
+                                            console.log('success', transferRes);
+                                            $scope.$evalAsync(() => {
+                                                vm.transferAllCredit[res.data[i].providerId].text = "Success";
+                                                vm.transferAllCredit[res.data[i].providerId].finished = true;
+                                            })
+                                        })
+                                    });
+                                }
+
+                                return p;
+                            }
+                        }
+                    )
+                }
                 console.log('vm.creditModal', vm.creditModal);
                 vm.creditModal.on("hide.bs.modal", function (a) {
                     vm.creditModal.off("hide.bs.modal");
                     vm.getPlatformPlayersData();
                 });
-            }
+            };
 
             vm.closeCreditTransferLog = function (modal) {
                 $(modal).modal('hide');
