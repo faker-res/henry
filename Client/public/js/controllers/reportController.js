@@ -5134,12 +5134,26 @@ define(['js/app'], function (myApp) {
                                     playerWithTopup: promoteWayPlayers.filter(player => player.topUpTimes > 0).length,
                                     playerWithMultiTopup: promoteWayPlayers.filter(player => player.topUpTimes > 1).length,
                                     validPlayer: validPlayer,
-                                    ratio: (validPlayer !== 0 ? validPlayer / vm.newPlayerQuery.totalNewValidPlayer * 100 : 0).toFixed(2)
+                                    ratio: parseFloat((validPlayer !== 0 ? validPlayer / vm.newPlayerQuery.totalNewValidPlayer * 100 : 0).toFixed(2))
                                 }
                             }
                         );
+                        // partner new player
+                        let referralPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.partner != null && player.promoteWay == null);
+                        let referralPlayersValidPlayer = referralPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue).length;
+                        vm.newPlayerQuery.promoteWayData.push(
+                            {
+                                promoteWayName: $translate('partner'),
+                                totalNewAccount: referralPlayers.length,
+                                playerWithTopup: referralPlayers.filter(player => player.topUpTimes > 0).length,
+                                playerWithMultiTopup: referralPlayers.filter(player => player.topUpTimes > 1).length,
+                                validPlayer: referralPlayersValidPlayer,
+                                ratio: parseFloat((referralPlayersValidPlayer !== 0 ? referralPlayersValidPlayer / vm.newPlayerQuery.totalNewValidPlayer *100 : 0).toFixed(2))
+                            }
+                        );
+
                         // no promote way new player
-                        let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.promoteWay == null);
+                        let noPromoteWayPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.partner == null && player.promoteWay == null);
                         let noPromoteWayValidPlayer = noPromoteWayPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue).length;
                         vm.newPlayerQuery.promoteWayData.push(
                             {
@@ -5148,7 +5162,7 @@ define(['js/app'], function (myApp) {
                                 playerWithTopup: noPromoteWayPlayers.filter(player => player.topUpTimes > 0).length,
                                 playerWithMultiTopup: noPromoteWayPlayers.filter(player => player.topUpTimes > 1).length,
                                 validPlayer: noPromoteWayValidPlayer,
-                                ratio: (noPromoteWayValidPlayer !== 0 ? noPromoteWayValidPlayer / vm.newPlayerQuery.totalNewValidPlayer *100 : 0).toFixed(2)
+                                ratio: parseFloat((noPromoteWayValidPlayer !== 0 ? noPromoteWayValidPlayer / vm.newPlayerQuery.totalNewValidPlayer *100 : 0).toFixed(2))
                             }
                         );
                         vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData.filter(promoteWay => promoteWay.validPlayer > 0));
@@ -5172,6 +5186,15 @@ define(['js/app'], function (myApp) {
         }
         vm.filterNoNewAccountPromoteWay = promoteWay => promoteWay.totalNewAccount != 0;
         vm.filterNoValidPlayerPromoteWay = promoteWay => promoteWay.validPlayer != 0;
+        vm.filterValidPlayerPromoteWayTable = player => {
+            if (vm.newPlayerQuery.validPlayerGraphPromoteWay == $translate('No Promote Way')) {
+                return player.promoteWay == null && player.partner ==null;
+            } else if (vm.newPlayerQuery.validPlayerGraphPromoteWay == $translate('partner')) {
+                return player.promoteWay == null && player.partner !=null;
+            } else {
+                return player.promoteWay == vm.newPlayerQuery.validPlayerGraphPromoteWay;
+            }
+        };
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.curPlatformId})
                 .then(function (data) {

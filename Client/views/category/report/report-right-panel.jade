@@ -355,7 +355,7 @@
             br
             .clearfix
             .penal.panel-info
-                .panel-heading {{'Valid Player' | translate}}
+                .panel-heading {{'Valid Player (promote way analysis)' | translate}}
                 .penal_body
                     .col-md-6.padding-top-5
                         #validPlayerPie(style="height:380px;width:100%")
@@ -370,14 +370,14 @@
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.promoteWayData | orderBy: vm.newPlayerQuery.validPlayerGraphSort | filter: vm.filterNoValidPlayerPromoteWay')
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData, v.promoteWayName);vm.newPlayerQuery.validPlayerGraphPromoteWay = v.promoteWayName=="无推广方式" ? "!":v.promoteWayName') {{v.promoteWayName}}
+                                            a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphPromoteWay = v.promoteWayName') {{v.promoteWayName}}
                                         td
                                             span {{v.validPlayer}}
                                         td
                                             span {{v.ratio}}%
                                     tr
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData);vm.newPlayerQuery.validPlayerGraphPromoteWay = null') {{ "total" | translate}}
+                                            a(ng-click='vm.drawValidPlayerGraph(vm.newPlayerQuery.promoteWayData); vm.newPlayerQuery.validPlayerGraphPromoteWay = null') {{ "total" | translate}}
                                         td
                                             span {{ vm.newPlayerQuery.totalNewValidPlayer }}
                                         td
@@ -406,7 +406,7 @@
                                         th {{ "Browser" | translate}}
                                         th {{ "partner" | translate}}
                                 tbody
-                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: {promoteWay: vm.newPlayerQuery.validPlayerGraphPromoteWay}')
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: vm.filterValidPlayerPromoteWayTable')
                                         td
                                             span {{v.playerId}}
                                         td
