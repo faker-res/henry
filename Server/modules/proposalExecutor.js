@@ -249,6 +249,8 @@ var proposalExecutor = {
                         throw Error("No platformObjId, needed for refund");
                     }
 
+                    proposalData.data.proposalId = proposalData.proposalId;
+
                     return dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, refundAmount, reason, proposalData.data)
                 }
             );

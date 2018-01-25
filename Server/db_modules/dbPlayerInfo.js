@@ -2064,7 +2064,7 @@ let dbPlayerInfo = {
                 if (query.dirty != null) {
                     queryObject.bDirty = query.dirty;
                 }
-                if (!games) {
+                if (query.gameName && !games) {
                     queryObject.cpGameType = query.gameName;
                 }
                 if (bGameSearch) {
