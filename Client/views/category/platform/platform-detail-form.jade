@@ -35,8 +35,19 @@ form(name="form_new_platform" ,novalidate)
                 div.form-group.col-md-6
                     label.control-label {{"CUSTOMER_SERVICE_EMAIL_AUTOMATED" | translate}} {{"used when sending automated messages" | translate}}
                     input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail")
+                div.form-group.col-md-6
+                    label.control-label LiveCompanyId
+                    input.form-control(type="text", placeholder="{{'companyId' | translate}}", ng-model= "vm.showPlatform.companyId")
+                div.form-group.col-md-6
+                    label.control-label CS Department
+                    input.form-control(type="text", ng-model="vm.showPlatform.csDepartment", ng-blur="vm.isValidCSDepartment(vm.showPlatform.csDepartment)")
+                div.form-group.col-md-6
+                    label.control-label QI Department
+                    input.form-control(type="text", ng-model="vm.showPlatform.qiDepartment", ng-blur="vm.isValidQIDepartment(vm.showPlatform.csDepartment)")
 
-            div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
+
+
+        div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
                     .pull-left.padding-all-5
                     li.active(id = 'customerServiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
@@ -742,5 +753,3 @@ div(name="system-settlement", ng-show="vm.selectedPlatformDetailTab == 'system-s
             p
             div(ng-repeat='n in vm.listArray track by $index')
                 a.badge(ng-click='vm.showPlatform.weeklySettlementMinute=$index;vm.pickWeek=null;') {{vm.getMinName($index) | translate}}
-
-

@@ -723,21 +723,22 @@ var dbPlatform = {
         var deferred = Q.defer();
         //find admin department platforms data
         dbconfig.collection_admin.findOne({_id: adminId})
-            .populate({path: "departments", model: dbconfig.collection_department}).then(
+            .populate({path: "departments", model: dbconfig.collection_department})
+            .then(
             function (data) {
                 if (data && data.departments && data.departments.length > 0) {
                     //if root department, show all the platforms
                     //else only show department platform
                     if (data.departments[0].parent) {
                         if (data.departments[0].platforms && data.departments[0].platforms.length > 0) {
-                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}}).exec();
+                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}}).populate({path: "csDepartment", model: dbconfig.collection_department}).exec();
                         }
                         else {
                             deferred.reject({name: "DataError", message: "No platform available."});
                         }
                     }
                     else {
-                        return dbconfig.collection_platform.find().exec();
+                        return dbconfig.collection_platform.find().populate({path: "csDepartment", model: dbconfig.collection_department}).exec();
                     }
                 }
             },

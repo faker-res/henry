@@ -120,6 +120,23 @@ define(['js/app'], function (myApp) {
                     vm.selectPlatformNode(data);
                 });
             };
+            vm.filterPlatform = function(){
+              let platforms = vm.platformList.filter(item=>{
+                 if(vm.inspection800.platform.indexOf(item.data._id)!=-1){
+                   return item;
+                 }
+              });
+              platforms.map(item=>{
+                item.csDepartment.map(cItem=>{
+                  let fpmsACC = {
+                      id:cItem._id,
+                      name:cItem.departmentName
+                  }
+                  // vm.fpmsAcc.push(fpmsACC)
+                })
+              })
+              // vm.fpmsACCList = platform
+            }
 
             //search and select platform node
             vm.searchAndSelectPlatform = function (text, option) {
@@ -263,6 +280,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.showLive800 = function(){
+                vm.initLive800Start()
                 setTimeout(function(){
                     $scope.safeApply();
                 },0)
@@ -273,6 +291,22 @@ define(['js/app'], function (myApp) {
             if (!$scope.AppSocket) {
                 eventName = "socketConnected";
                 $scope.$emit('childControllerLoaded', 'qualityInspectionControllerLoaded');
+            }
+
+            vm.initLive800Start = function(){
+                $('#live800StartDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+                $('#live800StartDatetimePicker').data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                $('#live800endDatetimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true
+                });
+                $('#live800endDatetimePicker').data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
             }
 
             vm.initUnreadEvaluation = function(){
