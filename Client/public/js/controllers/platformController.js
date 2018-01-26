@@ -10238,7 +10238,7 @@ define(['js/app'], function (myApp) {
                     playerId: vm.selectedSinglePlayer._id
                 };
 
-                socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlayerProposalsForAdminId', sendData, function (data) {
                     console.log('playerInfo', data);
 
                     var drawData = data.data.data.map(item => {
@@ -10247,8 +10247,8 @@ define(['js/app'], function (myApp) {
                         item.realName$ = item.data.realName ? item.data.realName : $translate('UNCHANGED');
                         item.referralName$ = item.data.referralName ? item.data.referralName : $translate('UNCHANGED');
                         item.partnerName$ = item.data.partnerName ? item.data.partnerName : $translate('UNCHANGED');
-                        item.DOB$ = item.data.DOB ? item.data.DOB : $translate('UNCHANGED');
-                        item.gender$ = item.data.gender ? item.data.gender : $translate('UNCHANGED');
+                        item.DOB$ = item.data.DOB ? utilService.getFormatDate(item.data.DOB) : $translate('UNCHANGED');
+                        item.gender$ = item.data.gender === undefined ? $translate('UNCHANGED') : item.data.gender? $translate('Male') : $translate('Female');
                         item.updatePassword$ = item.data.updatePassword ? $translate('CHANGED') : $translate('UNCHANGED');
                         item.updateGamePassword$ = item.data.updateGamePassword ? $translate('CHANGED') : $translate('UNCHANGED');
                         return item;
@@ -10258,6 +10258,7 @@ define(['js/app'], function (myApp) {
                 }, null, true);
                 $('#modalPlayerInfoHistory').modal();
             }
+
             vm.drawPlayerInfoHistory = function (tblData) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
