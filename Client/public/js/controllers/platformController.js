@@ -11740,10 +11740,6 @@ define(['js/app'], function (myApp) {
                 return deferred.promise;
             }
 
-            vm.testFn = function () {
-                console.log('this', this);
-            }
-
             vm.getPlayerPermissionChange = function (flag) {
                 $('.playerPermissionPopover').popover('hide');
                 // $('#playerPermissionPopover').modal('hide');
@@ -14827,6 +14823,9 @@ define(['js/app'], function (myApp) {
                                         let event = vm.allRewardEvent[i];
                                         rewardEvents[event._id] = event.name;
                                     }
+                                    // Since promo code do not have its own event, it does not have eventObjId
+                                    // Hence this object id will be use specifically for promo code throughout system as eventObjId
+                                    rewardEvents["59ca08a3ef187c1ccec863b9"] = "优惠代码";
                                     result = rewardEvents;
                                     break;
                                 case "gameProviders":
