@@ -9582,7 +9582,7 @@ define(['js/app'], function (myApp) {
                     vm.totalConsumptionBonusAmount = parseFloat(bonusAmount).toFixed(2);
                     var option = $.extend({}, vm.generalDataTableOptions, {
                         data: tableData,
-                        "aaSorting": vm.playerExpenseLog.aaSorting || [[1, 'desc']],
+                        "aaSorting": vm.playerExpenseLog.aaSorting || [[7, 'desc']],
                         aoColumnDefs: [
                             {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
                             {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
