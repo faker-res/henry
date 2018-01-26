@@ -130,6 +130,7 @@ var simplifiedChinese = {
     "Topup amount '$": "您需要有新的存款 '",
     "' is needed for this reward": "元' 才可以领取此优惠，千万别错过了！",
     "There is consumption after topup": "您在最近一笔的存款后已经投注，请在重新存款后、投注前申请！",
+    "There is withdrawal after topup": "您在存款后已经提款,请在重新存款后,提款前申请!",
     "Cannot find top up return event data for platform": "无法找到奖励活动",
     "You have reached the max reward amount today": "已达到当天奖励额度上限",
     "Some top up records have been used": "充值记录已被使用",
