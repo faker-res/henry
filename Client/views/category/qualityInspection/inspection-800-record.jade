@@ -53,20 +53,20 @@
 
 
 .row(style='background-color:#337ab7;')
-    div.col-md-1(style='display:inline-block;padding-left:5px;')
-    div.col-md-1(style='display:inline-block;padding-left:5px;') 评估状态
-    div.col-md-7
+    div.col-sm-1(style='display:inline-block;padding-left:5px;')
+    div.col-sm-1(style='display:inline-block;padding-left:5px;text-align:center;padding:4px;color:white;font-weight: bold') 评估状态
+    div.col-sm-7
         div.row
-            div.col-md-1 'FPMS'
-            div.col-md-1 '类型'
-            div.col-md-1 '时间'
-            div.col-md-1 '对话内容'
-            div.col-md-1 '超时评分（+/-)'
-            div.col-md-1 '质简评分（+/-)'
-            div.col-md-1 '质检评语'
-    div.col-md-1(style='display:inline-block;padding-left:5px;') 质检评估员
-    div.col-md-1(style='display:inline-block;padding-left:5px;') 评估时间
-    div.col-md-1(style='display:inline-block;padding-left:5px;background-color:red') 申诉内容
+            div(style="width:10%;display:inline-block;text-align:center;padding:4px;color:white;font-weight: bold") FPMS
+            div(style="width:10%;display:inline-block;text-align:center;padding:4px;color:white;font-weight: bold") 类型
+            div(style="width:10%;display:inline-block;text-align:center;padding:4px;color:white;font-weight: bold") 时间
+            div(style="width:40%;display:inline-block;text-align:center;padding:4px;color:white;font-weight: bold") 对话内容
+            div(style="width:10%;display:inline-block;text-align:center;padding:4px;color:white;font-weight: bold") 超时评分（+/-)
+            div(style="width:10%;display:inline-block;text-align:center;padding:4px;color:white;font-weight: bold") 质简评分（+/-)
+            div(style="width:10%;display:inline-block;text-align:center;padding:4px;color:white;font-weight: bold") 质检评语
+    div.col-sm-1(style='display:inline-block;padding-left:5px;;text-align:center;padding:4px;color:white;font-weight: bold') 质检评估员
+    div.col-sm-1(style='display:inline-block;padding-left:5px;;text-align:center;padding:4px;color:white;font-weight: bold') 评估时间
+    div.col-sm-1(style='display:inline-block;padding-left:5px;background-color:red;text-align:center;padding:4px;color:white;font-weight: bold') 申诉内容
 
 .row
     conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)')
