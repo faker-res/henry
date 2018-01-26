@@ -470,6 +470,10 @@ var proposal = {
             )
     },
 
+    getProposalByPlayerIdAndType: function (query) {
+        return dbconfig.collection_proposal.find({type: query.type, "data.playerObjId": query.playerObjId}).exec();
+    },
+
     /**
      * Get multiple proposal by ids
      * @param {json} ids - Array of proposal ids
