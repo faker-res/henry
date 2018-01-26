@@ -22,13 +22,15 @@ var dbQualityInspection = {
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
+<<<<<<< HEAD
 
         //companyIds;
         //live800Accs
+=======
+>>>>>>> mark/live800main
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
            let companyId = query.companyId.join(',');
-            // queryObj += " company_id=" + query.companyId + " AND ";
             queryObj += " company_id IN ('" + companyId + "') AND ";
         }
         if (query.operatorId) {
@@ -559,6 +561,10 @@ var dbQualityInspection = {
                 return result;
             }
         )
+<<<<<<< HEAD
+=======
+
+>>>>>>> mark/live800main
 
         return dbconfig.collection_qualityInspection.find(query).count().exec();
     },
