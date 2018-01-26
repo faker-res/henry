@@ -3691,6 +3691,26 @@ let dbPlayerReward = {
             settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
 
+        if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
+            topupMatchQuery.topUpType = {$in: eventData.condition.topupType}
+        }
+
+        if (eventData.condition.onlineTopUpType && eventData.condition.onlineTopUpType.length > 0) {
+            if (!topupMatchQuery.$and) {
+                topupMatchQuery.$and = [];
+            }
+
+            topupMatchQuery.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exist: false}}]});
+        }
+
+        if (eventData.condition.bankCardType && eventData.condition.bankCardType.length > 0) {
+            if (!topupMatchQuery.$and) {
+                topupMatchQuery.$and = [];
+            }
+
+            topupMatchQuery.$and.push({$or: [{bankCardType: {$in: eventData.condition.bankCardType}}, {bankCardType: {$exist: false}}]});
+        }
+
         // Check registration interface condition
         if (checkInterfaceRewardPermission(eventData, rewardData)) {
             return Q.reject({
@@ -4225,6 +4245,21 @@ let dbPlayerReward = {
                                 });
                             }
 
+                            // check correct topup type
+                            let correctTopUpType = true;
+
+                            if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(rewardData.selectedTopUp.topUpType) === -1) {
+                                correctTopUpType = false;
+                            }
+
+                            if (eventData.condition.onlineTopUpType && rewardData.selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(rewardData.selectedTopUp.merchantTopUpType) === -1) {
+                                correctTopUpType = false;
+                            }
+
+                            if (eventData.condition.bankCardType && rewardData.selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(rewardData.selectedTopUp.bankCardType) === -1) {
+                                correctTopUpType = false;
+                            }
+
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
                                 if (eventData.param.isSteppingReward) {
@@ -4239,7 +4274,7 @@ let dbPlayerReward = {
                                 selectedRewardParam = selectedRewardParam[0];
                             }
 
-                            if (applyAmount < selectedRewardParam.minTopUpAmount) {
+                            if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
