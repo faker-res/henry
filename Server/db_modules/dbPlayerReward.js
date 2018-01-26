@@ -327,16 +327,18 @@ let dbPlayerReward = {
                 return false;
             }
             let playerLevelName = null;
+            let playerLevelValue = null;
 
             gradeListData.forEach(gradeListItem => {
                 playerLevelData.forEach(playerLevel => {
                     if (playerLevel._id.toString() === gradeListItem.levelId) {
                         playerLevelName = playerLevel.name;
+                        playerLevelValue = playerLevel.value;
                     }
                 });
 
                 let gradeLists = {
-                    gradeId: gradeListItem.levelId,
+                    gradeId: playerLevelValue,
                     gradeName: playerLevelName, // display in chinese
                     requestDeposit: gradeListItem.value[0].requiredTopUpAmount,
                     requestBetAmount: gradeListItem.value[0].requiredConsumptionAmount,
