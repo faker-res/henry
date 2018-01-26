@@ -10848,8 +10848,8 @@ define(['js/app'], function (myApp) {
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
 
                 vm.dynRewardTaskGroupIndex.forEach(item => {
-                    incRewardAmt += item[0];
-                    incConsumptAmt += item[1];
+                    incRewardAmt += Number(item[0]);
+                    incConsumptAmt += Number(item[1]);
                 });
 
                 let sendQuery = {
@@ -11201,7 +11201,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                             item.isArchived =
-                                item.archivedAmt$ == item.availableAmt$
+                                item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
                             if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)){
                                 usedTopUp.push(item.topUpProposal)
@@ -11290,7 +11290,7 @@ define(['js/app'], function (myApp) {
                                 if (row.isArchived) {
                                     text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName + ')</span>';
                                 } else {
-                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ + row.archivedAmt$, row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
+                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ - row.archivedAmt$, row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
                                 }
 
                                 //
