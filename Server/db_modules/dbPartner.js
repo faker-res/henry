@@ -511,6 +511,14 @@ let dbPartner = {
     },
 
     /**
+     * Get the information of the partner by query
+     * @param {String} query - Query string
+     */
+    getPartnerByQuery: function (query) {
+        return dbconfig.collection_partner.find(query);
+    },
+
+    /**
      * Get the information of the partner by partnerName or _id
      * @param {String} query - Query string
      */
