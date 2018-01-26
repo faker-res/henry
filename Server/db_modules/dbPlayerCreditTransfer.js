@@ -836,7 +836,7 @@ let dbPlayerCreditTransfer = {
 
                 if (rewardTaskGroup) {
                     // There is on-going reward task group
-                    lockedTransferAmount += rewardTaskGroup.rewardAmt;
+                    lockedTransferAmount += parseInt(rewardTaskGroup.rewardAmt);
                     rewardTaskGroup._inputFreeAmt += validTransferAmount;
                     rewardTaskGroupObjId = rewardTaskGroup._id;
                 }
@@ -1446,14 +1446,14 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                     } else if (curGameCredit < totalInputCredit) {
                         // Scenario 2: User loses
                         let userLoses = totalInputCredit - curGameCredit;
-                        let rewardAmt = rewardGroupObj._inputRewardAmt;
-                        let freeAmt = rewardGroupObj._inputFreeAmt - userLoses;
+                        let rewardAmt = rewardGroupObj._inputRewardAmt - userLoses;
+                        let freeAmt = rewardGroupObj._inputFreeAmt;
 
-                        if (userLoses > rewardGroupObj._inputFreeAmt || freeAmt < 0) {
-                            freeAmt = 0;
-                            let userLosesLeft = userLoses - rewardGroupObj._inputFreeAmt;
+                        if (userLoses > rewardGroupObj._inputRewardAmt || rewardAmt < 0) {
+                            rewardAmt = 0;
+                            let userLosesLeft = userLoses - rewardGroupObj._inputRewardAmt;
 
-                            rewardAmt = (userLosesLeft >= rewardGroupObj._inputRewardAmt) ? 0 : rewardGroupObj._inputRewardAmt - userLosesLeft;
+                            freeAmt = (userLosesLeft >= rewardGroupObj._inputFreeAmt) ? 0 : rewardGroupObj._inputFreeAmt - userLosesLeft;
                         }
 
                         updateObj = {

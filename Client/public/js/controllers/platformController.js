@@ -9582,7 +9582,7 @@ define(['js/app'], function (myApp) {
                     vm.totalConsumptionBonusAmount = parseFloat(bonusAmount).toFixed(2);
                     var option = $.extend({}, vm.generalDataTableOptions, {
                         data: tableData,
-                        "aaSorting": vm.playerExpenseLog.aaSorting || [[1, 'desc']],
+                        "aaSorting": vm.playerExpenseLog.aaSorting || [[7, 'desc']],
                         aoColumnDefs: [
                             {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
                             {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
@@ -10867,8 +10867,8 @@ define(['js/app'], function (myApp) {
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
 
                 vm.dynRewardTaskGroupIndex.forEach(item => {
-                    incRewardAmt += item[0];
-                    incConsumptAmt += item[1];
+                    incRewardAmt += Number(item[0]);
+                    incConsumptAmt += Number(item[1]);
                 });
 
                 let sendQuery = {
@@ -11220,7 +11220,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                             item.isArchived =
-                                item.archivedAmt$ == item.availableAmt$
+                                item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
                             if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)){
                                 usedTopUp.push(item.topUpProposal)
@@ -11309,7 +11309,7 @@ define(['js/app'], function (myApp) {
                                 if (row.isArchived) {
                                     text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName + ')</span>';
                                 } else {
-                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ + row.archivedAmt$, row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
+                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ , row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
                                 }
 
                                 //
@@ -12232,7 +12232,8 @@ define(['js/app'], function (myApp) {
                     wechatPayAccount: vm.playerWechatPayTopUp.wechatPayAccount,
                     bonusCode: vm.playerWechatPayTopUp.bonusCode,
                     remark: vm.playerWechatPayTopUp.remark,
-                    createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
+                    createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate(),
+                    notUseQR: !!vm.playerWechatPayTopUp.notUseQR
                 };
                 console.log("applyPlayerWechatPayTopUp", sendData);
                 vm.playerWechatPayTopUp.submitted = true;
