@@ -41,13 +41,14 @@ var dbQualityInspection = {
         console.log(queryObj);
         if(query.status!='all'){
             let dbResult = dbQualityInspection.searchMongoDB(query);
-            conversationForm = dbQualityInspection.getMySQLConversation(dbResult);
-
+            let result = dbQualityInspection.getMySQLConversation(dbResult,query);
+            conversationForm = dbQualityInspection.fillContent(result);
         }else{
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
             let dbResult = dbQualityInspection.searchMySQLDB(queryObj,connection);
-            conversationForm = dbQualityInspection.getMongoCV(dbResult);
+            let mongoResult = dbQualityInspection.getMongoCV(dbResult);
+            conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         }
         return conversationForm;
     },
@@ -69,9 +70,7 @@ var dbQualityInspection = {
         if(query.companyId && query.companyId.length > 0 ){
             queryQA.companyId = {'$in':query.companyId};
         }
-        console.log(queryQA);
-
-        return dbconfig.collection_qualityInspection.find(queryQA)
+        return dbconfig.collection_qualityInspection.find(queryQA).lean()
             .then(results => {
                 console.log(results);
                 results.forEach(item => {
@@ -89,34 +88,78 @@ var dbQualityInspection = {
                 return results;
             })
     },
-    getMySQLConversation: function(results){
-        
-        let msgIds = []
-        results.forEach(item=>{
-            msgIds = results.push(item.messageId);
-        });
-        let condition = results.join(',');
-        let query = "message_id IN ('" + condition +"')";
-        let dbResult = dbQualityInspection.searchMySQLDB(query);
-        console.log(query);
-        results.map(item=>{
-            let mysqlCV = dbResult.filter(sqlItem=>{
-                return sqlItem.msg_id == item.messageId;
-            })
-            if(mysqlCV){
-                let conversation = dbQualityInspection.conversationReformat(mysqlCV.conversation);
-                item.conversation.map(cv=>{
-                    let overrideCV = conversation.filter(mycv=>{
-                        return cv.time == mycv.time;
+    fillContent: function(data){
+        let deferred = Q.defer();
+        let combineData = [];
+
+        Q.all(data).then(results => {
+            let mongoData = results.mongo;
+            let mysqlData = results.mysql;
+
+            mongoData.forEach(item => {
+                let cData = {}
+                cData = item;
+                let mysqlCV = mysqlData.filter(sqlItem => {
+                    return sqlItem.messageId == item.messageId;
+                })
+                if (mysqlCV.length > 0) {
+                    let conversation = mysqlCV[0].conversation;
+                    item.conversation.forEach(cv => {
+                        let overrideCV = conversation.filter(mycv => {
+                            return cv.time == mycv.time;
+                        })
+                        if (overrideCV.length > 0) {
+                            cv.content = overrideCV[0].content;
+                        }
                     })
-                    if(overrideCV){
-                        cv.content = mycv.content;
+                }
+
+                combineData.push(item);
+            });
+            deferred.resolve(combineData);
+        })
+        return deferred.promise;
+    },
+    getMySQLConversation: function(sqlResult, queryObj){
+        let deferred = Q.defer();
+
+        Q.all(sqlResult).then(results => {
+            let msgIds = []
+            results.forEach(item => {
+                msgIds.push(item.messageId);
+            });
+            if (msgIds.length > 0) {
+                let condition = msgIds.join(',');
+                let timeQuery = " store_time BETWEEN CAST('"+queryObj.startTime+"' as DATETIME) AND CAST('"+queryObj.endTime+"' AS DATETIME)";
+                let query = timeQuery + " AND msg_id IN (" + condition + ")"
+                let connection = dbQualityInspection.connectMysql();
+                connection.connect();
+                let dbData = dbQualityInspection.searchMySQLDB(query, connection);
+                return Q.all(dbData).then(dbResult => {
+                    let reformatData = [];
+                    dbResult.forEach(item => {
+                        let dData = {};
+                        dData.messageId = item.msg_id;
+                        let conversation = dbQualityInspection.conversationReformat(item.content);
+                        dData.conversation = conversation;
+                        reformatData.push(dData);
+                    })
+                    let cv = {
+                        mongo: results,
+                        mysql: reformatData
                     }
-                    return cv;
+                    deferred.resolve(cv);
                 })
             }
         })
-        return results;
+        return deferred.promise;
+    },
+    resolvePromise: function(results){
+      let deferred = Q.defer();
+      Q.all(results).then(data=>{
+        deferred.resolve(data);
+      })
+      return deferred.promise;
     },
     conversationReformat:function(myContent){
             let dom = new JSDOM(myContent);
@@ -151,7 +194,7 @@ var dbQualityInspection = {
       Q.all(dbResult).then(results=>{
         console.log(results);
         results.forEach(item => {
-            console.log(item);
+            //console.log(item);
             let live800Chat = {conversation: [], live800Acc:{}};
             live800Chat.messageId = item.msg_id;
             live800Chat.status = item.status;
@@ -159,7 +202,8 @@ var dbQualityInspection = {
             live800Chat.fpmsAcc = item.operator_name;
             live800Chat.processTime = null;
             live800Chat.appealReason = '';
-            live800Chat.companyId = item.company_id
+            live800Chat.companyId = item.company_id;
+            live800Chat.createTime = item.store_time;
 
             live800Chat.live800Acc['id'] = item.operator_id;
             live800Chat.live800Acc['name'] = item.operator_name;
@@ -185,7 +229,7 @@ var dbQualityInspection = {
                 .then(qaData => {
                     if (qaData.length > 0) {
                         live800Chat.status = qaData[0].status;
-                        live800Chat.conversation = qaData[0].conversation;
+                        live800Chat.conversation = dbQualityInspection.reformatCV(live800Chat.conversation, qaData[0].conversation);
                         live800Chat.qualityAssessor = qaData[0].qualityAssessor;
                         live800Chat.processTime = qaData[0].processTime;
                         live800Chat.appealReason = qaData[0].appealReason;
@@ -193,9 +237,28 @@ var dbQualityInspection = {
                     return live800Chat;
                 });
             proms.push(prom);
+
         });
+        deferred.resolve(proms);
       })
       return deferred.promise;
+
+    },
+    reformatCV: function(cvs,mongoCVS ){
+
+        cvs.forEach(item=>{
+            let currentCV = mongoCVS.filter(mItem=>{
+                return mItem.time == item.time;
+            });
+            if(currentCV.length > 0){
+                item.timeoutRate = currentCV[0].timeoutRate;
+                item.inspectionRate = currentCV[0].inspectionRate;
+                item.review = currentCV[0].review;
+            }
+            return item;
+        });
+        return cvs;
+
 
     },
     reGroup: function(arrs,type){
@@ -389,7 +452,8 @@ var dbQualityInspection = {
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
               console.log(item);
-              return item.adminName
+              let adminName = item ? item.adminName:'x';
+              return adminName
         })
         .then(udata=>{
             return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
