@@ -12672,6 +12672,7 @@ let dbPlayerInfo = {
             lockedCreditList: []
         };
         let playerDetails = {};
+        let gameData = [];
         return dbconfig.collection_players.findOne({_id: playerObjId}, {platform: 1, validCredit: 1, name: 1, _id:0})
             .populate({path: "platform", model: dbconfig.collection_platform, select: ['_id','platformId']}).lean().then(
             (playerData) => {
@@ -12690,6 +12691,7 @@ let dbPlayerInfo = {
                     if (platformData && platformData.gameProviders.length > 0) {
                         for (let i = 0; i < platformData.gameProviders.length; i++) {
                             providerCredit.gameCreditList[i] = {
+                                providerObjId : platformData.gameProviders[i]._id,
                                 providerId: platformData.gameProviders[i].providerId,
                                 nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                                 status: platformData.gameProviders[i].status
@@ -12712,6 +12714,7 @@ let dbPlayerInfo = {
                         let gameCreditProm = cpmsAPI.player_queryCredit(queryObj).then(
                             function (creditData) {
                                 return {
+                                    providerObjId: providerList.gameCreditList[i].providerObjId,
                                     providerId: creditData.providerId,
                                     gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
                                     nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
@@ -12721,6 +12724,7 @@ let dbPlayerInfo = {
                             function (err) {
                                 //todo::for debug, to be removed
                                 return {
+                                    providerObjId: providerList.gameCreditList[i].providerObjId,
                                     providerId: providerList.gameCreditList[i].providerId,
                                     gameCredit: 'unknown',
                                     nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
@@ -12737,12 +12741,13 @@ let dbPlayerInfo = {
         ).then(
             gameCreditList => {
                 if (gameCreditList && gameCreditList.length > 0) {
+                    gameData = gameCreditList;
                     for (let i = 0; i < gameCreditList.length; i++) {
                         returnData.gameCreditList[i] = {
                             nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
                             validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: "",
-                            status: gameCreditList[i].status,
-                            providerId: gameCreditList[i].providerId
+                            // status: gameCreditList[i].status,
+                            // providerId: gameCreditList[i].providerId
                         };
                     }
 
@@ -12762,9 +12767,24 @@ let dbPlayerInfo = {
 
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
+                        let listData = [];
+                        if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers.length) {
+                            rewardTaskGroup[i].providerGroup.providers.forEach(rewardItem => {
+                                gameData.forEach(gameItem => {
+                                    if (rewardItem.toString() == gameItem.providerObjId.toString()) {
+                                        listData.push({
+                                            providerId: gameItem.providerId,
+                                            nickName: gameItem.nickName,
+                                            validCredit: gameItem.gameCredit
+                                        })
+                                    }
+                                })
+                            })
+                        }
                         returnData.lockedCreditList[i] = {
                             nickName: rewardTaskGroup[i].providerGroup? rewardTaskGroup[i].providerGroup.name: "",
-                            validCredit: rewardTaskGroup[i].rewardAmt
+                            lockCredit: rewardTaskGroup[i].rewardAmt,
+                            list: listData,
                         }
                     }
                 }
