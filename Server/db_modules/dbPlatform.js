@@ -731,14 +731,16 @@ var dbPlatform = {
                     //else only show department platform
                     if (data.departments[0].parent) {
                         if (data.departments[0].platforms && data.departments[0].platforms.length > 0) {
-                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}}).populate({path: "csDepartment", model: dbconfig.collection_department}).exec();
+                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}})
+                                .populate({path: "csDepartment", model: dbconfig.collection_department})
+                                .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
                         }
                         else {
                             deferred.reject({name: "DataError", message: "No platform available."});
                         }
                     }
                     else {
-                        return dbconfig.collection_platform.find().populate({path: "csDepartment", model: dbconfig.collection_department}).exec();
+                        return dbconfig.collection_platform.find().populate({path: "csDepartment", model: dbconfig.collection_department}).populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
                     }
                 }
             },

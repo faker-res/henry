@@ -127,22 +127,62 @@ define(['js/app'], function (myApp) {
                    return item;
                  }
               });
-              let departmentMember = [];
+              let csDepartmentMember = [];
+              let qiDepartmentMember = [];
               let companyIds = [];
-              platforms.map(item=>{
-                item.data.csDepartment.map(cItem=>{
-                  departmentMember = departmentMember.concat(cItem.users);
+                platforms.map(item => {
+
+                    //store live800companyId;
+                    if (item.data.live800CompanyId.length > 0) {
+                        item.data.live800CompanyId.forEach(cId => {
+                            if (companyIds.indexOf(cId) == -1) {
+                                companyIds.push(cId);
+                            }
+                        })
+                    }
+
+                    if (item.data.livecompanyIds && item.data.livecompanyIds.indexOf(item.data.live800CompanyId) == -1)
+                        companyIds = companyIds.concat(item.data.live800CompanyId);
+                    //store CS department
+                    item.data.csDepartment.forEach(cItem => {
+                        csDepartmentMember = csDepartmentMember.concat(cItem.users);
+                    })
+
+                    //store QI department
+                    item.data.qiDepartment.forEach(qItem=>{
+                        qiDepartmentMember = qiDepartmentMember.concat(qItem.users);
+                    })
+
                 })
-              })
-              vm.getDepartmentMember(departmentMember);
+              vm.getCSDepartmentMember(csDepartmentMember);
+              vm.getQIDepartmentMember(qiDepartmentMember);
+              vm.companyIds = companyIds;
             }
-            vm.getDepartmentMember = function(departmentMember){
-              socketService.$socket($scope.AppSocket, 'getMultiAdmins', {admins: departmentMember}, function (data) {
-                  console.log('all admin data', data.data);
+            vm.getQIDepartmentMember = function(qiMembers){
+                socketService.$socket($scope.AppSocket, 'getQIAdmins', {admins: qiMembers}, function (qdata) {
+                    console.log('all admin data', qdata.data);
+                    vm.qiDepartments = [];
+
+                    if(qdata.data.length > 0){
+                        qdata.data.forEach(item=>{
+                            console.log(item);
+                            let qiUser = {};
+                            qiUser._id = item._id;
+                            qiUser.name = item.adminName;
+                            vm.qiDepartments.push(qiUser);
+                        })
+                    }
+                    $scope.safeApply();
+                }, function (err) {
+                });
+            }
+            vm.getCSDepartmentMember = function(csMembers){
+              socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: csMembers}, function (cdata) {
+                  console.log('all admin data', cdata.data);
                   let fpmsACCList = [];
                   let live800Accs = [];
                   let companyIds = [];
-                  data.data.forEach(item=>{
+                  cdata.data.forEach(item=>{
                     let liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
                     let acc = {
                       _id:item._id,
@@ -292,7 +332,6 @@ define(['js/app'], function (myApp) {
                 var query = {
                         // 'companyId':270,
                         // 'operatorId':764,
-
                         'companyId':vm.companyIds,
                         'fpmsAcc':fpmsId,
                         'operatorId':vm.live800Accs,
@@ -300,6 +339,9 @@ define(['js/app'], function (myApp) {
                         'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
                         'status':vm.inspection800.status
                 };
+                if(vm.inspection800.qiUser && vm.inspection800.qiUser.length > 0){
+                    query['qualityAssessor'] = vm.inspection800.qiUser;
+                }
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
                     vm.conversationForm = data.data;
