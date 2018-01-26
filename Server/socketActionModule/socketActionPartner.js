@@ -66,6 +66,16 @@ function socketActionPartner(socketIO, socket) {
         },
 
         /**
+         * get partner info by query
+         * @param {json} data - query
+         */
+        getPartnerByQuery: function getPartnerByQuery(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerByQuery, [data], actionName, isValidData);
+        },
+
+        /**
          * Create partner info by partnerName or _id
          * @param {json} data - It has to contain partnerName or _id
          */

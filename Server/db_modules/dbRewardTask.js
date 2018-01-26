@@ -181,6 +181,9 @@ const dbRewardTask = {
             providerGroup2 => {
                 if (providerGroup2) {
                     let eventName = proposalData && proposalData.data && proposalData.data.eventName ? proposalData.data.eventName : "";
+                    if (!eventName && proposalData && proposalData.data && proposalData.data.rewardType) {
+                        eventName = proposalData.data.rewardType;
+                    }
 
                     // Create credit change log for this reward
                     dbLogger.createCreditChangeLogWithLockedCredit(rewardData.playerId, rewardData.platformId, 0, eventName, 0, rewardData.initAmount, rewardData.initAmount, null, proposalData.data);
@@ -418,6 +421,7 @@ const dbRewardTask = {
                     rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
                     rewardTaskProposalQuery.$or = [
                         {'data.providerGroup': {$exists: true, $eq: null}},
+                        {'data.providerGroup': {$exists: true, $size: 0}},
                         {'data.providerGroup': {$exists: false}},
                         {'data.providerGroup': ""},
                     ]
@@ -431,7 +435,10 @@ const dbRewardTask = {
                 }).lean().sort(sortCol);
             }).then(udata => {
                 udata.map(item => {
-                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    if(!item.data.topUpProposal) {
+                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    }
+
                     if (item.type.name) {
                         item.data.rewardType = item.type.name;
                     }
@@ -455,7 +462,9 @@ const dbRewardTask = {
                     if (rewardTaskGroup) {
                         item.data['createTime$'] = item.createTime;
                         item.data.useConsumption = rewardTaskGroup.useConsumption;
-                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        if(!item.data.topUpProposal) {
+                            item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        }
                         item.data.curConsumption = rewardTaskGroup.curConsumption;
                         if (rewardTaskGroup.providerGroup) {
                             item.data.provider$ = rewardTaskGroup.providerGroup ? rewardTaskGroup.providerGroup.name :"" ;

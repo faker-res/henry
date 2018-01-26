@@ -304,7 +304,7 @@ define(['js/app'], function (myApp) {
                 function success(data) {
                     vm.conversationForm = data.data;
                     data.data.forEach(item=>{
-                        item.statusName = item.status ? vm.conversationStatus[item.status]:vm.conversationStatus[1];
+                        item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
                         item.conversation.forEach(function(cv){
                             cv.roleName = vm.roleType[item.type];
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));

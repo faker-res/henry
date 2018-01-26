@@ -124,14 +124,40 @@ var proposal = {
                     return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);
                 }
                 else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
-                    return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
+                    return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, /*"editPlayerCredit:Deduction"*/ "UpdatePlayerCredit", proposalData.data);
                 }
                 return true;
             }
         ).then(
             () => {
                 return proposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
-            })
+            }
+        ).then(
+            proposalData => {
+                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && !proposalData.isPartner) {
+                    dbconfig.collection_creditChangeLog.findOne({
+                        playerId: proposalData.data.playerObjId,
+                        operationType: /*"editPlayerCredit:Deduction"*/"UpdatePlayerCredit",
+                        operationTime: {$gte: new Date(new Date().setSeconds(new Date().getSeconds()-15))}
+                    }).lean().then(
+                        creditChangeLog => {
+                            if(!creditChangeLog) {
+                                return Promise.resolve();
+                            }
+
+                            return dbconfig.collection_creditChangeLog.findOneAndUpdate({
+                                _id: creditChangeLog._id,
+                                operationTime: creditChangeLog.operationTime
+                            }, {
+                                "data.proposalId": proposalData.proposalId
+                            }).lean();
+                        }
+                    ).catch(errorUtils.reportError);
+                }
+
+                return proposalData;
+            }
+        );
     },
 
     applyRepairCreditTransfer: function (platformId, proposalData) {
@@ -2489,11 +2515,12 @@ var proposal = {
         var summary = {};
 
         if (reqData.status) {
+            /**
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
-            }
+            }**/
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]

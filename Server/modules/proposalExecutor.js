@@ -249,6 +249,8 @@ var proposalExecutor = {
                         throw Error("No platformObjId, needed for refund");
                     }
 
+                    proposalData.data.proposalId = proposalData.proposalId;
+
                     return dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, refundAmount, reason, proposalData.data)
                 }
             );
@@ -400,8 +402,10 @@ var proposalExecutor = {
 
                             proposalData.data.proposalId = proposalData.proposalId;
 
-                            dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
-                                changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            if (proposalData.data.updateAmount > 0) {
+                                dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
+                                    changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            }
                             deferred.resolve(player);
                         },
                         error => {
@@ -435,6 +439,7 @@ var proposalExecutor = {
                 ).then(
                     platform => {
                         if (platform && platform.useProviderGroup) {
+                            proposalData.data.proposalId = proposalData.proposalId;
                             fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
                                 deferred.resolve, deferred.reject);
                         }
@@ -3087,7 +3092,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         })
                     );
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
-                    if (proposalData.data.isDynamicRewardAmount || proposalData.data.promoCode) {
+                    if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
+                    || proposalData.data.limitedOfferObjId) {
                         dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
                             dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         }).catch(
@@ -3329,11 +3335,12 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                 platformId: transferLog.platformObjId,
                 playerId: transferLog.playerObjId,
                 providerGroup: providerGroup._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
+                status: constRewardTaskStatus.STARTED
             }).lean();
         }
     ).then(
         rewardTaskGroup => {
+            console.log("DEBUG LOG :: Getting reward task group for repair transfer ID: " + transferId + " as", rewardTaskGroup);
             if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
                 changedValidCredit = rewardTaskGroup._inputFreeAmt;
                 changedLockedCredit = rewardTaskGroup._inputRewardAmt;
@@ -3344,10 +3351,13 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                     _id: rewardTaskGroup._id,
                     platformId: rewardTaskGroup.platformId
                 }, {
-                    rewardAmt: lockedAmount,
-                    _inputRewardAmt: 0,
-                    _inputFreeAmt: 0,
-                    inProvider: false
+                    // rewardAmt: lockedAmount,
+                    $inc: {
+                        rewardAmt: lockedAmount,
+                    },
+                    // _inputRewardAmt: 0,
+                    // _inputFreeAmt: 0,
+                    // inProvider: false
                 }, {
                     new: true
                 }).lean();
@@ -3402,7 +3412,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
         }
     ).then(
         updatedPlayer => {
-            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, player.validCredit, null, changedLockedCredit, null, proposalData);
+            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, updatedPlayer.validCredit, null, changedLockedCredit, null, proposalData);
             return updatedPlayer;
         }
     );
