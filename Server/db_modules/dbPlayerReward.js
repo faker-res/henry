@@ -199,9 +199,10 @@ let dbPlayerReward = {
 
             let similarRewardProposalProm = Promise.resolve([]);
             let lastTopUpProm = Promise.resolve([]);
+            let numberOfTopUpProm = Promise.resolve(0);
 
             if (!player) {
-                return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+                return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm]);
             }
 
             let rewardProposalQuery = {
@@ -222,7 +223,9 @@ let dbPlayerReward = {
 
             lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).limit(1).lean();
 
-            return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+            numberOfTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).count();
+
+            return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm]);
         }).then(data => {
             if (!data || !data[0] || !data[1]) {
                 return Promise.reject({
@@ -232,6 +235,7 @@ let dbPlayerReward = {
             }
             let rewardProposals = data[0];
             let lastTopUp = data[1][0];
+            let numberOfTopUpWithinPeriod = data[2];
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -244,6 +248,56 @@ let dbPlayerReward = {
 
             let isReachCountLimit = event.param && event.param.countInRewardInterval && rewardProposals.length > event.param.countInRewardInterval;
             isRewardAmountDynamic = event.condition.isDynamicRewardAmount || isRewardAmountDynamic;
+
+            let isTopUpCountValid = true;
+            if (event.condition.topUpCountType && (event.condition.topUpCountType[1] || event.condition.topUpCountType[2])) {
+                isTopUpCountValid = false;
+                switch(event.condition.topUpCountType[0]) {
+                    case "1":
+                        if (numberOfTopUpWithinPeriod >= event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "2":
+                        if (numberOfTopUpWithinPeriod <= event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "3":
+                        if (numberOfTopUpWithinPeriod === event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "4":
+                        if (numberOfTopUpWithinPeriod >= event.condition.topUpCountType[1] && numberOfTopUpWithinPeriod >= event.condition.topUpCountType[2]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                }
+            }
+
+            let isTopUpTypeValid = false;
+            if (lastTopUp) {
+                isTopUpTypeValid = true;
+                if (event.condition.userAgent && lastTopUp.userAgent && event.condition.userAgent.length > 0 && event.condition.userAgent.indexOf(lastTopUp.userAgent) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.topUpType && event.condition.topUpType.length > 0 && event.condition.topUpType.indexOf(lastTopUp.topUpType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.merchantTopUpType && lastTopUp.merchantTopUpType && event.condition.merchantTopUpType.length > 0 && event.condition.merchantTopUpType.indexOf(lastTopUp.merchantTopUpType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.bankCardType && lastTopUp.bankCardType && event.condition.bankCardType.length > 0 && event.condition.bankCardType.indexOf(lastTopUp.bankCardType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+            }
+
+            let isApplicableRewardCondition = isTopUpTypeValid && isTopUpCountValid && !isReachCountLimit;
+
             let paramOfLevel = event.param.rewardParam[0].value;
 
             if (event.condition.isPlayerLevelDiff && player) {
@@ -264,7 +318,7 @@ let dbPlayerReward = {
                 let nextRewardParamIndex = Math.min(list.length, paramOfLevel.length - 1);
                 let nextRewardParam = paramOfLevel[nextRewardParamIndex];
 
-                if (!isReachCountLimit && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
+                if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
                     canApply = true;
                     addParamToList(nextRewardParam, 1); // applicable
                 }
@@ -276,7 +330,7 @@ let dbPlayerReward = {
             }
             else {
                 let applicableParamIndex = -1;
-                if (!isReachCountLimit && lastTopUp && lastTopUp.amount) {
+                if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount) {
                     for (let i = 0; i < paramOfLevel.length; i++) {
                         let selectedParam = paramOfLevel[i];
                         if (selectedParam.minTopUpAmount <= lastTopUp.amount) {
@@ -326,25 +380,25 @@ let dbPlayerReward = {
             if (!gradeListData) {
                 return false;
             }
-
             let playerLevelName = null;
-            for (let z = 0; z < gradeListData.length; z++) {
-                let playerLevelId = gradeListData[z].levelId;
-                let playerLevelDatas = playerLevelData[z];
 
-                if (playerLevelDatas._id.toString() === playerLevelId) {
-                    playerLevelName = playerLevelDatas.name;
-                }
+            gradeListData.forEach(gradeListItem => {
+                playerLevelData.forEach(playerLevel => {
+                    if (playerLevel._id.toString() === gradeListItem.levelId) {
+                        playerLevelName = playerLevel.name;
+                    }
+                });
 
-                gradeList[z] = {
-                    gradeId: gradeListData[z].levelId,
+                let gradeLists = {
+                    gradeId: gradeListItem.levelId,
                     gradeName: playerLevelName, // display in chinese
-                    requestDeposit: gradeListData[z].value[0].requiredTopUpAmount,
-                    requestBetAmount: gradeListData[z].value[0].requiredConsumptionAmount,
-                    totalChances: gradeListData[z].value[0].numberParticipation,
-                    bet: gradeListData[z].value[0].spendingTimesOnReward
+                    requestDeposit: gradeListItem.value[0].requiredTopUpAmount,
+                    requestBetAmount: gradeListItem.value[0].requiredConsumptionAmount,
+                    totalChances: gradeListItem.value[0].numberParticipation,
+                    bet: gradeListItem.value[0].spendingTimesOnReward
                 };
-            }
+                gradeList.push(gradeLists);
+            });
         }
 
         function addParamToOpen(openData) {
@@ -438,9 +492,10 @@ let dbPlayerReward = {
             let similarConsumptionProposalProm = Promise.resolve([]);
             let bonusListRewardProposalProm = Promise.resolve([]);
             let playerLevelProm = Promise.resolve([]);
+            let gameProviderProm = Promise.resolve([]);
 
             if (!player) {
-                return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm]);
+                return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm]);
             }
 
             // queries
@@ -457,6 +512,7 @@ let dbPlayerReward = {
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             };
+            let platformGameProviderQuery = {_id: {$in: platform.gameProviders}};
 
             // check query is within reward interval period
             if (intervalTime) {
@@ -471,10 +527,11 @@ let dbPlayerReward = {
             similarConsumptionProposalProm = dbConfig.collection_playerConsumptionRecord.find(consumptionProposalQuery).sort({createTime: -1}).lean();
             bonusListRewardProposalProm = dbConfig.collection_proposal.find(bonusListRewardProposalQuery).sort({createTime: -1}).lean();
             playerLevelProm = dbConfig.collection_playerLevel.find({platform: platform._id}).lean();
+            gameProviderProm = dbConfig.collection_gameProvider.find(platformGameProviderQuery).lean();
 
-            return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm]);
+            return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm]);
         }).then(data => {
-            if (!data || !data[0] || !data[1] || !data[2] || !data[3]) {
+            if (!data || !data[0] || !data[1] || !data[2] || !data[3] || !data[4] || !data[5]) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,
                     message: "Error in finding proposal"
@@ -485,6 +542,7 @@ let dbPlayerReward = {
             let consumptionProposals = data[2];
             let bonusListRewardProposals = data[3];
             let playerLevelData = data[4];
+            let gameProviderList = data[5];
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -498,6 +556,7 @@ let dbPlayerReward = {
             let paramOfLevel = event.param.rewardParam[0].value;
             let selectedParam = null;
             let rewardParam = null;
+            let consumptionProviderList = [];
 
             // find param for matching player level
             if (event.condition.isPlayerLevelDiff && player) {
@@ -542,6 +601,20 @@ let dbPlayerReward = {
                     }
                 }
 
+                // find betSource // display consumption provider name in chinese
+                if (event.condition.consumptionProvider.length === gameProviderList.length) {
+                    consumptionProviderList = "所有平台";
+                } else {
+                    event.condition.consumptionProvider.forEach(consumptionProvider => {
+                        gameProviderList.forEach(gameProvider => {
+                            if (gameProvider._id.toString() === consumptionProvider) {
+                                consumptionProviderList.push(gameProvider.name);
+                            }
+                        })
+                    })
+                }
+
+
                 if (event.param.rewardParam) {
                     addParamToGradeList(event.param.rewardParam, playerLevelData);
                 }
@@ -565,7 +638,7 @@ let dbPlayerReward = {
                             condition: {
                                 availableDeposit: totalValidTopup,
                                 availableDepositTimes: totalAvailableTopup,
-                                betSource: event.condition.consumptionProvider,
+                                betSource: consumptionProviderList,
                                 availableBetAmount: totalValidConsumption,
                                 availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                 usedChances: rewardProposals.length,
@@ -591,7 +664,7 @@ let dbPlayerReward = {
                             condition: {
                                 availableDeposit: totalValidTopup,
                                 availableDepositTimes: totalAvailableTopup,
-                                betSource: event.condition.consumptionProvider,
+                                betSource: consumptionProviderList,
                                 availableBetAmount: totalValidConsumption,
                                 availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                 usedChances: rewardProposals.length,
@@ -633,7 +706,7 @@ let dbPlayerReward = {
                                 condition: {
                                     availableDeposit: totalValidTopup,
                                     availableDepositTimes: totalAvailableTopup,
-                                    betSource: event.condition.consumptionProvider,
+                                    betSource: consumptionProviderList,
                                     availableBetAmount: totalValidConsumption,
                                     availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                     usedChances: rewardProposals.length,
@@ -672,7 +745,7 @@ let dbPlayerReward = {
                                 condition: {
                                     availableDeposit: totalValidTopup,
                                     availableDepositTimes: totalAvailableTopup,
-                                    betSource: event.condition.consumptionProvider,
+                                    betSource: consumptionProviderList,
                                     availableBetAmount: totalValidConsumption,
                                     availableChances: selectedParam.numberParticipation - rewardProposals.length,
                                     usedChances: rewardProposals.length,
@@ -3600,6 +3673,22 @@ let dbPlayerReward = {
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
         // reward specific promise
+        if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            if (rewardData && rewardData.selectedTopup) {
+                selectedTopUp = rewardData.selectedTopup;
+                applyAmount = rewardData.selectedTopup.amount;
+
+                let withdrawPropQuery = {
+                    'data.platformId': playerData.platform._id,
+                    'data.playerObjId': playerData._id,
+                    settleTime: {$gt: selectedTopUp.createTime},
+                    status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
+                };
+
+                promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
+            }
+        }
+
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
             let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate);
             promArr.push(playerRewardDetailProm);
@@ -4074,14 +4163,20 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
-                            selectedTopUp = rewardData.selectedTopup;
-                            applyAmount = rewardData.selectedTopup.amount;
-
                             if (!isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: "This top up did not happen within reward interval time"
+                                });
+                            }
+
+                            // Check withdrawal after top up condition
+                            if (!eventData.condition.allowApplyAfterWithdrawal && rewardSpecificData && rewardSpecificData[0]) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "There is withdrawal after topup"
                                 });
                             }
 
