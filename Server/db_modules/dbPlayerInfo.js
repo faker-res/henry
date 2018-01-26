@@ -6765,6 +6765,14 @@ let dbPlayerInfo = {
         let f = dbconfig.collection_players.find(query)
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
+        let g = dbconfig.collection_players.aggregate(
+            {$match: query},
+            {
+                $group: {
+                    _id: "$domain"
+                }
+            }
+        );
         // var d = dbconfig.collection_players.find(query, {_id: 1}).lean().then(
         //     players => {
         //         if (players && players.length > 0) {
@@ -6799,7 +6807,7 @@ let dbPlayerInfo = {
         //     }
         // );
 
-        return Q.all([a, b, c, d, e, f]).then(
+        return Q.all([a, b, c, d, e, f, g]).then(
             data => {
                 retData = data;
                 var prop = [];

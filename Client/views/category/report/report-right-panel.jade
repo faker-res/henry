@@ -563,9 +563,9 @@
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort = vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
                                 tbody
-                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.partnerAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort | filter: vm.filterNoValidPlayer')
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.partnerAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort | filter: vm.filterNoNewPlayer')
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = v.promoteWayName') {{v.promoteWayName}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData, v.promoteWayName, "totalNewAccount"); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = v.promoteWayName') {{v.promoteWayName}}
                                         td
                                             span {{ v.totalNewAccount}}
                                         td
@@ -578,7 +578,7 @@
                                             span {{ v.ratio }}%
                                     tr
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = null') {{ "total" | translate}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData, null, "totalNewAccount"); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = null') {{ "total" | translate}}
                                         td
                                             span {{ vm.newPlayerQuery.partnerNewPlayerData.totalNewAccount}}
                                         td
@@ -615,7 +615,7 @@
                                         th {{ "Browser" | translate}}
                                         th {{ "partner" | translate}}
                                 tbody
-                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: vm.filterValidPlayerPartnerAnalysisTable')
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.newPlayers | filter: vm.filterValidPlayerPartnerAnalysisTable')
                                         td
                                             span {{v.playerId}}
                                         td
@@ -674,9 +674,9 @@
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
                                         th(ng-click='vm.newPlayerQuery.validPlayerPartnerDomainGraphSort = vm.newPlayerQuery.validPlayerPartnerDomainGraphSort == "ratio" ? "-ratio":"ratio"') {{ "ratio" | translate}}
                                 tbody
-                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.domainAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerPartnerDomainGraphSort | filter: vm.filterNoValidPlayer')
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.domainAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerPartnerDomainGraphSort | filter: vm.filterNoNewPlayer')
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = v.promoteWayName') {{v.promoteWayName}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData, v.promoteWayName, "totalNewAccount"); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = v.promoteWayName') {{v.promoteWayName}}
                                         td
                                             span {{ v.totalNewAccount}}
                                         td
@@ -689,7 +689,7 @@
                                             span {{ v.ratio }}%
                                     tr
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = null') {{ "total" | translate}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData, null, "totalNewAccount"); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = null') {{ "total" | translate}}
                                         td
                                             span {{ vm.newPlayerQuery.domainNewPlayerData.totalNewAccount}}
                                         td
@@ -726,7 +726,7 @@
                                         th {{ "Browser" | translate}}
                                         th {{ "partner" | translate}}
                                 tbody
-                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: vm.filterValidPlayerDomainAnalysisTable')
+                                    tr(ng-repeat='(i, v) in vm.newPlayerQuery.newPlayers | filter: vm.filterValidPlayerDomainAnalysisTable')
                                         td
                                             span {{v.playerId}}
                                         td
