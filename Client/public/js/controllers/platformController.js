@@ -12231,7 +12231,8 @@ define(['js/app'], function (myApp) {
                     wechatPayAccount: vm.playerWechatPayTopUp.wechatPayAccount,
                     bonusCode: vm.playerWechatPayTopUp.bonusCode,
                     remark: vm.playerWechatPayTopUp.remark,
-                    createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
+                    createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate(),
+                    notUseQR: !!vm.playerWechatPayTopUp.notUseQR
                 };
                 console.log("applyPlayerWechatPayTopUp", sendData);
                 vm.playerWechatPayTopUp.submitted = true;

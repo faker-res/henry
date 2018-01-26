@@ -1022,6 +1022,10 @@
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
                             .form-group.col-md-6
                                 .control-label
+                                label {{'QRMode' | translate}}
+                                select.form-control(ng-model='vm.playerWechatPayTopUp.notUseQR')
+                                    option(value="") {{'Settlement_QR' | translate}}
+                                    option(value=true) {{'CS_QR' | translate}}
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayAccount' | translate}}
