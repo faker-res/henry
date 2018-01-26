@@ -12690,10 +12690,19 @@ let dbPlayerInfo = {
 
                     if (platformData && platformData.gameProviders.length > 0) {
                         for (let i = 0; i < platformData.gameProviders.length; i++) {
+                            let nickName = "";
+                            if (platformData.gameProviderInfo) {
+                                for (let j = 0; j < Object.keys(platformData.gameProviderInfo).length; j++) {
+                                    if (Object.keys(platformData.gameProviderInfo)[j].toString() == platformData.gameProviders[i]._id.toString()) {
+                                        nickName = platformData.gameProviderInfo[platformData.gameProviders[i]._id.toString()].localNickName;
+                                    }
+                                }
+                            }
                             providerCredit.gameCreditList[i] = {
                                 providerObjId : platformData.gameProviders[i]._id,
                                 providerId: platformData.gameProviders[i].providerId,
-                                nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                                // nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                                nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                                 status: platformData.gameProviders[i].status
                             };
                         }
