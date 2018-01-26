@@ -2425,6 +2425,7 @@
   "PLAYER_MULTIPLE_REWARD": "玩家多次优惠任务",
   "Allow:": "允许:",
   "Disable:": "禁用:",
+  "There is withdrawal after topup": "您在存款后已经提款,请在重新存款后,提款前申请!",
   "ALL_PROVIDERS": "全部供应商",
   "Player Name": "会员帐号",
   "UNLOCK": "解锁",
@@ -3111,5 +3112,9 @@
   "Promotion Method": "推广方式",
   "Valid Player": "有效玩家",
   "No Promote Way": "无推广方式",
-  "Link has copy to clipboard": "链接已复制到剪贴板"
+  "Link has copy to clipboard": "链接已复制到剪贴板",
+  "Valid Player (promote way analysis)": "有效开户（推广方式分析）",
+  "Valid Player (cs officer analysis)": "有效开户（开户客服分析）",
+  "No admin acc": "(无客服)",
+  "Create Account Cs Name": "开户客服"
 }

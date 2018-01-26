@@ -7241,6 +7241,44 @@ define(['js/app'], function (myApp) {
                     delete updateData.alipayGroup;
                     delete updateData.quickPayGroup;
 
+                    updateData.remark = ""
+                    if (updateData.partnerName) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("partner");
+                    }
+                    if (updateData.playerLevel) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("PLAYER_LEVEL");
+                    }
+                    if (updateData.realName) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("realName");
+                    }
+                    if (updateData.referralName) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("REFERRAL");
+                    }
+                    if (updateData.DOB) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("DOB");
+                    }
+                    if (updateData.gender) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("GENDER");
+                    }
+
                     if (isUpdate) {
                         socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
@@ -8331,43 +8369,61 @@ define(['js/app'], function (myApp) {
 
             vm.transferAllCreditToPlayer = function () {
                 vm.transferAllCredit.isProcessing = true;
-                $.each(vm.playerCredit, function (i, v) {
-                    if (jQuery.isNumeric(v.gameCredit) && v.gameCredit > 0) {
-                        var sendData = {
-                            platform: vm.selectedPlatform.data.platformId,
-                            playerId: vm.selectedSinglePlayer.playerId,
-                            providerId: v.providerId,
-                            amount: parseInt(v.gameCredit),
-                            adminName: authService.adminName
-                        }
 
-                        vm.transferAllCredit[v.providerId] = {finished: false};
-                        console.log('will send', sendData, 'transferPlayerCreditFromProvider');
-                        socketService.$socket($scope.AppSocket, 'transferPlayerCreditFromProvider', sendData, function (data) {
-                            vm.transferAllCredit[v.providerId].text = "Success";
-                            vm.transferAllCredit[v.providerId].finished = true;
-                            $scope.safeApply();
-                        }, function (data) {
-                            console.log('transfer finish Fail', data);
-                            var msg = 'unknown';
-                            try {
-                                msg = JSON.parse(data.error.error).errorMsg;
-                            }
-                            catch (err) {
-                                console.log(err);
-                            }
-                            vm.transferAllCredit[v.providerId].text = msg;
-                            vm.transferAllCredit[v.providerId].finished = true;
-                            $scope.safeApply();
-                        })
+                let transferProviderId = [];
+
+                for (let provider in vm.playerCredit) {
+                    if (parseFloat(vm.playerCredit[provider].gameCredit) >= 1) {
+                        transferProviderId.push(vm.playerCredit[provider].providerId);
                     }
-                })
+                }
+
+                if (transferProviderId.length > 0) {
+                    $scope.$socketPromise('checkTransferInSequence', {
+                        platformObjId: vm.isOneSelectedPlayer().platform,
+                        playerObjId: vm.isOneSelectedPlayer()._id,
+                        providerIdArr: transferProviderId
+                    }).then(
+                        res => {
+                            if (res && res.data && res.data.length > 0) {
+                                res.data.sort((a, b) => new Date(a.operationTime).getTime() - new Date(b.operationTime).getTime());
+
+                                let p = Promise.resolve();
+
+                                for(let i = 0; i < res.data.length; i++) {
+                                    let sendData = {
+                                        platform: vm.selectedPlatform.data.platformId,
+                                        playerId: vm.selectedSinglePlayer.playerId,
+                                        providerId: res.data[i].providerId,
+                                        amount: parseInt(vm.playerCredit[res.data[i].providerId].gameCredit),
+                                        adminName: authService.adminName
+                                    };
+
+                                    $scope.$evalAsync(() => vm.transferAllCredit[res.data[i].providerId] = {finished: false});
+                                    console.log('will send', sendData, 'transferPlayerCreditFromProvider');
+
+                                    p = p.then(function () {
+                                        return $scope.$socketPromise('transferPlayerCreditFromProvider', sendData).then(transferRes => {
+                                            console.log('success', transferRes);
+                                            $scope.$evalAsync(() => {
+                                                vm.transferAllCredit[res.data[i].providerId].text = "Success";
+                                                vm.transferAllCredit[res.data[i].providerId].finished = true;
+                                            })
+                                        })
+                                    });
+                                }
+
+                                return p;
+                            }
+                        }
+                    )
+                }
                 console.log('vm.creditModal', vm.creditModal);
                 vm.creditModal.on("hide.bs.modal", function (a) {
                     vm.creditModal.off("hide.bs.modal");
                     vm.getPlatformPlayersData();
                 });
-            }
+            };
 
             vm.closeCreditTransferLog = function (modal) {
                 $(modal).modal('hide');
@@ -10810,8 +10866,8 @@ define(['js/app'], function (myApp) {
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
 
                 vm.dynRewardTaskGroupIndex.forEach(item => {
-                    incRewardAmt += item[0];
-                    incConsumptAmt += item[1];
+                    incRewardAmt += Number(item[0]);
+                    incConsumptAmt += Number(item[1]);
                 });
 
                 let sendQuery = {
@@ -11163,7 +11219,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                             item.isArchived =
-                                item.archivedAmt$ == item.availableAmt$
+                                item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
                             if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)){
                                 usedTopUp.push(item.topUpProposal)
@@ -11252,7 +11308,7 @@ define(['js/app'], function (myApp) {
                                 if (row.isArchived) {
                                     text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName + ')</span>';
                                 } else {
-                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ + row.archivedAmt$, row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
+                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ , row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
                                 }
 
                                 //

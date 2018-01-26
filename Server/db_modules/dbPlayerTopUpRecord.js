@@ -574,7 +574,7 @@ var dbPlayerTopUpRecord = {
      * @param {Boolean} [bSinceLastConsumption] - Only returns records after the player's last consumption
      * @returns {Promise.<{stats, records}>}
      */
-    getPlayerTopUpList: function (playerId, topUpType, startTime, endTime, index, count, sort, bDirty, bSinceLastConsumption) {
+    getPlayerTopUpList: function (playerId, topUpType, startTime, endTime, index, count, sort, bDirty, bSinceLastConsumption, bSinceLastPlayerWidthDraw) {
         "use strict";
         var seq = sort ? -1 : 1;
         return dbconfig.collection_players.findOne({playerId: playerId}).exec().then(
@@ -625,7 +625,7 @@ var dbPlayerTopUpRecord = {
                     if (bSinceLastConsumption && (latestConsumptionRecord && latestConsumptionRecord.createTime || lastPlayerWidthDraw && lastPlayerWidthDraw.createTime)) {
                         queryStartTime = latestConsumptionRecord && latestConsumptionRecord.createTime ? latestConsumptionRecord.createTime.getTime() : 0;
                     }
-                    if (lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime) {
+                    if (bSinceLastPlayerWidthDraw && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime) {
                         queryStartTime = lastPlayerWidthDraw.createTime.getTime()
                     }
                     if (startTime && new Date(startTime).getTime() > queryStartTime) {

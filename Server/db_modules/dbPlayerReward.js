@@ -199,9 +199,12 @@ let dbPlayerReward = {
 
             let similarRewardProposalProm = Promise.resolve([]);
             let lastTopUpProm = Promise.resolve([]);
+            let numberOfTopUpProm = Promise.resolve(0);
+            let lastConsumptionProm = Promise.resolve([]);
+            let lastValidWithdrawalProm = Promise.resolve([]);
 
             if (!player) {
-                return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+                return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm, lastConsumptionProm, lastValidWithdrawalProm]);
             }
 
             let rewardProposalQuery = {
@@ -209,6 +212,17 @@ let dbPlayerReward = {
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            };
+
+            let lastConsumptionQuery = {
+                platformId: platform._id,
+                playerId: player._id
+            };
+
+            let lastValidWithdrawalQuery = {
+                mainType: "PlayerBonus",
+                "data.playerId": player.playerId,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]}
             };
 
             let lastTopUpQuery = {playerId: player._id};
@@ -222,9 +236,15 @@ let dbPlayerReward = {
 
             lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).limit(1).lean();
 
-            return Promise.all([similarRewardProposalProm, lastTopUpProm]);
+            lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(lastConsumptionQuery).sort({createTime: -1}).limit(1).lean();
+
+            lastValidWithdrawalProm = dbConfig.collection_proposal.find(lastValidWithdrawalQuery).sort({createTime: -1}).limit(1).lean();
+
+            numberOfTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).count();
+
+            return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm, lastConsumptionProm, lastValidWithdrawalProm]);
         }).then(data => {
-            if (!data || !data[0] || !data[1]) {
+            if (!data || !data[0] || !data[1] || !data[3] || !data[4]) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,
                     message: "Error in finding proposal"
@@ -232,6 +252,9 @@ let dbPlayerReward = {
             }
             let rewardProposals = data[0];
             let lastTopUp = data[1][0];
+            let numberOfTopUpWithinPeriod = data[2];
+            let lastConsumptionRecord = data[3][0];
+            let lastWithdrawalProposal = data[4][0];
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -244,6 +267,68 @@ let dbPlayerReward = {
 
             let isReachCountLimit = event.param && event.param.countInRewardInterval && rewardProposals.length > event.param.countInRewardInterval;
             isRewardAmountDynamic = event.condition.isDynamicRewardAmount || isRewardAmountDynamic;
+
+            let isTopUpCountValid = true;
+            if (event.condition.topUpCountType && (event.condition.topUpCountType[1] || event.condition.topUpCountType[2])) {
+                isTopUpCountValid = false;
+                switch(event.condition.topUpCountType[0]) {
+                    case "1":
+                        if (numberOfTopUpWithinPeriod >= event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "2":
+                        if (numberOfTopUpWithinPeriod <= event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "3":
+                        if (numberOfTopUpWithinPeriod === event.condition.topUpCountType[1]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                    case "4":
+                        if (numberOfTopUpWithinPeriod >= event.condition.topUpCountType[1] && numberOfTopUpWithinPeriod >= event.condition.topUpCountType[2]) {
+                            isTopUpCountValid = true;
+                        }
+                        break;
+                }
+            }
+
+            let isTopUpTypeValid = false;
+            if (lastTopUp) {
+                isTopUpTypeValid = true;
+                if(!lastTopUp.userAgent) {
+                    lastTopUp.userAgent = "0";
+                }
+
+                if (event.condition.userAgent && event.condition.userAgent.length > 0 && event.condition.userAgent.indexOf(lastTopUp.userAgent) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.topupType && event.condition.topupType.length > 0 && event.condition.topupType.indexOf(lastTopUp.topUpType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.onlineTopUpType && lastTopUp.merchantTopUpType && event.condition.onlineTopUpType.length > 0 && event.condition.onlineTopUpType.indexOf(lastTopUp.merchantTopUpType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (event.condition.bankCardType && lastTopUp.bankCardType && event.condition.bankCardType.length > 0 && event.condition.bankCardType.indexOf(lastTopUp.bankCardType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (!event.condition.allowConsumptionAfterTopUp && lastConsumptionRecord && lastTopUp.createTime < lastConsumptionRecord.createTime) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (!event.condition.allowApplyAfterWithdrawal && lastWithdrawalProposal && lastTopUp.createTime < lastWithdrawalProposal.createTime) {
+                    isTopUpTypeValid = false;
+                }
+            }
+
+            let isApplicableRewardCondition = isTopUpTypeValid && isTopUpCountValid && !isReachCountLimit;
+
             let paramOfLevel = event.param.rewardParam[0].value;
 
             if (event.condition.isPlayerLevelDiff && player) {
@@ -264,7 +349,7 @@ let dbPlayerReward = {
                 let nextRewardParamIndex = Math.min(list.length, paramOfLevel.length - 1);
                 let nextRewardParam = paramOfLevel[nextRewardParamIndex];
 
-                if (!isReachCountLimit && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
+                if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount >= nextRewardParam.minTopUpAmount && !checkTopupRecordIsDirtyForReward(event, {selectedTopup: lastTopUp})) {
                     canApply = true;
                     addParamToList(nextRewardParam, 1); // applicable
                 }
@@ -276,7 +361,7 @@ let dbPlayerReward = {
             }
             else {
                 let applicableParamIndex = -1;
-                if (!isReachCountLimit && lastTopUp && lastTopUp.amount) {
+                if (isApplicableRewardCondition && lastTopUp && lastTopUp.amount) {
                     for (let i = 0; i < paramOfLevel.length; i++) {
                         let selectedParam = paramOfLevel[i];
                         if (selectedParam.minTopUpAmount <= lastTopUp.amount) {
@@ -3621,6 +3706,22 @@ let dbPlayerReward = {
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
 
         // reward specific promise
+        if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            if (rewardData && rewardData.selectedTopup) {
+                selectedTopUp = rewardData.selectedTopup;
+                applyAmount = rewardData.selectedTopup.amount;
+
+                let withdrawPropQuery = {
+                    'data.platformId': playerData.platform._id,
+                    'data.playerObjId': playerData._id,
+                    settleTime: {$gt: selectedTopUp.createTime},
+                    status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
+                };
+
+                promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
+            }
+        }
+
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
             let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate);
             promArr.push(playerRewardDetailProm);
@@ -4095,14 +4196,20 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
-                            selectedTopUp = rewardData.selectedTopup;
-                            applyAmount = rewardData.selectedTopup.amount;
-
                             if (!isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: "This top up did not happen within reward interval time"
+                                });
+                            }
+
+                            // Check withdrawal after top up condition
+                            if (!eventData.condition.allowApplyAfterWithdrawal && rewardSpecificData && rewardSpecificData[0]) {
+                                return Promise.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "There is withdrawal after topup"
                                 });
                             }
 
