@@ -2622,6 +2622,12 @@ let dbPlayerReward = {
             }
         ).then(
             newProp => {
+                if (topUpProp) {
+                    // Since promo code do not have its own event, it does not have eventObjId
+                    // Hence this object id will be use specifically for promo code throughout system as eventObjId
+                    addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
+                }
+
                 return dbConfig.collection_promoCode.findOneAndUpdate({
                     _id: promoCodeObj._id
                 }, {
@@ -5284,6 +5290,23 @@ function getRewardPeriodToTime (rewardPeriod) {
     }
 
     return time;
+}
+
+function addUsedRewardToTopUpRecord(topUpProposalId, rewardEvent) {
+    return dbConfig.collection_playerTopUpRecord.findOne({proposalId: topUpProposalId}).lean().then(
+        topUpRecord => {
+            if (topUpRecord) {
+                return dbConfig.collection_playerTopUpRecord.findOneAndUpdate({
+                    _id: topUpRecord._id,
+                    createTime: topUpRecord.createTime,
+                    platformId: topUpRecord.platformId
+                }, {
+                    $push: {usedEvent: rewardEvent}
+                }).lean().exec();
+            }
+            return Promise.resolve();
+        }
+    );
 }
 
 var proto = dbPlayerRewardFunc.prototype;
