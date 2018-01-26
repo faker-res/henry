@@ -92,10 +92,12 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         //option(ng-repeat='(i,v) in vm.evaluationProgressYearMonth', value='{{v.year - v.month}}') {{v.year}} - {{v.month}}
                                 .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
                                     label {{'PRODUCT(DEPARTMENT)' | translate}}
-                                    select.spicker.form-control(ng-model='vm.playerDomain', multiple, data-actions-box='true', bsp)
+                                    select.spicker.form-control(ng-model='vm.evaluationProgressPlatform', multiple, data-actions-box='true', bsp)
                                         option(ng-repeat='(i,v) in vm.platformList', value='{{v.data._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.data.name}}
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                                     button.common-button.btn.btn-primary(ng-click='vm.getEvaluationProgressRecord()') {{'SEARCH' | translate}}
+                                .inlineBlk(ng-show='vm.loadingEvaluationProgressTable')
+                                    label.blink.text-danger {{'Loading' | translate}}
 
                                 //.row(style='background-color:#337ab7;margin: 5px 2px 0px 2px;padding: 10px 2px; border-bottom: 1px solid #111;')
                                 //    div.col-md-1(style='display:inline-block;padding-left:5px;') {{"PRODUCT_NAME" | translate}}
@@ -111,15 +113,33 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         thead
                                             th.col-md-2 {{"PRODUCT_NAME" | translate}}
                                             th(colspan=7) {{vm.evaluationProgressTableTitle | translate}}
-                                        tbody(ng-repeat="progress in vm.evaluationProgressTable")
+                                        tbody(ng-repeat="progress in vm.evaluationProgressTable track by $index")
                                             tr
                                                 td {{progress.platformName}}
 
                                                 td
-                                                    table
+                                                    table(style="width: 100%")
                                                         tbody
                                                             tr
-                                                                td
+                                                                td(ng-repeat="t in progress.calendarTitle track by $index" style="background-color:#337ab7; font-weight: bold") {{t | translate}}
+
+                                                            tr(ng-repeat="p in progress.calendarData track by $index")
+                                                                td(ng-if="p[0].isCompleted" style="background-color: #6D9EEB") {{p[0].day}}
+                                                                td(ng-if="!p[0].isCompleted") {{p[0].day}}
+                                                                td(ng-if="p[1].isCompleted" style="background-color: #6D9EEB") {{p[1].day}}
+                                                                td(ng-if="!p[1].isCompleted") {{p[1].day}}
+                                                                td(ng-if="p[2].isCompleted" style="background-color: #6D9EEB") {{p[2].day}}
+                                                                td(ng-if="!p[2].isCompleted") {{p[2].day}}
+                                                                td(ng-if="p[3].isCompleted" style="background-color: #6D9EEB") {{p[3].day}}
+                                                                td(ng-if="!p[3].isCompleted") {{p[3].day}}
+                                                                td(ng-if="p[4].isCompleted" style="background-color: #6D9EEB") {{p[4].day}}
+                                                                td(ng-if="!p[4].isCompleted") {{p[4].day}}
+                                                                td(ng-if="p[5].isCompleted" style="background-color: #6D9EEB") {{p[5].day}}
+                                                                td(ng-if="!p[5].isCompleted") {{p[5].day}}
+                                                                td(ng-if="p[6].isCompleted" style="background-color: #6D9EEB") {{p[6].day}}
+                                                                td(ng-if="!p[6].isCompleted") {{p[6].day}}
+
+
 
                                             //td(ng-repeat="(i,v) in cond.header track by $index")
                                             //    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")

@@ -1505,6 +1505,7 @@ define(['js/app'], function (myApp) {
                 if (vm.showPlatform.department.hasOwnProperty('_id')) {
                     vm.showPlatform.department = vm.showPlatform.department._id;
                 }
+                vm.reArrangeArr(vm.showPlatform.live800CompanyId ,  'live800CompanyId', vm.showPlatform);
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
                         query: {_id: vm.selectedPlatform.id},
@@ -22690,6 +22691,13 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
+
+            vm.reArrangeArr = function(oriTXT, targetField, targetArr) {
+                if (typeof(oriTXT) == 'string') {
+                    let convertArr = oriTXT.split(',');
+                    targetArr[targetField] = convertArr;
+                }
+            };
 
             $('body').on('click', '#permissionRecordButton', function () {
                 vm.getPlayerPermissionChange("new")

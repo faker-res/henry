@@ -22,12 +22,7 @@ var dbQualityInspection = {
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
-<<<<<<< HEAD
 
-        //companyIds;
-        //live800Accs
-=======
->>>>>>> mark/live800main
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
            let companyId = query.companyId.join(',');
@@ -421,32 +416,48 @@ var dbQualityInspection = {
     // },
 
     getEvaluationProgressRecord: function (platformObjId, startDate, endDate) {
-        // console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",startDate)
-        // console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",endDate)
         if(startDate && endDate){
             let startTime = dbUtility.getLocalTimeString(startDate);
             let endTime = dbUtility.getLocalTimeString(endDate);
 
-
-
-            if(platformObjId && platformObjId != "all"){
-                let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime ,company_id  FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
-                return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
+            if(platformObjId && platformObjId.length > 0){
+                let queryArr = [];
+                let proms = [];
+                return dbconfig.collection_platform.find({_id: {$in: platformObjId}}).lean().then(
                     platformDetail => {
-                        if(platformDetail && platformDetail.companyId){
-                            queryString += "AND company_id=" + platformDetail.companyId + " "
+                        if(platformDetail && platformDetail.length > 0){
+
+                            platformDetail.map(p => {
+                                let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime  FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
+                                if(p.live800CompanyId){
+                                    //queryString += "AND company_id IN ('" + p.live800CompanyId + "') ";
+                                    queryString += "AND company_id IN (" + p.live800CompanyId + ") ";
+                                }
+                                queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd') ";
+                                queryArr.push({query: queryString, live800CompanyId: p.live800CompanyId});
+
+                            })
+                            return queryArr;
+
+                        }else{
+
                         }
-
-                        queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd'),company_id "
-
-                        return queryString;
                     }
                 ).then(
                     query => {
-                        if(query){
-                            let connection = dbQualityInspection.connectMysql();
-                            connection.connect();
-                            return dbQualityInspection.getLive800RecordByMySQL(query, connection)
+                        if(query && query.length > 0){
+
+                                query.map(q => {
+                                    if(q.query.length > 0 && q.live800CompanyId){
+                                        let connection = dbQualityInspection.connectMysql();
+                                        connection.connect();
+                                        proms.push(dbQualityInspection.getLive800RecordByMySQL(q.query, q.live800CompanyId, connection));
+                                    }
+                                })
+
+                                return Promise.all(proms);
+
+
                         }
                     }
                 );
@@ -454,79 +465,124 @@ var dbQualityInspection = {
             else {
                 let queryArr = [];
                 let proms = [];
-
-                return dbconfig.collection_platform.find({companyId: {$exists: true}}).then(
+                return dbconfig.collection_platform.find({live800CompanyId: {$exists: true}}).lean().then(
                     platformDetail => {
                         if(platformDetail && platformDetail.length > 0){
 
                             platformDetail.map(p => {
-                                let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime ,company_id  FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
-                                if(p.companyId){
-                                    queryString += "AND company_id=" + p.companyId + " "
+                                let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime  FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
+                                if(p.live800CompanyId){
+                                    //queryString += "AND company_id IN ('" + p.live800CompanyId + "') ";
+                                    queryString += "AND company_id IN (" + p.live800CompanyId + ") ";
                                 }
-                                queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd'),company_id "
-                                console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAa",queryString)
-                                queryArr.push(queryString)
+                                queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd') ";
+                                queryArr.push({query: queryString, live800CompanyId: p.live800CompanyId});
 
                             })
                             return queryArr;
 
-                        }
+                        }else{
 
+                        }
                     }
                 ).then(
                     query => {
                         if(query && query.length > 0){
+
                             query.map(q => {
-                                let connection = dbQualityInspection.connectMysql();
-                                connection.connect();
-                                proms.push(dbQualityInspection.getLive800RecordByMySQL(q, connection));
+                                if(q.query.length > 0 && q.live800CompanyId){
+                                    let connection = dbQualityInspection.connectMysql();
+                                    connection.connect();
+                                    proms.push(dbQualityInspection.getLive800RecordByMySQL(q.query, q.live800CompanyId, connection));
+                                }
                             })
 
                             return Promise.all(proms);
+
+
                         }
                     }
                 );
+                // let queryArr = [];
+                // let proms = [];
+                // return dbconfig.collection_platform.find({live800CompanyId: {$exists: true}}).then(
+                //     platformDetail => {
+                //         if(platformDetail && platformDetail.length > 0){
+                //
+                //             platformDetail.map(p => {
+                //                 let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
+                //                 if(p.live800CompanyId){
+                //                     queryString += "AND company_id IN ('" + p.live800CompanyId + "') ";
+                //                 }
+                //                 queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd') ";
+                //                 queryArr.push(queryString);
+                //
+                //             })
+                //             return queryArr;
+                //
+                //         }else{
+                //
+                //         }
+                //     }
+                // ).then(
+                //     query => {
+                //         if(query && query.length > 0){
+                //             query.map(q => {
+                //                 let connection = dbQualityInspection.connectMysql();
+                //                 connection.connect();
+                //                 proms.push(dbQualityInspection.getLive800RecordByMySQL(q, connection));
+                //             })
+                //
+                //             return Promise.all(proms);
+                //         }
+                //     }
+                // );
             }
         }
     },
 
-    getLive800RecordByMySQL:function(queryString,connection){
+    getLive800RecordByMySQL:function(queryString,live800CompanyId, connection){
         var deferred = Q.defer();
         let proms = [];
 
-        connection.query(queryString, function (error, results, fields) {
-            console.log("live 800 result",results)
-            if (error) throw error;
+        if(connection){
+            connection.query(queryString, function (error, results, fields) {
+                //console.log("live 800 result",results)
+                if (error) throw error;
 
-            results.forEach(result => {
-                let startTime = new Date(result.storeTime);
-                let endTime = new Date();
-                endTime.setDate(startTime.getDate() + 1);
+                results.forEach(result => {
+                    let startTime = new Date(result.storeTime);
+                    let endTime = new Date();
+                    endTime = dbUtility.getISODayEndTime(startTime);
 
-                proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, result.company_id,result.totalRecord));
+                    proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));
+                });
+                return Q.all(proms).then(data => {
+                    //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa",data);
+                    deferred.resolve(data);
+                    connection.end();
+                })
             });
-            return Q.all(proms).then(data => {
-                deferred.resolve(data);
-                connection.end();
-            })
-        });
-        return deferred.promise;
+            return deferred.promise;
+        }else{
+
+        }
+
     },
 
-    calEvaluationProgress: function(startTime, endTime, companyId, totalRecordFromLive800){
+    calEvaluationProgress: function(startTime, endTime, live800CompanyId, totalRecordFromLive800){
 
         let platformName = "";
         //let resultArr = [];
         let query = {
-            companyId: companyId,
+            companyId: {$in: live800CompanyId},
             createTime: {
                 $gte: startTime,
                 $lt: endTime
             }
         }
-
-        return dbconfig.collection_platform.findOne({companyId: companyId}).then(
+        console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFf",live800CompanyId);
+        return dbconfig.collection_platform.findOne({live800CompanyId: {$in: live800CompanyId}}).lean().then(
             platformDetail => {
                 if(platformDetail)
                 {
@@ -551,22 +607,17 @@ var dbQualityInspection = {
 
                 let result = {
                     platformName: platformName,
-                    companyId: companyId,
+                    //companyId: companyId,
                     totalRecord: totalRecordFromLive800,
                     isCompleted: isCompleted,
                     totalRecordFromFPMS:qualityInspectionCount ? qualityInspectionCount : 0,
                     date: startTime
                 };
-
                 return result;
             }
         )
-<<<<<<< HEAD
-=======
 
->>>>>>> mark/live800main
-
-        return dbconfig.collection_qualityInspection.find(query).count().exec();
+        //return dbconfig.collection_qualityInspection.find(query).count().exec();
     },
 
     // searchLive8001: function (query) {
