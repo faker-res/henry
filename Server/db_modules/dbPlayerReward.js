@@ -279,15 +279,19 @@ let dbPlayerReward = {
             let isTopUpTypeValid = false;
             if (lastTopUp) {
                 isTopUpTypeValid = true;
-                if (event.condition.userAgent && lastTopUp.userAgent && event.condition.userAgent.length > 0 && event.condition.userAgent.indexOf(lastTopUp.userAgent) === -1) {
+                if(!lastTopUp.userAgent) {
+                    lastTopUp.userAgent = "0";
+                }
+
+                if (event.condition.userAgent && event.condition.userAgent.length > 0 && event.condition.userAgent.indexOf(lastTopUp.userAgent) === -1) {
                     isTopUpTypeValid = false;
                 }
 
-                if (event.condition.topUpType && event.condition.topUpType.length > 0 && event.condition.topUpType.indexOf(lastTopUp.topUpType) === -1) {
+                if (event.condition.topupType && event.condition.topupType.length > 0 && event.condition.topupType.indexOf(lastTopUp.topUpType) === -1) {
                     isTopUpTypeValid = false;
                 }
 
-                if (event.condition.merchantTopUpType && lastTopUp.merchantTopUpType && event.condition.merchantTopUpType.length > 0 && event.condition.merchantTopUpType.indexOf(lastTopUp.merchantTopUpType) === -1) {
+                if (event.condition.onlineTopUpType && lastTopUp.merchantTopUpType && event.condition.onlineTopUpType.length > 0 && event.condition.onlineTopUpType.indexOf(lastTopUp.merchantTopUpType) === -1) {
                     isTopUpTypeValid = false;
                 }
 
