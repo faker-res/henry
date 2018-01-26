@@ -836,7 +836,7 @@ let dbPlayerCreditTransfer = {
 
                 if (rewardTaskGroup) {
                     // There is on-going reward task group
-                    lockedTransferAmount += rewardTaskGroup.rewardAmt;
+                    lockedTransferAmount += parseInt(rewardTaskGroup.rewardAmt);
                     rewardTaskGroup._inputFreeAmt += validTransferAmount;
                     rewardTaskGroupObjId = rewardTaskGroup._id;
                 }

@@ -200,9 +200,11 @@ let dbPlayerReward = {
             let similarRewardProposalProm = Promise.resolve([]);
             let lastTopUpProm = Promise.resolve([]);
             let numberOfTopUpProm = Promise.resolve(0);
+            let lastConsumptionProm = Promise.resolve([]);
+            let lastValidWithdrawalProm = Promise.resolve([]);
 
             if (!player) {
-                return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm]);
+                return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm, lastConsumptionProm, lastValidWithdrawalProm]);
             }
 
             let rewardProposalQuery = {
@@ -210,6 +212,17 @@ let dbPlayerReward = {
                 "data.playerObjId": player._id,
                 "data.eventId": event._id,
                 status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            };
+
+            let lastConsumptionQuery = {
+                platformId: platform._id,
+                playerId: player._id
+            };
+
+            let lastValidWithdrawalQuery = {
+                mainType: "PlayerBonus",
+                "data.playerId": player.playerId,
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]}
             };
 
             let lastTopUpQuery = {playerId: player._id};
@@ -223,11 +236,15 @@ let dbPlayerReward = {
 
             lastTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).sort({createTime: -1}).limit(1).lean();
 
+            lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(lastConsumptionQuery).sort({createTime: -1}).limit(1).lean();
+
+            lastValidWithdrawalProm = dbConfig.collection_proposal.find(lastValidWithdrawalQuery).sort({createTime: -1}).limit(1).lean();
+
             numberOfTopUpProm = dbConfig.collection_playerTopUpRecord.find(lastTopUpQuery).count();
 
-            return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm]);
+            return Promise.all([similarRewardProposalProm, lastTopUpProm, numberOfTopUpProm, lastConsumptionProm, lastValidWithdrawalProm]);
         }).then(data => {
-            if (!data || !data[0] || !data[1]) {
+            if (!data || !data[0] || !data[1] || !data[3] || !data[4]) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,
                     message: "Error in finding proposal"
@@ -236,6 +253,8 @@ let dbPlayerReward = {
             let rewardProposals = data[0];
             let lastTopUp = data[1][0];
             let numberOfTopUpWithinPeriod = data[2];
+            let lastConsumptionRecord = data[3][0];
+            let lastWithdrawalProposal = data[4][0];
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -279,19 +298,31 @@ let dbPlayerReward = {
             let isTopUpTypeValid = false;
             if (lastTopUp) {
                 isTopUpTypeValid = true;
-                if (event.condition.userAgent && lastTopUp.userAgent && event.condition.userAgent.length > 0 && event.condition.userAgent.indexOf(lastTopUp.userAgent) === -1) {
+                if(!lastTopUp.userAgent) {
+                    lastTopUp.userAgent = "0";
+                }
+
+                if (event.condition.userAgent && event.condition.userAgent.length > 0 && event.condition.userAgent.indexOf(lastTopUp.userAgent) === -1) {
                     isTopUpTypeValid = false;
                 }
 
-                if (event.condition.topUpType && event.condition.topUpType.length > 0 && event.condition.topUpType.indexOf(lastTopUp.topUpType) === -1) {
+                if (event.condition.topupType && event.condition.topupType.length > 0 && event.condition.topupType.indexOf(lastTopUp.topUpType) === -1) {
                     isTopUpTypeValid = false;
                 }
 
-                if (event.condition.merchantTopUpType && lastTopUp.merchantTopUpType && event.condition.merchantTopUpType.length > 0 && event.condition.merchantTopUpType.indexOf(lastTopUp.merchantTopUpType) === -1) {
+                if (event.condition.onlineTopUpType && lastTopUp.merchantTopUpType && event.condition.onlineTopUpType.length > 0 && event.condition.onlineTopUpType.indexOf(lastTopUp.merchantTopUpType) === -1) {
                     isTopUpTypeValid = false;
                 }
 
                 if (event.condition.bankCardType && lastTopUp.bankCardType && event.condition.bankCardType.length > 0 && event.condition.bankCardType.indexOf(lastTopUp.bankCardType) === -1) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (!event.condition.allowConsumptionAfterTopUp && lastConsumptionRecord && lastTopUp.createTime < lastConsumptionRecord.createTime) {
+                    isTopUpTypeValid = false;
+                }
+
+                if (!event.condition.allowApplyAfterWithdrawal && lastWithdrawalProposal && lastTopUp.createTime < lastWithdrawalProposal.createTime) {
                     isTopUpTypeValid = false;
                 }
             }
