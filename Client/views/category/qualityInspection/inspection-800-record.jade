@@ -38,9 +38,9 @@
                     option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}}') {{v | translate}}
             .inlineBlk
                 label {{"QA" | translate}}
-                select.form-control(ng-model='vm.playerFeedbackQuery.playerLevel')
+                select.form-control(ng-model='vm.inspection800.qiUser')
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                    option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-click='vm.searchLive800()') {{"SEARCH" | translate}}
                 span.collapse

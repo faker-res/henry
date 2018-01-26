@@ -28,11 +28,11 @@ var dbQualityInspection = {
         if (query.companyId&&query.companyId.length > 0) {
            let companyId = query.companyId.join(',');
             // queryObj += " company_id=" + query.companyId + " AND ";
-            queryObj += " company_id IN ('" + companyId + "') AND ";
+            queryObj += " company_id IN (" + companyId + ") AND ";
         }
         if (query.operatorId) {
             let operatorId = query.operatorId.join(',');
-            queryObj += " operator_id IN ('" + operatorId + "') AND ";
+            queryObj += " operator_id IN (" + operatorId + ") AND ";
         }
         if (query.startTime && query.endTime) {
             // queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
@@ -70,6 +70,10 @@ var dbQualityInspection = {
         if(query.companyId && query.companyId.length > 0 ){
             queryQA.companyId = {'$in':query.companyId};
         }
+        if(query.qualityAssessor && query.qualityAssessor.length > 0){
+            queryQA.qualityAssessor = {'$in': query.qualityAssessor};
+        }
+        console.log(query);
         return dbconfig.collection_qualityInspection.find(queryQA).lean()
             .then(results => {
                 console.log(results);
@@ -132,6 +136,7 @@ var dbQualityInspection = {
                 let condition = msgIds.join(',');
                 let timeQuery = " store_time BETWEEN CAST('"+queryObj.startTime+"' as DATETIME) AND CAST('"+queryObj.endTime+"' AS DATETIME)";
                 let query = timeQuery + " AND msg_id IN (" + condition + ")"
+                console.log(query);
                 let connection = dbQualityInspection.connectMysql();
                 connection.connect();
                 let dbData = dbQualityInspection.searchMySQLDB(query, connection);
@@ -198,10 +203,10 @@ var dbQualityInspection = {
             let live800Chat = {conversation: [], live800Acc:{}};
             live800Chat.messageId = item.msg_id;
             live800Chat.status = item.status;
-            live800Chat.qualityAssessor = '';
+            live800Chat.qualityAssessor = item.qualityAssessor;
             live800Chat.fpmsAcc = item.operator_name;
-            live800Chat.processTime = null;
-            live800Chat.appealReason = '';
+            live800Chat.processTime = item.processTime;
+            live800Chat.appealReason = item.appealReason;
             live800Chat.companyId = item.company_id;
             live800Chat.createTime = item.store_time;
 

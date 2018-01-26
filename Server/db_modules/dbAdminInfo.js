@@ -73,11 +73,10 @@ var dbAdminInfo = {
     getAdminsInfo: function (query) {
         return dbconfig.collection_admin.find(query).exec();
     },
-    getMultiAdmins: function(data){
+    getCSAdmins: function(data){
         let deferred = Q.defer();
         let proms = [];
         for(var d in data){
-          console.log(data[d]);
           let prom = dbconfig.collection_admin.find({_id: data[d]}).lean();
           proms.push(prom)
         }
@@ -86,7 +85,18 @@ var dbAdminInfo = {
         })
         return deferred.promise;
     },
-
+    getQIAdmins: function(data){
+        let deferred = Q.defer();
+        let proms = [];
+        for(var d in data){
+            let prom = dbconfig.collection_admin.find({_id: data[d]}).lean();
+            proms.push(prom)
+        }
+        Q.all(proms).then(data=>{
+            deferred.resolve(data[0]);
+        })
+        return deferred.promise;
+    },
     /**
      * Get all admin users detailed info
      * @param {String} query - Query string
