@@ -41,6 +41,8 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                             i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                                     button.common-button.btn.btn-primary(ng-click='vm.getWorkloadReport()') {{'SEARCH' | translate}}
+                                .inlineBlk(ng-show='vm.loadingWorkloadReportTable')
+                                    label.blink.text-danger {{'Loading' | translate}}
 
                                 .row
                                     //label {{"Total" | translate}} {{vm.playerRegistrationRecords.totalCount}} {{"records" | translate}}

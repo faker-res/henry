@@ -128,7 +128,7 @@ var dbQualityInspection = {
             });
             if (msgIds.length > 0) {
                 let condition = msgIds.join(',');
-                let timeQuery = " store_time BETWEEN CAST('"+queryObj.startTime+"' as DATETIME) AND CAST('"+queryObj.endTime+"' AS DATETIME)";
+                let timeQuery = "store_time BETWEEN CAST('"+queryObj.startTime+"' as DATETIME) AND CAST('"+queryObj.endTime+"' AS DATETIME)";
                 let query = timeQuery + " AND msg_id IN (" + condition + ")"
                 let connection = dbQualityInspection.connectMysql();
                 connection.connect();
@@ -286,7 +286,20 @@ var dbQualityInspection = {
             },
             status: constQualityInspectionStatus.COMPLETED_UNREAD
         }
-        return dbconfig.collection_qualityInspection.find(query).lean();
+        return dbconfig.collection_qualityInspection.find(query).lean().then(
+            unreadEvaluationData => {
+                if(unreadEvaluationData && unreadEvaluationData.length > 0){
+                    //let dbResult = dbQualityInspection.searchMongoDB(query);
+                    let queryToSearchFromMySQL = {
+                        startTime: startTime,
+                        endTime: endTime
+                    }
+                    let result = dbQualityInspection.getMySQLConversation(unreadEvaluationData,queryToSearchFromMySQL);
+                    conversationForm = dbQualityInspection.fillContent(result);
+                    return conversationForm;
+                }
+            }
+        );
     },
 
     getReadEvaluationRecord: function(startTime, endTime){
@@ -542,7 +555,6 @@ var dbQualityInspection = {
                             platformDetail.map(p => {
                                 let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime  FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
                                 if(p.live800CompanyId){
-                                    //queryString += "AND company_id IN ('" + p.live800CompanyId + "') ";
                                     queryString += "AND company_id IN (" + p.live800CompanyId + ") ";
                                 }
                                 queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd') ";
@@ -568,8 +580,6 @@ var dbQualityInspection = {
                                 })
 
                                 return Promise.all(proms);
-
-
                         }
                     }
                 );
@@ -610,45 +620,9 @@ var dbQualityInspection = {
                             })
 
                             return Promise.all(proms);
-
-
                         }
                     }
                 );
-                // let queryArr = [];
-                // let proms = [];
-                // return dbconfig.collection_platform.find({live800CompanyId: {$exists: true}}).then(
-                //     platformDetail => {
-                //         if(platformDetail && platformDetail.length > 0){
-                //
-                //             platformDetail.map(p => {
-                //                 let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
-                //                 if(p.live800CompanyId){
-                //                     queryString += "AND company_id IN ('" + p.live800CompanyId + "') ";
-                //                 }
-                //                 queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd') ";
-                //                 queryArr.push(queryString);
-                //
-                //             })
-                //             return queryArr;
-                //
-                //         }else{
-                //
-                //         }
-                //     }
-                // ).then(
-                //     query => {
-                //         if(query && query.length > 0){
-                //             query.map(q => {
-                //                 let connection = dbQualityInspection.connectMysql();
-                //                 connection.connect();
-                //                 proms.push(dbQualityInspection.getLive800RecordByMySQL(q, connection));
-                //             })
-                //
-                //             return Promise.all(proms);
-                //         }
-                //     }
-                // );
             }
         }
     },
@@ -670,7 +644,6 @@ var dbQualityInspection = {
                     proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));
                 });
                 return Q.all(proms).then(data => {
-                    //console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa",data);
                     deferred.resolve(data);
                     connection.end();
                 })
@@ -685,7 +658,6 @@ var dbQualityInspection = {
     calEvaluationProgress: function(startTime, endTime, live800CompanyId, totalRecordFromLive800){
 
         let platformName = "";
-        //let resultArr = [];
         let query = {
             companyId: {$in: live800CompanyId},
             createTime: {
@@ -693,7 +665,6 @@ var dbQualityInspection = {
                 $lt: endTime
             }
         }
-        console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFf",live800CompanyId);
         return dbconfig.collection_platform.findOne({live800CompanyId: {$in: live800CompanyId}}).lean().then(
             platformDetail => {
                 if(platformDetail)
@@ -729,30 +700,7 @@ var dbQualityInspection = {
             }
         )
 
-        //return dbconfig.collection_qualityInspection.find(query).count().exec();
     },
-
-    // searchLive8001: function (query) {
-    //     let conversationForm = [];
-    //     let queryObj = "";
-    //     if (query.companyId) {
-    //         queryObj += " company_id=" + query.companyId + " AND ";
-    //     }
-    //     if (query.operatorId) {
-    //         queryObj += " operator_id=" + query.operatorId + " AND ";
-    //     }
-    //     if (query.startTime && query.endTime) {
-    //         queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
-    //     }
-    //     if(query.status!='all'){
-    //         conversationForm = dbQualityInspection.searchMongoDB(query);
-    //     }else{
-    //         let connection = dbQualityInspection.connectMysql();
-    //         connection.connect();
-    //         conversationForm = dbQualityInspection.searchMySQLDB(queryObj,connection);
-    //     }
-    //     return conversationForm;
-    // },
     searchMySQLDB1:function(queryObj,connection){
         var deferred = Q.defer();
         let proms = [];

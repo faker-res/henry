@@ -507,6 +507,7 @@ define(['js/app'], function (myApp) {
 
             //////////////////////////////////////////////////////////Start of Evaluation Tab///////////////////////////////////////////////////////////////////
             vm.getUnreadEvaluationRecord = function() {
+                vm.loadingUnreadEvaluationTable = true;
                 var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
@@ -524,18 +525,26 @@ define(['js/app'], function (myApp) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
+                            data.conversation.forEach(function(cv){
+                                cv.roleName = vm.roleType[data.type];
+                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                            });
+
                             return data;
                         })
                         vm.unreadEvaluationTable = data.data;
-                        $scope.safeApply();
                     }else{
                         vm.unreadEvaluationTable = "";
-                        $scope.safeApply();
                     }
+
+                    vm.loadingUnreadEvaluationTable = false;
+                    $scope.safeApply();
                 });
             }
 
             vm.getReadEvaluationRecord = function() {
+                vm.loadingReadEvaluationTable = true;
                 var startTime = $('#readEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#readEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
@@ -555,16 +564,18 @@ define(['js/app'], function (myApp) {
                             return data;
                         })
                         vm.readEvaluationTable = data.data;
-                        $scope.safeApply();
 
                     }else{
                         vm.readEvaluationTable = "";
-                        $scope.safeApply();
                     }
+
+                    vm.loadingReadEvaluationTable = false;
+                    $scope.safeApply();
                 });
             }
 
             vm.getAppealEvaluationRecordByConversationDate = function(){
+                vm.loadingAppealEvaluationTable = true;
                 var startTime = $('#conversationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#conversationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
@@ -585,16 +596,17 @@ define(['js/app'], function (myApp) {
                             return data;
                         })
                         vm.appealEvaluationTable = data.data;
-                        $scope.safeApply();
-
                     }else{
                         vm.appealEvaluationTable = "";
-                        $scope.safeApply();
                     }
+
+                    vm.loadingAppealEvaluationTable = false;
+                    $scope.safeApply();
                 });
             }
 
             vm.getAppealEvaluationRecordByAppealDate = function(){
+                vm.loadingAppealEvaluationTable = true;
                 var startTime = $('#appealEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#appealEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
@@ -615,12 +627,13 @@ define(['js/app'], function (myApp) {
                             return data;
                         })
                         vm.appealEvaluationTable = data.data;
-                        $scope.safeApply();
 
                     }else{
                         vm.appealEvaluationTable = "";
-                        $scope.safeApply();
                     }
+
+                    vm.loadingAppealEvaluationTable = false;
+                    $scope.safeApply();
                 });
             }
 
@@ -681,6 +694,7 @@ define(['js/app'], function (myApp) {
 
             //////////////////////////////////////////////////////////Start of Report Tab///////////////////////////////////////////////////////////////////
             vm.getWorkloadReport = function(newSearch) {
+                vm.loadingWorkloadReportTable = true;
                 var startTime = $('#reportConversationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#reportConversationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
@@ -806,15 +820,12 @@ define(['js/app'], function (myApp) {
                         setTimeout(function () {
                             $('#workloadReportTable').resize();
                         }, 300);
-
-
-                        $scope.safeApply();
-
-
                     }else{
                         vm.appealEvaluationTable = "";
-                        $scope.safeApply();
                     }
+
+                    vm.loadingWorkloadReportTable = false;
+                    $scope.safeApply();
                 });
             }
 
@@ -913,10 +924,14 @@ define(['js/app'], function (myApp) {
                         })
                         vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
                         vm.evaluationProgressTable = resultArr;
-                        vm.loadingEvaluationProgressTable = false
-                        $scope.safeApply();
+
                         //vm.getUnreadEvaluationRecord();
+                    }else{
+
                     }
+
+                    vm.loadingEvaluationProgressTable = false;
+                    $scope.safeApply();
 
 
 
