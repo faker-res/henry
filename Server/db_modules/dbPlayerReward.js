@@ -812,7 +812,7 @@ let dbPlayerReward = {
 
             let outputObject = {
                 lockedGroup: gameProviderGroupName,
-                currentGradeId: playerLevel._id,
+                currentGradeId: playerLevel.value,
                 currentGradeName: playerLevel.name,
                 gradeList: gradeList,
                 open: Open,
