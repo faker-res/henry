@@ -98,10 +98,15 @@ function socketActionAdmin(socketIO, socket) {
             var isValidData = Boolean(data && (data.adminName || data._id || data.departments));
             socketUtil.emitter(self.socket, dbAdminInfo.getAdminsInfo, [data], actionName, isValidData);
         },
-        getMultiAdmins: function getMultiAdmins(data) {
+        getQIAdmins: function getQIAdmins(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbAdminInfo.getMultiAdmins, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbAdminInfo.getQIAdmins, [data], actionName, isValidData);
+        },
+        getCSAdmins: function getCSAdmins(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbAdminInfo.getCSAdmins, [data], actionName, isValidData);
         },
         /**
          * Get all admin users info
