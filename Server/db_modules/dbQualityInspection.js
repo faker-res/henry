@@ -22,10 +22,7 @@ var dbQualityInspection = {
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
-<<<<<<< HEAD
-        if (query.companyId) {
-            queryObj += " company_id=" + query.companyId + " AND ";
-=======
+
         //companyIds;
         //live800Accs
         console.log(query);
@@ -33,7 +30,6 @@ var dbQualityInspection = {
            let companyId = query.companyId.join(',');
             // queryObj += " company_id=" + query.companyId + " AND ";
             queryObj += " company_id IN ('" + companyId + "') AND ";
->>>>>>> mark/live800main
         }
         if (query.operatorId) {
             let operatorId = query.operatorId.join(',');
@@ -563,8 +559,6 @@ var dbQualityInspection = {
                 return result;
             }
         )
-<<<<<<< HEAD
-
 
         return dbconfig.collection_qualityInspection.find(query).count().exec();
     },
@@ -650,8 +644,6 @@ var dbQualityInspection = {
 
 
 
-=======
-    }
->>>>>>> mark/live800main
+
 };
 module.exports = dbQualityInspection;
