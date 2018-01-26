@@ -15,7 +15,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     .fa.fa-wrench.margin-right-5
                                     text.span {{"WORKLOAD REPORT" | translate}}
                             li(ng-show="checkViewPermission('QualityInspection', 'Report', 'Read')")
-                                a.common-tab(data-toggle="tab", ng-click="vm.inspectionReportTab ='evaluationProgress'")
+                                a.common-tab(data-toggle="tab", ng-click="vm.inspectionReportTab ='evaluationProgress';vm.initEvaluationProgress()")
                                     .fa.fa-file-text.margin-right-5
                                     text.span {{"EVALUATION PROGRESS" | translate}}
                     .panel-body.common-right-panel-body
@@ -86,35 +86,58 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             #evaluationProgressDiv.tab-pane.fade.in.active
                                 .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
                                     label {{'YEAR - MONTH' | translate}}
-                                    select.form-control(ng-model="vm.yearMonth" ng-init='vm.yearMonth="all"')
-                                        option(value='all' selected="true") {{'ALL' | translate}}
-                                        option(ng-repeat='(i,v) in vm.yearMonth', value='{{v}}') {{i|translate}}
+                                    select.form-control(ng-model="vm.yearMonth")
+                                        option(ng-repeat='v in vm.evaluationProgressYearMonth', value='{{v}}') {{v.year}} - {{v.month}}
+                                    //select.form-control(ng-model="vm.yearMonth", ng-init="vm.yearMonth = vm.yearMonth || vm.evaluationProgressYearMonth[0].date", ng-options='yearMonth.date  for yearMonth in vm.evaluationProgressYearMonth')
+                                        //option(ng-repeat='(i,v) in vm.evaluationProgressYearMonth', value='{{v.year - v.month}}') {{v.year}} - {{v.month}}
                                 .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
                                     label {{'PRODUCT(DEPARTMENT)' | translate}}
                                     select.spicker.form-control(ng-model='vm.playerDomain', multiple, data-actions-box='true', bsp)
                                         option(ng-repeat='(i,v) in vm.platformList', value='{{v.data._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.data.name}}
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-primary(ng-click='vm.getReadEvaluationRecord()') {{'SEARCH' | translate}}
+                                    button.common-button.btn.btn-primary(ng-click='vm.getEvaluationProgressRecord()') {{'SEARCH' | translate}}
 
-                                .row(style='background-color:#337ab7;margin: 5px 2px 0px 2px;padding: 10px 2px; border-bottom: 1px solid #111;')
-                                    div.col-md-1(style='display:inline-block;padding-left:5px;') {{"PRODUCT_NAME" | translate}}
-                                    div.col-md-1(style='display:inline-block;padding-left:5px;') {{vm.yearMonth | translate}}
+                                //.row(style='background-color:#337ab7;margin: 5px 2px 0px 2px;padding: 10px 2px; border-bottom: 1px solid #111;')
+                                //    div.col-md-1(style='display:inline-block;padding-left:5px;') {{"PRODUCT_NAME" | translate}}
+                                //    div.col-md-1(style='display:inline-block;padding-left:5px;') {{vm.evaluationProgressTableTitle | translate}}
 
-                                .row
-                                    #readEvaluationForm(ng-repeat='readTable in vm.readEvaluationTable')
-                                        div.row
-                                            div.col-md-1(style='display:inline-block;padding-left:10px;') {{readTable.status | translate}}
-                                            div.col-md-7(style='display:inline-block;padding-left:5px;background-color:#CECECE;border-bottom:1px solid black')
-                                                div.row(ng-repeat='c in readTable.conversation')
-                                                    div.col-md-1 {{readTable.fpmsAcc}}
-                                                    div.col-md-1 {{c.roles}}
-                                                    div.col-md-1 {{c.createTime}}
-                                                    div.col-md-1 '对话内容...'
-                                                    div.col-md-1 {{c.timeoutRate}}
-                                                    div.col-md-1 {{c.inspectionRate}}
-                                                    div.col-md-1 {{c.review}}
+                                //.row(style='margin: 5px 2px 0px 2px;padding: 10px 2px; ')
+                                //    #evaluationProgressForm(ng-repeat='progress in vm.evaluationProgressTable')
+                                //        div.row
+                                //            div.col-md-1(style='display:inline-block;padding-left:10px;') {{progress.platformName | translate}}
 
-                                            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.qualityAssessor}}
-                                            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.processTime}}
-                                            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.appealReason}}
+                                .row(style='margin: 5px 2px 0px 2px;padding: 10px 2px; ')
+                                    table#evaluationProgressTable.simple-table.table-vertical-middle.limitOffersTB
+                                        thead
+                                            th.col-md-2 {{"PRODUCT_NAME" | translate}}
+                                            th(colspan=7) {{vm.evaluationProgressTableTitle | translate}}
+                                        tbody(ng-repeat="progress in vm.evaluationProgressTable")
+                                            tr
+                                                td {{progress.platformName}}
 
+                                                td
+                                                    table
+                                                        tbody
+                                                            tr
+                                                                td
+
+                                            //td(ng-repeat="(i,v) in cond.header track by $index")
+                                            //    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                            //    span.percentage(ng-if="v.type == 'percentage'")
+                                            //        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+                                            //    table(ng-if="v.type == 'PercentageAmount'")
+                                            //        thead
+                                            //            tr
+                                            //                th {{'Percentage' | translate}}
+                                            //                th {{'Amount' | translate}}
+                                            //                th
+                                            //        tbody
+                                            //            tr(ng-repeat='(idx,val) in entry[i]')
+                                            //                td
+                                            //                    span.percentage
+                                            //                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='val.percentage')
+                                            //                td
+                                            //                    input(type="number" ng-model="val.amount" style="width: 150px;")
+                                            //                td
+                                            //                    i.fa.fa-minus(ng-click='vm.rewardPercentageAmountDeleteRow(idx,entry[i])' ng-show='vm.platformRewardIsEnabled && idx!=0')
+                                            //                    i.fa.fa-plus(ng-click='vm.rewardPercentageAmountNewRow(entry[i])' ng-show='vm.platformRewardIsEnabled && idx==0')
