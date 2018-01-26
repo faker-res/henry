@@ -12755,7 +12755,7 @@ let dbPlayerInfo = {
                         returnData.gameCreditList[i] = {
                             nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
                             validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: "",
-                            // status: gameCreditList[i].status,
+                            status: gameCreditList[i].status,
                             // providerId: gameCreditList[i].providerId
                         };
                     }
