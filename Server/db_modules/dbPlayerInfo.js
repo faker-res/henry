@@ -12784,7 +12784,8 @@ let dbPlayerInfo = {
                                         listData.push({
                                             providerId: gameItem.providerId,
                                             nickName: gameItem.nickName,
-                                            validCredit: gameItem.gameCredit
+                                            validCredit: gameItem.gameCredit,
+                                            status: gameItem.status
                                         })
                                     }
                                 })
