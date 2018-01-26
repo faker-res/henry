@@ -7241,6 +7241,44 @@ define(['js/app'], function (myApp) {
                     delete updateData.alipayGroup;
                     delete updateData.quickPayGroup;
 
+                    updateData.remark = ""
+                    if (updateData.partnerName) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("partner");
+                    }
+                    if (updateData.playerLevel) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("PLAYER_LEVEL");
+                    }
+                    if (updateData.realName) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("realName");
+                    }
+                    if (updateData.referralName) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("REFERRAL");
+                    }
+                    if (updateData.DOB) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("DOB");
+                    }
+                    if (updateData.gender) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("GENDER");
+                    }
+
                     if (isUpdate) {
                         socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
