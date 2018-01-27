@@ -6,13 +6,13 @@
         label {{'PRODUCT' | translate}}
         select.spicker.form-control(ng-model='vm.selectedPlatformID', data-actions-box='true', ng-change="vm.checkSelectedPlatformID(vm.selectedPlatformID)" )
             option(value='all') {{'ALL' | translate}}
-            option(ng-repeat='(i,v) in vm.platformList', ng-init="vm.endLoadMultipleSelect(); vm.selectedPlatformID = 'all' ", value='{{v.data._id}}') {{v.data.name}}
+            option(ng-repeat='(i,v) in vm.platformWithCSDepartment', ng-init="vm.endLoadMultipleSelect(); vm.selectedPlatformID = 'all' ", value='{{v.data._id}}') {{v.data.name}}
         //select.form-control#selectProduct(multiple="multiple", ng-options='product.data._id as product.data.name for product in vm.platformList track by product.data.name ', ng-model='vm.selectedPlatformID', ng-change="vm.checkPlatformIDDebounced(vm.selectedPlatformID)")
         //select.form-control#selectProduct(multiple="multiple", ng-options='product.id as product.text for product in vm.platformList', ng-model='vm.selectedPlatformID')
         //select.form-control(ng-change='vm.filterProduct()', ng-model='vm.selectedPlatformID', ng-options='product.id as product.text for product in vm.platformList', multiple, bsp, data-actions-box='true',ng-init="vm.initSelectedPlatform()")
     div(style='width:200px')
         label FPMS {{'CS Account' | translate}}
-        select.spicker.form-control(ng-model='vm.selectedCS', multiple, data-actions-box='true', bsp, ng-change="vm.checkSelectedCSAcc(vm.selectedCS)" )
+        select.spicker.form-control(ng-model='vm.selectedCS', multiple, data-actions-box='true', bsp, ng-change="vm.checkSelectedCSAcc(vm.selectedCS)",max-height='100px',style="overflow-y:auto; max-height:100px;" )
             option(ng-repeat='(i,v) in vm.selectedCSAccount', value='{{v._id}}', ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
         //select.form-control(ng-model='vm.selectedPlatformID', data-actions-box='true', ng-change="vm.checkSelectedPlatformID(vm.selectedPlatformID)" )
         //    option(value='all') {{'ALL' | translate}}
@@ -22,7 +22,7 @@
         //select.form-control.#selectCSAccount(ng-change='', ng-model='',ng-options='i._id as i.adminName for (k,i) in ( vm.selectedCSAccount | unique: "adminName" ) track by i.adminName', multiple, bsp, data-actions-box='true')
     div(style='width:200px')
         label Live800 {{'Account' | translate}}
-        select.spicker.form-control(ng-model='vm.selectedLive800', ng-options='v.live800Acc as v.live800Acc group by v.adminName for v in vm.selectedLive800Acc',multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()')
+        select.spicker.form-control(ng-model='vm.selectedLive800', ng-options='v.live800Acc as v.live800Acc group by v.adminName for v in vm.selectedLive800Acc',multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()', style="overflow-y:auto; max-height:100px;")
             //option(value='') {{'CHOOSE_OFFICER' | translate}}
         //select.spicker.form-control(ng-model='vm.selectedLive800', multiple, data-actions-box='true', bsp )" )
         //    option(ng-repeat='(i,v) in vm.selectedLive800Acc | orderBy: "adminName"', value='{{v}}', ng-init='$last && vm.endLoadMultipleSelect()' ) <b>{{v.adminName}} - ({{v.live800Acc}}) </b>
@@ -38,7 +38,8 @@
         .endTime
     div
         label &nbsp;
-        button.button.common-button.btn.btn-primary(ng-click='vm.searchQIRecord(true);vm.showReportModalNew()') {{'SEARCH' | translate}}
+        button.button.common-button.btn.btn-primary(ng-click='vm.searchQIRecord(true)') {{'SEARCH' | translate}}
+        //;vm.showReportModalNew()
         //button.button.common-button.btn.btn-primary(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
         span#QIReportTableSpin.collapse
             i.fa.fa-spinner.fa-spin
@@ -46,144 +47,5 @@
 label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}}
 table#QIReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
 #QIReportTablePage
-
-
-
-#modalReport.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title FPMS Account_ID
-                //{{'' | translate}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        div(style='overflow:auto;width: auto;')
-                            table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;')
-                                thead
-                                    tr
-                                        th Live800 {{'Account' | translate}}
-                                        th {{'TOTAL_CONVERSATION_RECORD' | translate}}
-                                        th {{'NOT_EVALUATED_QUANTITY' | translate}}
-                                        th {{'EFFECTIVE_CONVERSATION_QUANTITY' | translate}}
-                                        th {{'PROCESSING_QUANTITY' | translate}}
-                                        th {{'COMPLETED_UNREAD_QUANTITY' | translate}}
-                                        th {{'COMPLETED_READ_QUANTITY' | translate}}
-                                        th {{'COMPLETED_QUANTITY' | translate}}
-                                        th {{'APPEALING_QUANTITY' | translate}}
-                                        th {{'APPEAL_COMPLETED_QUANTITY' | translate}}
-                                        th {{'TOTAL_OVERTIME_MARK' | translate}}
-                                        th {{'TOTAL_EVALUATION_MARK' | translate}}
-                                        th {{'AVG_DEDUCTION_MARK' | translate}}
-
-                                tbody
-                                    tr()
-                                        td
-                                            text {{1231}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-                                        td
-                                            text {{1212}}
-
-
-
-            //.modal-footer
-            //    //button.common-button.margin-right-5.btn.btn-success(ng-if='!vm.newAdminPassword', ng-click='vm.submitResetAdminPassword()') {{'RESET_PASSWORD' | translate}}
-            //    //button.common-button.margin-right-5.btn.btn-success(ng-if='vm.newAdminPassword', data-dismiss='modal') {{'OK' | translate}}
-            //    //button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.newAdminPassword', data-dismiss='modal') {{"CANCEL" | translate}}
-
-
-
-#modqalReport.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                span
-                    ul.nav.nav-tabs
-                        li
-                            label Live800 {{'Account' | translate}}
-                        li
-                            label {{'TOTAL_CONVERSATION_RECORD' | translate}}
-                        li
-                            label {{'NOT_EVALUATED_QUANTITY' | translate}}
-                        li
-                            label {{'EFFECTIVE_CONVERSATION_QUANTITY' | translate}}
-                        li
-                            label {{'PROCESSING_QUANTITY' | translate}}
-                        li
-                            label {{'COMPLETED_UNREAD_QUANTITY' | translate}}
-                        li
-                            label {{'COMPLETED_READ_QUANTITY' | translate}}
-                        li
-                            label {{'COMPLETED_QUANTITY' | translate}}
-                        li
-                            label {{'APPEALING_QUANTITY' | translate}}
-                        li
-                            label {{'APPEAL_COMPLETED_QUANTITY' | translate}}
-                        li
-                            label {{'TOTAL_OVERTIME_MARK' | translate}}
-                        li
-                            label {{'TOTAL_EVALUATION_MARK' | translate}}
-                        li
-                            label {{'AVG_DEDUCTION_MARK' | translate}}
-                        //li.active
-                        //    a(data-toggle="tab", href="#ProposalDetail", ng-click="")
-                        //        .fa.fa-user
-                        //        | {{ 'DETAIL' | translate }}
-                        //li(ng-if='vm.chartData')
-                        //    a(data-toggle="tab", href="#Workflow", ng-click="")
-                        //        .fa.fa-user
-                        //        | {{ 'WORKFLOW' | translate }}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .tab-content
-                            //div(ng-if='vm.proposalDialog == "proposalTopUp"')
-                            //    #ProposalDetail.tab-pane.fade.in.active
-                            //        include ./proposal-dialog-detail
-                            //div(ng-if='vm.proposalDialog == "proposal"')
-                            //    #ProposalDetail.tab-pane.fade.in.active
-                            //        include ./proposal-detail
-                            //#Workflow.tab-pane.fade(mouse-capture, style="max-height:600px;overflow-y:auto")
-                            //    flow-chart#flowChart(style='width: 100%; height: 550px;overflow:auto;', chart='vm.chartViewModel')
-            .modal-footer
-                //.inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
-                //    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
-                //.inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
-                //    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
-                //    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
-                //button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
-                //.inlineBlk(ng-if='vm.selectedProposal.cancelling')
-                //    label {{'Cancelling Proposal' | translate}}
-                //    i.fa.fa-spin.fa-2x.fa-spinner
-                //label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
-                //button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
-                //button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
-                //label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
-                //.inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
-                //    label.inlineBlk {{'remark' | translate}}
-                //    input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
 
 

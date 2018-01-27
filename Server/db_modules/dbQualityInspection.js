@@ -214,7 +214,7 @@ var dbQualityInspection = {
     searchMySQLDB:function(queryObj,connection){
         var deferred = Q.defer();
         connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-            console.log('yeah');
+            console.log('result',results);
             if (error) throw error;
             deferred.resolve(results);
             connection.end();
@@ -273,7 +273,6 @@ var dbQualityInspection = {
                     return live800Chat;
                 });
             proms.push(prom);
-
         });
         deferred.resolve(proms);
       })
@@ -294,7 +293,158 @@ var dbQualityInspection = {
             return item;
         });
         return cvs;
+    },
 
+    searchLive800Record: function (query) {
+      //  let conversationForm = [];
+        let queryObj = "";
+        console.log(query);
+        if (query.companyId && query.companyId.length>0) {
+           if (query.companyId.length>1 ){
+                queryObj += "company_id IN ('" ;
+                for (let i=0; i< query.companyId.length; i++){
+                    if (i == query.companyId.length-1){
+                        queryObj +=  query.companyId[i] + "')" + " AND "
+                    }else{
+                        queryObj +=   query.companyId[i] + "','"
+                    }
+                }
+
+
+            }else{
+                queryObj += "company_id=" + query.companyId + " AND ";
+            }
+        }
+        if (query.operatorId && query.operatorId.length > 0) {
+            if (query.operatorId.length > 1 ){
+                queryObj += "operator_id IN ('" ;
+                for (let i=0; i< query.operatorId.length; i++){
+                    if (i == query.operatorId.length-1){
+                        queryObj +=  query.operatorId[i] + "')" + " AND "
+                    }else{
+                        queryObj +=   query.operatorId[i] + "','"
+                    }
+                }
+
+
+            }else{
+                queryObj += "operator_id=" + query.operatorId + " AND ";
+            }
+
+        }
+        if (query.startTime && query.endTime) {
+            var startTime = dbUtility.getLocalTimeString(query.startTime);
+            var endTime = dbUtility.getLocalTimeString(query.endTime);
+
+          //  queryObj += "store_time BETWEEN CAST('2018-01-16 00:10:00' as DATETIME) AND CAST('2018-01-16 00:30:00' AS DATETIME)";
+            console.log(query.startTime);
+            queryObj += "store_time BETWEEN CAST('"+startTime+"' as DATETIME) AND CAST('"+endTime+"' AS DATETIME)";
+        }
+        // if(query.status!='all'){
+        //     conversationForm = dbQualityInspection.searchMongoDB(query);
+        // }else{
+        let connection = dbQualityInspection.connectMysql();
+        connection.connect();
+        let dbResult = dbQualityInspection.searchLive800DB(queryObj,connection);
+        let progressReport = dbQualityInspection.getProgressReportByAdmin(query.companyId,query.operatorId,startTime,endTime);
+        // }
+        return Q.all([dbResult,progressReport]);
+    },
+    searchLive800DB:function(queryObj,connection){
+        var deferred = Q.defer();
+       // let proms = [];
+        connection.query("SELECT COUNT(*) AS 'record_number',company_id, operator_id FROM chat_content WHERE " + queryObj + " GROUP BY company_id,operator_id", function (error, results, fields) {
+            console.log('result',results);
+            if (error) throw error;
+
+            deferred.resolve(results);
+            connection.end();
+        });
+        return deferred.promise;
+    },
+    getProgressReportByAdmin: function (companyId,operatorId,startTime,endTime){
+
+       // let queryQA = {messageId: String(item.msg_id)};
+
+        return dbconfig.collection_qualityInspection.aggregate([
+            {
+                $match: {
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                    companyId: {$in: companyId},
+                    "live800Acc.id": {$in: operatorId}
+                },
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "fpmsAcc": "$fpmsAcc",
+                        "status": "$status"
+                    },
+                    "count": {"$sum": 1},
+                }
+            }
+        ]).then(data => {
+            console.log("-------------------------",data)
+            let resultArr = [];
+            if(data && data.length > 0){
+                data.forEach(d => {
+                    if(d){
+                        resultArr.push({
+                            fpmsAcc: d._id.fpmsAcc,
+                            status: d._id.status,
+                            count: d.count
+                        });
+                    }
+                });
+                console.log("+++++++++++++++++++",resultArr)
+                return resultArr;
+            }
+
+        })
+
+    },
+    getProgressReportByOperator: function (companyId,operatorId,startTime,endTime){
+
+        // let startTime = dbUtility.getLocalTimeString(startTime);
+        // let endTime = dbUtility.getLocalTimeString(endTime);
+
+        // let queryQA = {messageId: String(item.msg_id)};
+
+        return dbconfig.collection_qualityInspection.aggregate([
+            {
+                $match: {
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                    companyId: {$in: companyId},
+                    "live800Acc.id": {$in: operatorId}
+                },
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "operatorId": "$live800Acc.id",
+                        "status": "$status"
+                    },
+                    "count": {"$sum": 1},
+                }
+            }
+        ]).then(data => {
+            console.log("-------------------------",data)
+            let resultArr = [];
+            if(data && data.length > 0){
+                data.forEach(d => {
+                    if(d){
+                        resultArr.push({
+                            operatorId: d._id.operatorId,
+                            status: d._id.status,
+                            count: d.count
+                        });
+                    }
+                });
+                console.log("+++++++++++++++++++",resultArr)
+                return resultArr;
+            }
+
+        })
 
     },
     reGroup: function(arrs,type){

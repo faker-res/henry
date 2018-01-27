@@ -89,7 +89,7 @@ function socketActionAdmin(socketIO, socket) {
          */
         getAdminInfo: function getAdminInfo(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && (data.adminName || data._id || data.departments));
+            var isValidData = Boolean(data && (data.adminName || data._id ));
             socketUtil.emitter(self.socket, dbAdminInfo.getAdminInfo, [data], actionName, isValidData);
         },
 
