@@ -71,6 +71,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.rateCSConversation, [data, getAdminName()], actionName, isDataValid);
         },
+        rateBatchConversation: function rateBatchConversation(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.rateBatchConversation, [data, getAdminName()], actionName, isDataValid);
+        },
         getEvaluationRecordYearMonth: function getEvaluationRecordYearMonth(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.platformObjId);

@@ -338,10 +338,12 @@ angular.module('myApp.directives', [])
             scope: {
                 cform:'=',
                 rateconversation:"&",
-                confirmrate:"&"
+                confirmrate:"&",
+                storebatch:"&"
             },
             template: $('#conversationForm').html(),
             link:function(scope, element, attr){
+
                 scope.rateIt = function(conversation){
                     conversation.editable = true;
                 }

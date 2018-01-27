@@ -474,6 +474,46 @@ var dbQualityInspection = {
         }
 
     },
+    rateBatchConversation: function(cvs, accName){
+        var deferred = Q.defer();
+        let proms = [];
+        console.log(cvs)
+        cvs.batchData.forEach(uItem=>{
+            console.log(uItem.live800Acc);
+            let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
+            let prom = dbconfig.collection_admin.findOne(query).then(
+                item=>{
+                    console.log(item);
+                    let adminName = item ? item.adminName:'x';
+                    return adminName
+                })
+                .then(udata=>{
+                    return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId}).then(qaData => {
+                        delete uItem.statusName;
+                        uItem.qualityAssessor = accName;
+                        uItem.processTime = Date.now();
+                        uItem.fpmsAcc = udata;
+                        uItem.status = 7;
+                        if (qaData.length == 0) {
+                            return dbconfig.collection_qualityInspection(uItem).save();
+                        }else{
+                            dbconfig.collection_qualityInspection.findOneAndUpdate(
+                                {messageId: uItem.messageId},
+                                uItem
+                            ).then(data=>{
+                                console.log(data);
+                            })
+                        }
+                    })
+                })
+            proms.push(prom);
+        });
+
+        return Q.all(proms).then(data=>{
+            console.log(data);
+        });
+        return deferred.promise;
+    },
     rateCSConversation: function (data , adminName) {
         var deferred = Q.defer();
         console.log(data);

@@ -310,8 +310,18 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
+            vm.storeBatchId = function(conversation){
+                vm.batchEditList.push(conversation);
+                console.log(vm.batchEditList);
+            };
+            vm.batchSave = function(){
+                console.log(vm.batchEditList);
+                socketService.$socket($scope.AppSocket, 'rateBatchConversation', {batchData:vm.batchEditList}, function(data){
+                    // console.log(data);
+                    vm.searchLive800();
+                });
 
-
+            };
             vm.searchLive800 = function(){
                 let fpmsId = [];
                 if(vm.fpmsACCList.length > 0){
@@ -353,11 +363,14 @@ define(['js/app'], function (myApp) {
                 rate.editable = false;
                 socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
                     console.log(data);
+                    vm.searchLive800();
                 });
             }
             vm.showLive800 = function(){
                 vm.initLive800Start();
                 vm.fpmsACCList = [];
+                vm.batchEditList = [];
+
                 setTimeout(function(){
                     $scope.safeApply();
                 },0)
