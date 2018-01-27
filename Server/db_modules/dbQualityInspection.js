@@ -4,7 +4,7 @@ var Q = require("q");
 var dbUtility = require('./../modules/dbutility');
 var mysql = require("mysql");
 const constQualityInspectionStatus = require('./../const/constQualityInspectionStatus');
-
+const constQualityInspectionRoleName = require('./../const/constQualityInspectionRoleName');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
@@ -25,7 +25,7 @@ var dbQualityInspection = {
         let operatorId = null;
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
-           let companyId = query.companyId.join(',');
+            let companyId = query.companyId.join(',');
             queryObj += " company_id IN (" + companyId + ") AND ";
         }
         if (query.operatorId && query.operatorId.length > 0) {
@@ -113,7 +113,9 @@ var dbQualityInspection = {
         Q.all(data).then(results => {
             let mongoData = results.mongo;
             let mysqlData = results.mysql;
-
+            if(results.length == 0){
+                deferred.resolve([]);
+            }
             mongoData.forEach(item => {
                 let cData = {}
                 cData = item;
@@ -127,11 +129,12 @@ var dbQualityInspection = {
                             return cv.time == mycv.time;
                         })
                         if (overrideCV.length > 0) {
+                            let roles = overrideCV[0].roles;
+                            cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
                             cv.content = overrideCV[0].content;
                         }
                     })
                 }
-
                 combineData.push(item);
             });
             deferred.resolve(combineData);
@@ -143,6 +146,9 @@ var dbQualityInspection = {
 
         Q.all(sqlResult).then(results => {
             let msgIds = []
+            if(results.length == 0){
+                deferred.resolve([]);
+            }
             results.forEach(item => {
                 msgIds.push(item.messageId);
             });
@@ -214,6 +220,9 @@ var dbQualityInspection = {
       let proms = [];
       Q.all(dbResult).then(results=>{
         console.log(results);
+        if(results.length == 0){
+            deferred.resolve([]);
+        }
         results.forEach(item => {
             //console.log(item);
             let live800Chat = {conversation: [], live800Acc:{}};
@@ -290,7 +299,7 @@ var dbQualityInspection = {
             let conversationInfo = {
                 'time':timeStamp ? timeStamp:'' ,
                 'roles':type,
-                'roleName':type,
+                'roleName':constQualityInspectionRoleName[type],
                 'createTime':timeStamp ?timeStamp:'' ,
                 'timeoutRate':0,
                 'inspectionRate':0,

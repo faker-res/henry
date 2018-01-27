@@ -181,7 +181,6 @@ define(['js/app'], function (myApp) {
                   console.log('all admin data', cdata.data);
                   let fpmsACCList = [];
                   let live800Accs = [];
-                  let companyIds = [];
                   cdata.data.forEach(item=>{
                     let liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
                     let acc = {
@@ -190,17 +189,8 @@ define(['js/app'], function (myApp) {
                       live800Acc:liveAccSet
                     }
                     fpmsACCList.push(acc);
-                    //dump all the companyId out for query;
-                    if(item.live800CompanyId.length > 0){
-                      item.live800CompanyId.forEach(item=>{
-                        if(companyIds.indexOf(item)==-1){
-                          companyIds.push(item);
-                        }
-                      })
-                    }
                   })
                   vm.fpmsACCList = fpmsACCList;
-                  vm.companyIds = companyIds;
                   $scope.safeApply();
               }, function (err) {
               });
@@ -350,7 +340,6 @@ define(['js/app'], function (myApp) {
                     data.data.forEach(item=>{
                         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
                         item.conversation.forEach(function(cv){
-                            cv.roleName = vm.roleType[item.type];
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
                         });
