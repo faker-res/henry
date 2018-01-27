@@ -3160,5 +3160,15 @@
   "No admin acc": "(无客服)",
   "Create Account Cs Name": "开户客服",
   "collapse": "收起",
-  "expand": "展开"
+  "expand": "展开",
+  "EVALUATION_STATUS": "评估状态",
+  "FPMS_ACC":"FPMS账户",
+  "QUALITY_ASSESSOR": "质检评估员",
+  "EVALUATED_TIME":"评估时间",
+  "APPEAL_REASON": "申诉内容",
+  "CONVERSATION_CONTENT": "对话内容",
+  "OVERTIME_MARK": "超时评分（+/-)",
+  "EVALUATION_MARK": "质简评分（+/-)",
+  "EVALUATION_REVIEW": "质检评语"
+
 }

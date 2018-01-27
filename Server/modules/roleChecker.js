@@ -622,7 +622,9 @@ var roleChecker = {
                 Read: []
             },
             Report: {
-                Read: []
+                Read: [],
+                queryByQA: [],
+                queryByQualityInspectionDate: []
             }
 
 

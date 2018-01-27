@@ -485,6 +485,33 @@ define(['js/app'], function (myApp) {
                 });
 
                 $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+
+                let qaDepartmentMember = [];
+                if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0){
+                    vm.selectedPlatform.data.qiDepartment.forEach(qItem=>{
+                        qaDepartmentMember = qaDepartmentMember.concat(qItem.users);
+                    })
+                }
+
+                if(qaDepartmentMember && qaDepartmentMember.length > 0)
+                {
+                    socketService.$socket($scope.AppSocket, 'getQIAdmins', {admins: qaDepartmentMember}, function (qdata) {
+                        console.log('all admin data', qdata.data);
+                        vm.qaDepartments = [];
+
+                        if(qdata.data.length > 0){
+                            qdata.data.forEach(item=>{
+                                console.log(item);
+                                let qaAccount = {};
+                                qaAccount._id = item._id;
+                                qaAccount.name = item.adminName;
+                                vm.qaDepartments.push(qaAccount);
+                            })
+                        }
+                        $scope.safeApply();
+                    }, function (err) {
+                    });
+                }
             }
 
             vm.initEvaluationProgress = function() {
@@ -606,7 +633,6 @@ define(['js/app'], function (myApp) {
                             return data;
                         })
                         vm.readEvaluationTable = data.data;
-
                     }else{
                         vm.readEvaluationTable = "";
                     }
@@ -745,8 +771,8 @@ define(['js/app'], function (myApp) {
                     endTime: endTime,
                 }
 
-                if(vm.qcAccount){
-                    sendData.qualityAssessor = vm.qcAccount;
+                if(vm.qaAccount && vm.qaAccount != "all"){
+                    sendData.qualityAssessor = vm.qaAccount;
                 }
 
                 let resultArr = [];
@@ -759,7 +785,7 @@ define(['js/app'], function (myApp) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
-                            let index = resultArr.findIndex(r => r.qcAccount == data.qcAccount)
+                            let index = resultArr.findIndex(r => r.qaAccount == data.qaAccount)
 
                             if(index != -1){
                                 if(data.status == "COMPLETED_UNREAD"){
@@ -783,7 +809,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }else{
                                 let resultObj = {
-                                    qcAccount: data.qcAccount,
+                                    qaAccount: data.qaAccount,
                                     completedUnread: 0,
                                     completedRead: 0,
                                     completed: 0,
@@ -822,7 +848,7 @@ define(['js/app'], function (myApp) {
                         var option = $.extend({}, vm.generalDataTableOptions, {
                             data: tableData,
                             aoColumnDefs: [
-                                {'sortCol': 'qcAccount', bSortable: true, 'aTargets': [0]},
+                                {'sortCol': 'qaAccount', bSortable: true, 'aTargets': [0]},
                                 {'sortCol': 'completedUnread', bSortable: true, 'aTargets': [1]},
                                 {'sortCol': 'completedRead', bSortable: true, 'aTargets': [2]},
                                 {'sortCol': 'completed', bSortable: true, 'aTargets': [3]},
@@ -831,7 +857,7 @@ define(['js/app'], function (myApp) {
 
                             ],
                             columns: [
-                                {title: $translate('QC ACCOUNT'), data: "qcAccount"},
+                                {title: $translate('QA ACCOUNT'), data: "qaAccount"},
                                 {title: $translate('COMPLETED_UNREAD'), data: "completedUnread"},
                                 {title: $translate('COMPLETED_READ'), data: "completedRead"},
                                 {title: $translate('COMPLETED'), data: "completed"},

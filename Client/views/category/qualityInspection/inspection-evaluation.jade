@@ -123,40 +123,73 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .inlineBlk(ng-show='vm.loadingReadEvaluationTable')
                                     label.blink.text-danger {{'Loading' | translate}}
 
-                                .row(style='background-color:#337ab7;')
-                                    //div.col-md-1(style='display:inline-block;padding-left:5px;')
-                                    div.col-md-1(style='display:inline-block;padding-left:5px;') 评估状态
-                                    div.col-md-7
-                                        div.row
-                                            div.col-md-1 'FPMS'
-                                            div.col-md-1 '类型'
-                                            div.col-md-1 '时间'
-                                            div.col-md-1 '对话内容'
-                                            div.col-md-1 '超时评分（+/-)'
-                                            div.col-md-1 '质简评分（+/-)'
-                                            div.col-md-1 '质检评语'
-                                    div.col-md-1(style='display:inline-block;padding-left:5px;') 质检评估员
-                                    div.col-md-1(style='display:inline-block;padding-left:5px;') 评估时间
-                                    div.col-md-1(style='display:inline-block;padding-left:5px;background-color:red') 申诉内容
-
                                 .row
-                                    #readEvaluationForm(ng-repeat='readTable in vm.readEvaluationTable')
-                                        div.row
-                                            div.col-md-1(style='display:inline-block;padding-left:10px;') {{readTable.status | translate}}
-                                            div.col-md-7(style='display:inline-block;padding-left:5px;background-color:#CECECE;border-bottom:1px solid black')
-                                                div.row(ng-repeat='c in readTable.conversation')
-                                                    div.col-md-1 {{readTable.fpmsAcc}}
-                                                    div.col-md-1 {{c.roles}}
-                                                    div.col-md-1 {{c.createTime}}
-                                                    div.col-md-1 '对话内容...'
-                                                    div.col-md-1 {{c.timeoutRate}}
-                                                    div.col-md-1 {{c.inspectionRate}}
-                                                    div.col-md-1 {{c.review}}
-
-                                            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.qualityAssessor}}
-                                            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.processTime}}
-                                            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.appealReason}}
-                                                //input.form-control(type="textarea", value="{{readTable.appealReason}}", ng-model="readTable.appealReason")
+                                    table(style="width: 100%; text-align: center;")
+                                        thead(style='background-color:#337ab7;')
+                                            th.col-md-2 {{"EVALUATION_STATUS" | translate}}
+                                            th {{"" | translate}}
+                                            th.col-md-2 {{"QUALITY_ASSESSOR" | translate}}
+                                            th.col-md-2 {{"EVALUATED_TIME" | translate}}
+                                            //th.col-md-2 {{"APPEAL_REASON" | translate}}
+                                        tbody(ng-repeat="readEvaluation in vm.readEvaluationTable")
+                                            tr
+                                                td {{readEvaluation.status | translate}}
+                                                td
+                                                    table
+                                                        thead
+                                                            th.col-sm-2 {{"FPMS_ACC" | translate}}
+                                                            th.col-sm-2 {{"Type" | translate}}
+                                                            th.col-sm-2 {{"TIME" | translate}}
+                                                            th.col-sm-2 {{"CONVERSATION_CONTENT" | translate}}
+                                                            th.col-sm-2 {{"OVERTIME_MARK" | translate}}
+                                                            th.col-sm-2 {{"EVALUATION_MARK" | translate}}
+                                                            th.col-sm-2 {{"EVALUATION_REVIEW" | translate}}
+                                                        tbody
+                                                            tr(ng-repeat="conversation in readEvaluation.conversation")
+                                                                td {{readEvaluation.fpmsAcc}}
+                                                                td {{conversation.roles}}
+                                                                td {{conversation.createTime}}
+                                                                td {{"对话内容..."}}
+                                                                td {{conversation.timeoutRate}}
+                                                                td {{conversation.inspectionRate}}
+                                                                td {{conversation.review}}
+                                                td {{readEvaluation.qualityAssessor}}
+                                                td {{readEvaluation.processTime}}
+                                            //tr
+                                            //    td
+                                //    //div.col-md-1(style='display:inline-block;padding-left:5px;')
+                                //    div.col-md-1(style='display:inline-block;padding-left:5px;') 评估状态
+                                //    div.col-md-7
+                                //        div.row
+                                //            div.col-md-1 'FPMS'
+                                //            div.col-md-1 '类型'
+                                //            div.col-md-1 '时间'
+                                //            div.col-md-1 '对话内容'
+                                //            div.col-md-1 '超时评分（+/-)'
+                                //            div.col-md-1 '质简评分（+/-)'
+                                //            div.col-md-1 '质检评语'
+                                //    div.col-md-1(style='display:inline-block;padding-left:5px;') 质检评估员
+                                //    div.col-md-1(style='display:inline-block;padding-left:5px;') 评估时间
+                                //    div.col-md-1(style='display:inline-block;padding-left:5px;background-color:red') 申诉内容
+                                //
+                                //.row
+                                //    #readEvaluationForm(ng-repeat='readTable in vm.readEvaluationTable')
+                                //        div.row
+                                //            div.col-md-1(style='display:inline-block;padding-left:10px;') {{readTable.status | translate}}
+                                //            div.col-md-7(style='display:inline-block;padding-left:5px;background-color:#CECECE;border-bottom:1px solid black')
+                                //                div.row(ng-repeat='c in readTable.conversation')
+                                //                    div.col-md-1 {{readTable.fpmsAcc}}
+                                //                    div.col-md-1 {{c.roles}}
+                                //                    div.col-md-1 {{c.createTime}}
+                                //                    div.col-md-1 '对话内容...'
+                                //                    div.col-md-1 {{c.timeoutRate}}
+                                //                    div.col-md-1 {{c.inspectionRate}}
+                                //                    div.col-md-1 {{c.review}}
+                                //
+                                //            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.qualityAssessor}}
+                                //            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.processTime}}
+                                //            div.col-md-1(style='display:inline-block;padding-left:5px;') {{readTable.appealReason}}
+                                //                //input.form-control(type="textarea", value="{{readTable.appealReason}}", ng-model="readTable.appealReason")
 
                         div(ng-show="vm.evaluationTab == 'appealEvaluation'")
                             #appealEvaluationDiv.tab-pane.fade.in.active

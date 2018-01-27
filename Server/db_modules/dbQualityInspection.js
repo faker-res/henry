@@ -359,7 +359,7 @@ var dbQualityInspection = {
         return dbconfig.collection_qualityInspection.find(query).lean();
     },
 
-    getWorkloadReport: function(startTime, endTime, qcAccount){
+    getWorkloadReport: function(startTime, endTime, qaAccount){
 
         let query ={
             createTime: {
@@ -369,8 +369,8 @@ var dbQualityInspection = {
             //status: constQualityInspectionStatus.COMPLETED_READ
         }
 
-        if(qcAccount != "all"){
-            query.qcAccount = qcAccount;
+        if(qaAccount && qaAccount != "all"){
+            query.qaAccount = qaAccount;
         }
 
         return dbconfig.collection_qualityInspection.aggregate([
@@ -395,7 +395,7 @@ var dbQualityInspection = {
                 data.forEach(d => {
                     if(d){
                         resultArr.push({
-                            qcAccount: d._id.qualityAssessor,
+                            qaAccount: d._id.qualityAssessor,
                             status: d._id.status,
                             count: d.count
                         });
@@ -405,9 +405,39 @@ var dbQualityInspection = {
                 return resultArr;
             }
 
-        })
+        }).then(resultData => {
+           if(resultData && resultData.length > 0){
+               let proms = [];
+               resultData.map(r => {
+                   console.log("11111111111111111111111111111",r)
+                   proms.push(dbQualityInspection.getAdminNameById(r));
+               })
 
-        //return dbconfig.collection_qualityInspection.find(query).lean();
+               return Promise.all(proms);
+           }
+        }).then(
+            returnedData => {
+                if(returnedData && returnedData.length > 0){
+                    console.log("AAAAAAAAAAAAAAAAAAAAAAa",returnedData);
+                    return returnedData;
+                }
+            }
+        );
+    },
+
+    getAdminNameById: function(workloadResultArr){
+        //let returnedAdminData = {};
+        console.log("BBBBBBBBBBBBBBBBBBBBBBBBBB",workloadResultArr);
+        return dbconfig.collection_admin.findOne({_id: workloadResultArr.qaAccount}).lean().then(
+            adminData => {
+                console.log("CCCCCCCCCCCCCCCCCCCCCCCCCCCCC",adminData);
+                if(adminData){
+                    workloadResultArr.qaAccount = adminData.adminName;
+                }
+
+                return workloadResultArr;
+            }
+        );
     },
 
     markEvaluationRecordAsRead: function(appealRecordArr, status){

@@ -21,18 +21,22 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                     .panel-body.common-right-panel-body
                         div(ng-show="vm.inspectionReportTab == 'workloadReport'")
                             #workloadProgressDiv.tab-pane.fade.in.active
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
-                                    label {{'QC_ACCOUNT' | translate}}
-                                    select.form-control#selectQCAccount(ng-model="vm.qcAccount" ng-init='vm.qcAccount="all"')
-                                        option(value='all' selected="true") {{'ALL' | translate}}
-                                        option(ng-repeat='(i,v) in vm.qcAccount', value='{{v}}') {{i|translate}}
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Report', 'queryByProposalDate')")
+                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Report', 'queryByQA')")
+                                    label {{"QA" | translate}}
+                                    select.form-control(ng-model='vm.qaAccount' ng-init="vm.qaAccount = 'all'")
+                                        option(value='all') {{'ALL' | translate}}
+                                        option(ng-repeat='(i,v) in vm.qaDepartments', value='{{v._id}}') {{v.name | translate}}
+                                    //label {{'QC_ACCOUNT' | translate}}
+                                    //select.form-control#selectQCAccount(ng-model="vm.qcAccount" ng-init='vm.qcAccount="all"')
+                                    //    option(value='all' selected="true") {{'ALL' | translate}}
+                                    //    option(ng-repeat='(i,v) in vm.qcAccount', value='{{v}}') {{i|translate}}
+                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Report', 'queryByQualityInspectionDate')")
                                     label {{'START_DATE' | translate}}
                                     #reportConversationStartDatetimePicker.input-append.form-control
                                         input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
                                         span.add-on
                                             i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Report', 'queryByProposalDate')")
+                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Report', 'queryByQualityInspectionDate')")
                                     label {{'END_DATE' | translate}}
                                     br
                                     #reportConversationEndDatetimePicker.input-append.form-control
@@ -86,13 +90,13 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                         div(ng-show="vm.inspectionReportTab == 'evaluationProgress'")
                             #evaluationProgressDiv.tab-pane.fade.in.active
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
+                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Report', 'queryByQualityInspectionDate')")
                                     label {{'YEAR - MONTH' | translate}}
                                     select.form-control(ng-model="vm.yearMonth")
                                         option(ng-repeat='v in vm.evaluationProgressYearMonth', value='{{v}}') {{v.year}} - {{v.month}}
                                     //select.form-control(ng-model="vm.yearMonth", ng-init="vm.yearMonth = vm.yearMonth || vm.evaluationProgressYearMonth[0].date", ng-options='yearMonth.date  for yearMonth in vm.evaluationProgressYearMonth')
                                         //option(ng-repeat='(i,v) in vm.evaluationProgressYearMonth', value='{{v.year - v.month}}') {{v.year}} - {{v.month}}
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalStatus')")
+                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Report', 'queryByQualityInspectionDate')")
                                     label {{'PRODUCT(DEPARTMENT)' | translate}}
                                     select.spicker.form-control(ng-model='vm.evaluationProgressPlatform', multiple, data-actions-box='true', bsp)
                                         option(ng-repeat='(i,v) in vm.platformList', value='{{v.data._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.data.name}}
