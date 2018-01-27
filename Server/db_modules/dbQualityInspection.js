@@ -4,7 +4,7 @@ var Q = require("q");
 var dbUtility = require('./../modules/dbutility');
 var mysql = require("mysql");
 const constQualityInspectionStatus = require('./../const/constQualityInspectionStatus');
-
+const constQualityInspectionRoleName = require('./../const/constQualityInspectionRoleName');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 
@@ -23,18 +23,29 @@ var dbQualityInspection = {
         let conversationForm = [];
         let queryObj = "";
 
+        let operatorId = null;
+
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
-           let companyId = query.companyId.join(',');
+            let companyId = query.companyId.join(',');
             queryObj += " company_id IN (" + companyId + ") AND ";
         }
-        if (query.operatorId) {
-            let operatorId = query.operatorId.join(',');
-            queryObj += " operator_id IN (" + operatorId + ") AND ";
+        if (query.operatorId && query.operatorId.length > 0) {
+            if(Array.isArray(query.operatorId)){
+                operatorId = query.operatorId.join(',');
+            }else{
+                operatorId = query.operatorId;
+            }
+            console.log(operatorId)
+            if(operatorId!='all'){
+                queryObj += " operator_id IN (" + operatorId + ") AND ";
+            }
         }
         if (query.startTime && query.endTime) {
+            let startTime = dbUtility.getLocalTimeString(query.startTime);
+            let endTime = dbUtility.getLocalTimeString(query.endTime);
             // queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
-            queryObj += " store_time BETWEEN CAST('"+query.startTime+"' as DATETIME) AND CAST('"+query.endTime+"' AS DATETIME)";
+            queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
         }
         console.log(queryObj);
         if(query.status!='all'){
@@ -60,18 +71,24 @@ var dbQualityInspection = {
             '$gte': new Date(query.startTime)}
         }
         if(query.fpmsAcc && query.fpmsAcc.length > 0){
-            queryQA.fpmsAcc = {'$in':query.fpmsAcc};
+            if(query.fpmsAcc!='all') {
+                queryQA.fpmsAcc = {'$in': query.fpmsAcc};
+            }
         }
         if (query.operatorId && query.operatorId.length > 0) {
-            queryQA.live800Acc = { id:{ '$in':query.operatorId}}
+            if(query.operatorId!='all'){
+                queryQA.live800Acc = { id:{ '$in':query.operatorId}}
+            }
         }
         if(query.companyId && query.companyId.length > 0 ){
             queryQA.companyId = {'$in':query.companyId};
         }
         if(query.qualityAssessor && query.qualityAssessor.length > 0){
-            queryQA.qualityAssessor = {'$in': query.qualityAssessor};
+            if(query.qualityAssessor!='all') {
+                queryQA.qualityAssessor = {'$in': query.qualityAssessor};
+            }
         }
-        console.log(query);
+        console.log(queryQA);
         return dbconfig.collection_qualityInspection.find(queryQA).lean()
             .then(results => {
                 console.log(results);
@@ -82,6 +99,7 @@ var dbQualityInspection = {
                     live800Chat.qualityAssessor = item.qualityAssessor;
                     live800Chat.fpmsAcc = item.fpmsAcc;
                     live800Chat.processTime = item.processTime;
+                    live800Chat.createTime = item.createTime;
                     live800Chat.appealReason = item.appealReason;
                     live800Chat.conversation = item.conversation;
                     live800Chat.companyId = item.companyId;
@@ -97,28 +115,33 @@ var dbQualityInspection = {
         Q.all(data).then(results => {
             let mongoData = results.mongo;
             let mysqlData = results.mysql;
-
-            mongoData.forEach(item => {
-                let cData = {}
-                cData = item;
-                let mysqlCV = mysqlData.filter(sqlItem => {
-                    return sqlItem.messageId == item.messageId;
-                })
-                if (mysqlCV.length > 0) {
-                    let conversation = mysqlCV[0].conversation;
-                    item.conversation.forEach(cv => {
-                        let overrideCV = conversation.filter(mycv => {
-                            return cv.time == mycv.time;
-                        })
-                        if (overrideCV.length > 0) {
-                            cv.content = overrideCV[0].content;
-                        }
+            if(results.length == 0){
+                deferred.resolve([]);
+            }else{
+                mongoData.forEach(item => {
+                    let cData = {}
+                    cData = item;
+                    let mysqlCV = mysqlData.filter(sqlItem => {
+                        return sqlItem.messageId == item.messageId;
                     })
-                }
+                    if (mysqlCV.length > 0) {
+                        let conversation = mysqlCV[0].conversation;
+                        item.conversation.forEach(cv => {
+                            let overrideCV = conversation.filter(mycv => {
+                                return cv.time == mycv.time;
+                            })
+                            if (overrideCV.length > 0) {
+                                let roles = overrideCV[0].roles;
+                                cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
+                                cv.content = overrideCV[0].content;
+                            }
+                        })
+                    }
+                    combineData.push(item);
+                });
+                deferred.resolve(combineData);
+            }
 
-                combineData.push(item);
-            });
-            deferred.resolve(combineData);
         })
         return deferred.promise;
     },
@@ -127,12 +150,19 @@ var dbQualityInspection = {
 
         Q.all(sqlResult).then(results => {
             let msgIds = []
+            if(results.length == 0){
+                deferred.resolve([]);
+            }
             results.forEach(item => {
                 msgIds.push(item.messageId);
             });
             if (msgIds.length > 0) {
                 let condition = msgIds.join(',');
-                let timeQuery = "store_time BETWEEN CAST('"+queryObj.startTime+"' as DATETIME) AND CAST('"+queryObj.endTime+"' AS DATETIME)";
+
+                let startTime = dbUtility.getLocalTimeString(queryObj.startTime);
+                let endTime = dbUtility.getLocalTimeString(queryObj.endTime);
+                let timeQuery = " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+endTime+"' AS DATETIME)";
+
                 let query = timeQuery + " AND msg_id IN (" + condition + ")"
                 console.log(query);
                 let connection = dbQualityInspection.connectMysql();
@@ -196,6 +226,9 @@ var dbQualityInspection = {
       let proms = [];
       Q.all(dbResult).then(results=>{
         console.log(results);
+        if(results.length == 0){
+            deferred.resolve([]);
+        }
         results.forEach(item => {
             //console.log(item);
             let live800Chat = {conversation: [], live800Acc:{}};
@@ -206,7 +239,7 @@ var dbQualityInspection = {
             live800Chat.processTime = item.processTime;
             live800Chat.appealReason = item.appealReason;
             live800Chat.companyId = item.company_id;
-            live800Chat.createTime = item.store_time;
+            live800Chat.createTime = new Date(item.store_time).toISOString();
 
             live800Chat.live800Acc['id'] = item.operator_id;
             live800Chat.live800Acc['name'] = item.operator_name;
@@ -272,7 +305,7 @@ var dbQualityInspection = {
             let conversationInfo = {
                 'time':timeStamp ? timeStamp:'' ,
                 'roles':type,
-                'roleName':type,
+                'roleName':constQualityInspectionRoleName[type],
                 'createTime':timeStamp ?timeStamp:'' ,
                 'timeoutRate':0,
                 'inspectionRate':0,
@@ -489,6 +522,46 @@ var dbQualityInspection = {
 
         }
 
+    },
+    rateBatchConversation: function(cvs, accName){
+        var deferred = Q.defer();
+        let proms = [];
+        console.log(cvs)
+        cvs.batchData.forEach(uItem=>{
+            console.log(uItem.live800Acc);
+            let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
+            let prom = dbconfig.collection_admin.findOne(query).then(
+                item=>{
+                    console.log(item);
+                    let adminName = item ? item.adminName:'x';
+                    return adminName
+                })
+                .then(udata=>{
+                    return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId}).then(qaData => {
+                        delete uItem.statusName;
+                        uItem.qualityAssessor = accName;
+                        uItem.processTime = Date.now();
+                        uItem.fpmsAcc = udata;
+                        uItem.status = 7;
+                        if (qaData.length == 0) {
+                            return dbconfig.collection_qualityInspection(uItem).save();
+                        }else{
+                            dbconfig.collection_qualityInspection.findOneAndUpdate(
+                                {messageId: uItem.messageId},
+                                uItem
+                            ).then(data=>{
+                                console.log(data);
+                            })
+                        }
+                    })
+                })
+            proms.push(prom);
+        });
+
+        return Q.all(proms).then(data=>{
+            console.log(data);
+        });
+        return deferred.promise;
     },
     rateCSConversation: function (data , adminName) {
         var deferred = Q.defer();

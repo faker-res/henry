@@ -9,16 +9,17 @@
                 select.form-control(style='max-width:155px',ng-change='vm.filterPlatform()',ng-model='vm.inspection800.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
             .inlineBlk
                 label {{"FPMS CS Acc" | translate}}
-                select.form-control(ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()')
-                    option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v._id}}') {{v.name | translate}}
+                //select.form-control(ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()')
+                //    option(value='all') {{'ALL' | translate}}
+                //    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v.name}}') {{v.name | translate}}
+                select.form-control(style='max-width:100px', ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()', ng-options='product.name as product.name for product in vm.fpmsACCList', multiple, bsp, data-actions-box='true')
 
             .inlineBlk
                 label {{"Live800 Acc" | translate}}
-                select.form-control(ng-model='vm.inspection800.live800Accs')
-                    option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.live800Accs', value='{{v}}') {{v | translate}}
-
+                //select.form-control(ng-model='vm.inspection800.live800Accs')
+                //    option(value='all') {{'ALL' | translate}}
+                //    option(ng-repeat='(i,v) in vm.live800Accs', value='{{v}}') {{v | translate}}
+                select.form-control(style='max-width:100px', ng-model='vm.inspection800.live800Accs', ng-options='v as v | translate for (i,v) in vm.live800Accs', multiple, bsp, data-actions-box='true')
             .inlineBlk
                 label.control-label {{'Start date' | translate}}
                 #live800StartDatetimePicker.input-append.form-control
@@ -69,42 +70,43 @@
     div.col-sm-1(style='display:inline-block;padding-left:5px;background-color:red;text-align:center;padding:4px;color:white;font-weight: bold') 申诉内容
 
 .row
-    conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)')
+    conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform)')
+div(style="float:right;margin-right:100px;")
+    .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
 
+div(style='display:none')
+    #conversationForm
+        div.row(style='border:2px solid #CECECE;box-shadow: 2px black')
+            div.col-md-1(style='display:inline-block;padding-left:5px;')
+                input.form-control(type="checkbox", value="{{cform.messageId}}",ng-click="storebatch(cform)")
+            //div.col-md-1(style='display:inline-block;padding-left:5px;', ng-click="rateIt(cform.messageId)") {{cform.status}}
+            div.col-md-1(style='display:inline-block;padding-left:5px;')
+                div(ng-click="rateIt(cform)"){{cform.statusName}}
+                div(ng-if='cform.editable', style='margin-top:30px;')
+                    div.btn.btn-primary(ng-click="confirmrate(cform)") Confirm
+                    div.btn.btn-primary.red(ng-click="cancelrate(cform)") Cancel
+            div.col-md-7(style='display:inline-block;padding-left:5px;')
+                div(style="text-align:center;color:red") **** 新的对话开始 ****
+                div.row(ng-repeat='convert in cform.conversation', style="border-top:1px solid #ddd")
+                    div(style="width:10%;display:inline-block;text-align:center;padding:4px;") {{cform.fpmsAcc}}
+                    div(style="width:10%;display:inline-block;text-align:center;padding:4px;") {{convert.roleName}}
+                    div(style="width:10%;display:inline-block;text-align:center;padding:4px;") {{convert.displayTime}}
+                    div(style="width:40%;display:inline-block;padding:5px;" ) {{convert.content}}
+                    div(style="width:10%;display:inline-block")
+                        input.form-control(type="number",value="{{convert.timeoutRate}}",DISABLED)
+                    div(style="width:10%;display:inline-block")
+                        div(ng-if='cform.editable')
+                            input.form-control(type="number",ng-model="convert.inspectionRate")
+                        div(ng-if='!cform.editable')
+                            div(style='text-align:center') {{convert.inspectionRate}}
+                    div(style="width:10%;display:inline-block")
+                        div(ng-if='cform.editable')
+                            input.form-control(type="text",ng-model="convert.review")
+                        div(ng-if='!cform.editable')
+                            div(style='text-align:center') {{convert.review}}
 
-
-#conversationForm
-    div.row(style='border:2px solid #CECECE;box-shadow: 2px black')
-        div.col-md-1(style='display:inline-block;padding-left:5px;')
-            input.form-control(type="checkbox", value="{{cform.messageId}}")
-        //div.col-md-1(style='display:inline-block;padding-left:5px;', ng-click="rateIt(cform.messageId)") {{cform.status}}
-        div.col-md-1(style='display:inline-block;padding-left:5px;')
-            div(ng-click="rateIt(cform)"){{cform.statusName}}
-            div(ng-if='cform.editable', style='margin-top:30px;')
-                div.btn.btn-primary(ng-click="confirmrate(cform)") Confirm
-                div.btn.btn-primary.red(ng-click="cancelrate(cform)") Cancel
-        div.col-md-7(style='display:inline-block;padding-left:5px;')
-            div(style="text-align:center;color:red") **** 新的对话开始 ****
-            div.row(ng-repeat='convert in cform.conversation', style="border-top:1px solid #ddd")
-                div(style="width:10%;display:inline-block") {{cform.fpmsAcc}}
-                div(style="width:10%;display:inline-block") {{convert.roleName}}
-                div(style="width:10%;display:inline-block") {{convert.displayTime}}
-                div(style="width:40%;display:inline-block;padding:5px;" ) {{convert.content}}
-                div(style="width:10%;display:inline-block")
-                    input.form-control(type="number",value="{{convert.timeoutRate}}",DISABLED)
-                div(style="width:10%;display:inline-block")
-                    div(ng-if='cform.editable')
-                        input.form-control(type="number",ng-model="convert.inspectionRate")
-                    div(ng-if='!cform.editable')
-                        div(style='text-align:center') {{convert.inspectionRate}}
-                div(style="width:10%;display:inline-block")
-                    div(ng-if='cform.editable')
-                        input.form-control(type="text",ng-model="convert.review")
-                    div(ng-if='!cform.editable')
-                        div(style='text-align:center') {{convert.review}}
-
-            div(style="text-align:center;color:red") 結束對話:访客关闭对话 ({{cform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-        div.col-md-1(style='display:inline-block;padding-left:5px;') {{cform.qualityAssessor}}
-        div.col-md-1(style='display:inline-block;padding-left:5px;') {{cform.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
-        div.col-md-1(style='display:inline-block;padding-left:5px;')
-            input.form-control(type="textarea", value="{{cform.appealReason}}", DISABLED)
+                div(style="text-align:center;color:red") 結束對話:访客关闭对话 ({{cform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+            div.col-md-1(style='display:inline-block;padding-left:5px;') {{cform.qualityAssessor}}
+            div.col-md-1(style='display:inline-block;padding-left:5px;') {{cform.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
+            div.col-md-1(style='display:inline-block;padding-left:5px;')
+                input.form-control(type="textarea", value="{{cform.appealReason}}", DISABLED)

@@ -7,7 +7,7 @@ var qualityInspectionSchema = new Schema({
     qualityAssessor:{type: String, required: true},
     fpmsAcc:{type: String, required: true},
     processTime:{type: Date, default: Date.now, index: true},
-    createTime:{type: Date, default: Date.now, index: true},
+    createTime:{type: Date, default: null, index: true},
     appealReason: {type: String},
     companyId: {type: String, required: true,index: true},
     live800Acc: {
