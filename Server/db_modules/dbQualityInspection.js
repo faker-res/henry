@@ -115,29 +115,31 @@ var dbQualityInspection = {
             let mysqlData = results.mysql;
             if(results.length == 0){
                 deferred.resolve([]);
-            }
-            mongoData.forEach(item => {
-                let cData = {}
-                cData = item;
-                let mysqlCV = mysqlData.filter(sqlItem => {
-                    return sqlItem.messageId == item.messageId;
-                })
-                if (mysqlCV.length > 0) {
-                    let conversation = mysqlCV[0].conversation;
-                    item.conversation.forEach(cv => {
-                        let overrideCV = conversation.filter(mycv => {
-                            return cv.time == mycv.time;
-                        })
-                        if (overrideCV.length > 0) {
-                            let roles = overrideCV[0].roles;
-                            cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
-                            cv.content = overrideCV[0].content;
-                        }
+            }else{
+                mongoData.forEach(item => {
+                    let cData = {}
+                    cData = item;
+                    let mysqlCV = mysqlData.filter(sqlItem => {
+                        return sqlItem.messageId == item.messageId;
                     })
-                }
-                combineData.push(item);
-            });
-            deferred.resolve(combineData);
+                    if (mysqlCV.length > 0) {
+                        let conversation = mysqlCV[0].conversation;
+                        item.conversation.forEach(cv => {
+                            let overrideCV = conversation.filter(mycv => {
+                                return cv.time == mycv.time;
+                            })
+                            if (overrideCV.length > 0) {
+                                let roles = overrideCV[0].roles;
+                                cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
+                                cv.content = overrideCV[0].content;
+                            }
+                        })
+                    }
+                    combineData.push(item);
+                });
+                deferred.resolve(combineData);
+            }
+
         })
         return deferred.promise;
     },

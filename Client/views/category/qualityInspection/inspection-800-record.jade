@@ -9,16 +9,17 @@
                 select.form-control(style='max-width:155px',ng-change='vm.filterPlatform()',ng-model='vm.inspection800.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
             .inlineBlk
                 label {{"FPMS CS Acc" | translate}}
-                select.form-control(ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()')
-                    option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v.name}}') {{v.name | translate}}
+                //select.form-control(ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()')
+                //    option(value='all') {{'ALL' | translate}}
+                //    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v.name}}') {{v.name | translate}}
+                select.form-control(style='max-width:100px', ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()', ng-options='product._id as product.name for product in vm.fpmsACCList', multiple, bsp, data-actions-box='true')
 
             .inlineBlk
                 label {{"Live800 Acc" | translate}}
-                select.form-control(ng-model='vm.inspection800.live800Accs')
-                    option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.live800Accs', value='{{v}}') {{v | translate}}
-
+                //select.form-control(ng-model='vm.inspection800.live800Accs')
+                //    option(value='all') {{'ALL' | translate}}
+                //    option(ng-repeat='(i,v) in vm.live800Accs', value='{{v}}') {{v | translate}}
+                select.form-control(style='max-width:100px', ng-model='vm.inspection800.live800Accs', ng-options='i as v | translate for (i,v) in vm.live800Accs', multiple, bsp, data-actions-box='true')
             .inlineBlk
                 label.control-label {{'Start date' | translate}}
                 #live800StartDatetimePicker.input-append.form-control

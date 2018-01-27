@@ -34,7 +34,6 @@ var adminInfoSchema = new Schema({
     resetTokenExpiry: {type: Date},
     did: {type: Number},
     callerId: {type: Number},
-    live800CompanyId: [{type: String, default: 0}],
     live800Acc: [{type: String, default: 0}]
 
 
