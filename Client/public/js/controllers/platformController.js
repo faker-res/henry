@@ -10227,38 +10227,34 @@ define(['js/app'], function (myApp) {
 
             vm.getPlayerInfoHistory = function () {
                 vm.playerInfoHistoryCount = 0;
-                let sendData = {
-                    adminId: authService.adminId,
-                    platformId: vm.selectedSinglePlayer.platform,
-                    type: ["UpdatePlayerInfo"],
-                    size: 2000,
-                    // size: vm.queryProposal.limit || 10,
-                    // index: newSearch ? 0 : (vm.queryProposal.index || 0),
-                    // sortCol: vm.queryProposal.sortCol
-                    status: vm.allProposalStatus,
-                    playerId: vm.selectedSinglePlayer._id
-                };
+                $scope.$socketPromise('getProposalTypeByType', {platformId: vm.selectedSinglePlayer.platform, type:"UPDATE_PLAYER_INFO" })
+                    .then(data => {
 
-                socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
-                    console.log('playerInfo', data);
-
-                    var drawData = data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.playerLevel$ = item.data.newLevelName ? item.data.newLevelName : $translate('UNCHANGED');
-                        item.realName$ = item.data.realName ? item.data.realName : $translate('UNCHANGED');
-                        item.referralName$ = item.data.referralName ? item.data.referralName : $translate('UNCHANGED');
-                        item.partnerName$ = item.data.partnerName ? item.data.partnerName : $translate('UNCHANGED');
-                        item.DOB$ = item.data.DOB ? item.data.DOB : $translate('UNCHANGED');
-                        item.gender$ = item.data.gender ? item.data.gender : $translate('UNCHANGED');
-                        item.updatePassword$ = item.data.updatePassword ? $translate('CHANGED') : $translate('UNCHANGED');
-                        item.updateGamePassword$ = item.data.updateGamePassword ? $translate('CHANGED') : $translate('UNCHANGED');
-                        return item;
-                    })
-                    vm.playerInfoHistoryCount = data.data.data.length;
-                    vm.drawPlayerInfoHistory(drawData);
-                }, null, true);
-                $('#modalPlayerInfoHistory').modal();
+                        let sendData = {
+                            type: data.data._id,
+                            playerObjId: vm.selectedSinglePlayer._id,
+                        };
+                        socketService.$socket($scope.AppSocket, 'getProposalByPlayerIdAndType', sendData, function (data) {
+                            console.log('playerInfo', data);
+                            var drawData = data.data.map(item => {
+                                item.createTime$ = vm.dateReformat(item.createTime);
+                                item.playerLevel$ = item.data.newLevelName ? item.data.newLevelName : $translate('UNCHANGED');
+                                item.realName$ = item.data.realName ? item.data.realName : $translate('UNCHANGED');
+                                item.referralName$ = item.data.referralName ? item.data.referralName : $translate('UNCHANGED');
+                                item.partnerName$ = item.data.partnerName ? item.data.partnerName : $translate('UNCHANGED');
+                                item.DOB$ = item.data.DOB ? utilService.getFormatDate(item.data.DOB) : $translate('UNCHANGED');
+                                item.gender$ = item.data.gender === undefined ? $translate('UNCHANGED') : item.data.gender? $translate('Male') : $translate('Female');
+                                item.updatePassword$ = item.data.updatePassword ? $translate('CHANGED') : $translate('UNCHANGED');
+                                item.updateGamePassword$ = item.data.updateGamePassword ? $translate('CHANGED') : $translate('UNCHANGED');
+                                return item;
+                            })
+                            vm.playerInfoHistoryCount = data.data.length;
+                            vm.drawPlayerInfoHistory(drawData);
+                        }, null, true);
+                        $('#modalPlayerInfoHistory').modal();
+                })
             }
+
             vm.drawPlayerInfoHistory = function (tblData) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -10867,8 +10863,8 @@ define(['js/app'], function (myApp) {
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
 
                 vm.dynRewardTaskGroupIndex.forEach(item => {
-                    incRewardAmt += item[0];
-                    incConsumptAmt += item[1];
+                    incRewardAmt += Number(item[0]);
+                    incConsumptAmt += Number(item[1]);
                 });
 
                 let sendQuery = {
@@ -11220,7 +11216,7 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                             item.isArchived =
-                                item.archivedAmt$ == item.availableAmt$
+                                item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
                             if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)){
                                 usedTopUp.push(item.topUpProposal)
@@ -11309,7 +11305,7 @@ define(['js/app'], function (myApp) {
                                 if (row.isArchived) {
                                     text = '<a class="fa fa-check margin-right-5"></a><span>(' + adminName + ')</span>';
                                 } else {
-                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ + row.archivedAmt$, row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
+                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.availableAmt$ , row.maxConsumption$ - row.curConsumption$, rowId] + '" ng-click="vm.setUnlockTaskGroup(\'' + rowId + '\')">';
                                 }
 
                                 //
@@ -11739,10 +11735,6 @@ define(['js/app'], function (myApp) {
                     deferred.resolve(true);
                 });
                 return deferred.promise;
-            }
-
-            vm.testFn = function () {
-                console.log('this', this);
             }
 
             vm.getPlayerPermissionChange = function (flag) {
@@ -12232,7 +12224,8 @@ define(['js/app'], function (myApp) {
                     wechatPayAccount: vm.playerWechatPayTopUp.wechatPayAccount,
                     bonusCode: vm.playerWechatPayTopUp.bonusCode,
                     remark: vm.playerWechatPayTopUp.remark,
-                    createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
+                    createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate(),
+                    notUseQR: !!vm.playerWechatPayTopUp.notUseQR
                 };
                 console.log("applyPlayerWechatPayTopUp", sendData);
                 vm.playerWechatPayTopUp.submitted = true;
@@ -14827,6 +14820,9 @@ define(['js/app'], function (myApp) {
                                         let event = vm.allRewardEvent[i];
                                         rewardEvents[event._id] = event.name;
                                     }
+                                    // Since promo code do not have its own event, it does not have eventObjId
+                                    // Hence this object id will be use specifically for promo code throughout system as eventObjId
+                                    rewardEvents["59ca08a3ef187c1ccec863b9"] = "优惠代码";
                                     result = rewardEvents;
                                     break;
                                 case "gameProviders":
