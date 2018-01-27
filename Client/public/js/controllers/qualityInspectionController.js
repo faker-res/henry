@@ -326,18 +326,20 @@ define(['js/app'], function (myApp) {
                 let fpmsId = [];
                 if(vm.fpmsACCList.length > 0){
                   vm.fpmsACCList.map(item=>{
-                    fpmsId.push(item._id);
+                    fpmsId.push(item.name);
                   })
+                }else{
+                    fpmsId = [];
                 }
                 var query = {
                         // 'companyId':270,
                         // 'operatorId':764,
                         'companyId':vm.companyIds,
-                        'fpmsAcc':fpmsId,
-                        'operatorId':vm.live800Accs,
+                        'fpmsAcc':vm.inspection800.fpms,
+                        'operatorId':vm.inspection800.live800Accs,
                         'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
                         'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
-                        'status':vm.inspection800.status
+                        'status':vm.inspection800.status ? vm.inspection800.status : null
                 };
                 if(vm.inspection800.qiUser && vm.inspection800.qiUser.length > 0){
                     query['qualityAssessor'] = vm.inspection800.qiUser;
