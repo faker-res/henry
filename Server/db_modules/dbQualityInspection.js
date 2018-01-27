@@ -46,11 +46,23 @@ var dbQualityInspection = {
             queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
         }
         console.log(queryObj);
-        if(query.status!='all'){
+        if(query.status!='all'&&query.status!=1) {
+            //get status equal to not 1 & all
             let dbResult = dbQualityInspection.searchMongoDB(query);
-            let result = dbQualityInspection.getMySQLConversation(dbResult,query);
+            let result = dbQualityInspection.getMySQLConversation(dbResult, query);
             conversationForm = dbQualityInspection.fillContent(result);
+        }else if(query.status!='all' && query.status==1){
+
+            //get status equal to "1"
+            delete query.status;
+            let mongoResult = dbQualityInspection.searchMongoDB(query);
+            let connection = dbQualityInspection.connectMysql();
+            connection.connect();
+            let dbResult = dbQualityInspection.searchPendingMySQL(mongoResult, queryObj,connection);
+            conversationForm = dbQualityInspection.constructCV(dbResult);
+            console.log(conversationForm);
         }else{
+            //get status equal to "all"
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
             let dbResult = dbQualityInspection.searchMySQLDB(queryObj,connection);
@@ -58,6 +70,50 @@ var dbQualityInspection = {
             conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         }
         return conversationForm;
+    },
+    constructCV: function(dataResult){
+        let deferred = Q.defer();
+        let liveChats = [];
+
+        Q.all(dataResult).then(results=>{
+
+            results.forEach(item => {
+                let live800Chat = {conversation: [],live800Acc:{}};
+                live800Chat.messageId = item.msg_id;
+                live800Chat.status = item.status;
+                live800Chat.qualityAssessor = '';
+                live800Chat.fpmsAcc = '';
+                live800Chat.processTime = null;
+                live800Chat.appealReason = '';
+                live800Chat.conversation = item.conversation;
+                live800Chat.companyId = item.company_id;
+
+                live800Chat.operatorId = item.operator_id;
+                live800Chat.operatorName = item.operator_name;
+                live800Chat.live800Acc['id'] = item.operator_id;
+                live800Chat.live800Acc['name'] = item.operator_name;
+                let dom = new JSDOM(item.content);
+                let content = [];
+                let sys = dom.window.document.getElementsByTagName("sys");
+                let he = dom.window.document.getElementsByTagName("he");
+                let i = dom.window.document.getElementsByTagName("i");
+
+                partI = dbQualityInspection.reGroup(i, 1);
+                partHe = dbQualityInspection.reGroup(he, 2);
+                partSYS = dbQualityInspection.reGroup(sys, 3);
+                content = partI.concat(partHe, partSYS);
+                content.sort(function (a, b) {
+                    return a.time - b.time;
+                });
+
+                live800Chat.conversation = content;
+
+                liveChats.push(live800Chat);
+            });
+            deferred.resolve(liveChats);
+        });
+
+        return deferred.promise;
     },
     searchMongoDB:function(query){
         let queryQA = {};
@@ -106,6 +162,8 @@ var dbQualityInspection = {
                 return results;
             })
     },
+
+
     fillContent: function(data){
         let deferred = Q.defer();
         let combineData = [];
@@ -206,6 +264,38 @@ var dbQualityInspection = {
             });
 
             return content;
+    },
+    searchPendingMySQL:function(mongoData, queryObj,connection){
+        var deferred = Q.defer();
+
+        Q.all(mongoData).then(mg=> {
+            let mgData = []
+            mg.forEach(item => {
+                mgData.push(item.messageId);
+            })
+            console.log(mgData);
+            let mgDataStr = "";
+            if(mgData.length > 0){
+                mgDataStr = mgData.join(',');
+            }
+            let excludeMongoQuery = " AND msg_id NOT IN ("+mgDataStr+")";
+            console.log(queryObj + excludeMongoQuery);
+            connection.query("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery, function (error, results, fields) {
+                console.log('yeah');
+                if (error) throw error;
+                // console.log(results);
+                deferred.resolve(results);
+                connection.end();
+            });
+        })
+
+        // connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+        //     console.log('yeah');
+        //     if (error) throw error;
+        //     deferred.resolve(results);
+        //     connection.end();
+        // });
+        return deferred.promise;
     },
     searchMySQLDB:function(queryObj,connection){
         var deferred = Q.defer();
@@ -519,7 +609,8 @@ var dbQualityInspection = {
     rateCSConversation: function (data , adminName) {
         var deferred = Q.defer();
         console.log(data);
-        let query = { 'live800Acc': {$in: [data.live800Acc.id]} };
+        let live800Acc = data.live800Acc.id  ? data.live800Acc.id :'xxx';
+        let query = { 'live800Acc': {$in: [live800Acc]} };
         console.log(data.live800Acc)
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
