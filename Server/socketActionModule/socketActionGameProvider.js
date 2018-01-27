@@ -167,6 +167,12 @@ function socketActionGame(socketIO, socket) {
             let actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getProviderLatestTimeRecord, [data.providerId,data.platformObjId], actionName);
         },
+
+        checkTransferInSequence: function checkTransferInSequence(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerObjId && data.providerIdArr);
+            socketUtil.emitter(self.socket, dbGameProvider.checkTransferInSequence, [data.platformObjId, data.playerObjId, data.providerIdArr], actionName, isValidData);
+        },
     };
     socketActionGame.actions = this.actions;
 };

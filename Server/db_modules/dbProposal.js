@@ -470,6 +470,10 @@ var proposal = {
             )
     },
 
+    getProposalByPlayerIdAndType: function (query) {
+        return dbconfig.collection_proposal.find({type: query.type, "data.playerObjId": query.playerObjId}).exec();
+    },
+
     /**
      * Get multiple proposal by ids
      * @param {json} ids - Array of proposal ids
@@ -2515,11 +2519,12 @@ var proposal = {
         var summary = {};
 
         if (reqData.status) {
+            /**
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
-            }
+            }**/
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]

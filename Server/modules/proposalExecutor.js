@@ -3335,11 +3335,12 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                 platformId: transferLog.platformObjId,
                 playerId: transferLog.playerObjId,
                 providerGroup: providerGroup._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
+                status: constRewardTaskStatus.STARTED
             }).lean();
         }
     ).then(
         rewardTaskGroup => {
+            console.log("DEBUG LOG :: Getting reward task group for repair transfer ID: " + transferId + " as", rewardTaskGroup);
             if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
                 changedValidCredit = rewardTaskGroup._inputFreeAmt;
                 changedLockedCredit = rewardTaskGroup._inputRewardAmt;

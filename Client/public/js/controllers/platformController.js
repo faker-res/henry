@@ -8369,43 +8369,61 @@ define(['js/app'], function (myApp) {
 
             vm.transferAllCreditToPlayer = function () {
                 vm.transferAllCredit.isProcessing = true;
-                $.each(vm.playerCredit, function (i, v) {
-                    if (jQuery.isNumeric(v.gameCredit) && v.gameCredit > 0) {
-                        var sendData = {
-                            platform: vm.selectedPlatform.data.platformId,
-                            playerId: vm.selectedSinglePlayer.playerId,
-                            providerId: v.providerId,
-                            amount: parseInt(v.gameCredit),
-                            adminName: authService.adminName
-                        }
 
-                        vm.transferAllCredit[v.providerId] = {finished: false};
-                        console.log('will send', sendData, 'transferPlayerCreditFromProvider');
-                        socketService.$socket($scope.AppSocket, 'transferPlayerCreditFromProvider', sendData, function (data) {
-                            vm.transferAllCredit[v.providerId].text = "Success";
-                            vm.transferAllCredit[v.providerId].finished = true;
-                            $scope.safeApply();
-                        }, function (data) {
-                            console.log('transfer finish Fail', data);
-                            var msg = 'unknown';
-                            try {
-                                msg = JSON.parse(data.error.error).errorMsg;
-                            }
-                            catch (err) {
-                                console.log(err);
-                            }
-                            vm.transferAllCredit[v.providerId].text = msg;
-                            vm.transferAllCredit[v.providerId].finished = true;
-                            $scope.safeApply();
-                        })
+                let transferProviderId = [];
+
+                for (let provider in vm.playerCredit) {
+                    if (parseFloat(vm.playerCredit[provider].gameCredit) >= 1) {
+                        transferProviderId.push(vm.playerCredit[provider].providerId);
                     }
-                })
+                }
+
+                if (transferProviderId.length > 0) {
+                    $scope.$socketPromise('checkTransferInSequence', {
+                        platformObjId: vm.isOneSelectedPlayer().platform,
+                        playerObjId: vm.isOneSelectedPlayer()._id,
+                        providerIdArr: transferProviderId
+                    }).then(
+                        res => {
+                            if (res && res.data && res.data.length > 0) {
+                                res.data.sort((a, b) => new Date(a.operationTime).getTime() - new Date(b.operationTime).getTime());
+
+                                let p = Promise.resolve();
+
+                                for(let i = 0; i < res.data.length; i++) {
+                                    let sendData = {
+                                        platform: vm.selectedPlatform.data.platformId,
+                                        playerId: vm.selectedSinglePlayer.playerId,
+                                        providerId: res.data[i].providerId,
+                                        amount: parseInt(vm.playerCredit[res.data[i].providerId].gameCredit),
+                                        adminName: authService.adminName
+                                    };
+
+                                    $scope.$evalAsync(() => vm.transferAllCredit[res.data[i].providerId] = {finished: false});
+                                    console.log('will send', sendData, 'transferPlayerCreditFromProvider');
+
+                                    p = p.then(function () {
+                                        return $scope.$socketPromise('transferPlayerCreditFromProvider', sendData).then(transferRes => {
+                                            console.log('success', transferRes);
+                                            $scope.$evalAsync(() => {
+                                                vm.transferAllCredit[res.data[i].providerId].text = "Success";
+                                                vm.transferAllCredit[res.data[i].providerId].finished = true;
+                                            })
+                                        })
+                                    });
+                                }
+
+                                return p;
+                            }
+                        }
+                    )
+                }
                 console.log('vm.creditModal', vm.creditModal);
                 vm.creditModal.on("hide.bs.modal", function (a) {
                     vm.creditModal.off("hide.bs.modal");
                     vm.getPlatformPlayersData();
                 });
-            }
+            };
 
             vm.closeCreditTransferLog = function (modal) {
                 $(modal).modal('hide');
@@ -9564,7 +9582,7 @@ define(['js/app'], function (myApp) {
                     vm.totalConsumptionBonusAmount = parseFloat(bonusAmount).toFixed(2);
                     var option = $.extend({}, vm.generalDataTableOptions, {
                         data: tableData,
-                        "aaSorting": vm.playerExpenseLog.aaSorting || [[1, 'desc']],
+                        "aaSorting": vm.playerExpenseLog.aaSorting || [[7, 'desc']],
                         aoColumnDefs: [
                             {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
                             {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
@@ -10208,38 +10226,34 @@ define(['js/app'], function (myApp) {
 
             vm.getPlayerInfoHistory = function () {
                 vm.playerInfoHistoryCount = 0;
-                let sendData = {
-                    adminId: authService.adminId,
-                    platformId: vm.selectedSinglePlayer.platform,
-                    type: ["UpdatePlayerInfo"],
-                    size: 2000,
-                    // size: vm.queryProposal.limit || 10,
-                    // index: newSearch ? 0 : (vm.queryProposal.index || 0),
-                    // sortCol: vm.queryProposal.sortCol
-                    status: vm.allProposalStatus,
-                    playerId: vm.selectedSinglePlayer._id
-                };
+                $scope.$socketPromise('getProposalTypeByType', {platformId: vm.selectedSinglePlayer.platform, type:"UPDATE_PLAYER_INFO" })
+                    .then(data => {
 
-                socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
-                    console.log('playerInfo', data);
-
-                    var drawData = data.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        item.playerLevel$ = item.data.newLevelName ? item.data.newLevelName : $translate('UNCHANGED');
-                        item.realName$ = item.data.realName ? item.data.realName : $translate('UNCHANGED');
-                        item.referralName$ = item.data.referralName ? item.data.referralName : $translate('UNCHANGED');
-                        item.partnerName$ = item.data.partnerName ? item.data.partnerName : $translate('UNCHANGED');
-                        item.DOB$ = item.data.DOB ? item.data.DOB : $translate('UNCHANGED');
-                        item.gender$ = item.data.gender ? item.data.gender : $translate('UNCHANGED');
-                        item.updatePassword$ = item.data.updatePassword ? $translate('CHANGED') : $translate('UNCHANGED');
-                        item.updateGamePassword$ = item.data.updateGamePassword ? $translate('CHANGED') : $translate('UNCHANGED');
-                        return item;
-                    })
-                    vm.playerInfoHistoryCount = data.data.data.length;
-                    vm.drawPlayerInfoHistory(drawData);
-                }, null, true);
-                $('#modalPlayerInfoHistory').modal();
+                        let sendData = {
+                            type: data.data._id,
+                            playerObjId: vm.selectedSinglePlayer._id,
+                        };
+                        socketService.$socket($scope.AppSocket, 'getProposalByPlayerIdAndType', sendData, function (data) {
+                            console.log('playerInfo', data);
+                            var drawData = data.data.map(item => {
+                                item.createTime$ = vm.dateReformat(item.createTime);
+                                item.playerLevel$ = item.data.newLevelName ? item.data.newLevelName : $translate('UNCHANGED');
+                                item.realName$ = item.data.realName ? item.data.realName : $translate('UNCHANGED');
+                                item.referralName$ = item.data.referralName ? item.data.referralName : $translate('UNCHANGED');
+                                item.partnerName$ = item.data.partnerName ? item.data.partnerName : $translate('UNCHANGED');
+                                item.DOB$ = item.data.DOB ? utilService.getFormatDate(item.data.DOB) : $translate('UNCHANGED');
+                                item.gender$ = item.data.gender === undefined ? $translate('UNCHANGED') : item.data.gender? $translate('Male') : $translate('Female');
+                                item.updatePassword$ = item.data.updatePassword ? $translate('CHANGED') : $translate('UNCHANGED');
+                                item.updateGamePassword$ = item.data.updateGamePassword ? $translate('CHANGED') : $translate('UNCHANGED');
+                                return item;
+                            })
+                            vm.playerInfoHistoryCount = data.data.length;
+                            vm.drawPlayerInfoHistory(drawData);
+                        }, null, true);
+                        $('#modalPlayerInfoHistory').modal();
+                })
             }
+
             vm.drawPlayerInfoHistory = function (tblData) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
@@ -11722,10 +11736,6 @@ define(['js/app'], function (myApp) {
                 return deferred.promise;
             }
 
-            vm.testFn = function () {
-                console.log('this', this);
-            }
-
             vm.getPlayerPermissionChange = function (flag) {
                 $('.playerPermissionPopover').popover('hide');
                 // $('#playerPermissionPopover').modal('hide');
@@ -12213,7 +12223,8 @@ define(['js/app'], function (myApp) {
                     wechatPayAccount: vm.playerWechatPayTopUp.wechatPayAccount,
                     bonusCode: vm.playerWechatPayTopUp.bonusCode,
                     remark: vm.playerWechatPayTopUp.remark,
-                    createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate()
+                    createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate(),
+                    notUseQR: !!vm.playerWechatPayTopUp.notUseQR
                 };
                 console.log("applyPlayerWechatPayTopUp", sendData);
                 vm.playerWechatPayTopUp.submitted = true;
@@ -14808,6 +14819,9 @@ define(['js/app'], function (myApp) {
                                         let event = vm.allRewardEvent[i];
                                         rewardEvents[event._id] = event.name;
                                     }
+                                    // Since promo code do not have its own event, it does not have eventObjId
+                                    // Hence this object id will be use specifically for promo code throughout system as eventObjId
+                                    rewardEvents["59ca08a3ef187c1ccec863b9"] = "优惠代码";
                                     result = rewardEvents;
                                     break;
                                 case "gameProviders":
