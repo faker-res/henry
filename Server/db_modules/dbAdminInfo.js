@@ -71,6 +71,7 @@ var dbAdminInfo = {
         return dbconfig.collection_admin.findOne(query).exec();
     },
     getAdminsInfo: function (query) {
+        console.log("outttttttttttttttttttttt")
         return dbconfig.collection_admin.find(query).exec();
     },
     getCSAdmins: function(data){

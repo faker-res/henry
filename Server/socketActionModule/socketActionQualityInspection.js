@@ -54,6 +54,16 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.searchLive800, [data], actionName, isDataValid);
         },
+        searchLive800Record: function searchLive800Record(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.searchLive800Record, [data], actionName, isDataValid);
+        },
+        getProgressReportByOperator: function getProgressReportByOperator(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.getProgressReportByOperator, [data.companyId, data.operatorId, data.startTime, data.endTime], actionName, isDataValid);
+        },
         markEvaluationRecordAsRead: function markEvaluationRecordAsRead(data){
             var actionName = arguments.callee.name;
             //data = true;
