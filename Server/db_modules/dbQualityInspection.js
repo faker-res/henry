@@ -286,7 +286,10 @@ var dbQualityInspection = {
             console.log(queryObj + excludeMongoQuery);
             connection.query("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery, function (error, results, fields) {
                 console.log('yeah');
-                if (error) throw error;
+                if (error) {
+                    console.log(error)
+                    // throw error;
+                }
                 // console.log(results);
                 deferred.resolve(results);
                 connection.end();
@@ -304,8 +307,11 @@ var dbQualityInspection = {
     searchMySQLDB:function(queryObj,connection){
         var deferred = Q.defer();
         connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-            console.log('result',results);
-            if (error) throw error;
+            // console.log('result',results);
+            // if (error) throw error;
+            if(error){
+                console.log(error);
+            }
             deferred.resolve(results);
             connection.end();
         });
@@ -348,7 +354,7 @@ var dbQualityInspection = {
                 return a.time - b.time;
             });
 
-            live800Chat.conversation = content;
+            live800Chat.conversation = vm.drawColor(content);
 
             let queryQA = {messageId: String(item.msg_id)};
             let prom = dbconfig.collection_qualityInspection.find(queryQA)
@@ -368,6 +374,40 @@ var dbQualityInspection = {
       })
       return deferred.promise;
 
+    },
+    drawColor: function(conversation){
+        let firstCV = null;
+        let firstTime = null;
+        conversation.forEach(item=>{
+            console.log(item);
+            if(!firstCV && item.roles == 2){
+                firstCV == item;
+                lastCV = item;
+            }else{
+                if(item.roles==2){
+                    lastCV = item;
+                }else if(item.roles==1){
+                    let timeStamp = lastCV.time - item.time;
+                    let min = timeStamp / (60*60*24);
+                    let sec = min * 60;
+                    let rate = 0;
+                    if(sec <= 30){
+                        rate = 1;
+                    }else if(sec > 30 && sec <=60){
+                        rate = 0;
+                    }else if(sec > 90 && sec <=120){
+                        rate = -1.5;
+                    }else{
+                        rate = -2;
+                    }
+                    item.timeoutRate = rate;
+                }else{
+
+                }
+            }
+            return item;
+        })
+        return conversation;
     },
     reformatCV: function(cvs,mongoCVS ){
 
