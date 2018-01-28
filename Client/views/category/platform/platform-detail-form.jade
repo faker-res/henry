@@ -37,13 +37,13 @@ form(name="form_new_platform" ,novalidate)
                     input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail")
                 div.form-group.col-md-6
                     label.control-label LiveCompanyId
-                    input.form-control(type="text", placeholder="{{'live800CompanyId' | translate}}", ng-model= "vm.showPlatform.live800CompanyId")
+                    input.form-control(type="text", placeholder="{{'live800CompanyId' | translate}}",ng-blur="vm.isValidCompanyId(vm.showPlatform.live800CompanyIdTXT)", ng-model= "vm.showPlatform.live800CompanyIdTXT")
                 div.form-group.col-md-6
                     label.control-label CS Department
-                    input.form-control(type="text", ng-model="vm.showPlatform.csDepartment", ng-blur="vm.isValidCSDepartment(vm.showPlatform.csDepartment)")
+                    input.form-control(type="text", ng-model="vm.showPlatform.csDepartmentTXT", ng-blur="vm.isValidCSDepartment(vm.showPlatform.csDepartmentTXT)")
                 div.form-group.col-md-6
                     label.control-label QI Department
-                    input.form-control(type="text", ng-model="vm.showPlatform.qiDepartment", ng-blur="vm.isValidQIDepartment(vm.showPlatform.csDepartment)")
+                    input.form-control(type="text", ng-model="vm.showPlatform.qiDepartmentTXT", ng-blur="vm.isValidQIDepartment(vm.showPlatform.qiDepartmentTXT)")
 
 
 

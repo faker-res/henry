@@ -415,17 +415,33 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
+            vm.isValidCompanyId = function(live800CompanyIdTXT){
+                let live800Arr = live800CompanyIdTXT.split(",");
+                live800Arr = live800Arr.filter(item=>{return item!=''});
+                vm.showPlatform.live800CompanyId = live800Arr;
+                console.log(vm.showPlatform.live800CompanyId);
+            }
             vm.isValidCSDepartment = function(departments){
+                if(!vm.showPlatform.csDepartmentTXT || vm.showPlatform.csDepartmentTXT == ''){
+                    return
+                }
               let result = vm.getDepartmentObjId(departments);
               Q.all([result]).then(data=>{
-                vm.showPlatform.csDepartment = data[0]?data[0]:[];
+                if(data[0].length > 0){
+                    vm.showPlatform.csDepartment = data[0]?data[0]:[];
+                }
                 console.log(vm.showPlatform.csDepartment);
               })
             };
             vm.isValidQIDepartment = function(departments){
+                if(!vm.showPlatform.qiDepartmentTXT || vm.showPlatform.qiDepartmentTXT == ''){
+                    return
+                }
               let result = vm.getDepartmentObjId(departments);
               Q.all([result]).then(data=>{
-                vm.showPlatform.qiDepartment = data[0]?data[0]:[];
+                if(data[0].length > 0){
+                    vm.showPlatform.qiDepartment = data[0]?data[0]:[];
+                }
                 console.log(vm.showPlatform.qiDepartment);
               })
 
@@ -1505,7 +1521,7 @@ define(['js/app'], function (myApp) {
                 if (vm.showPlatform.department.hasOwnProperty('_id')) {
                     vm.showPlatform.department = vm.showPlatform.department._id;
                 }
-                vm.reArrangeArr(vm.showPlatform.live800CompanyId ,  'live800CompanyId', vm.showPlatform);
+
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
                         query: {_id: vm.selectedPlatform.id},
@@ -22774,9 +22790,14 @@ define(['js/app'], function (myApp) {
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
 
             vm.reArrangeArr = function(oriTXT, targetField, targetArr) {
-                if (typeof(oriTXT) == 'string') {
+
+                if (typeof(oriTXT) == 'string' && oriTXT !='') {
                     let convertArr = oriTXT.split(',');
                     targetArr[targetField] = convertArr;
+                    targetArr = targetArr.filter(item=>{
+                        return item != '';
+                    })
+                    console.log(targetArr);
                 }
             };
 
