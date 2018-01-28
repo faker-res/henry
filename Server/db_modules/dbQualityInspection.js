@@ -498,12 +498,22 @@ var dbQualityInspection = {
             },
             status: constQualityInspectionStatus.COMPLETED_READ
         }
-        return dbconfig.collection_qualityInspection.find(query).lean();
+        return dbconfig.collection_qualityInspection.find(query).lean().then(
+            readEvaluationData => {
+                if(readEvaluationData && readEvaluationData.length > 0){
+                    let queryToSearchFromMySQL = {
+                        startTime: startTime,
+                        endTime: endTime
+                    }
+                    let result = dbQualityInspection.getMySQLConversation(readEvaluationData,queryToSearchFromMySQL);
+                    conversationForm = dbQualityInspection.fillContent(result);
+                    return conversationForm;
+                }
+            }
+        );
     },
 
     getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status){
-
-
         let query ={
             createTime: {
                 $gte: startTime,

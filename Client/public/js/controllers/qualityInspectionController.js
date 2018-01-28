@@ -13,8 +13,8 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             vm.evaluationAppealStatus = {
-                APPEALING: 1,
-                APPEAL_COMPLETED: 1
+                APPEALING: 5,
+                APPEAL_COMPLETED: 6
             };
 
             vm.constQualityInspectionStatus = {
@@ -630,8 +630,25 @@ define(['js/app'], function (myApp) {
                     if(data && data.data && data.data.length > 0){
 
                         data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+
+                                if(data.createTime){
+                                    data.createTime = utilService.getLocalTime(new Date(data.createTime));
+                                }
+
+                                if(data.processTime){
+                                    data.processTime = utilService.getLocalTime(new Date(data.processTime));
+                                }
+
+                                data.conversation.forEach(function(cv){
+                                    cv.roleName = vm.roleType[data.type];
+                                    cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                });
+
                             }
 
                             return data;
