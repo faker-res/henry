@@ -296,7 +296,7 @@ var dbQualityInspection = {
     },
 
     searchLive800Record: function (query) {
-      //  let conversationForm = [];
+       let conversationForm = [];
         let queryObj = "";
         console.log(query);
         if (query.companyId && query.companyId.length>0) {
@@ -346,9 +346,13 @@ var dbQualityInspection = {
         let connection = dbQualityInspection.connectMysql();
         connection.connect();
         let dbResult = dbQualityInspection.searchLive800DB(queryObj,connection);
+        let dbRawResult = dbQualityInspection.searchMySQLDB(queryObj,connection);
         let progressReport = dbQualityInspection.getProgressReportByAdmin(query.companyId,query.operatorId,startTime,endTime);
+
+        let mongoResult = dbQualityInspection.getMongoCV(dbRawResult);
+        conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         // }
-        return Q.all([dbResult,progressReport]);
+        return Q.all([dbResult,progressReport,conversationForm]);
     },
     searchLive800DB:function(queryObj,connection){
         var deferred = Q.defer();
@@ -358,7 +362,7 @@ var dbQualityInspection = {
             if (error) throw error;
 
             deferred.resolve(results);
-            connection.end();
+            //connection.end();
         });
         return deferred.promise;
     },
@@ -405,6 +409,8 @@ var dbQualityInspection = {
     },
     getProgressReportByOperator: function (companyId,operatorId,startTime,endTime){
 
+       //var startTime = dbUtility.getLocalTimeString(startTime);
+       //var endTime = dbUtility.getLocalTimeString(endTime);
         // let startTime = dbUtility.getLocalTimeString(startTime);
         // let endTime = dbUtility.getLocalTimeString(endTime);
 
