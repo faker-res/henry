@@ -1751,7 +1751,7 @@ define(['js/app'], function (myApp) {
                                         if (data.companyId == vm.rawMysqlData[i].companyId && data.operatorId == vm.rawMysqlData[i].operatorId) {
                                             if (vm.rawMysqlData[i].effective == 1){
                                                 count1 += 1;
-                                                mark = mark + data.inspectionMark;
+                                                mark = mark + vm.rawMysqlData[i].inspectionMark;
 
                                             }else{
                                                 count0 +=1;
