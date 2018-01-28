@@ -3170,6 +3170,8 @@
   "CONVERSATION_CONTENT": "对话内容",
   "OVERTIME_MARK": "超时评分（+/-)",
   "EVALUATION_MARK": "质简评分（+/-)",
-  "EVALUATION_REVIEW": "质检评语"
+  "EVALUATION_REVIEW": "质检评语",
+  "CS Department":"客服部门",
+  "QI Department":"质检部门"
 
 }
