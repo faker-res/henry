@@ -3706,7 +3706,7 @@ let dbPlayerReward = {
                 topupMatchQuery.$and = [];
             }
 
-            topupMatchQuery.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exist: false}}]});
+            topupMatchQuery.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exists: false}}]});
         }
 
         if (eventData.condition.bankCardType && eventData.condition.bankCardType.length > 0) {
@@ -3714,7 +3714,7 @@ let dbPlayerReward = {
                 topupMatchQuery.$and = [];
             }
 
-            topupMatchQuery.$and.push({$or: [{bankCardType: {$in: eventData.condition.bankCardType}}, {bankCardType: {$exist: false}}]});
+            topupMatchQuery.$and.push({$or: [{bankCardType: {$in: eventData.condition.bankCardType}}, {bankCardType: {$exists: false}}]});
         }
 
         // Check registration interface condition
