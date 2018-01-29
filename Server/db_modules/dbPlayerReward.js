@@ -222,7 +222,7 @@ let dbPlayerReward = {
             let lastValidWithdrawalQuery = {
                 mainType: "PlayerBonus",
                 "data.playerId": player.playerId,
-                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]}
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.AUTOAUDIT]}
             };
 
             let lastTopUpQuery = {playerId: player._id};

@@ -414,11 +414,11 @@ const dbRewardTask = {
                     settleTime: {
                         $gte: new Date(lastSecond),
                         $lt: new Date(query.to)
-                    }
+                    },
+                    mainType: {$in: ["TopUp","Reward"]},
                 };
 
                 if (!query._id) {
-                    rewardTaskProposalQuery.mainType = {$in: ["TopUp","Reward"]};
                     rewardTaskProposalQuery.$or = [
                         {'data.providerGroup': {$exists: true, $eq: null}},
                         {'data.providerGroup': {$exists: true, $size: 0}},
@@ -489,7 +489,7 @@ const dbRewardTask = {
                 });
 
                 return {
-                    size: 0,
+                    size: result[0] ? result[0].length : 0,
                     data: result[0] ? result[0] : [],
                     summary: result[1][0] ? result[1][0] : {}
                 };

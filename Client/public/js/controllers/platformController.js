@@ -11285,8 +11285,8 @@ define(['js/app'], function (myApp) {
                     vm.selectedRewards.push($(this).val())
                 })
             }
-            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {console.log("tblData",tblData);
-
+            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {
+                console.log("tblData",tblData);
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     "aaSorting": vm.rewardTaskLog.aaSorting || [[3, 'desc']],
