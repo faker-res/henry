@@ -471,7 +471,7 @@ var proposal = {
     },
 
     getProposalByPlayerIdAndType: function (query) {
-        return dbconfig.collection_proposal.find({type: query.type, "data.playerObjId": query.playerObjId}).exec();
+        return dbconfig.collection_proposal.find({type: ObjectId(query.type), "data._id": {$in: [query.playerObjId, ObjectId(query.playerObjId)]}}).exec();
     },
 
     /**

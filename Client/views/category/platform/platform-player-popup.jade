@@ -911,6 +911,9 @@
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
                                     option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
                             .form-group-col-md-6
+                                label.control-label {{'realName' | translate}}
+                                input.form-control(ng-model='vm.playerManualTopUp.realName')
+                            .form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', required)
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
@@ -1037,7 +1040,7 @@
                             .form-group.col-md-12
                                 .control-label
                                 label {{'REMARK' | translate}}
-                                input.form-control(ng-model='vm.playerWechatPayTopUp.remark', required)
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.remark' ng-required="!vm.playerWechatPayTopUp.notUseQR")
                             .form-group.col-md-12
                                 .inlineBlk
                                 label {{'DEPOSIT_TIME' | translate}}

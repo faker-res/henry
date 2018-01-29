@@ -9086,7 +9086,7 @@ define(['js/app'], function (myApp) {
             vm.initPlayerAddRewardTask = function () {
                 vm.playerAddRewardTask = {
                     showSubmit: true,
-                    providerGroup: 'null'
+                    providerGroup: ''
                 };
                 vm.showRewardSettingsTab(null);
                 // vm.selectedRewards = [];
@@ -9937,7 +9937,8 @@ define(['js/app'], function (myApp) {
                     createTime: vm.playerManualTopUp.createTime.data('datetimepicker').getLocalDate(),
                     remark: vm.playerManualTopUp.remark,
                     groupBankcardList: vm.playerManualTopUp.groupBankcardList,
-                    bonusCode: vm.playerManualTopUp.bonusCode
+                    bonusCode: vm.playerManualTopUp.bonusCode,
+                    realName: vm.playerManualTopUp.realName,
                 };
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
@@ -11284,8 +11285,8 @@ define(['js/app'], function (myApp) {
                     vm.selectedRewards.push($(this).val())
                 })
             }
-            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {console.log("tblData",tblData);
-
+            vm.drawRewardTaskTable = function (newSearch, tblData, size, summary, topUpAmountSum) {
+                console.log("tblData",tblData);
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     "aaSorting": vm.rewardTaskLog.aaSorting || [[3, 'desc']],
