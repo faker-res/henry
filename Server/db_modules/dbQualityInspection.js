@@ -19,6 +19,36 @@ var dbQualityInspection = {
         });
         return connection;
     },
+    countLive800: function(query){
+        let queryObj = "";
+        let operatorId = null;
+        console.log(query);
+        if (query.companyId&&query.companyId.length > 0) {
+            let companyId = query.companyId.join(',');
+            queryObj += " company_id IN (" + companyId + ") AND ";
+        }
+        if (query.operatorId && query.operatorId.length > 0) {
+            if(Array.isArray(query.operatorId)){
+                operatorId = query.operatorId.join(',');
+            }else{
+                operatorId = query.operatorId;
+            }
+            if(operatorId!='all'){
+                queryObj += " operator_id IN (" + operatorId + ") AND ";
+            }
+        }
+
+        if (query.startTime && query.endTime) {
+            let startTime = dbUtility.getLocalTimeString(query.startTime);
+            let endTime = dbUtility.getLocalTimeString(query.endTime);
+            queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
+        }
+        let connection = dbQualityInspection.connectMysql();
+        connection.connect();
+        let dbResult = dbQualityInspection.countMySQLDB(queryObj,connection);
+        console.log(dbResult);
+        return dbResult;
+    },
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
@@ -36,19 +66,22 @@ var dbQualityInspection = {
             }else{
                 operatorId = query.operatorId;
             }
-            console.log(operatorId)
             if(operatorId!='all'){
                 queryObj += " operator_id IN (" + operatorId + ") AND ";
             }
         }
+
         if (query.startTime && query.endTime) {
             let startTime = dbUtility.getLocalTimeString(query.startTime);
             let endTime = dbUtility.getLocalTimeString(query.endTime);
-            // queryObj += " store_time BETWEEN CAST('2018-01-16 00:00:00' as DATETIME) AND CAST('2018-01-16 00:05:00' AS DATETIME)";
             queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
         }
+
+        // if (query.limit && (query.index || query.index ===0)){
+        //     queryObj += " LIMIT "+query.limit+" OFFSET " + query.index;
+        // }
         console.log(queryObj);
-        if(query.status!='all'&&query.status!=1) {
+        if(query.status!='all' && query.status!=1) {
             //get status equal to not 1 & all
             let dbResult = dbQualityInspection.searchMongoDB(query);
             let result = dbQualityInspection.getMySQLConversation(dbResult, query);
@@ -320,11 +353,30 @@ var dbQualityInspection = {
         });
         return deferred.promise;
     },
+    countMySQLDB:function(queryObj,connection){
+        var deferred = Q.defer();
+        console.log(queryObj);
+        connection.query("SELECT COUNT(*) FROM chat_content WHERE" + queryObj, function (error, results, fields) {
+            // console.log('result',results);
+            // if (error) throw error;
+            console.log(results);
+            let countNo = 0;
+            if(results[0]['COUNT(*)']){
+                countNo = results[0]['COUNT(*)'];
+            }
+            if(error){
+                console.log(error);
+            }
+            deferred.resolve(countNo);
+            connection.end();
+        });
+        return deferred.promise;
+    },
     getMongoCV:function(dbResult){
       var deferred = Q.defer();
       let proms = [];
       Q.all(dbResult).then(results=>{
-        console.log(results);
+        // console.log(results);
         if(results.length == 0){
             deferred.resolve([]);
         }
@@ -396,12 +448,12 @@ var dbQualityInspection = {
                     let timeStamp = item.time - lastCustomerCV.time;
                     let min = timeStamp / (60*60*24);
                     let sec = min * 60;
-                    console.log(item.content);
-                    console.log(item.roles);
-                    console.log(lastCustomerCV.time +'-'+ item.time + '=' +timeStamp);
-                    console.log(min);
-                    console.log(sec);
-                    console.log('-------')
+                    // console.log(item.content);
+                    // console.log(item.roles);
+                    // console.log(lastCustomerCV.time +'-'+ item.time + '=' +timeStamp);
+                    // console.log(min);
+                    // console.log(sec);
+                    // console.log('-------')
                     let rate = 0;
                     if(sec <= 30){
                         rate = 1;
@@ -452,8 +504,6 @@ var dbQualityInspection = {
                         queryObj +=   query.companyId[i] + "','"
                     }
                 }
-
-
             }else{
                 queryObj += "company_id=" + query.companyId + " AND ";
             }

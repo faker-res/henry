@@ -342,7 +342,9 @@ define(['js/app'], function (myApp) {
                         'operatorId':vm.inspection800.live800Accs,
                         'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
                         'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
-                        'status':vm.inspection800.status ? vm.inspection800.status : null
+                        'status':vm.inspection800.status ? vm.inspection800.status : null,
+                        'limit':vm.pgn.limit,
+                        'index':vm.pgn.index
                 };
                 if(vm.inspection800.qiUser && vm.inspection800.qiUser.length > 0){
                     query['qualityAssessor'] = vm.inspection800.qiUser;
@@ -378,6 +380,24 @@ define(['js/app'], function (myApp) {
 
                     $scope.safeApply();
                 }
+
+                socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
+                function successFunc(data) {
+
+                    console.log(data);
+                    if(data.data){
+                        vm.pgn.totalPage = data.data / vm.pgn.limit;
+                        vm.pgn.count = data.data;
+                    }
+                    // vm.pgn = {index:0, currentPage:1, totalPage:1, limit:2, count:1};
+                    vm.pgnPages = [];
+
+                    for(let a = 0; a < vm.pgn.totalPage;a++){
+                        vm.pgnPages.push(a);
+                        console.log(vm.pgnPages);
+                    }
+                    $scope.safeApply();
+                }
             };
             vm.confirmRate = function(rate){
                 console.log(rate);
@@ -393,6 +413,7 @@ define(['js/app'], function (myApp) {
                 vm.batchEditList = [];
                 vm.inspection800 = {};
                 vm.inspection800.fpms = [];
+                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:2, count:1};
 
                 setTimeout(function(){
                     $scope.safeApply();

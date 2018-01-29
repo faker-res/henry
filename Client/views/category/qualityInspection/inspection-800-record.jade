@@ -5,17 +5,17 @@
     .col-md-12
         .well.feedbackQueryDiv
             .inlineBlk
-                label {{"Product"|translate}}
+                label {{"PRODUCT" |translate}}
                 select.form-control(style='max-width:155px',ng-change='vm.filterPlatform()',ng-model='vm.inspection800.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
             .inlineBlk
-                label {{"FPMS CS Acc" | translate}}
+                label FPMS {{"CS Account" | translate}}
                 //select.form-control(ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()')
                 //    option(value='all') {{'ALL' | translate}}
                 //    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v.name}}') {{v.name | translate}}
                 select.form-control(style='max-width:100px', ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()', ng-options='product.name as product.name for product in vm.fpmsACCList', multiple, bsp, data-actions-box='true')
 
             .inlineBlk
-                label {{"Live800 Acc" | translate}}
+                label Live800{{"Account" | translate}}
                 //select.form-control(ng-model='vm.inspection800.live800Accs')
                 //    option(value='all') {{'ALL' | translate}}
                 //    option(ng-repeat='(i,v) in vm.live800Accs', value='{{v}}') {{v | translate}}
@@ -33,15 +33,15 @@
                     span.add-on
                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
             .inlineBlk
-                label {{"Rating Status" | translate}}
+                label {{"EVALUATION_STATUS" | translate}}
                 select.form-control(ng-model='vm.inspection800.status')
                     option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}}') {{v | translate}}
                     option(value='all') {{'ALL' | translate}}
             .inlineBlk
-                label {{"QA" | translate}}
+                label {{"QUALITY_ASSESSOR" | translate}}
                 select.form-control(ng-model='vm.inspection800.qiUser')
-                    option(value='all') {{'ALL' | translate}}
                     option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
+                    option(value='all') {{'ALL' | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-click='vm.searchLive800()') {{"SEARCH" | translate}}
                 span.collapse
@@ -73,7 +73,9 @@
     conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
 div(style="float:right;margin-right:100px;")
     .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
-
+div
+    ul.pagination(ng-repeat="i in vm.pgnPages")
+        li {{i}}
 div(style='display:none')
     #conversationForm
         div.row(style='border:2px solid #CECECE;box-shadow: 2px black')
