@@ -89,6 +89,7 @@ var dbQualityInspection = {
                 live800Chat.appealReason = '';
                 live800Chat.conversation = item.conversation;
                 live800Chat.companyId = item.company_id;
+                live800Chat.createTime = new Date(item.store_time).toISOString();
 
                 live800Chat.operatorId = item.operator_id;
                 live800Chat.operatorName = item.operator_name;
@@ -279,14 +280,19 @@ var dbQualityInspection = {
             })
             console.log(mgData);
             let mgDataStr = "";
+            let excludeMongoQuery = "";
             if(mgData.length > 0){
                 mgDataStr = mgData.join(',');
+                excludeMongoQuery = " AND msg_id NOT IN ("+mgDataStr+")";
+
             }
-            let excludeMongoQuery = " AND msg_id NOT IN ("+mgDataStr+")";
             console.log(queryObj + excludeMongoQuery);
             connection.query("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery, function (error, results, fields) {
                 console.log('yeah');
-                if (error) throw error;
+                if (error) {
+                    console.log(error)
+                    // throw error;
+                }
                 // console.log(results);
                 deferred.resolve(results);
                 connection.end();
@@ -304,8 +310,11 @@ var dbQualityInspection = {
     searchMySQLDB:function(queryObj,connection){
         var deferred = Q.defer();
         connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-            console.log('result',results);
-            if (error) throw error;
+            // console.log('result',results);
+            // if (error) throw error;
+            if(error){
+                console.log(error);
+            }
             deferred.resolve(results);
             connection.end();
         });
@@ -348,7 +357,7 @@ var dbQualityInspection = {
                 return a.time - b.time;
             });
 
-            live800Chat.conversation = content;
+            live800Chat.conversation = dbQualityInspection.drawColor(content);
 
             let queryQA = {messageId: String(item.msg_id)};
             let prom = dbconfig.collection_qualityInspection.find(queryQA)
@@ -369,6 +378,50 @@ var dbQualityInspection = {
       return deferred.promise;
 
     },
+    drawColor: function(conversation){
+        let firstCV = null;
+        let firstTime = null;
+        let lastCV = null;
+        let lastCustomerCV = null;
+        conversation.forEach(item=>{
+            if(!firstCV && item.roles == 2){
+                firstCV = item;
+                lastCustomerCV = item;
+            }else{
+                if(item.roles==2){
+                    if(lastCV != 2){
+                        lastCustomerCV = item;
+                    }
+                }else if(item.roles==1 && (lastCV.roles!=1) && lastCustomerCV){
+                    let timeStamp = item.time - lastCustomerCV.time;
+                    let min = timeStamp / (60*60*24);
+                    let sec = min * 60;
+                    console.log(item.content);
+                    console.log(item.roles);
+                    console.log(lastCustomerCV.time +'-'+ item.time + '=' +timeStamp);
+                    console.log(min);
+                    console.log(sec);
+                    console.log('-------')
+                    let rate = 0;
+                    if(sec <= 30){
+                        rate = 1;
+                    }else if(sec > 30 && sec <=60){
+                        rate = 0;
+                    }else if(sec > 90 && sec <=120){
+                        rate = -1.5;
+                    }else{
+                        rate = -2;
+                    }
+                    item.timeoutRate = rate;
+                }else{
+
+                }
+            }
+            lastCV = item;
+            return item;
+        })
+        return conversation;
+    },
     reformatCV: function(cvs,mongoCVS ){
 
         cvs.forEach(item=>{
@@ -386,7 +439,7 @@ var dbQualityInspection = {
     },
 
     searchLive800Record: function (query) {
-      //  let conversationForm = [];
+       let conversationForm = [];
         let queryObj = "";
         console.log(query);
         if (query.companyId && query.companyId.length>0) {
@@ -436,9 +489,13 @@ var dbQualityInspection = {
         let connection = dbQualityInspection.connectMysql();
         connection.connect();
         let dbResult = dbQualityInspection.searchLive800DB(queryObj,connection);
+        let dbRawResult = dbQualityInspection.searchMySQLDB(queryObj,connection);
         let progressReport = dbQualityInspection.getProgressReportByAdmin(query.companyId,query.operatorId,startTime,endTime);
+
+        let mongoResult = dbQualityInspection.getMongoCV(dbRawResult);
+        conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         // }
-        return Q.all([dbResult,progressReport]);
+        return Q.all([dbResult,progressReport,conversationForm]);
     },
     searchLive800DB:function(queryObj,connection){
         var deferred = Q.defer();
@@ -448,7 +505,7 @@ var dbQualityInspection = {
             if (error) throw error;
 
             deferred.resolve(results);
-            connection.end();
+            //connection.end();
         });
         return deferred.promise;
     },
@@ -495,6 +552,8 @@ var dbQualityInspection = {
     },
     getProgressReportByOperator: function (companyId,operatorId,startTime,endTime){
 
+       //var startTime = dbUtility.getLocalTimeString(startTime);
+       //var endTime = dbUtility.getLocalTimeString(endTime);
         // let startTime = dbUtility.getLocalTimeString(startTime);
         // let endTime = dbUtility.getLocalTimeString(endTime);
 
@@ -541,7 +600,12 @@ var dbQualityInspection = {
         let conversation= [] ;
         for (var t = 0; t < arrs.length; t++) {
             let timeStamp = arrs[t].getAttribute("tm");
-            let innerHTML = arrs[t].innerHTML;
+            let innerHTML =arrs[t].innerHTML;
+            //let innerHTML = dbQualityInspection.unescapeHtml(arrs[t].textContent);
+            // let info = new JSDOM(`document.createElement('`+timeStamp+`')`);
+            let info = dbQualityInspection.decodeHtml(arrs[t].innerHTML);
+            //info.window.document.getElementById(timeStamp) = arrs[t].innerHTML;
+            //info.innerHTML = arrs[t].textContent
             let conversationInfo = {
                 'time':timeStamp ? timeStamp:'' ,
                 'roles':type,
@@ -550,13 +614,23 @@ var dbQualityInspection = {
                 'timeoutRate':0,
                 'inspectionRate':0,
                 'review':'',
-                'content':innerHTML ? innerHTML :''
+                'content':info? info:''
             };
             conversation.push(conversationInfo);
         }
         return conversation;
     },
+<<<<<<< HEAD
     getUnreadEvaluationRecord: function (startTime, endTime, index, size) {
+=======
+    unescapeHtml:function(str){ var map = {amp: '&', lt: '<', le: '≤', gt: '>', ge: '≥', quot: '"', '#039': "'"};
+        return str.replace(/&([^;]+);/g, (m, c) => map[c]|| '')
+    },
+    decodeHtml:function(str){
+        return String(str).replace(/\&#60\;/gi,'').replace(/\&#160\;/gi, ' ').replace(/\&#173\;/gi, '\t')
+    },
+    getUnreadEvaluationRecord: function (startTime, endTime) {
+>>>>>>> mark/live800main
         let query = {
             createTime: {
                 $gte: startTime,

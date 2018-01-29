@@ -36,14 +36,17 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label {{"CUSTOMER_SERVICE_EMAIL_AUTOMATED" | translate}} {{"used when sending automated messages" | translate}}
                     input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail")
                 div.form-group.col-md-6
-                    label.control-label LiveCompanyId
-                    input.form-control(type="text", placeholder="{{'live800CompanyId' | translate}}", ng-model= "vm.showPlatform.live800CompanyId")
+                    label.control-label {{"LIVE800 COMPANYID" | translate}}
+                    input.form-control(type="text", placeholder="{{'live800CompanyId' | translate}}",ng-blur="vm.isValidCompanyId(vm.showPlatform.live800CompanyIdTXT)", ng-model= "vm.showPlatform.live800CompanyIdTXT")
+                    div(ng-if="vm.live800CompanyIdError", style='color:red') {{vm.live800CompanyIdError}}
                 div.form-group.col-md-6
-                    label.control-label CS Department
-                    input.form-control(type="text", ng-model="vm.showPlatform.csDepartment", ng-blur="vm.isValidCSDepartment(vm.showPlatform.csDepartment)")
+                    label.control-label {{"CS Department" | translate}}
+                    input.form-control(type="text", ng-model="vm.showPlatform.csDepartmentTXT", ng-blur="vm.isValidCSDepartment(vm.showPlatform.csDepartmentTXT)")
+                    div(ng-if="vm.csDepartmentError", style='color:red') {{vm.csDepartmentError}}
                 div.form-group.col-md-6
-                    label.control-label QI Department
-                    input.form-control(type="text", ng-model="vm.showPlatform.qiDepartment", ng-blur="vm.isValidQIDepartment(vm.showPlatform.csDepartment)")
+                    label.control-label {{"QI Department" | translate}}
+                    input.form-control(type="text", ng-model="vm.showPlatform.qiDepartmentTXT", ng-blur="vm.isValidQIDepartment(vm.showPlatform.qiDepartmentTXT)")
+                    div(ng-if="vm.qiDepartmentError", style='color:red') {{vm.qiDepartmentError}}
 
 
 
