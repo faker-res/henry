@@ -13,8 +13,8 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             vm.evaluationAppealStatus = {
-                APPEALING: 1,
-                APPEAL_COMPLETED: 1
+                APPEALING: 5,
+                APPEAL_COMPLETED: 6
             };
 
             vm.constQualityInspectionStatus = {
@@ -616,6 +616,22 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+                var isChange = false;
+                if (!curP) {
+                    curP = 1;
+                }
+                if (pageSize != vm[objKey].limit) {
+                    isChange = true;
+                    vm[objKey].limit = pageSize;
+                }
+                if ((curP - 1) * pageSize != vm[objKey].index) {
+                    isChange = true;
+                    vm[objKey].index = (curP - 1) * pageSize;
+                }
+                if (isChange) return searchFunc.call(this);
+            };
+
             vm.endLoadMultipleSelect = function () {
                 $timeout(function () {
                     $('.spicker').selectpicker('refresh');
@@ -623,14 +639,16 @@ define(['js/app'], function (myApp) {
             };
 
             //////////////////////////////////////////////////////////Start of Evaluation Tab///////////////////////////////////////////////////////////////////
-            vm.getUnreadEvaluationRecord = function() {
+            vm.getUnreadEvaluationRecord = function(newSearch) {
                 vm.loadingUnreadEvaluationTable = true;
                 var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
                 let sendData = {
                     startTime: startTime,
-                    endTime: endTime
+                    endTime: endTime,
+                    // index: newSearch ? 0 : (vm.unReadEvaluation.index || 0),
+                    // limit: newSearch ? 1 : (vm.unReadEvaluation.limit || 1),
                 }
 
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
@@ -674,8 +692,26 @@ define(['js/app'], function (myApp) {
                     if(data && data.data && data.data.length > 0){
 
                         data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+
+                                if(data.createTime){
+                                    //data.createTime = utilService.getLocalTimeString(new Date(data.createTime));
+                                    data.createTime = new Date(data.createTime);
+                                }
+
+                                if(data.processTime){
+                                    //data.processTime = utilService.getLocalTimeString(new Date(data.processTime));
+                                    data.processTime = new Date(data.processTime);
+                                }
+
+                                data.conversation.forEach(function(cv){
+                                    cv.roleName = vm.roleType[data.type];
+                                    cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                });
                             }
 
                             return data;
@@ -709,6 +745,12 @@ define(['js/app'], function (myApp) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
+                            data.conversation.forEach(function(cv){
+                                cv.roleName = vm.roleType[data.type];
+                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                            });
+
                             return data;
                         })
                         vm.appealEvaluationTable = data.data;
@@ -739,6 +781,12 @@ define(['js/app'], function (myApp) {
                             if(data && data.status){
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
+
+                            data.conversation.forEach(function(cv){
+                                cv.roleName = vm.roleType[data.type];
+                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                            });
 
                             return data;
                         })
@@ -781,7 +829,7 @@ define(['js/app'], function (myApp) {
                 if(vm.unreadEvaluationSelectedRecord && vm.unreadEvaluationSelectedRecord.length > 0){
                     let sendData = {
                         messageId: vm.unreadEvaluationSelectedRecord,
-                        status: vm.constQualityInspectionStatus.COMPLETED_UNREAD
+                        status: vm.constQualityInspectionStatus[2]
                     }
 
                     socketService.$socket($scope.AppSocket, 'markEvaluationRecordAsRead', sendData, function (data) {

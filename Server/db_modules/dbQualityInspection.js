@@ -670,12 +670,14 @@ var dbQualityInspection = {
         }
         return conversation;
     },
+
     unescapeHtml:function(str){ var map = {amp: '&', lt: '<', le: '≤', gt: '>', ge: '≥', quot: '"', '#039': "'"};
         return str.replace(/&([^;]+);/g, (m, c) => map[c]|| '')
     },
     decodeHtml:function(str){
         return String(str).replace(/\&#60\;/gi,'').replace(/\&#160\;/gi, ' ').replace(/\&#173\;/gi, '\t')
     },
+
     getUnreadEvaluationRecord: function (startTime, endTime) {
         let query = {
             createTime: {
@@ -697,7 +699,39 @@ var dbQualityInspection = {
                     return conversationForm;
                 }
             }
+        ).then(
+            conversationData => {
+                let proms = [];
+                if(conversationData){
+                    conversationData.forEach(c => {
+                        proms.push(dbQualityInspection.getQualityAssessorName(c));
+                    })
+                }
+
+                return Promise.all(proms);
+            }
+        ).then(
+            finalResult => {
+                if(finalResult){
+                    return finalResult;
+                }
+            }
         );
+    },
+
+    getQualityAssessorName: function(unreadEvaluationData){
+        if(unreadEvaluationData && unreadEvaluationData.qualityAssessor){
+            return dbconfig.collection_admin.findOne({_id: unreadEvaluationData.qualityAssessor}).then(
+                adminInfo => {
+
+                    if(adminInfo && adminInfo.adminName){
+                        unreadEvaluationData.qualityAssessor = adminInfo.adminName;
+                    }
+
+                    return unreadEvaluationData;
+                }
+            );
+        }
     },
 
     getReadEvaluationRecord: function(startTime, endTime){
@@ -708,12 +742,39 @@ var dbQualityInspection = {
             },
             status: constQualityInspectionStatus.COMPLETED_READ
         }
-        return dbconfig.collection_qualityInspection.find(query).lean();
+        return dbconfig.collection_qualityInspection.find(query).lean().then(
+            readEvaluationData => {
+                if(readEvaluationData && readEvaluationData.length > 0){
+                    let queryToSearchFromMySQL = {
+                        startTime: startTime,
+                        endTime: endTime
+                    }
+                    let result = dbQualityInspection.getMySQLConversation(readEvaluationData,queryToSearchFromMySQL);
+                    conversationForm = dbQualityInspection.fillContent(result);
+                    return conversationForm;
+                }
+            }
+        ).then(
+            conversationData => {
+                let proms = [];
+                if(conversationData){
+                    conversationData.forEach(c => {
+                        proms.push(dbQualityInspection.getQualityAssessorName(c));
+                    })
+                }
+
+                return Promise.all(proms);
+            }
+        ).then(
+            finalResult => {
+                if(finalResult){
+                    return finalResult;
+                }
+            }
+        );
     },
 
     getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status){
-
-
         let query ={
             createTime: {
                 $gte: startTime,
@@ -729,7 +790,36 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        return dbconfig.collection_qualityInspection.find(query).lean();
+        return dbconfig.collection_qualityInspection.find(query).lean().then(
+            appealEvaluationData => {
+                if(appealEvaluationData && appealEvaluationData.length > 0){
+                    let queryToSearchFromMySQL = {
+                        startTime: startTime,
+                        endTime: endTime
+                    }
+                    let result = dbQualityInspection.getMySQLConversation(appealEvaluationData,queryToSearchFromMySQL);
+                    conversationForm = dbQualityInspection.fillContent(result);
+                    return conversationForm;
+                }
+            }
+        ).then(
+            conversationData => {
+                let proms = [];
+                if(conversationData){
+                    conversationData.forEach(c => {
+                        proms.push(dbQualityInspection.getQualityAssessorName(c));
+                    })
+                }
+
+                return Promise.all(proms);
+            }
+        ).then(
+            finalResult => {
+                if(finalResult){
+                    return finalResult;
+                }
+            }
+        );
     },
 
     getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status){
@@ -749,29 +839,63 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        return dbconfig.collection_qualityInspection.find(query).lean();
+        return dbconfig.collection_qualityInspection.find(query).lean().then(
+            appealEvaluationData => {
+                if(appealEvaluationData && appealEvaluationData.length > 0){
+                    let queryToSearchFromMySQL = {
+                        startTime: startTime,
+                        endTime: endTime
+                    }
+                    let result = dbQualityInspection.getMySQLConversation(appealEvaluationData,queryToSearchFromMySQL);
+                    conversationForm = dbQualityInspection.fillContent(result);
+                    return conversationForm;
+                }
+            }
+        ).then(
+            conversationData => {
+                let proms = [];
+                if(conversationData){
+                    conversationData.forEach(c => {
+                        proms.push(dbQualityInspection.getQualityAssessorName(c));
+                    })
+                }
+
+                return Promise.all(proms);
+            }
+        ).then(
+            finalResult => {
+                if(finalResult){
+                    return finalResult;
+                }
+            }
+        );
     },
 
     getWorkloadReport: function(startTime, endTime, qaAccount){
 
         let query ={
             createTime: {
-                $gte: startTime,
-                $lt: endTime
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
             }
             //status: constQualityInspectionStatus.COMPLETED_READ
         }
 
         if(qaAccount && qaAccount != "all"){
-            query.qaAccount = qaAccount;
+            query.qualityAssessor = qaAccount;
         }
 
+
+        console.log("")
         return dbconfig.collection_qualityInspection.aggregate([
+            // {
+            //     $match: {
+            //         createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+            //         qualityAssessor: qaAccount
+            //     },
+            // },
             {
-                $match: {
-                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
-                    //qualityAssessor: qcAccount
-                },
+                $match: query
             },
             {
                 "$group": {
