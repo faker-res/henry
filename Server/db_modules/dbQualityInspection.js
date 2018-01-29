@@ -488,27 +488,27 @@ var dbQualityInspection = {
         // }else{
         let connection = dbQualityInspection.connectMysql();
         connection.connect();
-        let dbResult = dbQualityInspection.searchLive800DB(queryObj,connection);
+       // let dbResult = dbQualityInspection.searchLive800DB(queryObj,connection);
         let dbRawResult = dbQualityInspection.searchMySQLDB(queryObj,connection);
-        let progressReport = dbQualityInspection.getProgressReportByAdmin(query.companyId,query.operatorId,startTime,endTime);
+        let progressReport = dbQualityInspection.getProgressReportByOperator(query.companyId,query.operatorId,startTime,endTime);
 
         let mongoResult = dbQualityInspection.getMongoCV(dbRawResult);
         conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         // }
-        return Q.all([dbResult,progressReport,conversationForm]);
+        return Q.all([conversationForm,progressReport]);
     },
-    searchLive800DB:function(queryObj,connection){
-        var deferred = Q.defer();
-       // let proms = [];
-        connection.query("SELECT COUNT(*) AS 'record_number',company_id, operator_id FROM chat_content WHERE " + queryObj + " GROUP BY company_id,operator_id", function (error, results, fields) {
-            console.log('result',results);
-            if (error) throw error;
-
-            deferred.resolve(results);
-            //connection.end();
-        });
-        return deferred.promise;
-    },
+    // searchLive800DB:function(queryObj,connection){
+    //     var deferred = Q.defer();
+    //    // let proms = [];
+    //     connection.query("SELECT COUNT(*) AS 'record_number',company_id, operator_id FROM chat_content WHERE " + queryObj + " GROUP BY company_id,operator_id", function (error, results, fields) {
+    //         console.log('result',results);
+    //         if (error) console.log("error",error);
+    //
+    //         deferred.resolve(results);
+    //         //connection.end();
+    //     });
+    //     return deferred.promise;
+    // },
     getProgressReportByAdmin: function (companyId,operatorId,startTime,endTime){
 
        // let queryQA = {messageId: String(item.msg_id)};
@@ -543,7 +543,6 @@ var dbQualityInspection = {
                         });
                     }
                 });
-                console.log("+++++++++++++++++++",resultArr)
                 return resultArr;
             }
 
@@ -577,7 +576,6 @@ var dbQualityInspection = {
                 }
             }
         ]).then(data => {
-            console.log("-------------------------",data)
             let resultArr = [];
             if(data && data.length > 0){
                 data.forEach(d => {

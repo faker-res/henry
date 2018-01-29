@@ -1580,14 +1580,14 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.QIReportQuery ={};
-                vm.QIReportQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
+                vm.QIReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
                 //vm.QIReportQuery.status = 'all';
                 //vm.QIReportQuery.promoType = '';
                // vm.QIReportQuery.totalCount = 0;
                 //vm.QIReportQuery.proposalTypeId = '';
-                utilService.actionAfterLoaded("#QIReportTablePage", function () {
+                utilService.actionAfterLoaded("#QIReportTable", function () {
                     vm.commonInitTime(vm.QIReportQuery, '#QIReportQuery');
-                    vm.QIReportQuery.pageObj = utilService.createPageForPagingTable("#QIReportTablePage", {}, $translate, vm.QIReportTablePageChange);
+                    // vm.QIReportQuery.pageObj = utilService.createPageForPagingTable("#QIReportTablePage", {}, $translate, vm.QIReportTablePageChange);
                     $scope.safeApply()
                 });
 
@@ -1599,8 +1599,16 @@ define(['js/app'], function (myApp) {
             };
 
             vm.searchQIRecord = function (newSearch) {
-               // vm.curPlatformId = vm.selectedPlatform._id;
-                // link the companyId - platform - adminName
+
+                let startTime = vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate();
+                let endTime = vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate();
+
+                let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
+                if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
+                    socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
+                    return;
+                }
+
                 vm.platformCompanyID=[];
                 vm.platformList.forEach(platform => {
                     if (platform.data.live800CompanyId && platform.data.live800CompanyId.length>0){
@@ -1610,29 +1618,13 @@ define(['js/app'], function (myApp) {
 
 
 
-                //
-                // let newQIReportQuery = $.extend(true, {}, vm.QIReportQuery);
-                // // add in consideration in query of selected all
-                // // vm.selectedPlatformID = vm.selectedPlatformID === 'all'? []: vm.selectedPlatformID; //objId
-                // // vm.selectedCS = vm.selectedCS.length === vm.allCSAccount.length ? []:vm.selectedCS; //objId
-                // // vm.selectedLive800 = vm.selectedLive800.length === vm.allLive800Acc.length ? []:vm.selectedLive800; // account number
-                //
-                // // vm.abv = ["5733e26ef8c8a9355caf49d8"];
-                // //newQIReportQuery.productId = $.extend(true, [], vm.abv);
-                //
-                // newQIReportQuery.productId = $.extend(true, [], vm.selectedPlatformID);
-                // newQIReportQuery.CSAccount = $.extend(true, [], vm.selectedCS);
-                // newQIReportQuery.Live800Account = $.extend(true, [], vm.selectedLive800);
-                // //
-
-
                 $('#QIReportTableSpin').show();
-                // newQIReportQuery.limit = newQIReportQuery.limit || 10;
+                //vm.QIReportQuery.limit = vm.QIReportQuery.limit || 10;
 
 
                 // 1st step: get total conversation record
                 vm.mysqlData=[];
-                vm.fpmsData=[];
+                //vm.fpmsData=[];
                 vm.companyID=[];
 
                 if (vm.selectedPlatformID != 'all'){
@@ -1647,65 +1639,15 @@ define(['js/app'], function (myApp) {
                         })
                     })
                 }
-                // if (vm.selectedPlatformID != 'all') {
-                //
-                //     var sendQuery = {
-                //         departments: {$in: vm.CSDepartmentId}
-                //     };
-                // }
-                // else {
-                //     var sendQuery = {
-                //         departments: {$in: vm.allCSDepartmentId}
-                //     };
-                // }
-                // socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data) {
-                //
-                //     if (data && data.data) {
-                //         data.data.forEach(acc => {
-                //             if (acc.live800CompanyId && acc.live800CompanyId.length > 0 && acc.live800Acc && acc.live800Acc.length > 0) {
-                //                 acc.live800CompanyId.forEach(companyId =>{
-                //                     if (vm.companyID.indexOf(companyId) == -1){
-                //                         vm.companyID.push(companyId);
-                //                     }
-                //                 });
-                //             }
-                //         });
-                //     }
 
                     var query = {
                         'companyId':vm.companyID,
                         'operatorId':vm.selectedLive800,
                         'startTime': vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
                         'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
+                       // 'limit': vm.QIReportQuery.limit
 
                     };
-
-                    // var query = {
-                    //     // 'companyId':270,
-                    //     // 'operatorId':764,
-                    //     'companyId':vm.companyIds,
-                    //     'fpmsAcc':vm.inspection800.fpms,
-                    //     'operatorId':vm.inspection800.live800Accs,
-                    //     'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
-                    //     'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
-                    //     'status':vm.inspection800.status ? vm.inspection800.status : null
-                    // };
-                    // if(vm.inspection800.qiUser && vm.inspection800.qiUser.length > 0){
-                    //     query['qualityAssessor'] = vm.inspection800.qiUser;
-                    // }
-                    // socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
-                    // function success(data) {
-                    //     vm.conversationForm = data.data;
-                    //     data.data.forEach(item=>{
-                    //         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
-                    //         item.conversation.forEach(function(cv){
-                    //             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-                    //
-                    //         });
-                    //         item.editable = false;
-                    //     });
-                    //     $scope.safeApply();
-                    // }
 
                     socketService.$socket($scope.AppSocket, 'searchLive800Record', query, success, error);
                     function success(data) {
@@ -1715,14 +1657,14 @@ define(['js/app'], function (myApp) {
                         vm.postData = [];
                         vm.rawMysqlData=[];
                         // handle the data obtained from mysql
-                        if (data.data[2]){
-                            data.data[2].forEach(conv => {
+                        if (data.data[0]){
+                            data.data[0].forEach(conv => {
                                 let counter_cs=0;
                                 let counter_cus=0;
                                 let startTime=0;
                                 let start =true;
                                 let duration=0;
-                                let overTimeMark=0; // for overtimeSetting
+                                let timeoutRate=0; // for overtimeSetting
                                 let mark=0;
                                 for (let i=0; i< conv.conversation.length;i++){
                                    // roles: 1- cs; 2-player; 3-system
@@ -1741,6 +1683,9 @@ define(['js/app'], function (myApp) {
                                     if (conv.conversation[i].inspectionRate !=0){
                                         mark=mark+ conv.conversation[i].inspectionRate;
                                     }
+                                    if (conv.conversation[i].timeoutRate !=0){
+                                        timeoutRate=timeoutRate+ conv.conversation[i].timeoutRate;
+                                    }
 
                                 }
                                 if (startTime){
@@ -1748,20 +1693,18 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if (counter_cus>=vm.conversationDefinition.askingSentence && counter_cs >=vm.conversationDefinition.replyingSentence && duration >= vm.conversationDefinition.totalSec){
-                                    vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 1, inspectionMark: mark})
+                                    vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 1, inspectionMark: mark, timeoutRate: timeoutRate})
                                 }else{
-                                    vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 0, inspectionMark: 0}) //not effective should not be rated
+                                    vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 0, inspectionMark: 0, timeoutRate:0}) //not effective should not be rated
                                 }
                             });
 
                             vm.variety=[];
-                            //check the variety
-                            //
                             vm.rawMysqlData.forEach(data=>{
                                 let count1=0;
                                 let count0=0;
                                 let mark =0;
-                                let overTimeMark=0;
+                                let timeoutRate=0;
                                 let index= vm.variety.findIndex(p => p.companyId == data.companyId && p.operatorId == data.operatorId);
                                 if (index == -1) {
                                     for (let i = 0; i < vm.rawMysqlData.length; i++) {
@@ -1770,6 +1713,7 @@ define(['js/app'], function (myApp) {
                                             if (vm.rawMysqlData[i].effective == 1){
                                                 count1 += 1;
                                                 mark = mark + vm.rawMysqlData[i].inspectionMark;
+                                                timeoutRate = timeoutRate + vm.rawMysqlData[i].timeoutRate;
 
                                             }else{
                                                 count0 +=1;
@@ -1783,7 +1727,8 @@ define(['js/app'], function (myApp) {
                                         operatorId: data.operatorId,
                                         count_1: count1, // effective count
                                         count_0: count0, // not effective count
-                                        totalInspectionMark: mark
+                                        totalInspectionMark: mark,
+                                        totalTimeoutRate: timeoutRate
                                     });
 
                                 }
@@ -1806,24 +1751,24 @@ define(['js/app'], function (myApp) {
                                 itemObj.count_0 = item.count_0;
                                 itemObj.count_1 = item.count_1;
                                 itemObj.totalInspectionMark = item.totalInspectionMark;
+                                itemObj.totalTimeoutRate = item.totalTimeoutRate;
 
                                 return itemObj;
 
-                            })
+                            });
 
                             var holder = {};
 
                             preData.forEach(d => {
 
                                 if (holder.hasOwnProperty(d.adminName)) {
-                                    holder[d.adminName] = [holder[d.adminName][0]+ d.count_0 ,holder[d.adminName][1]+ d.count_0,holder[d.adminName][2]+ d.totalInspectionMark];
+                                    holder[d.adminName] = [holder[d.adminName][0]+ d.count_0 ,holder[d.adminName][1]+ d.count_0,holder[d.adminName][2]+ d.totalInspectionMark,holder[d.adminName][3]+ d.totalTimeoutRate];
                                     //holder[d.adminName].count_1 = holder[d.adminName].count_1 + d.count_1;
                                 } else {
-                                    holder[d.adminName]= [d.count_0, d.count_1,d.totalInspectionMark];
+                                    holder[d.adminName]= [d.count_0, d.count_1,d.totalInspectionMark, d.totalTimeoutRate];
                                     //holder[d.adminName].count_1 = d.count_1;
                                 }
                             });
-
 
                             for (var prop in holder) {
                                 let index = preData.findIndex(p => p.adminName == prop);
@@ -1834,74 +1779,42 @@ define(['js/app'], function (myApp) {
                                         count_0: holder[prop][0],
                                         count_1: holder[prop][1],
                                         totalCount: holder[prop][0]+holder[prop][1],
-                                        totalInspectionMark: holder[prop][2]
-
+                                        totalInspectionMark: holder[prop][2],
+                                        totalTimeoutRate: holder[prop][3]
                                     })
                                 }
-
                             }
-
-
-
                         }
 
-                        // if (data.data[0] && data.data[0].length >0) {
-                        //     vm.mysqlData = $.extend(true, [], data.data[0]);
-                        //
-                        //     preData = data.data[0].map(item => {
-                        //         let itemObj = {};
-                        //
-                        //         let platformIndex = vm.platformCompanyID.findIndex(p => p.company,includes(Id.includes(item.company_id.toString()));
-                        //         if (platformIndex != -1) {
-                        //             itemObj.productName = vm.platformCompanyID[platformIndex].productName;
-                        //
-                        //         }
-                        //         let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc,includes(item.operator_id))
-                        //         if (index != -1) {
-                        //             itemObj.adminName = vm.selectedLive800Acc[index].adminName;
-                        //         }
-                        //         itemObj.totalRecord = item.record_number;
-                        //
-                        //         return itemObj;
-                        //
-                        //     });
-                        //
-                        //
-                        //     //
-                        //     var holder = {};
-                        //
-                        //     preData.forEach(d => {
-                        //
-                        //         if (holder.hasOwnProperty(d.adminName)) {
-                        //             holder[d.adminName] = holder[d.adminName] + d.totalRecord;
-                        //         } else {
-                        //             holder[d.adminName] = d.totalRecord;
-                        //         }
-                        //     });
-                        //
-                        //
-                        //     for (var prop in holder) {
-                        //         let index = preData.findIndex(p => p.adminName == prop);
-                        //         if (index != -1) {
-                        //             vm.postData.push({
-                        //                 productName: preData[index].productName,
-                        //                 adminName: prop,
-                        //                 totalCount: holder[prop]
-                        //             })
-                        //         }
-                        //
-                        //     }
-                        //
-                        // }
                         if (data.data[1] && data.data[1].length > 0) {
-                            vm.fpmsData = $.extend(true, [], data.data[1]);
+                           //vm.fpmsData = $.extend(true, [], data.data[1]);
+                            let preData =[];
 
-                            data.data[1].forEach(data => {
-                                let index = vm.postData.findIndex(p => p.adminName == data.fpmsAcc);
+                            preData = data.data[1].map(item => {
+                                let itemObj = {};
+
+
+                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc==item.operatorId)
                                 if (index != -1) {
-                                    vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                 }
-                            })
+                                itemObj.status = item.status;
+                                itemObj.count = item.count;
+
+                                return itemObj;
+                            });
+
+                            preData.forEach(data => {
+                                let index = vm.postData.findIndex(p => p.adminName == data.adminName);
+                                if (index != -1) {
+                                    if (vm.postData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])){
+                                        vm.postData[index][vm.constQualityInspectionStatus[data.status]] = vm.postData[index][vm.constQualityInspectionStatus[data.status]] + data.count;
+                                    }else{
+                                        vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                    }
+
+                                }
+                            });
 
                             vm.postData.forEach(data=>{
                                 for (let i=1; i<Object.keys(vm.constQualityInspectionStatus).length +1; i++){
@@ -1910,17 +1823,12 @@ define(['js/app'], function (myApp) {
                                     }
                                 }
 
-                            })
+                            });
 
                             vm.postData.forEach(data=>{
-                                //data.totalCount = data.count_0+data.count_1;
-                                data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED;
-                                //temp for overtimMark
-                                let temp_totalOvertimeMark=0;
-                                data. avgMark= ((temp_totalOvertimeMark+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
-
+                                data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED
+                                data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
                             })
-
                         }
 
                         $('#QIReportTableSpin').hide();
@@ -1944,7 +1852,7 @@ define(['js/app'], function (myApp) {
             vm.drawQIReportNew = function (data, total, size, newSearch) {
                 var tableOptions = {
                     data: data,
-                    "order": vm.QIReportQuery.aaSorting || [[15, 'desc']],
+                    "order": vm.QIReportQuery.aaSorting || [[0, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'productId', 'aTargets': [0], bSortable: true},
                         {'sortCol': 'createTime', 'aTargets': [8], bSortable: true},
@@ -2029,7 +1937,7 @@ define(['js/app'], function (myApp) {
 
                         },
                         {
-                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: null,
+                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalTimeoutRate",
                             orderable: false,
 
                         },
@@ -2044,7 +1952,7 @@ define(['js/app'], function (myApp) {
 
                         }
                     ],
-                    "paging": false,
+                    "paging": true,
                     // "dom": '<"top">rt<"bottom"il><"clear">',
                     "language": {
                         "info": "Total _MAX_ records",
@@ -2057,12 +1965,12 @@ define(['js/app'], function (myApp) {
                 if (reportTbl) {
                     reportTbl.clear();
                 }
-                var reportTbl = utilService.createDatatableWithFooter('#QIReportTable', tableOptions,{});
+                // var reportTbl = utilService.createDatatableWithFooter('#QIReportTable', tableOptions,{});
+                var reportTbl = $("#QIReportTable").DataTable(tableOptions);
                 utilService.setDataTablePageInput('QIReportTable', reportTbl, $translate);
-                vm.QIReportQuery.pageObj.init({maxCount: size}, newSearch);
+                //vm.QIReportQuery.pageObj.init({maxCount: size}, newSearch);
                 $('#QIReportTable tbody').off('click', 'td.expandPlayerReport');
-
-               // $('#playerReportTable').resize();
+                $('#QIReportTable').resize();
 
                 $('#QIReportTable tbody').on('click', 'td.expandPlayerReport', function () {
                     var tr = $(this).closest('tr');
@@ -2081,7 +1989,7 @@ define(['js/app'], function (myApp) {
                         row.child(vm.createInnerTable(id)).show();
                         vm[id] = {};
 
-                        let selectedLiveAcc = [];null
+                        let selectedLiveAcc = [];
                         let selectedCompanyId =[];
                         vm.displayDetailData = [];
                         // vm.proposalDialog = 'proposal';
@@ -2091,8 +1999,8 @@ define(['js/app'], function (myApp) {
                             }, function (data) {
                                 selectedLiveAcc = data.data[0].live800Acc;
                                 //selectedCompanyId = data.data[0].live800CompanyId;
-                                vm.mysqlDataBreakdown = [];
-                                vm.fpmsDataBreakdown = [];
+                               // vm.mysqlDataBreakdown = [];
+                               // vm.fpmsDataBreakdown = [];
 
                                 vm.mysqlData.forEach( item => {
                                     if (item.fpmsAcc == data.data[0].adminName){
@@ -2115,8 +2023,6 @@ define(['js/app'], function (myApp) {
                                     'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
                                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate() //'2018-01-16 00:05:00'
                                 };
-
-
 
                                 socketService.$socket($scope.AppSocket, 'getProgressReportByOperator', params, success, error);
 
@@ -2142,9 +2048,9 @@ define(['js/app'], function (myApp) {
                                         vm.displayDetailData.forEach(data=>{
                                             data.totalCount = data.count_0+data.count_1;
                                             data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED;
-                                            let temp_totalOvertimeMark=0;
-                                            data. avgMark= ((temp_totalOvertimeMark+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
-                                        })
+                                            //let temp_totalOvertimeMark=0;
+                                            data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
+                                        });
 
 
 
@@ -2182,12 +2088,7 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        // {
-                        //     title: $translate('*'),
-                        //     data: null,
-                        //     "className": 'expandPlayerReportPlatform expand',
-                        //     "orderable": false
-                        // },
+
                         {title: "Live800 " + $translate('Account'), data: "operatorId"},
                         {
                             title: $translate('TOTAL_CONVERSATION_RECORD'),
@@ -2235,7 +2136,7 @@ define(['js/app'], function (myApp) {
 
                         },
                         {
-                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: null,
+                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalTimeoutRate",
                             orderable: false,
 
                         },
@@ -2263,7 +2164,9 @@ define(['js/app'], function (myApp) {
                 //     vm.playerPlatformReport[id].clear();
                 // }
                 $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
-                var innerTable = utilService.createDatatableWithFooter('#' + id, tableOptions, {});
+
+                var innerTable = $('#' + id).DataTable(tableOptions);
+                //utilService.createDatatableWithFooter('#' + id, tableOptions, {});
                 //utilService.setDataTablePageInput('QIReportTable', {}, $translate);
                // vm[id].pageObj.init({maxCount: size}, newSearch);
 
@@ -2281,7 +2184,8 @@ define(['js/app'], function (myApp) {
                 //"dom": '<"top">rt<"bottom"ilp><"clear">Zlfrtip',
                 "language": {
                     "emptyTable": $translate("No data available in table"),
-                },
+                }
+
             }
 
 
@@ -2326,6 +2230,23 @@ define(['js/app'], function (myApp) {
                 content.append(div1, div2);
                 return content.html();
             }
+
+            vm.commonPageChangeHandler = function (curP, pageSize, objKey, serchFunc) {
+                var isChange = false;
+                if (!curP) {
+                    curP = 1;
+                }
+                if (vm[objKey] && pageSize != vm[objKey].limit) {
+                    isChange = true;
+                    vm[objKey].limit = pageSize;
+                }
+                if ( vm[objKey] && (curP - 1) * pageSize != vm[objKey].index) {
+                    isChange = true;
+                    vm[objKey].index = (curP - 1) * pageSize;
+                }
+                if (isChange) return serchFunc.call(this);
+            }
+
             //****** CS Report Tab ******* ENDd //
 
 

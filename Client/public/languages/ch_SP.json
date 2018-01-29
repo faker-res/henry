@@ -3172,6 +3172,8 @@
   "EVALUATION_MARK": "质简评分（+/-)",
   "EVALUATION_REVIEW": "质检评语",
   "CS Department":"客服部门",
-  "QI Department":"质检部门"
+  "QI Department":"质检部门",
+  "Exceed QI Report max time frame": "请将搜索时间范围限制在一天内"
+
 
 }
