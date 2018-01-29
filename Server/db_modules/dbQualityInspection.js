@@ -354,7 +354,7 @@ var dbQualityInspection = {
                 return a.time - b.time;
             });
 
-            live800Chat.conversation = vm.drawColor(content);
+            live800Chat.conversation = dbQualityInspection.drawColor(content);
 
             let queryQA = {messageId: String(item.msg_id)};
             let prom = dbconfig.collection_qualityInspection.find(queryQA)
@@ -378,18 +378,27 @@ var dbQualityInspection = {
     drawColor: function(conversation){
         let firstCV = null;
         let firstTime = null;
+        let lastCV = null;
+        let lastCustomerCV = null;
         conversation.forEach(item=>{
-            console.log(item);
             if(!firstCV && item.roles == 2){
-                firstCV == item;
-                lastCV = item;
+                firstCV = item;
+                lastCustomerCV = item;
             }else{
                 if(item.roles==2){
-                    lastCV = item;
-                }else if(item.roles==1){
-                    let timeStamp = lastCV.time - item.time;
+                    if(lastCV != 2){
+                        lastCustomerCV = item;
+                    }
+                }else if(item.roles==1 && (lastCV.roles!=1) && lastCustomerCV){
+                    let timeStamp = item.time - lastCustomerCV.time;
                     let min = timeStamp / (60*60*24);
                     let sec = min * 60;
+                    console.log(item.content);
+                    console.log(item.roles);
+                    console.log(lastCustomerCV.time +'-'+ item.time + '=' +timeStamp);
+                    console.log(min);
+                    console.log(sec);
+                    console.log('-------')
                     let rate = 0;
                     if(sec <= 30){
                         rate = 1;
@@ -405,6 +414,7 @@ var dbQualityInspection = {
 
                 }
             }
+            lastCV = item;
             return item;
         })
         return conversation;
@@ -581,7 +591,14 @@ var dbQualityInspection = {
         let conversation= [] ;
         for (var t = 0; t < arrs.length; t++) {
             let timeStamp = arrs[t].getAttribute("tm");
-            let innerHTML = arrs[t].innerHTML;
+            let innerHTML =arrs[t].innerHTML;
+            console.log(innerHTML);
+            //let innerHTML = dbQualityInspection.unescapeHtml(arrs[t].textContent);
+            // let info = new JSDOM(`document.createElement('`+timeStamp+`')`);
+            let info = dbQualityInspection.decodeHtml(arrs[t].innerHTML);
+            console.log(info);
+            //info.window.document.getElementById(timeStamp) = arrs[t].innerHTML;
+            //info.innerHTML = arrs[t].textContent
             let conversationInfo = {
                 'time':timeStamp ? timeStamp:'' ,
                 'roles':type,
@@ -590,11 +607,17 @@ var dbQualityInspection = {
                 'timeoutRate':0,
                 'inspectionRate':0,
                 'review':'',
-                'content':innerHTML ? innerHTML :''
+                'content':info? info:''
             };
             conversation.push(conversationInfo);
         }
         return conversation;
+    },
+    unescapeHtml:function(str){ var map = {amp: '&', lt: '<', le: '≤', gt: '>', ge: '≥', quot: '"', '#039': "'"};
+        return str.replace(/&([^;]+);/g, (m, c) => map[c]|| '')
+    },
+    decodeHtml:function(str){
+        return String(str).replace(/\&#60\;/gi,'').replace(/\&#160\;/gi, ' ').replace(/\&#173\;/gi, '\t')
     },
     getUnreadEvaluationRecord: function (startTime, endTime) {
         let query = {

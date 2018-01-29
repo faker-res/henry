@@ -346,15 +346,33 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
-                    vm.conversationForm = data.data;
                     data.data.forEach(item=>{
                         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
                         item.conversation.forEach(function(cv){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-
+                            //vm.selectedPlatform.data.overtimeSetting;
+                            let colors = '#CECECE';
+                            if(cv.timeoutRate >= 1) {
+                                colors = 'yellow';
+                            }else if(cv.timeout  == 0){
+                                colors = 'yellow';
+                            }else if(cv.timeoutRate < 0 && cv.timeoutRate >= -1.5){
+                                colors = 'gray';
+                            }else if(cv.timeoutRate < -1.5 && cv.timeoutRate >=-2){
+                                colors = 'rgb(242,123,123)';
+                            }else{
+                                colors = 'white';
+                            }
+                            cv.colors = colors;
+                            return cv;
                         });
                         item.editable = false;
+
+
+                        return item;
                     });
+                    vm.conversationForm = data.data;
+
                     $scope.safeApply();
                 }
             };
