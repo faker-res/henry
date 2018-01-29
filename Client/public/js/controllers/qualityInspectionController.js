@@ -364,23 +364,46 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
+                    let overtimeSetting = vm.selectedPlatform.data.overtimeSetting;
+                    console.log(overtimeSetting);
+
                     data.data.forEach(item=>{
                         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
                         item.conversation.forEach(function(cv){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-                            //vm.selectedPlatform.data.overtimeSetting;
-                            let colors = '#CECECE';
-                            if(cv.timeoutRate >= 1) {
-                                colors = 'yellow';
-                            }else if(cv.timeout  == 0){
-                                colors = 'yellow';
-                            }else if(cv.timeoutRate < 0 && cv.timeoutRate >= -1.5){
-                                colors = 'gray';
-                            }else if(cv.timeoutRate < -1.5 && cv.timeoutRate >=-2){
-                                colors = 'rgb(242,123,123)';
-                            }else{
-                                colors = 'white';
-                            }
+                            console.log(cv);
+                            // let colors = '#CECECE';
+                            // if(cv.timeoutRate >= 1) {
+                            //     colors = 'yellow';
+                            // }else if(cv.timeout  == 0){
+                            //     colors = 'yellow';
+                            // }else if(cv.timeoutRate < 0 && cv.timeoutRate >= -1.5){
+                            //     colors = 'gray';
+                            // }else if(cv.timeoutRate < -1.5 && cv.timeoutRate >=-2){
+                            //     colors = 'rgb(242,123,123)';
+                            // }else{
+                            //     colors = 'white';
+                            // }
+                            let otsLength = overtimeSetting.length -1;
+                            let colors = '';
+                            overtimeSetting.forEach((ots,i)=>{
+                                if(cv.roles==1){
+                                    if(i==0){
+                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                            colors = overtimeSetting[0].color;
+                                        }
+                                    }else if(i==otsLength){
+                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                            colors = overtimeSetting[i].color;
+                                        }
+                                    }else{
+                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                            colors = overtimeSetting[i].color;
+                                        }
+                                    }
+                                    console.log(cv.timeoutRate+'>'+overtimeSetting[i].presetMark + colors);
+                                }
+                            });
                             cv.colors = colors;
                             return cv;
                         });
@@ -1382,11 +1405,11 @@ define(['js/app'], function (myApp) {
                 // initiate a basic setting if the setting is empty
                 if (!vm.selectedPlatform.data.overtimeSetting || vm.selectedPlatform.data.overtimeSetting.length === 0) {
 
-                    let overtimeSetting = [{
-                        conversationInterval: 30,
-                        presetMark: 1,
-                        color: ""
-                    },
+                        let overtimeSetting = [{
+                            conversationInterval: 30,
+                            presetMark: 1,
+                            color: ""
+                        },
                         {
                             conversationInterval: 60,
                             presetMark: 0,
