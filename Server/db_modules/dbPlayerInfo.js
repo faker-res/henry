@@ -12673,6 +12673,7 @@ let dbPlayerInfo = {
         };
         let playerDetails = {};
         let gameData = [];
+        let usedTaskGroup = [];
         return dbconfig.collection_players.findOne({_id: playerObjId}, {platform: 1, validCredit: 1, name: 1, _id:0})
             .populate({path: "platform", model: dbconfig.collection_platform, select: ['_id','platformId']}).lean().then(
             (playerData) => {
@@ -12756,7 +12757,7 @@ let dbPlayerInfo = {
                             nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
                             validCredit: gameCreditList[i].gameCredit? gameCreditList[i].gameCredit: "",
                             status: gameCreditList[i].status,
-                            // providerId: gameCreditList[i].providerId
+                            providerId: gameCreditList[i].providerId
                         };
                     }
 
@@ -12772,9 +12773,9 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardTaskGroup => {
-                console.log(rewardTaskGroup);
 
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
+                    usedTaskGroup = rewardTaskGroup;
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
                         let listData = [];
                         if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers.length) {
@@ -12790,17 +12791,57 @@ let dbPlayerInfo = {
                                     }
                                 })
                             })
-                        }
-                        returnData.lockedCreditList[i] = {
-                            nickName: rewardTaskGroup[i].providerGroup? rewardTaskGroup[i].providerGroup.name: "",
-                            lockCredit: rewardTaskGroup[i].rewardAmt,
-                            list: listData,
+                            returnData.lockedCreditList.push({
+                                nickName: rewardTaskGroup[i].providerGroup? rewardTaskGroup[i].providerGroup.name: "",
+                                lockCredit: rewardTaskGroup[i].rewardAmt,
+                                list: listData,
+                            });
                         }
                     }
                 }
-                return returnData;
+
+                return dbconfig.collection_gameProviderGroup.find({platform: playerDetails.platformObjId})
+                    .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
             }
-        );
+        ).then(
+            allProviderGroup => {
+                if (allProviderGroup && allProviderGroup.length > 0) {
+                    let allGroupData = JSON.parse(JSON.stringify(allProviderGroup));
+
+                    for (let m = 0; m < allProviderGroup.length; m++) {
+                        for (let j = 0; j < usedTaskGroup.length; j++) {
+                            if (usedTaskGroup[j].providerGroup && usedTaskGroup[j].providerGroup._id.toString() == allProviderGroup[m]._id) {
+                                allGroupData.splice(m, 1);
+                            }
+                        }
+
+                    }
+
+                    for (let l = 0; l < allGroupData.length; l++) {
+                        let dataList = [];
+                        allGroupData[l].providers.forEach(allGroup => {
+                            gameData.forEach(gameItem => {
+                                if (allGroup._id.toString() == gameItem.providerObjId.toString()) {
+                                    dataList.push({
+                                        providerId: gameItem.providerId,
+                                        nickName: gameItem.nickName,
+                                        validCredit: gameItem.gameCredit,
+                                        status: gameItem.status
+                                    });
+                                }
+                            })
+
+                        });
+                        returnData.lockedCreditList.push({
+                            nickName: allGroupData[l].name ? allGroupData[l].name : "",
+                            lockCredit: 0,
+                            list: dataList,
+                        })
+                    }
+                }
+
+                return returnData;
+            });
     },
 
     /**
