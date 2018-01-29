@@ -46,18 +46,21 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     label.blink.text-danger {{'Loading' | translate}}
 
                                 .row(ng-if="vm.unreadEvaluationTable")
-                                    table(style="width: 100%; text-align: center;")
+                                    table#unreadEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
                                         thead(style='background-color:#337ab7;')
+                                            th(style="width: 40px;") {{}}
                                             th.col-md-1 {{"EVALUATION_STATUS" | translate}}
-                                            th.col-md-9 {{"" | translate}}
+                                            th.col-md-7 {{"" | translate}}
                                             th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
                                             th.col-md-1 {{"EVALUATED_TIME" | translate}}
-                                            //th.col-md-2 {{"APPEAL_REASON" | translate}}
+                                            th {{"APPEAL_REASON" | translate}}
                                         tbody(ng-repeat="unreadEvaluation in vm.unreadEvaluationTable")
-                                            tr
+                                            tr(style="border: 1px solid")
+                                                td(style="width: 40px;")
+                                                    input.form-control(type="checkbox", value="{{unreadEvaluation.messageId}}",ng-model="unreadEvaluation.isChecked", ng-change="vm.gatherCheckedRecord(unreadEvaluation.isChecked,unreadEvaluation.messageId,unreadEvaluation.appealReason)")
                                                 td.col-md-1 {{unreadEvaluation.status | translate}}
-                                                td.col-md-9
-                                                    table
+                                                td.col-md-7
+                                                    table(style="width: 100%; table-layout: fixed;")
                                                         thead
                                                             th.col-sm-1 {{"FPMS_ACC" | translate}}
                                                             th.col-sm-1 {{"Type" | translate}}
@@ -67,16 +70,23 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             th.col-sm-1 {{"EVALUATION_MARK" | translate}}
                                                             th.col-sm-3 {{"EVALUATION_REVIEW" | translate}}
                                                         tbody
-                                                            tr(ng-repeat="conversation in unreadEvaluation.conversation")
-                                                                td {{unreadEvaluation.fpmsAcc}}
-                                                                td {{conversation.roles}}
-                                                                td {{conversation.createTime}}
-                                                                td {{"对话内容..."}}
-                                                                td {{conversation.timeoutRate}}
-                                                                td {{conversation.inspectionRate}}
-                                                                td {{conversation.review}}
+                                                            tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
+                                                                td.col-sm-1 {{unreadEvaluation.fpmsAcc}}
+                                                                td.col-sm-1 {{conversation.roles}}
+                                                                td.col-sm-1 {{conversation.createTime}}
+                                                                td.col-sm-4 {{conversation.content}}
+                                                                td.col-sm-1 {{conversation.timeoutRate}}
+                                                                td.col-sm-1 {{conversation.inspectionRate}}
+                                                                td.col-sm-3 {{conversation.review}}
                                                 td.col-md-1 {{unreadEvaluation.qualityAssessor}}
                                                 td.col-md-1 {{unreadEvaluation.processTime}}
+                                                td
+                                                    input.form-control(type="textarea", value="{{unreadEvaluation.appealReason}}", ng-model="unreadEvaluation.appealReason", ng-change="vm.ammendCheckedRecord(unreadEvaluation.messageId,unreadEvaluation.appealReason);")
+                                    //- .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable")
+                                    //-     ul.pagination(ng-repeat="das in vm.unreadEvaluationTableTotalSize")
+                                    //-         li
+                                    //-             a {{das}}
+
                                 //.row(style='background-color:#337ab7;')
                                 //    div.col-md-1(style='display:inline-block;padding-left:5px;')
                                 //    div.col-md-1(style='display:inline-block;padding-left:5px;') 评估状态
@@ -167,7 +177,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                             tr
                                                 td.col-md-1 {{readEvaluation.status | translate}}
                                                 td.col-md-9
-                                                    table
+                                                    table(style="width: 100%; table-layout: fixed;")
                                                         thead
                                                             th.col-sm-1 {{"FPMS_ACC" | translate}}
                                                             th.col-sm-1 {{"Type" | translate}}
@@ -178,15 +188,15 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             th.col-sm-3 {{"EVALUATION_REVIEW" | translate}}
                                                         tbody
                                                             tr(ng-repeat="conversation in readEvaluation.conversation")
-                                                                td {{readEvaluation.fpmsAcc}}
-                                                                td {{conversation.roles}}
-                                                                td {{conversation.createTime}}
-                                                                td {{conversation.conversation}}
-                                                                td {{conversation.timeoutRate}}
-                                                                td {{conversation.inspectionRate}}
-                                                                td {{conversation.review}}
+                                                                td.col-sm-1 {{readEvaluation.fpmsAcc}}
+                                                                td.col-sm-1 {{conversation.roles}}
+                                                                td.col-sm-1 {{conversation.createTime | date:"yyyy-MM-dd hh:mm:ss"}}
+                                                                td.col-sm-4 {{conversation.content}}
+                                                                td.col-sm-1 {{conversation.timeoutRate}}
+                                                                td.col-sm-1 {{conversation.inspectionRate}}
+                                                                td.col-sm-3 {{conversation.review}}
                                                 td.col-md-1 {{readEvaluation.qualityAssessor}}
-                                                td.col-md-1 {{readEvaluation.processTime}}
+                                                td.col-md-1 {{readEvaluation.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
                                             //tr
                                             //    td
                                 //    //div.col-md-1(style='display:inline-block;padding-left:5px;')
@@ -275,7 +285,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                             tr
                                                 td.col-md-1 {{appealEvaluation.status | translate}}
                                                 td.col-md-8
-                                                    table
+                                                    table(style="width: 100%; table-layout: fixed;")
                                                         thead
                                                             th.col-sm-1 {{"FPMS_ACC" | translate}}
                                                             th.col-sm-1 {{"Type" | translate}}
@@ -289,7 +299,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                                 td {{appealEvaluation.fpmsAcc}}
                                                                 td {{conversation.roles}}
                                                                 td {{conversation.createTime}}
-                                                                td {{"对话内容..."}}
+                                                                td {{conversation.content}}
                                                                 td {{conversation.timeoutRate}}
                                                                 td {{conversation.inspectionRate}}
                                                                 td {{conversation.review}}

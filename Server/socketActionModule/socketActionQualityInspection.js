@@ -23,7 +23,9 @@ function socketActionQualityInspection(socketIO, socket) {
             var actionName = arguments.callee.name;
             //data = true;
             var isDataValid = Boolean(data.startTime, data.endTime);
-            socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.startTime, data.endTime], actionName, isDataValid);
+            var index = data.index || 0;
+            var size = data.size || 1;
+            socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.startTime, data.endTime, index, size], actionName, isDataValid);
         },
         getReadEvaluationRecord: function getReadEvaluationRecord(data){
             var actionName = arguments.callee.name;
