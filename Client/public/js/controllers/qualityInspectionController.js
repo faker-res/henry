@@ -341,9 +341,11 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
-            vm.storeBatchId = function(conversation){
-                vm.batchEditList.push(conversation);
-                console.log(vm.batchEditList);
+            vm.storeBatchId = function(isCheck, conversation){
+                vm.batchEditList = [];
+                $('body .batchEdit:checked').each( function(){
+                    vm.batchEditList.push($(this).val());
+                })
             };
             vm.batchSave = function(){
                 console.log(vm.batchEditList);
@@ -353,6 +355,19 @@ define(['js/app'], function (myApp) {
                 });
 
             };
+            vm.gotoPG = function(pg, $event){
+                console.log($event.target);
+                $('body .pagination li').removeClass('active');
+                $($event.currentTarget).addClass('active');
+                let pgNo = null;
+                if(pg==0){
+                    pgNo = 0
+                }else if(pg > 1){
+                    pgNo = pg;
+                }
+                vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.searchLive800();
+            },
             vm.searchLive800 = function(){
                 let fpmsId = [];
                 if(vm.fpmsACCList.length > 0){
@@ -366,11 +381,13 @@ define(['js/app'], function (myApp) {
                         // 'companyId':270,
                         // 'operatorId':764,
                         'companyId':vm.companyIds,
-                        'fpmsAcc':vm.inspection800.fpms,
+                        'fpmsAcc':vm.inspection800.fpms || [],
                         'operatorId':vm.inspection800.live800Accs,
                         'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
                         'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
-                        'status':vm.inspection800.status ? vm.inspection800.status : null
+                        'status':vm.inspection800.status ? vm.inspection800.status : null,
+                        'limit':vm.pgn.limit,
+                        'index':vm.pgn.index
                 };
                 if(vm.inspection800.qiUser && vm.inspection800.qiUser.length > 0){
                     query['qualityAssessor'] = vm.inspection800.qiUser;
@@ -406,6 +423,20 @@ define(['js/app'], function (myApp) {
 
                     $scope.safeApply();
                 }
+
+                socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
+                function successFunc(data) {
+                    if(data.data){
+                        vm.pgn.totalPage = data.data / vm.pgn.limit;
+                        vm.pgn.count = data.data;
+                    }
+                    vm.pgnPages = [];
+                    for(let a = 0; a < vm.pgn.totalPage;a++){
+                        vm.pgnPages.push(a);
+                    }
+
+                    $scope.safeApply();
+                }
             };
             vm.confirmRate = function(rate){
                 console.log(rate);
@@ -419,6 +450,9 @@ define(['js/app'], function (myApp) {
                 vm.initLive800Start();
                 vm.fpmsACCList = [];
                 vm.batchEditList = [];
+                vm.inspection800 = {};
+                vm.inspection800.fpms = [];
+                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:2, count:1};
 
                 setTimeout(function(){
                     $scope.safeApply();
