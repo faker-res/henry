@@ -12816,9 +12816,9 @@ let dbPlayerInfo = {
                 if (allProviderGroup && allProviderGroup.length > 0) {
                     let allGroupData = JSON.parse(JSON.stringify(allProviderGroup));
 
-                    for (let m = 0; m < allProviderGroup.length; m++) {
+                    for (let m = allProviderGroup.length - 1; m >= 0; m--) {
                         for (let j = 0; j < usedTaskGroup.length; j++) {
-                            if (usedTaskGroup[j].providerGroup && usedTaskGroup[j].providerGroup._id.toString() == allProviderGroup[m]._id) {
+                            if (usedTaskGroup[j].providerGroup && usedTaskGroup[j].providerGroup._id.toString() == allProviderGroup[m]._id.toString()) {
                                 allGroupData.splice(m, 1);
                             }
                         }

@@ -7272,7 +7272,7 @@ define(['js/app'], function (myApp) {
                         }
                         updateData.remark += $translate("DOB");
                     }
-                    if (updateData.gender) {
+                    if (updateData.hasOwnProperty("gender")) {
                         if(updateData.remark) {
                             updateData.remark += ", ";
                         }
@@ -9086,7 +9086,7 @@ define(['js/app'], function (myApp) {
             vm.initPlayerAddRewardTask = function () {
                 vm.playerAddRewardTask = {
                     showSubmit: true,
-                    providerGroup: 'null'
+                    providerGroup: ''
                 };
                 vm.showRewardSettingsTab(null);
                 // vm.selectedRewards = [];
