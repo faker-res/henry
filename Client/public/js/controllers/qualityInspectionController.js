@@ -248,8 +248,9 @@ define(['js/app'], function (myApp) {
                         });
 
                     }
-                });
 
+                });
+                vm.getConversationDefinition();
 
 
                 // socketService.$socket($scope.AppSocket, 'getDepartmentsbyPlatformObjId', [], function (data){
@@ -1500,14 +1501,17 @@ define(['js/app'], function (myApp) {
 
             vm.commonInitTime = function (obj, queryId) {
                 if (!obj) return;
-                obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
+                obj.startTime = utilService.createDatePicker(queryId + ' .startTime',{
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss'
+                });
                 // var lastMonth = utilService.setNDaysAgo(new Date(), 1);
                 // var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
                 obj.startTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayStartTime()));
 
                 obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
                     language: 'en',
-                    format: 'yyyy/MM/dd hh:mm:ss'
+                    format: 'dd/MM/yyyy hh:mm:ss'
                 });
                 obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayEndTime()));
             };
@@ -1673,8 +1677,35 @@ define(['js/app'], function (myApp) {
                         'operatorId':vm.selectedLive800,
                         'startTime': vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
                         'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
+
                     };
 
+                    // var query = {
+                    //     // 'companyId':270,
+                    //     // 'operatorId':764,
+                    //     'companyId':vm.companyIds,
+                    //     'fpmsAcc':vm.inspection800.fpms,
+                    //     'operatorId':vm.inspection800.live800Accs,
+                    //     'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
+                    //     'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
+                    //     'status':vm.inspection800.status ? vm.inspection800.status : null
+                    // };
+                    // if(vm.inspection800.qiUser && vm.inspection800.qiUser.length > 0){
+                    //     query['qualityAssessor'] = vm.inspection800.qiUser;
+                    // }
+                    // socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
+                    // function success(data) {
+                    //     vm.conversationForm = data.data;
+                    //     data.data.forEach(item=>{
+                    //         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
+                    //         item.conversation.forEach(function(cv){
+                    //             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+                    //
+                    //         });
+                    //         item.editable = false;
+                    //     });
+                    //     $scope.safeApply();
+                    // }
 
                     socketService.$socket($scope.AppSocket, 'searchLive800Record', query, success, error);
                     function success(data) {
@@ -1682,40 +1713,114 @@ define(['js/app'], function (myApp) {
                         vm.displayData = [];
                         let preData = [];
                         vm.postData = [];
+                        vm.rawMysqlData=[];
                         // handle the data obtained from mysql
+                        if (data.data[2]){
+                            data.data[2].forEach(conv => {
+                                let counter_cs=0;
+                                let counter_cus=0;
+                                let startTime=0;
+                                let start =true;
+                                let duration=0;
+                                let overTimeMark=0; // for overtimeSetting
+                                let mark=0;
+                                for (let i=0; i< conv.conversation.length;i++){
+                                   // roles: 1- cs; 2-player; 3-system
+                                    if (start){
+                                        if (conv.conversation[i].roles ==1 || conv.conversation[i].roles ==2){
+                                            startTime=conv.conversation[i].time;
+                                            start =false;
+                                        }
+                                    }
+                                    if (conv.conversation[i].roles ==1){
+                                        counter_cs+=1;
+                                    }
+                                    if(conv.conversation[i].roles == 2){
+                                        counter_cus+=1;
+                                    }
+                                    if (conv.conversation[i].inspectionRate !=0){
+                                        mark=mark+ conv.conversation[i].inspectionRate;
+                                    }
 
+                                }
+                                if (startTime){
+                                    duration = conv.conversation[conv.conversation.length-1].time - startTime;
+                                }
 
-                        if (data.data[0] && data.data[0].length >0) {
-                            vm.mysqlData = $.extend(true, [], data.data[0]);
+                                if (counter_cus>=vm.conversationDefinition.askingSentence && counter_cs >=vm.conversationDefinition.replyingSentence && duration >= vm.conversationDefinition.totalSec){
+                                    vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 1, inspectionMark: mark})
+                                }else{
+                                    vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 0, inspectionMark: 0}) //not effective should not be rated
+                                }
+                            });
 
-                            preData = data.data[0].map(item => {
+                            vm.variety=[];
+                            //check the variety
+                            //
+                            vm.rawMysqlData.forEach(data=>{
+                                let count1=0;
+                                let count0=0;
+                                let mark =0;
+                                let overTimeMark=0;
+                                let index= vm.variety.findIndex(p => p.companyId == data.companyId && p.operatorId == data.operatorId);
+                                if (index == -1) {
+                                    for (let i = 0; i < vm.rawMysqlData.length; i++) {
+
+                                        if (data.companyId == vm.rawMysqlData[i].companyId && data.operatorId == vm.rawMysqlData[i].operatorId) {
+                                            if (vm.rawMysqlData[i].effective == 1){
+                                                count1 += 1;
+                                                mark = mark + vm.rawMysqlData[i].inspectionMark;
+
+                                            }else{
+                                                count0 +=1;
+                                            }
+
+                                        }
+                                    }
+                                    vm.variety.push({
+                                        companyId: data.companyId,
+                                        fpmsAcc: data.fpmsAcc,
+                                        operatorId: data.operatorId,
+                                        count_1: count1, // effective count
+                                        count_0: count0, // not effective count
+                                        totalInspectionMark: mark
+                                    });
+
+                                }
+                            });
+
+                            vm.mysqlData = $.extend(true, [], vm.variety); // used for inner table: data has been arranged based on operatorID
+
+                            preData = vm.variety.map(item => {
                                 let itemObj = {};
 
-                                let platformIndex = vm.platformCompanyID.findIndex(p => p.companyId.includes(item.company_id.toString()));
+                                let platformIndex = vm.platformCompanyID.findIndex(p => p.companyId.includes(item.companyId.toString()));
                                 if (platformIndex != -1) {
                                     itemObj.productName = vm.platformCompanyID[platformIndex].productName;
 
                                 }
-                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operator_id)
+                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc==item.operatorId)
                                 if (index != -1) {
                                     itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                 }
-                                itemObj.totalRecord = item.record_number;
+                                itemObj.count_0 = item.count_0;
+                                itemObj.count_1 = item.count_1;
+                                itemObj.totalInspectionMark = item.totalInspectionMark;
 
                                 return itemObj;
 
-                            });
+                            })
 
-
-                            //
                             var holder = {};
 
                             preData.forEach(d => {
 
                                 if (holder.hasOwnProperty(d.adminName)) {
-                                    holder[d.adminName] = holder[d.adminName] + d.totalRecord;
+                                    holder[d.adminName] = [holder[d.adminName][0]+ d.count_0 ,holder[d.adminName][1]+ d.count_0,holder[d.adminName][2]+ d.totalInspectionMark];
+                                    //holder[d.adminName].count_1 = holder[d.adminName].count_1 + d.count_1;
                                 } else {
-                                    holder[d.adminName] = d.totalRecord;
+                                    holder[d.adminName]= [d.count_0, d.count_1,d.totalInspectionMark];
+                                    //holder[d.adminName].count_1 = d.count_1;
                                 }
                             });
 
@@ -1726,13 +1831,68 @@ define(['js/app'], function (myApp) {
                                     vm.postData.push({
                                         productName: preData[index].productName,
                                         adminName: prop,
-                                        totalCount: holder[prop]
+                                        count_0: holder[prop][0],
+                                        count_1: holder[prop][1],
+                                        totalCount: holder[prop][0]+holder[prop][1],
+                                        totalInspectionMark: holder[prop][2]
+
                                     })
                                 }
 
                             }
 
+
+
                         }
+
+                        // if (data.data[0] && data.data[0].length >0) {
+                        //     vm.mysqlData = $.extend(true, [], data.data[0]);
+                        //
+                        //     preData = data.data[0].map(item => {
+                        //         let itemObj = {};
+                        //
+                        //         let platformIndex = vm.platformCompanyID.findIndex(p => p.company,includes(Id.includes(item.company_id.toString()));
+                        //         if (platformIndex != -1) {
+                        //             itemObj.productName = vm.platformCompanyID[platformIndex].productName;
+                        //
+                        //         }
+                        //         let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc,includes(item.operator_id))
+                        //         if (index != -1) {
+                        //             itemObj.adminName = vm.selectedLive800Acc[index].adminName;
+                        //         }
+                        //         itemObj.totalRecord = item.record_number;
+                        //
+                        //         return itemObj;
+                        //
+                        //     });
+                        //
+                        //
+                        //     //
+                        //     var holder = {};
+                        //
+                        //     preData.forEach(d => {
+                        //
+                        //         if (holder.hasOwnProperty(d.adminName)) {
+                        //             holder[d.adminName] = holder[d.adminName] + d.totalRecord;
+                        //         } else {
+                        //             holder[d.adminName] = d.totalRecord;
+                        //         }
+                        //     });
+                        //
+                        //
+                        //     for (var prop in holder) {
+                        //         let index = preData.findIndex(p => p.adminName == prop);
+                        //         if (index != -1) {
+                        //             vm.postData.push({
+                        //                 productName: preData[index].productName,
+                        //                 adminName: prop,
+                        //                 totalCount: holder[prop]
+                        //             })
+                        //         }
+                        //
+                        //     }
+                        //
+                        // }
                         if (data.data[1] && data.data[1].length > 0) {
                             vm.fpmsData = $.extend(true, [], data.data[1]);
 
@@ -1741,7 +1901,23 @@ define(['js/app'], function (myApp) {
                                 if (index != -1) {
                                     vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
                                 }
+                            })
 
+                            vm.postData.forEach(data=>{
+                                for (let i=1; i<Object.keys(vm.constQualityInspectionStatus).length +1; i++){
+                                    if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])){
+                                        data[vm.constQualityInspectionStatus[i]] = 0;
+                                    }
+                                }
+
+                            })
+
+                            vm.postData.forEach(data=>{
+                                //data.totalCount = data.count_0+data.count_1;
+                                data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED;
+                                //temp for overtimMark
+                                let temp_totalOvertimeMark=0;
+                                data. avgMark= ((temp_totalOvertimeMark+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
 
                             })
 
@@ -1813,17 +1989,17 @@ define(['js/app'], function (myApp) {
 
                         },
                         {
-                            title: $translate('NOT_EVALUATED_QUANTITY'), data: "NOT_EVALUATED",
+                            title: $translate('NOT_EVALUATED_QUANTITY'), data: "count_0",
                             orderable: false,
 
                         },
                         {
-                            title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "EFFECTIVE_CONVERSATION_QUANTITY",
+                            title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "count_1",
                             orderable: false,
 
                         },
                         {
-                            title: $translate('PROCESSING_QUANTITY'), data: "PENDINGTOPROCESS",
+                            title: $translate('PROCESSING_QUANTITY'), data: "pendingCount",
                             orderable: false,
 
                         },
@@ -1858,12 +2034,12 @@ define(['js/app'], function (myApp) {
 
                         },
                         {
-                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: null,
+                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionMark",
                             orderable: false,
 
                         },
                         {
-                            title: $translate('AVG_DEDUCTION_MARK') , data: null,
+                            title: $translate('AVG_DEDUCTION_MARK') , data: "avgMark",
                             orderable: false,
 
                         }
@@ -1905,7 +2081,7 @@ define(['js/app'], function (myApp) {
                         row.child(vm.createInnerTable(id)).show();
                         vm[id] = {};
 
-                        let selectedLiveAcc = [];
+                        let selectedLiveAcc = [];null
                         let selectedCompanyId =[];
                         vm.displayDetailData = [];
                         // vm.proposalDialog = 'proposal';
@@ -1914,22 +2090,30 @@ define(['js/app'], function (myApp) {
 
                             }, function (data) {
                                 selectedLiveAcc = data.data[0].live800Acc;
-                                selectedCompanyId = data.data[0].live800CompanyId;
+                                //selectedCompanyId = data.data[0].live800CompanyId;
                                 vm.mysqlDataBreakdown = [];
                                 vm.fpmsDataBreakdown = [];
 
+                                vm.mysqlData.forEach( item => {
+                                    if (item.fpmsAcc == data.data[0].adminName){
+                                        selectedCompanyId.push(item.companyId.toString());
+                                    }
+                                });
+
                                 for (let i = 0; i < selectedLiveAcc.length; i++) {
                                     vm.mysqlData.forEach(item => {
-                                        if (item.operator_id == selectedLiveAcc[i]) {
-                                            vm.displayDetailData.push({operatorId: item.operator_id, totalCount: item.record_number});
+                                        if (item.operatorId == selectedLiveAcc[i]) {
+                                            vm.displayDetailData.push(item);
                                         }
                                     })
                                 }
+
+
                                 let params= {
                                     'companyId': selectedCompanyId,
                                     'operatorId': selectedLiveAcc,
-                                    'startTime': '2018-01-16 00:10:00',//vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
-                                    'endTime': '2018-01-16 00:30:00'//vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
+                                    'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
+                                    'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate() //'2018-01-16 00:05:00'
                                 };
 
 
@@ -1938,14 +2122,35 @@ define(['js/app'], function (myApp) {
 
                                 function success(data) {
                                     console.log("AAAAAAAAAAABBBBBBBBBBB---------------", data.data);
-                                    data.data.forEach(data => {
-                                        let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
-                                        if (index != -1) {
-                                            vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
-                                        }
-                                    });
-                                    $scope.safeApply();
-                                    vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                                    if (data.data && data.data.length > 0) {
+                                        data.data.forEach(data => {
+                                            let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
+                                            if (index != -1) {
+                                                vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                            }
+                                        });
+
+                                        vm.displayDetailData.forEach(data => {
+                                            for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                                if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                                    data[vm.constQualityInspectionStatus[i]] = 0;
+                                                }
+                                            }
+
+                                        });
+
+                                        vm.displayDetailData.forEach(data=>{
+                                            data.totalCount = data.count_0+data.count_1;
+                                            data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED;
+                                            let temp_totalOvertimeMark=0;
+                                            data. avgMark= ((temp_totalOvertimeMark+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
+                                        })
+
+
+
+                                        $scope.safeApply();
+                                        vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                                    }
                                 }
 
                                 function error(error) {
@@ -1990,17 +2195,17 @@ define(['js/app'], function (myApp) {
 
                         },
                         {
-                            title: $translate('NOT_EVALUATED_QUANTITY'), data: "NOT_EVALUATED",
+                            title: $translate('NOT_EVALUATED_QUANTITY'), data: "count_0",
                             orderable: false,
 
                         },
                         {
-                            title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "EFFECTIVE_CONVERSATION_QUANTITY",
+                            title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "count_1",
                             orderable: false,
 
                         },
                         {
-                            title: $translate('PROCESSING_QUANTITY'), data: "PENDINGTOPROCESS",
+                            title: $translate('PROCESSING_QUANTITY'), data: "pendingCount",
                             orderable: false,
 
                         },
@@ -2035,12 +2240,12 @@ define(['js/app'], function (myApp) {
 
                         },
                         {
-                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: null,
+                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionMark",
                             orderable: false,
 
                         },
                         {
-                            title: $translate('AVG_DEDUCTION_MARK') , data: null,
+                            title: $translate('AVG_DEDUCTION_MARK') , data: "avgMark",
                             orderable: false,
 
                         }
