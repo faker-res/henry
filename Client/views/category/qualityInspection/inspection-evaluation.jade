@@ -41,7 +41,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                             i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                                     //button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
-                                    button.common-button.btn.btn-primary(ng-click='vm.getUnreadEvaluationRecord()') {{'SEARCH' | translate}}
+                                    button.common-button.btn.btn-primary(ng-click='vm.getUnreadEvaluationRecord(1)') {{'SEARCH' | translate}}
                                 .inlineBlk(ng-show='vm.loadingUnreadEvaluationTable')
                                     label.blink.text-danger {{'Loading' | translate}}
 
@@ -57,7 +57,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         tbody(ng-repeat="unreadEvaluation in vm.unreadEvaluationTable")
                                             tr(style="border: 1px solid")
                                                 td(style="width: 40px;")
-                                                    input.form-control(type="checkbox", value="{{unreadEvaluation.messageId}}",ng-model="unreadEvaluation.isChecked", ng-change="vm.gatherCheckedRecord(unreadEvaluation.isChecked,unreadEvaluation.messageId,unreadEvaluation.appealReason)")
+                                                    input.form-control(type="checkbox", value="{{unreadEvaluation.messageId}}", ng-model="unreadEvaluation.isChecked", ng-change="vm.gatherCheckedRecord(unreadEvaluation.isChecked,unreadEvaluation.messageId,unreadEvaluation.appealReason)")
                                                 td.col-md-1 {{unreadEvaluation.status | translate}}
                                                 td.col-md-7
                                                     table(style="width: 100%; table-layout: fixed;")
@@ -82,10 +82,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                 td.col-md-1 {{unreadEvaluation.processTime}}
                                                 td
                                                     input.form-control(type="textarea", value="{{unreadEvaluation.appealReason}}", ng-model="unreadEvaluation.appealReason", ng-change="vm.ammendCheckedRecord(unreadEvaluation.messageId,unreadEvaluation.appealReason);")
-                                    //- .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable")
-                                    //-     ul.pagination(ng-repeat="das in vm.unreadEvaluationTableTotalSize")
-                                    //-         li
-                                    //-             a {{das}}
+                                    .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
+                                        ul#unreadEvaluationPagination.pagination
+                                            li(ng-repeat="page in vm.unreadEvaluationRecord.pageArr")
+                                                a(ng-click="vm.getUnreadEvaluationRecord(page);") {{page}}
 
                                 //.row(style='background-color:#337ab7;')
                                 //    div.col-md-1(style='display:inline-block;padding-left:5px;')
@@ -147,13 +147,13 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                         div(ng-show="vm.evaluationTab == 'readEvaluation'" )
                             #readEvaluationDiv.tab-pane.fade.in.active
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByQualityInspectionDate')")
                                     label {{'START_DATE' | translate}}
                                     #readEvaluationStartDatetimePicker.input-append.form-control
                                         input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
                                         span.add-on
                                             i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByProposalDate')")
+                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Evaluation', 'queryByQualityInspectionDate')")
                                     label {{'END_DATE' | translate}}
                                     br
                                     #readEvaluationEndDatetimePicker.input-append.form-control
@@ -197,6 +197,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                                 td.col-sm-3 {{conversation.review}}
                                                 td.col-md-1 {{readEvaluation.qualityAssessor}}
                                                 td.col-md-1 {{readEvaluation.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
+                                    .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
+                                        ul#readEvaluationPagination.pagination
+                                            li(ng-repeat="page in vm.readEvaluationRecord.pageArr")
+                                                a(ng-click="vm.getReadEvaluationRecord(page);") {{page}}
                                             //tr
                                             //    td
                                 //    //div.col-md-1(style='display:inline-block;padding-left:5px;')
@@ -306,6 +310,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                 td.col-md-1 {{appealEvaluation.qualityAssessor}}
                                                 td.col-md-1 {{appealEvaluation.processTime}}
                                                 td.col-md-1 {{appealEvaluation.appealReason}}
+                                    .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
+                                        ul#appealEvaluationPagination.pagination
+                                            li(ng-repeat="page in vm.appealEvaluationRecord.pageArr")
+                                                a(ng-click="vm.getAppealEvaluationRecord(page);") {{page}}
 
                                 //.row(style='background-color:#337ab7;')
                                 //    //div.col-md-1(style='display:inline-block;padding-left:5px;')

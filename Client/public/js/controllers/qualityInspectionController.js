@@ -47,6 +47,36 @@ define(['js/app'], function (myApp) {
 
             vm.isChecked;
 
+            vm.unreadEvaluationRecord = {
+                totalCount: 0,
+                currentPage: 1,
+                index: 0,
+                limit: 10,
+                pageSize: 1,
+                pageArr: []
+            }
+
+            vm.readEvaluationRecord = {
+                totalCount: 0,
+                currentPage: 1,
+                index: 0,
+                limit: 10,
+                pageSize: 1,
+                pageArr: []
+            }
+
+            vm.appealEvaluationRecord = {
+                totalCount: 0,
+                currentPage: 1,
+                index: 0,
+                limit: 10,
+                pageSize: 1,
+                pageArr: []
+            }
+
+            //vm.unReadEvaluation = {};
+
+
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
                 window.document.title = $translate("qualityInspection") + "->" + $translate(vm.qualityInspectionPageName);
@@ -436,7 +466,7 @@ define(['js/app'], function (myApp) {
                 });
 
                 $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
-            }
+            };
 
             vm.initReadEvaluation = function(){
                 $('#readEvaluationStartDatetimePicker').datetimepicker({
@@ -614,23 +644,27 @@ define(['js/app'], function (myApp) {
             };
 
             //////////////////////////////////////////////////////////Start of Evaluation Tab///////////////////////////////////////////////////////////////////
-            vm.getUnreadEvaluationRecord = function(newSearch) {
+            vm.getUnreadEvaluationRecord = function(page) {
                 vm.loadingUnreadEvaluationTable = true;
                 var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                if(page){
+                    vm.unreadEvaluationRecord.index = (page - 1) * vm.unreadEvaluationRecord.limit;
+                }
+
                 let sendData = {
                     startTime: startTime,
                     endTime: endTime,
-                    // index: newSearch ? 0 : (vm.unReadEvaluation.index || 0),
-                    // limit: newSearch ? 1 : (vm.unReadEvaluation.limit || 1),
+                    index: vm.unreadEvaluationRecord.index ? vm.unreadEvaluationRecord.index : 0,
+                    limit: vm.unreadEvaluationRecord.limit ? vm.unreadEvaluationRecord.limit : 1,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
 
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data.length > 0){
 
-                        data.data.map(data => {
+                        data.data.data.map(data => {
                             if(data && data.status){
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
@@ -642,8 +676,32 @@ define(['js/app'], function (myApp) {
                             });
 
                             return data;
-                        })
-                        vm.unreadEvaluationTable = data.data;
+                        });
+
+                        vm.unreadEvaluationTable = data.data.data;
+                        vm.unreadEvaluationRecord.totalCount = data.data.size;
+                        let pageSize = data.data.size / vm.unreadEvaluationRecord.limit;
+
+                        if(pageSize > Math.trunc(pageSize)){
+                            vm.unreadEvaluationRecord.pageSize = Math.trunc(pageSize) + 1;
+                        }else {
+                            vm.unreadEvaluationRecord.pageSize = Math.trunc(pageSize);
+                        }
+
+                        vm.unreadEvaluationRecord.pageArr = [];
+                        let pageList = document.querySelector("#unreadEvaluationPagination");
+                        for(let a = 1; a <= vm.unreadEvaluationRecord.pageSize ;a++){
+                            vm.unreadEvaluationRecord.pageArr.push(a);
+                            if(pageList) {
+                                pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
+                            }
+                        }
+                        $scope.safeApply();
+                        pageList = document.querySelector("#unreadEvaluationPagination");
+                        if(pageList){
+                            pageList.children[page - 1].className += " active";
+                        }
+
                     }else{
                         vm.unreadEvaluationTable = "";
                     }
@@ -653,20 +711,26 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.getReadEvaluationRecord = function() {
+            vm.getReadEvaluationRecord = function(page) {
                 vm.loadingReadEvaluationTable = true;
                 var startTime = $('#readEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#readEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                if(page){
+                    vm.readEvaluationRecord.index = (page - 1) * vm.readEvaluationRecord.limit;
+                }
+
                 let sendData = {
                     startTime: startTime,
-                    endTime: endTime
+                    endTime: endTime,
+                    index: vm.unreadEvaluationRecord.index ? vm.unreadEvaluationRecord.index : 0,
+                    limit: vm.unreadEvaluationRecord.limit ? vm.unreadEvaluationRecord.limit : 1,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getReadEvaluationRecord', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data.length > 0){
 
-                        data.data.map(data => {
+                        data.data.data.map(data => {
                             if(data){
                                 if(data.status){
                                     data.status = vm.constQualityInspectionStatus[data.status];
@@ -687,11 +751,36 @@ define(['js/app'], function (myApp) {
                                     cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
                                 });
+
                             }
 
                             return data;
                         })
-                        vm.readEvaluationTable = data.data;
+                        vm.readEvaluationTable = data.data.data;
+
+
+                        vm.readEvaluationRecord.totalCount = data.data.size;
+                        let pageSize = data.data.size / vm.readEvaluationRecord.limit;
+
+                        if(pageSize > Math.trunc(pageSize)){
+                            vm.readEvaluationRecord.pageSize = Math.trunc(pageSize) + 1;
+                        }else {
+                            vm.readEvaluationRecord.pageSize = Math.trunc(pageSize);
+                        }
+
+                        vm.readEvaluationRecord.pageArr = [];
+                        let pageList = document.querySelector("#readEvaluationPagination");
+                        for(let a = 1; a <= vm.readEvaluationRecord.pageSize ;a++){
+                            vm.readEvaluationRecord.pageArr.push(a);
+                            if(pageList) {
+                                pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
+                            }
+                        }
+                        $scope.safeApply();
+                        pageList = document.querySelector("#readEvaluationPagination");
+                        if(pageList){
+                            pageList.children[page - 1].className += " active";
+                        }
                     }else{
                         vm.readEvaluationTable = "";
                     }
@@ -701,7 +790,7 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.getAppealEvaluationRecordByConversationDate = function(){
+            vm.getAppealEvaluationRecordByConversationDate = function(page){
                 vm.loadingAppealEvaluationTable = true;
                 var startTime = $('#conversationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#conversationEndDatetimePicker').data('datetimepicker').getLocalDate();
@@ -713,9 +802,9 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByConversationDate', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data.length > 0){
 
-                        data.data.map(data => {
+                        data.data.data.map(data => {
                             if(data && data.status){
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }

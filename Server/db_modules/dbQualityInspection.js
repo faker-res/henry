@@ -628,7 +628,7 @@ var dbQualityInspection = {
         return String(str).replace(/\&#60\;/gi,'').replace(/\&#160\;/gi, ' ').replace(/\&#173\;/gi, '\t')
     },
 
-    getUnreadEvaluationRecord: function (startTime, endTime) {
+    getUnreadEvaluationRecord: function (startTime, endTime, index, size) {
         let query = {
             createTime: {
                 $gte: startTime,
@@ -636,7 +636,7 @@ var dbQualityInspection = {
             },
             status: constQualityInspectionStatus.COMPLETED_UNREAD
         }
-        return dbconfig.collection_qualityInspection.find(query).lean().then(
+        let unreadEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
             unreadEvaluationData => {
                 if(unreadEvaluationData && unreadEvaluationData.length > 0){
                     //let dbResult = dbQualityInspection.searchMongoDB(query);
@@ -667,6 +667,16 @@ var dbQualityInspection = {
                 }
             }
         );
+
+        let unreadEvaluationRecordCount = dbconfig.collection_qualityInspection.find(query).count();
+
+        return Promise.all([unreadEvaluationRecord,unreadEvaluationRecordCount]).then(
+            result => {
+                if(result && result[0] && result[1]){
+                    return {data: result[0], size: result[1]};
+                }
+            }
+        )
     },
 
     getQualityAssessorName: function(unreadEvaluationData){
@@ -692,7 +702,7 @@ var dbQualityInspection = {
             },
             status: constQualityInspectionStatus.COMPLETED_READ
         }
-        return dbconfig.collection_qualityInspection.find(query).lean().then(
+        let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().then(
             readEvaluationData => {
                 if(readEvaluationData && readEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -722,6 +732,16 @@ var dbQualityInspection = {
                 }
             }
         );
+
+        let readEvaluationRecordCount = dbconfig.collection_qualityInspection.find(query).count();
+
+        return Promise.all([readEvaluationRecord,readEvaluationRecordCount]).then(
+            result => {
+                if(result && result[0] && result[1]){
+                    return {data: result[0], size: result[1]};
+                }
+            }
+        )
     },
 
     getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status){
@@ -740,7 +760,7 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        return dbconfig.collection_qualityInspection.find(query).lean().then(
+        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().then(
             appealEvaluationData => {
                 if(appealEvaluationData && appealEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -770,6 +790,16 @@ var dbQualityInspection = {
                 }
             }
         );
+
+        let appealEvaluationRecordCount = dbconfig.collection_qualityInspection.find(query).count();
+
+        return Promise.all([appealEvaluationRecord,appealEvaluationRecordCount]).then(
+            result => {
+                if(result && result[0] && result[1]){
+                    return {data: result[0], size: result[1]};
+                }
+            }
+        )
     },
 
     getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status){
@@ -789,7 +819,7 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        return dbconfig.collection_qualityInspection.find(query).lean().then(
+        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().then(
             appealEvaluationData => {
                 if(appealEvaluationData && appealEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -819,6 +849,16 @@ var dbQualityInspection = {
                 }
             }
         );
+
+        let appealEvaluationRecordCount = dbconfig.collection_qualityInspection.find(query).count();
+
+        return Promise.all([appealEvaluationRecord,appealEvaluationRecordCount]).then(
+            result => {
+                if(result && result[0] && result[1]){
+                    return {data: result[0], size: result[1]};
+                }
+            }
+        )
     },
 
     getWorkloadReport: function(startTime, endTime, qaAccount){

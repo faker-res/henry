@@ -24,19 +24,23 @@ function socketActionQualityInspection(socketIO, socket) {
             //data = true;
             var isDataValid = Boolean(data.startTime, data.endTime);
             var index = data.index || 0;
-            var size = data.size || 1;
+            var size = data.limit || 1;
             socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.startTime, data.endTime, index, size], actionName, isDataValid);
         },
         getReadEvaluationRecord: function getReadEvaluationRecord(data){
             var actionName = arguments.callee.name;
             //data = true;
             var isDataValid = Boolean(data.startTime, data.endTime);
+            var index = data.index || 0;
+            var size = data.limit || 1;
             socketUtil.emitter(self.socket, dbQualityInspection.getReadEvaluationRecord, [data.startTime, data.endTime], actionName, isDataValid);
         },
         getAppealEvaluationRecordByConversationDate: function getAppealEvaluationRecordByConversationDate(data){
             var actionName = arguments.callee.name;
             //data = true;
             var isDataValid = Boolean(data.startTime, data.endTime, data.status);
+            var index = data.index || 0;
+            var size = data.limit || 1;
             socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByConversationDate, [data.startTime, data.endTime, data.status], actionName, isDataValid);
         },
         getAppealEvaluationRecordByAppealDate: function getAppealEvaluationRecordByAppealDate(data){
