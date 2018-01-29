@@ -345,7 +345,11 @@ angular.module('myApp.directives', [])
             link:function(scope, element, attr){
 
                 scope.rateIt = function(conversation){
-                    conversation.editable = true;
+                    // if the complain is closed(6) , or this conversation no need to rate(7)
+                    if(conversation.status!=6 && conversation.status!=7){
+                        conversation.editable = true;
+                    }
+
                 }
                 scope.cancelrate = function(conversation){
                     conversation.editable = false;

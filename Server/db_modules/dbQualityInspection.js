@@ -89,6 +89,7 @@ var dbQualityInspection = {
                 live800Chat.appealReason = '';
                 live800Chat.conversation = item.conversation;
                 live800Chat.companyId = item.company_id;
+                live800Chat.createTime = new Date(item.store_time).toISOString();
 
                 live800Chat.operatorId = item.operator_id;
                 live800Chat.operatorName = item.operator_name;
@@ -279,10 +280,12 @@ var dbQualityInspection = {
             })
             console.log(mgData);
             let mgDataStr = "";
+            let excludeMongoQuery = "";
             if(mgData.length > 0){
                 mgDataStr = mgData.join(',');
+                excludeMongoQuery = " AND msg_id NOT IN ("+mgDataStr+")";
+
             }
-            let excludeMongoQuery = " AND msg_id NOT IN ("+mgDataStr+")";
             console.log(queryObj + excludeMongoQuery);
             connection.query("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery, function (error, results, fields) {
                 console.log('yeah');
@@ -598,11 +601,9 @@ var dbQualityInspection = {
         for (var t = 0; t < arrs.length; t++) {
             let timeStamp = arrs[t].getAttribute("tm");
             let innerHTML =arrs[t].innerHTML;
-            console.log(innerHTML);
             //let innerHTML = dbQualityInspection.unescapeHtml(arrs[t].textContent);
             // let info = new JSDOM(`document.createElement('`+timeStamp+`')`);
             let info = dbQualityInspection.decodeHtml(arrs[t].innerHTML);
-            console.log(info);
             //info.window.document.getElementById(timeStamp) = arrs[t].innerHTML;
             //info.innerHTML = arrs[t].textContent
             let conversationInfo = {
