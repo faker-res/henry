@@ -7272,7 +7272,7 @@ define(['js/app'], function (myApp) {
                         }
                         updateData.remark += $translate("DOB");
                     }
-                    if (updateData.gender) {
+                    if (updateData.hasOwnProperty("gender")) {
                         if(updateData.remark) {
                             updateData.remark += ", ";
                         }
