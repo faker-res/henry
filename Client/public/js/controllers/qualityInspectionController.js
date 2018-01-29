@@ -622,8 +622,8 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     startTime: startTime,
                     endTime: endTime,
-                    index: newSearch ? 0 : (vm.unReadEvaluation.index || 0),
-                    limit: newSearch ? 1 : (vm.unReadEvaluation.limit || 1),
+                    // index: newSearch ? 0 : (vm.unReadEvaluation.index || 0),
+                    // limit: newSearch ? 1 : (vm.unReadEvaluation.limit || 1),
                 }
 
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {

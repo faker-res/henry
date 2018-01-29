@@ -620,17 +620,15 @@ var dbQualityInspection = {
         }
         return conversation;
     },
-<<<<<<< HEAD
-    getUnreadEvaluationRecord: function (startTime, endTime, index, size) {
-=======
+
     unescapeHtml:function(str){ var map = {amp: '&', lt: '<', le: '≤', gt: '>', ge: '≥', quot: '"', '#039': "'"};
         return str.replace(/&([^;]+);/g, (m, c) => map[c]|| '')
     },
     decodeHtml:function(str){
         return String(str).replace(/\&#60\;/gi,'').replace(/\&#160\;/gi, ' ').replace(/\&#173\;/gi, '\t')
     },
+
     getUnreadEvaluationRecord: function (startTime, endTime) {
->>>>>>> mark/live800main
         let query = {
             createTime: {
                 $gte: startTime,
@@ -638,7 +636,7 @@ var dbQualityInspection = {
             },
             status: constQualityInspectionStatus.COMPLETED_UNREAD
         }
-        return dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        return dbconfig.collection_qualityInspection.find(query).lean().then(
             unreadEvaluationData => {
                 if(unreadEvaluationData && unreadEvaluationData.length > 0){
                     //let dbResult = dbQualityInspection.searchMongoDB(query);

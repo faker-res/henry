@@ -174,7 +174,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                             th.col-md-1 {{"EVALUATED_TIME" | translate}}
                                             //th.col-md-2 {{"APPEAL_REASON" | translate}}
                                         tbody(ng-repeat="readEvaluation in vm.readEvaluationTable")
-                                            tr
+                                            tr(style="border: 1px solid")
                                                 td.col-md-1 {{readEvaluation.status | translate}}
                                                 td.col-md-9
                                                     table(style="width: 100%; table-layout: fixed;")
@@ -187,7 +187,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             th.col-sm-1 {{"EVALUATION_MARK" | translate}}
                                                             th.col-sm-3 {{"EVALUATION_REVIEW" | translate}}
                                                         tbody
-                                                            tr(ng-repeat="conversation in readEvaluation.conversation")
+                                                            tr(ng-repeat="conversation in readEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
                                                                 td.col-sm-1 {{readEvaluation.fpmsAcc}}
                                                                 td.col-sm-1 {{conversation.roles}}
                                                                 td.col-sm-1 {{conversation.createTime | date:"yyyy-MM-dd hh:mm:ss"}}
@@ -282,7 +282,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                             th.col-md-1 {{"EVALUATED_TIME" | translate}}
                                             th.col-md-2 {{"APPEAL_REASON" | translate}}
                                         tbody(ng-repeat="appealEvaluation in vm.appealEvaluationTable")
-                                            tr
+                                            tr(style="border: 1px solid")
                                                 td.col-md-1 {{appealEvaluation.status | translate}}
                                                 td.col-md-8
                                                     table(style="width: 100%; table-layout: fixed;")
@@ -295,7 +295,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             th.col-sm-1 {{"EVALUATION_MARK" | translate}}
                                                             th.col-sm-3 {{"EVALUATION_REVIEW" | translate}}
                                                         tbody
-                                                            tr(ng-repeat="conversation in appealEvaluation.conversation")
+                                                            tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
                                                                 td {{appealEvaluation.fpmsAcc}}
                                                                 td {{conversation.roles}}
                                                                 td {{conversation.createTime}}
