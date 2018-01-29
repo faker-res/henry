@@ -37,7 +37,7 @@
                 select.form-control(ng-model='vm.inspection800.status')
                     option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}}') {{v | translate}}
                     option(value='all') {{'ALL' | translate}}
-    .inlineBlk
+            .inlineBlk
                 label {{"QA" | translate}}
                 select.form-control(ng-model='vm.inspection800.qiUser')
                     option(value='all') {{'ALL' | translate}}
@@ -70,7 +70,7 @@
     div.col-sm-1(style='display:inline-block;padding-left:5px;background-color:red;text-align:center;padding:4px;color:white;font-weight: bold') 申诉内容
 
 .row
-    conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform)')
+    conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
 div(style="float:right;margin-right:100px;")
     .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
 
@@ -78,7 +78,7 @@ div(style='display:none')
     #conversationForm
         div.row(style='border:2px solid #CECECE;box-shadow: 2px black')
             div.col-md-1(style='display:inline-block;padding-left:5px;')
-                input.form-control(type="checkbox", value="{{cform.messageId}}",ng-click="storebatch(cform)")
+                input.form-control.batchEdit(type="checkbox", value="{{cform.messageId}}",ng-click="storebatch(cform)")
             //div.col-md-1(style='display:inline-block;padding-left:5px;', ng-click="rateIt(cform.messageId)") {{cform.status}}
             div.col-md-1(style='display:inline-block;padding-left:5px;')
                 div(ng-click="rateIt(cform)", style="cursor:pointer"){{cform.statusName}}
