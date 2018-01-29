@@ -43,7 +43,7 @@
                     option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
                     option(value='all') {{'ALL' | translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-click='vm.searchLive800()') {{"SEARCH" | translate}}
+                button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
                 span.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
@@ -71,11 +71,27 @@
 
 .row
     conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
-div(style="float:right;margin-right:100px;")
-    .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
-div
-    ul.pagination(ng-repeat="i in vm.pgnPages")
-        li {{i}}
+div.row
+    div.col-md-12
+        div.col-md-10
+            div
+        div.col-md-2
+            .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
+    //(style="float:right;margin-right:100px;")
+
+div.row(ng-show='vm.conversationForm.length > 0')
+    div.col-md-12
+        div.col-md-1
+            label 每页显示
+            select.form-control(ng-model='vm.pgn.limit')
+                option(value='2',selected) 2
+                option(value='5') 5
+                option(value='10') 10
+                option(value='15') 15
+        div.col-md-9
+            ul.pagination(ng-repeat="i in vm.pgnPages")
+                li(ng-click="vm.gotoPG(i, $event)")
+                    a {{$index+1}}
 div(style='display:none')
     #conversationForm
         div.row(style='border:2px solid #CECECE;box-shadow: 2px black')

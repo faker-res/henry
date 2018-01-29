@@ -22,6 +22,7 @@ var dbQualityInspection = {
     countLive800: function(query){
         let queryObj = "";
         let operatorId = null;
+        let dbResult = null;
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
             let companyId = query.companyId.join(',');
@@ -43,18 +44,40 @@ var dbQualityInspection = {
             let endTime = dbUtility.getLocalTimeString(query.endTime);
             queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
         }
-        let connection = dbQualityInspection.connectMysql();
-        connection.connect();
-        let dbResult = dbQualityInspection.countMySQLDB(queryObj,connection);
-        console.log(dbResult);
-        return dbResult;
+        if(query.status=='all'||query.status=='1'){
+            let connection = dbQualityInspection.connectMysql();
+            connection.connect();
+            dbResult = dbQualityInspection.countMySQLDB(queryObj,connection);
+            console.log(dbResult);
+            return dbResult;
+        }else{
+            let queryQA = {};
+            delete query.limit;
+            delete query.index;
+
+            if (query.status){
+                queryQA.status = query.status;
+            }
+            if (query.startTime && query.endTime) {
+                queryQA.createTime = {'$lte':new Date(query.endTime),
+                    '$gte': new Date(query.startTime)}
+            }
+            console.log(queryQA);
+
+            return dbconfig.collection_qualityInspection.find(queryQA).count().then(data=>{
+                console.log(data);
+                return data;
+            })
+        }
+
+
     },
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
 
         let operatorId = null;
-
+        let paginationQuery = '';
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
             let companyId = query.companyId.join(',');
@@ -76,10 +99,9 @@ var dbQualityInspection = {
             let endTime = dbUtility.getLocalTimeString(query.endTime);
             queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
         }
-
-        // if (query.limit && (query.index || query.index ===0)){
-        //     queryObj += " LIMIT "+query.limit+" OFFSET " + query.index;
-        // }
+        if (query.limit && (query.index || query.index ===0)){
+            paginationQuery += " LIMIT "+query.limit+" OFFSET " + query.index;
+        }
         console.log(queryObj);
         if(query.status!='all' && query.status!=1) {
             //get status equal to not 1 & all
@@ -93,14 +115,14 @@ var dbQualityInspection = {
             let mongoResult = dbQualityInspection.searchMongoDB(query);
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
-            let dbResult = dbQualityInspection.searchPendingMySQL(mongoResult, queryObj,connection);
+            let dbResult = dbQualityInspection.searchPendingMySQL(mongoResult, queryObj, paginationQuery,connection);
             conversationForm = dbQualityInspection.constructCV(dbResult);
             console.log(conversationForm);
         }else{
             //get status equal to "all"
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
-            let dbResult = dbQualityInspection.searchMySQLDB(queryObj,connection);
+            let dbResult = dbQualityInspection.searchMySQLDB(queryObj, paginationQuery, connection);
             let mongoResult = dbQualityInspection.getMongoCV(dbResult);
             conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         }
@@ -259,7 +281,7 @@ var dbQualityInspection = {
                 console.log(query);
                 let connection = dbQualityInspection.connectMysql();
                 connection.connect();
-                let dbData = dbQualityInspection.searchMySQLDB(query, connection);
+                let dbData = dbQualityInspection.searchMySQLDB(query, '', connection);
                 return Q.all(dbData).then(dbResult => {
                     let reformatData = [];
                     dbResult.forEach(item => {
@@ -303,7 +325,7 @@ var dbQualityInspection = {
 
             return content;
     },
-    searchPendingMySQL:function(mongoData, queryObj,connection){
+    searchPendingMySQL:function(mongoData, queryObj, paginationQuery, connection){
         var deferred = Q.defer();
 
         Q.all(mongoData).then(mg=> {
@@ -311,7 +333,6 @@ var dbQualityInspection = {
             mg.forEach(item => {
                 mgData.push(item.messageId);
             })
-            console.log(mgData);
             let mgDataStr = "";
             let excludeMongoQuery = "";
             if(mgData.length > 0){
@@ -319,14 +340,14 @@ var dbQualityInspection = {
                 excludeMongoQuery = " AND msg_id NOT IN ("+mgDataStr+")";
 
             }
-            console.log(queryObj + excludeMongoQuery);
-            connection.query("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery, function (error, results, fields) {
+            console.log("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery);
+            connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery, function (error, results, fields) {
                 console.log('yeah');
                 if (error) {
                     console.log(error)
                     // throw error;
                 }
-                // console.log(results);
+                console.log(results);
                 deferred.resolve(results);
                 connection.end();
             });
@@ -340,9 +361,9 @@ var dbQualityInspection = {
         // });
         return deferred.promise;
     },
-    searchMySQLDB:function(queryObj,connection){
+    searchMySQLDB:function(queryObj, paginationQuery, connection){
         var deferred = Q.defer();
-        connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+        connection.query("SELECT * FROM chat_content WHERE " + queryObj + paginationQuery, function (error, results, fields) {
             // console.log('result',results);
             // if (error) throw error;
             if(error){
@@ -356,13 +377,12 @@ var dbQualityInspection = {
     countMySQLDB:function(queryObj,connection){
         var deferred = Q.defer();
         console.log(queryObj);
-        connection.query("SELECT COUNT(*) FROM chat_content WHERE" + queryObj, function (error, results, fields) {
+        connection.query("SELECT COUNT(msg_id) FROM chat_content WHERE" + queryObj, function (error, results, fields) {
             // console.log('result',results);
             // if (error) throw error;
-            console.log(results);
             let countNo = 0;
-            if(results[0]['COUNT(*)']){
-                countNo = results[0]['COUNT(*)'];
+            if(results[0]['COUNT(msg_id)']){
+                countNo = results[0]['COUNT(msg_id)'];
             }
             if(error){
                 console.log(error);

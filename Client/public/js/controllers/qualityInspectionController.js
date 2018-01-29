@@ -325,6 +325,19 @@ define(['js/app'], function (myApp) {
                 });
 
             };
+            vm.gotoPG = function(pg, $event){
+                console.log($event.target);
+                $('body .pagination li').removeClass('active');
+                $($event.currentTarget).addClass('active');
+                let pgNo = null;
+                if(pg==0){
+                    pgNo = 0
+                }else if(pg > 1){
+                    pgNo = pg;
+                }
+                vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.searchLive800();
+            },
             vm.searchLive800 = function(){
                 let fpmsId = [];
                 if(vm.fpmsACCList.length > 0){
@@ -383,19 +396,15 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
                 function successFunc(data) {
-
-                    console.log(data);
                     if(data.data){
                         vm.pgn.totalPage = data.data / vm.pgn.limit;
                         vm.pgn.count = data.data;
                     }
-                    // vm.pgn = {index:0, currentPage:1, totalPage:1, limit:2, count:1};
                     vm.pgnPages = [];
-
                     for(let a = 0; a < vm.pgn.totalPage;a++){
                         vm.pgnPages.push(a);
-                        console.log(vm.pgnPages);
                     }
+
                     $scope.safeApply();
                 }
             };
