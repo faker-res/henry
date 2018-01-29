@@ -9086,7 +9086,7 @@ define(['js/app'], function (myApp) {
             vm.initPlayerAddRewardTask = function () {
                 vm.playerAddRewardTask = {
                     showSubmit: true,
-                    providerGroup: 'null'
+                    providerGroup: ''
                 };
                 vm.showRewardSettingsTab(null);
                 // vm.selectedRewards = [];
