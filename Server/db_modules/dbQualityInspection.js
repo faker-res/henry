@@ -671,11 +671,9 @@ var dbQualityInspection = {
         for (var t = 0; t < arrs.length; t++) {
             let timeStamp = arrs[t].getAttribute("tm");
             let innerHTML =arrs[t].innerHTML;
-            //let innerHTML = dbQualityInspection.unescapeHtml(arrs[t].textContent);
-            // let info = new JSDOM(`document.createElement('`+timeStamp+`')`);
             let info = dbQualityInspection.decodeHtml(arrs[t].innerHTML);
-            //info.window.document.getElementById(timeStamp) = arrs[t].innerHTML;
-            //info.innerHTML = arrs[t].textContent
+            let html = dbQualityInspection.unescapeHtml(arrs[t].innerHTML);
+            const dom = new JSDOM(html)
             let conversationInfo = {
                 'time':timeStamp ? timeStamp:'' ,
                 'roles':type,
@@ -684,7 +682,7 @@ var dbQualityInspection = {
                 'timeoutRate':0,
                 'inspectionRate':0,
                 'review':'',
-                'content':info? info:''
+                'content':dbQualityInspection.decodeHtml(dom.window.document.querySelector('body').textContent)
             };
             conversation.push(conversationInfo);
         }
