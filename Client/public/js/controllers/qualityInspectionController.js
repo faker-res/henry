@@ -722,15 +722,31 @@ define(['js/app'], function (myApp) {
                     if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+                                //
+                                // if(data.processTime){
+                                //     //data.processTime = utilService.getLocalTimeString(new Date(data.processTime));
+                                //     data.processTime = new Date(data.processTime);
+                                // }
+
+                                if(data.conversation){
+                                    data.conversation.forEach(function(cv){
+                                        if(cv){
+                                            if(cv.roles){
+                                                cv.roleName = vm.roleType[cv.roles];
+                                            }
+
+                                            if(cv.time){
+                                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+                                            }
+                                        }
+                                    });
+                                }
+
                             }
-
-                            data.conversation.forEach(function(cv){
-                                cv.roleName = vm.roleType[data.type];
-                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-
-                            });
 
                             return data;
                         });
@@ -804,7 +820,7 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 data.conversation.forEach(function(cv){
-                                    cv.roleName = vm.roleType[data.type];
+                                    cv.roleName = vm.roleType[cv.roles];
                                     cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
                                 });
@@ -873,7 +889,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             data.conversation.forEach(function(cv){
-                                cv.roleName = vm.roleType[data.type];
+                                cv.roleName = vm.roleType[cv.roles];
                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
                             });
@@ -939,7 +955,7 @@ define(['js/app'], function (myApp) {
                             }
 
                             data.conversation.forEach(function(cv){
-                                cv.roleName = vm.roleType[data.type];
+                                cv.roleName = vm.roleType[cv.roles];
                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
                             });
