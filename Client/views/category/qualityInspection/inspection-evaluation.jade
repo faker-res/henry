@@ -161,7 +161,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         span.add-on
                                             i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-primary(ng-click='vm.getReadEvaluationRecord()') {{'SEARCH' | translate}}
+                                    button.common-button.btn.btn-primary(ng-click='vm.getReadEvaluationRecord(1)') {{'SEARCH' | translate}}
                                 .inlineBlk(ng-show='vm.loadingReadEvaluationTable')
                                     label.blink.text-danger {{'Loading' | translate}}
 
@@ -271,24 +271,24 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         option(value='all' selected="true") {{'ALL' | translate}}
                                         option(ng-repeat='(i,v) in vm.evaluationAppealStatus', value='{{v}}') {{i|translate}}
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px; margin-left:20px;')
-                                    button.common-button.btn.btn-primary(ng-click='vm.getAppealEvaluationRecordByConversationDate()') {{'SEARCH_BY_CONVERSATION_DATE' | translate}}
+                                    button.common-button.btn.btn-primary(ng-click='vm.getAppealEvaluationRecordByConversationDate(1)') {{'SEARCH_BY_CONVERSATION_DATE' | translate}}
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-warning(ng-click='vm.getAppealEvaluationRecordByAppealDate()') {{'SEARCH_BY_APPEAL_DATE' | translate}}
+                                    button.common-button.btn.btn-warning(ng-click='vm.getAppealEvaluationRecordByAppealDate(1)') {{'SEARCH_BY_APPEAL_DATE' | translate}}
                                 .inlineBlk(ng-show='vm.loadingAppealEvaluationTable')
                                     label.blink.text-danger {{'Loading' | translate}}
 
                                 .row(ng-if="vm.appealEvaluationTable")
-                                    table(style="width: 100%; text-align: center;")
+                                    table#appealEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
                                         thead(style='background-color:#337ab7;')
                                             th.col-md-1 {{"EVALUATION_STATUS" | translate}}
-                                            th.col-md-8 {{"" | translate}}
+                                            th.col-md-7 {{"" | translate}}
                                             th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
                                             th.col-md-1 {{"EVALUATED_TIME" | translate}}
-                                            th.col-md-2 {{"APPEAL_REASON" | translate}}
+                                            th {{"APPEAL_REASON" | translate}}
                                         tbody(ng-repeat="appealEvaluation in vm.appealEvaluationTable")
                                             tr(style="border: 1px solid")
                                                 td.col-md-1 {{appealEvaluation.status | translate}}
-                                                td.col-md-8
+                                                td.col-md-7
                                                     table(style="width: 100%; table-layout: fixed;")
                                                         thead
                                                             th.col-sm-1 {{"FPMS_ACC" | translate}}
@@ -300,20 +300,60 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             th.col-sm-3 {{"EVALUATION_REVIEW" | translate}}
                                                         tbody
                                                             tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
-                                                                td {{appealEvaluation.fpmsAcc}}
-                                                                td {{conversation.roles}}
-                                                                td {{conversation.createTime}}
-                                                                td {{conversation.content}}
-                                                                td {{conversation.timeoutRate}}
-                                                                td {{conversation.inspectionRate}}
-                                                                td {{conversation.review}}
+                                                                td.col-sm-1 {{appealEvaluation.fpmsAcc}}
+                                                                td.col-sm-1 {{conversation.roles}}
+                                                                td.col-sm-1 {{conversation.createTime}}
+                                                                td.col-sm-4 {{conversation.content}}
+                                                                td.col-sm-1 {{conversation.timeoutRate}}
+                                                                td.col-sm-1 {{conversation.inspectionRate}}
+                                                                td.col-sm-3 {{conversation.review}}
                                                 td.col-md-1 {{appealEvaluation.qualityAssessor}}
                                                 td.col-md-1 {{appealEvaluation.processTime}}
-                                                td.col-md-1 {{appealEvaluation.appealReason}}
+                                                td {{appealEvaluation.appealReason}}
+
                                     .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
                                         ul#appealEvaluationPagination.pagination
                                             li(ng-repeat="page in vm.appealEvaluationRecord.pageArr")
                                                 a(ng-click="vm.getAppealEvaluationRecord(page);") {{page}}
+
+
+
+                                    //table(style="width: 100%; text-align: center;")
+                                    //    thead(style='background-color:#337ab7;')
+                                    //        th.col-md-1 {{"EVALUATION_STATUS" | translate}}
+                                    //        th.col-md-8 {{"" | translate}}
+                                    //        th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
+                                    //        th.col-md-1 {{"EVALUATED_TIME" | translate}}
+                                    //        th.col-md-2 {{"APPEAL_REASON" | translate}}
+                                    //    tbody(ng-repeat="appealEvaluation in vm.appealEvaluationTable")
+                                    //        tr(style="border: 1px solid")
+                                    //            td.col-md-1 {{appealEvaluation.status | translate}}
+                                    //            td.col-md-8
+                                    //                table(style="width: 100%; table-layout: fixed;")
+                                    //                    thead
+                                    //                        th.col-sm-1 {{"FPMS_ACC" | translate}}
+                                    //                        th.col-sm-1 {{"Type" | translate}}
+                                    //                        th.col-sm-1 {{"TIME" | translate}}
+                                    //                        th.col-sm-4 {{"CONVERSATION_CONTENT" | translate}}
+                                    //                        th.col-sm-1 {{"OVERTIME_MARK" | translate}}
+                                    //                        th.col-sm-1 {{"EVALUATION_MARK" | translate}}
+                                    //                        th.col-sm-3 {{"EVALUATION_REVIEW" | translate}}
+                                    //                    tbody
+                                    //                        tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
+                                    //                            td {{appealEvaluation.fpmsAcc}}
+                                    //                            td {{conversation.roles}}
+                                    //                            td {{conversation.createTime}}
+                                    //                            td {{conversation.content}}
+                                    //                            td {{conversation.timeoutRate}}
+                                    //                            td {{conversation.inspectionRate}}
+                                    //                            td {{conversation.review}}
+                                    //            td.col-md-1 {{appealEvaluation.qualityAssessor}}
+                                    //            td.col-md-1 {{appealEvaluation.processTime}}
+                                    //            td.col-md-1 {{appealEvaluation.appealReason}}
+                                    //.inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
+                                    //    ul#appealEvaluationPagination.pagination
+                                    //        li(ng-repeat="page in vm.appealEvaluationRecord.pageArr")
+                                    //            a(ng-click="vm.getAppealEvaluationRecord(page);") {{page}}
 
                                 //.row(style='background-color:#337ab7;')
                                 //    //div.col-md-1(style='display:inline-block;padding-left:5px;')

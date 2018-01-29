@@ -691,12 +691,12 @@ define(['js/app'], function (myApp) {
                     startTime: startTime,
                     endTime: endTime,
                     index: vm.unreadEvaluationRecord.index ? vm.unreadEvaluationRecord.index : 0,
-                    limit: vm.unreadEvaluationRecord.limit ? vm.unreadEvaluationRecord.limit : 1,
+                    limit: vm.unreadEvaluationRecord.limit ? vm.unreadEvaluationRecord.limit : 10,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
 
-                    if(data && data.data && data.data && data.data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
                             if(data && data.status){
@@ -762,7 +762,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getReadEvaluationRecord', sendData, function (data) {
-                    if(data && data.data && data.data && data.data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
                             if(data){
@@ -829,14 +829,20 @@ define(['js/app'], function (myApp) {
                 var startTime = $('#conversationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#conversationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                if(page){
+                    vm.appealEvaluationRecord.index = (page - 1) * vm.appealEvaluationRecord.limit;
+                }
+
                 let sendData = {
                     startTime: startTime,
                     endTime: endTime,
-                    status: vm.appealStatus
+                    status: vm.appealStatus,
+                    index: vm.appealEvaluationRecord.index ? vm.appealEvaluationRecord.index : 0,
+                    limit: vm.appealEvaluationRecord.limit ? vm.appealEvaluationRecord.limit : 10,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByConversationDate', sendData, function (data) {
-                    if(data && data.data && data.data && data.data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
                             if(data && data.status){
@@ -851,7 +857,30 @@ define(['js/app'], function (myApp) {
 
                             return data;
                         })
-                        vm.appealEvaluationTable = data.data;
+                        vm.appealEvaluationTable = data.data.data;
+
+                        vm.appealEvaluationRecord.totalCount = data.data.size;
+                        let pageSize = data.data.size / vm.appealEvaluationRecord.limit;
+
+                        if(pageSize > Math.trunc(pageSize)){
+                            vm.appealEvaluationRecord.pageSize = Math.trunc(pageSize) + 1;
+                        }else {
+                            vm.appealEvaluationRecord.pageSize = Math.trunc(pageSize);
+                        }
+
+                        vm.appealEvaluationRecord.pageArr = [];
+                        let pageList = document.querySelector("#appealEvaluationPagination");
+                        for(let a = 1; a <= vm.appealEvaluationRecord.pageSize ;a++){
+                            vm.appealEvaluationRecord.pageArr.push(a);
+                            if(pageList) {
+                                pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
+                            }
+                        }
+                        $scope.safeApply();
+                        pageList = document.querySelector("#appealEvaluationPagination");
+                        if(pageList){
+                            pageList.children[page - 1].className += " active";
+                        }
                     }else{
                         vm.appealEvaluationTable = "";
                     }
@@ -861,21 +890,27 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.getAppealEvaluationRecordByAppealDate = function(){
+            vm.getAppealEvaluationRecordByAppealDate = function(page){
                 vm.loadingAppealEvaluationTable = true;
                 var startTime = $('#appealEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#appealEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                if(page){
+                    vm.appealEvaluationRecord.index = (page - 1) * vm.appealEvaluationRecord.limit;
+                }
+
                 let sendData = {
                     startTime: startTime,
                     endTime: endTime,
-                    status: vm.appealStatus
+                    status: vm.appealStatus,
+                    index: vm.appealEvaluationRecord.index ? vm.appealEvaluationRecord.index : 0,
+                    limit: vm.appealEvaluationRecord.limit ? vm.appealEvaluationRecord.limit : 10,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByAppealDate', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data.data && data.data.data.length > 0){
 
-                        data.data.map(data => {
+                        data.data.data.map(data => {
                             if(data && data.status){
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
@@ -888,7 +923,30 @@ define(['js/app'], function (myApp) {
 
                             return data;
                         })
-                        vm.appealEvaluationTable = data.data;
+                        vm.appealEvaluationTable = data.data.data;
+
+                        vm.appealEvaluationRecord.totalCount = data.data.size;
+                        let pageSize = data.data.size / vm.appealEvaluationRecord.limit;
+
+                        if(pageSize > Math.trunc(pageSize)){
+                            vm.appealEvaluationRecord.pageSize = Math.trunc(pageSize) + 1;
+                        }else {
+                            vm.appealEvaluationRecord.pageSize = Math.trunc(pageSize);
+                        }
+
+                        vm.appealEvaluationRecord.pageArr = [];
+                        let pageList = document.querySelector("#appealEvaluationPagination");
+                        for(let a = 1; a <= vm.appealEvaluationRecord.pageSize ;a++){
+                            vm.appealEvaluationRecord.pageArr.push(a);
+                            if(pageList) {
+                                pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
+                            }
+                        }
+                        $scope.safeApply();
+                        pageList = document.querySelector("#appealEvaluationPagination");
+                        if(pageList){
+                            pageList.children[page - 1].className += " active";
+                        }
 
                     }else{
                         vm.appealEvaluationTable = "";

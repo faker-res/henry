@@ -764,7 +764,7 @@ var dbQualityInspection = {
         }
     },
 
-    getReadEvaluationRecord: function(startTime, endTime){
+    getReadEvaluationRecord: function(startTime, endTime, index, size){
         let query ={
             createTime: {
                 $gte: startTime,
@@ -772,7 +772,7 @@ var dbQualityInspection = {
             },
             status: constQualityInspectionStatus.COMPLETED_READ
         }
-        let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().then(
+        let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
             readEvaluationData => {
                 if(readEvaluationData && readEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -814,7 +814,7 @@ var dbQualityInspection = {
         )
     },
 
-    getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status){
+    getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status, index, size){
         let query ={
             createTime: {
                 $gte: startTime,
@@ -830,7 +830,7 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().then(
+        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
             appealEvaluationData => {
                 if(appealEvaluationData && appealEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -872,7 +872,7 @@ var dbQualityInspection = {
         )
     },
 
-    getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status){
+    getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status, index, size){
 
         let query ={
             processTime: {
@@ -889,7 +889,7 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().then(
+        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
             appealEvaluationData => {
                 if(appealEvaluationData && appealEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -1019,22 +1019,42 @@ var dbQualityInspection = {
 
     markEvaluationRecordAsRead: function(appealRecordArr, status){
         if(appealRecordArr && appealRecordArr.length > 0){
-            let messageIdArr = [];
-
-            appealRecordArr.forEach(a => {
-                messageIdArr.push(a.messageId);
-            })
-
-            let query ={
-                messageId: {$in: messageIdArr},
-                status: constQualityInspectionStatus.COMPLETED_UNREAD
-            }
+            //let messageIdArr = [];
+            let deferred = Q.defer();
+            let updateProms = [];
 
             let updateData = {
                 status: constQualityInspectionStatus.COMPLETED_READ
             }
 
-            return dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData);
+            appealRecordArr.forEach(a => {
+                //messageIdArr.push(a.messageId);
+                let query = {
+                    messageId: a.messageId,
+                    status: constQualityInspectionStatus.COMPLETED_UNREAD
+                }
+                let updateEvaluationRecord = dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData);
+                updateProms.push(updateEvaluationRecord);
+            });
+
+            return Q.all(updateProms).then(data=>{
+                console.log(data);
+                deferred.resolve(data)
+            })
+            //return Promise.all([updateProms]);
+            return deferred.promise;
+
+
+            // let query ={
+            //     messageId: {$in: messageIdArr},
+            //     status: constQualityInspectionStatus.COMPLETED_UNREAD
+            // }
+            //
+            // let updateData = {
+            //     status: constQualityInspectionStatus.COMPLETED_READ
+            // }
+            //
+            // return dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData);
         }
 
     },
