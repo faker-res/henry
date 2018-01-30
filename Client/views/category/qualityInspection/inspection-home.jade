@@ -1,4 +1,4 @@
-.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('Platform')")
+.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('QualityInspection')")
     #inspectionContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
         .padding-all-5
             .panel.panel-primary
@@ -23,7 +23,7 @@
                             a.common-tab(data-toggle="tab", href="#CSReport", ng-click="vm.qualityInspectionPageName='CS REPORT';vm.prepareShowQIReport();vm.updatePageTile();")
                                 .fa.fa-table.margin-right-5
                                 text.span {{"CS REPORT" | translate}}
-                        li(ng-show="checkViewPermission('Platform', 'Game', 'Read')")
+                        li(ng-show="checkViewPermission('QualityInspection', 'Report', 'Read')")
                             a.common-tab(data-toggle="tab", href="#Report", ng-click="vm.qualityInspectionPageName='INSPECTION REPORT';vm.updatePageTile();vm.initWorkloadProgress();")
                                 .fa.fa-table.margin-right-5
                                 text.span {{"INSPECTION REPORT" | translate}}
