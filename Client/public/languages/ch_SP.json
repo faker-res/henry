@@ -3185,5 +3185,16 @@
   "Live800Record": "Live800记录",
   "QualityInsectionEvaluation": "我的评估",
   "QualityInsectionCSReport": "客服报表",
-  "QualityInsectionReport": "质检报表"
+  "QualityInsectionReport": "质检报表",
+  "queryByProduct": "按产品查询",
+  "queryByCSAccount": "按FPMS账号查询",
+  "queryByLive800Account": "按Live800账号查询",
+  "queryByLive800Date": "按日期查询",
+  "queryByEvaluationStatus": "按评估状态查询",
+  "queryByQualityAssessor": "按质检人员账号查询",
+  "queryByQualityInspectionDate": "按对话日期查询",
+  "queryByAppealDate": "按申诉日期查询",
+  "queryByAppealStatus": "按申诉状态查询",
+  "Please select Year - Month": "请选择 年，月份"
+
 }

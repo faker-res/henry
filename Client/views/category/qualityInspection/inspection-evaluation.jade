@@ -3,267 +3,263 @@
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 div(ng-if="vm.curPlatformText", style='padding-left:0')
     .panel.panel-primary(ng-if="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation','Read')")
-        .panel-body.common-right-panel-body
-            .tab-content
-                .panel.panel-primary
-                    .panel-heading.common-left-panel-heading
-                        ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
-                            #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+        .tab-content
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
 
-                            li.active(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Read')" style="margin-left: 20px;")
-                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='unreadEvaluation';vm.initUnreadEvaluation();" )
-                                    .fa.fa-wrench.margin-right-5
-                                    text.span {{"UNREAD EVALUATION" | translate}}
-                            li(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Read')")
-                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='readEvaluation';vm.initReadEvaluation();")
-                                    .fa.fa-file-text.margin-right-5
-                                    text.span {{"READ EVALUATION" | translate}}
-                            li(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Read')")
-                                a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='appealEvaluation';vm.initAppealEvaluation();")
-                                    .fa.fa-file-text.margin-right-5
-                                    text.span {{"APPEAL EVALUATION" | translate}}
-                    .panel-body.common-right-panel-body
-                        div(ng-show="vm.evaluationTab == 'unreadEvaluation'")
-                            #unreadEvaluationDiv.tab-pane.fade.in.active
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
-                                    label {{'START_DATE' | translate}}
-                                    #unreadEvaluationStartDatetimePicker.input-append.form-control
-                                        input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
-                                        span.add-on
-                                            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
-                                    label {{'END_DATE' | translate}}
-                                    br
-                                    #unreadEvaluationEndDatetimePicker.input-append.form-control
-                                        input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
-                                        span.add-on
-                                            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-primary(ng-click='vm.getUnreadEvaluationRecord(1)') {{'SEARCH' | translate}}
-                                .inlineBlk(ng-show='vm.loadingUnreadEvaluationTable')
-                                    i.fa.fa-spin.fa-spinner
+                        li.active(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Read')" style="margin-left: 20px;")
+                            a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='unreadEvaluation';vm.initUnreadEvaluation();" )
+                                .fa.fa-wrench.margin-right-5
+                                text.span {{"UNREAD EVALUATION" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Read')")
+                            a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='readEvaluation';vm.initReadEvaluation();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"READ EVALUATION" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Read')")
+                            a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='appealEvaluation';vm.initAppealEvaluation();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"APPEAL EVALUATION" | translate}}
+                .panel-body.common-right-panel-body
+                    div(ng-show="vm.evaluationTab == 'unreadEvaluation'")
+                        #unreadEvaluationDiv.tab-pane.fade.in.active
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
+                                label {{'START_DATE' | translate}}
+                                #unreadEvaluationStartDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
+                                label {{'END_DATE' | translate}}
+                                br
+                                #unreadEvaluationEndDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-primary(ng-click='vm.getUnreadEvaluationRecord(1)') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-show='vm.loadingUnreadEvaluationTable')
+                                i.fa.fa-spin.fa-spinner
 
-                                .row(ng-if="vm.unreadEvaluationTable")
-                                    table#unreadEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
-                                        thead(style='background-color:#337ab7;')
-                                            th(style="width: 40px;") {{}}
-                                            th.col-md-1 {{"EVALUATION_STATUS" | translate}}
-                                            //th.col-md-7 {{"" | translate}}
-                                            th(style="width: 78.18px;") {{"FPMS_ACC" | translate}}
-                                            th(style="width: 78.18px;") {{"Type" | translate}}
-                                            th(style="width: 77.27px;") {{"TIME" | translate}}
-                                            th(style="width: 309.09px;") {{"CONVERSATION_CONTENT" | translate}}
-                                            th(style="width: 77.27px;") {{"OVERTIME_MARK" | translate}}
-                                            th(style="width: 77.27px;") {{"EVALUATION_MARK" | translate}}
-                                            th(style="width: 231.82px;") {{"EVALUATION_REVIEW" | translate}}
-                                            th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
-                                            th.col-md-1 {{"EVALUATED_TIME" | translate}}
-                                            th(style="background-color: red") {{"APPEAL_REASON" | translate}}
-                                        tbody(ng-repeat="unreadEvaluation in vm.unreadEvaluationTable")
-                                            tr(style="border: 1px solid")
-                                                td(style="width: 40px;")
-                                                    input.form-control(type="checkbox", value="{{unreadEvaluation.messageId}}", ng-model="unreadEvaluation.isChecked", ng-change="vm.gatherCheckedRecord(unreadEvaluation.isChecked,unreadEvaluation.messageId,unreadEvaluation.appealReason)")
-                                                td.col-md-1 {{unreadEvaluation.status | translate}}
-                                                td.col-md-7(style="padding: 0px;", colspan=7)
-                                                    table(style="width: 100%; table-layout: fixed;")
-                                                        tbody
-                                                            tr(style="text-align:center;color:red")
-                                                                td(style="width: 78.18px;")
-                                                                td(style="width: 78.18px;")
-                                                                td(style="width: 77.27px;")
-                                                                td(style="width: 309.09px;") **** 新的对话开始 ****
-                                                                td(style="width: 77.27px;")
-                                                                td(style="width: 77.27px;")
-                                                                td(style="width: 231.82px;")
-                                                            tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
-                                                                td(style="width: 78.18px;") {{unreadEvaluation.fpmsAcc}}
-                                                                td(style="width: 78.18px;") {{conversation.roleName}}
-                                                                td(style="width: 77.27px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                                td(style="width: 309.09px;") {{conversation.content}}
-                                                                td(style="width: 77.27px;") {{conversation.timeoutRate}}
-                                                                td(style="width: 77.27px;") {{conversation.inspectionRate}}
-                                                                td(style="width: 231.82px;") {{conversation.review}}
-                                                            tr(style="text-align:center;color:red")
-                                                                td(style="width: 78.18px;")
-                                                                td(style="width: 78.18px;")
-                                                                td(style="width: 77.27px;")
-                                                                td(style="width: 309.09px;") 結束對話:访客关闭对话 ({{unreadEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-                                                                td(style="width: 77.27px;")
-                                                                td(style="width: 77.27px;")
-                                                                td(style="width: 231.82px;")
-                                                td.col-md-1 {{unreadEvaluation.qualityAssessor}}
-                                                td.col-md-1 {{unreadEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                td
-                                                    input.form-control(type="textarea", value="{{unreadEvaluation.appealReason}}", ng-model="unreadEvaluation.appealReason", ng-change="vm.ammendCheckedRecord(unreadEvaluation.messageId,unreadEvaluation.appealReason);")
-                                    .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
-                                        ul#unreadEvaluationPagination.pagination
-                                            li(ng-repeat="page in vm.unreadEvaluationRecord.pageArr")
-                                                a(ng-click="vm.getUnreadEvaluationRecord(page);") {{page}}
-                                .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable")
-                                    //button.common-button.btn.btn-primary(ng-if='vm.queryProposalId', ng-click='vm.getOneProposal()') {{'SEARCH' | translate}}
-                                    button.common-button.btn.btn-primary(ng-click='vm.markEvaluationRecordAsRead()') {{'MARK_AS_READ' | translate}}
-                                .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable")
-                                    button.common-button.btn.btn-warning(ng-click='vm.appealEvaluation()') {{'I_WANT_TO_APPEAL' | translate}}
+                            .row(ng-if="vm.unreadEvaluationTable" style="padding: 15px;")
+                                table#unreadEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
+                                    thead(style='background-color:#337ab7;')
+                                        th(style="width: 40px;") {{}}
+                                        th.col-md-1 {{"EVALUATION_STATUS" | translate}}
+                                        th(style="width: 78.18px;") {{"FPMS_ACC" | translate}}
+                                        th(style="width: 78.18px;") {{"Type" | translate}}
+                                        th(style="width: 77.27px;") {{"TIME" | translate}}
+                                        th(style="width: 309.09px;") {{"CONVERSATION_CONTENT" | translate}}
+                                        th(style="width: 77.27px;") {{"OVERTIME_MARK" | translate}}
+                                        th(style="width: 77.27px;") {{"EVALUATION_MARK" | translate}}
+                                        th(style="width: 231.82px;") {{"EVALUATION_REVIEW" | translate}}
+                                        th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
+                                        th.col-md-1 {{"EVALUATED_TIME" | translate}}
+                                        th(style="background-color: red") {{"APPEAL_REASON" | translate}}
+                                    tbody(ng-repeat="unreadEvaluation in vm.unreadEvaluationTable")
+                                        tr(style="border: 1px solid")
+                                            td(style="width: 40px;")
+                                                input.form-control(type="checkbox", value="{{unreadEvaluation.messageId}}", ng-model="unreadEvaluation.isChecked", ng-change="vm.gatherCheckedRecord(unreadEvaluation.isChecked,unreadEvaluation.messageId,unreadEvaluation.appealReason)")
+                                            td.col-md-1 {{unreadEvaluation.status | translate}}
+                                            td.col-md-7(style="padding: 0px;", colspan=7)
+                                                table(style="width: 100%; table-layout: fixed;")
+                                                    tbody
+                                                        tr(style="text-align:center;color:red")
+                                                            td(style="width: 78.18px;")
+                                                            td(style="width: 78.18px;")
+                                                            td(style="width: 77.27px;")
+                                                            td(style="width: 309.09px;") **** 新的对话开始 ****
+                                                            td(style="width: 77.27px;")
+                                                            td(style="width: 77.27px;")
+                                                            td(style="width: 231.82px;")
+                                                        tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
+                                                            td(style="width: 78.18px;") {{unreadEvaluation.fpmsAcc}}
+                                                            td(style="width: 78.18px;") {{conversation.roleName}}
+                                                            td(style="width: 77.27px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                                            td(style="width: 309.09px;") {{conversation.content}}
+                                                            td(style="width: 77.27px;") {{conversation.timeoutRate}}
+                                                            td(style="width: 77.27px;") {{conversation.inspectionRate}}
+                                                            td(style="width: 231.82px;") {{conversation.review}}
+                                                        tr(style="text-align:center;color:red")
+                                                            td(style="width: 78.18px;")
+                                                            td(style="width: 78.18px;")
+                                                            td(style="width: 77.27px;")
+                                                            td(style="width: 309.09px;") 結束對話:访客关闭对话 ({{unreadEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                            td(style="width: 77.27px;")
+                                                            td(style="width: 77.27px;")
+                                                            td(style="width: 231.82px;")
+                                            td.col-md-1 {{unreadEvaluation.qualityAssessor}}
+                                            td.col-md-1 {{unreadEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                            td
+                                                input.form-control(type="textarea", value="{{unreadEvaluation.appealReason}}", ng-model="unreadEvaluation.appealReason", ng-change="vm.ammendCheckedRecord(unreadEvaluation.messageId,unreadEvaluation.appealReason);")
+                                .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
+                                    ul#unreadEvaluationPagination.pagination
+                                        li(ng-repeat="page in vm.unreadEvaluationRecord.pageArr")
+                                            a(ng-click="vm.getUnreadEvaluationRecord(page);") {{page}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable")
+                                button.common-button.btn.btn-primary(ng-click='vm.markEvaluationRecordAsRead()') {{'MARK_AS_READ' | translate}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable")
+                                button.common-button.btn.btn-warning(ng-click='vm.appealEvaluation()') {{'I_WANT_TO_APPEAL' | translate}}
 
-                        div(ng-show="vm.evaluationTab == 'readEvaluation'" )
-                            #readEvaluationDiv.tab-pane.fade.in.active
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
-                                    label {{'START_DATE' | translate}}
-                                    #readEvaluationStartDatetimePicker.input-append.form-control
-                                        input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
-                                        span.add-on
-                                            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
-                                    label {{'END_DATE' | translate}}
-                                    br
-                                    #readEvaluationEndDatetimePicker.input-append.form-control
-                                        input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
-                                        span.add-on
-                                            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-primary(ng-click='vm.getReadEvaluationRecord(1)') {{'SEARCH' | translate}}
-                                .inlineBlk(ng-show='vm.loadingReadEvaluationTable')
-                                    i.fa.fa-spin.fa-spinner
+                    div(ng-show="vm.evaluationTab == 'readEvaluation'" )
+                        #readEvaluationDiv.tab-pane.fade.in.active
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
+                                label {{'START_DATE' | translate}}
+                                #readEvaluationStartDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
+                                label {{'END_DATE' | translate}}
+                                br
+                                #readEvaluationEndDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-primary(ng-click='vm.getReadEvaluationRecord(1)') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-show='vm.loadingReadEvaluationTable')
+                                i.fa.fa-spin.fa-spinner
 
-                                .row(ng-if="vm.readEvaluationTable")
-                                    table(style="width: 100%; text-align: center;")
-                                        thead(style='background-color:#337ab7;')
-                                            th.col-md-1 {{"EVALUATION_STATUS" | translate}}
-                                            th(style="width: 102.73px;") {{"FPMS_ACC" | translate}}
-                                            th(style="width: 102.73px;") {{"Type" | translate}}
-                                            th(style="width: 102.73px;") {{"TIME" | translate}}
-                                            th(style="width: 410.91px;") {{"CONVERSATION_CONTENT" | translate}}
-                                            th(style="width: 102.73px;") {{"OVERTIME_MARK" | translate}}
-                                            th(style="width: 102.73px;") {{"EVALUATION_MARK" | translate}}
-                                            th(style="width: 308.18px;") {{"EVALUATION_REVIEW" | translate}}
-                                            th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
-                                            th.col-md-1 {{"EVALUATED_TIME" | translate}}
-                                        tbody(ng-repeat="readEvaluation in vm.readEvaluationTable")
-                                            tr(style="border: 1px solid")
-                                                td.col-md-1 {{readEvaluation.status | translate}}
-                                                td.col-md-9(style="padding: 0px" colspan=7)
-                                                    table(style="width: 100%; table-layout: fixed;")
-                                                        tbody(style="width: 100%")
-                                                            tr(style="text-align:center;color:red")
-                                                                td.col-sm-1
-                                                                td.col-sm-1
-                                                                td.col-sm-1
-                                                                td.col-sm-4 **** 新的对话开始 ****
-                                                                td.col-sm-1
-                                                                td.col-sm-1
-                                                                td.col-sm-3
-                                                            tr(ng-repeat="conversation in readEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
-                                                                td.col-sm-1 {{readEvaluation.fpmsAcc}}
-                                                                td.col-sm-1 {{conversation.roleName}}
-                                                                td.col-sm-1 {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                                td.col-sm-4 {{conversation.content}}
-                                                                td.col-sm-1 {{conversation.timeoutRate}}
-                                                                td.col-sm-1 {{conversation.inspectionRate}}
-                                                                td.col-sm-3 {{conversation.review}}
-                                                            tr(style="text-align:center;color:red")
-                                                                td.col-sm-1
-                                                                td.col-sm-1
-                                                                td.col-sm-1
-                                                                td.col-sm-4 結束對話:访客关闭对话 ({{readEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-                                                                td.col-sm-1
-                                                                td.col-sm-1
-                                                                td.col-sm-3
-                                                td.col-md-1 {{readEvaluation.qualityAssessor}}
-                                                td.col-md-1 {{readEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                    .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
-                                        ul#readEvaluationPagination.pagination
-                                            li(ng-repeat="page in vm.readEvaluationRecord.pageArr")
-                                                a(ng-click="vm.getReadEvaluationRecord(page);") {{page}}
-                        div(ng-show="vm.evaluationTab == 'appealEvaluation'")
-                            #appealEvaluationDiv.tab-pane.fade.in.active
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
-                                    label {{'CONVERSATION_START_DATE' | translate}}
-                                    #conversationStartDatetimePicker.input-append.form-control
-                                        input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
-                                        span.add-on
-                                            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
-                                    label {{'CONVERSATION_END_DATE' | translate}}
-                                    br
-                                    #conversationEndDatetimePicker.input-append.form-control
-                                        input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
-                                        span.add-on
-                                            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByAppealDate')")
-                                    label {{'APPEAL_START_DATE' | translate}}
-                                    #appealEvaluationStartDatetimePicker.input-append.form-control
-                                        input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
-                                        span.add-on
-                                            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByAppealDate')")
-                                    label {{'APPEAL_END_DATE' | translate}}
-                                    br
-                                    #appealEvaluationEndDatetimePicker.input-append.form-control
-                                        input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
-                                        span.add-on
-                                            i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                                .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByAppealStatus')")
-                                    label {{'APPEAL STATUS' | translate}}
-                                    select.form-control#selectAppealStatus(ng-model="vm.appealStatus" ng-init='vm.appealStatus="all"')
-                                        option(value='all' selected="true") {{'ALL' | translate}}
-                                        option(ng-repeat='(i,v) in vm.evaluationAppealStatus', value='{{v}}') {{i|translate}}
-                                .inlineBlk.pull-right(style='width:100px;padding-top:20px; margin-left:20px;')
-                                    button.common-button.btn.btn-primary(ng-click='vm.getAppealEvaluationRecordByConversationDate(1)') {{'SEARCH_BY_CONVERSATION_DATE' | translate}}
-                                .inlineBlk.pull-right(style='width:100px;padding-top:20px')
-                                    button.common-button.btn.btn-warning(ng-click='vm.getAppealEvaluationRecordByAppealDate(1)') {{'SEARCH_BY_APPEAL_DATE' | translate}}
-                                .inlineBlk(ng-show='vm.loadingAppealEvaluationTable')
-                                    i.fa.fa-spin.fa-spinner
+                            .row(ng-if="vm.readEvaluationTable" style="padding: 15px;")
+                                table(style="width: 100%; text-align: center;")
+                                    thead(style='background-color:#337ab7;')
+                                        th.col-md-1 {{"EVALUATION_STATUS" | translate}}
+                                        th(style="width: 102.73px;") {{"FPMS_ACC" | translate}}
+                                        th(style="width: 102.73px;") {{"Type" | translate}}
+                                        th(style="width: 102.73px;") {{"TIME" | translate}}
+                                        th(style="width: 410.91px;") {{"CONVERSATION_CONTENT" | translate}}
+                                        th(style="width: 102.73px;") {{"OVERTIME_MARK" | translate}}
+                                        th(style="width: 102.73px;") {{"EVALUATION_MARK" | translate}}
+                                        th(style="width: 308.18px;") {{"EVALUATION_REVIEW" | translate}}
+                                        th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
+                                        th.col-md-1 {{"EVALUATED_TIME" | translate}}
+                                    tbody(ng-repeat="readEvaluation in vm.readEvaluationTable")
+                                        tr(style="border: 1px solid")
+                                            td.col-md-1 {{readEvaluation.status | translate}}
+                                            td.col-md-9(style="padding: 0px" colspan=7)
+                                                table(style="width: 100%; table-layout: fixed;")
+                                                    tbody(style="width: 100%")
+                                                        tr(style="text-align:center;color:red")
+                                                            td.col-sm-1
+                                                            td.col-sm-1
+                                                            td.col-sm-1
+                                                            td.col-sm-4 **** 新的对话开始 ****
+                                                            td.col-sm-1
+                                                            td.col-sm-1
+                                                            td.col-sm-3
+                                                        tr(ng-repeat="conversation in readEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
+                                                            td.col-sm-1 {{readEvaluation.fpmsAcc}}
+                                                            td.col-sm-1 {{conversation.roleName}}
+                                                            td.col-sm-1 {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                                            td.col-sm-4 {{conversation.content}}
+                                                            td.col-sm-1 {{conversation.timeoutRate}}
+                                                            td.col-sm-1 {{conversation.inspectionRate}}
+                                                            td.col-sm-3 {{conversation.review}}
+                                                        tr(style="text-align:center;color:red")
+                                                            td.col-sm-1
+                                                            td.col-sm-1
+                                                            td.col-sm-1
+                                                            td.col-sm-4 結束對話:访客关闭对话 ({{readEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                            td.col-sm-1
+                                                            td.col-sm-1
+                                                            td.col-sm-3
+                                            td.col-md-1 {{readEvaluation.qualityAssessor}}
+                                            td.col-md-1 {{readEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
+                                    ul#readEvaluationPagination.pagination
+                                        li(ng-repeat="page in vm.readEvaluationRecord.pageArr")
+                                            a(ng-click="vm.getReadEvaluationRecord(page);") {{page}}
+                    div(ng-show="vm.evaluationTab == 'appealEvaluation'")
+                        #appealEvaluationDiv.tab-pane.fade.in.active
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
+                                label {{'CONVERSATION_START_DATE' | translate}}
+                                #conversationStartDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByQualityInspectionDate')")
+                                label {{'CONVERSATION_END_DATE' | translate}}
+                                br
+                                #conversationEndDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByAppealDate')")
+                                label {{'APPEAL_START_DATE' | translate}}
+                                #appealEvaluationStartDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByAppealDate')")
+                                label {{'APPEAL_END_DATE' | translate}}
+                                br
+                                #appealEvaluationEndDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByAppealStatus')")
+                                label {{'APPEAL STATUS' | translate}}
+                                select.form-control#selectAppealStatus(ng-model="vm.appealStatus" ng-init='vm.appealStatus="all"')
+                                    option(value='all' selected="true") {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.evaluationAppealStatus', value='{{v}}') {{i|translate}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px; margin-left:20px;')
+                                button.common-button.btn.btn-primary(ng-click='vm.getAppealEvaluationRecordByConversationDate(1)') {{'SEARCH_BY_CONVERSATION_DATE' | translate}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                                button.common-button.btn.btn-warning(ng-click='vm.getAppealEvaluationRecordByAppealDate(1)') {{'SEARCH_BY_APPEAL_DATE' | translate}}
+                            .inlineBlk(ng-show='vm.loadingAppealEvaluationTable')
+                                i.fa.fa-spin.fa-spinner
 
-                                .row(ng-if="vm.appealEvaluationTable")
-                                    table#appealEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
-                                        thead(style='background-color:#337ab7;')
-                                            th.col-md-1 {{"EVALUATION_STATUS" | translate}}
-                                            //th.col-md-7 {{"" | translate}}
-                                            th(style="width: 80px;") {{"FPMS_ACC" | translate}}
-                                            th(style="width: 80px;") {{"Type" | translate}}
-                                            th(style="width: 89px;") {{"TIME" | translate}}
-                                            th(style="width: 320px;") {{"CONVERSATION_CONTENT" | translate}}
-                                            th(style="width: 80px;") {{"OVERTIME_MARK" | translate}}
-                                            th(style="width: 79.09px;") {{"EVALUATION_MARK" | translate}}
-                                            th(style="width: 230.09px;") {{"EVALUATION_REVIEW" | translate}}
-                                            th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
-                                            th.col-md-1 {{"EVALUATED_TIME" | translate}}
-                                            th {{"APPEAL_REASON" | translate}}
-                                        tbody(ng-repeat="appealEvaluation in vm.appealEvaluationTable")
-                                            tr(style="border: 1px solid")
-                                                td.col-md-1 {{appealEvaluation.status | translate}}
-                                                td.col-md-7(style="padding: 0px;", colspan=7)
-                                                    table(style="width: 100%; table-layout: fixed;")
-                                                        tbody
-                                                            tr(style="text-align:center;color:red")
-                                                                td(style="width: 80px;")
-                                                                td(style="width: 80px;")
-                                                                td(style="width: 89px;")
-                                                                td(style="width: 320px;") **** 新的对话开始 ****
-                                                                td(style="width: 80px;")
-                                                                td(style="width: 80px;")
-                                                                td(style="width: 230px;")
-                                                            tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
-                                                                td(style="width: 80px;") {{appealEvaluation.fpmsAcc}}
-                                                                td(style="width: 80px;") {{conversation.roleName}}
-                                                                td(style="width: 89px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                                td(style="width: 320px;") {{conversation.content}}
-                                                                td(style="width: 80px;") {{conversation.timeoutRate}}
-                                                                td(style="width: 80px;") {{conversation.inspectionRate}}
-                                                                td(style="width: 230px;") {{conversation.review}}
-                                                            tr(style="text-align:center;color:red")
-                                                                td(style="width: 80px;")
-                                                                td(style="width: 80px;")
-                                                                td(style="width: 89px;")
-                                                                td(style="width: 320px;") 結束對話:访客关闭对话 ({{appealEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-                                                                td(style="width: 80px;")
-                                                                td(style="width: 80px;")
-                                                                td(style="width: 230px;")
-                                                td.col-md-1 {{appealEvaluation.qualityAssessor}}
-                                                td.col-md-1 {{appealEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
-                                                td {{appealEvaluation.appealReason}}
+                            .row(ng-if="vm.appealEvaluationTable" style="padding: 15px;")
+                                table#appealEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
+                                    thead(style='background-color:#337ab7;')
+                                        th.col-md-1 {{"EVALUATION_STATUS" | translate}}
+                                        th(style="width: 80px;") {{"FPMS_ACC" | translate}}
+                                        th(style="width: 80px;") {{"Type" | translate}}
+                                        th(style="width: 89px;") {{"TIME" | translate}}
+                                        th(style="width: 320px;") {{"CONVERSATION_CONTENT" | translate}}
+                                        th(style="width: 80px;") {{"OVERTIME_MARK" | translate}}
+                                        th(style="width: 79.09px;") {{"EVALUATION_MARK" | translate}}
+                                        th(style="width: 230.09px;") {{"EVALUATION_REVIEW" | translate}}
+                                        th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
+                                        th.col-md-1 {{"EVALUATED_TIME" | translate}}
+                                        th {{"APPEAL_REASON" | translate}}
+                                    tbody(ng-repeat="appealEvaluation in vm.appealEvaluationTable")
+                                        tr(style="border: 1px solid")
+                                            td.col-md-1 {{appealEvaluation.status | translate}}
+                                            td.col-md-7(style="padding: 0px;", colspan=7)
+                                                table(style="width: 100%; table-layout: fixed;")
+                                                    tbody
+                                                        tr(style="text-align:center;color:red")
+                                                            td(style="width: 80px;")
+                                                            td(style="width: 80px;")
+                                                            td(style="width: 89px;")
+                                                            td(style="width: 320px;") **** 新的对话开始 ****
+                                                            td(style="width: 80px;")
+                                                            td(style="width: 80px;")
+                                                            td(style="width: 230px;")
+                                                        tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
+                                                            td(style="width: 80px;") {{appealEvaluation.fpmsAcc}}
+                                                            td(style="width: 80px;") {{conversation.roleName}}
+                                                            td(style="width: 89px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                                            td(style="width: 320px;") {{conversation.content}}
+                                                            td(style="width: 80px;") {{conversation.timeoutRate}}
+                                                            td(style="width: 80px;") {{conversation.inspectionRate}}
+                                                            td(style="width: 230px;") {{conversation.review}}
+                                                        tr(style="text-align:center;color:red")
+                                                            td(style="width: 80px;")
+                                                            td(style="width: 80px;")
+                                                            td(style="width: 89px;")
+                                                            td(style="width: 320px;") 結束對話:访客关闭对话 ({{appealEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                            td(style="width: 80px;")
+                                                            td(style="width: 80px;")
+                                                            td(style="width: 230px;")
+                                            td.col-md-1 {{appealEvaluation.qualityAssessor}}
+                                            td.col-md-1 {{appealEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
+                                            td {{appealEvaluation.appealReason}}
 
-                                    .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
-                                        ul#appealEvaluationPagination.pagination
-                                            li(ng-repeat="page in vm.appealEvaluationRecord.pageArr")
-                                                a(ng-click="vm.getAppealEvaluationRecord(page);") {{page}}
+                                .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
+                                    ul#appealEvaluationPagination.pagination
+                                        li(ng-repeat="page in vm.appealEvaluationRecord.pageArr")
+                                            a(ng-click="vm.getAppealEvaluationRecord(page);") {{page}}
