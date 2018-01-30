@@ -1031,7 +1031,8 @@ define(['js/app'], function (myApp) {
                 });
             } else if (choice == "NEWACCOUNT_REPORT") {
                 vm.newPlayerQuery = {totalCount: 0};
-                utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
+                //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
+                utilService.actionAfterLoaded("#validPlayerPie", function () {
                     vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
                     vm.searchNewPlayerRecord(true);
                 });
@@ -5094,29 +5095,29 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getNewAccountReportData', sendData, function (data) {
                 console.log('data', data.data);
                 var retData = data.data;
-                vm.newPlayerQuery.totalPlayerCount = retData[0];
-                vm.newPlayerQuery.totalDomainPlayerCount = 0;
-                var domainData = retData[1].filter(item => {
-                    return item.domain;
-                }).sort(function (a, b) {
-                    return b.num - a.num
-                }).map(item => {
-                    vm.newPlayerQuery.totalDomainPlayerCount += item.num;
-                    return item;
-                });
-                vm.newPlayerQuery.totalpartnerPlayerCount = 0;
-                var partnerData = retData[2].filter(function (obj) {
-                    return (obj._id);
-                }).sort(function (a, b) {
-                    return b.num - a.num
-                }).map(item => {
-                    vm.newPlayerQuery.totalpartnerPlayerCount += item.num;
-                    return item;
-                });
-                vm.newPlayerQuery.totalTopupPlayerCount = retData[3];
-                vm.newPlayerQuery.totalTopupMultipleTimesPlayerCount = retData[4];
-                vm.newPlayerQuery.newPlayers = retData[5];
-                vm.newPlayerQuery.domain = retData[6];
+                // vm.newPlayerQuery.totalPlayerCount = retData[0];
+                // vm.newPlayerQuery.totalDomainPlayerCount = 0;
+                // var domainData = retData[1].filter(item => {
+                //     return item.domain;
+                // }).sort(function (a, b) {
+                //     return b.num - a.num
+                // }).map(item => {
+                //     vm.newPlayerQuery.totalDomainPlayerCount += item.num;
+                //     return item;
+                // });
+                // vm.newPlayerQuery.totalpartnerPlayerCount = 0;
+                // var partnerData = retData[2].filter(function (obj) {
+                //     return (obj._id);
+                // }).sort(function (a, b) {
+                //     return b.num - a.num
+                // }).map(item => {
+                //     vm.newPlayerQuery.totalpartnerPlayerCount += item.num;
+                //     return item;
+                // });
+                // vm.newPlayerQuery.totalTopupPlayerCount = retData[3];
+                // vm.newPlayerQuery.totalTopupMultipleTimesPlayerCount = retData[4];
+                vm.newPlayerQuery.newPlayers = retData[0];
+                vm.newPlayerQuery.domain = retData[1];
                 Q.all([vm.getAllPromoteWay(), vm.getPartnerLevelConfig(), vm.getAllAdmin(), vm.getPlatformPartner(), vm.getPlatformCsOfficeUrl()]).then(
                     () => {
                         vm.newPlayerQuery.totalNewPlayerWithTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 0).length;
@@ -5152,7 +5153,7 @@ define(['js/app'], function (myApp) {
                         vm.newPlayerQuery.partnerAnalysisNewPlayerData = vm.platformPartner.map(
                             partner => {
                                 let partnerNewPlayers = partnerPlayers.filter(player => player.partner._id.toString() == partner._id.toString());
-                                return vm.calculateNewPlayerData(partnerNewPlayers, partner.partnerName, vm.newPlayerQuery.partnerNewPlayerData.totalNewAccount, 'totalNewAccount');
+                                return vm.calculateNewPlayerData(partnerNewPlayers, partner.partnerName, vm.newPlayerQuery.partnerNewPlayerData.validPlayer);
                             }
                         );
                         // ============ domain analysis new player ===========
@@ -5161,22 +5162,22 @@ define(['js/app'], function (myApp) {
                         vm.newPlayerQuery.domainAnalysisNewPlayerData = vm.newPlayerQuery.domain.map(
                             domain => {
                                 let domainNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.domain == domain._id);
-                                return vm.calculateNewPlayerData(domainNewPlayers, domain._id, vm.newPlayerQuery.domainNewPlayerData.totalNewAccount, 'totalNewAccount');
+                                return vm.calculateNewPlayerData(domainNewPlayers, domain._id, vm.newPlayerQuery.domainNewPlayerData.validPlayer);
                             }
                         );
 
                         vm.drawValidPlayerGraphByElementId("#validPlayerPie", vm.newPlayerQuery.promoteWayData.filter(data => data.validPlayer > 0));
                         vm.drawValidPlayerGraphByElementId("#validPlayerCsAnalysisPie", vm.newPlayerQuery.csAnalysisNewPlayerData.filter(data => data.validPlayer > 0));
-                        vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData.filter(data => data.totalNewAccount > 0), null, 'totalNewAccount');
-                        vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData.filter(data => data.totalNewAccount > 0), null, 'totalNewAccount');
+                        vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData.filter(data => data.validPlayer > 0));
+                        vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData.filter(data => data.validPlayer > 0));
                         $scope.safeApply();
                     }
                 );
-                vm.drawDomainPlayerGraph(domainData);
-                vm.drawDomainPlayerTable(domainData);
-                vm.drawPartnerPlayerGraph(partnerData);
-                vm.drawPartnerPlayerTable(partnerData);
-                $scope.safeApply();
+                // vm.drawDomainPlayerGraph(domainData);
+                // vm.drawDomainPlayerTable(domainData);
+                // vm.drawPartnerPlayerGraph(partnerData);
+                // vm.drawPartnerPlayerTable(partnerData);
+                //$scope.safeApply();
             });
         };
         // return object

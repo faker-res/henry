@@ -10258,6 +10258,7 @@ define(['js/app'], function (myApp) {
             vm.drawPlayerInfoHistory = function (tblData) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
+                    order: [[1, 'desc']],
                     aoColumnDefs: [
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
