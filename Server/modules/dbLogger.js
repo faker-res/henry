@@ -103,6 +103,11 @@ var dbLogger = {
                                 changedLockedAmount: changedLockedAmount,
                                 data: data ? data : null
                             };
+
+                            if (data.transferId) {
+                                logData.transferId = data.transferId;
+                            }
+
                             var record = new dbconfig.collection_creditChangeLog(logData);
                             record.save().then().catch(err => errorSavingLog(err, logData));
                         });
@@ -118,6 +123,11 @@ var dbLogger = {
                         changedLockedAmount: changedLockedAmount,
                         data: data ? data : null
                     };
+
+                    if (data.transferId) {
+                        logData.transferId = data.transferId;
+                    }
+
                     var record = new dbconfig.collection_creditChangeLog(logData);
                     record.save().then().catch(err => errorSavingLog(err, logData));
                 }

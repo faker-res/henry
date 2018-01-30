@@ -222,7 +222,7 @@ let dbPlayerReward = {
             let lastValidWithdrawalQuery = {
                 mainType: "PlayerBonus",
                 "data.playerId": player.playerId,
-                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]}
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.AUTOAUDIT]}
             };
 
             let lastTopUpQuery = {playerId: player._id};
@@ -405,6 +405,7 @@ let dbPlayerReward = {
         let giveup = [];
         let bonusList = [];
         let currentTime = new Date();
+        let gameProviderGroupName = null;
 
         // display all reward param for each player level
         function addParamToGradeList(gradeListData, playerLevelData) {
@@ -412,16 +413,18 @@ let dbPlayerReward = {
                 return false;
             }
             let playerLevelName = null;
+            let playerLevelValue = null;
 
             gradeListData.forEach(gradeListItem => {
                 playerLevelData.forEach(playerLevel => {
                     if (playerLevel._id.toString() === gradeListItem.levelId) {
                         playerLevelName = playerLevel.name;
+                        playerLevelValue = playerLevel.value;
                     }
                 });
 
                 let gradeLists = {
-                    gradeId: gradeListItem.levelId,
+                    gradeId: playerLevelValue,
                     gradeName: playerLevelName, // display in chinese
                     requestDeposit: gradeListItem.value[0].requiredTopUpAmount,
                     requestBetAmount: gradeListItem.value[0].requiredConsumptionAmount,
@@ -524,9 +527,10 @@ let dbPlayerReward = {
             let bonusListRewardProposalProm = Promise.resolve([]);
             let playerLevelProm = Promise.resolve([]);
             let gameProviderProm = Promise.resolve([]);
+            let gameProviderGroupProm = Promise.resolve([]);
 
             if (!player) {
-                return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm]);
+                return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm, gameProviderGroupProm]);
             }
 
             // queries
@@ -559,10 +563,11 @@ let dbPlayerReward = {
             bonusListRewardProposalProm = dbConfig.collection_proposal.find(bonusListRewardProposalQuery).sort({createTime: -1}).lean();
             playerLevelProm = dbConfig.collection_playerLevel.find({platform: platform._id}).lean();
             gameProviderProm = dbConfig.collection_gameProvider.find(platformGameProviderQuery).lean();
+            gameProviderGroupProm = dbConfig.collection_gameProviderGroup.find({platform: platform._id}).lean();
 
-            return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm]);
+            return Promise.all([similarRewardProposalProm, similarTopUpProm, similarConsumptionProposalProm, bonusListRewardProposalProm, playerLevelProm, gameProviderProm, gameProviderGroupProm]);
         }).then(data => {
-            if (!data || !data[0] || !data[1] || !data[2] || !data[3] || !data[4] || !data[5]) {
+            if (!data || !data[0] || !data[1] || !data[2] || !data[3] || !data[4] || !data[5] || !data[6]) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,
                     message: "Error in finding proposal"
@@ -574,6 +579,7 @@ let dbPlayerReward = {
             let bonusListRewardProposals = data[3];
             let playerLevelData = data[4];
             let gameProviderList = data[5];
+            let gameProviderGroupList = data[6];
 
             // big big null check
             if (!event || !event.param || !event.param.rewardParam || !event.param.rewardParam[0] || !event.param.rewardParam[0].value || !event.param.rewardParam[0].value[0] || !event.condition) {
@@ -645,6 +651,14 @@ let dbPlayerReward = {
                     })
                 }
 
+                // find lockedGroup // display gameProviderGroup name in chinese
+                if (event.condition.providerGroup) {
+                    gameProviderGroupList.forEach(gameProviderGroup => {
+                        if (gameProviderGroup._id.toString() === event.condition.providerGroup) {
+                            gameProviderGroupName = gameProviderGroup.name;
+                        }
+                    });
+                }
 
                 if (event.param.rewardParam) {
                     addParamToGradeList(event.param.rewardParam, playerLevelData);
@@ -797,8 +811,8 @@ let dbPlayerReward = {
             }
 
             let outputObject = {
-                lockedGroup: event.condition.providerGroup,
-                currentGradeId: playerLevel._id,
+                lockedGroup: gameProviderGroupName,
+                currentGradeId: playerLevel.value,
                 currentGradeName: playerLevel.name,
                 gradeList: gradeList,
                 open: Open,
@@ -2622,6 +2636,12 @@ let dbPlayerReward = {
             }
         ).then(
             newProp => {
+                if (topUpProp) {
+                    // Since promo code do not have its own event, it does not have eventObjId
+                    // Hence this object id will be use specifically for promo code throughout system as eventObjId
+                    addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
+                }
+
                 return dbConfig.collection_promoCode.findOneAndUpdate({
                     _id: promoCodeObj._id
                 }, {
@@ -3677,6 +3697,26 @@ let dbPlayerReward = {
             settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
 
+        if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
+            topupMatchQuery.topUpType = {$in: eventData.condition.topupType}
+        }
+
+        if (eventData.condition.onlineTopUpType && eventData.condition.onlineTopUpType.length > 0) {
+            if (!topupMatchQuery.$and) {
+                topupMatchQuery.$and = [];
+            }
+
+            topupMatchQuery.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exists: false}}]});
+        }
+
+        if (eventData.condition.bankCardType && eventData.condition.bankCardType.length > 0) {
+            if (!topupMatchQuery.$and) {
+                topupMatchQuery.$and = [];
+            }
+
+            topupMatchQuery.$and.push({$or: [{bankCardType: {$in: eventData.condition.bankCardType}}, {bankCardType: {$exists: false}}]});
+        }
+
         // Check registration interface condition
         if (checkInterfaceRewardPermission(eventData, rewardData)) {
             return Q.reject({
@@ -4211,6 +4251,21 @@ let dbPlayerReward = {
                                 });
                             }
 
+                            // check correct topup type
+                            let correctTopUpType = true;
+
+                            if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(selectedTopUp.topUpType) === -1) {
+                                correctTopUpType = false;
+                            }
+
+                            if (eventData.condition.onlineTopUpType && selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(selectedTopUp.merchantTopUpType) === -1) {
+                                correctTopUpType = false;
+                            }
+
+                            if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
+                                correctTopUpType = false;
+                            }
+
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
                                 if (eventData.param.isSteppingReward) {
@@ -4225,7 +4280,7 @@ let dbPlayerReward = {
                                 selectedRewardParam = selectedRewardParam[0];
                             }
 
-                            if (applyAmount < selectedRewardParam.minTopUpAmount) {
+                            if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
@@ -5284,6 +5339,23 @@ function getRewardPeriodToTime (rewardPeriod) {
     }
 
     return time;
+}
+
+function addUsedRewardToTopUpRecord(topUpProposalId, rewardEvent) {
+    return dbConfig.collection_playerTopUpRecord.findOne({proposalId: topUpProposalId}).lean().then(
+        topUpRecord => {
+            if (topUpRecord) {
+                return dbConfig.collection_playerTopUpRecord.findOneAndUpdate({
+                    _id: topUpRecord._id,
+                    createTime: topUpRecord.createTime,
+                    platformId: topUpRecord.platformId
+                }, {
+                    $push: {usedEvent: rewardEvent}
+                }).lean().exec();
+            }
+            return Promise.resolve();
+        }
+    );
 }
 
 var proto = dbPlayerRewardFunc.prototype;

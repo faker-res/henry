@@ -233,6 +233,13 @@ function socketActionProposal(socketIO, socket) {
             var actionName = arguments.callee.name;
             socketUtil.emitter(self.socket, dbProposal.getProposal, [data], actionName);
         },
+
+        getProposalByPlayerIdAndType: function getProposalByPlayerIdAndType(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type && data.playerObjId);
+            socketUtil.emitter(self.socket, dbProposal.getProposalByPlayerIdAndType, [data], actionName, isValidData);
+        },
+
         getPlatformProposal: function getPlatformProposal(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.proposalId);
