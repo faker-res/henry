@@ -189,7 +189,7 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(query.operatorId!='all'){
-                queryQA.live800Acc = { id:{ '$in':query.operatorId}}
+                queryQA['live800Acc.id'] = { '$in':query.operatorId}
             }
         }
         if(query.companyId && query.companyId.length > 0 ){
@@ -201,7 +201,10 @@ var dbQualityInspection = {
             }
         }
         console.log(queryQA);
-        return dbconfig.collection_qualityInspection.find(queryQA).lean()
+        return dbconfig.collection_qualityInspection.find(queryQA)
+            .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
+            .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
+            .lean()
             .then(results => {
                 console.log(results);
                 results.forEach(item => {
@@ -433,6 +436,8 @@ var dbQualityInspection = {
 
             let queryQA = {messageId: String(item.msg_id)};
             let prom = dbconfig.collection_qualityInspection.find(queryQA)
+                .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
+                .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
                 .then(qaData => {
                     if (qaData.length > 0) {
                         live800Chat.status = qaData[0].status;
@@ -1130,7 +1135,7 @@ var dbQualityInspection = {
         });
         return deferred.promise;
     },
-    rateCSConversation: function (data , adminName) {
+    rateCSConversation: function (data , adminId) {
         var deferred = Q.defer();
         console.log(data);
         let live800Acc = data.live800Acc.id  ? data.live800Acc.id :'xxx';
@@ -1138,14 +1143,13 @@ var dbQualityInspection = {
         console.log(data.live800Acc)
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
-              console.log(item);
-              let adminName = item ? item.adminName:'x';
-              return adminName
+              let cs = item ? item._id:null;
+              return cs
         })
         .then(udata=>{
             return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
                 delete data.statusName;
-                data.qualityAssessor = adminName;
+                data.qualityAssessor = adminId;
                 data.processTime = Date.now();
                 data.fpmsAcc = udata;
                 data.status = 2;
