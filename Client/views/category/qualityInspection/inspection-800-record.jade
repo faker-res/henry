@@ -4,22 +4,22 @@
 .row
     .col-md-12
         .well.feedbackQueryDiv
-            .inlineBlk
+            .inlineBlk(style='max-width:155px')
                 label {{"PRODUCT" |translate}}
                 select.form-control(style='max-width:155px',ng-change='vm.filterPlatform()',ng-model='vm.inspection800.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
-            .inlineBlk
+            .inlineBlk(style='max-width:155px')
                 label FPMS {{"CS Account" | translate}}
                 //select.form-control(ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()')
                 //    option(value='all') {{'ALL' | translate}}
                 //    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v.name}}') {{v.name | translate}}
-                select.form-control(style='max-width:100px', ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()', ng-options='product._id as product.name for product in vm.fpmsACCList', multiple, bsp, data-actions-box='true')
+                select.form-control(style='max-width:155px', ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()', ng-options='product._id as product.name for product in vm.fpmsACCList', multiple, bsp, data-actions-box='true')
 
-            .inlineBlk
+            .inlineBlk(style='max-width:155px')
                 label Live800{{"Account" | translate}}
                 //select.form-control(ng-model='vm.inspection800.live800Accs')
                 //    option(value='all') {{'ALL' | translate}}
                 //    option(ng-repeat='(i,v) in vm.live800Accs', value='{{v}}') {{v | translate}}
-                select.form-control(style='max-width:100px', ng-model='vm.inspection800.live800Accs', ng-options='v as v | translate for (i,v) in vm.live800Accs', multiple, bsp, data-actions-box='true')
+                select.form-control(style='max-width:155px', ng-model='vm.inspection800.live800Accs', ng-options='v as v | translate for (i,v) in vm.live800Accs', multiple, bsp, data-actions-box='true')
             .inlineBlk
                 label.control-label {{'Start date' | translate}}
                 #live800StartDatetimePicker.input-append.form-control
@@ -37,11 +37,13 @@
                 select.form-control(ng-model='vm.inspection800.status')
                     option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}}') {{v | translate}}
                     option(value='all') {{'ALL' | translate}}
+                //select.form-control(style='max-width:100px', ng-model='vm.inspection800.status', ng-options='v | translate for (i,v) in vm.constQualityInspectionStatusCN', bsp)
+
             .inlineBlk
                 label {{"QUALITY_ASSESSOR" | translate}}
                 select.form-control(ng-model='vm.inspection800.qiUser')
                     option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
-                    option(value='all') {{'ALL' | translate}}
+                    option(value='all') {{'NONE' | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
                 span.collapse
@@ -81,7 +83,7 @@ div.row
             .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
     //(style="float:right;margin-right:100px;")
 
-div.row(ng-show='vm.conversationForm.length > 0')
+div.row(ng-show='vm.conversationForm.length > 0', style='margin-top:20px;')
     div.col-md-12
         div.col-md-1
             label 每页显示
@@ -89,10 +91,20 @@ div.row(ng-show='vm.conversationForm.length > 0')
                 option(value='5', selected) 5
                 option(value='10') 10
                 option(value='15') 15
-        div.col-md-9
+        div.col-md-7
             ul.pagination(ng-repeat="i in vm.pgnPages")
                 li(ng-click="vm.gotoPG(i, $event)")
                     a {{$index+1}}
+        div.col-md-2
+            div(style='display:inline-block')
+                span(style="width:50px;display:inline-block;") 跳到
+                input.form-control(style='max-width:80px;display:inline-block;',type="number",ng-model="vm.insertPG" ,ng-blur="vm.gotoPG(vm.insertPG,null)")
+                span(style="display:inline-block;") 页
+            div(style='display:inline-block')
+                .btn.btn-primary(ng-click="vm.nextPG()") 下一页
+
+
+
 div(style='display:none')
     #conversationForm
         div.row(style='border:2px solid #CECECE;box-shadow: 2px black')

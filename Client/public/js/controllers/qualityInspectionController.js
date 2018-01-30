@@ -26,7 +26,16 @@ define(['js/app'], function (myApp) {
                 6: "APPEAL_COMPLETED",
                 7: "NOT_EVALUATED"
             };
-
+            vm.constQualityInspectionStatusCN = {
+                '1': "待处理",
+                '2': "已完成（未读）",
+                '3': "已完成（已读）",
+                '4': "已完成（免读）",
+                '5': "申诉中",
+                '6': "申诉结案",
+                '7': "不评估（无效）",
+                'all': "ALL"
+            }
             vm.unreadEvaluationSelectedRecord = [];
 
             vm.roleType = {
@@ -325,10 +334,16 @@ define(['js/app'], function (myApp) {
                 });
 
             };
+            vm.nextPG = function(){
+                vm.pgn.index = (vm.pgn.currentPage+1)*vm.pgn.limit;
+                vm.pgn.currentPage += 1;
+                vm.searchLive800();
+            };
             vm.gotoPG = function(pg, $event){
-                console.log($event.target);
                 $('body .pagination li').removeClass('active');
-                $($event.currentTarget).addClass('active');
+                if($event){
+                    $($event.currentTarget).addClass('active');
+                }
                 let pgNo = null;
                 if(pg==0){
                     pgNo = 0
@@ -336,6 +351,7 @@ define(['js/app'], function (myApp) {
                     pgNo = pg;
                 }
                 vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
             },
             vm.searchLive800 = function(){
