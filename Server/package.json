@@ -29,6 +29,7 @@
     "mongodb": "^2.2.19",
     "mongoose": "^4.7.6",
     "morgan": "~1.6.1",
+    "mysql": "^2.15.0",
     "nodemailer": "^2.4.2",
     "nodemailer-html-to-text": "^2.1.0",
     "pnglib": "0.0.1",
