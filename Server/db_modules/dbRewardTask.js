@@ -1235,7 +1235,7 @@ const dbRewardTask = {
                     // Recursive update RTG to prevent overflow of curConsumption
                     return findAndUpdateRTG(consumptionRecord, createTime, platform).then(
                         updatedRTG => {
-                            if (updatedRTG && updatedRTG[0]) {
+                            if (updatedRTG && !updatedRTG[0]) {
                                 return findAndUpdateRTG(consumptionRecord, createTime, platform)
                             } else if (updatedRTG && updatedRTG[1]) {
                                 dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, remainingCurConsumption);
@@ -2049,6 +2049,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
     return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
         rewardTaskGroup => {
             if (rewardTaskGroup) {
+                let consumptionOffset = isNaN(platform.autoApproveConsumptionOffset) ? 0 : platform.autoApproveConsumptionOffset;
+
                 rewardTaskGroup.curConsumption += consumptionRecord.validAmount;
                 rewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
 
@@ -2058,9 +2060,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                     rewardTaskGroup.unlockTime = createTime;
                 }
                 // Consumption reached
-                else if (rewardTaskGroup.curConsumption + platform.autoApproveConsumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
-                    rewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
-                    rewardTaskGroup.unlockTime = createTime;
+                else if (rewardTaskGroup.curConsumption + consumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
                     remainingCurConsumption = rewardTaskGroup.curConsumption - (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt);
                 }
 
@@ -2109,6 +2109,23 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                         },
                         updObj,
                         {new: true}
+                    ).then(
+                        updatedRTG => {
+                            if (updatedRTG && updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                    {
+                                        _id: updatedRTG._id
+                                    },
+                                    {
+                                        status: constRewardTaskStatus.ACHIEVED,
+                                        unlockTime: createTime
+                                    },
+                                    {new: true}
+                                )
+                            }
+
+                            return updatedRTG
+                        }
                     ),
                     Promise.resolve(remainingCurConsumption)
                 ]);
