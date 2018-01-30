@@ -1324,6 +1324,7 @@
   "ACTIVATE_PROMO_CODE": "展示已使用代码",
   "activatePromoCode": "展示已使用代码",
   "PlayerPromoCodeReward": "优惠代码",
+  "Player reach participate limit": "次数已用完",
   "topUpProposal": "充值提案",
   "PROMO_CODE_TYPE_3_MONITOR": "优惠类型-C监控",
   "topUpAmount(A)": "充值额(A)",
