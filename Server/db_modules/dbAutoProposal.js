@@ -262,6 +262,12 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 canApprove = false;
             }
 
+            if (bUpdatePaymentInfo) {
+                checkMsg += ' Denied: Bank Info Changed;';
+                checkMsgChinese += ' 失败：银行资料刚改;';
+                canApprove = false;
+            }
+
             if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
                 && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
                 checkMsg += ' Denied: Max profit times;';
