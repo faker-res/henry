@@ -21,7 +21,7 @@ var dbQualityInspection = {
     },
     countLive800: function(query){
         let queryObj = "";
-        let operatorName = null;
+        let operatorId = null;
         let dbResult = null;
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
@@ -169,7 +169,7 @@ var dbQualityInspection = {
 
                 live800Chat.operatorId = item.operator_id;
                 live800Chat.operatorName = item.operator_name;
-                live800Chat.live800Acc['id'] = item.operator_id;
+                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_id;
                 live800Chat.live800Acc['name'] = item.operator_name;
                 let dom = new JSDOM(item.content);
                 let content = [];
@@ -422,7 +422,7 @@ var dbQualityInspection = {
             deferred.resolve([]);
         }
         results.forEach(item => {
-            //console.log(item);
+            console.log(item);
             let live800Chat = {conversation: [], live800Acc:{}};
             live800Chat.messageId = item.msg_id;
             live800Chat.status = item.status;
