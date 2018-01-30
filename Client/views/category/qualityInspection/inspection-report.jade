@@ -62,7 +62,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             .inlineBlk(ng-show='vm.loadingEvaluationProgressTable')
                                 i.fa.fa-spin.fa-spinner
 
-                            .row(style='margin: 5px 2px 0px 2px;padding: 10px 2px; ')
+                            .row(style='margin: 5px 2px 0px 2px;padding: 10px 2px; ' ng-if="vm.evaluationProgressTable")
                                 table#evaluationProgressTable.simple-table.table-vertical-middle.limitOffersTB
                                     thead
                                         th.col-md-2 {{"PRODUCT_NAME" | translate}}
