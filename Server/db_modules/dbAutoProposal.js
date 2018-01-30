@@ -221,8 +221,13 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 checkMsg += "Insufficient consumption: Consumption " + curConsumptionAmount + ", Required Bet " + totalConsumptionAmout + "; ";
                 checkMsgChinese += "投注额不足：投注额 " + curConsumptionAmount + " ，需求投注额 " + totalConsumptionAmout + "; ";
-                isApprove = false;
+            } else {
+                // No RTG exist
+                // Approve this withdrawal
+                isApprove = true;
             }
+
+            // Consumption reached, check for other conditions
             if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
                 checkMsg += " Denied: Single limit;";
                 checkMsgChinese += " 失败：单限;";
@@ -254,12 +259,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
             if (bPendingPaymentInfo) {
                 checkMsg += ' Denied: Rebank;';
                 checkMsgChinese += ' 失败：银改;';
-                canApprove = false;
-            }
-
-            if (bUpdatePaymentInfo) {
-                checkMsg += ' Denied: Bank Info Changed;';
-                checkMsgChinese += ' 失败：银行资料刚改;';
                 canApprove = false;
             }
 
