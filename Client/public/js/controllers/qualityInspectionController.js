@@ -13,8 +13,8 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             vm.evaluationAppealStatus = {
-                APPEALING: 1,
-                APPEAL_COMPLETED: 1
+                APPEALING: 5,
+                APPEAL_COMPLETED: 6
             };
 
             vm.constQualityInspectionStatus = {
@@ -311,9 +311,11 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
-            vm.storeBatchId = function(conversation){
-                vm.batchEditList.push(conversation);
-                console.log(vm.batchEditList);
+            vm.storeBatchId = function(isCheck, conversation){
+                vm.batchEditList = [];
+                $('body .batchEdit:checked').each( function(){
+                    vm.batchEditList.push($(this).val());
+                })
             };
             vm.batchSave = function(){
                 console.log(vm.batchEditList);
@@ -323,7 +325,21 @@ define(['js/app'], function (myApp) {
                 });
 
             };
+            vm.gotoPG = function(pg, $event){
+                console.log($event.target);
+                $('body .pagination li').removeClass('active');
+                $($event.currentTarget).addClass('active');
+                let pgNo = null;
+                if(pg==0){
+                    pgNo = 0
+                }else if(pg > 1){
+                    pgNo = pg;
+                }
+                vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.searchLive800();
+            },
             vm.searchLive800 = function(){
+                $('#searchingQualityInspection').show();
                 let fpmsId = [];
                 if(vm.fpmsACCList.length > 0){
                   vm.fpmsACCList.map(item=>{
@@ -336,34 +352,59 @@ define(['js/app'], function (myApp) {
                         // 'companyId':270,
                         // 'operatorId':764,
                         'companyId':vm.companyIds,
-                        'fpmsAcc':vm.inspection800.fpms,
+                        'fpmsAcc':vm.inspection800.fpms || [],
                         'operatorId':vm.inspection800.live800Accs,
                         'startTime': $('#live800StartDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
                         'endTime': $('#live800endDatetimePicker').data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
-                        'status':vm.inspection800.status ? vm.inspection800.status : null
+                        'status':vm.inspection800.status ? vm.inspection800.status : null,
+                        'limit':vm.pgn.limit,
+                        'index':vm.pgn.index
                 };
                 if(vm.inspection800.qiUser && vm.inspection800.qiUser.length > 0){
                     query['qualityAssessor'] = vm.inspection800.qiUser;
                 }
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
+                    let overtimeSetting = vm.selectedPlatform.data.overtimeSetting;
+                    console.log(overtimeSetting);
+
                     data.data.forEach(item=>{
                         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
                         item.conversation.forEach(function(cv){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-                            //vm.selectedPlatform.data.overtimeSetting;
-                            let colors = '#CECECE';
-                            if(cv.timeoutRate >= 1) {
-                                colors = 'yellow';
-                            }else if(cv.timeout  == 0){
-                                colors = 'yellow';
-                            }else if(cv.timeoutRate < 0 && cv.timeoutRate >= -1.5){
-                                colors = 'gray';
-                            }else if(cv.timeoutRate < -1.5 && cv.timeoutRate >=-2){
-                                colors = 'rgb(242,123,123)';
-                            }else{
-                                colors = 'white';
-                            }
+                            console.log(cv);
+                            // let colors = '#CECECE';
+                            // if(cv.timeoutRate >= 1) {
+                            //     colors = 'yellow';
+                            // }else if(cv.timeout  == 0){
+                            //     colors = 'yellow';
+                            // }else if(cv.timeoutRate < 0 && cv.timeoutRate >= -1.5){
+                            //     colors = 'gray';
+                            // }else if(cv.timeoutRate < -1.5 && cv.timeoutRate >=-2){
+                            //     colors = 'rgb(242,123,123)';
+                            // }else{
+                            //     colors = 'white';
+                            // }
+                            let otsLength = overtimeSetting.length -1;
+                            let colors = '';
+                            overtimeSetting.forEach((ots,i)=>{
+                                if(cv.roles==1){
+                                    if(i==0){
+                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                            colors = overtimeSetting[0].color;
+                                        }
+                                    }else if(i==otsLength){
+                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                            colors = overtimeSetting[i].color;
+                                        }
+                                    }else{
+                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                            colors = overtimeSetting[i].color;
+                                        }
+                                    }
+                                    console.log(cv.timeoutRate+'>'+overtimeSetting[i].presetMark + colors);
+                                }
+                            });
                             cv.colors = colors;
                             return cv;
                         });
@@ -373,6 +414,20 @@ define(['js/app'], function (myApp) {
                         return item;
                     });
                     vm.conversationForm = data.data;
+                    $('#searchingQualityInspection').hide();
+                    $scope.safeApply();
+                }
+
+                socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
+                function successFunc(data) {
+                    if(data.data){
+                        vm.pgn.totalPage = data.data / vm.pgn.limit;
+                        vm.pgn.count = data.data;
+                    }
+                    vm.pgnPages = [];
+                    for(let a = 0; a < vm.pgn.totalPage;a++){
+                        vm.pgnPages.push(a);
+                    }
 
                     $scope.safeApply();
                 }
@@ -389,6 +444,9 @@ define(['js/app'], function (myApp) {
                 vm.initLive800Start();
                 vm.fpmsACCList = [];
                 vm.batchEditList = [];
+                vm.inspection800 = {};
+                vm.inspection800.fpms = [];
+                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:2, count:1};
 
                 setTimeout(function(){
                     $scope.safeApply();
@@ -591,6 +649,22 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+                var isChange = false;
+                if (!curP) {
+                    curP = 1;
+                }
+                if (pageSize != vm[objKey].limit) {
+                    isChange = true;
+                    vm[objKey].limit = pageSize;
+                }
+                if ((curP - 1) * pageSize != vm[objKey].index) {
+                    isChange = true;
+                    vm[objKey].index = (curP - 1) * pageSize;
+                }
+                if (isChange) return searchFunc.call(this);
+            };
+
             vm.endLoadMultipleSelect = function () {
                 $timeout(function () {
                     $('.spicker').selectpicker('refresh');
@@ -598,14 +672,16 @@ define(['js/app'], function (myApp) {
             };
 
             //////////////////////////////////////////////////////////Start of Evaluation Tab///////////////////////////////////////////////////////////////////
-            vm.getUnreadEvaluationRecord = function() {
+            vm.getUnreadEvaluationRecord = function(newSearch) {
                 vm.loadingUnreadEvaluationTable = true;
                 var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
                 let sendData = {
                     startTime: startTime,
-                    endTime: endTime
+                    endTime: endTime,
+                    // index: newSearch ? 0 : (vm.unReadEvaluation.index || 0),
+                    // limit: newSearch ? 1 : (vm.unReadEvaluation.limit || 1),
                 }
 
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
@@ -649,8 +725,26 @@ define(['js/app'], function (myApp) {
                     if(data && data.data && data.data.length > 0){
 
                         data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+
+                                if(data.createTime){
+                                    //data.createTime = utilService.getLocalTimeString(new Date(data.createTime));
+                                    data.createTime = new Date(data.createTime);
+                                }
+
+                                if(data.processTime){
+                                    //data.processTime = utilService.getLocalTimeString(new Date(data.processTime));
+                                    data.processTime = new Date(data.processTime);
+                                }
+
+                                data.conversation.forEach(function(cv){
+                                    cv.roleName = vm.roleType[data.type];
+                                    cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                });
                             }
 
                             return data;
@@ -684,6 +778,12 @@ define(['js/app'], function (myApp) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
+                            data.conversation.forEach(function(cv){
+                                cv.roleName = vm.roleType[data.type];
+                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                            });
+
                             return data;
                         })
                         vm.appealEvaluationTable = data.data;
@@ -714,6 +814,12 @@ define(['js/app'], function (myApp) {
                             if(data && data.status){
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
+
+                            data.conversation.forEach(function(cv){
+                                cv.roleName = vm.roleType[data.type];
+                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                            });
 
                             return data;
                         })
@@ -756,7 +862,7 @@ define(['js/app'], function (myApp) {
                 if(vm.unreadEvaluationSelectedRecord && vm.unreadEvaluationSelectedRecord.length > 0){
                     let sendData = {
                         messageId: vm.unreadEvaluationSelectedRecord,
-                        status: vm.constQualityInspectionStatus.COMPLETED_UNREAD
+                        status: vm.constQualityInspectionStatus[2]
                     }
 
                     socketService.$socket($scope.AppSocket, 'markEvaluationRecordAsRead', sendData, function (data) {
@@ -1300,11 +1406,11 @@ define(['js/app'], function (myApp) {
                 // initiate a basic setting if the setting is empty
                 if (!vm.selectedPlatform.data.overtimeSetting || vm.selectedPlatform.data.overtimeSetting.length === 0) {
 
-                    let overtimeSetting = [{
-                        conversationInterval: 30,
-                        presetMark: 1,
-                        color: ""
-                    },
+                        let overtimeSetting = [{
+                            conversationInterval: 30,
+                            presetMark: 1,
+                            color: ""
+                        },
                         {
                             conversationInterval: 60,
                             presetMark: 0,

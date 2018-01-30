@@ -5,17 +5,17 @@
     .col-md-12
         .well.feedbackQueryDiv
             .inlineBlk
-                label {{"Product"|translate}}
+                label {{"PRODUCT" |translate}}
                 select.form-control(style='max-width:155px',ng-change='vm.filterPlatform()',ng-model='vm.inspection800.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
             .inlineBlk
-                label {{"FPMS CS Acc" | translate}}
+                label FPMS {{"CS Account" | translate}}
                 //select.form-control(ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()')
                 //    option(value='all') {{'ALL' | translate}}
                 //    option(ng-repeat='(i,v) in vm.fpmsACCList', value='{{v.name}}') {{v.name | translate}}
                 select.form-control(style='max-width:100px', ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()', ng-options='product.name as product.name for product in vm.fpmsACCList', multiple, bsp, data-actions-box='true')
 
             .inlineBlk
-                label {{"Live800 Acc" | translate}}
+                label Live800{{"Account" | translate}}
                 //select.form-control(ng-model='vm.inspection800.live800Accs')
                 //    option(value='all') {{'ALL' | translate}}
                 //    option(ng-repeat='(i,v) in vm.live800Accs', value='{{v}}') {{v | translate}}
@@ -33,20 +33,22 @@
                     span.add-on
                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
             .inlineBlk
-                label {{"Rating Status" | translate}}
+                label {{"EVALUATION_STATUS" | translate}}
                 select.form-control(ng-model='vm.inspection800.status')
                     option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}}') {{v | translate}}
                     option(value='all') {{'ALL' | translate}}
-    .inlineBlk
-                label {{"QA" | translate}}
-                select.form-control(ng-model='vm.inspection800.qiUser')
-                    option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
             .inlineBlk
-                button.btn.btn-primary(ng-click='vm.searchLive800()') {{"SEARCH" | translate}}
+                label {{"QUALITY_ASSESSOR" | translate}}
+                select.form-control(ng-model='vm.inspection800.qiUser')
+                    option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
+                    option(value='all') {{'ALL' | translate}}
+            .inlineBlk
+                button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
                 span.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
+            .inlineBlk
+                i#searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
         //.inlineBlk(style="width:200px;")
                 label.control-label {{'CREDIBILITY' | translate}}
                 select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')
@@ -70,15 +72,33 @@
     div.col-sm-1(style='display:inline-block;padding-left:5px;background-color:red;text-align:center;padding:4px;color:white;font-weight: bold') 申诉内容
 
 .row
-    conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform)')
-div(style="float:right;margin-right:100px;")
-    .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
+    conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
+div.row
+    div.col-md-12
+        div.col-md-10
+            div
+        div.col-md-2
+            .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
+    //(style="float:right;margin-right:100px;")
 
+div.row(ng-show='vm.conversationForm.length > 0')
+    div.col-md-12
+        div.col-md-1
+            label 每页显示
+            select.form-control(ng-model='vm.pgn.limit')
+                option(value='2',selected) 2
+                option(value='5') 5
+                option(value='10') 10
+                option(value='15') 15
+        div.col-md-9
+            ul.pagination(ng-repeat="i in vm.pgnPages")
+                li(ng-click="vm.gotoPG(i, $event)")
+                    a {{$index+1}}
 div(style='display:none')
     #conversationForm
         div.row(style='border:2px solid #CECECE;box-shadow: 2px black')
             div.col-md-1(style='display:inline-block;padding-left:5px;')
-                input.form-control(type="checkbox", value="{{cform.messageId}}",ng-click="storebatch(cform)")
+                input.form-control.batchEdit(type="checkbox", value="{{cform.messageId}}",ng-click="storebatch(cform)")
             //div.col-md-1(style='display:inline-block;padding-left:5px;', ng-click="rateIt(cform.messageId)") {{cform.status}}
             div.col-md-1(style='display:inline-block;padding-left:5px;')
                 div(ng-click="rateIt(cform)", style="cursor:pointer"){{cform.statusName}}
