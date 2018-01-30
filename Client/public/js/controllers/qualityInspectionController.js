@@ -1637,7 +1637,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
-                vm.allCSAccount=[];
+               // vm.allCSAccount=[];
                 vm.allCSDepartmentId=[];
                 vm.platformWithCSDepartment=[]; // to filter out the platfrom with CS Department for the Product Filter
 
@@ -1660,7 +1660,7 @@ define(['js/app'], function (myApp) {
                         data.data.forEach(acc => {
                             if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                 vm.selectedCSAccount.push(acc);
-                                vm.allCSAccount.push(acc);
+                                //vm.allCSAccount.push(acc);
                             }
                         });
 
@@ -1734,7 +1734,7 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
-                vm.mysqlData=[];;
+                vm.mysqlData=[];
                 vm.companyID=[];
 
                 if (vm.selectedPlatformID != 'all'){
