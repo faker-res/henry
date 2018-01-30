@@ -124,14 +124,14 @@ div(style='display:none')
                         div(style="width:10%;display:inline-block;text-align:center;padding:4px;") {{convert.roleName}}
                         div(style="width:10%;display:inline-block;text-align:center;padding:4px;") {{convert.displayTime}}
                         div(style="width:40%;display:inline-block;padding:5px;" ) {{convert.content}}
-                        div(style="width:10%;display:inline-block")
-                            input.form-control(type="number",value="{{convert.timeoutRate}}",DISABLED)
-                        div(style="width:10%;display:inline-block", ng-show="convert.roles==1")
+                        div(style="width:10%;display:inline-block;padding:5px")
+                            input.form-control(type="number",value="{{convert.timeoutRate}}",DISABLED, ng-show="convert.roles==1")
+                        div(style="width:10%;display:inline-block;padding:5px", ng-show="convert.roles==1")
                             div(ng-if='cform.editable')
                                 input.form-control(type="number",ng-model="convert.inspectionRate")
                             div(ng-if='!cform.editable')
                                 div(style='text-align:center') {{convert.inspectionRate}}
-                        div(style="width:10%;display:inline-block", ng-show="convert.roles==1")
+                        div(style="width:10%;display:inline-block;padding:5px", ng-show="convert.roles==1")
                             div(ng-if='cform.editable')
                                 input.form-control(type="text",ng-model="convert.review")
                             div(ng-if='!cform.editable')
