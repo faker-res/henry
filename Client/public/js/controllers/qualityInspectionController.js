@@ -467,7 +467,7 @@ define(['js/app'], function (myApp) {
                 vm.batchEditList = [];
                 vm.inspection800 = {};
                 vm.inspection800.fpms = [];
-                vm.inspection800.status = 'all';
+                vm.inspection800.status = '1';
                 vm.inspection800.qiUser = 'all';
                 vm.pgn = {index:0, currentPage:1, totalPage:1, limit:5, count:1};
 
