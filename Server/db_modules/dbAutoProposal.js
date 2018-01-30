@@ -221,10 +221,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 checkMsg += "Insufficient consumption: Consumption " + curConsumptionAmount + ", Required Bet " + totalConsumptionAmout + "; ";
                 checkMsgChinese += "投注额不足：投注额 " + curConsumptionAmount + " ，需求投注额 " + totalConsumptionAmout + "; ";
-            } else {
-                // No RTG exist
-                // Approve this withdrawal
-                isApprove = true;
+                isApprove = false;
             }
 
             // Consumption reached, check for other conditions
