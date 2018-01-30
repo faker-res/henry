@@ -446,7 +446,7 @@ define(['js/app'], function (myApp) {
                 vm.batchEditList = [];
                 vm.inspection800 = {};
                 vm.inspection800.fpms = [];
-                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:2, count:1};
+                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:5, count:1};
 
                 setTimeout(function(){
                     $scope.safeApply();
