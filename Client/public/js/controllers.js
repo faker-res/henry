@@ -495,6 +495,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "网银跨行(InterBank Transfer)",
         5: "支付宝(AliPay)"
     };
+
+    $scope.depositMethodList = {
+        Online: 1,
+        ATM: 2,
+        Counter: 3,
+        AliPayTransfer: 4
+    };
+
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
         '2': 'clientType_H5',

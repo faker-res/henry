@@ -26,7 +26,16 @@ define(['js/app'], function (myApp) {
                 6: "APPEAL_COMPLETED",
                 7: "NOT_EVALUATED"
             };
-
+            vm.constQualityInspectionStatusCN = {
+                '1': "待处理",
+                '2': "已完成（未读）",
+                '3': "已完成（已读）",
+                '4': "已完成（免读）",
+                '5': "申诉中",
+                '6': "申诉结案",
+                '7': "不评估（无效）",
+                'all': "ALL"
+            }
             vm.unreadEvaluationSelectedRecord = [];
 
             vm.roleType = {
@@ -46,6 +55,36 @@ define(['js/app'], function (myApp) {
             vm.rateMsgId = null;
 
             vm.isChecked;
+
+            vm.unreadEvaluationRecord = {
+                totalCount: 0,
+                currentPage: 1,
+                index: 0,
+                limit: 10,
+                pageSize: 1,
+                pageArr: []
+            }
+
+            vm.readEvaluationRecord = {
+                totalCount: 0,
+                currentPage: 1,
+                index: 0,
+                limit: 10,
+                pageSize: 1,
+                pageArr: []
+            }
+
+            vm.appealEvaluationRecord = {
+                totalCount: 0,
+                currentPage: 1,
+                index: 0,
+                limit: 10,
+                pageSize: 1,
+                pageArr: []
+            }
+
+            //vm.unReadEvaluation = {};
+
 
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
@@ -82,16 +121,6 @@ define(['js/app'], function (myApp) {
                     if (storedPlatform) {
                         vm.searchAndSelectPlatform(storedPlatform, option);
                     }
-
-                    // if(vm.qualityInspectionPageName =='MY EVALUATION'){
-                    //     vm.initUnreadEvaluation();
-                    //     vm.initReadEvaluation();
-                    //     vm.initAppealEvaluation();
-                    // }
-                    // else if(vm.qualityInspectionPageName =='INSPECTION REPORT'){
-                    //     vm.initWorkloadProgress();
-                    // }
-
 
                 }, function (err) {
                     vm.showPlatformSpin = false;
@@ -325,10 +354,16 @@ define(['js/app'], function (myApp) {
                 });
 
             };
+            vm.nextPG = function(){
+                vm.pgn.index = (vm.pgn.currentPage+1)*vm.pgn.limit;
+                vm.pgn.currentPage += 1;
+                vm.searchLive800();
+            };
             vm.gotoPG = function(pg, $event){
-                console.log($event.target);
                 $('body .pagination li').removeClass('active');
-                $($event.currentTarget).addClass('active');
+                if($event){
+                    $($event.currentTarget).addClass('active');
+                }
                 let pgNo = null;
                 if(pg==0){
                     pgNo = 0
@@ -336,6 +371,7 @@ define(['js/app'], function (myApp) {
                     pgNo = pg;
                 }
                 vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
             },
             vm.searchLive800 = function(){
@@ -477,156 +513,150 @@ define(['js/app'], function (myApp) {
             }
 
             vm.initUnreadEvaluation = function(){
-                //vm.evaluationTab = 'unreadEvaluation';
+                if(vm.selectedPlatform){
+                    $('#unreadEvaluationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $('#unreadEvaluationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
 
-                $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $('#unreadEvaluationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $('#unreadEvaluationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-
-                $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
-            }
+                    $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                }
+            };
 
             vm.initReadEvaluation = function(){
-                $('#readEvaluationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                if(vm.selectedPlatform) {
+                    $('#readEvaluationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
 
-                $('#readEvaluationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $('#readEvaluationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                }
             }
 
             vm.initAppealEvaluation = function(){
-                $('#conversationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                if(vm.selectedPlatform) {
+                    $('#conversationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
 
-                $('#conversationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $('#conversationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
 
-                $('#appealEvaluationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $('#appealEvaluationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
 
-                $('#appealEvaluationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $('#appealEvaluationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                }
             }
 
             vm.initWorkloadProgress = function(){
-                //vm.inspectionReportTab = 'workloadReport';
-
-                $('#reportConversationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-
-                $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
-
-                $('#reportConversationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-
-                $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
-
-                let qaDepartmentMember = [];
-                if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0){
-                    vm.selectedPlatform.data.qiDepartment.forEach(qItem=>{
-                        qaDepartmentMember = qaDepartmentMember.concat(qItem.users);
-                    })
-                }
-
-                if(qaDepartmentMember && qaDepartmentMember.length > 0)
-                {
-                    socketService.$socket($scope.AppSocket, 'getQIAdmins', {admins: qaDepartmentMember}, function (qdata) {
-                        console.log('all admin data', qdata.data);
-                        vm.qaDepartments = [];
-
-                        if(qdata.data.length > 0){
-                            qdata.data.forEach(item=>{
-                                console.log(item);
-                                let qaAccount = {};
-                                qaAccount._id = item._id;
-                                qaAccount.name = item.adminName;
-                                vm.qaDepartments.push(qaAccount);
-                            })
-                        }
-                        $scope.safeApply();
-                    }, function (err) {
+                if(vm.selectedPlatform) {
+                    $('#reportConversationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
                     });
+
+                    $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                    $('#reportConversationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+
+                    let qaDepartmentMember = [];
+                    if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0) {
+                        vm.selectedPlatform.data.qiDepartment.forEach(qItem => {
+                            qaDepartmentMember = qaDepartmentMember.concat(qItem.users);
+                        })
+                    }
+
+                    if (qaDepartmentMember && qaDepartmentMember.length > 0) {
+                        socketService.$socket($scope.AppSocket, 'getQIAdmins', {admins: qaDepartmentMember}, function (qdata) {
+                            console.log('all admin data', qdata.data);
+                            vm.qaDepartments = [];
+
+                            if (qdata.data.length > 0) {
+                                qdata.data.forEach(item => {
+                                    console.log(item);
+                                    let qaAccount = {};
+                                    qaAccount._id = item._id;
+                                    qaAccount.name = item.adminName;
+                                    vm.qaDepartments.push(qaAccount);
+                                })
+                            }
+                            $scope.safeApply();
+                        }, function (err) {
+                        });
+                    }
                 }
             }
 
             vm.initEvaluationProgress = function() {
-                // var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
-                // var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
-                //
-                // let sendData = {
-                //     startTime: startTime,
-                //     endTime: endTime
-                // }
+                if(vm.selectedPlatform) {
+                    vm.evaluationProgressYearMonth = []
+                    socketService.$socket($scope.AppSocket, 'getEvaluationRecordYearMonth', {platformObjId: vm.selectedPlatform.id}, function (data) {
 
-                vm.evaluationProgressYearMonth = []
-                socketService.$socket($scope.AppSocket, 'getEvaluationRecordYearMonth', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                        if (data && data.data && data.data.length > 0) {
 
-                    if(data && data.data && data.data.length > 0){
-
-                        data.data.forEach(data => {
-                            if(data && data._id && data._id.month && data._id.year){
-                                let month = data._id.month.toString();
-                                if(month.length < 2){
-                                    month = "0" + month;
+                            data.data.forEach(data => {
+                                if (data && data._id && data._id.month && data._id.year) {
+                                    let month = data._id.month.toString();
+                                    if (month.length < 2) {
+                                        month = "0" + month;
+                                    }
+                                    vm.evaluationProgressYearMonth.push({month: month, year: data._id.year});
+                                    //vm.evaluationProgressYearMonth.push({date: data._id.year + " - " + month});
                                 }
-                                vm.evaluationProgressYearMonth.push({month: month, year: data._id.year});
-                                //vm.evaluationProgressYearMonth.push({date: data._id.year + " - " + month});
-                            }
 
-                        })
+                            })
 
-                         $scope.safeApply();
-                    }else{
-                        // vm.unreadEvaluationTable = "";
-                        // $scope.safeApply();
-                    }
-                });
+                            $scope.safeApply();
+                        }
+                    });
+                }
             }
 
             vm.commonSortChangeHandler = function (a, objName, searchFunc) {
@@ -672,36 +702,75 @@ define(['js/app'], function (myApp) {
             };
 
             //////////////////////////////////////////////////////////Start of Evaluation Tab///////////////////////////////////////////////////////////////////
-            vm.getUnreadEvaluationRecord = function(newSearch) {
+            vm.getUnreadEvaluationRecord = function(page) {
                 vm.loadingUnreadEvaluationTable = true;
                 var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                if(page){
+                    vm.unreadEvaluationRecord.index = (page - 1) * vm.unreadEvaluationRecord.limit;
+                }
+
                 let sendData = {
                     startTime: startTime,
                     endTime: endTime,
-                    // index: newSearch ? 0 : (vm.unReadEvaluation.index || 0),
-                    // limit: newSearch ? 1 : (vm.unReadEvaluation.limit || 1),
+                    index: vm.unreadEvaluationRecord.index ? vm.unreadEvaluationRecord.index : 0,
+                    limit: vm.unreadEvaluationRecord.limit ? vm.unreadEvaluationRecord.limit : 10,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getUnreadEvaluationRecord', sendData, function (data) {
 
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
-                        data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                        data.data.data.map(data => {
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+
+                                if(data.conversation){
+                                    data.conversation.forEach(function(cv){
+                                        if(cv){
+                                            if(cv.roles){
+                                                cv.roleName = vm.roleType[cv.roles];
+                                            }
+
+                                            if(cv.time){
+                                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+                                            }
+                                        }
+                                    });
+                                }
+
                             }
 
-                            data.conversation.forEach(function(cv){
-                                cv.roleName = vm.roleType[data.type];
-                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-
-                            });
-
                             return data;
-                        })
-                        vm.unreadEvaluationTable = data.data;
+                        });
+
+                        vm.unreadEvaluationTable = data.data.data;
+                        vm.unreadEvaluationRecord.totalCount = data.data.size;
+                        let pageSize = data.data.size / vm.unreadEvaluationRecord.limit;
+
+                        if(pageSize > Math.trunc(pageSize)){
+                            vm.unreadEvaluationRecord.pageSize = Math.trunc(pageSize) + 1;
+                        }else {
+                            vm.unreadEvaluationRecord.pageSize = Math.trunc(pageSize);
+                        }
+
+                        vm.unreadEvaluationRecord.pageArr = [];
+                        let pageList = document.querySelector("#unreadEvaluationPagination");
+                        for(let a = 1; a <= vm.unreadEvaluationRecord.pageSize ;a++){
+                            vm.unreadEvaluationRecord.pageArr.push(a);
+                            if(pageList && pageList.children[a - 1] && pageList.children[a - 1].className) {
+                                pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
+                            }
+                        }
+                        $scope.safeApply();
+                        pageList = document.querySelector("#unreadEvaluationPagination");
+                        if(pageList && page && pageList.children[page - 1] && pageList.children[page - 1].className){
+                            pageList.children[page - 1].className += " active";
+                        }
+
                     }else{
                         vm.unreadEvaluationTable = "";
                     }
@@ -711,45 +780,66 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.getReadEvaluationRecord = function() {
+            vm.getReadEvaluationRecord = function(page) {
                 vm.loadingReadEvaluationTable = true;
                 var startTime = $('#readEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#readEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                if(page){
+                    vm.readEvaluationRecord.index = (page - 1) * vm.readEvaluationRecord.limit;
+                }
+
                 let sendData = {
                     startTime: startTime,
-                    endTime: endTime
+                    endTime: endTime,
+                    index: vm.unreadEvaluationRecord.index ? vm.unreadEvaluationRecord.index : 0,
+                    limit: vm.unreadEvaluationRecord.limit ? vm.unreadEvaluationRecord.limit : 1,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getReadEvaluationRecord', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
-                        data.data.map(data => {
+                        data.data.data.map(data => {
                             if(data){
                                 if(data.status){
                                     data.status = vm.constQualityInspectionStatus[data.status];
                                 }
 
-                                if(data.createTime){
-                                    //data.createTime = utilService.getLocalTimeString(new Date(data.createTime));
-                                    data.createTime = new Date(data.createTime);
-                                }
-
-                                if(data.processTime){
-                                    //data.processTime = utilService.getLocalTimeString(new Date(data.processTime));
-                                    data.processTime = new Date(data.processTime);
-                                }
-
                                 data.conversation.forEach(function(cv){
-                                    cv.roleName = vm.roleType[data.type];
+                                    cv.roleName = vm.roleType[cv.roles];
                                     cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
                                 });
+
                             }
 
                             return data;
                         })
-                        vm.readEvaluationTable = data.data;
+                        vm.readEvaluationTable = data.data.data;
+
+
+                        vm.readEvaluationRecord.totalCount = data.data.size;
+                        let pageSize = data.data.size / vm.readEvaluationRecord.limit;
+
+                        if(pageSize > Math.trunc(pageSize)){
+                            vm.readEvaluationRecord.pageSize = Math.trunc(pageSize) + 1;
+                        }else {
+                            vm.readEvaluationRecord.pageSize = Math.trunc(pageSize);
+                        }
+
+                        vm.readEvaluationRecord.pageArr = [];
+                        let pageList = document.querySelector("#readEvaluationPagination");
+                        for(let a = 1; a <= vm.readEvaluationRecord.pageSize ;a++){
+                            vm.readEvaluationRecord.pageArr.push(a);
+                            if(pageList && pageList.children[a - 1] && pageList.children[a - 1].className) {
+                                pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
+                            }
+                        }
+                        $scope.safeApply();
+                        pageList = document.querySelector("#readEvaluationPagination");
+                        if(pageList && page && pageList.children[page - 1] && pageList.children[page - 1].className){
+                            pageList.children[page - 1].className += " active";
+                        }
                     }else{
                         vm.readEvaluationTable = "";
                     }
@@ -759,34 +849,63 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.getAppealEvaluationRecordByConversationDate = function(){
+            vm.getAppealEvaluationRecordByConversationDate = function(page){
                 vm.loadingAppealEvaluationTable = true;
                 var startTime = $('#conversationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#conversationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                if(page){
+                    vm.appealEvaluationRecord.index = (page - 1) * vm.appealEvaluationRecord.limit;
+                }
+
                 let sendData = {
                     startTime: startTime,
                     endTime: endTime,
-                    status: vm.appealStatus
+                    status: vm.appealStatus,
+                    index: vm.appealEvaluationRecord.index ? vm.appealEvaluationRecord.index : 0,
+                    limit: vm.appealEvaluationRecord.limit ? vm.appealEvaluationRecord.limit : 10,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByConversationDate', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
-                        data.data.map(data => {
+                        data.data.data.map(data => {
                             if(data && data.status){
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
                             data.conversation.forEach(function(cv){
-                                cv.roleName = vm.roleType[data.type];
+                                cv.roleName = vm.roleType[cv.roles];
                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
                             });
 
                             return data;
                         })
-                        vm.appealEvaluationTable = data.data;
+                        vm.appealEvaluationTable = data.data.data;
+
+                        vm.appealEvaluationRecord.totalCount = data.data.size;
+                        let pageSize = data.data.size / vm.appealEvaluationRecord.limit;
+
+                        if(pageSize > Math.trunc(pageSize)){
+                            vm.appealEvaluationRecord.pageSize = Math.trunc(pageSize) + 1;
+                        }else {
+                            vm.appealEvaluationRecord.pageSize = Math.trunc(pageSize);
+                        }
+
+                        vm.appealEvaluationRecord.pageArr = [];
+                        let pageList = document.querySelector("#appealEvaluationPagination");
+                        for(let a = 1; a <= vm.appealEvaluationRecord.pageSize ;a++){
+                            vm.appealEvaluationRecord.pageArr.push(a);
+                            if(pageList && pageList.children[a - 1] && pageList.children[a - 1].className) {
+                                pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
+                            }
+                        }
+                        $scope.safeApply();
+                        pageList = document.querySelector("#appealEvaluationPagination");
+                        if(pageList && page && pageList.children[page - 1] && pageList.children[page - 1].className){
+                            pageList.children[page - 1].className += " active";
+                        }
                     }else{
                         vm.appealEvaluationTable = "";
                     }
@@ -796,34 +915,63 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.getAppealEvaluationRecordByAppealDate = function(){
+            vm.getAppealEvaluationRecordByAppealDate = function(page){
                 vm.loadingAppealEvaluationTable = true;
                 var startTime = $('#appealEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
                 var endTime = $('#appealEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
+                if(page){
+                    vm.appealEvaluationRecord.index = (page - 1) * vm.appealEvaluationRecord.limit;
+                }
+
                 let sendData = {
                     startTime: startTime,
                     endTime: endTime,
-                    status: vm.appealStatus
+                    status: vm.appealStatus,
+                    index: vm.appealEvaluationRecord.index ? vm.appealEvaluationRecord.index : 0,
+                    limit: vm.appealEvaluationRecord.limit ? vm.appealEvaluationRecord.limit : 10,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getAppealEvaluationRecordByAppealDate', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data.data && data.data.data.length > 0){
 
-                        data.data.map(data => {
+                        data.data.data.map(data => {
                             if(data && data.status){
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
                             data.conversation.forEach(function(cv){
-                                cv.roleName = vm.roleType[data.type];
+                                cv.roleName = vm.roleType[cv.roles];
                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
                             });
 
                             return data;
                         })
-                        vm.appealEvaluationTable = data.data;
+                        vm.appealEvaluationTable = data.data.data;
+
+                        vm.appealEvaluationRecord.totalCount = data.data.size;
+                        let pageSize = data.data.size / vm.appealEvaluationRecord.limit;
+
+                        if(pageSize > Math.trunc(pageSize)){
+                            vm.appealEvaluationRecord.pageSize = Math.trunc(pageSize) + 1;
+                        }else {
+                            vm.appealEvaluationRecord.pageSize = Math.trunc(pageSize);
+                        }
+
+                        vm.appealEvaluationRecord.pageArr = [];
+                        let pageList = document.querySelector("#appealEvaluationPagination");
+                        for(let a = 1; a <= vm.appealEvaluationRecord.pageSize ;a++){
+                            vm.appealEvaluationRecord.pageArr.push(a);
+                            if(pageList && pageList.children[a - 1] && pageList.children[a - 1].className) {
+                                pageList.children[a - 1].className = pageList.children[a - 1].className.replace(/active/g, "");
+                            }
+                        }
+                        $scope.safeApply();
+                        pageList = document.querySelector("#appealEvaluationPagination");
+                        if(pageList && page && pageList.children[page - 1] && pageList.children[page - 1].className){
+                            pageList.children[page - 1].className += " active";
+                        }
 
                     }else{
                         vm.appealEvaluationTable = "";
@@ -1026,115 +1174,6 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.getEvaluationProgressRecord2 = function() {
-                vm.loadingEvaluationProgressTable = true;
-                let yearMonthObj = JSON.parse(vm.yearMonth)
-                let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
-                let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-                let sendData = {
-                    //platformObjId: vm.selectedPlatform.id,
-                    startDate: startDate,
-                    endDate: endDate
-                }
-                let resultArr = [];
-
-                let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-                let rowMaxLength = 7;
-                socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecord', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
-                        //let result = data.data.sort(function(a,b) {return (a.platformName > b.platformName) ? 1 : ((b.platformName > a.platformName) ? -1 : 0);} );
-
-                        data.data.map(result => {
-                            if(result && result.length > 0){
-                                let counter = 1;
-                                let firstRow = [];
-                                let secondRow = [];
-                                let thirdRow = [];
-                                let fouthRow = [];
-                                let fifthRow = [];
-                                let sixthRow = [];
-                                result.forEach(resultByPlatform => {
-                                    if(resultByPlatform){
-                                        resultByPlatform.date = new Date(resultByPlatform.date);
-
-                                        if(resultByPlatform.date.getDate() == 1){
-                                            for(let i = 0; i < resultByPlatform.date.getDay(); i++){
-                                                firstRow.push({day: "-", isCompleted: false});
-                                            }
-                                            firstRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
-
-                                            if(firstRow.length == 7){
-                                                counter += 1;
-                                            }
-                                        }else if(counter == 1){
-                                            firstRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
-                                            if(firstRow.length == 7){
-                                                counter += 1;
-                                            }
-
-                                        }else if(counter == 2){
-                                            secondRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
-                                            if(secondRow.length == 7){
-                                                counter += 1;
-                                            }
-                                        }else if(counter == 3){
-                                            thirdRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
-                                            if(thirdRow.length == 7){
-                                                counter += 1;
-                                            }
-                                        }else if(counter == 4){
-                                            fouthRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
-                                            if(fouthRow.length == 7){
-                                                counter += 1;
-                                            }
-                                        }else if(counter == 5){
-                                            fifthRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
-                                            if(fifthRow.length == 7){
-                                                counter += 1;
-                                            }
-                                        }else if(counter == 6){
-                                            sixthRow.push({day: resultByPlatform.date.getDate(), isCompleted: resultByPlatform.isCompleted});
-                                            if(sixthRow.length == 7){
-                                                counter += 1;
-                                            }
-                                        }
-                                    }
-
-                                })
-
-                                let calendarData = [];
-
-                                calendarData.push(firstRow);
-                                calendarData.push(secondRow);
-                                calendarData.push(thirdRow);
-                                calendarData.push(fouthRow);
-                                calendarData.push(fifthRow);
-                                if(sixthRow.length > 0){
-                                    calendarData.push(fifthRow);
-                                }
-                                resultArr.push({platformName: result[0].platformName, calendarData: calendarData, calendarTitle: weekDay});
-
-
-                            }
-
-                        })
-                        vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                        vm.evaluationProgressTable = resultArr;
-
-                        //vm.getUnreadEvaluationRecord();
-                    }else{
-
-                    }
-
-                    vm.loadingEvaluationProgressTable = false;
-                    $scope.safeApply();
-
-
-
-                });
-            }
-
             vm.getEvaluationProgressRecord = function() {
                 vm.loadingEvaluationProgressTable = true;
                 let yearMonthObj = JSON.parse(vm.yearMonth)
@@ -1219,37 +1258,8 @@ define(['js/app'], function (myApp) {
 
                         resultArr.push({calendarData: calendarData, calendarTitle: weekDay});
 
-                        // vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                        // vm.evaluationProgressTable = resultArr;
-                        // vm.loadingEvaluationProgressTable = false
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         data.data.map(result => {
                             if(result && result.length > 0){
-                                // let counter = 1;
-                                // let firstRow = [];
-                                // let secondRow = [];
-                                // let thirdRow = [];
-                                // let fouthRow = [];
-                                // let fifthRow = [];
-                                // let sixthRow = [];
                                 let calendarDataObj = resultObj;
                                 result.forEach(resultByPlatform => {
                                     if(resultByPlatform){
@@ -1280,12 +1290,11 @@ define(['js/app'], function (myApp) {
                             }
 
                         })
+
                         vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
                         vm.evaluationProgressTable = resultArr2;
-                        //vm.evaluationProgressTable = calendarDataObj;
                         vm.loadingEvaluationProgressTable = false
                         $scope.safeApply();
-                        //vm.getUnreadEvaluationRecord();
                     }
 
                 });

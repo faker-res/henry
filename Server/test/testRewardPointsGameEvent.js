@@ -55,10 +55,9 @@ describe("Test player reward points for game event", function () {
         "rewardTitle" : "test GameRP",
         "rewardContent" : "gameRP",
         "target" : {
-             "gameType" : [
-            ],
-            "targetDestination" : [
-            ],
+            "gameType" : null,
+            "betType" : ['1'],
+            "targetDestination" : null,
             "dailyValidConsumptionAmount" : 100, // test the condition 2 (dailyValidConsumptionAmount: 100)
             "dailyConsumptionCount" : null,  // test condition 1 (dailyConsumptionCount: 1)
             "singleConsumptionAmount" : null,  // test condition 1 (singleConsumptionAmount: 100)
@@ -244,8 +243,8 @@ describe("Test player reward points for game event", function () {
     /* Test 8 - create game reward point event to platform*/
     it('Should create game reward point event to platform', function (done) {
         rewardPointGameEvent.platformObjId = testPlatformObjId;
-        rewardPointGameEvent.target.gameType.push(testGamingType);
-        rewardPointGameEvent.target.targetDestination.push(String(testProviderObjId));
+        rewardPointGameEvent.target.gameType = testGamingType;
+        rewardPointGameEvent.target.targetDestination = String(testProviderObjId);
         dbRewardPointsEvent.createRewardPointsEvent(rewardPointGameEvent).then(
             (rewardPointEvent) => {
                 testRewardPointEvent = rewardPointEvent;
@@ -263,13 +262,14 @@ describe("Test player reward points for game event", function () {
             playerId: testPlayerObjId,
             platformId: testPlatformId,
             gameId: testGameId,
-            gameType: testGamingType,
+            cpGameType: testGamingType,
             orderNo: Math.floor(Math.random() * 10),
             roundNo : Math.floor(Math.random() * 10),
             validAmount: consumptionAmount,
             bonusAmount: consumptionAmount,
             amount: consumptionAmount,
-            providerId: testProviderId
+            providerId: testProviderId,
+            betType: '1'
         };
 
         let p = Promise.resolve(dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord(recordData));

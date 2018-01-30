@@ -214,6 +214,16 @@ define([], function () {
                 .replace(',', ' ');
         }
 
+        this.getFormatDate = function (data) {
+            var option = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            };
+            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+                .replace(',', ' ');
+        }
+
         this.getLocalTime = function (date) {
             if (!date) return null;
             return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);

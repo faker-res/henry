@@ -222,7 +222,7 @@ let dbPlayerReward = {
             let lastValidWithdrawalQuery = {
                 mainType: "PlayerBonus",
                 "data.playerId": player.playerId,
-                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS]}
+                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.PENDING, constProposalStatus.SUCCESS, constProposalStatus.AUTOAUDIT]}
             };
 
             let lastTopUpQuery = {playerId: player._id};
@@ -2636,6 +2636,12 @@ let dbPlayerReward = {
             }
         ).then(
             newProp => {
+                if (topUpProp) {
+                    // Since promo code do not have its own event, it does not have eventObjId
+                    // Hence this object id will be use specifically for promo code throughout system as eventObjId
+                    addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
+                }
+
                 return dbConfig.collection_promoCode.findOneAndUpdate({
                     _id: promoCodeObj._id
                 }, {
@@ -3691,6 +3697,26 @@ let dbPlayerReward = {
             settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
 
+        if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
+            topupMatchQuery.topUpType = {$in: eventData.condition.topupType}
+        }
+
+        if (eventData.condition.onlineTopUpType && eventData.condition.onlineTopUpType.length > 0) {
+            if (!topupMatchQuery.$and) {
+                topupMatchQuery.$and = [];
+            }
+
+            topupMatchQuery.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exists: false}}]});
+        }
+
+        if (eventData.condition.bankCardType && eventData.condition.bankCardType.length > 0) {
+            if (!topupMatchQuery.$and) {
+                topupMatchQuery.$and = [];
+            }
+
+            topupMatchQuery.$and.push({$or: [{bankCardType: {$in: eventData.condition.bankCardType}}, {bankCardType: {$exists: false}}]});
+        }
+
         // Check registration interface condition
         if (checkInterfaceRewardPermission(eventData, rewardData)) {
             return Q.reject({
@@ -4225,6 +4251,21 @@ let dbPlayerReward = {
                                 });
                             }
 
+                            // check correct topup type
+                            let correctTopUpType = true;
+
+                            if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(selectedTopUp.topUpType) === -1) {
+                                correctTopUpType = false;
+                            }
+
+                            if (eventData.condition.onlineTopUpType && selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(selectedTopUp.merchantTopUpType) === -1) {
+                                correctTopUpType = false;
+                            }
+
+                            if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
+                                correctTopUpType = false;
+                            }
+
                             // Set reward param step to use
                             if (eventData.param.isMultiStepReward) {
                                 if (eventData.param.isSteppingReward) {
@@ -4239,7 +4280,7 @@ let dbPlayerReward = {
                                 selectedRewardParam = selectedRewardParam[0];
                             }
 
-                            if (applyAmount < selectedRewardParam.minTopUpAmount) {
+                            if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
@@ -5297,6 +5338,23 @@ function getRewardPeriodToTime (rewardPeriod) {
     }
 
     return time;
+}
+
+function addUsedRewardToTopUpRecord(topUpProposalId, rewardEvent) {
+    return dbConfig.collection_playerTopUpRecord.findOne({proposalId: topUpProposalId}).lean().then(
+        topUpRecord => {
+            if (topUpRecord) {
+                return dbConfig.collection_playerTopUpRecord.findOneAndUpdate({
+                    _id: topUpRecord._id,
+                    createTime: topUpRecord.createTime,
+                    platformId: topUpRecord.platformId
+                }, {
+                    $push: {usedEvent: rewardEvent}
+                }).lean().exec();
+            }
+            return Promise.resolve();
+        }
+    );
 }
 
 var proto = dbPlayerRewardFunc.prototype;
