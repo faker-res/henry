@@ -60,7 +60,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                             th(style="width: 231.82px;") {{"EVALUATION_REVIEW" | translate}}
                                             th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
                                             th.col-md-1 {{"EVALUATED_TIME" | translate}}
-                                            th {{"APPEAL_REASON" | translate}}
+                                            th(style="background-color: red") {{"APPEAL_REASON" | translate}}
                                         tbody(ng-repeat="unreadEvaluation in vm.unreadEvaluationTable")
                                             tr(style="border: 1px solid")
                                                 td(style="width: 40px;")
@@ -69,6 +69,14 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                 td.col-md-7(style="padding: 0px;", colspan=7)
                                                     table(style="width: 100%; table-layout: fixed;")
                                                         tbody
+                                                            tr(style="text-align:center;color:red")
+                                                                td(style="width: 78.18px;")
+                                                                td(style="width: 78.18px;")
+                                                                td(style="width: 77.27px;")
+                                                                td(style="width: 309.09px;") "**** 新的对话开始 ****"
+                                                                td(style="width: 77.27px;")
+                                                                td(style="width: 77.27px;")
+                                                                td(style="width: 231.82px;")
                                                             tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
                                                                 td(style="width: 78.18px;") {{unreadEvaluation.fpmsAcc}}
                                                                 td(style="width: 78.18px;") {{conversation.roleName}}
@@ -77,6 +85,16 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                                 td(style="width: 77.27px;") {{conversation.timeoutRate}}
                                                                 td(style="width: 77.27px;") {{conversation.inspectionRate}}
                                                                 td(style="width: 231.82px;") {{conversation.review}}
+                                                            tr(style="text-align:center;color:red")
+                                                                td(style="width: 78.18px;")
+                                                                td(style="width: 78.18px;")
+                                                                td(style="width: 77.27px;")
+                                                                td(style="width: 309.09px;") 結束對話:访客关闭对话 ({{unreadEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                                td(style="width: 77.27px;")
+                                                                td(style="width: 77.27px;")
+                                                                td(style="width: 231.82px;")
+                                                            //tr
+                                                            //    td(style="text-align:center;color:red" colspan=7) 結束對話:访客关闭对话 ({{unreadEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
                                                 td.col-md-1 {{unreadEvaluation.qualityAssessor}}
                                                 td.col-md-1 {{unreadEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
                                                 td
@@ -185,6 +203,14 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                 td.col-md-9(style="padding: 0px" colspan=7)
                                                     table(style="width: 100%; table-layout: fixed;")
                                                         tbody(style="width: 100%")
+                                                            tr(style="text-align:center;color:red")
+                                                                td.col-sm-1
+                                                                td.col-sm-1
+                                                                td.col-sm-1
+                                                                td.col-sm-4 "**** 新的对话开始 ****"
+                                                                td.col-sm-1
+                                                                td.col-sm-1
+                                                                td.col-sm-3
                                                             tr(ng-repeat="conversation in readEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
                                                                 td.col-sm-1 {{readEvaluation.fpmsAcc}}
                                                                 td.col-sm-1 {{conversation.roleName}}
@@ -193,6 +219,14 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                                 td.col-sm-1 {{conversation.timeoutRate}}
                                                                 td.col-sm-1 {{conversation.inspectionRate}}
                                                                 td.col-sm-3 {{conversation.review}}
+                                                            tr(style="text-align:center;color:red")
+                                                                td.col-sm-1
+                                                                td.col-sm-1
+                                                                td.col-sm-1
+                                                                td.col-sm-4 結束對話:访客关闭对话 ({{readEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                                td.col-sm-1
+                                                                td.col-sm-1
+                                                                td.col-sm-3
                                                 td.col-md-1 {{readEvaluation.qualityAssessor}}
                                                 td.col-md-1 {{readEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
                                     .inlineBlk.pull-right(style='width:500px; padding-top:20px; text-align: right;')
@@ -295,15 +329,15 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                 td.col-md-1 {{appealEvaluation.status | translate}}
                                                 td.col-md-7(style="padding: 0px;", colspan=7)
                                                     table(style="width: 100%; table-layout: fixed;")
-                                                        //thead
-                                                        //    th.col-sm-1 {{"FPMS_ACC" | translate}}
-                                                        //    th.col-sm-1 {{"Type" | translate}}
-                                                        //    th.col-sm-1 {{"TIME" | translate}}
-                                                        //    th.col-sm-4 {{"CONVERSATION_CONTENT" | translate}}
-                                                        //    th.col-sm-1 {{"OVERTIME_MARK" | translate}}
-                                                        //    th.col-sm-1 {{"EVALUATION_MARK" | translate}}
-                                                        //    th.col-sm-3 {{"EVALUATION_REVIEW" | translate}}
                                                         tbody
+                                                            tr(style="text-align:center;color:red")
+                                                                td(style="width: 80px;")
+                                                                td(style="width: 80px;")
+                                                                td(style="width: 89px;")
+                                                                td(style="width: 320px;") **** 新的对话开始 ****
+                                                                td(style="width: 80px;")
+                                                                td(style="width: 80px;")
+                                                                td(style="width: 230px;")
                                                             tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
                                                                 td(style="width: 80px;") {{appealEvaluation.fpmsAcc}}
                                                                 td(style="width: 80px;") {{conversation.roleName}}
@@ -312,6 +346,14 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                                 td(style="width: 80px;") {{conversation.timeoutRate}}
                                                                 td(style="width: 80px;") {{conversation.inspectionRate}}
                                                                 td(style="width: 230px;") {{conversation.review}}
+                                                            tr(style="text-align:center;color:red")
+                                                                td(style="width: 80px;")
+                                                                td(style="width: 80px;")
+                                                                td(style="width: 89px;")
+                                                                td(style="width: 320px;") 結束對話:访客关闭对话 ({{appealEvaluation.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+                                                                td(style="width: 80px;")
+                                                                td(style="width: 80px;")
+                                                                td(style="width: 230px;")
                                                 td.col-md-1 {{appealEvaluation.qualityAssessor}}
                                                 td.col-md-1 {{appealEvaluation.processTime | date:"yyyy-MM-dd HH:mm:ss"}}
                                                 td {{appealEvaluation.appealReason}}

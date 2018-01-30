@@ -572,7 +572,10 @@ var dbQualityInspection = {
        // let proms = [];
         connection.query("SELECT COUNT(*) AS 'record_number',company_id, operator_id FROM chat_content WHERE " + queryObj + " GROUP BY company_id,operator_id", function (error, results, fields) {
             console.log('result',results);
-            if (error) throw error;
+            //if (error) throw error;
+            if(error){
+                console.log(error);
+            }
 
             deferred.resolve(results);
             //connection.end();
@@ -756,7 +759,19 @@ var dbQualityInspection = {
                         unreadEvaluationData.qualityAssessor = adminInfo.adminName;
                     }
 
-                    return unreadEvaluationData;
+                    return;
+                }
+            ).then(
+                () => {
+                    return dbconfig.collection_admin.findOne({_id: unreadEvaluationData.fpmsAcc}).then(
+                        fpmsAccInfo => {
+                            if(fpmsAccInfo && fpmsAccInfo.adminName){
+                                unreadEvaluationData.fpmsAcc = fpmsAccInfo.adminName;
+                            }
+
+                            return unreadEvaluationData;
+                        }
+                    )
                 }
             );
         }
@@ -818,7 +833,6 @@ var dbQualityInspection = {
                 $gte: startTime,
                 $lt: endTime
             }
-            //status: constQualityInspectionStatus.COMPLETED_READ
         }
 
         if(status != "all"){
@@ -877,7 +891,6 @@ var dbQualityInspection = {
                 $gte: startTime,
                 $lt: endTime
             }
-            //status: constQualityInspectionStatus.COMPLETED_READ
         }
 
         if(status != "all"){
@@ -943,15 +956,7 @@ var dbQualityInspection = {
             query.qualityAssessor = qaAccount;
         }
 
-
-        console.log("")
         return dbconfig.collection_qualityInspection.aggregate([
-            // {
-            //     $match: {
-            //         createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
-            //         qualityAssessor: qaAccount
-            //     },
-            // },
             {
                 $match: query
             },
@@ -984,7 +989,6 @@ var dbQualityInspection = {
            if(resultData && resultData.length > 0){
                let proms = [];
                resultData.map(r => {
-                   console.log("11111111111111111111111111111",r)
                    proms.push(dbQualityInspection.getAdminNameById(r));
                })
 
@@ -993,7 +997,6 @@ var dbQualityInspection = {
         }).then(
             returnedData => {
                 if(returnedData && returnedData.length > 0){
-                    console.log("AAAAAAAAAAAAAAAAAAAAAAa",returnedData);
                     return returnedData;
                 }
             }
@@ -1002,10 +1005,8 @@ var dbQualityInspection = {
 
     getAdminNameById: function(workloadResultArr){
         //let returnedAdminData = {};
-        console.log("BBBBBBBBBBBBBBBBBBBBBBBBBB",workloadResultArr);
         return dbconfig.collection_admin.findOne({_id: workloadResultArr.qaAccount}).lean().then(
             adminData => {
-                console.log("CCCCCCCCCCCCCCCCCCCCCCCCCCCCC",adminData);
                 if(adminData){
                     workloadResultArr.qaAccount = adminData.adminName;
                 }
@@ -1017,42 +1018,26 @@ var dbQualityInspection = {
 
     markEvaluationRecordAsRead: function(appealRecordArr, status){
         if(appealRecordArr && appealRecordArr.length > 0){
-            //let messageIdArr = [];
-            let deferred = Q.defer();
-            let updateProms = [];
 
             let updateData = {
                 status: constQualityInspectionStatus.COMPLETED_READ
             }
 
-            appealRecordArr.forEach(a => {
-                //messageIdArr.push(a.messageId);
-                let query = {
-                    messageId: a.messageId,
-                    status: constQualityInspectionStatus.COMPLETED_UNREAD
+            return appealRecordArr.forEach(a => {
+
+                if(a && a.messageId){
+                    let query ={
+                        messageId: a.messageId,
+                        status: constQualityInspectionStatus.COMPLETED_UNREAD
+                    }
+
+                    let updateData = {
+                        status: constQualityInspectionStatus.COMPLETED_READ
+                    }
+
+                    return dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData).exec();
                 }
-                let updateEvaluationRecord = dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData);
-                updateProms.push(updateEvaluationRecord);
             });
-
-            return Q.all(updateProms).then(data=>{
-                console.log(data);
-                deferred.resolve(data)
-            })
-            //return Promise.all([updateProms]);
-            return deferred.promise;
-
-
-            // let query ={
-            //     messageId: {$in: messageIdArr},
-            //     status: constQualityInspectionStatus.COMPLETED_UNREAD
-            // }
-            //
-            // let updateData = {
-            //     status: constQualityInspectionStatus.COMPLETED_READ
-            // }
-            //
-            // return dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData);
         }
 
     },
@@ -1060,30 +1045,26 @@ var dbQualityInspection = {
     appealEvaluation: function(appealRecordArr){
         if(appealRecordArr && appealRecordArr.length > 0){
 
+            let updateData = {
+                status: constQualityInspectionStatus.APPEALING
+            }
+
             return appealRecordArr.forEach(a => {
-                let query ={
-                    //messageId: appealRecordArr.messageId ? ,
-                    status: constQualityInspectionStatus.COMPLETED_UNREAD
+                if(a && a.messageId){
+                    let query ={
+                        messageId: a.messageId,
+                        status: constQualityInspectionStatus.COMPLETED_UNREAD
+                    }
+
+                    if(a.appealReason){
+                        updateData.appealReason = a.appealReason;
+                    }
+
+                    return dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData).exec();
                 }
 
-                if(a.messageId){
-                    query.messageId = a.messageId;
-                }
-
-                let updateData = {
-                    status: constQualityInspectionStatus.APPEALING
-                }
-
-                if(a.appealReason){
-                    updateData.appealReason = a.appealReason;
-                }
-
-
-                return dbconfig.collection_qualityInspection.findOneAndUpdate(query,updateData).exec();
             });
-
         }
-
     },
     rateBatchConversation: function(cvs, accName){
         var deferred = Q.defer();
@@ -1172,44 +1153,6 @@ var dbQualityInspection = {
         ).exec();
 
     },
-    // getEvaluationProgressRecord: function (platformObjId, startDate, endDate) {
-    //     // console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",startDate)
-    //     // console.log("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",endDate)
-    //     if(startDate && endDate){
-    //         let startTime = dbUtility.getLocalTimeString(startDate);
-    //         let endTime = dbUtility.getLocalTimeString(endDate);
-    //
-    //         let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime ,company_id  FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
-    //
-    //         if(platformObjId && platformObjId != "all"){
-    //             return dbconfig.collection_platform.findOne({_id: platformObjId}).then(
-    //                 platformDetail => {
-    //                     if(platformDetail && platformDetail.companyId){
-    //                         queryString += "AND company_id=" + platformDetail.companyId + " "
-    //                     }
-    //
-    //                     queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd'),company_id "
-    //
-    //                     return queryString;
-    //                 }
-    //             ).then(
-    //                 query => {
-    //                     if(query){
-    //                         let connection = dbQualityInspection.connectMysql();
-    //                         connection.connect();
-    //                         return dbQualityInspection.getLive800RecordByMySQL(query, connection)
-    //                     }
-    //                 }
-    //             );
-    //         }
-    //         else {
-    //             queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd'),company_id "
-    //             let connection = dbQualityInspection.connectMysql();
-    //             connection.connect();
-    //             return dbQualityInspection.getLive800RecordByMySQL(queryString, connection)
-    //         }
-    //     }
-    // },
 
     getEvaluationProgressRecord: function (platformObjId, startDate, endDate) {
         if(startDate && endDate){
@@ -1235,7 +1178,7 @@ var dbQualityInspection = {
                             return queryArr;
 
                         }else{
-
+                            return Q.reject({name: "DBError", message: "Cannot find platform detail"});
                         }
                     }
                 ).then(
@@ -1265,7 +1208,6 @@ var dbQualityInspection = {
                             platformDetail.map(p => {
                                 let queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime  FROM chat_content WHERE store_time BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime + "' AS DATETIME) ";
                                 if(p.live800CompanyId){
-                                    //queryString += "AND company_id IN ('" + p.live800CompanyId + "') ";
                                     queryString += "AND company_id IN (" + p.live800CompanyId + ") ";
                                 }
                                 queryString += "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd') ";
@@ -1275,7 +1217,7 @@ var dbQualityInspection = {
                             return queryArr;
 
                         }else{
-
+                            return Q.reject({name: "DBError", message: "Cannot find platform detail"});
                         }
                     }
                 ).then(
@@ -1305,7 +1247,9 @@ var dbQualityInspection = {
         if(connection){
             connection.query(queryString, function (error, results, fields) {
                 //console.log("live 800 result",results)
-                if (error) throw error;
+                if(error){
+                    console.log(error);
+                }
 
                 results.forEach(result => {
                     let startTime = new Date(result.storeTime);
@@ -1321,7 +1265,7 @@ var dbQualityInspection = {
             });
             return deferred.promise;
         }else{
-
+            return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
         }
 
     },
@@ -1347,7 +1291,7 @@ var dbQualityInspection = {
                     return dbconfig.collection_qualityInspection.find(query).count()
                 }
                 else{
-
+                    return Q.reject({name: "DBError", message: "Cannot find platform details by live800 company id"});
                 }
             }
         ).then(
@@ -1361,7 +1305,6 @@ var dbQualityInspection = {
 
                 let result = {
                     platformName: platformName,
-                    //companyId: companyId,
                     totalRecord: totalRecordFromLive800,
                     isCompleted: isCompleted,
                     totalRecordFromFPMS:qualityInspectionCount ? qualityInspectionCount : 0,
@@ -1372,66 +1315,6 @@ var dbQualityInspection = {
         )
 
     },
-    searchMySQLDB1:function(queryObj,connection){
-        var deferred = Q.defer();
-        let proms = [];
-        //connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-        connection.query(queryObj, function (error, results, fields) {
-            console.log('yeah');
-            if (error) throw error;
-            results.forEach(item => {
-                console.log(item);
-                let live800Chat = {conversation: []};
-                live800Chat.messageId = item.msg_id;
-                live800Chat.status = item.status;
-                live800Chat.qualityAssessor = '';
-                live800Chat.fpmsAcc = item.operator_name;
-                live800Chat.processTime = null;
-                live800Chat.appealReason = '';
-
-                live800Chat.operatorId = item.operator_id;
-                live800Chat.operatorName = item.operator_name;
-
-                let dom = new JSDOM(item.content);
-                let content = [];
-                let sys = dom.window.document.getElementsByTagName("sys");
-                let he = dom.window.document.getElementsByTagName("he");
-                let i = dom.window.document.getElementsByTagName("i");
-
-                partI = dbQualityInspection.reGroup(i, 1);
-                partHe = dbQualityInspection.reGroup(he, 2);
-                partSYS = dbQualityInspection.reGroup(sys, 3);
-                content = partI.concat(partHe, partSYS);
-                content.sort(function (a, b) {
-                    return a.time - b.time;
-                });
-
-                live800Chat.conversation = content;
-
-                let queryQA = {messageId: String(item.msg_id)};
-                let prom = dbconfig.collection_qualityInspection.find(queryQA)
-                    .then(qaData => {
-                        if (qaData.length > 0) {
-                            live800Chat.status = qaData[0].status;
-                            live800Chat.conversation = qaData[0].conversation;
-                            live800Chat.qualityAssessor = qaData[0].qualityAssessor;
-                            live800Chat.processTime = qaData[0].processTime;
-                            live800Chat.appealReason = qaData[0].appealReason;
-                        }
-                        return live800Chat;
-                    });
-                proms.push(prom);
-            });
-            return Q.all(proms).then(data => {
-                deferred.resolve(data);
-                connection.end();
-            })
-        });
-        return deferred.promise;
-    },
-
-
-
 
 };
 module.exports = dbQualityInspection;
