@@ -5514,9 +5514,12 @@ let dbPlayerInfo = {
     },
 
     isPlayerNameValidToRegister: function (query) {
-        return dbconfig.collection_players.findOne(query).then(
-            playerData => {
-                if (playerData) {
+        let playerProm = dbconfig.collection_players.findOne(query).lean();
+        let playerNameProm = dbconfig.collection_playerName.findOne(query).lean();
+
+        return Promise.all([playerProm, playerNameProm]).then(
+            data => {
+                if (!data || data[1] || data [2]) {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
@@ -6722,46 +6725,46 @@ let dbPlayerInfo = {
             registrationTime: timeQuery
         };
 
-        var a = dbconfig.collection_players.find(query).count();
-        var b = dbconfig.collection_players.aggregate([{
-            $match: query,
-        }, {
-            $group: {
-                _id: "$domain",
-                num: {$sum: 1}
-            }
-        }, {
-            $project: {
-                domain: "$_id",
-                num: "$num"
-            }
-        }]);
-        var partnerQuery = {platform: platform, registrationTime: timeQuery}
-        var c = dbconfig.collection_players.aggregate(
-            {$match: partnerQuery},
-            {
-                $group: {
-                    _id: "$partner",
-                    num: {$sum: 1}
-                }
-            }
-        );
-        var topupQuery = {
-            platform: platform,
-            topUpTimes: {$gt: 0},
-            topUpSum: {$gt: 0},
-            registrationTime: timeQuery
-        };
-        var d = dbconfig.collection_players.find(topupQuery).count();
-
-        let topUpMultipleTimesQuery = {
-            platform: platform,
-            topUpTimes: {$gt: 1},
-            topUpSum: {$gt: 0},
-            registrationTime: timeQuery
-        }
-
-        let e = dbconfig.collection_players.find(topUpMultipleTimesQuery).count();
+        // var a = dbconfig.collection_players.find(query).count();
+        // var b = dbconfig.collection_players.aggregate([{
+        //     $match: query,
+        // }, {
+        //     $group: {
+        //         _id: "$domain",
+        //         num: {$sum: 1}
+        //     }
+        // }, {
+        //     $project: {
+        //         domain: "$_id",
+        //         num: "$num"
+        //     }
+        // }]);
+        // var partnerQuery = {platform: platform, registrationTime: timeQuery}
+        // var c = dbconfig.collection_players.aggregate(
+        //     {$match: partnerQuery},
+        //     {
+        //         $group: {
+        //             _id: "$partner",
+        //             num: {$sum: 1}
+        //         }
+        //     }
+        // );
+        // var topupQuery = {
+        //     platform: platform,
+        //     topUpTimes: {$gt: 0},
+        //     topUpSum: {$gt: 0},
+        //     registrationTime: timeQuery
+        // };
+        // var d = dbconfig.collection_players.find(topupQuery).count();
+        //
+        // let topUpMultipleTimesQuery = {
+        //     platform: platform,
+        //     topUpTimes: {$gt: 1},
+        //     topUpSum: {$gt: 0},
+        //     registrationTime: timeQuery
+        // }
+        //
+        // let e = dbconfig.collection_players.find(topUpMultipleTimesQuery).count();
         let f = dbconfig.collection_players.find(query)
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
@@ -6806,33 +6809,33 @@ let dbPlayerInfo = {
         //         }
         //     }
         // );
-
-        return Q.all([a, b, c, d, e, f, g]).then(
-            data => {
-                retData = data;
-                var prop = [];
-                if (data && data[2]) {
-                    data[2].map(item => {
-                        if (item._id) {
-                            prop.push(dbconfig.collection_partner.findOne({_id: item._id}));
-                        }
-                    })
-                }
-                return Q.all(prop);
-            },
-            err => {
-                return err;
-            }
-        ).then(partnerData => {
-            var partnerDataObj = {};
-            partnerData.map(item => {
-                partnerDataObj[item._id] = item;
-            })
-            retData[2].forEach(item => {
-                item.partner = partnerDataObj[item._id];
-            })
-            return retData;
-        })
+        return Q.all([f, g]);
+        // return Q.all([a, b, c, d, e, f, g]).then(
+        //     data => {
+        //         retData = data;
+        //         var prop = [];
+        //         if (data && data[2]) {
+        //             data[2].map(item => {
+        //                 if (item._id) {
+        //                     prop.push(dbconfig.collection_partner.findOne({_id: item._id}));
+        //                 }
+        //             })
+        //         }
+        //         return Q.all(prop);
+        //     },
+        //     err => {
+        //         return err;
+        //     }
+        // ).then(partnerData => {
+        //     var partnerDataObj = {};
+        //     partnerData.map(item => {
+        //         partnerDataObj[item._id] = item;
+        //     })
+        //     retData[2].forEach(item => {
+        //         item.partner = partnerDataObj[item._id];
+        //     })
+        //     return retData;
+        // })
     },
 
     /*
@@ -12816,9 +12819,9 @@ let dbPlayerInfo = {
                 if (allProviderGroup && allProviderGroup.length > 0) {
                     let allGroupData = JSON.parse(JSON.stringify(allProviderGroup));
 
-                    for (let m = 0; m < allProviderGroup.length; m++) {
+                    for (let m = allProviderGroup.length - 1; m >= 0; m--) {
                         for (let j = 0; j < usedTaskGroup.length; j++) {
-                            if (usedTaskGroup[j].providerGroup && usedTaskGroup[j].providerGroup._id.toString() == allProviderGroup[m]._id) {
+                            if (usedTaskGroup[j].providerGroup && usedTaskGroup[j].providerGroup._id.toString() == allProviderGroup[m]._id.toString()) {
                                 allGroupData.splice(m, 1);
                             }
                         }

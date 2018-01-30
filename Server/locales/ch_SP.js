@@ -224,7 +224,6 @@ var simplifiedChinese = {
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
     "Connection failed": "连接失败",
     "PlayerPromoCodeReward": "优惠代码",
-    "Player reach participate limit": "次数已用完",
     "PlayerConsumptionReturnSuccess": "玩家洗码（成功）",
     "ManualTopupSuccess": "手工存款（成功）",
     "OnlineTopupSuccess": "在线充值（成功）",

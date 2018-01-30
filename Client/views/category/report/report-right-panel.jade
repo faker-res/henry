@@ -565,7 +565,7 @@
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.partnerAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerPartnerAnalysisGraphSort | filter: vm.filterNoNewPlayer')
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData, v.promoteWayName, "totalNewAccount"); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = v.promoteWayName') {{v.promoteWayName}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = v.promoteWayName') {{v.promoteWayName}}
                                         td
                                             span {{ v.totalNewAccount}}
                                         td
@@ -578,7 +578,7 @@
                                             span {{ v.ratio }}%
                                     tr
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData, null, "totalNewAccount"); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = null') {{ "total" | translate}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerPartnerAnalysisPie", vm.newPlayerQuery.partnerAnalysisNewPlayerData); vm.newPlayerQuery.validPlayerGraphPartnerAnalysis = null') {{ "total" | translate}}
                                         td
                                             span {{ vm.newPlayerQuery.partnerNewPlayerData.totalNewAccount}}
                                         td
@@ -676,7 +676,7 @@
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.domainAnalysisNewPlayerData | orderBy: vm.newPlayerQuery.validPlayerPartnerDomainGraphSort | filter: vm.filterNoNewPlayer')
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData, v.promoteWayName, "totalNewAccount"); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = v.promoteWayName') {{v.promoteWayName}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData, v.promoteWayName); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = v.promoteWayName') {{v.promoteWayName}}
                                         td
                                             span {{ v.totalNewAccount}}
                                         td
@@ -689,7 +689,7 @@
                                             span {{ v.ratio }}%
                                     tr
                                         td
-                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData, null, "totalNewAccount"); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = null') {{ "total" | translate}}
+                                            a(ng-click='vm.drawValidPlayerGraphByElementId("#validPlayerDomainAnalysisPie", vm.newPlayerQuery.domainAnalysisNewPlayerData); vm.newPlayerQuery.validPlayerGraphDomainAnalysis = null') {{ "total" | translate}}
                                         td
                                             span {{ vm.newPlayerQuery.domainNewPlayerData.totalNewAccount}}
                                         td
@@ -766,35 +766,35 @@
                                         td
                                             span {{v.partner.partnerName}}
             .clearfix
-            br
-            .clearfix
-            .penal.panel-info
-                .panel-heading {{'PARTNER' | translate}}
-                .penal_body
-                    .col-md-6.padding-top-5
-                        #partnerPlayerPie(style="height:380px;width:100%")
-                    .col-md-6(style='padding-top:10px')
-                        table#newPlayerPartnerTable.common-table.display(style='width:100%')
-            .clearfix
-            .penal.panel-info(ng-show="vm.detailPartnerPlayer.partnerObjectId")
-                .panel-heading {{'PLAYER_DOMAIN' | translate}} : {{vm.detailDomainPlayer.domainName}}
-                .penal_body
-                    table#detailPartnerPlayerTable.common-table.display(style='min-width:100%')
-                    #detailPartnerPlayerTablePage
-            .clearfix
-            .penal.panel-info
-                .panel-heading {{'PLAYER_DOMAIN' | translate}}
-                .penal_body
-                    .col-md-6.padding-top-5
-                        #domainPlayerPie(style="height:380px;width:100%")
-                    .col-md-6(style='padding-top:10px')
-                        table#newPlayerDomainTable.common-table.display(style='width:100%')
-            .clearfix
-            .penal.panel-info(ng-show="vm.detailDomainPlayer.domainName")
-                .panel-heading {{'PLAYER_DOMAIN' | translate}} : {{vm.detailDomainPlayer.domainName}}
-                .penal_body
-                    table#detailDomainPlayerTable.common-table.display(style='min-width:100%')
-                    #detailDomainPlayerTablePage
+            //br
+            //.clearfix
+            //.penal.panel-info
+            //    .panel-heading {{'PARTNER' | translate}}
+            //    .penal_body
+            //        .col-md-6.padding-top-5
+            //            #partnerPlayerPie(style="height:380px;width:100%")
+            //        .col-md-6(style='padding-top:10px')
+            //            table#newPlayerPartnerTable.common-table.display(style='width:100%')
+            //.clearfix
+            //.penal.panel-info(ng-show="vm.detailPartnerPlayer.partnerObjectId")
+            //    .panel-heading {{'PLAYER_DOMAIN' | translate}} : {{vm.detailDomainPlayer.domainName}}
+            //    .penal_body
+            //        table#detailPartnerPlayerTable.common-table.display(style='min-width:100%')
+            //        #detailPartnerPlayerTablePage
+            //.clearfix
+            //.penal.panel-info
+            //    .panel-heading {{'PLAYER_DOMAIN' | translate}}
+            //    .penal_body
+            //        .col-md-6.padding-top-5
+            //            #domainPlayerPie(style="height:380px;width:100%")
+            //        .col-md-6(style='padding-top:10px')
+            //            table#newPlayerDomainTable.common-table.display(style='width:100%')
+            //.clearfix
+            //.penal.panel-info(ng-show="vm.detailDomainPlayer.domainName")
+            //    .panel-heading {{'PLAYER_DOMAIN' | translate}} : {{vm.detailDomainPlayer.domainName}}
+            //    .penal_body
+            //        table#detailDomainPlayerTable.common-table.display(style='min-width:100%')
+            //        #detailDomainPlayerTablePage
 
         div(ng-if='vm.showPageName=="DX_NEWACCOUNT_REPORT"')
             #dxNewPlayerReportQuery.block-query.col-md-12.well

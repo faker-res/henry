@@ -330,7 +330,8 @@ const dbRewardTask = {
                         updObj.$inc.targetConsumption = -rewardData.applyAmount;
                     }
 
-                    if(freeProviderGroup.targetConsumption && freeProviderGroup.targetConsumption - rewardData.applyAmount <= 0){
+                    // if(freeProviderGroup.targetConsumption && freeProviderGroup.targetConsumption - rewardData.applyAmount <= 0){
+                    if(freeProviderGroup.targetConsumption && freeProviderGroup.curConsumption >= (freeProviderGroup.targetConsumption + freeProviderGroup.forbidXIMAAmt - rewardData.applyAmount)){
                         updObj.status = constRewardTaskStatus.ACHIEVED;
                     }
 

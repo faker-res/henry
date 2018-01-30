@@ -28,7 +28,7 @@ style.
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalRenameBankCardGroup', ng-click='vm.initRenameBankCardGroup()')
                         text {{"EDIT" | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Default')", ng-disabled="!vm.selectedPlatform || !(vm.platformBankCardGroupList.length>0)", data-toggle="modal", data-target='#modalSetBankCardGroupDefault')
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'Update')", ng-disabled="!vm.selectedPlatform || !(vm.platformBankCardGroupList.length>0)", data-toggle="modal", data-target='#modalSetBankCardGroupDefault')
                         text {{"Default" | translate}}
                         img.img-edit
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Payment', 'BankCardGroup', 'AddPlayer')", ng-disabled="!vm.selectedPlatform || !vm.SelectedBankCardGroupNode", data-toggle="modal", data-target='#modalAddPlayersToBankCardGroup', ng-click='vm.preparePlayerToGroupDialog("bankcardGroup","#playertoGroupDataTable")')

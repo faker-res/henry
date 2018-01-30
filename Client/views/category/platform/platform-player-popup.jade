@@ -905,14 +905,14 @@
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}}) - {{v.status | translate}}</b>
+                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{v.status | translate}}</b>
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
-                                select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
+                                select.form-control(ng-model='vm.playerManualTopUp.depositMethod', ng-change='vm.selectedDepositMethod(vm.playerManualTopUp.depositMethod)')
                                     option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
                             .form-group-col-md-6
-                                label.control-label {{'realName' | translate}}
-                                input.form-control(ng-model='vm.playerManualTopUp.realName')
+                                label.control-label(ng-hide='!vm.playerManualTopUp.depositMethod || vm.playerManualTopUp.depositMethod === "2"') {{'ACCNAME' | translate}}
+                                input.form-control(ng-model='vm.playerManualTopUp.realName',ng-hide='!vm.playerManualTopUp.depositMethod || vm.playerManualTopUp.depositMethod === "2"')
                             .form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', required)
@@ -929,7 +929,8 @@
                                 label {{'promoCode' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerManualTopUp.bonusCode')
                             .form-group-col-md-6
-                                label {{'remark' | translate}}
+                                label(ng-hide='vm.playerManualTopUp.depositMethod === "3"') {{'remark' | translate}}
+                                label(ng-show='vm.playerManualTopUp.depositMethod === "3"') {{'counterRemark' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerManualTopUp.remark')
                             .form-group-col-md-6
                                 label {{'DEPOSIT_TIME' | translate}}

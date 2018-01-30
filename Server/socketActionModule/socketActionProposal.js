@@ -256,6 +256,22 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.proposalId && data.adminId && data.memo);
             socketUtil.emitter(self.socket, dbProposal.updateProposalProcessStep, [data.proposalId, data.adminId, data.memo, data.bApprove, data.remark], actionName, isValidData);
         },
+
+        updatePlayerProposalRemarks: function updatePlayerProposalRemarks(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalObjId && data.remarks);
+            let query = {
+                _id: ObjectId(data.proposalObjId)
+            }
+            let updateData = {
+                data: {
+                    remarks: data.remarks
+                }
+            }
+            socketUtil.emitter(self.socket, dbProposal.updateProposalRemarks, [query, updateData], actionName, isValidData);
+
+        },
+
         updatePlayerIntentionRemarks: function updatePlayerIntentionRemarks(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.pId && data.adminId);

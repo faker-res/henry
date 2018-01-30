@@ -2909,6 +2909,10 @@ let dbPlayerReward = {
                     timeSet = new Set();
                     let promArr = [];
 
+                    rewards = rewards.filter(reward => {
+                        return Number(reward.status) === 0;
+                    });
+
                     // Set reward status
                     rewards.map(e => {
                         let status = 0;
@@ -3706,7 +3710,7 @@ let dbPlayerReward = {
                 topupMatchQuery.$and = [];
             }
 
-            topupMatchQuery.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exist: false}}]});
+            topupMatchQuery.$and.push({$or: [{merchantTopUpType: {$in: eventData.condition.onlineTopUpType}}, {merchantTopUpType: {$exists: false}}]});
         }
 
         if (eventData.condition.bankCardType && eventData.condition.bankCardType.length > 0) {
@@ -3714,7 +3718,7 @@ let dbPlayerReward = {
                 topupMatchQuery.$and = [];
             }
 
-            topupMatchQuery.$and.push({$or: [{bankCardType: {$in: eventData.condition.bankCardType}}, {bankCardType: {$exist: false}}]});
+            topupMatchQuery.$and.push({$or: [{bankCardType: {$in: eventData.condition.bankCardType}}, {bankCardType: {$exists: false}}]});
         }
 
         // Check registration interface condition
@@ -4254,15 +4258,15 @@ let dbPlayerReward = {
                             // check correct topup type
                             let correctTopUpType = true;
 
-                            if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(rewardData.selectedTopUp.topUpType) === -1) {
+                            if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(selectedTopUp.topUpType) === -1) {
                                 correctTopUpType = false;
                             }
 
-                            if (eventData.condition.onlineTopUpType && rewardData.selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(rewardData.selectedTopUp.merchantTopUpType) === -1) {
+                            if (eventData.condition.onlineTopUpType && selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(selectedTopUp.merchantTopUpType) === -1) {
                                 correctTopUpType = false;
                             }
 
-                            if (eventData.condition.bankCardType && rewardData.selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(rewardData.selectedTopUp.bankCardType) === -1) {
+                            if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
                                 correctTopUpType = false;
                             }
 
@@ -4937,17 +4941,16 @@ let dbPlayerReward = {
                                             postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, intervalTime.startTime, intervalTime.endTime, ignoreTopUpBdirtyEvent));
                                         }
                                     }
-
                                     if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
                                         let randomRewardRes = {
                                             amount: rewardAmount
                                         }
                                         return Promise.all(postPropPromArr).then(
                                             () => {
-                                                return Promise.resolve(randomRewardRes);
-                                            }
-                                        );
+                                                  return Promise.resolve(randomRewardRes);
+                                            });
                                     }
+
                                     return Promise.all(postPropPromArr);
                                 }
                                 else {

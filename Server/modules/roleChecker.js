@@ -605,31 +605,39 @@ var roleChecker = {
             }
         },
         QualityInspection: {
-            Setting: {
+            QualityInsectionSetting: {
                 Read: [],
-                queryByProposalDate: [],
-                Edit: ['updatePlatform'],
-                setting: [],
-                definition: []
+                Edit: ['updatePlatform']
             },
-            Record: {
+            Live800Record: {
                 Read: [],
-                queryByProposalDate: [],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: [],
+                queryByEvaluationStatus: [],
+                queryByQualityAssessor: []
             },
-            Evaluation: {
+            QualityInsectionEvaluation: {
                 Read: [],
-                queryByProposalDate: [],
+                queryByQualityAssessor: [],
+                queryByQualityInspectionDate: [],
+                queryByAppealDate: [],
+                queryByAppealStatus: []
             },
-            CSReport: {
+            QualityInsectionCSReport: {
                 Read: [],
-                queryByProposalDate: [],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: []
             },
-            Report: {
+            QualityInsectionReport: {
                 Read: [],
-                queryByProposalDate: [],
+                queryByQualityAssessor: [],
+                queryByQualityInspectionDate: [],
+                queryByProduct: []
             }
-
-
         }
     },
 
