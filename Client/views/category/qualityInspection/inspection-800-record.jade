@@ -47,6 +47,8 @@
                 span.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
+            .inlineBlk
+                i#searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
         //.inlineBlk(style="width:200px;")
                 label.control-label {{'CREDIBILITY' | translate}}
                 select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')

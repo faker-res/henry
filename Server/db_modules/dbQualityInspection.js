@@ -671,7 +671,6 @@ var dbQualityInspection = {
         for (var t = 0; t < arrs.length; t++) {
             let timeStamp = arrs[t].getAttribute("tm");
             let innerHTML =arrs[t].innerHTML;
-            let info = dbQualityInspection.decodeHtml(arrs[t].innerHTML);
             let html = dbQualityInspection.unescapeHtml(arrs[t].innerHTML);
             const dom = new JSDOM(html)
             let conversationInfo = {
