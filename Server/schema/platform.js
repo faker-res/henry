@@ -77,6 +77,8 @@ var platformSchema = new Schema({
     allowSameRealNameToRegister: {type: Boolean, default: true},
     // Platform-wide SMS Verification Setting, for create players and create partners
     requireSMSVerification: {type: Boolean, default: false},
+    // SMS Verification Setting For create test player
+    requireSMSVerificationForTestPlayer: {type: Boolean, default: false},
     // SMS Verification Setting For Password Update
     requireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
     // SMS Verification Setting For Payment Update
@@ -210,9 +212,7 @@ var platformSchema = new Schema({
     // get the CS Department for display livechat related conversation
     csDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
     // get the QI Department for display livechat related conversation
-    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
-    // live 800 companyid
-    live800CompanyId: [{type: String}],
+    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}]
 });
 
 //add platform id before save

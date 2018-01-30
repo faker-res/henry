@@ -20,7 +20,7 @@
         .endTime
     div
         label &nbsp;
-        button.button.common-button.btn.btn-primary(ng-click='vm.searchQIRecord(true)') {{'SEARCH' | translate}}
+        button.button.common-button.btn.btn-primary(ng-click='vm.searchQIRecord(true)' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'Read')") {{'SEARCH' | translate}}
         //;vm.showReportModalNew()
         //button.button.common-button.btn.btn-primary(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
         span#QIReportTableSpin.collapse
