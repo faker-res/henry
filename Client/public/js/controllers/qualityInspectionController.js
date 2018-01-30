@@ -113,16 +113,6 @@ define(['js/app'], function (myApp) {
                         vm.searchAndSelectPlatform(storedPlatform, option);
                     }
 
-                    // if(vm.qualityInspectionPageName =='MY EVALUATION'){
-                    //     vm.initUnreadEvaluation();
-                    //     vm.initReadEvaluation();
-                    //     vm.initAppealEvaluation();
-                    // }
-                    // else if(vm.qualityInspectionPageName =='INSPECTION REPORT'){
-                    //     vm.initWorkloadProgress();
-                    // }
-
-
                 }, function (err) {
                     vm.showPlatformSpin = false;
                 });
@@ -507,156 +497,150 @@ define(['js/app'], function (myApp) {
             }
 
             vm.initUnreadEvaluation = function(){
-                //vm.evaluationTab = 'unreadEvaluation';
+                if(vm.selectedPlatform){
+                    $('#unreadEvaluationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $('#unreadEvaluationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
 
-                $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $('#unreadEvaluationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $('#unreadEvaluationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-
-                $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                }
             };
 
             vm.initReadEvaluation = function(){
-                $('#readEvaluationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                if(vm.selectedPlatform) {
+                    $('#readEvaluationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
 
-                $('#readEvaluationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $('#readEvaluationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                }
             }
 
             vm.initAppealEvaluation = function(){
-                $('#conversationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                if(vm.selectedPlatform) {
+                    $('#conversationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
 
-                $('#conversationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $('#conversationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
 
-                $('#appealEvaluationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $('#appealEvaluationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
 
-                $('#appealEvaluationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
+                    $('#appealEvaluationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
 
-                $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                }
             }
 
             vm.initWorkloadProgress = function(){
-                //vm.inspectionReportTab = 'workloadReport';
-
-                $('#reportConversationStartDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-
-                $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
-
-                $('#reportConversationEndDatetimePicker').datetimepicker({
-                    language: 'en',
-                    format: 'dd/MM/yyyy hh:mm:ss',
-                    pick12HourFormat: true
-                });
-
-                $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
-
-                let qaDepartmentMember = [];
-                if(vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0){
-                    vm.selectedPlatform.data.qiDepartment.forEach(qItem=>{
-                        qaDepartmentMember = qaDepartmentMember.concat(qItem.users);
-                    })
-                }
-
-                if(qaDepartmentMember && qaDepartmentMember.length > 0)
-                {
-                    socketService.$socket($scope.AppSocket, 'getQIAdmins', {admins: qaDepartmentMember}, function (qdata) {
-                        console.log('all admin data', qdata.data);
-                        vm.qaDepartments = [];
-
-                        if(qdata.data.length > 0){
-                            qdata.data.forEach(item=>{
-                                console.log(item);
-                                let qaAccount = {};
-                                qaAccount._id = item._id;
-                                qaAccount.name = item.adminName;
-                                vm.qaDepartments.push(qaAccount);
-                            })
-                        }
-                        $scope.safeApply();
-                    }, function (err) {
+                if(vm.selectedPlatform) {
+                    $('#reportConversationStartDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
                     });
+
+                    $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                    $('#reportConversationEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+
+                    let qaDepartmentMember = [];
+                    if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0) {
+                        vm.selectedPlatform.data.qiDepartment.forEach(qItem => {
+                            qaDepartmentMember = qaDepartmentMember.concat(qItem.users);
+                        })
+                    }
+
+                    if (qaDepartmentMember && qaDepartmentMember.length > 0) {
+                        socketService.$socket($scope.AppSocket, 'getQIAdmins', {admins: qaDepartmentMember}, function (qdata) {
+                            console.log('all admin data', qdata.data);
+                            vm.qaDepartments = [];
+
+                            if (qdata.data.length > 0) {
+                                qdata.data.forEach(item => {
+                                    console.log(item);
+                                    let qaAccount = {};
+                                    qaAccount._id = item._id;
+                                    qaAccount.name = item.adminName;
+                                    vm.qaDepartments.push(qaAccount);
+                                })
+                            }
+                            $scope.safeApply();
+                        }, function (err) {
+                        });
+                    }
                 }
             }
 
             vm.initEvaluationProgress = function() {
-                // var startTime = $('#unreadEvaluationStartDatetimePicker').data('datetimepicker').getLocalDate();
-                // var endTime = $('#unreadEvaluationEndDatetimePicker').data('datetimepicker').getLocalDate();
-                //
-                // let sendData = {
-                //     startTime: startTime,
-                //     endTime: endTime
-                // }
+                if(vm.selectedPlatform) {
+                    vm.evaluationProgressYearMonth = []
+                    socketService.$socket($scope.AppSocket, 'getEvaluationRecordYearMonth', {platformObjId: vm.selectedPlatform.id}, function (data) {
 
-                vm.evaluationProgressYearMonth = []
-                socketService.$socket($scope.AppSocket, 'getEvaluationRecordYearMonth', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                        if (data && data.data && data.data.length > 0) {
 
-                    if(data && data.data && data.data.length > 0){
-
-                        data.data.forEach(data => {
-                            if(data && data._id && data._id.month && data._id.year){
-                                let month = data._id.month.toString();
-                                if(month.length < 2){
-                                    month = "0" + month;
+                            data.data.forEach(data => {
+                                if (data && data._id && data._id.month && data._id.year) {
+                                    let month = data._id.month.toString();
+                                    if (month.length < 2) {
+                                        month = "0" + month;
+                                    }
+                                    vm.evaluationProgressYearMonth.push({month: month, year: data._id.year});
+                                    //vm.evaluationProgressYearMonth.push({date: data._id.year + " - " + month});
                                 }
-                                vm.evaluationProgressYearMonth.push({month: month, year: data._id.year});
-                                //vm.evaluationProgressYearMonth.push({date: data._id.year + " - " + month});
-                            }
 
-                        })
+                            })
 
-                         $scope.safeApply();
-                    }else{
-                        // vm.unreadEvaluationTable = "";
-                        // $scope.safeApply();
-                    }
-                });
+                            $scope.safeApply();
+                        }
+                    });
+                }
             }
 
             vm.commonSortChangeHandler = function (a, objName, searchFunc) {
