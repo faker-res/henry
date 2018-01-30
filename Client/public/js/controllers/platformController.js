@@ -10051,6 +10051,16 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+            vm.selectedDepositMethod = function(depositMethod) {
+              if(depositMethod == "1" || depositMethod == "3" || depositMethod == "4") {
+                  vm.playerManualTopUp.realName = vm.selectedSinglePlayer.realName;
+              }
+              if(depositMethod == "3"){
+                  vm.playerManualTopUp.remark = vm.selectedSinglePlayer.playerId;
+              } else {
+                  vm.playerManualTopUp.remark = "";
+              }
+            };
             vm.applyPlayerManualTopUp = function () {
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,

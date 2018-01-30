@@ -48,7 +48,7 @@
 
                 div(style='max-width:125px')
                     label 收款银行类别
-                    select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.bankTypeId', ng-options='`', multiple, bsp, data-actions-box='true')
+                    select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
                 div(style='max-width:125px')
                     label {{'Business Acc/ Bank Acc' | translate}}
                     select.form-control.merchantNoList( ng-model='vm.queryTopup.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, data-actions-box='true')

@@ -75,6 +75,7 @@ var simplifiedChinese = {
     "Invalid proposal Id": "提案ID无效",
 
     "Cannot find player for online top up proposal": "无法找到玩家",
+    "player level down already in period": "玩家周期内已降级",
     "Cannot create online top up proposal": "无法创建在线充值提案",
     "Cannot create manual top up proposal": "无法创建手工充值提案",
     "Cannot find payment data": "无法找到支付数据",
