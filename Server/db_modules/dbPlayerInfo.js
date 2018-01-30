@@ -5514,9 +5514,12 @@ let dbPlayerInfo = {
     },
 
     isPlayerNameValidToRegister: function (query) {
-        return dbconfig.collection_players.findOne(query).then(
-            playerData => {
-                if (playerData) {
+        let playerProm = dbconfig.collection_players.findOne(query).lean();
+        let playerNameProm = dbconfig.collection_playerName.findOne(query).lean();
+
+        return Promise.all([playerProm, playerNameProm]).then(
+            data => {
+                if (!data || data[1] || data [2]) {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
