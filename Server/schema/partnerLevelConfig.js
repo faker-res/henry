@@ -7,12 +7,10 @@ var partnerLevelConfigSchema = new Schema({
     validPlayerTopUpTimes: {type: Number, required: true},
     validPlayerTopUpAmount: {type: Number, required: true, default: 0},
     validPlayerConsumptionTimes: {type: Number, required: true},
-    validPlayerValue: {type: Number, required:true, default: 0},
     // This is how we decide if a player is active
     activePlayerTopUpTimes: {type: Number, required: true},
     activePlayerTopUpAmount: {type: Number, required: true, default: 0},
-    activePlayerConsumptionTimes: {type: Number, required: true},
-    activePlayerValue: {type: Number, required: true, default: 0}
+    activePlayerConsumptionTimes: {type: Number, required: true}
 });
 
 module.exports = partnerLevelConfigSchema;
