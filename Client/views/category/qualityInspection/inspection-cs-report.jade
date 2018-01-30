@@ -1,0 +1,33 @@
+#QIReportQuery.well.block-query.col-md-12.well
+
+    div(style='width:200px')
+        label {{'PRODUCT' | translate}}
+        select.spicker.form-control(ng-model='vm.selectedPlatformID', data-actions-box='true', ng-change="vm.checkSelectedPlatformID(vm.selectedPlatformID)" )
+            option(value='all') {{'ALL' | translate}}
+            option(ng-repeat='(i,v) in vm.platformWithCSDepartment', ng-init="vm.endLoadMultipleSelect(); vm.selectedPlatformID = 'all' ", value='{{v.data._id}}') {{v.data.name}}
+    div(style='width:200px')
+        label FPMS {{'CS Account' | translate}}
+        select.spicker.form-control(ng-model='vm.selectedCS', multiple, data-actions-box='true', bsp, ng-change="vm.checkSelectedCSAcc(vm.selectedCS)",max-height='100px',style="overflow-y:auto; max-height:100px;" )
+            option(ng-repeat='(i,v) in vm.selectedCSAccount', value='{{v._id}}', ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
+    div(style='width:200px')
+        label Live800 {{'Account' | translate}}
+        select.spicker.form-control(ng-model='vm.selectedLive800', ng-options='v.live800Acc as v.live800Acc group by v.adminName for v in vm.selectedLive800Acc',multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()', style="overflow-y:auto; max-height:100px;")
+    div
+        label.control-label {{'Start date' | translate}}
+        .startTime
+    div
+        label.control-label {{'End date' | translate}}
+        .endTime
+    div
+        label &nbsp;
+        button.button.common-button.btn.btn-primary(ng-click='vm.searchQIRecord(true)') {{'SEARCH' | translate}}
+        //;vm.showReportModalNew()
+        //button.button.common-button.btn.btn-primary(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
+        span#QIReportTableSpin.collapse
+            i.fa.fa-spinner.fa-spin
+.clearfix
+label {{"Total" | translate}} {{vm.postData.length}} {{"records" | translate}}
+table#QIReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
+//#QIReportTablePage
+
+

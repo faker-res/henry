@@ -402,6 +402,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showPlatformDetailTab = function (tabName) {
+
                 vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
                 if(tabName && tabName == "player-display-data"){
                     vm.initPlayerDisplayDataModal();
@@ -411,21 +412,98 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
-
-        vm.getAllGameProviders = function (platformId) {
-            if (!platformId) return;
-            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
-                vm.allGameProviders = data.data.gameProviders;
-                vm.gameProvidersList = {};
-                vm.allGameProviders.map(provider => {
-                    vm.gameProvidersList[provider._id] = provider;
-                });
-                console.log('vm.allGameProviders', vm.allGameProviders);
+            vm.isValidCompanyId = function(live800CompanyIdTXT){
+                let live800Arr = live800CompanyIdTXT.split(",");
+                live800Arr = live800Arr.filter(item=>{return item!=''});
+                vm.showPlatform.live800CompanyId = live800Arr;
+                console.log(vm.showPlatform.live800CompanyId);
+            }
+            vm.isValidCSDepartment = function(departments){
+                if(!vm.showPlatform.csDepartmentTXT || vm.showPlatform.csDepartmentTXT == ''){
+                    return
+                }
+              let result = vm.getDepartmentObjId(departments);
+              Q.all([result]).then(data=>{
+                let cData = data[0];
+                if(cData.data.length > 0){
+                    vm.showPlatform.csDepartment = cData.data ? cData.data : [];
+                }
+                if(cData.errMsg){
+                    vm.csDepartmentError = cData.errMsg;
+                }else{
+                    vm.csDepartmentError = null;
+                }
                 $scope.safeApply();
-            }, function (err) {
-                console.log("vm.allGameProviders ERROR", err);
-            });
-        };
+              })
+            };
+            vm.isValidQIDepartment = function(departments){
+                if(!vm.showPlatform.qiDepartmentTXT || vm.showPlatform.qiDepartmentTXT == ''){
+                    return
+                }
+              let result = vm.getDepartmentObjId(departments);
+              Q.all([result]).then(data=>{
+                let qData = data[0];
+                if(qData.data.length > 0){
+                    vm.showPlatform.qiDepartment = qData.data ? qData.data : [];
+                }
+                if(qData.errMsg){
+                    vm.qiDepartmentError = qData.errMsg;
+                }else{
+                    vm.qiDepartmentError = null;
+                }
+                $scope.safeApply();
+              })
+
+            };
+            vm.getDepartmentObjId = function(departments){
+              var deferred = Q.defer();
+              socketService.$socket($scope.AppSocket, 'getAllDepartments', {}, function (data) {
+                  let allDpt = data.data;
+                  let noExist = 0;
+                  vm.qiDepartmentError = null;
+                  let result = [];
+                  let departmentObjId = [];
+                  let departArr = departments.split(',').map(item=>{ return item.trim(); })
+                  let errMsg = '';
+                  let errDPT = [];
+                  for(var d in departArr){
+                      let dpExist = allDpt.filter(item=>{
+                          if(item.departmentName == departArr[d]){
+                            result.push(item);
+                            departmentObjId.push(item._id)
+                            return item;
+                          }
+                      });
+                      if(dpExist.length <= 0 ){
+                            errDPT.push(departArr[d])
+                      }
+                  }
+                  if(errDPT.length > 0){
+                      let errDptArr = errDPT.join(',');
+                      errMsg = errDptArr + '找不到相关部门，请再次输入';
+                  }
+                  deferred.resolve({ data:departmentObjId , 'errMsg':errMsg});
+                  $scope.safeApply();
+              }, function (err) {
+                deferred.reject({});
+              });
+              return deferred.promise;
+            }
+
+            vm.getAllGameProviders = function (platformId) {
+                if (!platformId) return;
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
+                    vm.allGameProviders = data.data.gameProviders;
+                    vm.gameProvidersList = {};
+                    vm.allGameProviders.map(provider => {
+                        vm.gameProvidersList[provider._id] = provider;
+                    });
+                    console.log('vm.allGameProviders', vm.allGameProviders);
+                    $scope.safeApply();
+                }, function (err) {
+                    console.log("vm.allGameProviders ERROR", err);
+                });
+            };
 
 
             //////////Lin Hao:: Provider List Delay Popup
@@ -488,7 +566,15 @@ define(['js/app'], function (myApp) {
             vm.populatePlatformData = function () {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
-
+            vm.combinePlatformDepart = function(dpts){
+                let dptArr = [];
+                let result = '';
+                dpts.forEach(item=>{
+                    dptArr.push(item.departmentName);
+                })
+                result = dptArr.join(',')
+                return result;
+            };
 
             vm.showTopupTab = function (tabName) {
                 vm.selectedTopupTab = tabName == null ? "manual" : tabName;
@@ -696,6 +782,17 @@ define(['js/app'], function (myApp) {
                     $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
                 }
             };
+            vm.convertDepartment = function(){
+                if(vm.showPlatform.live800CompanyId && vm.showPlatform.live800CompanyId.length > 0){
+                    vm.showPlatform.live800CompanyIdTXT = vm.showPlatform.live800CompanyId.join(',') ;
+                }
+                if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
+                    vm.showPlatform.csDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.csDepartment);
+                }
+                if(vm.showPlatform.qiDepartment && vm.showPlatform.qiDepartment.length > 0){
+                    vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
+                }
+            };
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
@@ -703,6 +800,14 @@ define(['js/app'], function (myApp) {
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
+                vm.convertDepartment();
+                if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
+                    vm.showPlatform.csDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.csDepartment);
+                }
+                if(vm.showPlatform.qiDepartment && vm.showPlatform.qiDepartment.length > 0){
+                    vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
+                }
+
                 $cookies.put("platform", node.text);
                 if (option && !option.loadAll) {
                     $scope.safeApply();
@@ -728,6 +833,7 @@ define(['js/app'], function (myApp) {
 
                 vm.getRewardEventsByPlatform();
                 vm.getRewardPointsEvent(vm.selectedPlatform.id);
+
                 if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
                     vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
 
@@ -1454,6 +1560,7 @@ define(['js/app'], function (myApp) {
                 if (vm.showPlatform.department.hasOwnProperty('_id')) {
                     vm.showPlatform.department = vm.showPlatform.department._id;
                 }
+
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
                         query: {_id: vm.selectedPlatform.id},
@@ -6826,7 +6933,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-        
+
             vm.openEditPlayerDialog = function (selectedTab) {
                 vm.editSelectedTab = "";
                 vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
@@ -6896,7 +7003,7 @@ define(['js/app'], function (myApp) {
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
-                              
+
                                 // this ng-model has to be in date object
                                 this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
@@ -16563,7 +16670,7 @@ define(['js/app'], function (myApp) {
                 vm.playerRewardRanking.pageObj.init({maxCount: size}, newSearch);
                 var rankingTbl = utilService.createDatatableWithFooter('#rewardRankingTable', tableOptions, {});
                 // utilService.setDataTablePageInput('rewardRankingTable', rankingTbl, $translate);
-                
+
                 $('#rewardRankingTable').off('order.dt');
                 // $('#rewardRankingTable').off();
                 $('#rewardRankingTable').on('order.dt', function (event, a, b) {
@@ -22280,7 +22387,7 @@ define(['js/app'], function (myApp) {
                 }
 
             }
-            
+
             vm.checkDuplicateAdCodeWithId = function(advertisementCode, advertisementId){
                 if(advertisementId && advertisementCode) {
                     let sendData = {
@@ -22750,6 +22857,18 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
+
+            vm.reArrangeArr = function(oriTXT, targetField, targetArr) {
+
+                if (typeof(oriTXT) == 'string' && oriTXT !='') {
+                    let convertArr = oriTXT.split(',');
+                    targetArr[targetField] = convertArr;
+                    targetArr = targetArr.filter(item=>{
+                        return item != '';
+                    })
+                    console.log(targetArr);
+                }
+            };
 
             $('body').on('click', '#permissionRecordButton', function () {
                 vm.getPlayerPermissionChange("new")

@@ -205,6 +205,14 @@ var platformSchema = new Schema({
         presetMark: {type: Number},
         color: {type: String}
     }],
+    // set this live800companyId to binding with live800 system
+    live800CompanyId: [{type: String}],
+    // get the CS Department for display livechat related conversation
+    csDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
+    // get the QI Department for display livechat related conversation
+    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
+    // live 800 companyid
+    live800CompanyId: [{type: String}],
 });
 
 //add platform id before save
