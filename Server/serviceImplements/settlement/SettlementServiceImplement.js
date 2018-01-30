@@ -228,7 +228,7 @@ var SettlementServiceImplement = function () {
 
     this.performPlatformPlayerLevelSettlement.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerObjIds && data.levels);
-        let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown];
+        let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown, data.platformPeriod];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerLevel.performPlatformPlayerLevelSettlement, args, isValidData);
     };
     this.sendPlayerMailFromAdminToPlayer.onRequest = function (wsFunc, conn, data) {

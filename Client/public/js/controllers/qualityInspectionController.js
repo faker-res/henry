@@ -1175,129 +1175,136 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getEvaluationProgressRecord = function() {
-                vm.loadingEvaluationProgressTable = true;
-                let yearMonthObj = JSON.parse(vm.yearMonth)
-                let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
-                let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-                let sendData = {
-                    platformObjId: vm.evaluationProgressPlatform,
-                    startDate: startDate,
-                    endDate: endDate
-                }
-                let resultArr = [];
-                let resultArr2 = [];
+                if(vm.yearMonth){
+                    vm.loadingEvaluationProgressTable = true;
+                    let yearMonthObj = JSON.parse(vm.yearMonth)
+                    let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
+                    let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+                    let sendData = {
+                        platformObjId: vm.evaluationProgressPlatform,
+                        startDate: startDate,
+                        endDate: endDate
+                    }
+                    let resultArr = [];
+                    let resultArr2 = [];
 
-                let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+                    let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
-                let rowMaxLength = 7;
-                socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecord', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
-                        //let result = data.data.sort(function(a,b) {return (a.platformName > b.platformName) ? 1 : ((b.platformName > a.platformName) ? -1 : 0);} );
-                        let counter = 1;
-                        let firstRow = [];
-                        let secondRow = [];
-                        let thirdRow = [];
-                        let fouthRow = [];
-                        let fifthRow = [];
-                        let sixthRow = [];
-                        for(let day = 1; day <= endDate.getDate(); day ++){
-                            if(day == 1){
-                                for(let i = 0; i < startDate.getDay(); i++){
-                                    firstRow.push({day: "-", isCompleted: false});
-                                }
-                                firstRow.push({day: day});
+                    let rowMaxLength = 7;
+                    socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecord', sendData, function (data) {
+                        if(data && data.data && data.data.length > 0){
+                            //let result = data.data.sort(function(a,b) {return (a.platformName > b.platformName) ? 1 : ((b.platformName > a.platformName) ? -1 : 0);} );
+                            let counter = 1;
+                            let firstRow = [];
+                            let secondRow = [];
+                            let thirdRow = [];
+                            let fouthRow = [];
+                            let fifthRow = [];
+                            let sixthRow = [];
+                            for(let day = 1; day <= endDate.getDate(); day ++){
+                                if(day == 1){
+                                    for(let i = 0; i < startDate.getDay(); i++){
+                                        firstRow.push({day: "-", isCompleted: false});
+                                    }
+                                    firstRow.push({day: day});
 
-                                if(firstRow.length == 7){
-                                    counter += 1;
-                                }
-                            }else if(counter == 1){
-                                firstRow.push({day: day});
-                                if(firstRow.length == 7){
-                                    counter += 1;
-                                }
-
-                            }else if(counter == 2){
-                                secondRow.push({day: day});
-                                if(secondRow.length == 7){
-                                    counter += 1;
-                                }
-                            }else if(counter == 3){
-                                thirdRow.push({day: day});
-                                if(thirdRow.length == 7){
-                                    counter += 1;
-                                }
-                            }else if(counter == 4){
-                                fouthRow.push({day: day});
-                                if(fouthRow.length == 7){
-                                    counter += 1;
-                                }
-                            }else if(counter == 5){
-                                fifthRow.push({day: day});
-                                if(fifthRow.length == 7){
-                                    counter += 1;
-                                }
-                            }else if(counter == 6){
-                                sixthRow.push({day: day});
-                                if(sixthRow.length == 7){
-                                    counter += 1;
-                                }
-                            }
-                        }
-
-                        let calendarData = [];
-
-                        calendarData.push(firstRow);
-                        calendarData.push(secondRow);
-                        calendarData.push(thirdRow);
-                        calendarData.push(fouthRow);
-                        calendarData.push(fifthRow);
-                        if(sixthRow.length > 0){
-                            calendarData.push(sixthRow);
-                        }
-                        let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
-
-                        resultArr.push({calendarData: calendarData, calendarTitle: weekDay});
-
-                        data.data.map(result => {
-                            if(result && result.length > 0){
-                                let calendarDataObj = resultObj;
-                                result.forEach(resultByPlatform => {
-                                    if(resultByPlatform){
-                                        resultByPlatform.date = new Date(resultByPlatform.date);
-                                            calendarDataObj.calendarData.map(calendarData => {
-                                                let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
-                                                if(arrIndex != -1){
-                                                    calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
-                                                }
-                                            })
+                                    if(firstRow.length == 7){
+                                        counter += 1;
+                                    }
+                                }else if(counter == 1){
+                                    firstRow.push({day: day});
+                                    if(firstRow.length == 7){
+                                        counter += 1;
                                     }
 
-                                })
-
-                                let calendarData2 = [];
-
-                                calendarData2.push(firstRow);
-                                calendarData2.push(secondRow);
-                                calendarData2.push(thirdRow);
-                                calendarData2.push(fouthRow);
-                                calendarData2.push(fifthRow);
-                                if(sixthRow.length > 0){
-                                    calendarData2.push(sixthRow);
+                                }else if(counter == 2){
+                                    secondRow.push({day: day});
+                                    if(secondRow.length == 7){
+                                        counter += 1;
+                                    }
+                                }else if(counter == 3){
+                                    thirdRow.push({day: day});
+                                    if(thirdRow.length == 7){
+                                        counter += 1;
+                                    }
+                                }else if(counter == 4){
+                                    fouthRow.push({day: day});
+                                    if(fouthRow.length == 7){
+                                        counter += 1;
+                                    }
+                                }else if(counter == 5){
+                                    fifthRow.push({day: day});
+                                    if(fifthRow.length == 7){
+                                        counter += 1;
+                                    }
+                                }else if(counter == 6){
+                                    sixthRow.push({day: day});
+                                    if(sixthRow.length == 7){
+                                        counter += 1;
+                                    }
                                 }
-
-                                resultArr2.push({platformName: result[0].platformName, calendarData: calendarData2, calendarTitle: weekDay});
-
                             }
 
-                        })
+                            let calendarData = [];
 
-                        vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                        vm.evaluationProgressTable = resultArr2;
-                        vm.loadingEvaluationProgressTable = false
-                        $scope.safeApply();
-                    }
+                            calendarData.push(firstRow);
+                            calendarData.push(secondRow);
+                            calendarData.push(thirdRow);
+                            calendarData.push(fouthRow);
+                            calendarData.push(fifthRow);
+                            if(sixthRow.length > 0){
+                                calendarData.push(sixthRow);
+                            }
+                            let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
 
-                });
+                            resultArr.push({calendarData: calendarData, calendarTitle: weekDay});
+
+                            data.data.map(result => {
+                                if(result && result.length > 0){
+                                    let calendarDataObj = resultObj;
+                                    result.forEach(resultByPlatform => {
+                                        if(resultByPlatform){
+                                            resultByPlatform.date = new Date(resultByPlatform.date);
+                                                calendarDataObj.calendarData.map(calendarData => {
+                                                    let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
+                                                    if(arrIndex != -1){
+                                                        calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
+                                                    }
+                                                })
+                                        }
+
+                                    })
+
+                                    let calendarData2 = [];
+
+                                    calendarData2.push(firstRow);
+                                    calendarData2.push(secondRow);
+                                    calendarData2.push(thirdRow);
+                                    calendarData2.push(fouthRow);
+                                    calendarData2.push(fifthRow);
+                                    if(sixthRow.length > 0){
+                                        calendarData2.push(sixthRow);
+                                    }
+
+                                    resultArr2.push({platformName: result[0].platformName, calendarData: calendarData2, calendarTitle: weekDay});
+
+                                }
+
+                            })
+
+                            vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
+                            vm.evaluationProgressTable = resultArr2;
+                            vm.loadingEvaluationProgressTable = false
+                            $scope.safeApply();
+                        }
+
+                    });
+                }
+                else{
+                    socketService.showErrorMessage($translate('Please select Year - Month'));
+                    vm.loadingEvaluationProgressTable = false
+                    $scope.safeApply();
+                }
             }
 
             $scope.$on(eventName, function (e, d) {
@@ -1489,7 +1496,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedCSAccount = [];
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800 = [];
-                vm.CSDepartmentId=[]
+                vm.CSDepartmentId=[];
 
                 if (seletedProductsId !== 'all') {
                     console.log("-----------------", seletedProductsId);
@@ -1533,6 +1540,7 @@ define(['js/app'], function (myApp) {
                             vm.selectedCSAccount.push("");
                             vm.selectedLive800Acc.push("");
                             vm.selectedCS.push("");
+
                         }
                         $scope.safeApply();
                     });
@@ -1555,7 +1563,7 @@ define(['js/app'], function (myApp) {
 
                         if (data && data.data){
                             data.data.forEach(acc => {
-                                if (acc.live800Acc && acc.live800Acc.length > 0){
+                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                     vm.selectedCSAccount.push(acc);
                                     acc.live800Acc.forEach(liveAcc => {
                                         vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
@@ -1637,7 +1645,6 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
-               // vm.allCSAccount=[];
                 vm.allCSDepartmentId=[];
                 vm.platformWithCSDepartment=[]; // to filter out the platfrom with CS Department for the Product Filter
 
@@ -1660,7 +1667,6 @@ define(['js/app'], function (myApp) {
                         data.data.forEach(acc => {
                             if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                 vm.selectedCSAccount.push(acc);
-                                //vm.allCSAccount.push(acc);
                             }
                         });
 
@@ -1751,6 +1757,15 @@ define(['js/app'], function (myApp) {
                 }
                 $('#QIReportTableSpin').show();
 
+                // select all the bounded live800Acc if there is no selection on Live800Acc filter
+                if (vm.selectedLive800 && vm.selectedLive800.length ==0){
+                    vm.selectedLive800 =[];
+                    if (vm.allLive800Acc && vm.allLive800Acc.length>0) {
+                        vm.allLive800Acc.forEach(each => {
+                            vm.selectedLive800.push(each.live800Acc);
+                        })
+                    }
+                }
                 var query = {
                     'companyId':vm.companyID,
                     'operatorId':vm.selectedLive800,
