@@ -4660,11 +4660,13 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             sClass: "remarkCol",
                             render: (data, type, row) => {
+                                let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
                                 if (!data || data.length === 0) {
-                                    return "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
+                                    return emptyOutput;
                                 }
                                 let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'>";
                                 let output = initOutput;
+                                let remarkMatches = false;
                                 data.map(function (remarkId) {
                                     for (let i = 0; i < vm.credibilityRemarks.length; i++) {
                                         if (vm.credibilityRemarks[i]._id === remarkId) {
@@ -4672,12 +4674,17 @@ define(['js/app'], function (myApp) {
                                                 output += "<br>";
                                             }
                                             output += vm.credibilityRemarks[i].name;
+                                            remarkMatches = true;
                                         }
                                     }
                                 });
                                 output += "</a>";
 
-                                return output;
+                                if(remarkMatches) {
+                                    return output;
+                                } else {
+                                    return emptyOutput;
+                                }
                             }
                         },
                         {
