@@ -2714,11 +2714,6 @@ input[type='number'].leftALignNumber {
     border-top-right-radius-radius: 9px !important;
 }
 
-#modalQIReport .nav-tabs>li.active>a {
-    border: 1px solid #337AB7;
-    border-bottom: none;
-}
-
 #modalUpdatePlatform .nav-tabs>li {
     cursor: pointer;
 }
