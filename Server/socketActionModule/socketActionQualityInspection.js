@@ -6,6 +6,9 @@ function socketActionQualityInspection(socketIO, socket) {
     this.socketIO = socketIO;
     this.socket = socket;
 
+    function getAdminId() {
+        return self.socket.decoded_token && self.socket.decoded_token._id;
+    }
     function getAdminName() {
         return self.socket.decoded_token && self.socket.decoded_token.adminName;
     }
@@ -86,7 +89,7 @@ function socketActionQualityInspection(socketIO, socket) {
         rateCSConversation: function rateCSConversation(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
-            socketUtil.emitter(self.socket, dbQualityInspection.rateCSConversation, [data, getAdminName()], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.rateCSConversation, [data, getAdminId()], actionName, isDataValid);
         },
         rateBatchConversation: function rateBatchConversation(data){
             var actionName = arguments.callee.name;
