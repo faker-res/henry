@@ -97,7 +97,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
     let dLastWithdraw, initialTransferTime;
     let abnormalMessage = "";
     let abnormalMessageChinese = "";
-    let checkMsg, checkMsgChinese;
+    let checkMsg = "", checkMsgChinese = "";
     let bTransferAbnormal = false;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
@@ -220,51 +220,54 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 checkMsg += "Insufficient consumption: Consumption " + curConsumptionAmount + ", Required Bet " + totalConsumptionAmout + "; ";
                 checkMsgChinese += "投注额不足：投注额 " + curConsumptionAmount + " ，需求投注额 " + totalConsumptionAmout + "; ";
 
-                // Consumption reached, check for other conditions
-                if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
-                    checkMsg += " Denied: Single limit;";
-                    checkMsgChinese += " 失败：单限;";
-                    canApprove = false;
-                }
-                if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                    checkMsg += " Denied: Daily limit;";
-                    checkMsgChinese += " 失败：日限;";
-                    canApprove = false;
-                }
-                if (proposal.data.playerStatus == constPlayerStatus.BAN_PLAYER_BONUS || bNoBonusPermission) {
-                    checkMsg += " Denied: Not allowed;";
-                    checkMsgChinese += " 失败：禁提;";
-                    canApprove = false;
-                }
 
-                if (bFirstWithdraw) {
-                    checkMsg += " Denied: First withdrawal;";
-                    checkMsgChinese += " 失败：首提;";
-                    canApprove = false;
-                }
 
-                if (bTransferAbnormal) {
-                    checkMsg += ' Denied: Abnormal Transfer;';
-                    checkMsgChinese += ' 失败：转账异常;';
-                    canApprove = false;
-                }
-
-                if (bPendingPaymentInfo) {
-                    checkMsg += ' Denied: Rebank;';
-                    checkMsgChinese += ' 失败：银改;';
-                    canApprove = false;
-                }
-
-                if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
-                    && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
-                    checkMsg += ' Denied: Max profit times;';
-                    checkMsgChinese += ' 失败：盈利十倍;';
-                    canApprove = false;
-                }
             } else {
                 // No RTG exist
                 // Approve this withdrawal
                 isApprove = true;
+            }
+
+            // Consumption reached, check for other conditions
+            if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
+                checkMsg += " Denied: Single limit;";
+                checkMsgChinese += " 失败：单限;";
+                canApprove = false;
+            }
+            if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
+                checkMsg += " Denied: Daily limit;";
+                checkMsgChinese += " 失败：日限;";
+                canApprove = false;
+            }
+            if (proposal.data.playerStatus == constPlayerStatus.BAN_PLAYER_BONUS || bNoBonusPermission) {
+                checkMsg += " Denied: Not allowed;";
+                checkMsgChinese += " 失败：禁提;";
+                canApprove = false;
+            }
+
+            if (bFirstWithdraw) {
+                checkMsg += " Denied: First withdrawal;";
+                checkMsgChinese += " 失败：首提;";
+                canApprove = false;
+            }
+
+            if (bTransferAbnormal) {
+                checkMsg += ' Denied: Abnormal Transfer;';
+                checkMsgChinese += ' 失败：转账异常;';
+                canApprove = false;
+            }
+
+            if (bPendingPaymentInfo) {
+                checkMsg += ' Denied: Rebank;';
+                checkMsgChinese += ' 失败：银改;';
+                canApprove = false;
+            }
+
+            if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
+                && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
+                checkMsg += ' Denied: Max profit times;';
+                checkMsgChinese += ' 失败：盈利十倍;';
+                canApprove = false;
             }
 
             // Check consumption approved or not
