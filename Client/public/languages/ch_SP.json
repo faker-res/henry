@@ -176,6 +176,7 @@
   "advanceConsumptionReward": "提前洗码",
   "transactionReward": "转账优惠",
   "alipayTransaction": "个人支付宝",
+  "AliPayTransfer": "支付宝转账",
   "CREATE_GROUP": "创建组",
   "SAVE_AS_NEW_GROUP": "另存为新组",
   "UPDATE_GROUP": "更新组",

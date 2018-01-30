@@ -54,11 +54,8 @@ define(['js/app'], function (myApp) {
             OTHER: "Other",
             LAST_CALL: "LastCall"
         };
-        vm.depositMethodList = {
-            1: "Online",
-            2: "ATM",
-            3: "Counter"
-        };
+
+        vm.depositMethodList = $scope.depositMethodList;
 
         vm.getDepositMethodbyId = {
             1: 'Online',
@@ -71,7 +68,7 @@ define(['js/app'], function (myApp) {
             "PlayerAlipayTopUp": ['alipayAccount'],
             "PlayerWechatTopUp": ['wechatAccount', 'weChatAccount'],
             "PlayerTopUp": ['merchantNo']
-        }
+        };
 
         vm.playerInputDevice = {
             1: "WEB_PLAYER",
@@ -83,7 +80,7 @@ define(['js/app'], function (myApp) {
             valid: "STILL VALID",
             accepted: "ACCEPTED",
             expired: "EXPIRED"
-        }
+        };
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
