@@ -887,12 +887,12 @@
                         .well.margin-bottom-5(ng-if='vm.existingManualTopup')
                             .lineThrough(ng-if='vm.existingManualTopup.isCanceled')
                                 button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingManualTopup.data.amount}}
                             div(ng-if='!vm.existingManualTopup.isCanceled')
                                 i.fa.fa-exclamation-triangle.text-danger.margin-right-5
                                 label.margin-right-5 {{"Player has pending manual topup request already." | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingManualTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerManualTop()') {{'CANCEL' | translate}}
                     .col-md-12(ng-show='vm.existingManualTopup===false || vm.existingManualTopup.isCanceled')
@@ -943,12 +943,12 @@
                         .well.margin-bottom-5(ng-if='vm.existingAlipayTopup')
                             .lineThrough(ng-if='vm.existingAlipayTopup.isCanceled')
                                 button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
                             div(ng-if='!vm.existingAlipayTopup.isCanceled')
                                 i.fa.fa-exclamation-triangle.text-danger.margin-right-5
                                 label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAlipayTopUp()') {{'CANCEL' | translate}}
                     .col-md-12(ng-show='vm.existingAlipayTopup===false || vm.existingAlipayTopup.isCanceled')
@@ -999,12 +999,12 @@
                         .well.margin-bottom-5(ng-if='vm.existingWechatPayTopup')
                             .lineThrough(ng-if='vm.existingWechatPayTopup.isCanceled')
                                 button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
                             div(ng-if='!vm.existingWechatPayTopup.isCanceled')
                                 i.fa.fa-exclamation-triangle.text-danger.margin-right-5
                                 label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerWechatPayTopUp()') {{'CANCEL' | translate}}
                     .col-md-12(ng-show='vm.existingWechatPayTopup===false || vm.existingWechatPayTopup.isCanceled')
