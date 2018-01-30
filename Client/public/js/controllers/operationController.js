@@ -44,11 +44,9 @@ define(['js/app'], function (myApp) {
             RECOVER: "Recover",
             MANUAL: "Manual"
         };
-        vm.depositMethodList = {
-            Online: 1,
-            ATM: 2,
-            Counter: 3
-        };
+
+        vm.depositMethodList = $scope.depositMethodList;
+
         vm.getDepositMethodbyId = {
             1: 'Online',
             2: 'ATM',
