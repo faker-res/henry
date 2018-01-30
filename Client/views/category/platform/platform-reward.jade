@@ -8,7 +8,7 @@
         .panel-body
             ul.list-group.treeview(style='height:567px;overflow-y:auto')
                 li.list-group-item(ng-repeat='(i,v) in vm.allRewardEvent', ng-class='{active: v == vm.showReward}', ng-click='vm.rewardEventClicked(i,v)') {{v.name}}
-            button.btn.btn-primary.common-button(style='text-align:center', ng-click='vm.initReward();vm.disableAllRewardInput(false)')
+            button.btn.btn-primary.common-button(style='text-align:center' ng-if='checkViewPermission("Platform", "Reward", "Add")' ng-click='vm.initReward();vm.disableAllRewardInput(false)')
                 text {{"Add Event"|translate}}
                 img.img-create
 .col-sm-10(ng-if="vm.curPlatformText", style='padding-left:0;padding-right:0;')

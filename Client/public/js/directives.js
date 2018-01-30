@@ -400,4 +400,17 @@ angular.module('myApp.directives', [])
             }
         }
     }])
+
+    //focus-me - focus input element by value(true / false)
+    .directive('focusMe', function () {
+        return {
+            link: function(scope, element, attrs) {
+                scope.$watch(attrs.focusMe, function(value) {
+                    if(value === true) {
+                        element[0].focus();
+                    }
+                });
+            }
+        };
+    });
 ;
