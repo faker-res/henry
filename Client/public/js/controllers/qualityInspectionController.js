@@ -1375,7 +1375,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800 = [];
                 vm.CSDepartmentId=[]
-                //vm.platformWithCSDepartment=[];
+
                 if (seletedProductsId !== 'all') {
                     console.log("-----------------", seletedProductsId);
                     // select the CS account that bound to the selected platform
@@ -1386,7 +1386,6 @@ define(['js/app'], function (myApp) {
                                 platform.data.csDepartment.forEach(department => {
                                     vm.CSDepartmentId.push(department._id);
                                 });
-                                //vm.platformWithCSDepartment.push(platform);
                             }
                         }
                     });
@@ -1400,24 +1399,28 @@ define(['js/app'], function (myApp) {
 
                         if (data && data.data && data.data.length > 0){
                             data.data.forEach(acc => {
-                                if (acc.live800Acc && acc.live800Acc.length > 0){
+                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                     vm.selectedCSAccount.push(acc);
                                     acc.live800Acc.forEach(liveAcc => {
                                         vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
                                         vm.selectedLive800.push(liveAcc);
                                     });
-
-
                                 }
                             });
+                            if (vm.selectedCSAccount && vm.selectedCSAccount.length > 0){
+                                vm.selectedCS=[];
+                                vm.selectedCSAccount.forEach(acc => {
+                                    vm.selectedCS.push(acc._id);
+                                });
+                            }
                         }else{
                             // for null
                             vm.selectedCSAccount.push("");
                             vm.selectedLive800Acc.push("");
+                            vm.selectedCS.push("");
                         }
                         $scope.safeApply();
                     });
-                    // });
 
                 } else {
                     // select all by default
@@ -1426,7 +1429,6 @@ define(['js/app'], function (myApp) {
                             platform.data.csDepartment.forEach(department =>{
                                 vm.allCSDepartmentId.push(department._id);
                             });
-                            //vm.platformWithCSDepartment.push(platform);
                         }
                     });
 
@@ -1448,12 +1450,17 @@ define(['js/app'], function (myApp) {
                             });
 
                         }
+                        if (vm.selectedCSAccount && vm.selectedCSAccount.length > 0){
+                            vm.selectedCS=[];
+                            vm.selectedCSAccount.forEach(acc => {
+                                vm.selectedCS.push(acc._id);
+                            });
+                        }
                         $scope.safeApply();
                     });
-
                 }
-                console.log("vm.selectedCSAccount", vm.selectedCSAccount)
-                console.log("vm.selectedLive800", vm.selectedLive800)
+                console.log("vm.selectedCSAccount", vm.selectedCSAccount);
+                console.log("vm.selectedLive800", vm.selectedLive800);
             };
 
 
@@ -1461,7 +1468,7 @@ define(['js/app'], function (myApp) {
 
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800=[];
-               // vm.selectedAdminName = [];
+
                 if (csAcc.length !== vm.selectedCSAccount.length && csAcc.length>0) {
 
                     console.log("-----------------", csAcc);
@@ -1469,33 +1476,28 @@ define(['js/app'], function (myApp) {
                     csAcc.forEach(filterAcc => {
                         vm.selectedCSAccount.forEach(acc => {
                             if (acc._id.indexOf(filterAcc) > -1) {
-                                //vm.selectedAdminName.push(acc.adminName);
+
                                 acc.live800Acc.forEach(liveAcc => {
                                     vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
                                     vm.selectedLive800.push(liveAcc);
                                 });
-
                             }
                         });
                     });
                 } else {
                     // select all by default
-
                     console.log("-----------------", csAcc);
                     //select the Live800 account that bound to the selected CS account
                     vm.selectedCSAccount.forEach(acc => {
-                        //vm.selectedAdminName.push(acc.adminName);
                         acc.live800Acc.forEach(liveAcc => {
                             vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
                             vm.selectedLive800.push(liveAcc);
                         });
                     });
-
                 }
                 $scope.safeApply();
-                //console.log("vm.selectedAdminName",vm.selectedAdminName)
-                console.log("vm.selectedLive800Acc",vm.selectedLive800Acc)
-                console.log("vm.selectedLive800",vm.selectedLive800)
+                console.log("vm.selectedLive800Acc",vm.selectedLive800Acc);
+                console.log("vm.selectedLive800",vm.selectedLive800);
 
             };
 
@@ -1505,8 +1507,6 @@ define(['js/app'], function (myApp) {
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss'
                 });
-                // var lastMonth = utilService.setNDaysAgo(new Date(), 1);
-                // var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
                 obj.startTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayStartTime()));
 
                 obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
@@ -1520,7 +1520,6 @@ define(['js/app'], function (myApp) {
             vm.prepareShowQIReport = function () {
                 vm.selectedCSAccount=[];
                 vm.selectedLive800Acc = [];
-               // vm.selectedAdminName = [];
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
                 vm.allCSAccount=[];
@@ -1544,7 +1543,7 @@ define(['js/app'], function (myApp) {
 
                     if (data && data.data){
                         data.data.forEach(acc => {
-                            if (acc.live800Acc && acc.live800Acc.length > 0){
+                            if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                 vm.selectedCSAccount.push(acc);
                                 vm.allCSAccount.push(acc);
                             }
@@ -1563,28 +1562,32 @@ define(['js/app'], function (myApp) {
 
                         //select the Live800 account that bound to the selected CS account
                         vm.selectedCSAccount.forEach(acc => {
-                            //vm.selectedAdminName.push(acc.adminName);
-                            acc.live800Acc.forEach(liveAcc => {
-                                vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
-                                vm.allLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
-                                vm.selectedLive800.push(liveAcc);
-                            });
+                            if (acc.live800Acc.length>0) {
+                                acc.live800Acc.forEach(liveAcc => {
+                                    if (liveAcc != "") {
+                                        vm.selectedLive800Acc.push({
+                                            _id: acc._id,
+                                            adminName: acc.adminName,
+                                            live800Acc: liveAcc
+                                        });
+                                        vm.allLive800Acc.push({
+                                            _id: acc._id,
+                                            adminName: acc.adminName,
+                                            live800Acc: liveAcc
+                                        });
+                                        vm.selectedLive800.push(liveAcc);
+                                    }
+                                });
+                            }
                         });
-
-                        // console.log("vm.selectedAdminName",vm.selectedAdminName);
                         console.log("vm.selectedLive800Acc",vm.selectedLive800Acc);
                         console.log("vm.selectedLive800",vm.selectedLive800);
-
                     }
                     $scope.safeApply();
                 });
 
                 vm.QIReportQuery ={};
                 vm.QIReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
-                //vm.QIReportQuery.status = 'all';
-                //vm.QIReportQuery.promoType = '';
-               // vm.QIReportQuery.totalCount = 0;
-                //vm.QIReportQuery.proposalTypeId = '';
                 utilService.actionAfterLoaded("#QIReportTable", function () {
                     vm.commonInitTime(vm.QIReportQuery, '#QIReportQuery');
                     // vm.QIReportQuery.pageObj = utilService.createPageForPagingTable("#QIReportTablePage", {}, $translate, vm.QIReportTablePageChange);
@@ -1594,9 +1597,9 @@ define(['js/app'], function (myApp) {
             };
 
 
-            vm.QIReportTablePageChange = function (curP, pageSize) {
-                vm.commonPageChangeHandler(curP, pageSize, "QIReportQuery", vm.searchQIRecord)
-            };
+            // vm.QIReportTablePageChange = function (curP, pageSize) {
+            //     vm.commonPageChangeHandler(curP, pageSize, "QIReportQuery", vm.searchQIRecord)
+            // };
 
             vm.searchQIRecord = function (newSearch) {
 
@@ -1616,15 +1619,7 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
-
-
-                $('#QIReportTableSpin').show();
-                //vm.QIReportQuery.limit = vm.QIReportQuery.limit || 10;
-
-
-                // 1st step: get total conversation record
-                vm.mysqlData=[];
-                //vm.fpmsData=[];
+                vm.mysqlData=[];;
                 vm.companyID=[];
 
                 if (vm.selectedPlatformID != 'all'){
@@ -1639,240 +1634,202 @@ define(['js/app'], function (myApp) {
                         })
                     })
                 }
+                $('#QIReportTableSpin').show();
 
-                    var query = {
-                        'companyId':vm.companyID,
-                        'operatorId':vm.selectedLive800,
-                        'startTime': vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
-                        'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:05:00',
-                       // 'limit': vm.QIReportQuery.limit
+                var query = {
+                    'companyId':vm.companyID,
+                    'operatorId':vm.selectedLive800,
+                    'startTime': vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
+                    'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate(),
+                };
 
-                    };
-
-                    socketService.$socket($scope.AppSocket, 'searchLive800Record', query, success, error);
-                    function success(data) {
-                        console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaa", data);
-                        vm.displayData = [];
-                        let preData = [];
-                        vm.postData = [];
-                        vm.rawMysqlData=[];
-                        // handle the data obtained from mysql
-                        if (data.data[0]){
-                            data.data[0].forEach(conv => {
-                                let counter_cs=0;
-                                let counter_cus=0;
-                                let startTime=0;
-                                let start =true;
-                                let duration=0;
-                                let timeoutRate=0; // for overtimeSetting
-                                let mark=0;
-                                for (let i=0; i< conv.conversation.length;i++){
-                                   // roles: 1- cs; 2-player; 3-system
-                                    if (start){
-                                        if (conv.conversation[i].roles ==1 || conv.conversation[i].roles ==2){
-                                            startTime=conv.conversation[i].time;
-                                            start =false;
-                                        }
+                socketService.$socket($scope.AppSocket, 'searchLive800Record', query, success, error);
+                function success(data) {
+                    console.log("searchLive800Record", data);
+                    vm.displayData = [];
+                    let preData = [];
+                    vm.postData = [];
+                    vm.rawMysqlData=[];
+                    // handle the data obtained from mysql
+                    if (data.data[0]){
+                        data.data[0].forEach(conv => {
+                            let counter_cs=0;
+                            let counter_cus=0;
+                            let startTime=0;
+                            let start =true;
+                            let duration=0;
+                            let timeoutRate=0; // for overtimeSetting
+                            let mark=0;
+                            for (let i=0; i< conv.conversation.length;i++){
+                               // roles: 1- cs; 2-player; 3-system
+                                if (start){
+                                    if (conv.conversation[i].roles ==1 || conv.conversation[i].roles ==2){
+                                        startTime=conv.conversation[i].time;
+                                        start =false;
                                     }
-                                    if (conv.conversation[i].roles ==1){
-                                        counter_cs+=1;
-                                    }
-                                    if(conv.conversation[i].roles == 2){
-                                        counter_cus+=1;
-                                    }
-                                    if (conv.conversation[i].inspectionRate !=0){
-                                        mark=mark+ conv.conversation[i].inspectionRate;
-                                    }
-                                    if (conv.conversation[i].timeoutRate !=0){
-                                        timeoutRate=timeoutRate+ conv.conversation[i].timeoutRate;
-                                    }
-
                                 }
-                                if (startTime){
-                                    duration = conv.conversation[conv.conversation.length-1].time - startTime;
+                                if (conv.conversation[i].roles ==1){
+                                    counter_cs+=1;
                                 }
-
-                                if (counter_cus>=vm.conversationDefinition.askingSentence && counter_cs >=vm.conversationDefinition.replyingSentence && duration >= vm.conversationDefinition.totalSec){
-                                    vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 1, inspectionMark: mark, timeoutRate: timeoutRate})
-                                }else{
-                                    vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 0, inspectionMark: 0, timeoutRate:0}) //not effective should not be rated
+                                if(conv.conversation[i].roles == 2){
+                                    counter_cus+=1;
                                 }
-                            });
-
-                            vm.variety=[];
-                            vm.rawMysqlData.forEach(data=>{
-                                let count1=0;
-                                let count0=0;
-                                let mark =0;
-                                let timeoutRate=0;
-                                let index= vm.variety.findIndex(p => p.companyId == data.companyId && p.operatorId == data.operatorId);
-                                if (index == -1) {
-                                    for (let i = 0; i < vm.rawMysqlData.length; i++) {
-
-                                        if (data.companyId == vm.rawMysqlData[i].companyId && data.operatorId == vm.rawMysqlData[i].operatorId) {
-                                            if (vm.rawMysqlData[i].effective == 1){
-                                                count1 += 1;
-                                                mark = mark + vm.rawMysqlData[i].inspectionMark;
-                                                timeoutRate = timeoutRate + vm.rawMysqlData[i].timeoutRate;
-
-                                            }else{
-                                                count0 +=1;
-                                            }
-
-                                        }
-                                    }
-                                    vm.variety.push({
-                                        companyId: data.companyId,
-                                        fpmsAcc: data.fpmsAcc,
-                                        operatorId: data.operatorId,
-                                        count_1: count1, // effective count
-                                        count_0: count0, // not effective count
-                                        totalInspectionMark: mark,
-                                        totalTimeoutRate: timeoutRate
-                                    });
-
+                                if (conv.conversation[i].inspectionRate !=0){
+                                    mark=mark+ conv.conversation[i].inspectionRate;
                                 }
-                            });
-
-                            vm.mysqlData = $.extend(true, [], vm.variety); // used for inner table: data has been arranged based on operatorID
-
-                            preData = vm.variety.map(item => {
-                                let itemObj = {};
-
-                                let platformIndex = vm.platformCompanyID.findIndex(p => p.companyId.includes(item.companyId.toString()));
-                                if (platformIndex != -1) {
-                                    itemObj.productName = vm.platformCompanyID[platformIndex].productName;
-
-                                }
-                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc==item.operatorId)
-                                if (index != -1) {
-                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
-                                }
-                                itemObj.count_0 = item.count_0;
-                                itemObj.count_1 = item.count_1;
-                                itemObj.totalInspectionMark = item.totalInspectionMark;
-                                itemObj.totalTimeoutRate = item.totalTimeoutRate;
-
-                                return itemObj;
-
-                            });
-
-                            var holder = {};
-
-                            preData.forEach(d => {
-
-                                if (holder.hasOwnProperty(d.adminName)) {
-                                    holder[d.adminName] = [holder[d.adminName][0]+ d.count_0 ,holder[d.adminName][1]+ d.count_0,holder[d.adminName][2]+ d.totalInspectionMark,holder[d.adminName][3]+ d.totalTimeoutRate];
-                                    //holder[d.adminName].count_1 = holder[d.adminName].count_1 + d.count_1;
-                                } else {
-                                    holder[d.adminName]= [d.count_0, d.count_1,d.totalInspectionMark, d.totalTimeoutRate];
-                                    //holder[d.adminName].count_1 = d.count_1;
-                                }
-                            });
-
-                            for (var prop in holder) {
-                                let index = preData.findIndex(p => p.adminName == prop);
-                                if (index != -1) {
-                                    vm.postData.push({
-                                        productName: preData[index].productName,
-                                        adminName: prop,
-                                        count_0: holder[prop][0],
-                                        count_1: holder[prop][1],
-                                        totalCount: holder[prop][0]+holder[prop][1],
-                                        totalInspectionMark: holder[prop][2],
-                                        totalTimeoutRate: holder[prop][3]
-                                    })
+                                if (conv.conversation[i].timeoutRate !=0){
+                                    timeoutRate=timeoutRate+ conv.conversation[i].timeoutRate;
                                 }
                             }
-                        }
+                            if (startTime){
+                                duration = conv.conversation[conv.conversation.length-1].time - startTime;
+                            }
 
-                        if (data.data[1] && data.data[1].length > 0) {
-                           //vm.fpmsData = $.extend(true, [], data.data[1]);
-                            let preData =[];
+                            if (counter_cus>=vm.conversationDefinition.askingSentence && counter_cs >=vm.conversationDefinition.replyingSentence && duration >= vm.conversationDefinition.totalSec){
+                                vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 1, inspectionMark: mark, timeoutRate: timeoutRate})
+                            }else{
+                                vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 0, inspectionMark: 0, timeoutRate:0}) //not effective should not be rated
+                            }
+                        });
 
-                            preData = data.data[1].map(item => {
-                                let itemObj = {};
+                        vm.variety=[];
+                        vm.rawMysqlData.forEach(data=>{
+                            let count1=0;
+                            let count0=0;
+                            let mark =0;
+                            let timeoutRate=0;
+                            let index= vm.variety.findIndex(p => p.companyId == data.companyId && p.operatorId == data.operatorId);
+                            if (index == -1) {
+                                for (let i = 0; i < vm.rawMysqlData.length; i++) {
 
-
-                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc==item.operatorId)
-                                if (index != -1) {
-                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
-                                }
-                                itemObj.status = item.status;
-                                itemObj.count = item.count;
-
-                                return itemObj;
-                            });
-
-                            preData.forEach(data => {
-                                let index = vm.postData.findIndex(p => p.adminName == data.adminName);
-                                if (index != -1) {
-                                    if (vm.postData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])){
-                                        vm.postData[index][vm.constQualityInspectionStatus[data.status]] = vm.postData[index][vm.constQualityInspectionStatus[data.status]] + data.count;
-                                    }else{
-                                        vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
-                                    }
-
-                                }
-                            });
-
-                            vm.postData.forEach(data=>{
-                                for (let i=1; i<Object.keys(vm.constQualityInspectionStatus).length +1; i++){
-                                    if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])){
-                                        data[vm.constQualityInspectionStatus[i]] = 0;
+                                    if (data.companyId == vm.rawMysqlData[i].companyId && data.operatorId == vm.rawMysqlData[i].operatorId) {
+                                        if (vm.rawMysqlData[i].effective == 1){
+                                            count1 += 1;
+                                            mark = mark + vm.rawMysqlData[i].inspectionMark;
+                                            timeoutRate = timeoutRate + vm.rawMysqlData[i].timeoutRate;
+                                        }else{
+                                            count0 +=1;
+                                        }
                                     }
                                 }
+                                vm.variety.push({
+                                    companyId: data.companyId,
+                                    fpmsAcc: data.fpmsAcc,
+                                    operatorId: data.operatorId,
+                                    count_1: count1, // effective count
+                                    count_0: count0, // not effective count
+                                    totalInspectionMark: mark,
+                                    totalTimeoutRate: timeoutRate
+                                });
 
-                            });
+                            }
+                        });
 
-                            vm.postData.forEach(data=>{
-                                data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED
-                                data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
-                            })
+                        vm.mysqlData = $.extend(true, [], vm.variety); // used for inner table: data has been arranged based on operatorID
+
+                        preData = vm.variety.map(item => {
+                            let itemObj = {};
+
+                            let platformIndex = vm.platformCompanyID.findIndex(p => p.companyId.includes(item.companyId.toString()));
+                            if (platformIndex != -1) {
+                                itemObj.productName = vm.platformCompanyID[platformIndex].productName;
+
+                            }
+                            let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc==item.operatorId)
+                            if (index != -1) {
+                                itemObj.adminName = vm.selectedLive800Acc[index].adminName;
+                            }
+                            itemObj.count_0 = item.count_0;
+                            itemObj.count_1 = item.count_1;
+                            itemObj.totalInspectionMark = item.totalInspectionMark;
+                            itemObj.totalTimeoutRate = item.totalTimeoutRate;
+
+                            return itemObj;
+
+                        });
+
+                        var holder = {};
+
+                        preData.forEach(d => {
+
+                            if (holder.hasOwnProperty(d.adminName)) {
+                                holder[d.adminName] = [holder[d.adminName][0]+ d.count_0 ,holder[d.adminName][1]+ d.count_0,holder[d.adminName][2]+ d.totalInspectionMark,holder[d.adminName][3]+ d.totalTimeoutRate];
+                            } else {
+                                holder[d.adminName]= [d.count_0, d.count_1,d.totalInspectionMark, d.totalTimeoutRate];
+                            }
+                        });
+
+                        for (var prop in holder) {
+                            let index = preData.findIndex(p => p.adminName == prop);
+                            if (index != -1) {
+                                vm.postData.push({
+                                    productName: preData[index].productName,
+                                    adminName: prop,
+                                    count_0: holder[prop][0],
+                                    count_1: holder[prop][1],
+                                    totalCount: holder[prop][0]+holder[prop][1],
+                                    totalInspectionMark: holder[prop][2],
+                                    totalTimeoutRate: holder[prop][3]
+                                })
+                            }
                         }
-
-                        $('#QIReportTableSpin').hide();
-                        //vm.proposalQuery.totalCount = data.data.size;
-                        $scope.safeApply();
-                        vm.drawQIReportNew(vm.postData, [], [], newSearch);
-
-                    }
-                    function error(data) {
-                        $('#QIReportTableSpin').hide();
-                        console.log("error", error)
                     }
 
-                // }, function (err) {
-                //         $('#QIReportTableSpin').hide();
-                //
-                //     }, true);
+                    if (data.data[1] && data.data[1].length > 0) {
+                        let preData =[];
 
+                        preData = data.data[1].map(item => {
+                            let itemObj = {};
+                            let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc==item.operatorId)
+                            if (index != -1) {
+                                itemObj.adminName = vm.selectedLive800Acc[index].adminName;
+                            }
+                            itemObj.status = item.status;
+                            itemObj.count = item.count;
+
+                            return itemObj;
+                        });
+
+                        preData.forEach(data => {
+                            let index = vm.postData.findIndex(p => p.adminName == data.adminName);
+                            if (index != -1) {
+                                if (vm.postData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])){
+                                    vm.postData[index][vm.constQualityInspectionStatus[data.status]] = vm.postData[index][vm.constQualityInspectionStatus[data.status]] + data.count;
+                                }else{
+                                    vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                }
+                            }
+                        });
+
+                        vm.postData.forEach(data=>{
+                            for (let i=1; i<Object.keys(vm.constQualityInspectionStatus).length +1; i++){
+                                if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])){
+                                    data[vm.constQualityInspectionStatus[i]] = 0;
+                                }
+                            }
+                        });
+
+                        vm.postData.forEach(data=>{
+                            data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED
+                            data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
+                        })
+                    }
+
+                    $('#QIReportTableSpin').hide();
+                    $scope.safeApply();
+                    vm.drawQIReportNew(vm.postData, [], [], newSearch);
+
+                }
+                function error(data) {
+                    $('#QIReportTableSpin').hide();
+                    console.log("error", error)
+                }
             };
 
             vm.drawQIReportNew = function (data, total, size, newSearch) {
                 var tableOptions = {
                     data: data,
                     "order": vm.QIReportQuery.aaSorting || [[0, 'desc']],
-                    aoColumnDefs: [
-                        {'sortCol': 'productId', 'aTargets': [0], bSortable: true},
-                        {'sortCol': 'createTime', 'aTargets': [8], bSortable: true},
-
-                        // {'sortCol': 'manualTopUpAmount', 'aTargets': [4], bSortable: true},
-                        // {'sortCol': 'weChatTopUpAmount', 'aTargets': [5], bSortable: true},
-                        // {'sortCol': 'aliPayTopUpAmount', 'aTargets': [6], bSortable: true},
-                        // {'sortCol': 'onlineTopUpAmount', 'aTargets': [7], bSortable: true},
-                        // {'sortCol': 'topUpTimes', 'aTargets': [8], bSortable: true},
-                        // {'sortCol': 'topUpAmount', 'aTargets': [9], bSortable: true},
-                        // {'sortCol': 'bonusTimes', 'aTargets': [10], bSortable: true},
-                        // {'sortCol': 'bonusAmount', 'aTargets': [11], bSortable: true},
-                        // {'sortCol': 'rewardAmount', 'aTargets': [12], bSortable: true},
-                        // {'sortCol': 'consumptionReturnAmount', 'aTargets': [13], bSortable: true},
-                        // {'sortCol': 'consumptionTimes', 'aTargets': [14], bSortable: true},
-                        // {'sortCol': 'validConsumptionAmount', 'aTargets': [15], bSortable: true},
-                        // {'sortCol': 'consumptionBonusAmount', 'aTargets': [16], bSortable: true},
-                        // {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
-                        {targets: '_all', defaultContent: ' ', bSortable: false}
-                    ],
                     columns: [
                         {
                             title: $translate('PRODUCT'), data: "productName",
@@ -1886,70 +1843,44 @@ define(['js/app'], function (myApp) {
                                     if (vm.selectedLive800Acc[i].adminName === data) {
                                         return "<a>" + vm.selectedLive800Acc[i].adminName + "</a>";
                                     }
-                                    //     return '<a ng-click="vm.showReportModalNew(\'' + vm.selectedLive800Acc[i].adminName + '\')">' + vm.selectedLive800Acc[i].adminName + '</a>';
-                                    // }
                                 }
                             }
                         },
                         {
-                            title: $translate('TOTAL_CONVERSATION_RECORD'),
-                            data: "totalCount",
-
+                            title: $translate('TOTAL_CONVERSATION_RECORD'), data: "totalCount",
                         },
                         {
                             title: $translate('NOT_EVALUATED_QUANTITY'), data: "count_0",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "count_1",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('PROCESSING_QUANTITY'), data: "pendingCount",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('COMPLETED_UNREAD_QUANTITY'), data: "COMPLETED_UNREAD",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('COMPLETED_READ_QUANTITY'), data: "COMPLETED_READ",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('COMPLETED_QUANTITY'), data: "COMPLETED",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('APPEALING_QUANTITY'), data: "APPEALING",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('APPEAL_COMPLETED_QUANTITY'), data: "APPEAL_COMPLETED",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalTimeoutRate",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionMark",
-                            orderable: false,
-
                         },
                         {
                             title: $translate('AVG_DEDUCTION_MARK') , data: "avgMark",
-                            orderable: false,
-
                         }
                     ],
                     "paging": true,
@@ -1961,14 +1892,12 @@ define(['js/app'], function (myApp) {
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
 
-
                 if (reportTbl) {
                     reportTbl.clear();
                 }
-                // var reportTbl = utilService.createDatatableWithFooter('#QIReportTable', tableOptions,{});
                 var reportTbl = $("#QIReportTable").DataTable(tableOptions);
                 utilService.setDataTablePageInput('QIReportTable', reportTbl, $translate);
-                //vm.QIReportQuery.pageObj.init({maxCount: size}, newSearch);
+
                 $('#QIReportTable tbody').off('click', 'td.expandPlayerReport');
                 $('#QIReportTable').resize();
 
@@ -1992,15 +1921,12 @@ define(['js/app'], function (myApp) {
                         let selectedLiveAcc = [];
                         let selectedCompanyId =[];
                         vm.displayDetailData = [];
-                        // vm.proposalDialog = 'proposal';
+
                         socketService.$socket($scope.AppSocket, 'getAdminsInfo', {
                                 adminName: data.adminName
 
                             }, function (data) {
                                 selectedLiveAcc = data.data[0].live800Acc;
-                                //selectedCompanyId = data.data[0].live800CompanyId;
-                               // vm.mysqlDataBreakdown = [];
-                               // vm.fpmsDataBreakdown = [];
 
                                 vm.mysqlData.forEach( item => {
                                     if (item.fpmsAcc == data.data[0].adminName){
@@ -2016,18 +1942,18 @@ define(['js/app'], function (myApp) {
                                     })
                                 }
 
-
                                 let params= {
                                     'companyId': selectedCompanyId,
                                     'operatorId': selectedLiveAcc,
-                                    'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),//'2018-01-16 00:00:00',
-                                    'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate() //'2018-01-16 00:05:00'
+                                    'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
+                                    'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
                                 };
 
                                 socketService.$socket($scope.AppSocket, 'getProgressReportByOperator', params, success, error);
 
                                 function success(data) {
-                                    console.log("AAAAAAAAAAABBBBBBBBBBB---------------", data.data);
+                                    console.log("getProgressReportByOperator", data.data);
+                                    vm.allData = $.extend(true, [], data.data);
                                     if (data.data && data.data.length > 0) {
                                         data.data.forEach(data => {
                                             let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
@@ -2042,21 +1968,20 @@ define(['js/app'], function (myApp) {
                                                     data[vm.constQualityInspectionStatus[i]] = 0;
                                                 }
                                             }
-
                                         });
-
-                                        vm.displayDetailData.forEach(data=>{
-                                            data.totalCount = data.count_0+data.count_1;
-                                            data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED;
-                                            //let temp_totalOvertimeMark=0;
-                                            data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
-                                        });
-
-
-
-                                        $scope.safeApply();
-                                        vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
                                     }
+                                    vm.displayDetailData.forEach(data => {
+                                        data.totalCount = data.count_0 + data.count_1;
+                                        if (vm.allData && vm.allData.length == 0){
+                                            data.pendingCount = data.count_1;
+                                        }else {
+                                            data.pendingCount = data.count_1 - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
+                                            data.avgMark = ((data.totalTimeoutRate + data.totalInspectionMark) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+                                        }
+                                    });
+                                    $scope.safeApply();
+                                    vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+
                                 }
 
                                 function error(error) {
@@ -2067,8 +1992,6 @@ define(['js/app'], function (myApp) {
                                 console.log("error", error);
                             }
                         );
-
-
                         tr.addClass('shown');
                     }
                 });
@@ -2082,11 +2005,10 @@ define(['js/app'], function (myApp) {
                 let holder = data;
                 let tableOptions = {
                     data: data,
-                    "ordering": false,
-                    // "order": qObj.aaSorting,
-                    aoColumnDefs: [
-                        {targets: '_all', defaultContent: ' ', bSortable: false}
-                    ],
+                    //"ordering": false,
+                    // aoColumnDefs: [
+                    //     {targets: '_all', defaultContent: ' ', bSortable: false}
+                    // ],
                     columns: [
 
                         {title: "Live800 " + $translate('Account'), data: "operatorId"},
@@ -2097,57 +2019,46 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('NOT_EVALUATED_QUANTITY'), data: "count_0",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "count_1",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('PROCESSING_QUANTITY'), data: "pendingCount",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('COMPLETED_UNREAD_QUANTITY'), data: "COMPLETED_UNREAD",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('COMPLETED_READ_QUANTITY'), data: "COMPLETED_READ",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('COMPLETED_QUANTITY'), data: "COMPLETED",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('APPEALING_QUANTITY'), data: "APPEALING",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('APPEAL_COMPLETED_QUANTITY'), data: "APPEAL_COMPLETED",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalTimeoutRate",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionMark",
-                            orderable: false,
 
                         },
                         {
                             title: $translate('AVG_DEDUCTION_MARK') , data: "avgMark",
-                            orderable: false,
 
                         }
                     ],
@@ -2159,39 +2070,27 @@ define(['js/app'], function (myApp) {
                     }
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
-
-                // if (vm.playerPlatformReport[id]) {
-                //     vm.playerPlatformReport[id].clear();
-                // }
                 $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
 
                 var innerTable = $('#' + id).DataTable(tableOptions);
-                //utilService.createDatatableWithFooter('#' + id, tableOptions, {});
-                //utilService.setDataTablePageInput('QIReportTable', {}, $translate);
-               // vm[id].pageObj.init({maxCount: size}, newSearch);
-
             };
 
             vm.commonTableOption = {
                 dom: 'Zrtlp',
                 "autoWidth": true,
                 "scrollX": true,
-                // "scrollY": "455px",
                 columnDefs: [{targets: '_all', defaultContent: ' '}],
                 "scrollCollapse": true,
                 "destroy": true,
                 "paging": false,
-                //"dom": '<"top">rt<"bottom"ilp><"clear">Zlfrtip',
                 "language": {
                     "emptyTable": $translate("No data available in table"),
                 }
 
-            }
-
+            };
 
             vm.reportTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 $compile(nRow)($scope);
-                //vm.OperationProposalTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
             };
 
             vm.createInnerTable = function (id) {
