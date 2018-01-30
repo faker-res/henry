@@ -300,7 +300,7 @@ var proposal = {
                     let queryObj = {
                         type: proposalData.type,
                         "data.platformId": data[0].platformId,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
+                        status: {$in: [constProposalStatus.CSPENDING, constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
                     };
                     let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
@@ -342,6 +342,11 @@ var proposal = {
                     // SCHEDULED AUTO APPROVAL
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
+                    }
+
+                    if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.needCsApproved) {
+                        bExecute = false;
+                        proposalData.status = constProposalStatus.CSPENDING;
                     }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
@@ -3601,6 +3606,39 @@ var proposal = {
                 return {size: proposalCount, data: proposals}
             }
         );
+    },
+
+    approveCsPendingAndChangeStatus: (proposalObjId, createTime, adminName) => {
+        return dbconfig.collection_proposal.findOne({_id: proposalObjId})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
+            proposal => {
+                if(!proposal) Q.reject({name: 'DataError', message: 'Can not find proposal'});
+
+                // auto approval or audit process step
+                if(proposal.data.isAutoApproval ||　proposal.process){
+                    return dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        status: constProposalStatus.CSPENDING,
+                        createTime: createTime
+                    }, {
+                        status: proposal.data.isAutoApproval ? constProposalStatus.AUTOAUDIT : constProposalStatus.PENDING,
+                        'data.approvedByCs':adminName
+                    });
+                } else {
+                    // approved
+                    return dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        status: constProposalStatus.CSPENDING,
+                        createTime: createTime
+                    }, {
+                        'data.approvedByCs':adminName,
+                        status: constProposalStatus.APPROVED,
+                    }).then(
+                        () =>  proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, true, proposal)
+                    );
+                }
+            }
+        )
     }
 };
 
