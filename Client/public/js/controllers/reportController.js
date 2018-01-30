@@ -34,6 +34,7 @@ define(['js/app'], function (myApp) {
             PREPENDING: "PrePending",
             PENDING: "Pending",
             PROCESSING: "Processing",
+            APPROVED: "approved",
             SUCCESS: "Success",
             FAIL: "Fail",
             CANCEL: "Cancel",
@@ -4413,6 +4414,15 @@ define(['js/app'], function (myApp) {
             let rewardTypes = $('select#selectRewardType').multipleSelect("getSelects");
             let promoType = $('select#selectPromoType').multipleSelect("getSelects");
 
+            let isWithdrawal = false;
+            if(proposalNames){
+                proposalNames.forEach(proposalName => {
+                    if(proposalName == "PlayerBonus" || proposalName == "PartnerBonus"){
+                        isWithdrawal = true;
+                    }
+                })
+            }
+
             if (vm.allProposalType.length != proposalNames.length) {
                 vm.allProposalType.filter(item => {
                     if (proposalNames.indexOf(item.name) > -1) {
@@ -4461,7 +4471,7 @@ define(['js/app'], function (myApp) {
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
                 platformId: vm.curPlatformId,
-                status: newproposalQuery.status,
+                status: isWithdrawal ? newproposalQuery.status == "approved" ? "Approved" : newproposalQuery.status : newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: newSearch ? 0 : (newproposalQuery.index || 0),
                 limit: newproposalQuery.limit,
@@ -4495,7 +4505,7 @@ define(['js/app'], function (myApp) {
                     if (item.data && item.data.remark) {
                         item.remark$ = item.data.remark;
                     }
-                    item.status$ = $translate(vm.getStatusStrfromRow(item));
+                    item.status$ = $translate(item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
 
                     return item;
                 })
