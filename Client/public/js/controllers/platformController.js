@@ -4444,6 +4444,7 @@ define(['js/app'], function (myApp) {
                     'remarks': remarks
                 }
                 socketService.$socket($scope.AppSocket, 'updatePlayerIntentionRemarks', updateData, function (playerCount) {
+                    console.log("updatePlayerIntentionRemarks",updateData);
                     vm.newPlayerProposal.remarks = remarks;
                     vm.editNewplayerRemark = false;
                     vm.getNewPlayerListByFilter(true);
@@ -4452,6 +4453,22 @@ define(['js/app'], function (myApp) {
 
 
             }
+
+        vm.updateNewPlayerProposalRemark = function (pId, remarks) {
+            let sendData = {
+                'proposalObjId': pId,
+                'remarks': remarks
+            }
+            socketService.$socket($scope.AppSocket, 'updatePlayerProposalRemarks', sendData, function (playerCount) {
+                console.log("updatePlayerProposalRemarks",sendData);
+                vm.newPlayerProposal.remarks = remarks;
+                vm.editNewplayerRemark = false;
+                vm.getNewPlayerListByFilter(true);
+                $scope.safeApply();
+            });
+
+
+        }
         /////////////////////////////////Mark::Platform players functions//////////////////
 
 
