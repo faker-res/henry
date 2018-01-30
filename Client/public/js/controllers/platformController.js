@@ -4444,6 +4444,7 @@ define(['js/app'], function (myApp) {
                     'remarks': remarks
                 }
                 socketService.$socket($scope.AppSocket, 'updatePlayerIntentionRemarks', updateData, function (playerCount) {
+                    console.log("updatePlayerIntentionRemarks",updateData);
                     vm.newPlayerProposal.remarks = remarks;
                     vm.editNewplayerRemark = false;
                     vm.getNewPlayerListByFilter(true);
@@ -4452,6 +4453,22 @@ define(['js/app'], function (myApp) {
 
 
             }
+
+        vm.updateNewPlayerProposalRemark = function (pId, remarks) {
+            let sendData = {
+                'proposalObjId': pId,
+                'remarks': remarks
+            }
+            socketService.$socket($scope.AppSocket, 'updatePlayerProposalRemarks', sendData, function (playerCount) {
+                console.log("updatePlayerProposalRemarks",sendData);
+                vm.newPlayerProposal.remarks = remarks;
+                vm.editNewplayerRemark = false;
+                vm.getNewPlayerListByFilter(true);
+                $scope.safeApply();
+            });
+
+
+        }
         /////////////////////////////////Mark::Platform players functions//////////////////
 
 
@@ -4660,11 +4677,13 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             sClass: "remarkCol",
                             render: (data, type, row) => {
+                                let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
                                 if (!data || data.length === 0) {
-                                    return "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
+                                    return emptyOutput;
                                 }
                                 let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'>";
                                 let output = initOutput;
+                                let remarkMatches = false;
                                 data.map(function (remarkId) {
                                     for (let i = 0; i < vm.credibilityRemarks.length; i++) {
                                         if (vm.credibilityRemarks[i]._id === remarkId) {
@@ -4672,12 +4691,17 @@ define(['js/app'], function (myApp) {
                                                 output += "<br>";
                                             }
                                             output += vm.credibilityRemarks[i].name;
+                                            remarkMatches = true;
                                         }
                                     }
                                 });
                                 output += "</a>";
 
-                                return output;
+                                if(remarkMatches) {
+                                    return output;
+                                } else {
+                                    return emptyOutput;
+                                }
                             }
                         },
                         {
@@ -12116,6 +12140,14 @@ define(['js/app'], function (myApp) {
                         var data = data.data;
                         vm.bankCards = data.data ? data.data : false;
                     });
+            }
+
+            vm.getBankCardTypeTextbyId = function (id) {
+                if (!vm.allBankTypeList) {
+                    return id;
+                } else {
+                    return vm.allBankTypeList[id];
+                }
             }
 
             // Player alipay topup
