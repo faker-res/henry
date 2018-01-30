@@ -12118,6 +12118,14 @@ define(['js/app'], function (myApp) {
                     });
             }
 
+            vm.getBankCardTypeTextbyId = function (id) {
+                if (!vm.allBankTypeList) {
+                    return id;
+                } else {
+                    return vm.allBankTypeList[id];
+                }
+            }
+
             // Player alipay topup
             vm.initPlayerAlipayTopUp = function () {
                 vm.playerAlipayTopUp = {submitted: false};
