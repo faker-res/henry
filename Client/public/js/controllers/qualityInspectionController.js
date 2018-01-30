@@ -402,25 +402,11 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
                     let overtimeSetting = vm.selectedPlatform.data.overtimeSetting;
-                    console.log(overtimeSetting);
 
                     data.data.forEach(item=>{
                         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
                         item.conversation.forEach(function(cv){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-                            console.log(cv);
-                            // let colors = '#CECECE';
-                            // if(cv.timeoutRate >= 1) {
-                            //     colors = 'yellow';
-                            // }else if(cv.timeout  == 0){
-                            //     colors = 'yellow';
-                            // }else if(cv.timeoutRate < 0 && cv.timeoutRate >= -1.5){
-                            //     colors = 'gray';
-                            // }else if(cv.timeoutRate < -1.5 && cv.timeoutRate >=-2){
-                            //     colors = 'rgb(242,123,123)';
-                            // }else{
-                            //     colors = 'white';
-                            // }
                             let otsLength = overtimeSetting.length -1;
                             let colors = '';
                             overtimeSetting.forEach((ots,i)=>{
@@ -438,7 +424,6 @@ define(['js/app'], function (myApp) {
                                             colors = overtimeSetting[i].color;
                                         }
                                     }
-                                    console.log(cv.timeoutRate+'>'+overtimeSetting[i].presetMark + colors);
                                 }
                             });
                             cv.colors = colors;

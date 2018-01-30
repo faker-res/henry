@@ -397,13 +397,18 @@ var dbQualityInspection = {
     },
     getMongoCV:function(dbResult){
       var deferred = Q.defer();
+
+      let platformProm = dbconfig.collection_platform.find().lean();
       let proms = [];
-      Q.all(dbResult).then(results=>{
+      Q.all([dbResult, platformProm]).then(results=>{
         // console.log(results);
-        if(results.length == 0){
+
+        let sqlData = results[0];
+        let platformDetails = results[1];
+        if(sqlData.length == 0){
             deferred.resolve([]);
         }
-        results.forEach(item => {
+          sqlData.forEach(item => {
             //console.log(item);
             let live800Chat = {conversation: [], live800Acc:{}};
             live800Chat.messageId = item.msg_id;
@@ -418,6 +423,7 @@ var dbQualityInspection = {
             live800Chat.live800Acc['id'] = item.operator_id;
             live800Chat.live800Acc['name'] = item.operator_name;
             live800Chat.operatorName = item.operator_name;
+
             let dom = new JSDOM(item.content);
             let content = [];
             let sys = dom.window.document.getElementsByTagName("sys");
@@ -431,8 +437,11 @@ var dbQualityInspection = {
             content.sort(function (a, b) {
                 return a.time - b.time;
             });
-
-            live800Chat.conversation = dbQualityInspection.drawColor(content);
+            let platformInfo = platformDetails.filter(item=>{
+                return item.live800CompanyId == live800Chat.companyId;
+            });
+            platformInfo = platformInfo[0] ? platformInfo[0]:[];
+            live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
 
             let queryQA = {messageId: String(item.msg_id)};
             let prom = dbconfig.collection_qualityInspection.find(queryQA)
@@ -455,49 +464,67 @@ var dbQualityInspection = {
       return deferred.promise;
 
     },
-    drawColor: function(conversation){
+    calculateRate: function(conversation, platform){
         let firstCV = null;
         let firstTime = null;
         let lastCV = null;
         let lastCustomerCV = null;
-        conversation.forEach(item=>{
-            if(!firstCV && item.roles == 2){
-                firstCV = item;
-                lastCustomerCV = item;
-            }else{
-                if(item.roles==2){
-                    if(lastCV != 2){
-                        lastCustomerCV = item;
-                    }
-                }else if(item.roles==1 && (lastCV.roles!=1) && lastCustomerCV){
-                    let timeStamp = item.time - lastCustomerCV.time;
-                    let min = timeStamp / (60*60*24);
-                    let sec = min * 60;
-                    // console.log(item.content);
-                    // console.log(item.roles);
-                    // console.log(lastCustomerCV.time +'-'+ item.time + '=' +timeStamp);
-                    // console.log(min);
-                    // console.log(sec);
-                    // console.log('-------')
-                    let rate = 0;
-                    if(sec <= 30){
-                        rate = 1;
-                    }else if(sec > 30 && sec <=60){
-                        rate = 0;
-                    }else if(sec > 90 && sec <=120){
-                        rate = -1.5;
-                    }else{
-                        rate = -2;
-                    }
-                    item.timeoutRate = rate;
-                }else{
+        if (!platform) {
+            return conversation;
+        }
 
+        if (platform.overtimeSetting) {
+
+            let overtimeSetting = platform.overtimeSetting;
+            conversation.forEach(item => {
+                if (!firstCV && item.roles == 2) {
+
+                    firstCV = item;
+                    lastCustomerCV = item;
+                } else {
+                    if (item.roles == 2) {
+                        // keep the last customer question , to calculate the timeoutRate
+                        if (lastCV.roles == 1) {
+                            lastCustomerCV = item;
+                        }
+                    } else if (item.roles == 1 && lastCustomerCV) {
+                        // calculate the timeoutRate
+                        let timeStamp = item.time - lastCustomerCV.time;
+                        let sec = timeStamp / 1000;
+                        let rate = 0;
+                        item.timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, item, sec);
+                    } else {
+                    }
+                }
+                if (item.roles != 3) {
+                    //system msg should not involve
+                    lastCV = item;
+                }
+                return item;
+            })
+        }
+        return conversation;
+    },
+    rateByCVTime: function(overtimeSetting, cv, sec){
+        let timeoutRate = 0;
+        let otsLength = overtimeSetting.length - 1;
+        overtimeSetting.forEach((ots,i)=>{
+
+            if(i==0){
+                if(sec <= overtimeSetting[0].conversationInterval){
+                    timeoutRate = overtimeSetting[0].presetMark;
+                }
+            }else if(i==otsLength){
+                if(sec >= overtimeSetting[otsLength].conversationInterval){
+                    timeoutRate = overtimeSetting[i].presetMark;
+                }
+            }else{
+                if(sec < overtimeSetting[i-1].conversationInterval && sec > overtimeSetting[i+1].conversationInterval){
+                    timeoutRate = overtimeSetting[i].presetMark;
                 }
             }
-            lastCV = item;
-            return item;
-        })
-        return conversation;
+        });
+        return timeoutRate
     },
     reformatCV: function(cvs,mongoCVS ){
 
