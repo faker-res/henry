@@ -22,7 +22,7 @@
                 .text-center(ng-if='!vm.selectedConfigTab')
                     label.text-danger {{'Please select a type' | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="definition" && checkViewPermission("QualityInspection", "Setting", "definition")')
+                div(ng-if='vm.selectedConfigTab=="definition" && checkViewPermission("QualityInspection", "QualityInsectionSetting", "definition")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -51,14 +51,14 @@
                                     input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.replyingSentence')
                             br
                             // !!! take not on checkViewPermission !!!!
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'Setting', 'Edit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("definition")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("definition")') {{"CONFIRM" | translate}}
 
 
-                div(ng-if='vm.selectedConfigTab=="setting" && checkViewPermission("QualityInspection", "Setting", "setting")')
+                div(ng-if='vm.selectedConfigTab=="setting" && checkViewPermission("QualityInspection", "QualityInsectionSetting", "setting")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr

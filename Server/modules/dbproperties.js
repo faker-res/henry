@@ -80,7 +80,7 @@ let playerPageAdvertisementInfoSchema = require('./../schema/playerPageAdvertise
 let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdvertisementInfo');
 
 let smsGroupSchema = require('./../schema/smsGroup');
-
+let qualityInspectionSchema = require('./../schema/qualityInspection');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -328,6 +328,7 @@ let playerForbidTopUpLogModel = dbLogs.model('playerForbidTopUpLog', playerForbi
 let rewardPointsLogSchema = require('./../schema/logs/rewardPointsLog');
 let rewardPointsLogModel = dbLogs.model('rewardPointsLog', rewardPointsLogSchema, 'rewardPointsLog');
 
+let qualityInspectionModel = dbLogs.model('qualityInspection', qualityInspectionSchema, 'qualityInspection');
 //unique schema
 var playerNameSchema = require('./../schema/unique/playerName');
 var playerNameModal = db_player.model('playerName', playerNameSchema, 'playerName');
@@ -484,6 +485,7 @@ var dbProperties = {
     collection_rewardPointsLog: rewardPointsLogModel,
     collection_rewardTaskGroup: rewardTaskGroupModel,
 
+    collection_qualityInspection: qualityInspectionModel,
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,
