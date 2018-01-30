@@ -34,7 +34,6 @@ define(['js/app'], function (myApp) {
             PREPENDING: "PrePending",
             PENDING: "Pending",
             PROCESSING: "Processing",
-            APPROVED: "approved",
             SUCCESS: "Success",
             FAIL: "Fail",
             CANCEL: "Cancel",
@@ -4462,7 +4461,7 @@ define(['js/app'], function (myApp) {
                 rewardTypeName: newproposalQuery.rewardTypeName,
                 promoTypeName: newproposalQuery.promoTypeName,
                 platformId: vm.curPlatformId,
-                status: newproposalQuery.status == "approved" ? "Approved" : newproposalQuery.status,
+                status: newproposalQuery.status,
                 relatedAccount: newproposalQuery.relatedAccount,
                 index: newSearch ? 0 : (newproposalQuery.index || 0),
                 limit: newproposalQuery.limit,
@@ -4496,7 +4495,7 @@ define(['js/app'], function (myApp) {
                     if (item.data && item.data.remark) {
                         item.remark$ = item.data.remark;
                     }
-                    item.status$ = $translate(vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item)) ;
+                    item.status$ = $translate(item.mainType === "PlayerBonus" || item.mainType === "PartnerBonus" ? vm.getStatusStrfromRow(item) == "Approved" ? "approved" : vm.getStatusStrfromRow(item) : vm.getStatusStrfromRow(item));
 
                     return item;
                 })
@@ -5158,12 +5157,12 @@ define(['js/app'], function (myApp) {
                             }
                         );
                         // ============ domain analysis new player ===========
-                        let domainPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.domain != null);
+                        let domainPlayers = vm.newPlayerQuery.newPlayers;
                         vm.newPlayerQuery.domainNewPlayerData = vm.calculateNewPlayerData(domainPlayers, $translate('total'), domainPlayers.length);
                         vm.newPlayerQuery.domainAnalysisNewPlayerData = vm.newPlayerQuery.domain.map(
                             domain => {
                                 let domainNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.domain == domain._id);
-                                return vm.calculateNewPlayerData(domainNewPlayers, domain._id, vm.newPlayerQuery.domainNewPlayerData.validPlayer);
+                                return vm.calculateNewPlayerData(domainNewPlayers, domain._id ==null? $translate('no domain') : domain._id, vm.newPlayerQuery.domainNewPlayerData.validPlayer);
                             }
                         );
 
@@ -5256,7 +5255,12 @@ define(['js/app'], function (myApp) {
             }
         };
         vm.filterValidPlayerPartnerAnalysisTable = player => player.partner && player.partner.partnerName == vm.newPlayerQuery.validPlayerGraphPartnerAnalysis;
-        vm.filterValidPlayerDomainAnalysisTable = player => player.domain !=null && player.domain == vm.newPlayerQuery.validPlayerGraphDomainAnalysis;
+        vm.filterValidPlayerDomainAnalysisTable = player => {
+            if(vm.newPlayerQuery.validPlayerGraphDomainAnalysis == $translate('no domain'))
+                return player.domain == null;
+            else
+                return player.domain == vm.newPlayerQuery.validPlayerGraphDomainAnalysis;
+        };
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.curPlatformId})
                 .then(function (data) {
