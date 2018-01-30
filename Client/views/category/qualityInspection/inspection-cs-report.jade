@@ -1,21 +1,21 @@
-#QIReportQuery.well.block-query.col-md-12.well
+#QIReportQuery.well.block-query.col-md-12.well(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'Read')")
 
-    div(style='width:200px')
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByProduct')")
         label {{'PRODUCT' | translate}}
         select.spicker.form-control(ng-model='vm.selectedPlatformID', data-actions-box='true', ng-change="vm.checkSelectedPlatformID(vm.selectedPlatformID)" )
             option(value='all') {{'ALL' | translate}}
             option(ng-repeat='(i,v) in vm.platformWithCSDepartment', ng-init="vm.endLoadMultipleSelect(); vm.selectedPlatformID = 'all' ", value='{{v.data._id}}') {{v.data.name}}
-    div(style='width:200px')
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByCSAccount')")
         label FPMS {{'CS Account' | translate}}
         select.spicker.form-control(ng-model='vm.selectedCS', multiple, data-actions-box='true', bsp, ng-change="vm.checkSelectedCSAcc(vm.selectedCS)",max-height='100px',style="overflow-y:auto; max-height:100px;" )
             option(ng-repeat='(i,v) in vm.selectedCSAccount', value='{{v._id}}', ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
-    div(style='width:200px')
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByLive800Account')")
         label Live800 {{'Account' | translate}}
         select.spicker.form-control(ng-model='vm.selectedLive800', ng-options='v.live800Acc as v.live800Acc group by v.adminName for v in vm.selectedLive800Acc',multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()', style="overflow-y:auto; max-height:100px;")
-    div
+    div(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByLive800Date')")
         label.control-label {{'Start date' | translate}}
         .startTime
-    div
+    div(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByLive800Date')")
         label.control-label {{'End date' | translate}}
         .endTime
     div

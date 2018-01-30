@@ -607,29 +607,37 @@ var roleChecker = {
         QualityInspection: {
             QualityInsectionSetting: {
                 Read: [],
-                queryByProposalDate: [],
-                Edit: ['updatePlatform'],
-                setting: [],
-                definition: []
+                Edit: ['updatePlatform']
             },
             Live800Record: {
-                Read: []
+                Read: [],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: [],
+                queryByEvaluationStatus: [],
+                queryByQualityAssessor: []
             },
             QualityInsectionEvaluation: {
-                Read: []
-            },
-            QualityInsectionCSReport: {
-                Read: []
-            },
-            QualityInsectionReport: {
                 Read: [],
-                queryByQA: [],
+                queryByQualityAssessor: [],
                 queryByQualityInspectionDate: [],
                 queryByAppealDate: [],
                 queryByAppealStatus: []
+            },
+            QualityInsectionCSReport: {
+                Read: [],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: []
+            },
+            QualityInsectionReport: {
+                Read: [],
+                queryByQualityAssessor: [],
+                queryByQualityInspectionDate: [],
+                queryByProduct: []
             }
-
-
         }
     },
 
