@@ -223,11 +223,8 @@ define(['js/app'], function (myApp) {
                 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM',
                 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP', 'BAN_PLAYER_BONUS'];
 
-            vm.depositMethodList = {
-                Online: 1,
-                ATM: 2,
-                Counter: 3
-            };
+            vm.depositMethodList = $scope.depositMethodList;
+
             vm.allPlayerFeedbackString = {
                 NORMAL: "Normal",
                 MISSED_CALL: "MissedCall",
