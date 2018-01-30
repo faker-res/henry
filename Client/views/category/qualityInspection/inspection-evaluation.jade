@@ -41,7 +41,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                                     button.common-button.btn.btn-primary(ng-click='vm.getUnreadEvaluationRecord(1)') {{'SEARCH' | translate}}
                                 .inlineBlk(ng-show='vm.loadingUnreadEvaluationTable')
-                                    label.blink.text-danger {{'Loading' | translate}}
+                                    i.fa.fa-spin.fa-spinner
 
                                 .row(ng-if="vm.unreadEvaluationTable")
                                     table#unreadEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
@@ -123,7 +123,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                                     button.common-button.btn.btn-primary(ng-click='vm.getReadEvaluationRecord(1)') {{'SEARCH' | translate}}
                                 .inlineBlk(ng-show='vm.loadingReadEvaluationTable')
-                                    label.blink.text-danger {{'Loading' | translate}}
+                                    i.fa.fa-spin.fa-spinner
 
                                 .row(ng-if="vm.readEvaluationTable")
                                     table(style="width: 100%; text-align: center;")
@@ -212,7 +212,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .inlineBlk.pull-right(style='width:100px;padding-top:20px')
                                     button.common-button.btn.btn-warning(ng-click='vm.getAppealEvaluationRecordByAppealDate(1)') {{'SEARCH_BY_APPEAL_DATE' | translate}}
                                 .inlineBlk(ng-show='vm.loadingAppealEvaluationTable')
-                                    label.blink.text-danger {{'Loading' | translate}}
+                                    i.fa.fa-spin.fa-spinner
 
                                 .row(ng-if="vm.appealEvaluationTable")
                                     table#appealEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
