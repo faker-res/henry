@@ -470,6 +470,10 @@ var proposal = {
             )
     },
 
+    getProposalByPlayerIdAndType: function (query) {
+        return dbconfig.collection_proposal.find({type: ObjectId(query.type), "data._id": {$in: [query.playerObjId, ObjectId(query.playerObjId)]}}).exec();
+    },
+
     /**
      * Get multiple proposal by ids
      * @param {json} ids - Array of proposal ids
@@ -485,6 +489,24 @@ var proposal = {
      */
     updateProposal: function (query, updateData) {
         return dbconfig.collection_proposal.findOneAndUpdate(query, updateData, {new: true}).exec();
+    },
+    updateProposalRemarks: function (query, updateData) {
+        return proposal.getProposal(query).then(
+            proposalData => {
+                if (proposalData && proposalData.proposalId && proposalData.createTime) {
+                    let updateQuery = {
+                        _id: proposalData._id,
+                        createTime: proposalData.createTime
+                    }
+                    return proposal.updateProposal(updateQuery,updateData);
+                } else {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PROPOSAL,
+                        name: "DataError",
+                        message: "Cannot find proposal",
+                    });
+                }
+        });
     },
     updatePlayerIntentionRemarks: function (id, remarks) {
         let updateData = {};

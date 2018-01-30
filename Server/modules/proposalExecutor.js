@@ -3294,7 +3294,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
 }
 
 function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalData) {
-    let transferLog, providerGroup, player, provider;
+    let transferLog, providerGroup, player, provider, creditChangeLog;
     let changedValidCredit = 0, changedLockedCredit = 0;
     return dbconfig.collection_playerCreditTransferLog.findOne({transferId}).lean().then(
         transferLogData => {
@@ -3321,7 +3321,12 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
 
             let playerProm = dbconfig.collection_players.findOne({_id: transferLog.playerObjId}).lean();
 
-            return Promise.all([gameProviderGroupProm, playerProm]);
+            let creditChangeLogProm = dbconfig.collection_creditChangeLog.findOne({
+                platformId: transferLog.platformObjId,
+                transferId: transferId
+            }).lean();
+
+            return Promise.all([gameProviderGroupProm, playerProm, creditChangeLogProm]);
         }
     ).then(
         data => {
@@ -3330,6 +3335,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
             }
             providerGroup = data[0];
             player = data[1];
+            creditChangeLog = data[2];
 
             return dbconfig.collection_rewardTaskGroup.findOne({
                 platformId: transferLog.platformObjId,
@@ -3342,10 +3348,18 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
         rewardTaskGroup => {
             console.log("DEBUG LOG :: Getting reward task group for repair transfer ID: " + transferId + " as", rewardTaskGroup);
             if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
-                changedValidCredit = rewardTaskGroup._inputFreeAmt;
-                changedLockedCredit = rewardTaskGroup._inputRewardAmt;
-                let lockedAmount = rewardTaskGroup.rewardAmt + rewardTaskGroup._inputRewardAmt;
-                let validCredit = rewardTaskGroup._inputFreeAmt;
+                let inputFreeAmt = rewardTaskGroup._inputFreeAmt;
+                let inputRewardAmt = rewardTaskGroup._inputRewardAmt;
+
+                if (creditChangeLog) {
+                    inputFreeAmt = -creditChangeLog.amount;
+                    inputRewardAmt = -creditChangeLog.changedLockedAmount;
+                }
+
+                changedValidCredit = inputFreeAmt;
+                changedLockedCredit = inputRewardAmt;
+                let lockedAmount = rewardTaskGroup.rewardAmt + inputRewardAmt;
+                let validCredit = inputFreeAmt;
 
                 let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                     _id: rewardTaskGroup._id,

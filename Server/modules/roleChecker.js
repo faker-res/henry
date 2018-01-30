@@ -605,28 +605,28 @@ var roleChecker = {
             }
         },
         QualityInspection: {
-            Setting: {
+            QualityInsectionSetting: {
                 Read: [],
                 queryByProposalDate: [],
                 Edit: ['updatePlatform'],
                 setting: [],
                 definition: []
             },
-            Record: {
-                Read: [],
-                queryByProposalDate: [],
+            Live800Record: {
+                Read: []
             },
-            Evaluation: {
-                Read: [],
-                queryByProposalDate: [],
+            QualityInsectionEvaluation: {
+                Read: []
             },
-            CSReport: {
-                Read: [],
-                queryByProposalDate: [],
+            QualityInsectionCSReport: {
+                Read: []
             },
-            Report: {
+            QualityInsectionReport: {
                 Read: [],
-                queryByProposalDate: [],
+                queryByQA: [],
+                queryByQualityInspectionDate: [],
+                queryByAppealDate: [],
+                queryByAppealStatus: []
             }
 
 

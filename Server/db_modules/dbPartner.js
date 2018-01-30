@@ -4160,7 +4160,7 @@ let dbPartner = {
     },
 
     isPartnerNameValidToRegister: function (query) {
-        return dbconfig.collection_partner.findOne({$or:[{partnerName:query.partnerName},{realName:query.realName}]},{platform: query.platform}).then(
+        return dbconfig.collection_partner.findOne({$or:[{partnerName:query.partnerName},{realName:query.realName}], platform: query.platform}).then(
             partnerData => {
                 if (partnerData) {
                     return {isPartnerNameValid: false};
