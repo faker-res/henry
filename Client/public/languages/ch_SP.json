@@ -3081,6 +3081,7 @@
   "receive status/sms group": "接收状态/短信分组",
   "Exceed proposal search max time frame": "请将搜索时间范围限制在七天内",
   "qualityInspection": "质检",
+  "QualityInspection": "质检",
   "Quality Inspection": "质检",
   "INSPECTION PARAMETER": "质检参数",
   "800 RECORD": "800记录",
@@ -3173,5 +3174,10 @@
   "EVALUATION_REVIEW": "质检评语",
   "CS Department":"客服部门",
   "QI Department":"质检部门",
-  "Exceed QI Report search max time frame": "请将搜索时间范围限制在一天内"
+  "Exceed QI Report search max time frame": "请将搜索时间范围限制在一天内",
+  "QualityInsectionSetting": "设置",
+  "Live800Record": "Live800记录",
+  "QualityInsectionEvaluation": "我的评估",
+  "QualityInsectionCSReport": "客服报表",
+  "QualityInsectionReport": "质检报表"
 }
