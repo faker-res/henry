@@ -21,7 +21,7 @@ var dbQualityInspection = {
     },
     countLive800: function(query){
         let queryObj = "";
-        let operatorId = null;
+        let operatorName = null;
         let dbResult = null;
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
@@ -30,12 +30,12 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(Array.isArray(query.operatorId)){
-                operatorId = query.operatorId.join(',');
+                operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
             }else{
                 operatorId = query.operatorId;
             }
             if(operatorId!='all'){
-                queryObj += " operator_id IN (" + operatorId + ") AND ";
+                queryObj += " operator_name IN (" + operatorId + ") AND ";
             }
         }
 
@@ -69,8 +69,29 @@ var dbQualityInspection = {
                 return data;
             })
         }
-
-
+    },
+    splitOperatorId:function(operatorIdArr){
+        let results = [];
+        let resultTXT = '';
+        operatorIdArr.forEach(item=>{
+            //operatorName with '-' , 700-ewan
+            let operator = dbQualityInspection.splitLive800Acc(item);
+            results.push("'"+operator+"'");
+        });
+        resultTXT = results.join(',');
+        return resultTXT;
+    },
+    splitLive800Acc:function(acc){
+        let mysqlAccName = '';
+        let accArr = acc.split('-');
+        console.log(accArr);
+        if(accArr.length >= 1){
+            mysqlAccName = String(accArr[1]);
+        }else{
+            mysqlAccName = String(acc);
+        }
+        console.log(mysqlAccName)
+        return mysqlAccName
     },
     searchLive800: function (query) {
         let conversationForm = [];
@@ -85,12 +106,12 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(Array.isArray(query.operatorId)){
-                operatorId = query.operatorId.join(',');
+                operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
             }else{
                 operatorId = query.operatorId;
             }
             if(operatorId!='all'){
-                queryObj += " operator_id IN (" + operatorId + ") AND ";
+                queryObj += " operator_name IN (" + operatorId + ") AND ";
             }
         }
 
@@ -206,7 +227,6 @@ var dbQualityInspection = {
             .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
             .lean()
             .then(results => {
-                console.log(results);
                 results.forEach(item => {
                     let live800Chat = {conversation: []};
                     live800Chat.messageId = item.msg_id;
@@ -350,7 +370,6 @@ var dbQualityInspection = {
                     console.log(error)
                     // throw error;
                 }
-                console.log(results);
                 deferred.resolve(results);
                 connection.end();
             });
@@ -367,7 +386,6 @@ var dbQualityInspection = {
     searchMySQLDB:function(queryObj, paginationQuery, connection){
         var deferred = Q.defer();
         connection.query("SELECT * FROM chat_content WHERE " + queryObj + paginationQuery, function (error, results, fields) {
-            // console.log('result',results);
             // if (error) throw error;
             if(error){
                 console.log(error);
@@ -415,7 +433,7 @@ var dbQualityInspection = {
             live800Chat.companyId = item.company_id;
             live800Chat.createTime = new Date(item.store_time).toISOString();
 
-            live800Chat.live800Acc['id'] = item.operator_id;
+            live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_name;
             live800Chat.live800Acc['name'] = item.operator_name;
             live800Chat.operatorName = item.operator_name;
             let dom = new JSDOM(item.content);
