@@ -573,7 +573,6 @@ define(['js/app'], function (myApp) {
                 let dptArr = [];
                 let result = '';
                 dpts.forEach(item=>{
-                    console.error(item);
                     dptArr.push(item.departmentName);
                 })
                 result = dptArr.join(',')
