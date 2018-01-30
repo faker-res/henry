@@ -538,12 +538,9 @@ var dbQualityInspection = {
                         queryObj +=   query.operatorId[i] + "','"
                     }
                 }
-
-
             }else{
                 queryObj += "operator_id=" + query.operatorId + " AND ";
             }
-
         }
         if (query.startTime && query.endTime) {
             var startTime = dbUtility.getLocalTimeString(query.startTime);
@@ -553,38 +550,78 @@ var dbQualityInspection = {
             console.log(query.startTime);
             queryObj += "store_time BETWEEN CAST('"+startTime+"' as DATETIME) AND CAST('"+endTime+"' AS DATETIME)";
         }
-        // if(query.status!='all'){
-        //     conversationForm = dbQualityInspection.searchMongoDB(query);
-        // }else{
+
         let connection = dbQualityInspection.connectMysql();
         connection.connect();
-        let dbResult = dbQualityInspection.searchLive800DB(queryObj,connection);
-        let dbRawResult = dbQualityInspection.searchMySQLDB(queryObj,connection);
-        let progressReport = dbQualityInspection.getProgressReportByAdmin(query.companyId,query.operatorId,startTime,endTime);
 
-        let mongoResult = dbQualityInspection.getMongoCV(dbRawResult);
+        let dbRawResult = dbQualityInspection.searchMySQLDBConstraint(queryObj,connection);
+        let mongoResult = dbQualityInspection.getMongoCVConstraint(dbRawResult);
         conversationForm = dbQualityInspection.resolvePromise(mongoResult);
-        // }
-        return Q.all([dbResult,progressReport,conversationForm]);
+        let progressReport = dbQualityInspection.getProgressReportByOperator(query.companyId,query.operatorId,startTime,endTime);
+
+
+        return Q.all([conversationForm,progressReport]);
     },
-    searchLive800DB:function(queryObj,connection){
+    searchMySQLDBConstraint:function(queryObj,connection){
         var deferred = Q.defer();
-       // let proms = [];
-        connection.query("SELECT COUNT(*) AS 'record_number',company_id, operator_id FROM chat_content WHERE " + queryObj + " GROUP BY company_id,operator_id", function (error, results, fields) {
-            console.log('result',results);
-            //if (error) throw error;
+        connection.query("SELECT msg_id, company_id, operator_id, operator_name, content FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+
             if(error){
                 console.log(error);
             }
-
             deferred.resolve(results);
-            //connection.end();
+            connection.end();
         });
         return deferred.promise;
     },
-    getProgressReportByAdmin: function (companyId,operatorId,startTime,endTime){
+    getMongoCVConstraint:function(dbResult){
+        var deferred = Q.defer();
+        let proms = [];
+        Q.all(dbResult).then(results=>{
+            console.log(results);
+            if(results.length == 0){
+                deferred.resolve([]);
+            }
+            results.forEach(item => {
+                console.log(item);
+                let live800Chat = {conversation: [], live800Acc:{}};
+                live800Chat.fpmsAcc = item.operator_name ;
+                live800Chat.companyId = item.company_id || "";
+                live800Chat.live800Acc['id'] = item.operator_id;
+                let dom = new JSDOM(item.content);
+                let content = [];
+                let sys = dom.window.document.getElementsByTagName("sys");
+                let he = dom.window.document.getElementsByTagName("he");
+                let i = dom.window.document.getElementsByTagName("i");
 
-       // let queryQA = {messageId: String(item.msg_id)};
+                partI = dbQualityInspection.reGroup(i, 1);
+                partHe = dbQualityInspection.reGroup(he, 2);
+                partSYS = dbQualityInspection.reGroup(sys, 3);
+                content = partI.concat(partHe, partSYS);
+                content.sort(function (a, b) {
+                    return a.time - b.time;
+                });
+
+                live800Chat.conversation = dbQualityInspection.drawColor(content);
+
+                let queryQA = {messageId: String(item.msg_id)};
+                let prom = dbconfig.collection_qualityInspection.find(queryQA)
+                    .then(qaData => {
+                        if (qaData.length > 0) {
+                            //live800Chat.status = qaData[0].status;
+                            live800Chat.conversation = dbQualityInspection.reformatCV(live800Chat.conversation, qaData[0].conversation);
+                            //live800Chat.processTime = qaData[0].processTime;
+                        }
+                        return live800Chat;
+                    });
+                proms.push(prom);
+            });
+            deferred.resolve(proms);
+        })
+        return deferred.promise;
+
+    },
+    getProgressReportByAdmin: function (companyId,operatorId,startTime,endTime){
 
         return dbconfig.collection_qualityInspection.aggregate([
             {
@@ -604,7 +641,6 @@ var dbQualityInspection = {
                 }
             }
         ]).then(data => {
-            console.log("-------------------------",data)
             let resultArr = [];
             if(data && data.length > 0){
                 data.forEach(d => {
@@ -616,21 +652,14 @@ var dbQualityInspection = {
                         });
                     }
                 });
-                console.log("+++++++++++++++++++",resultArr)
                 return resultArr;
             }
-
         })
-
     },
     getProgressReportByOperator: function (companyId,operatorId,startTime,endTime){
 
        //var startTime = dbUtility.getLocalTimeString(startTime);
        //var endTime = dbUtility.getLocalTimeString(endTime);
-        // let startTime = dbUtility.getLocalTimeString(startTime);
-        // let endTime = dbUtility.getLocalTimeString(endTime);
-
-        // let queryQA = {messageId: String(item.msg_id)};
 
         return dbconfig.collection_qualityInspection.aggregate([
             {
@@ -650,7 +679,6 @@ var dbQualityInspection = {
                 }
             }
         ]).then(data => {
-            console.log("-------------------------",data)
             let resultArr = [];
             if(data && data.length > 0){
                 data.forEach(d => {
@@ -662,19 +690,15 @@ var dbQualityInspection = {
                         });
                     }
                 });
-                console.log("+++++++++++++++++++",resultArr)
                 return resultArr;
             }
-
         })
-
     },
     reGroup: function(arrs,type){
         let conversation= [] ;
         for (var t = 0; t < arrs.length; t++) {
             let timeStamp = arrs[t].getAttribute("tm");
             let innerHTML =arrs[t].innerHTML;
-            let info = dbQualityInspection.decodeHtml(arrs[t].innerHTML);
             let html = dbQualityInspection.unescapeHtml(arrs[t].innerHTML);
             const dom = new JSDOM(html)
             let conversationInfo = {

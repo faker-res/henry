@@ -47,6 +47,8 @@
                 span.collapse
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
+            .inlineBlk
+                i#searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
         //.inlineBlk(style="width:200px;")
                 label.control-label {{'CREDIBILITY' | translate}}
                 select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", style='min-width:100px;height:34px;', ng-options='remark._id as remark.name for remark in vm.credibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')
@@ -84,8 +86,7 @@ div.row(ng-show='vm.conversationForm.length > 0')
         div.col-md-1
             label 每页显示
             select.form-control(ng-model='vm.pgn.limit')
-                option(value='2',selected) 2
-                option(value='5') 5
+                option(value='5', selected) 5
                 option(value='10') 10
                 option(value='15') 15
         div.col-md-9

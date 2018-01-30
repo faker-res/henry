@@ -1,35 +1,17 @@
 #QIReportQuery.well.block-query.col-md-12.well
-    //div
-        label &nbsp;
-        button.btn.btn-primary(ng-click='vm.resetTopupRecord()') {{'Reset' | translate}}
+
     div(style='width:200px')
         label {{'PRODUCT' | translate}}
         select.spicker.form-control(ng-model='vm.selectedPlatformID', data-actions-box='true', ng-change="vm.checkSelectedPlatformID(vm.selectedPlatformID)" )
             option(value='all') {{'ALL' | translate}}
             option(ng-repeat='(i,v) in vm.platformWithCSDepartment', ng-init="vm.endLoadMultipleSelect(); vm.selectedPlatformID = 'all' ", value='{{v.data._id}}') {{v.data.name}}
-        //select.form-control#selectProduct(multiple="multiple", ng-options='product.data._id as product.data.name for product in vm.platformList track by product.data.name ', ng-model='vm.selectedPlatformID', ng-change="vm.checkPlatformIDDebounced(vm.selectedPlatformID)")
-        //select.form-control#selectProduct(multiple="multiple", ng-options='product.id as product.text for product in vm.platformList', ng-model='vm.selectedPlatformID')
-        //select.form-control(ng-change='vm.filterProduct()', ng-model='vm.selectedPlatformID', ng-options='product.id as product.text for product in vm.platformList', multiple, bsp, data-actions-box='true',ng-init="vm.initSelectedPlatform()")
     div(style='width:200px')
         label FPMS {{'CS Account' | translate}}
         select.spicker.form-control(ng-model='vm.selectedCS', multiple, data-actions-box='true', bsp, ng-change="vm.checkSelectedCSAcc(vm.selectedCS)",max-height='100px',style="overflow-y:auto; max-height:100px;" )
             option(ng-repeat='(i,v) in vm.selectedCSAccount', value='{{v._id}}', ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
-        //select.form-control(ng-model='vm.selectedPlatformID', data-actions-box='true', ng-change="vm.checkSelectedPlatformID(vm.selectedPlatformID)" )
-        //    option(value='all') {{'ALL' | translate}}
-        //    option(ng-repeat='(i,v) in vm.platformList', ng-init="vm.selectedPlatformID='all'", value='{{v.data._id}}') {{v.data.name}}
-        //select.form-control#selectCSAccount(multiple="multiple", ng-options='cs._id as cs.adminName for cs in vm.selectedCSAccount track by cs.adminName', ng-model='vm.selectedCS', ng-change="vm.checkSelectedCSAcc(vm.selectedCS)")
-        //select.form-control#selectCSAccount(multiple="multiple", ng-options='cs._id as cs.adminName for cs in vm.selectedCSAccount track by cs.adminName', ng-model='vm.selectedCS')
-        //select.form-control.#selectCSAccount(ng-change='', ng-model='',ng-options='i._id as i.adminName for (k,i) in ( vm.selectedCSAccount | unique: "adminName" ) track by i.adminName', multiple, bsp, data-actions-box='true')
     div(style='width:200px')
         label Live800 {{'Account' | translate}}
         select.spicker.form-control(ng-model='vm.selectedLive800', ng-options='v.live800Acc as v.live800Acc group by v.adminName for v in vm.selectedLive800Acc',multiple, data-actions-box='true', bsp,ng-init='vm.endLoadMultipleSelect()', style="overflow-y:auto; max-height:100px;")
-            //option(value='') {{'CHOOSE_OFFICER' | translate}}
-        //select.spicker.form-control(ng-model='vm.selectedLive800', multiple, data-actions-box='true', bsp )" )
-        //    option(ng-repeat='(i,v) in vm.selectedLive800Acc | orderBy: "adminName"', value='{{v}}', ng-init='$last && vm.endLoadMultipleSelect()' ) <b>{{v.adminName}} - ({{v.live800Acc}}) </b>
-        //select.form-control#selectLive800Account(multiple="multiple", ng-options=" live.live800Acc group by live.adminName for live in vm.selectedLive800Acc", ng-model='vm.checkLive800Acc')
-        //select.form-control#selectLive800Account(multiple="multiple", ng-options='v.adminName as v.adminName | group by v.adminName for (i,v) in vm.selectedLive800Acc', ng-model='vm.selectedLive800Acc')
-            // i.name as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name
-            //v.live800Acc as v.live800Acc for (i,v) in ( vm.selectedLive800Acc | unique: 'adminName' ) track by v.adminName
     div
         label.control-label {{'Start date' | translate}}
         .startTime
@@ -44,8 +26,8 @@
         span#QIReportTableSpin.collapse
             i.fa.fa-spinner.fa-spin
 .clearfix
-label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}}
+label {{"Total" | translate}} {{vm.postData.length}} {{"records" | translate}}
 table#QIReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
-#QIReportTablePage
+//#QIReportTablePage
 
 
