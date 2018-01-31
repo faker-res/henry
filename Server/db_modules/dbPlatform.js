@@ -2255,8 +2255,9 @@ var dbPlatform = {
                                         buttonObj.btn = b.buttonName;
 
                                     }
-                                    if (b.css) {
-                                        buttonObj.extString = "style(\"" + b.css + "\") my_href=\"" + b.hyperLink + "\"";
+                                    if (b.hyperLink) {
+                                        //buttonObj.extString = "style(\"" + b.css + "\") my_href=\"" + b.hyperLink + "\"";
+                                        buttonObj.extString = b.hyperLink;
                                     }
                                     buttonList.push(buttonObj);
 
@@ -2264,7 +2265,7 @@ var dbPlatform = {
                                 activityListObj.btnList = buttonList;
                             } else {
                                 if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
-                                    activityListObj.extString = "my_href_w='" + info.backgroundBannerImage.hyperLink + "'";
+                                    activityListObj.extString = info.backgroundBannerImage.hyperLink;
                                 }
                             }
 
