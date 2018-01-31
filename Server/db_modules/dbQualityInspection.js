@@ -47,11 +47,7 @@ var dbQualityInspection = {
         if(query.status=='all'||query.status=='1'){
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
-            if(query.status==='1'){
-                queryObj += " status="+query.status;
-            }
             dbResult = dbQualityInspection.countMySQLDB(queryObj,connection);
-            console.log(dbResult);
             return dbResult;
         }else{
             let queryQA = {};
@@ -176,14 +172,12 @@ var dbQualityInspection = {
                 live800Chat.live800Acc['name'] = item.operator_name;
                 let dom = new JSDOM(item.content);
                 let content = [];
-                let sys = dom.window.document.getElementsByTagName("sys");
                 let he = dom.window.document.getElementsByTagName("he");
                 let i = dom.window.document.getElementsByTagName("i");
 
                 partI = dbQualityInspection.reGroup(i, 1);
                 partHe = dbQualityInspection.reGroup(he, 2);
-                partSYS = dbQualityInspection.reGroup(sys, 3);
-                content = partI.concat(partHe, partSYS);
+                content = partI.concat(partHe);
                 content.sort(function (a, b) {
                     return a.time - b.time;
                 });
@@ -337,14 +331,12 @@ var dbQualityInspection = {
     conversationReformat:function(myContent){
             let dom = new JSDOM(myContent);
             let content = [];
-            let sys = dom.window.document.getElementsByTagName("sys");
             let he = dom.window.document.getElementsByTagName("he");
             let i = dom.window.document.getElementsByTagName("i");
 
             partI = dbQualityInspection.reGroup(i, 1);
             partHe = dbQualityInspection.reGroup(he, 2);
-            partSYS = dbQualityInspection.reGroup(sys, 3);
-            content = partI.concat(partHe, partSYS);
+            content = partI.concat(partHe);
             content.sort(function (a, b) {
                 return a.time - b.time;
             });
@@ -443,14 +435,12 @@ var dbQualityInspection = {
 
                 let dom = new JSDOM(item.content);
                 let content = [];
-                let sys = dom.window.document.getElementsByTagName("sys");
                 let he = dom.window.document.getElementsByTagName("he");
                 let i = dom.window.document.getElementsByTagName("i");
 
                 partI = dbQualityInspection.reGroup(i, 1);
                 partHe = dbQualityInspection.reGroup(he, 2);
-                partSYS = dbQualityInspection.reGroup(sys, 3);
-                content = partI.concat(partHe, partSYS);
+                content = partI.concat(partHe);
                 content.sort(function (a, b) {
                     return a.time - b.time;
                 });
@@ -486,18 +476,20 @@ var dbQualityInspection = {
         let firstTime = null;
         let lastCV = null;
         let lastCustomerCV = null;
+        console.log(platform)
         if (!platform) {
             return conversation;
         }
 
         if (platform.overtimeSetting) {
-
+            console.log(overtimeSetting);
             let overtimeSetting = platform.overtimeSetting;
             conversation.forEach(item => {
                 if (!firstCV && item.roles == 2) {
 
                     firstCV = item;
                     lastCustomerCV = item;
+                    console.log(item.content)
                 } else {
                     if (item.roles == 2) {
                         // keep the last customer question , to calculate the timeoutRate
@@ -640,14 +632,12 @@ var dbQualityInspection = {
                 live800Chat.status = item.status || 1;
                 let dom = new JSDOM(item.content);
                 let content = [];
-                let sys = dom.window.document.getElementsByTagName("sys");
                 let he = dom.window.document.getElementsByTagName("he");
                 let i = dom.window.document.getElementsByTagName("i");
 
                 partI = dbQualityInspection.reGroup(i, 1);
                 partHe = dbQualityInspection.reGroup(he, 2);
-                partSYS = dbQualityInspection.reGroup(sys, 3);
-                content = partI.concat(partHe, partSYS);
+                content = partI.concat(partHe);
                 content.sort(function (a, b) {
                     return a.time - b.time;
                 });
