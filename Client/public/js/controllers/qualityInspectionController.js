@@ -1161,8 +1161,6 @@ define(['js/app'], function (myApp) {
                         setTimeout(function () {
                             $('#workloadReportTable').resize();
                         }, 300);
-                    }else{
-                        vm.appealEvaluationTable = "";
                     }
 
                     vm.loadingWorkloadReportTable = false;
@@ -1177,9 +1175,22 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        platformObjId: vm.evaluationProgressPlatform,
+                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
+                    }
+
+                    if(vm.evaluationProgressPlatform && vm.evaluationProgressPlatform.length > 0){
+                        sendData.platformObjId = vm.evaluationProgressPlatform
+                    }else{
+                        let platformArr = [];
+                        vm.platformList.forEach(p => {
+                            if(p && p.id){
+                                platformArr.push(p.id);
+                            }
+
+                        })
+                        sendData.platformObjId = platformArr;
                     }
                     let resultArr = [];
                     let resultArr2 = [];

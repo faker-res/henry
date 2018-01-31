@@ -224,7 +224,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         th(style="width: 230.09px;") {{"EVALUATION_REVIEW" | translate}}
                                         th.col-md-1 {{"QUALITY_ASSESSOR" | translate}}
                                         th.col-md-1 {{"EVALUATED_TIME" | translate}}
-                                        th {{"APPEAL_REASON" | translate}}
+                                        th(style="background-color: red") {{"APPEAL_REASON" | translate}}
                                     tbody(ng-repeat="appealEvaluation in vm.appealEvaluationTable")
                                         tr(style="border: 1px solid")
                                             td.col-md-1 {{appealEvaluation.status | translate}}
