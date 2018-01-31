@@ -2052,6 +2052,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
         rewardTaskGroup => {
             if (rewardTaskGroup) {
                 let consumptionOffset = isNaN(platform.autoApproveConsumptionOffset) ? 0 : platform.autoApproveConsumptionOffset;
+                consumptionAmt = consumptionRecord.validAmount;
 
                 // Check whether player has lost all credit
                 if (rewardTaskGroup.currentAmt + consumptionRecord.bonusAmount <= platform.autoApproveLostThreshold) {
