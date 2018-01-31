@@ -1,0 +1,94 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-if="vm.curPlatformText", style='padding-left:0')
+    .panel.panel-primary(ng-if="checkViewPermission('QualityInspection', 'QualityInsectionReport','Read')")
+        .tab-content
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
+                        li.active(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'Read')" style="margin-left: 20px;")
+                            a.common-tab(data-toggle="tab", ng-click="vm.inspectionReportTab ='workloadReport'" )
+                                .fa.fa-wrench.margin-right-5
+                                text.span {{"WORKLOAD REPORT" | translate}}
+                        li(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'Read')")
+                            a.common-tab(data-toggle="tab", ng-click="vm.inspectionReportTab ='evaluationProgress';vm.initEvaluationProgress()")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"EVALUATION PROGRESS" | translate}}
+                .panel-body.common-right-panel-body
+                    div(ng-show="vm.inspectionReportTab == 'workloadReport'")
+                        #workloadProgressDiv.tab-pane.fade.in.active
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'queryByQualityAssessor')")
+                                label {{"QA" | translate}}
+                                select.form-control(ng-model='vm.qaAccount' ng-init="vm.qaAccount = 'all'")
+                                    option(value='all') {{'ALL' | translate}}
+                                    option(ng-repeat='(i,v) in vm.qaDepartments', value='{{v._id}}') {{v.name | translate}}
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'queryByQualityInspectionDate')")
+                                label {{'START_DATE' | translate}}
+                                #reportConversationStartDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'queryByQualityInspectionDate')")
+                                label {{'END_DATE' | translate}}
+                                br
+                                #reportConversationEndDatetimePicker.input-append.form-control
+                                    input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                    span.add-on
+                                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'Read')")
+                                button.common-button.btn.btn-primary(ng-click='vm.getWorkloadReport()') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-show='vm.loadingWorkloadReportTable')
+                                i.fa.fa-spin.fa-spinner
+
+                            .row(style="padding: 15px;")
+                                table#workloadReportTable.common-table.display(style='width:100%')
+                                #workloadReportTablePage
+
+                    div(ng-show="vm.inspectionReportTab == 'evaluationProgress'")
+                        #evaluationProgressDiv.tab-pane.fade.in.active
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'queryByQualityInspectionDate')")
+                                label {{'YEAR - MONTH' | translate}}
+                                select.form-control(ng-model="vm.yearMonth")
+                                    option(ng-repeat='v in vm.evaluationProgressYearMonth', value='{{v}}') {{v.year}} - {{v.month}}
+                            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'queryByProduct')")
+                                label {{'PRODUCT(DEPARTMENT)' | translate}}
+                                select.spicker.form-control(ng-model='vm.evaluationProgressPlatform', multiple, data-actions-box='true', bsp)
+                                    option(ng-repeat='(i,v) in vm.platformList', value='{{v.data._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.data.name}}
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'Read')")
+                                button.common-button.btn.btn-primary(ng-click='vm.getEvaluationProgressRecord()') {{'SEARCH' | translate}}
+                            .inlineBlk(ng-show='vm.loadingEvaluationProgressTable')
+                                i.fa.fa-spin.fa-spinner
+
+                            .row(style='margin: 5px 2px 0px 2px;padding: 10px 2px; ' ng-if="vm.evaluationProgressTable")
+                                table#evaluationProgressTable.simple-table.table-vertical-middle.limitOffersTB
+                                    thead
+                                        th.col-md-2 {{"PRODUCT_NAME" | translate}}
+                                        th(colspan=7) {{vm.evaluationProgressTableTitle | translate}}
+                                    tbody(ng-repeat="progress in vm.evaluationProgressTable track by $index")
+                                        tr
+                                            td {{progress.platformName}}
+
+                                            td
+                                                table(style="width: 100%")
+                                                    tbody
+                                                        tr
+                                                            td(ng-repeat="t in progress.calendarTitle track by $index" style="background-color:#337ab7; font-weight: bold") {{t | translate}}
+
+                                                        tr(ng-repeat="p in progress.calendarData track by $index")
+                                                            td(ng-if="p[0].isCompleted" style="background-color: #6D9EEB") {{p[0].day}}
+                                                            td(ng-if="!p[0].isCompleted") {{p[0].day}}
+                                                            td(ng-if="p[1].isCompleted" style="background-color: #6D9EEB") {{p[1].day}}
+                                                            td(ng-if="!p[1].isCompleted") {{p[1].day}}
+                                                            td(ng-if="p[2].isCompleted" style="background-color: #6D9EEB") {{p[2].day}}
+                                                            td(ng-if="!p[2].isCompleted") {{p[2].day}}
+                                                            td(ng-if="p[3].isCompleted" style="background-color: #6D9EEB") {{p[3].day}}
+                                                            td(ng-if="!p[3].isCompleted") {{p[3].day}}
+                                                            td(ng-if="p[4].isCompleted" style="background-color: #6D9EEB") {{p[4].day}}
+                                                            td(ng-if="!p[4].isCompleted") {{p[4].day}}
+                                                            td(ng-if="p[5].isCompleted" style="background-color: #6D9EEB") {{p[5].day}}
+                                                            td(ng-if="!p[5].isCompleted") {{p[5].day}}
+                                                            td(ng-if="p[6].isCompleted" style="background-color: #6D9EEB") {{p[6].day}}
+                                                            td(ng-if="!p[6].isCompleted") {{p[6].day}}

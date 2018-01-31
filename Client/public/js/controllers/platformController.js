@@ -223,11 +223,8 @@ define(['js/app'], function (myApp) {
                 'CHEAT_NEW_ACCOUNT_REWARD', 'TOPUP_ATTENTION', 'HEDGING', 'TOPUP_BONUS_SPAM',
                 'MULTIPLE_ACCOUNT', 'BANNED', 'FORBID_ONLINE_TOPUP', 'BAN_PLAYER_BONUS'];
 
-            vm.depositMethodList = {
-                Online: 1,
-                ATM: 2,
-                Counter: 3
-            };
+            vm.depositMethodList = $scope.depositMethodList;
+
             vm.allPlayerFeedbackString = {
                 NORMAL: "Normal",
                 MISSED_CALL: "MissedCall",
@@ -291,7 +288,13 @@ define(['js/app'], function (myApp) {
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
                 FREE_TRIAL_REWARD: 'freeTrialReward',
+                DEMO_ACCOUNT: 'demoAccount',
                 // RESET_PASSWORD: 'resetPassword'
+            };
+
+            vm.allAccountStatus = {
+                CREATED_ACCOUNT: 'createdAccount',
+                NOT_YET_CREATE_ACCOUNT: 'notYetCreateAccount',
             };
 
             vm.constProposalStatus = {
@@ -405,6 +408,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showPlatformDetailTab = function (tabName) {
+
                 vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
                 if(tabName && tabName == "player-display-data"){
                     vm.initPlayerDisplayDataModal();
@@ -414,21 +418,98 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
-
-        vm.getAllGameProviders = function (platformId) {
-            if (!platformId) return;
-            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
-                vm.allGameProviders = data.data.gameProviders;
-                vm.gameProvidersList = {};
-                vm.allGameProviders.map(provider => {
-                    vm.gameProvidersList[provider._id] = provider;
-                });
-                console.log('vm.allGameProviders', vm.allGameProviders);
+            vm.isValidCompanyId = function(live800CompanyIdTXT){
+                let live800Arr = live800CompanyIdTXT.split(",");
+                live800Arr = live800Arr.filter(item=>{return item!=''});
+                vm.showPlatform.live800CompanyId = live800Arr;
+                console.log(vm.showPlatform.live800CompanyId);
+            }
+            vm.isValidCSDepartment = function(departments){
+                if(!vm.showPlatform.csDepartmentTXT || vm.showPlatform.csDepartmentTXT == ''){
+                    return
+                }
+              let result = vm.getDepartmentObjId(departments);
+              Q.all([result]).then(data=>{
+                let cData = data[0];
+                if(cData.data.length > 0){
+                    vm.showPlatform.csDepartment = cData.data ? cData.data : [];
+                }
+                if(cData.errMsg){
+                    vm.csDepartmentError = cData.errMsg;
+                }else{
+                    vm.csDepartmentError = null;
+                }
                 $scope.safeApply();
-            }, function (err) {
-                console.log("vm.allGameProviders ERROR", err);
-            });
-        };
+              })
+            };
+            vm.isValidQIDepartment = function(departments){
+                if(!vm.showPlatform.qiDepartmentTXT || vm.showPlatform.qiDepartmentTXT == ''){
+                    return
+                }
+              let result = vm.getDepartmentObjId(departments);
+              Q.all([result]).then(data=>{
+                let qData = data[0];
+                if(qData.data.length > 0){
+                    vm.showPlatform.qiDepartment = qData.data ? qData.data : [];
+                }
+                if(qData.errMsg){
+                    vm.qiDepartmentError = qData.errMsg;
+                }else{
+                    vm.qiDepartmentError = null;
+                }
+                $scope.safeApply();
+              })
+
+            };
+            vm.getDepartmentObjId = function(departments){
+              var deferred = Q.defer();
+              socketService.$socket($scope.AppSocket, 'getAllDepartments', {}, function (data) {
+                  let allDpt = data.data;
+                  let noExist = 0;
+                  vm.qiDepartmentError = null;
+                  let result = [];
+                  let departmentObjId = [];
+                  let departArr = departments.split(',').map(item=>{ return item.trim(); })
+                  let errMsg = '';
+                  let errDPT = [];
+                  for(var d in departArr){
+                      let dpExist = allDpt.filter(item=>{
+                          if(item.departmentName == departArr[d]){
+                            result.push(item);
+                            departmentObjId.push(item._id)
+                            return item;
+                          }
+                      });
+                      if(dpExist.length <= 0 ){
+                            errDPT.push(departArr[d])
+                      }
+                  }
+                  if(errDPT.length > 0){
+                      let errDptArr = errDPT.join(',');
+                      errMsg = errDptArr + '找不到相关部门，请再次输入';
+                  }
+                  deferred.resolve({ data:departmentObjId , 'errMsg':errMsg});
+                  $scope.safeApply();
+              }, function (err) {
+                deferred.reject({});
+              });
+              return deferred.promise;
+            }
+
+            vm.getAllGameProviders = function (platformId) {
+                if (!platformId) return;
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: platformId}, function (data) {
+                    vm.allGameProviders = data.data.gameProviders;
+                    vm.gameProvidersList = {};
+                    vm.allGameProviders.map(provider => {
+                        vm.gameProvidersList[provider._id] = provider;
+                    });
+                    console.log('vm.allGameProviders', vm.allGameProviders);
+                    $scope.safeApply();
+                }, function (err) {
+                    console.log("vm.allGameProviders ERROR", err);
+                });
+            };
 
 
             //////////Lin Hao:: Provider List Delay Popup
@@ -491,7 +572,15 @@ define(['js/app'], function (myApp) {
             vm.populatePlatformData = function () {
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
             };
-
+            vm.combinePlatformDepart = function(dpts){
+                let dptArr = [];
+                let result = '';
+                dpts.forEach(item=>{
+                    dptArr.push(item.departmentName);
+                })
+                result = dptArr.join(',')
+                return result;
+            };
 
             vm.showTopupTab = function (tabName) {
                 vm.selectedTopupTab = tabName == null ? "manual" : tabName;
@@ -699,6 +788,17 @@ define(['js/app'], function (myApp) {
                     $('#platformTree').treeview('selectNode', [findNodes[0], {silent: true}]);
                 }
             };
+            vm.convertDepartment = function(){
+                if(vm.showPlatform.live800CompanyId && vm.showPlatform.live800CompanyId.length > 0){
+                    vm.showPlatform.live800CompanyIdTXT = vm.showPlatform.live800CompanyId.join(',') ;
+                }
+                if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
+                    vm.showPlatform.csDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.csDepartment);
+                }
+                if(vm.showPlatform.qiDepartment && vm.showPlatform.qiDepartment.length > 0){
+                    vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
+                }
+            };
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
@@ -706,6 +806,14 @@ define(['js/app'], function (myApp) {
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
+                vm.convertDepartment();
+                if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
+                    vm.showPlatform.csDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.csDepartment);
+                }
+                if(vm.showPlatform.qiDepartment && vm.showPlatform.qiDepartment.length > 0){
+                    vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
+                }
+
                 $cookies.put("platform", node.text);
                 if (option && !option.loadAll) {
                     $scope.safeApply();
@@ -731,6 +839,7 @@ define(['js/app'], function (myApp) {
 
                 vm.getRewardEventsByPlatform();
                 vm.getRewardPointsEvent(vm.selectedPlatform.id);
+
                 if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read'))
                     vm.getAdminNameByDepartment(vm.selectedPlatform.data.department);
 
@@ -1457,6 +1566,7 @@ define(['js/app'], function (myApp) {
                 if (vm.showPlatform.department.hasOwnProperty('_id')) {
                     vm.showPlatform.department = vm.showPlatform.department._id;
                 }
+
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
                         query: {_id: vm.selectedPlatform.id},
@@ -1600,6 +1710,8 @@ define(['js/app'], function (myApp) {
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
                 vm.smsRecordQuery.purpose = "";
+                vm.smsRecordQuery.accountStatus = "";
+                vm.smsRecordQuery.inputDevice = "";
                 vm.smsRecordQuery.index = 0;
                 vm.smsRecordQuery.limit = 10;
                 vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
@@ -1615,6 +1727,7 @@ define(['js/app'], function (myApp) {
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
+                    accountStatus: vm.smsRecordQuery.accountStatus,
                     inputDevice: vm.smsRecordQuery.inputDevice,
                     type: 'registration',
                     status: 'all',
@@ -1625,7 +1738,8 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
                     platformObjId: vm.selectedPlatform.data._id,
                     sortCol: vm.smsRecordQuery.sortCol
-                }
+                };
+
                 $('#loadVertificationSMSIcon').show();
                 socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
                     vm.smsRecordQuery.loading = false;
@@ -4444,6 +4558,7 @@ define(['js/app'], function (myApp) {
                     'remarks': remarks
                 }
                 socketService.$socket($scope.AppSocket, 'updatePlayerIntentionRemarks', updateData, function (playerCount) {
+                    console.log("updatePlayerIntentionRemarks",updateData);
                     vm.newPlayerProposal.remarks = remarks;
                     vm.editNewplayerRemark = false;
                     vm.getNewPlayerListByFilter(true);
@@ -4452,6 +4567,22 @@ define(['js/app'], function (myApp) {
 
 
             }
+
+        vm.updateNewPlayerProposalRemark = function (pId, remarks) {
+            let sendData = {
+                'proposalObjId': pId,
+                'remarks': remarks
+            }
+            socketService.$socket($scope.AppSocket, 'updatePlayerProposalRemarks', sendData, function (playerCount) {
+                console.log("updatePlayerProposalRemarks",sendData);
+                vm.newPlayerProposal.remarks = remarks;
+                vm.editNewplayerRemark = false;
+                vm.getNewPlayerListByFilter(true);
+                $scope.safeApply();
+            });
+
+
+        }
         /////////////////////////////////Mark::Platform players functions//////////////////
 
 
@@ -4660,11 +4791,13 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             sClass: "remarkCol",
                             render: (data, type, row) => {
+                                let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
                                 if (!data || data.length === 0) {
-                                    return "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
+                                    return emptyOutput;
                                 }
                                 let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'>";
                                 let output = initOutput;
+                                let remarkMatches = false;
                                 data.map(function (remarkId) {
                                     for (let i = 0; i < vm.credibilityRemarks.length; i++) {
                                         if (vm.credibilityRemarks[i]._id === remarkId) {
@@ -4672,12 +4805,17 @@ define(['js/app'], function (myApp) {
                                                 output += "<br>";
                                             }
                                             output += vm.credibilityRemarks[i].name;
+                                            remarkMatches = true;
                                         }
                                     }
                                 });
                                 output += "</a>";
 
-                                return output;
+                                if(remarkMatches) {
+                                    return output;
+                                } else {
+                                    return emptyOutput;
+                                }
                             }
                         },
                         {
@@ -6805,7 +6943,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-        
+
             vm.openEditPlayerDialog = function (selectedTab) {
                 vm.editSelectedTab = "";
                 vm.editSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
@@ -6875,7 +7013,7 @@ define(['js/app'], function (myApp) {
                             allPlayerTrustLvl: vm.allPlayerTrustLvl,
                             //vm.platformCreditTransferLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                             updateEditedPlayer: function () {
-                              
+
                                 // this ng-model has to be in date object
                                 this.playerBeingEdited.DOB = new Date(this.playerBeingEdited.DOB);
                                 sendPlayerUpdate(this.playerId, this.playerBeforeEditing, this.playerBeingEdited, this.topUpGroupRemark, selectedPlayer.permission);
@@ -9348,7 +9486,7 @@ define(['js/app'], function (myApp) {
                         item.typeName = $translate(item.type.name || "Unknown");
                         item.mainType$ = $translate(item.mainType || "Unknown");
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.status$ = $translate(item.status ? item.status : item.process.status);
+                        item.status$ = $translate(item.status ? item.type.name == "PlayerBonus" || item.type.name == "PartnerBonus" ? item.status == "Approved" ? "approved" : item.status : item.status : item.process.status);
                         return item;
                     })
                     vm.playerProposal.totalCount = data.data.size;
@@ -9923,6 +10061,16 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+            vm.selectedDepositMethod = function(depositMethod) {
+              if(depositMethod == "1" || depositMethod == "3" || depositMethod == "4") {
+                  vm.playerManualTopUp.realName = vm.selectedSinglePlayer.realName;
+              }
+              if(depositMethod == "3"){
+                  vm.playerManualTopUp.remark = vm.selectedSinglePlayer.playerId;
+              } else {
+                  vm.playerManualTopUp.remark = "";
+              }
+            };
             vm.applyPlayerManualTopUp = function () {
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,
@@ -12116,6 +12264,14 @@ define(['js/app'], function (myApp) {
                         var data = data.data;
                         vm.bankCards = data.data ? data.data : false;
                     });
+            }
+
+            vm.getBankCardTypeTextbyId = function (id) {
+                if (!vm.allBankTypeList) {
+                    return id;
+                } else {
+                    return vm.allBankTypeList[id];
+                }
             }
 
             // Player alipay topup
@@ -16534,7 +16690,7 @@ define(['js/app'], function (myApp) {
                 vm.playerRewardRanking.pageObj.init({maxCount: size}, newSearch);
                 var rankingTbl = utilService.createDatatableWithFooter('#rewardRankingTable', tableOptions, {});
                 // utilService.setDataTablePageInput('rewardRankingTable', rankingTbl, $translate);
-                
+
                 $('#rewardRankingTable').off('order.dt');
                 // $('#rewardRankingTable').off();
                 $('#rewardRankingTable').on('order.dt', function (event, a, b) {
@@ -18817,12 +18973,14 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+                vm.platformBasic.demoPlayerValidDays = vm.selectedPlatform.data.demoPlayerValidDays;
                 vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
                 vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
                 vm.platformBasic.requireCaptchaInSMS = vm.selectedPlatform.data.requireCaptchaInSMS;
                 vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
                 vm.platformBasic.useLockedCredit = vm.selectedPlatform.data.useLockedCredit;
                 vm.platformBasic.requireSMSVerification = vm.selectedPlatform.data.requireSMSVerification;
+                vm.platformBasic.requireSMSVerificationForDemoPlayer = vm.selectedPlatform.data.requireSMSVerificationForDemoPlayer;
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
@@ -19300,6 +19458,7 @@ define(['js/app'], function (myApp) {
                         minTopUpAmount: srcData.showMinTopupAmount,
                         allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                        demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
@@ -19314,6 +19473,7 @@ define(['js/app'], function (myApp) {
                         playerNameMinLength: srcData.playerNameMinLength,
                         bonusSetting: srcData.bonusSetting,
                         requireSMSVerification: srcData.requireSMSVerification,
+                        requireSMSVerificationForDemoPlayer: srcData.requireSMSVerificationForDemoPlayer,
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,
@@ -22251,7 +22411,7 @@ define(['js/app'], function (myApp) {
                 }
 
             }
-            
+
             vm.checkDuplicateAdCodeWithId = function(advertisementCode, advertisementId){
                 if(advertisementId && advertisementCode) {
                     let sendData = {
@@ -22721,6 +22881,18 @@ define(['js/app'], function (myApp) {
             }
 
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
+
+            vm.reArrangeArr = function(oriTXT, targetField, targetArr) {
+
+                if (typeof(oriTXT) == 'string' && oriTXT !='') {
+                    let convertArr = oriTXT.split(',');
+                    targetArr[targetField] = convertArr;
+                    targetArr = targetArr.filter(item=>{
+                        return item != '';
+                    })
+                    console.log(targetArr);
+                }
+            };
 
             $('body').on('click', '#permissionRecordButton', function () {
                 vm.getPlayerPermissionChange("new")

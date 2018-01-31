@@ -70,7 +70,33 @@ var dbAdminInfo = {
     getAdminInfo: function (query) {
         return dbconfig.collection_admin.findOne(query).exec();
     },
-
+    getAdminsInfo: function (query) {
+        return dbconfig.collection_admin.find(query).exec();
+    },
+    getCSAdmins: function(data){
+        let deferred = Q.defer();
+        let proms = [];
+        for(var d in data){
+          let prom = dbconfig.collection_admin.find({_id: data[d]}).lean();
+          proms.push(prom)
+        }
+        Q.all(proms).then(data=>{
+            deferred.resolve(data[0]);
+        })
+        return deferred.promise;
+    },
+    getQIAdmins: function(data){
+        let deferred = Q.defer();
+        let proms = [];
+        for(var d in data){
+            let prom = dbconfig.collection_admin.find({_id: data[d]}).lean();
+            proms.push(prom)
+        }
+        Q.all(proms).then(data=>{
+            deferred.resolve(data[0]);
+        })
+        return deferred.promise;
+    },
     /**
      * Get all admin users detailed info
      * @param {String} query - Query string
@@ -87,6 +113,17 @@ var dbAdminInfo = {
      */
     updateAdminInfo: function (query, data) {
         return dbconfig.collection_admin.findOneAndUpdate(query, data).exec();
+    },
+
+    /**
+     * Get all live800 account
+     * @param live800Acc
+     */
+    checkLive800AccValidity: function(live800Acc,adminName){
+        return dbconfig.collection_admin.find({live800Acc: {$in:live800Acc}, adminName: {$ne:adminName}}).count().then(
+            adminCount => {
+                return adminCount > 0 ? false : true;
+            });
     },
 
     /**

@@ -723,21 +723,24 @@ var dbPlatform = {
         var deferred = Q.defer();
         //find admin department platforms data
         dbconfig.collection_admin.findOne({_id: adminId})
-            .populate({path: "departments", model: dbconfig.collection_department}).then(
+            .populate({path: "departments", model: dbconfig.collection_department})
+            .then(
             function (data) {
                 if (data && data.departments && data.departments.length > 0) {
                     //if root department, show all the platforms
                     //else only show department platform
                     if (data.departments[0].parent) {
                         if (data.departments[0].platforms && data.departments[0].platforms.length > 0) {
-                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}}).exec();
+                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}})
+                                .populate({path: "csDepartment", model: dbconfig.collection_department})
+                                .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
                         }
                         else {
                             deferred.reject({name: "DataError", message: "No platform available."});
                         }
                     }
                     else {
-                        return dbconfig.collection_platform.find().exec();
+                        return dbconfig.collection_platform.find().populate({path: "csDepartment", model: dbconfig.collection_department}).populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
                     }
                 }
             },
@@ -1501,6 +1504,7 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
+        data.accountStatus ? query.accountStatus = data.accountStatus : "";
         data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
@@ -2227,45 +2231,47 @@ var dbPlatform = {
                 advertisementInfo => {
                     if (advertisementInfo) {
                         advertisementInfo.map(info => {
-                            let activityListObj = {};
-                            if (info.advertisementCode) {
-                                activityListObj.code = info.advertisementCode;
-                            }
-
-                            if (info.title && info.title.length > 0) {
-                                activityListObj.title = info.title;
-                            }
-
-                            if (info.hasOwnProperty('status')) {
-                                activityListObj.status = info.status;
-                            }
-
-                            if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
-                                activityListObj.bannerImg = 'getHashFile("' + info.backgroundBannerImage.hyperLink + '")';
-                            }
-
-                            if (info.imageButton && info.imageButton.length > 0) {
-                                let buttonList = [];
-                                info.imageButton.forEach(b => {
-                                    let buttonObj = {};
-                                    if (b.buttonName) {
-                                        buttonObj.btn = b.buttonName;
-
-                                    }
-                                    if (b.css) {
-                                        buttonObj.extString = "style(\"" + b.css + "\") my_href=\"" + b.hyperLink + "\"";
-                                    }
-                                    buttonList.push(buttonObj);
-
-                                })
-                                activityListObj.btnList = buttonList;
-                            } else {
-                                if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
-                                    activityListObj.extString = "my_href_w='" + info.backgroundBannerImage.hyperLink + "'";
+                            if(info){
+                                let activityListObj = {};
+                                if (info.advertisementCode) {
+                                    activityListObj.code = info.advertisementCode;
                                 }
-                            }
 
-                            returnedObj.activityList.push(activityListObj);
+                                if (info.title && info.title.length > 0) {
+                                    activityListObj.title = info.title;
+                                }
+
+                                if (info.hasOwnProperty('status')) {
+                                    activityListObj.status = info.status;
+                                }
+
+                                if (info.backgroundBannerImage && info.backgroundBannerImage.url) {
+                                    activityListObj.bannerImg = info.backgroundBannerImage.url;
+                                }
+
+                                if (info.imageButton && info.imageButton.length > 0) {
+                                    let buttonList = [];
+                                    info.imageButton.forEach(b => {
+                                        let buttonObj = {};
+                                        if (b.buttonName) {
+                                            buttonObj.btn = b.buttonName;
+
+                                        }
+                                        if (b.hyperLink) {
+                                            buttonObj.extString = b.hyperLink;
+                                        }
+                                        buttonList.push(buttonObj);
+
+                                    })
+                                    activityListObj.btnList = buttonList;
+                                } else {
+                                    if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
+                                        activityListObj.extString = info.backgroundBannerImage.hyperLink;
+                                    }
+                                }
+
+                                returnedObj.activityList.push(activityListObj);
+                            }
                         })
                         return returnedObj;
                     }

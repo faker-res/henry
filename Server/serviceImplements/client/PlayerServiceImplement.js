@@ -1113,8 +1113,40 @@ let PlayerServiceImplement = function () {
 
     this.loginJblShow.onRequest = function (wsFunc, conn, data) {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.loginJblShow, [conn.playerObjId], true);
-    }
+    };
 
+    this.createDemoPlayer.onRequest = function (wsFunc, conn, data) {
+        let uaString = conn.upgradeReq.headers['user-agent'];
+        let ua = uaParser(uaString);
+        let userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || '',
+            os: ua.os.name || ''
+        }];
+
+        let lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                lastLoginIp = forwardedIp[0].trim();
+            }
+        }
+        let loginIps = [lastLoginIp];
+
+        let country, city, longitude, latitude;
+        let geo = geoip.lookup(data.lastLoginIp);
+        if (geo) {
+            country = geo.country;
+            city = geo.city;
+            longitude = geo.ll ? geo.ll[1] : null;
+            latitude = geo.ll ? geo.ll[0] : null;
+        }
+        let deviceData = {userAgent, lastLoginIp, loginIps, country, city, longitude, latitude};
+
+        let isValidData = Boolean(data && data.platformId);
+
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, deviceData], isValidData, false, false, true);
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

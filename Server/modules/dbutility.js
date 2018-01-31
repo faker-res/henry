@@ -106,6 +106,16 @@ var dbUtility = {
         };
     },
 
+    getNextDaySGTime: function (time) {
+        var startTime = moment(time).tz('Asia/Singapore').startOf('day').add(1, 'days').toDate();
+        var endTime = moment(startTime).add(1, 'days').toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getSGTimeOf: function (time) {
         return time ? moment(time).tz('Asia/Singapore').toDate() : null;
     },
@@ -135,6 +145,30 @@ var dbUtility = {
 
     getLastWeekSGTime: function () {
         var endTime = dbUtility.getPreviousSGMonday();
+        var startTime = moment(endTime).subtract(1, 'week').toDate();
+
+        //console.log("Last week startTime:", startTime);
+        //console.log("Last week endTime:  ", endTime);
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getNextSGMonday: function (time) {
+
+        var mondayNextWeek = moment(time).tz('Asia/Singapore').startOf('day').day("Monday");
+
+        if (mondayNextWeek.toDate().getTime() <= new Date(time).getTime()) {
+            mondayNextWeek.add(7, 'days');
+        }
+
+        return mondayNextWeek.toDate();
+    },
+
+    getNextWeekSGTime: function (time) {
+        var endTime = dbUtility.getNextSGMonday(time);
         var startTime = moment(endTime).subtract(1, 'week').toDate();
 
         //console.log("Last week startTime:", startTime);
@@ -243,6 +277,15 @@ var dbUtility = {
         };
     },
 
+    getNextMonthSGTime: function (time) {
+        var startTime = moment(time).tz('Asia/Singapore').add(1, 'months').startOf('month').toDate();
+        let endTime = moment(startTime).add(1, 'months').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getLastWeekConsumptionReturnSGTime: function () {
         let timeNow = moment().tz('Asia/Singapore').toDate();
 
@@ -311,6 +354,9 @@ var dbUtility = {
     },
     getDayEndTime: function (date) {
         return date ? moment(date).tz('Asia/Singapore').startOf('day').add(1, 'days').toDate() : null;
+    },
+    getISODayEndTime: function (date) {
+        return date ? moment(date).startOf('day').add(1, 'days').toDate() : null;
     },
 
 

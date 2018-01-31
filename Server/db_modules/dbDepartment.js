@@ -2,6 +2,8 @@ var dbconfig = require('./../modules/dbproperties');
 var log = require("./../modules/logger");
 var Q = require("q");
 var dbUtil = require('./../modules/dbutility');
+const mongoose = require("mongoose");
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbDepartment = {
 
@@ -110,6 +112,62 @@ var dbDepartment = {
      */
     getDepartments: function (query) {
         return dbconfig.collection_department.find(query).exec();
+    },
+
+    getDepartmentsbyPlatformObjId: function (data) {
+        if (data) {
+            data=[data];
+            data = data.map(id => ObjectId(id));
+            return dbconfig.collection_department.find({platforms: {$in: data}}).lean().then(data => {
+                if (data) {
+                    let departmentsObjId = [];
+                    data.forEach(item => {
+                        departmentsObjId.push(item._id);
+                    });
+                    return departmentsObjId;
+                }
+            });
+        }else {
+            //data = data.map(id => ObjectId(id));
+            return dbconfig.collection_department.find({}).lean().then(data => {
+                console.log("innder",data)
+                if (data) {
+                    let departmentsObjId = [];
+                    data.forEach(item => {
+                        departmentsObjId.push(item._id);
+                    });
+                    return departmentsObjId;
+                }
+            });
+        }
+    },
+
+    getDepartmentsbyPlatformObjId: function (data) {
+        if (data) {
+            data=[data];
+            data = data.map(id => ObjectId(id));
+            return dbconfig.collection_department.find({platforms: {$in: data}}).lean().then(data => {
+                if (data) {
+                    let departmentsObjId = [];
+                    data.forEach(item => {
+                        departmentsObjId.push(item._id);
+                    });
+                    return departmentsObjId;
+                }
+            });
+        }else {
+            //data = data.map(id => ObjectId(id));
+            return dbconfig.collection_department.find({}).lean().then(data => {
+                console.log("innder",data)
+                if (data) {
+                    let departmentsObjId = [];
+                    data.forEach(item => {
+                        departmentsObjId.push(item._id);
+                    });
+                    return departmentsObjId;
+                }
+            });
+        }
     },
 
     /**
