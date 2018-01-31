@@ -44,7 +44,7 @@
                 select.form-control(ng-model='vm.inspection800.qiUser')
                     option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
                     option(value='all') {{'NONE' | translate}}
-            .inlineBlk
+            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'Read')")
                 button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
                 span.collapse
                     i.fa.fa-spinner.fa-spin
@@ -124,14 +124,14 @@ div(style='display:none')
                         div(style="width:10%;display:inline-block;text-align:center;padding:4px;") {{convert.roleName}}
                         div(style="width:10%;display:inline-block;text-align:center;padding:4px;") {{convert.displayTime}}
                         div(style="width:40%;display:inline-block;padding:5px;" ) {{convert.content}}
-                        div(style="width:10%;display:inline-block")
-                            input.form-control(type="number",value="{{convert.timeoutRate}}",DISABLED)
-                        div(style="width:10%;display:inline-block", ng-show="convert.roles==1")
+                        div(style="width:10%;display:inline-block;padding:5px")
+                            input.form-control(type="number",value="{{convert.timeoutRate}}",DISABLED, ng-show="convert.roles==1")
+                        div(style="width:10%;display:inline-block;padding:5px", ng-show="convert.roles==1")
                             div(ng-if='cform.editable')
                                 input.form-control(type="number",ng-model="convert.inspectionRate")
                             div(ng-if='!cform.editable')
                                 div(style='text-align:center') {{convert.inspectionRate}}
-                        div(style="width:10%;display:inline-block", ng-show="convert.roles==1")
+                        div(style="width:10%;display:inline-block;padding:5px", ng-show="convert.roles==1")
                             div(ng-if='cform.editable')
                                 input.form-control(type="text",ng-model="convert.review")
                             div(ng-if='!cform.editable')

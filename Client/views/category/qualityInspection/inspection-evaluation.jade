@@ -37,7 +37,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
                                     span.add-on
                                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Read')")
                                 button.common-button.btn.btn-primary(ng-click='vm.getUnreadEvaluationRecord(1)') {{'SEARCH' | translate}}
                             .inlineBlk(ng-show='vm.loadingUnreadEvaluationTable')
                                 i.fa.fa-spin.fa-spinner
@@ -97,9 +97,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     ul#unreadEvaluationPagination.pagination
                                         li(ng-repeat="page in vm.unreadEvaluationRecord.pageArr")
                                             a(ng-click="vm.getUnreadEvaluationRecord(page);") {{page}}
-                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable")
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable" ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Edit')")
                                 button.common-button.btn.btn-primary(ng-click='vm.markEvaluationRecordAsRead()') {{'MARK_AS_READ' | translate}}
-                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable")
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-if="vm.unreadEvaluationTable" ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Edit')")
                                 button.common-button.btn.btn-warning(ng-click='vm.appealEvaluation()') {{'I_WANT_TO_APPEAL' | translate}}
 
                     div(ng-show="vm.evaluationTab == 'readEvaluation'" )
