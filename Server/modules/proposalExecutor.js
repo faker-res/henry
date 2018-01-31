@@ -3347,7 +3347,6 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
     ).then(
         rewardTaskGroup => {
             console.log("DEBUG LOG :: Getting reward task group for repair transfer ID: " + transferId + " as", rewardTaskGroup);
-            console.log("DEBUG LOG :: Player original credit:", player.validCredit);
             if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
                 let inputFreeAmt = rewardTaskGroup._inputFreeAmt;
                 let inputRewardAmt = rewardTaskGroup._inputRewardAmt;
@@ -3359,7 +3358,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
 
                 changedValidCredit = inputFreeAmt;
                 changedLockedCredit = inputRewardAmt;
-                let lockedAmount = rewardTaskGroup.rewardAmt + inputRewardAmt;
+                let lockedAmount = inputRewardAmt;
                 let validCredit = inputFreeAmt;
 
                 let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
