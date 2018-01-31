@@ -90,6 +90,7 @@
                 "updatePlayerWeChat",
                 "updatePlayerEmail",
                 "loginJblShow",
+                "createDemoPlayer",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
