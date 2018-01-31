@@ -223,6 +223,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 checkMsgChinese += "投注额不足：投注额 " + curConsumptionAmount + " ，需求投注额 " + totalConsumptionAmout + "; ";
                 isApprove = false;
             }
+
+            // Consumption reached, check for other conditions
             if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
                 checkMsg += " Denied: Single limit;";
                 checkMsgChinese += " 失败：单限;";

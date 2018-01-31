@@ -292,6 +292,11 @@ define(['js/app'], function (myApp) {
                 // RESET_PASSWORD: 'resetPassword'
             };
 
+            vm.allAccountStatus = {
+                CREATED_ACCOUNT: 'createdAccount',
+                NOT_YET_CREATE_ACCOUNT: 'notYetCreateAccount',
+            };
+
             vm.constProposalStatus = {
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
@@ -1705,6 +1710,8 @@ define(['js/app'], function (myApp) {
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
                 vm.smsRecordQuery.purpose = "";
+                vm.smsRecordQuery.accountStatus = "";
+                vm.smsRecordQuery.inputDevice = "";
                 vm.smsRecordQuery.index = 0;
                 vm.smsRecordQuery.limit = 10;
                 vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
@@ -1720,6 +1727,7 @@ define(['js/app'], function (myApp) {
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
+                    accountStatus: vm.smsRecordQuery.accountStatus,
                     inputDevice: vm.smsRecordQuery.inputDevice,
                     type: 'registration',
                     status: 'all',
@@ -1730,7 +1738,8 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
                     platformObjId: vm.selectedPlatform.data._id,
                     sortCol: vm.smsRecordQuery.sortCol
-                }
+                };
+
                 $('#loadVertificationSMSIcon').show();
                 socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
                     vm.smsRecordQuery.loading = false;
@@ -9477,7 +9486,7 @@ define(['js/app'], function (myApp) {
                         item.typeName = $translate(item.type.name || "Unknown");
                         item.mainType$ = $translate(item.mainType || "Unknown");
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.status$ = $translate(item.status ? item.status : item.process.status);
+                        item.status$ = $translate(item.status ? item.type.name == "PlayerBonus" || item.type.name == "PartnerBonus" ? item.status == "Approved" ? "approved" : item.status : item.status : item.process.status);
                         return item;
                     })
                     vm.playerProposal.totalCount = data.data.size;
@@ -18964,13 +18973,14 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+                vm.platformBasic.demoPlayerValidDays = vm.selectedPlatform.data.demoPlayerValidDays;
                 vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
                 vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
                 vm.platformBasic.requireCaptchaInSMS = vm.selectedPlatform.data.requireCaptchaInSMS;
                 vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
                 vm.platformBasic.useLockedCredit = vm.selectedPlatform.data.useLockedCredit;
                 vm.platformBasic.requireSMSVerification = vm.selectedPlatform.data.requireSMSVerification;
-                vm.platformBasic.requireSMSVerificationForTestPlayer = vm.selectedPlatform.data.requireSMSVerificationForTestPlayer;
+                vm.platformBasic.requireSMSVerificationForDemoPlayer = vm.selectedPlatform.data.requireSMSVerificationForDemoPlayer;
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
@@ -19448,6 +19458,7 @@ define(['js/app'], function (myApp) {
                         minTopUpAmount: srcData.showMinTopupAmount,
                         allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                        demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
@@ -19462,7 +19473,7 @@ define(['js/app'], function (myApp) {
                         playerNameMinLength: srcData.playerNameMinLength,
                         bonusSetting: srcData.bonusSetting,
                         requireSMSVerification: srcData.requireSMSVerification,
-                        requireSMSVerificationForTestPlayer: srcData.requireSMSVerificationForTestPlayer,
+                        requireSMSVerificationForDemoPlayer: srcData.requireSMSVerificationForDemoPlayer,
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,

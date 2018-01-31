@@ -315,7 +315,7 @@ let dbPlayerInfo = {
 
                     return Q.all([playerNameChecker, realNameChecker]).then(data => {
                         if (data && data.length == 2 && data[0] && data[1]) {
-                            if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
+                            if (data[0].isPlayerNameValid && (data[1].isPlayerNameValid || !inputData.realName)) {
                                 return {"isPlayerNameValid": true};
                             }
                             else {
@@ -936,7 +936,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate) {
+                    if (isAutoCreate || (playerdata.isTestPlayer && !playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -1166,6 +1166,42 @@ let dbPlayerInfo = {
         );
 
         return deferred.promise;
+    },
+
+    createDemoPlayer: function (platformId, smsCode, deviceData) {
+        let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Platform does not exist"});
+                }
+
+                let demoPlayerName = generateDemoPlayerName();
+
+                let demoPlayerData = {
+                    platform: platformData._id,
+                    name: demoPlayerName,
+                    password: randomPsw,
+                    isTestPlayer: true,
+                    isRealPlayer: false
+                };
+
+                demoPlayerData = Object.assign({}, demoPlayerData, deviceData);
+
+                return dbPlayerInfo.createPlayerInfo(demoPlayerData, true, true);
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Can't create new player."});
+                }
+
+                playerData.password = randomPsw;
+
+                return playerData;
+            }
+        );
     },
 
     /**
@@ -13088,6 +13124,18 @@ function checkLimitedOfferToApply (proposalData) {
             }
         ).catch(errorUtils.reportError);
     }
+}
+
+function generateDemoPlayerName(platformDemoPlayerPrefix) {
+    let namePrefix = "f";
+    platformDemoPlayerPrefix = platformDemoPlayerPrefix || "a";
+    let numArray = [];
+
+    for (let i = 0; i < 6; i++) {
+        numArray.push(chance.character({pool: '0123456789'}))
+    }
+
+    return namePrefix + platformDemoPlayerPrefix + numArray.join("");
 }
 
 

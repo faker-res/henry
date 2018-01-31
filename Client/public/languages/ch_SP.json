@@ -1423,6 +1423,9 @@
   "DownloadTranslationCSV": "下载翻译CSV",
 
   "demoAccount": "试玩帐号",
+  "ACCOUNT_STATUS": "开户状态",
+  "createdAccount": "已开户",
+  "notYetCreateAccount": "未开户",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
@@ -2091,6 +2094,7 @@
   "Client Type": "客户类型",
   "APPROVAL_PROPOSAL": "待审提案",
   "AUTO_SETTLEMENT": "自动结算",
+  "DEMO_PLAYER_VALID_DAYS": "试玩帐号的有效时间 ",
   "SMS_VERIFICATION": "玩家注册需短信验证",
   "SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER": "玩家前端索取试玩帐号需短信验证",
   "SMS_VERIFICATION_FOR_PASSWORD_UPDATE": "修改密码需短信验证",
