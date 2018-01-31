@@ -152,10 +152,13 @@ var dbQualityInspection = {
     constructCV: function(dataResult){
         let deferred = Q.defer();
         let liveChats = [];
+        let platformProm = dbconfig.collection_platform.find().lean();
+        Q.all([dataResult, platformProm]).then(results=>{
 
-        Q.all(dataResult).then(results=>{
+            let sqlData = results[0];
+            let platformDetails = results[1];
 
-            results.forEach(item => {
+            sqlData.forEach(item => {
                 let live800Chat = {conversation: [],live800Acc:{}};
                 live800Chat.messageId = item.msg_id;
                 live800Chat.status = item.status;
@@ -183,7 +186,11 @@ var dbQualityInspection = {
                     return a.time - b.time;
                 });
 
-                live800Chat.conversation = content;
+                let platformInfo = platformDetails.filter(item => {
+                    return item.live800CompanyId == live800Chat.companyId;
+                });
+                platformInfo = platformInfo[0] ? platformInfo[0] : [];
+                live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
 
                 liveChats.push(live800Chat);
             });
@@ -477,13 +484,12 @@ var dbQualityInspection = {
         let firstTime = null;
         let lastCV = null;
         let lastCustomerCV = null;
-        console.log(platform)
         if (!platform) {
             return conversation;
         }
 
         if (platform.overtimeSetting) {
-            console.log(overtimeSetting);
+
             let overtimeSetting = platform.overtimeSetting;
             conversation.forEach(item => {
                 if (!firstCV && item.roles == 2) {
@@ -653,7 +659,7 @@ var dbQualityInspection = {
                         return live800Chat;
                     });
                 proms.push(prom);
-            }
+            })
             deferred.resolve(proms);
         }, (error) => {
             return Q.reject({name: "DBError", message: error});
