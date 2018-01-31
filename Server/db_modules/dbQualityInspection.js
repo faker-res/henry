@@ -369,19 +369,12 @@ var dbQualityInspection = {
                 console.log('yeah');
                 if (error) {
                     console.log(error)
-                    // throw error;
                 }
                 deferred.resolve(results);
                 connection.end();
             });
         })
 
-        // connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-        //     console.log('yeah');
-        //     if (error) throw error;
-        //     deferred.resolve(results);
-        //     connection.end();
-        // });
         return deferred.promise;
     },
     searchMySQLDB:function(queryObj, paginationQuery, connection){

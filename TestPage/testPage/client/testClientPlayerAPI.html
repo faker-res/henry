@@ -1520,9 +1520,18 @@
 
     </div>
     <div>
+        <label>Telephone
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
         <label>Sms Code
             <input type=text name="smsCode">
         </label>
+    </div>
+    <div>
+        <input type="text" name="purpose" hidden value="demoAccount" />
+        <button id="getSmsCode" data-api-name="getSMSCode">Get SMS Code</button>
     </div>
     <p></p>
     <button data-api-name="createDemoPlayer">Create</button>
