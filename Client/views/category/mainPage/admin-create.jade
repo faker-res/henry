@@ -26,3 +26,6 @@ form(name="form_create_admin", novalidate)
 	div.form-group.col-lg-6
 		label.control-label {{"DID" | translate}}
 		input.form-control(type="number", placeholder="DID", ng-model="vm.newAdmin.did")
+	div.form-group.col-lg-6
+		label.control-label {{"LIVE800 ACC" | translate}}
+		input.form-control(type="text", placeholder="LIVE800 Acc", ng-model="vm.newAdmin.live800Acc")

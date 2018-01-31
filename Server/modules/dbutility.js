@@ -355,6 +355,9 @@ var dbUtility = {
     getDayEndTime: function (date) {
         return date ? moment(date).tz('Asia/Singapore').startOf('day').add(1, 'days').toDate() : null;
     },
+    getISODayEndTime: function (date) {
+        return date ? moment(date).startOf('day').add(1, 'days').toDate() : null;
+    },
 
 
     getPreviousSGDayOfDate: function (date) {
