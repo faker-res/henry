@@ -77,6 +77,8 @@ var platformSchema = new Schema({
     allowSameRealNameToRegister: {type: Boolean, default: true},
     // Platform-wide SMS Verification Setting, for create players and create partners
     requireSMSVerification: {type: Boolean, default: false},
+    // SMS Verification Setting For create test player
+    requireSMSVerificationForTestPlayer: {type: Boolean, default: false},
     // SMS Verification Setting For Password Update
     requireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
     // SMS Verification Setting For Payment Update

@@ -595,6 +595,10 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForTestPlayer', ng-disabled='!vm.configTableEdit')
+                            tr
                                 td {{'SMS_VERIFICATION' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerification', ng-disabled='!vm.configTableEdit')
