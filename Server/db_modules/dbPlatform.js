@@ -2231,46 +2231,47 @@ var dbPlatform = {
                 advertisementInfo => {
                     if (advertisementInfo) {
                         advertisementInfo.map(info => {
-                            let activityListObj = {};
-                            if (info.advertisementCode) {
-                                activityListObj.code = info.advertisementCode;
-                            }
-
-                            if (info.title && info.title.length > 0) {
-                                activityListObj.title = info.title;
-                            }
-
-                            if (info.hasOwnProperty('status')) {
-                                activityListObj.status = info.status;
-                            }
-
-                            if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
-                                activityListObj.bannerImg = 'getHashFile("' + info.backgroundBannerImage.hyperLink + '")';
-                            }
-
-                            if (info.imageButton && info.imageButton.length > 0) {
-                                let buttonList = [];
-                                info.imageButton.forEach(b => {
-                                    let buttonObj = {};
-                                    if (b.buttonName) {
-                                        buttonObj.btn = b.buttonName;
-
-                                    }
-                                    if (b.hyperLink) {
-                                        //buttonObj.extString = "style(\"" + b.css + "\") my_href=\"" + b.hyperLink + "\"";
-                                        buttonObj.extString = b.hyperLink;
-                                    }
-                                    buttonList.push(buttonObj);
-
-                                })
-                                activityListObj.btnList = buttonList;
-                            } else {
-                                if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
-                                    activityListObj.extString = info.backgroundBannerImage.hyperLink;
+                            if(info){
+                                let activityListObj = {};
+                                if (info.advertisementCode) {
+                                    activityListObj.code = info.advertisementCode;
                                 }
-                            }
 
-                            returnedObj.activityList.push(activityListObj);
+                                if (info.title && info.title.length > 0) {
+                                    activityListObj.title = info.title;
+                                }
+
+                                if (info.hasOwnProperty('status')) {
+                                    activityListObj.status = info.status;
+                                }
+
+                                if (info.backgroundBannerImage && info.backgroundBannerImage.url) {
+                                    activityListObj.bannerImg = info.backgroundBannerImage.url;
+                                }
+
+                                if (info.imageButton && info.imageButton.length > 0) {
+                                    let buttonList = [];
+                                    info.imageButton.forEach(b => {
+                                        let buttonObj = {};
+                                        if (b.buttonName) {
+                                            buttonObj.btn = b.buttonName;
+
+                                        }
+                                        if (b.hyperLink) {
+                                            buttonObj.extString = b.hyperLink;
+                                        }
+                                        buttonList.push(buttonObj);
+
+                                    })
+                                    activityListObj.btnList = buttonList;
+                                } else {
+                                    if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
+                                        activityListObj.extString = info.backgroundBannerImage.hyperLink;
+                                    }
+                                }
+
+                                returnedObj.activityList.push(activityListObj);
+                            }
                         })
                         return returnedObj;
                     }
