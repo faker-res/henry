@@ -3208,6 +3208,7 @@
   "queryByQualityInspectionDate": "按对话日期查询",
   "queryByAppealDate": "按申诉日期查询",
   "queryByAppealStatus": "按申诉状态查询",
-  "Please select Year - Month": "请选择 年，月份"
+  "Please select Year - Month": "请选择 年，月份",
+  "CsApproveProposal": "客服审核"
   
 }
