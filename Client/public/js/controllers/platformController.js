@@ -19496,7 +19496,8 @@ define(['js/app'], function (myApp) {
                         useProviderGroup: srcData.useProviderGroup,
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
-                        usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
+                        usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
+                        playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval
                     }
                 };
                 let isProviderGroupOn = false;
@@ -19538,7 +19539,7 @@ define(['js/app'], function (myApp) {
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset
+                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
                     }
                 };
                 console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
