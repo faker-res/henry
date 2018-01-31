@@ -210,9 +210,7 @@ var platformSchema = new Schema({
     // get the CS Department for display livechat related conversation
     csDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
     // get the QI Department for display livechat related conversation
-    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
-    // live 800 companyid
-    live800CompanyId: [{type: String}],
+    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}]
 });
 
 //add platform id before save
