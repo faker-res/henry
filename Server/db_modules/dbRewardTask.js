@@ -265,6 +265,11 @@ const dbRewardTask = {
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
                     }
+
+                    if (!rewardData.requiredUnlockAmount) {
+                        return saveObj;
+                    }
+
                     // create new reward group
                     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
                 }
