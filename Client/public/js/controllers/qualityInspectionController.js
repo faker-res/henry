@@ -1036,7 +1036,16 @@ define(['js/app'], function (myApp) {
                 }
 
                 if(vm.qaAccount && vm.qaAccount != "all"){
-                    sendData.qualityAssessor = vm.qaAccount;
+                    sendData.qualityAssessor = [vm.qaAccount];
+                }else{
+                    let qaArr = [];
+                    vm.qaDepartments.forEach(q => {
+                        if(q && q._id){
+                            qaArr.push(q._id);
+                        }
+
+                    })
+                    sendData.qualityAssessor = qaArr;
                 }
 
                 let resultArr = [];
