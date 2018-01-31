@@ -1422,6 +1422,8 @@
   "DOWNLOAD_CSV": "下载",
   "DownloadTranslationCSV": "下载翻译CSV",
 
+  "demoAccount": "试玩帐号",
+
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
