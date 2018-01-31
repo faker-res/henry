@@ -7888,7 +7888,7 @@ let dbPlayerInfo = {
                                     });
                             });
                     } else {
-                        return Promise.reject({name: "DataError", errorMessage: "There are available reward task group to complete"});
+                        return Promise.reject({status: constServerCode.NOT_ENOUGH_CONSUMPTION, name: "DataError", errorMessage: "There are available reward task group to complete"});
                     }
                 }
             ).then(
