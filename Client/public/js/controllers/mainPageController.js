@@ -9,7 +9,7 @@ define(['js/app'], function (myApp) {
             var vm = this;
 
             // This next line should be commented.  Uncomment temporarily for debugging only.
-            //window.vm = vm;
+            // window.vm = vm;
 
             vm.userTableRowSelected = {};
             vm.selectedUsers = {};
@@ -1290,6 +1290,7 @@ define(['js/app'], function (myApp) {
             vm.processRoleData = function () {
                 console.log("vm.allView", vm.allView);
                 console.log('vm.showRole', vm.showRole);
+                vm.showRoleFlag = {};
                 if (!vm.showRole) return;
 
                 vm.policytoggle = $.extend(true, {}, vm.allView);
@@ -1307,7 +1308,7 @@ define(['js/app'], function (myApp) {
                     });
                 }
 
-                vm.showRoleFlag = {};
+                // vm.showRoleFlag = {};
                 $.each(vm.allView, function (cate, cateData) {
                     if (cateData) {
                         $.each(cateData, function (sectionName, sectionData) {
