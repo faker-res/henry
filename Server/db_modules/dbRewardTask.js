@@ -1235,10 +1235,12 @@ const dbRewardTask = {
                     // Recursive update RTG to prevent overflow of curConsumption
                     return findAndUpdateRTG(consumptionRecord, createTime, platform).then(
                         updatedRTG => {
-                            if (updatedRTG && !updatedRTG[0]) {
-                                return findAndUpdateRTG(consumptionRecord, createTime, platform)
-                            } else if (updatedRTG && updatedRTG[1]) {
-                                dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, remainingCurConsumption);
+                            if (updatedRTG) {
+                                if (!updatedRTG[0]) {
+                                    return findAndUpdateRTG(consumptionRecord, createTime, platform);
+                                } else if (updatedRTG[1]) {
+                                    dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, updatedRTG[1]);
+                                }
                             }
 
                             return updatedRTG
@@ -2044,30 +2046,28 @@ const dbRewardTask = {
 };
 
 function findAndUpdateRTG (consumptionRecord, createTime, platform) {
-    let remainingCurConsumption = 0;
+    let consumptionAmt = 0, remainingCurConsumption = 0;
 
     return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
         rewardTaskGroup => {
             if (rewardTaskGroup) {
                 let consumptionOffset = isNaN(platform.autoApproveConsumptionOffset) ? 0 : platform.autoApproveConsumptionOffset;
 
-                rewardTaskGroup.curConsumption += consumptionRecord.validAmount;
-                rewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
-
                 // Check whether player has lost all credit
-                if (rewardTaskGroup.currentAmt <= platform.autoApproveLostThreshold) {
+                if (rewardTaskGroup.currentAmt + consumptionRecord.bonusAmount <= platform.autoApproveLostThreshold) {
                     rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
                     rewardTaskGroup.unlockTime = createTime;
                 }
                 // Consumption reached
-                else if (rewardTaskGroup.curConsumption + consumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
-                    remainingCurConsumption = rewardTaskGroup.curConsumption - (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt);
+                else if (rewardTaskGroup.curConsumption + consumptionRecord.validAmount + consumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
+                    consumptionAmt = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rewardTaskGroup.curConsumption;
+                    remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
                 }
 
                 let updObj = {
                     $inc: {
                         currentAmt: consumptionRecord.bonusAmount,
-                        curConsumption: consumptionRecord.validAmount
+                        curConsumption: consumptionAmt
                     },
                     status: rewardTaskGroup.status,
                     unlockTime: rewardTaskGroup.unlockTime
