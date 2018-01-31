@@ -1280,17 +1280,21 @@ var dbQualityInspection = {
                     console.log(error);
                 }
 
-                results.forEach(result => {
-                    let startTime = new Date(result.storeTime);
-                    let endTime = new Date();
-                    endTime = dbUtility.getISODayEndTime(startTime);
-
-                    proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));
-                });
-                return Q.all(proms).then(data => {
-                    deferred.resolve(data);
-                    connection.end();
-                })
+                if(results){
+                    results.forEach(result => {
+                        if(result){
+                            let startTime = new Date(result.storeTime);
+                            let endTime = new Date();
+                            endTime = dbUtility.getISODayEndTime(startTime);
+    
+                            proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));    
+                        }
+                    });
+                    return Q.all(proms).then(data => {
+                        deferred.resolve(data);
+                        connection.end();
+                    })
+                }
             });
             return deferred.promise;
         }else{
