@@ -47,6 +47,9 @@ var dbQualityInspection = {
         if(query.status=='all'||query.status=='1'){
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
+            if(query.status==='1'){
+                queryObj += " status="+query.status;
+            }
             dbResult = dbQualityInspection.countMySQLDB(queryObj,connection);
             console.log(dbResult);
             return dbResult;
