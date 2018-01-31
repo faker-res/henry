@@ -1655,7 +1655,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
                 vm.allCSDepartmentId=[];
-                vm.platformWithCSDepartment=[]; // to filter out the platfrom with CS Department for the Product Filter
+                vm.platformWithCSDepartment=[]; // to filter out the platform with CS Department for the Product Filter
 
 
                 vm.platformList.forEach(platform => {
@@ -1720,27 +1720,21 @@ define(['js/app'], function (myApp) {
                 vm.QIReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
                 utilService.actionAfterLoaded("#QIReportTable", function () {
                     vm.commonInitTime(vm.QIReportQuery, '#QIReportQuery');
-                    // vm.QIReportQuery.pageObj = utilService.createPageForPagingTable("#QIReportTablePage", {}, $translate, vm.QIReportTablePageChange);
                     $scope.safeApply()
                 });
 
             };
-
-
-            // vm.QIReportTablePageChange = function (curP, pageSize) {
-            //     vm.commonPageChangeHandler(curP, pageSize, "QIReportQuery", vm.searchQIRecord)
-            // };
 
             vm.searchQIRecord = function (newSearch) {
 
                 let startTime = vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate();
 
-                let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
-                if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
-                    socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
-                    return;
-                }
+                // let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
+                // if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
+                //     socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
+                //     return;
+                // }
 
                 vm.platformCompanyID=[];
                 vm.platformList.forEach(platform => {
@@ -1951,6 +1945,13 @@ define(['js/app'], function (myApp) {
                         vm.postData.forEach(data=>{
                             data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED
                             data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
+                            // check NaN
+                            if (data.pendingCount == "NaN"){
+                                data.pendingCount=Number(0).toFixed(2);
+                            }
+                            if (data.avgMark == "NaN"){
+                                data.avgMark=Number(0).toFixed(2);
+                            }
                         })
                     }
 
