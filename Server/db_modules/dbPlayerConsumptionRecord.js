@@ -1216,7 +1216,7 @@ var dbPlayerConsumptionRecord = {
         if (gameId) {
             query.gameId = gameId;
         }
-        var recordsProm = dbconfig.collection_playerConsumptionRecord.find(query).sort({createTime: 1}).lean().skip(startIndex).limit(count)
+        var recordsProm = dbconfig.collection_playerConsumptionRecord.find(query).sort({createTime: -1}).lean().skip(startIndex).limit(count)
             .populate({
                 path: "gameId",
                 model: dbconfig.collection_game
