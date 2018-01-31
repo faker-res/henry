@@ -169,7 +169,7 @@ var dbQualityInspection = {
 
                 live800Chat.operatorId = item.operator_id;
                 live800Chat.operatorName = item.operator_name;
-                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_id;
+                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_name;
                 live800Chat.live800Acc['name'] = item.operator_name;
                 let dom = new JSDOM(item.content);
                 let content = [];
