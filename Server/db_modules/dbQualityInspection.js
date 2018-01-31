@@ -580,10 +580,8 @@ var dbQualityInspection = {
 
             if(Array.isArray(query.operatorId)){
                 operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
-
                     queryObj += "operator_name IN (" + operatorId + ") AND ";
-
-            };
+            }
 
         }
         if (query.startTime && query.endTime) {
@@ -597,20 +595,16 @@ var dbQualityInspection = {
 
         let connection = dbQualityInspection.connectMysql();
         connection.connect();
-
         let dbRawResult = dbQualityInspection.searchMySQLDBConstraint(queryObj,connection);
         let mongoResult = dbQualityInspection.getMongoCVConstraint(dbRawResult).catch(error => {  return Q.reject({name: "DBError", message: error}); });
         conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         let progressReport = dbQualityInspection.getProgressReportByOperator(query.companyId,query.operatorId,startTime,endTime);
-
-
         return Q.all([conversationForm,progressReport]);
     },
     searchMySQLDBConstraint:function(queryObj,connection){
         var deferred = Q.defer();
         if (connection){
             connection.query("SELECT msg_id, company_id, operator_id, operator_name, content FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-
                 if(error){
                     console.log(error);
                 }
@@ -622,7 +616,6 @@ var dbQualityInspection = {
         }else{
             return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
         }
-
     },
     getMongoCVConstraint:function(dbResult){
         var deferred = Q.defer();
