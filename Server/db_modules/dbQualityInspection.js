@@ -1030,8 +1030,8 @@ var dbQualityInspection = {
             //status: constQualityInspectionStatus.COMPLETED_READ
         }
 
-        if(qaAccount && qaAccount != "all"){
-            query.qualityAssessor = qaAccount;
+        if(qaAccount && qaAccount.length > 0){
+            query.qualityAssessor = {$in: qaAccount};
         }
 
         return dbconfig.collection_qualityInspection.aggregate([
