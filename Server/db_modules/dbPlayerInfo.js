@@ -315,7 +315,7 @@ let dbPlayerInfo = {
 
                     return Q.all([playerNameChecker, realNameChecker]).then(data => {
                         if (data && data.length == 2 && data[0] && data[1]) {
-                            if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
+                            if (data[0].isPlayerNameValid && (data[1].isPlayerNameValid || !inputData.realName)) {
                                 return {"isPlayerNameValid": true};
                             }
                             else {
