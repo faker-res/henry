@@ -414,108 +414,135 @@ var dbQualityInspection = {
         return deferred.promise;
     },
     getMongoCV:function(dbResult){
-      var deferred = Q.defer();
-      let proms = [];
-      Q.all(dbResult).then(results=>{
-        // console.log(results);
-        if(results.length == 0){
-            deferred.resolve([]);
-        }
-        results.forEach(item => {
-            console.log(item);
-            let live800Chat = {conversation: [], live800Acc:{}};
-            live800Chat.messageId = item.msg_id;
-            live800Chat.status = item.status;
-            live800Chat.qualityAssessor = item.qualityAssessor;
-            live800Chat.fpmsAcc = item.operator_name;
-            live800Chat.processTime = item.processTime;
-            live800Chat.appealReason = item.appealReason;
-            live800Chat.companyId = item.company_id;
-            live800Chat.createTime = new Date(item.store_time).toISOString();
+        var deferred = Q.defer();
 
-            live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_name;
-            live800Chat.live800Acc['name'] = item.operator_name;
-            live800Chat.operatorName = item.operator_name;
-            let dom = new JSDOM(item.content);
-            let content = [];
-            let sys = dom.window.document.getElementsByTagName("sys");
-            let he = dom.window.document.getElementsByTagName("he");
-            let i = dom.window.document.getElementsByTagName("i");
+        let platformProm = dbconfig.collection_platform.find().lean();
+        let proms = [];
+        Q.all([dbResult, platformProm]).then(results => {
+            // console.log(results);
 
-            partI = dbQualityInspection.reGroup(i, 1);
-            partHe = dbQualityInspection.reGroup(he, 2);
-            partSYS = dbQualityInspection.reGroup(sys, 3);
-            content = partI.concat(partHe, partSYS);
-            content.sort(function (a, b) {
-                return a.time - b.time;
-            });
+            let sqlData = results[0];
+            let platformDetails = results[1];
+            if (sqlData.length == 0) {
+                deferred.resolve([]);
+            }
 
-            live800Chat.conversation = dbQualityInspection.drawColor(content);
+            sqlData.forEach(item => {
+                let live800Chat = {conversation: [], live800Acc: {}};
+                live800Chat.messageId = item.msg_id;
+                live800Chat.status = item.status;
+                live800Chat.qualityAssessor = item.qualityAssessor;
+                live800Chat.fpmsAcc = item.operator_name;
+                live800Chat.processTime = item.processTime;
+                live800Chat.appealReason = item.appealReason;
+                live800Chat.companyId = item.company_id;
+                live800Chat.createTime = new Date(item.store_time).toISOString();
 
-            let queryQA = {messageId: String(item.msg_id)};
-            let prom = dbconfig.collection_qualityInspection.find(queryQA)
-                .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
-                .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
-                .then(qaData => {
-                    if (qaData.length > 0) {
-                        live800Chat.status = qaData[0].status;
-                        live800Chat.conversation = dbQualityInspection.reformatCV(live800Chat.conversation, qaData[0].conversation);
-                        live800Chat.qualityAssessor = qaData[0].qualityAssessor;
-                        live800Chat.processTime = qaData[0].processTime;
-                        live800Chat.appealReason = qaData[0].appealReason;
-                    }
-                    return live800Chat;
+                live800Chat.live800Acc['id'] = item.company_id + '-' + item.operator_name;
+                live800Chat.live800Acc['name'] = item.operator_name;
+                live800Chat.operatorName = item.operator_name;
+
+                let dom = new JSDOM(item.content);
+                let content = [];
+                let sys = dom.window.document.getElementsByTagName("sys");
+                let he = dom.window.document.getElementsByTagName("he");
+                let i = dom.window.document.getElementsByTagName("i");
+
+                partI = dbQualityInspection.reGroup(i, 1);
+                partHe = dbQualityInspection.reGroup(he, 2);
+                partSYS = dbQualityInspection.reGroup(sys, 3);
+                content = partI.concat(partHe, partSYS);
+                content.sort(function (a, b) {
+                    return a.time - b.time;
                 });
-            proms.push(prom);
-        });
-        deferred.resolve(proms);
-      })
+                let platformInfo = platformDetails.filter(item => {
+                    return item.live800CompanyId == live800Chat.companyId;
+                });
+                platformInfo = platformInfo[0] ? platformInfo[0] : [];
+                live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
+
+                let queryQA = {messageId: String(item.msg_id)};
+                let prom = dbconfig.collection_qualityInspection.find(queryQA)
+                    .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
+                    .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
+                    .then(qaData => {
+                        if (qaData.length > 0) {
+                            live800Chat.status = qaData[0].status;
+                            live800Chat.conversation = dbQualityInspection.reformatCV(live800Chat.conversation, qaData[0].conversation);
+                            live800Chat.qualityAssessor = qaData[0].qualityAssessor;
+                            live800Chat.processTime = qaData[0].processTime;
+                            live800Chat.appealReason = qaData[0].appealReason;
+                        }
+                        return live800Chat;
+                    });
+                proms.push(prom);
+            });
+            deferred.resolve(proms);
+        })
       return deferred.promise;
 
     },
-    drawColor: function(conversation){
+    calculateRate: function(conversation, platform){
         let firstCV = null;
         let firstTime = null;
         let lastCV = null;
         let lastCustomerCV = null;
-        conversation.forEach(item=>{
-            if(!firstCV && item.roles == 2){
-                firstCV = item;
-                lastCustomerCV = item;
-            }else{
-                if(item.roles==2){
-                    if(lastCV != 2){
-                        lastCustomerCV = item;
-                    }
-                }else if(item.roles==1 && (lastCV.roles!=1) && lastCustomerCV){
-                    let timeStamp = item.time - lastCustomerCV.time;
-                    let min = timeStamp / (60*60*24);
-                    let sec = min * 60;
-                    // console.log(item.content);
-                    // console.log(item.roles);
-                    // console.log(lastCustomerCV.time +'-'+ item.time + '=' +timeStamp);
-                    // console.log(min);
-                    // console.log(sec);
-                    // console.log('-------')
-                    let rate = 0;
-                    if(sec <= 30){
-                        rate = 1;
-                    }else if(sec > 30 && sec <=60){
-                        rate = 0;
-                    }else if(sec > 90 && sec <=120){
-                        rate = -1.5;
-                    }else{
-                        rate = -2;
-                    }
-                    item.timeoutRate = rate;
-                }else{
+        if (!platform) {
+            return conversation;
+        }
 
+        if (platform.overtimeSetting) {
+
+            let overtimeSetting = platform.overtimeSetting;
+            conversation.forEach(item => {
+                if (!firstCV && item.roles == 2) {
+
+                    firstCV = item;
+                    lastCustomerCV = item;
+                } else {
+                    if (item.roles == 2) {
+                        // keep the last customer question , to calculate the timeoutRate
+                        if (lastCV.roles == 1) {
+                            lastCustomerCV = item;
+                        }
+                    } else if (item.roles == 1 && lastCustomerCV) {
+                        // calculate the timeoutRate
+                        let timeStamp = item.time - lastCustomerCV.time;
+                        let sec = timeStamp / 1000;
+                        let rate = 0;
+                        item.timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, item, sec);
+                    } else {
+                    }
+                }
+                if (item.roles != 3) {
+                    //system msg should not involve
+                    lastCV = item;
+                }
+                return item;
+            })
+        }
+        return conversation;
+    },
+    rateByCVTime: function(overtimeSetting, cv, sec){
+        let timeoutRate = 0;
+        let otsLength = overtimeSetting.length - 1;
+        overtimeSetting.forEach((ots,i)=>{
+
+            if(i==0){
+                if(sec <= overtimeSetting[0].conversationInterval){
+                    timeoutRate = overtimeSetting[0].presetMark;
+                }
+            }else if(i==otsLength){
+                if(sec >= overtimeSetting[otsLength].conversationInterval){
+                    timeoutRate = overtimeSetting[i].presetMark;
+                }
+            }else{
+                if(sec < overtimeSetting[i-1].conversationInterval && sec > overtimeSetting[i+1].conversationInterval){
+                    timeoutRate = overtimeSetting[i].presetMark;
                 }
             }
-            lastCV = item;
-            return item;
-        })
-        return conversation;
+        });
+        return timeoutRate
     },
     reformatCV: function(cvs,mongoCVS ){
 
