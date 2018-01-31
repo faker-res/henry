@@ -911,6 +911,11 @@
   "DOWNLOAD_CSV": "Download",
   "DownloadTranslationCSV": "Download Translation CSV",
 
+  "demoPlayer": "Demo Player",
+  "ACCOUNT_STATUS": "Account Status",
+  "createdAccount": "Created account",
+  "notYetCreateAccount": "Not yet create account",
+
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",

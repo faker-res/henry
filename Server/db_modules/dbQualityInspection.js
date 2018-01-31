@@ -7,6 +7,7 @@ const constQualityInspectionStatus = require('./../const/constQualityInspectionS
 const constQualityInspectionRoleName = require('./../const/constQualityInspectionRoleName');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbQualityInspection = {
     connectMysql: function(){
@@ -570,18 +571,13 @@ var dbQualityInspection = {
             }
         }
         if (query.operatorId && query.operatorId.length > 0) {
-            if (query.operatorId.length > 1 ){
-                queryObj += "operator_id IN ('" ;
-                for (let i=0; i< query.operatorId.length; i++){
-                    if (i == query.operatorId.length-1){
-                        queryObj +=  query.operatorId[i] + "')" + " AND "
-                    }else{
-                        queryObj +=   query.operatorId[i] + "','"
-                    }
-                }
-            }else{
-                queryObj += "operator_id=" + query.operatorId + " AND ";
+            let operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+
+            if(Array.isArray(query.operatorId)){
+                operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                    queryObj += "operator_name IN (" + operatorId + ") AND ";
             }
+
         }
         if (query.startTime && query.endTime) {
             var startTime = dbUtility.getLocalTimeString(query.startTime);
@@ -594,30 +590,32 @@ var dbQualityInspection = {
 
         let connection = dbQualityInspection.connectMysql();
         connection.connect();
-
         let dbRawResult = dbQualityInspection.searchMySQLDBConstraint(queryObj,connection);
-        let mongoResult = dbQualityInspection.getMongoCVConstraint(dbRawResult);
+        let mongoResult = dbQualityInspection.getMongoCVConstraint(dbRawResult).catch(error => {  return Q.reject({name: "DBError", message: error}); });
         conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         let progressReport = dbQualityInspection.getProgressReportByOperator(query.companyId,query.operatorId,startTime,endTime);
-
-
         return Q.all([conversationForm,progressReport]);
     },
     searchMySQLDBConstraint:function(queryObj,connection){
         var deferred = Q.defer();
-        connection.query("SELECT msg_id, company_id, operator_id, operator_name, content FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+        if (connection){
+            connection.query("SELECT msg_id, company_id, operator_id, operator_name, content FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+                if(error){
+                    console.log(error);
+                }
+                deferred.resolve(results);
+                connection.end();
+            });
+            return deferred.promise;
 
-            if(error){
-                console.log(error);
-            }
-            deferred.resolve(results);
-            connection.end();
-        });
-        return deferred.promise;
+        }else{
+            return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
+        }
     },
     getMongoCVConstraint:function(dbResult){
         var deferred = Q.defer();
         let proms = [];
+        let item;
         Q.all(dbResult).then(results=>{
             console.log(results);
             if(results.length == 0){
@@ -642,24 +640,26 @@ var dbQualityInspection = {
                     return a.time - b.time;
                 });
 
-                live800Chat.conversation = dbQualityInspection.drawColor(content);
+                live800Chat.conversation = dbQualityInspection.calculateRate(content);
 
                 let queryQA = {messageId: String(item.msg_id)};
                 let prom = dbconfig.collection_qualityInspection.find(queryQA)
                     .then(qaData => {
                         if (qaData.length > 0) {
-                            live800Chat.status = qaData[0].status;
+                            //live800Chat.status = qaData[0].status;
                             live800Chat.conversation = dbQualityInspection.reformatCV(live800Chat.conversation, qaData[0].conversation);
                             //live800Chat.processTime = qaData[0].processTime;
                         }
                         return live800Chat;
                     });
                 proms.push(prom);
-            });
+            }
             deferred.resolve(proms);
-        })
-        return deferred.promise;
+        }, (error) => {
+            return Q.reject({name: "DBError", message: error});
+        });
 
+        return deferred.promise;
     },
     getProgressReportByAdmin: function (companyId,operatorId,startTime,endTime){
 
@@ -1007,17 +1007,17 @@ var dbQualityInspection = {
     },
 
     getWorkloadReport: function(startTime, endTime, qaAccount){
-
         let query ={
             createTime: {
                 $gte: new Date(startTime),
                 $lt: new Date(endTime)
             }
-            //status: constQualityInspectionStatus.COMPLETED_READ
         }
 
-        if(qaAccount && qaAccount != "all"){
-            query.qualityAssessor = qaAccount;
+        qaAccount = qaAccount.map(q => ObjectId(q))
+
+        if(qaAccount && qaAccount.length > 0){
+            query.qualityAssessor = {$in: qaAccount};
         }
 
         return dbconfig.collection_qualityInspection.aggregate([
@@ -1314,17 +1314,21 @@ var dbQualityInspection = {
                     console.log(error);
                 }
 
-                results.forEach(result => {
-                    let startTime = new Date(result.storeTime);
-                    let endTime = new Date();
-                    endTime = dbUtility.getISODayEndTime(startTime);
-
-                    proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));
-                });
-                return Q.all(proms).then(data => {
-                    deferred.resolve(data);
-                    connection.end();
-                })
+                if(results){
+                    results.forEach(result => {
+                        if(result){
+                            let startTime = new Date(result.storeTime);
+                            let endTime = new Date();
+                            endTime = dbUtility.getISODayEndTime(startTime);
+    
+                            proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));    
+                        }
+                    });
+                    return Q.all(proms).then(data => {
+                        deferred.resolve(data);
+                        connection.end();
+                    })
+                }
             });
             return deferred.promise;
         }else{

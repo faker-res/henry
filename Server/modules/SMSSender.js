@@ -50,6 +50,8 @@ const SMSSender = {
                                     let metaData = {proposalData: proposalData};
                                     if(proposalData.data.rewardAmount)
                                         template.content = template.content.replace('{{proposalData.data.rewardAmount}}', proposalData.data.rewardAmount.toFixed(2));
+                                    if(proposalData.data.amount)
+                                        template.content = template.content.replace('{{proposalData.data.amount}}', proposalData.data.amount.toFixed(2));
                                     template.content = renderTemplate(template.content, metaData);
                                 }
 

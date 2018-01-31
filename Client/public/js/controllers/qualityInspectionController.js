@@ -255,8 +255,6 @@ define(['js/app'], function (myApp) {
                 }
 
                 // Initial Loading
-                vm.evaluationTab = 'unreadEvaluation';
-                vm.inspectionReportTab ='workloadReport';
                 // Initial setting for setting in qualityInspection
                 vm.getOvertimeSetting();
                 // create the conversationDefinition object for old platform
@@ -501,6 +499,7 @@ define(['js/app'], function (myApp) {
 
             vm.initUnreadEvaluation = function(){
                 if(vm.selectedPlatform){
+                    vm.evaluationTab = 'unreadEvaluation';
                     $('#unreadEvaluationStartDatetimePicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
@@ -577,6 +576,7 @@ define(['js/app'], function (myApp) {
 
             vm.initWorkloadProgress = function(){
                 if(vm.selectedPlatform) {
+                    vm.inspectionReportTab ='workloadReport';
                     $('#reportConversationStartDatetimePicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
@@ -1036,7 +1036,16 @@ define(['js/app'], function (myApp) {
                 }
 
                 if(vm.qaAccount && vm.qaAccount != "all"){
-                    sendData.qualityAssessor = vm.qaAccount;
+                    sendData.qualityAssessor = [vm.qaAccount];
+                }else{
+                    let qaArr = [];
+                    vm.qaDepartments.forEach(q => {
+                        if(q && q._id){
+                            qaArr.push(q._id);
+                        }
+
+                    })
+                    sendData.qualityAssessor = qaArr;
                 }
 
                 let resultArr = [];
@@ -1152,8 +1161,6 @@ define(['js/app'], function (myApp) {
                         setTimeout(function () {
                             $('#workloadReportTable').resize();
                         }, 300);
-                    }else{
-                        vm.appealEvaluationTable = "";
                     }
 
                     vm.loadingWorkloadReportTable = false;
@@ -1168,9 +1175,24 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        platformObjId: vm.evaluationProgressPlatform,
+                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
+                    }
+
+                    if(vm.evaluationProgressPlatform && vm.evaluationProgressPlatform.length > 0){
+                        sendData.platformObjId = vm.evaluationProgressPlatform
+                    }else{
+                        if(vm.platformList && vm.platformList.length > 0){
+                            let platformArr = [];
+                            vm.platformList.forEach(p => {
+                                if(p && p.id){
+                                    platformArr.push(p.id);
+                                }
+
+                            })
+                            sendData.platformObjId = platformArr;
+                        }
                     }
                     let resultArr = [];
                     let resultArr2 = [];
@@ -1483,7 +1505,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedCSAccount = [];
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800 = [];
-                vm.CSDepartmentId=[]
+                vm.CSDepartmentId=[];
 
                 if (seletedProductsId !== 'all') {
                     console.log("-----------------", seletedProductsId);
@@ -1527,6 +1549,7 @@ define(['js/app'], function (myApp) {
                             vm.selectedCSAccount.push("");
                             vm.selectedLive800Acc.push("");
                             vm.selectedCS.push("");
+
                         }
                         $scope.safeApply();
                     });
@@ -1549,7 +1572,7 @@ define(['js/app'], function (myApp) {
 
                         if (data && data.data){
                             data.data.forEach(acc => {
-                                if (acc.live800Acc && acc.live800Acc.length > 0){
+                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                     vm.selectedCSAccount.push(acc);
                                     acc.live800Acc.forEach(liveAcc => {
                                         vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
@@ -1631,9 +1654,8 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
-               // vm.allCSAccount=[];
                 vm.allCSDepartmentId=[];
-                vm.platformWithCSDepartment=[]; // to filter out the platfrom with CS Department for the Product Filter
+                vm.platformWithCSDepartment=[]; // to filter out the platform with CS Department for the Product Filter
 
 
                 vm.platformList.forEach(platform => {
@@ -1654,7 +1676,6 @@ define(['js/app'], function (myApp) {
                         data.data.forEach(acc => {
                             if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                 vm.selectedCSAccount.push(acc);
-                                //vm.allCSAccount.push(acc);
                             }
                         });
 
@@ -1699,27 +1720,21 @@ define(['js/app'], function (myApp) {
                 vm.QIReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
                 utilService.actionAfterLoaded("#QIReportTable", function () {
                     vm.commonInitTime(vm.QIReportQuery, '#QIReportQuery');
-                    // vm.QIReportQuery.pageObj = utilService.createPageForPagingTable("#QIReportTablePage", {}, $translate, vm.QIReportTablePageChange);
                     $scope.safeApply()
                 });
 
             };
-
-
-            // vm.QIReportTablePageChange = function (curP, pageSize) {
-            //     vm.commonPageChangeHandler(curP, pageSize, "QIReportQuery", vm.searchQIRecord)
-            // };
 
             vm.searchQIRecord = function (newSearch) {
 
                 let startTime = vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate();
 
-                let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
-                if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
-                    socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
-                    return;
-                }
+                // let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
+                // if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
+                //     socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
+                //     return;
+                // }
 
                 vm.platformCompanyID=[];
                 vm.platformList.forEach(platform => {
@@ -1745,6 +1760,15 @@ define(['js/app'], function (myApp) {
                 }
                 $('#QIReportTableSpin').show();
 
+                // select all the bounded live800Acc if there is no selection on Live800Acc filter
+                if (vm.selectedLive800 && vm.selectedLive800.length ==0){
+                    vm.selectedLive800 =[];
+                    if (vm.allLive800Acc && vm.allLive800Acc.length>0) {
+                        vm.allLive800Acc.forEach(each => {
+                            vm.selectedLive800.push(each.live800Acc);
+                        })
+                    }
+                }
                 var query = {
                     'companyId':vm.companyID,
                     'operatorId':vm.selectedLive800,
@@ -1921,6 +1945,13 @@ define(['js/app'], function (myApp) {
                         vm.postData.forEach(data=>{
                             data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED
                             data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
+                            // check NaN
+                            if (data.pendingCount == "NaN"){
+                                data.pendingCount=Number(0).toFixed(2);
+                            }
+                            if (data.avgMark == "NaN"){
+                                data.avgMark=Number(0).toFixed(2);
+                            }
                         })
                     }
 

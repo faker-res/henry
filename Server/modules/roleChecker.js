@@ -610,7 +610,8 @@ var roleChecker = {
                 Edit: ['updatePlatform']
             },
             Live800Record: {
-                Read: [],
+                Read: ['searchLive800'],
+                Edit: ['rateCSConversation','rateBatchConversation'],
                 queryByProduct: [],
                 queryByCSAccount: [],
                 queryByLive800Account: [],
@@ -619,21 +620,22 @@ var roleChecker = {
                 queryByQualityAssessor: []
             },
             QualityInsectionEvaluation: {
-                Read: [],
+                Read: ['getUnreadEvaluationRecord','getReadEvaluationRecord','getAppealEvaluationRecordByConversationDate','getAppealEvaluationRecordByAppealDate'],
+                Edit: ['markEvaluationRecordAsRead','appealEvaluation'],
                 queryByQualityAssessor: [],
                 queryByQualityInspectionDate: [],
                 queryByAppealDate: [],
                 queryByAppealStatus: []
             },
             QualityInsectionCSReport: {
-                Read: [],
+                Read: ['searchLive800Record'],
                 queryByProduct: [],
                 queryByCSAccount: [],
                 queryByLive800Account: [],
                 queryByLive800Date: []
             },
             QualityInsectionReport: {
-                Read: [],
+                Read: ['getWorkloadReport','getEvaluationProgressRecord'],
                 queryByQualityAssessor: [],
                 queryByQualityInspectionDate: [],
                 queryByProduct: []

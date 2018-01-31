@@ -41,7 +41,7 @@
                 select.form-control(ng-model='vm.inspection800.qiUser')
                     option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
                     option(value='all') {{'NONE' | translate}}
-            .inlineBlk
+            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'Read')")
                 button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
                 span.collapse
                     i.fa.fa-spinner.fa-spin

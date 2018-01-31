@@ -288,7 +288,13 @@ define(['js/app'], function (myApp) {
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
                 FREE_TRIAL_REWARD: 'freeTrialReward',
+                DEMO_PLAYER: 'demoPlayer',
                 // RESET_PASSWORD: 'resetPassword'
+            };
+
+            vm.allAccountStatus = {
+                CREATED_ACCOUNT: 'createdAccount',
+                NOT_YET_CREATE_ACCOUNT: 'notYetCreateAccount',
             };
 
             vm.constProposalStatus = {
@@ -793,12 +799,27 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
                 }
             };
+            vm.prepareDemoPlayerPrefix = function(){
+                var alphabet = 97; //represent alphabet a
+                var totalNumberOfAlphabet = 26;
+                for(var i = 0; i < totalNumberOfAlphabet; i++){
+                    var character = String.fromCharCode(alphabet + i);
+                    $('.demoPlayerPrefixSelection').append($('<option>', {
+                        value: character,
+                        text: character
+                    }));
+                }
+            };
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
+                vm.prepareDemoPlayerPrefix();
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
+                if(vm.showPlatform.demoPlayerPrefix){
+                    $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
+                }
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
                 vm.convertDepartment();
                 if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
@@ -976,6 +997,7 @@ define(['js/app'], function (myApp) {
                 $("form[name='form_new_platform'] input").attr('disabled', !bool);
                 $("form[name='form_new_platform'] select").attr('disabled', !bool);
                 $("form[name='form_new_platform'] button").attr('disabled', !bool);
+                $('.demoPlayerPrefixSelection option:selected').text("");
                 console.log("init ed");
                 $scope.safeApply();
             }
@@ -1704,6 +1726,8 @@ define(['js/app'], function (myApp) {
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
                 vm.smsRecordQuery.purpose = "";
+                vm.smsRecordQuery.accountStatus = "";
+                vm.smsRecordQuery.inputDevice = "";
                 vm.smsRecordQuery.index = 0;
                 vm.smsRecordQuery.limit = 10;
                 vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
@@ -1719,6 +1743,7 @@ define(['js/app'], function (myApp) {
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
+                    accountStatus: vm.smsRecordQuery.accountStatus,
                     inputDevice: vm.smsRecordQuery.inputDevice,
                     type: 'registration',
                     status: 'all',
@@ -1729,7 +1754,8 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
                     platformObjId: vm.selectedPlatform.data._id,
                     sortCol: vm.smsRecordQuery.sortCol
-                }
+                };
+
                 $('#loadVertificationSMSIcon').show();
                 socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
                     vm.smsRecordQuery.loading = false;
@@ -9476,7 +9502,7 @@ define(['js/app'], function (myApp) {
                         item.typeName = $translate(item.type.name || "Unknown");
                         item.mainType$ = $translate(item.mainType || "Unknown");
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.status$ = $translate(item.status ? item.status : item.process.status);
+                        item.status$ = $translate(item.status ? item.type.name == "PlayerBonus" || item.type.name == "PartnerBonus" ? item.status == "Approved" ? "approved" : item.status : item.status : item.process.status);
                         return item;
                     })
                     vm.playerProposal.totalCount = data.data.size;
@@ -10051,6 +10077,16 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+            vm.selectedDepositMethod = function(depositMethod) {
+              if(depositMethod == "1" || depositMethod == "3" || depositMethod == "4") {
+                  vm.playerManualTopUp.realName = vm.selectedSinglePlayer.realName;
+              }
+              if(depositMethod == "3"){
+                  vm.playerManualTopUp.remark = vm.selectedSinglePlayer.playerId;
+              } else {
+                  vm.playerManualTopUp.remark = "";
+              }
+            };
             vm.applyPlayerManualTopUp = function () {
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,
@@ -18953,12 +18989,14 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
+                vm.platformBasic.demoPlayerValidDays = vm.selectedPlatform.data.demoPlayerValidDays;
                 vm.platformBasic.canMultiReward = vm.selectedPlatform.data.canMultiReward;
                 vm.platformBasic.requireLogInCaptcha = vm.selectedPlatform.data.requireLogInCaptcha;
                 vm.platformBasic.requireCaptchaInSMS = vm.selectedPlatform.data.requireCaptchaInSMS;
                 vm.platformBasic.onlyNewCanLogin = vm.selectedPlatform.data.onlyNewCanLogin;
                 vm.platformBasic.useLockedCredit = vm.selectedPlatform.data.useLockedCredit;
                 vm.platformBasic.requireSMSVerification = vm.selectedPlatform.data.requireSMSVerification;
+                vm.platformBasic.requireSMSVerificationForDemoPlayer = vm.selectedPlatform.data.requireSMSVerificationForDemoPlayer;
                 vm.platformBasic.requireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.requireSMSVerificationForPasswordUpdate;
                 vm.platformBasic.requireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.requireSMSVerificationForPaymentUpdate;
                 vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup;
@@ -19436,6 +19474,7 @@ define(['js/app'], function (myApp) {
                         minTopUpAmount: srcData.showMinTopupAmount,
                         allowSameRealNameToRegister: srcData.showAllowSameRealNameToRegister,
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
+                        demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
@@ -19450,6 +19489,7 @@ define(['js/app'], function (myApp) {
                         playerNameMinLength: srcData.playerNameMinLength,
                         bonusSetting: srcData.bonusSetting,
                         requireSMSVerification: srcData.requireSMSVerification,
+                        requireSMSVerificationForDemoPlayer: srcData.requireSMSVerificationForDemoPlayer,
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
                         requireSMSVerificationForPaymentUpdate: srcData.requireSMSVerificationForPaymentUpdate,
                         smsVerificationExpireTime: srcData.smsVerificationExpireTime,

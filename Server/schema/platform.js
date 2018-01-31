@@ -77,12 +77,16 @@ var platformSchema = new Schema({
     allowSameRealNameToRegister: {type: Boolean, default: true},
     // Platform-wide SMS Verification Setting, for create players and create partners
     requireSMSVerification: {type: Boolean, default: false},
+    // SMS Verification Setting For create demo player
+    requireSMSVerificationForDemoPlayer: {type: Boolean, default: false},
     // SMS Verification Setting For Password Update
     requireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
     // SMS Verification Setting For Payment Update
     requireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
     // SMS Verification Expired Time (in Minute)
     smsVerificationExpireTime: {type: Number, default: 5},
+    // demo player Expired Time (day)
+    demoPlayerValidDays: {type: Number, default: 7},
     // allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // same phone number to register count
@@ -210,7 +214,9 @@ var platformSchema = new Schema({
     // get the CS Department for display livechat related conversation
     csDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
     // get the QI Department for display livechat related conversation
-    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}]
+    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
+    // Demo Player Prefix Code
+    demoPlayerPrefix: {type:String}
 });
 
 //add platform id before save
