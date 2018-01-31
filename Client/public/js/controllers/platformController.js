@@ -799,12 +799,27 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
                 }
             };
+            vm.prepareDemoPlayerPrefix = function(){
+                var alphabet = 97; //represent alphabet a
+                var totalNumberOfAlphabet = 26;
+                for(var i = 0; i < totalNumberOfAlphabet; i++){
+                    var character = String.fromCharCode(alphabet + i);
+                    $('.demoPlayerPrefixSelection').append($('<option>', {
+                        value: character,
+                        text: character
+                    }));
+                }
+            };
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
+                vm.prepareDemoPlayerPrefix();
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
+                if(vm.showPlatform.demoPlayerPrefix){
+                    $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
+                }
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
                 vm.convertDepartment();
                 if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
@@ -982,6 +997,7 @@ define(['js/app'], function (myApp) {
                 $("form[name='form_new_platform'] input").attr('disabled', !bool);
                 $("form[name='form_new_platform'] select").attr('disabled', !bool);
                 $("form[name='form_new_platform'] button").attr('disabled', !bool);
+                $('.demoPlayerPrefixSelection option:selected').text("");
                 console.log("init ed");
                 $scope.safeApply();
             }

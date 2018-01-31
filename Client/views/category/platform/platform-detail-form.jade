@@ -23,6 +23,10 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label {{"PLATFORM_PARTNER_PREFIX" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix")
                 div.form-group.col-md-6
+                    label.control-label {{"DemoPlayerPrefix" | translate}}
+                    div
+                    select.demoPlayerPrefixSelection(ng-model='vm.showPlatform.demoPlayerPrefix', style='height:30px')
+                div.form-group.col-md-6
                     label.control-label {{"PLATFORM_ICON" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM ICON URL' | translate}}", ng-model="vm.showPlatform.icon", style='width:calc(100% - 50px);display:inline-block')
                     img.margin-left-5(ng-if='vm.showPlatform.icon', src="{{vm.showPlatform.icon}}", style='width:40px;height:40px;top: 20px;position: absolute;')
