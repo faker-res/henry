@@ -88,6 +88,7 @@ let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let dbConsumptionReturnWithdraw = require('../db_modules/dbConsumptionReturnWithdraw');
 let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
+let dbAutoProposal = require('../db_modules/dbAutoProposal');
 
 let dbPlayerInfo = {
 
@@ -7883,7 +7884,17 @@ let dbPlayerInfo = {
                     }
                 }
             ).then(
-                data => data,
+                data => {
+                    let proposal = data;
+                    proposal.type = proposal.type._id;
+                    return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
+                        platform => {
+                            let proposals = [];
+                            proposals.push(data);
+                            dbAutoProposal.processAutoProposals(proposals,platform,platform.useProviderGroup);
+                        }
+                    );
+                },
                 error => {
                     if (bUpdateCredit) {
                         return resetCredit(player._id, player.platform._id, amount, error);
