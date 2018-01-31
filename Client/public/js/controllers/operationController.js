@@ -2050,11 +2050,9 @@ define(['js/app'], function (myApp) {
                 createTime: vm.selectedProposal.createTime,
                 adminName: authService.adminName
             }, function (data) {
-                $scope.safeApply();
                 vm.loadProposalQueryData(true);
             }, function (error) {
                 console.log('error', error);
-                $scope.safeApply();
             })
         };
 
