@@ -89,10 +89,25 @@ function socketActionAdmin(socketIO, socket) {
          */
         getAdminInfo: function getAdminInfo(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && (data.adminName || data._id));
+            var isValidData = Boolean(data && (data.adminName || data._id ));
             socketUtil.emitter(self.socket, dbAdminInfo.getAdminInfo, [data], actionName, isValidData);
         },
 
+        getAdminsInfo: function getAdminsInfo(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.adminName || data._id || data.departments));
+            socketUtil.emitter(self.socket, dbAdminInfo.getAdminsInfo, [data], actionName, isValidData);
+        },
+        getQIAdmins: function getQIAdmins(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbAdminInfo.getQIAdmins, [data], actionName, isValidData);
+        },
+        getCSAdmins: function getCSAdmins(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbAdminInfo.getCSAdmins, [data], actionName, isValidData);
+        },
         /**
          * Get all admin users info
          */
@@ -118,6 +133,15 @@ function socketActionAdmin(socketIO, socket) {
                 data.updateData.lastPasswordUpdateTime = Date.now();
             }
             socketUtil.emitter(self.socket, dbAdminInfo.updateAdminInfo, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        /**
+         * Get all live800 account
+         */
+        checkLive800AccValidity: function checkLive800AccValidity(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.live800Acc && data.adminName);
+            socketUtil.emitter(self.socket, dbAdminInfo.checkLive800AccValidity, [data.live800Acc, data.adminName], actionName, isValidData);
         },
 
         /**

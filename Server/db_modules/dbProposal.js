@@ -490,6 +490,24 @@ var proposal = {
     updateProposal: function (query, updateData) {
         return dbconfig.collection_proposal.findOneAndUpdate(query, updateData, {new: true}).exec();
     },
+    updateProposalRemarks: function (query, updateData) {
+        return proposal.getProposal(query).then(
+            proposalData => {
+                if (proposalData && proposalData.proposalId && proposalData.createTime) {
+                    let updateQuery = {
+                        _id: proposalData._id,
+                        createTime: proposalData.createTime
+                    }
+                    return proposal.updateProposal(updateQuery,updateData);
+                } else {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PROPOSAL,
+                        name: "DataError",
+                        message: "Cannot find proposal",
+                    });
+                }
+        });
+    },
     updatePlayerIntentionRemarks: function (id, remarks) {
         let updateData = {};
         updateData['data.remarks'] = remarks;

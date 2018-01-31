@@ -74,6 +74,7 @@ var simplifiedChinese = {
     "Invalid proposal Id": "提案ID无效",
 
     "Cannot find player for online top up proposal": "无法找到玩家",
+    "player level down already in period": "玩家周期内已降级",
     "Cannot create online top up proposal": "无法创建在线充值提案",
     "Cannot create manual top up proposal": "无法创建手工充值提案",
     "Cannot find payment data": "无法找到支付数据",
@@ -224,7 +225,6 @@ var simplifiedChinese = {
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
     "Connection failed": "连接失败",
     "PlayerPromoCodeReward": "优惠代码",
-    "Player reach participate limit": "次数已用完",
     "PlayerConsumptionReturnSuccess": "玩家洗码（成功）",
     "ManualTopupSuccess": "手工存款（成功）",
     "OnlineTopupSuccess": "在线充值（成功）",

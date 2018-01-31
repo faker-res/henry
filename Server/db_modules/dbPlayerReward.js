@@ -2909,6 +2909,10 @@ let dbPlayerReward = {
                     timeSet = new Set();
                     let promArr = [];
 
+                    rewards = rewards.filter(reward => {
+                        return Number(reward.status) === 0;
+                    });
+
                     // Set reward status
                     rewards.map(e => {
                         let status = 0;
@@ -4937,17 +4941,16 @@ let dbPlayerReward = {
                                             postPropPromArr.push(dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(playerData.platform._id, playerData._id, eventData._id, useTopUpAmount, intervalTime.startTime, intervalTime.endTime, ignoreTopUpBdirtyEvent));
                                         }
                                     }
-
                                     if(eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
                                         let randomRewardRes = {
                                             amount: rewardAmount
                                         }
                                         return Promise.all(postPropPromArr).then(
                                             () => {
-                                                return Promise.resolve(randomRewardRes);
-                                            }
-                                        );
+                                                  return Promise.resolve(randomRewardRes);
+                                            });
                                     }
+
                                     return Promise.all(postPropPromArr);
                                 }
                                 else {
