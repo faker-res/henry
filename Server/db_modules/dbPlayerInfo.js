@@ -7911,11 +7911,10 @@ let dbPlayerInfo = {
             ).then(
                 data => {
                     let proposal = Object.assign({}, data);
-                    let proposalTypeDetail = data.type;
                     proposal.type = proposal.type._id;
                     return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
                         platform => {
-                            if(platform && platform.useProviderGroup) {
+                            if(platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
                                 let proposals = [];
                                 proposals.push(proposal);
                                 dbAutoProposal.processAutoProposals(proposals, platform, platform.useProviderGroup);
