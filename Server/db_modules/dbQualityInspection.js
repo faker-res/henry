@@ -402,12 +402,15 @@ var dbQualityInspection = {
             // console.log('result',results);
             // if (error) throw error;
             let countNo = 0;
-            if(results[0]['COUNT(msg_id)']){
-                countNo = results[0]['COUNT(msg_id)'];
+            if(results){
+                if(results[0] && results[0]['COUNT(msg_id)']){
+                    countNo = results[0]['COUNT(msg_id)'];
+                }
+                if(error){
+                    console.log(error);
+                }
             }
-            if(error){
-                console.log(error);
-            }
+
             deferred.resolve(countNo);
             connection.end();
         });
