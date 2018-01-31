@@ -1504,6 +1504,7 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
+        data.accountStatus ? query.accountStatus = data.accountStatus : "";
         data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
