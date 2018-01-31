@@ -1144,8 +1144,9 @@ let PlayerServiceImplement = function () {
         let deviceData = {userAgent, lastLoginIp, loginIps, country, city, longitude, latitude};
 
         let isValidData = Boolean(data && data.platformId);
+        let phoneNumber = data.phoneNumber? data.phoneNumber: null;
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, deviceData], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData], isValidData, false, false, true);
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
