@@ -1065,8 +1065,7 @@ let dbPlayerCreditTransfer = {
         return creditQuery.then(
             res => {
                 if (res) {
-                    providerPlayerObj = {gameCredit: res.credit ? parseInt(res.credit) : 0};
-                    amount = amount > 0 ? parseInt(amount) : providerPlayerObj.gameCredit;
+                    providerPlayerObj = {gameCredit: res.credit ? parseFloat(res.credit) : 0};
 
                     // Player has insufficient credit to transfer out, check bResolve
                     if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
@@ -1083,32 +1082,7 @@ let dbPlayerCreditTransfer = {
                         }
                     }
 
-                    // Transfer out from provider
-                    return counterManager.incrementAndGetCounter("transferId").then(
-                        function (id) {
-                            transferId = id;
-                            dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                providerShortId, amount, 0, adminName, null, constPlayerCreditTransferStatus.SEND);
-                            return pCTFP.playerTransferOut(
-                                {
-                                    username: userName,
-                                    platformId: platformId,
-                                    providerId: providerShortId,
-                                    transferId: id, //chance.integer({min: 1000000000000000000, max: 9999999999999999999}),
-                                    credit: amount
-                                }
-                            ).then(
-                                res => res,
-                                error => {
-                                    // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
-                                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                        providerShortId, amount, 0, adminName, error, constPlayerCreditTransferStatus.FAIL);
-                                    error.hasLog = true;
-                                    return Promise.reject(error);
-                                }
-                            );
-                        }
-                    );
+                    return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync);
                 } else {
                     return Promise.reject({
                         name: "DataError",
@@ -1127,21 +1101,41 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                if (res) {
-                    return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync);
-                }
-            },
-            error => {
-                //log transfer error
-                return Promise.reject(error);
-            }
-        ).then(
-            res => {
                 if (res && res[0] && res[1]) {
                     amount = res[0];
                     updateObj = res[1];
                     rewardGroupObj = res[2];
 
+                    return counterManager.incrementAndGetCounter("transferId").then(
+                        function (id) {
+                            transferId = id;
+                            dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
+                                providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND);
+                            return pCTFP.playerTransferOut(
+                                {
+                                    username: userName,
+                                    platformId: platformId,
+                                    providerId: providerShortId,
+                                    transferId: id, //chance.integer({min: 1000000000000000000, max: 9999999999999999999}),
+                                    credit: amount
+                                }
+                            ).then(
+                                res => res,
+                                error => {
+                                    // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
+                                    dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
+                                        providerShortId, amount, updateObj.rewardAmt, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                    error.hasLog = true;
+                                    return Q.reject(error);
+                                }
+                            );
+                        }
+                    );
+                }
+            }
+        ).then(
+            res => {
+                if (res) {
                     // CPMS Transfer out success
                     // Update reward task group if available
                     if (rewardGroupObj) {
@@ -1157,10 +1151,24 @@ let dbPlayerCreditTransfer = {
                         }, {
                             new: true
                         })
+                        //     .then(
+                        //     updatedRewardGroup => {
+                        //         // Check whether provider group has undergo operation
+                        //         if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
+                        //             return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
+                        //         }
+                        //
+                        //         return true;
+                        //     }
+                        // )
                     } else {
                         return true;
                     }
                 }
+            },
+            function (error) {
+                //log transfer error
+                return Promise.reject(error);
             }
         ).then(
             res => {
