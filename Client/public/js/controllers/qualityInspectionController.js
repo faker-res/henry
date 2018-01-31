@@ -1183,14 +1183,16 @@ define(['js/app'], function (myApp) {
                     if(vm.evaluationProgressPlatform && vm.evaluationProgressPlatform.length > 0){
                         sendData.platformObjId = vm.evaluationProgressPlatform
                     }else{
-                        let platformArr = [];
-                        vm.platformList.forEach(p => {
-                            if(p && p.id){
-                                platformArr.push(p.id);
-                            }
+                        if(vm.platformList && vm.platformList.length > 0){
+                            let platformArr = [];
+                            vm.platformList.forEach(p => {
+                                if(p && p.id){
+                                    platformArr.push(p.id);
+                                }
 
-                        })
-                        sendData.platformObjId = platformArr;
+                            })
+                            sendData.platformObjId = platformArr;
+                        }
                     }
                     let resultArr = [];
                     let resultArr2 = [];
