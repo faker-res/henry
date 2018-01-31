@@ -2909,6 +2909,10 @@ let dbPlayerReward = {
                     timeSet = new Set();
                     let promArr = [];
 
+                    rewards = rewards.filter(reward => {
+                        return Number(reward.status) === 0;
+                    });
+
                     // Set reward status
                     rewards.map(e => {
                         let status = 0;

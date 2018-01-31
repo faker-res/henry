@@ -593,7 +593,7 @@ var dbQualityInspection = {
                 live800Chat.fpmsAcc = item.operator_name ;
                 live800Chat.companyId = item.company_id || "";
                 live800Chat.live800Acc['id'] = item.operator_id;
-                live800Chat.status = item.status || 1;
+                //live800Chat.status = item.status || 1;
                 let dom = new JSDOM(item.content);
                 let content = [];
                 let sys = dom.window.document.getElementsByTagName("sys");
@@ -614,7 +614,7 @@ var dbQualityInspection = {
                 let prom = dbconfig.collection_qualityInspection.find(queryQA)
                     .then(qaData => {
                         if (qaData.length > 0) {
-                            live800Chat.status = qaData[0].status;
+                            //live800Chat.status = qaData[0].status;
                             live800Chat.conversation = dbQualityInspection.reformatCV(live800Chat.conversation, qaData[0].conversation);
                             //live800Chat.processTime = qaData[0].processTime;
                         }

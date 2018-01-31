@@ -1496,7 +1496,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedCSAccount = [];
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800 = [];
-                vm.CSDepartmentId=[]
+                vm.CSDepartmentId=[];
 
                 if (seletedProductsId !== 'all') {
                     console.log("-----------------", seletedProductsId);
@@ -1540,6 +1540,7 @@ define(['js/app'], function (myApp) {
                             vm.selectedCSAccount.push("");
                             vm.selectedLive800Acc.push("");
                             vm.selectedCS.push("");
+
                         }
                         $scope.safeApply();
                     });
@@ -1562,7 +1563,7 @@ define(['js/app'], function (myApp) {
 
                         if (data && data.data){
                             data.data.forEach(acc => {
-                                if (acc.live800Acc && acc.live800Acc.length > 0){
+                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                     vm.selectedCSAccount.push(acc);
                                     acc.live800Acc.forEach(liveAcc => {
                                         vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
@@ -1644,7 +1645,6 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
-               // vm.allCSAccount=[];
                 vm.allCSDepartmentId=[];
                 vm.platformWithCSDepartment=[]; // to filter out the platfrom with CS Department for the Product Filter
 
@@ -1667,7 +1667,6 @@ define(['js/app'], function (myApp) {
                         data.data.forEach(acc => {
                             if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                 vm.selectedCSAccount.push(acc);
-                                //vm.allCSAccount.push(acc);
                             }
                         });
 
@@ -1758,6 +1757,15 @@ define(['js/app'], function (myApp) {
                 }
                 $('#QIReportTableSpin').show();
 
+                // select all the bounded live800Acc if there is no selection on Live800Acc filter
+                if (vm.selectedLive800 && vm.selectedLive800.length ==0){
+                    vm.selectedLive800 =[];
+                    if (vm.allLive800Acc && vm.allLive800Acc.length>0) {
+                        vm.allLive800Acc.forEach(each => {
+                            vm.selectedLive800.push(each.live800Acc);
+                        })
+                    }
+                }
                 var query = {
                     'companyId':vm.companyID,
                     'operatorId':vm.selectedLive800,
