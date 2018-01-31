@@ -15,7 +15,8 @@ const constProposalStatus = {
     UNDETERMINED: "Undetermined",
     RECOVER: "Recover",
     ATTEMPT: "Attempt",
-    MANUAL: "Manual"
+    MANUAL: "Manual",
+    CSPENDING: "CsPending",
 };
 
 module.exports = constProposalStatus;
