@@ -7889,9 +7889,11 @@ let dbPlayerInfo = {
                     proposal.type = proposal.type._id;
                     return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
                         platform => {
-                            let proposals = [];
-                            proposals.push(data);
-                            dbAutoProposal.processAutoProposals(proposals,platform,platform.useProviderGroup);
+                            if(platform && platform.useProviderGroup) {
+                                let proposals = [];
+                                proposals.push(data);
+                                dbAutoProposal.processAutoProposals(proposals, platform, platform.useProviderGroup);
+                            }
                         }
                     );
                 },
