@@ -7910,15 +7910,21 @@ let dbPlayerInfo = {
                 }
             ).then(
                 data => {
-                    let proposal = data;
+                    let proposal = Object.assign({}, data);
+                    let proposalTypeDetail = data.type;
                     proposal.type = proposal.type._id;
                     return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
                         platform => {
                             if(platform && platform.useProviderGroup) {
                                 let proposals = [];
-                                proposals.push(data);
+                                proposals.push(proposal);
                                 dbAutoProposal.processAutoProposals(proposals, platform, platform.useProviderGroup);
                             }
+                            return data;
+                        },
+                        error => {
+                            errorUtils.reportError(error);
+                            return data;
                         }
                     );
                 },
