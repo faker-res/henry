@@ -1422,6 +1422,11 @@
   "DOWNLOAD_CSV": "下载",
   "DownloadTranslationCSV": "下载翻译CSV",
 
+  "demoAccount": "试玩帐号",
+  "ACCOUNT_STATUS": "开户状态",
+  "createdAccount": "已开户",
+  "notYetCreateAccount": "未开户",
+
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -2089,7 +2094,9 @@
   "Client Type": "客户类型",
   "APPROVAL_PROPOSAL": "待审提案",
   "AUTO_SETTLEMENT": "自动结算",
+  "DEMO_PLAYER_VALID_DAYS": "试玩帐号的有效时间 ",
   "SMS_VERIFICATION": "玩家注册需短信验证",
+  "SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER": "玩家前端索取试玩帐号需短信验证",
   "SMS_VERIFICATION_FOR_PASSWORD_UPDATE": "修改密码需短信验证",
   "SMS_VERIFICATION_FOR_PAYMENT_UPDATE": "修改支付资料需短信验证",
   "CAPTCHA_VERIFICATION_FOR_LOGIN": "登陆时需图片验证码",
@@ -2160,7 +2167,7 @@
   "Game Type Count Score": "游戏平台数量",
   "Win Ratio Score": "输赢比率评分",
   "General Settings": "普通设置",
-  "Default Credibility Score": "默认初始价值",
+  "Default Credibility Score": "信用初始价值",
   "Player Level Score": "会员等级评分",
   "REGISTRATION_DEPARTMENT": "开户部门",
   "REGISTRATION_ROLE": "开户组别",
@@ -3187,6 +3194,10 @@
   "QualityInsectionEvaluation": "我的评估",
   "QualityInsectionCSReport": "客服报表",
   "QualityInsectionReport": "质检报表",
+  "cs approve proposal": "客服审核通过",
+  "CsPending": "待客服审核",
+  "approvedByCs": "审核客服",
+  "needCsApproved": "需要客服审核",
   "queryByProduct": "按产品查询",
   "queryByCSAccount": "按FPMS账号查询",
   "queryByLive800Account": "按Live800账号查询",
@@ -3197,5 +3208,5 @@
   "queryByAppealDate": "按申诉日期查询",
   "queryByAppealStatus": "按申诉状态查询",
   "Please select Year - Month": "请选择 年，月份"
-
+  
 }

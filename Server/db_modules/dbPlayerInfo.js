@@ -315,7 +315,7 @@ let dbPlayerInfo = {
 
                     return Q.all([playerNameChecker, realNameChecker]).then(data => {
                         if (data && data.length == 2 && data[0] && data[1]) {
-                            if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
+                            if (data[0].isPlayerNameValid && (data[1].isPlayerNameValid || !inputData.realName)) {
                                 return {"isPlayerNameValid": true};
                             }
                             else {
@@ -936,7 +936,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate) {
+                    if (isAutoCreate || (playerdata.isTestPlayer && !playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -1166,6 +1166,63 @@ let dbPlayerInfo = {
         );
 
         return deferred.promise;
+    },
+
+    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData) {
+        let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
+        let platformObjId;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Platform does not exist"});
+                }
+                platformObjId = platformData._id;
+
+                if (!platformData.requireSMSVerificationForDemoPlayer) {
+                    return true;
+                }
+
+                if (phoneNumber) {
+                    return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PHONE_NUMBER,
+                        name: "DataError",
+                        message: "Invalid phone number"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
+                let demoPlayerName = generateDemoPlayerName();
+
+                let demoPlayerData = {
+                    platform: platformObjId,
+                    name: demoPlayerName,
+                    password: randomPsw,
+                    isTestPlayer: true,
+                    isRealPlayer: false
+                };
+                if (phoneNumber) {
+                    demoPlayerData.phoneNumber = phoneNumber;
+                }
+
+                demoPlayerData = Object.assign({}, demoPlayerData, deviceData);
+
+                return dbPlayerInfo.createPlayerInfo(demoPlayerData, true, true);
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Can't create new player."});
+                }
+
+                playerData.password = randomPsw;
+
+                return playerData;
+            }
+        );
     },
 
     /**
@@ -5519,7 +5576,7 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, playerNameProm]).then(
             data => {
-                if (!data || data[1] || data [2]) {
+                if (!data || data[0] || data [1]) {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
@@ -7818,6 +7875,10 @@ let dbPlayerInfo = {
                                                 isAutoApproval: player.platform.enableAutoApplyBonus
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
+                                            if(!player.permission.applyBonus) {
+                                                proposalData.remark = "禁用提款";
+                                                proposalData.needCsApproved = true;
+                                            }
                                             var newProposal = {
                                                 creator: proposalData.creator,
                                                 data: proposalData,
@@ -7831,7 +7892,7 @@ let dbPlayerInfo = {
                                     });
                             });
                     } else {
-                        return Promise.reject({name: "DataError", errorMessage: "There are available reward task group to complete"});
+                        return Promise.reject({status: constServerCode.NOT_ENOUGH_CONSUMPTION, name: "DataError", errorMessage: "There are available reward task group to complete"});
                     }
                 }
             ).then(
@@ -13088,6 +13149,18 @@ function checkLimitedOfferToApply (proposalData) {
             }
         ).catch(errorUtils.reportError);
     }
+}
+
+function generateDemoPlayerName(platformDemoPlayerPrefix) {
+    let namePrefix = "f";
+    platformDemoPlayerPrefix = platformDemoPlayerPrefix || "a";
+    let numArray = [];
+
+    for (let i = 0; i < 6; i++) {
+        numArray.push(chance.character({pool: '0123456789'}))
+    }
+
+    return namePrefix + platformDemoPlayerPrefix + numArray.join("");
 }
 
 

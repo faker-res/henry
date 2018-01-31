@@ -265,6 +265,11 @@ const dbRewardTask = {
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
                     }
+
+                    if (!rewardData.requiredUnlockAmount) {
+                        return saveObj;
+                    }
+
                     // create new reward group
                     return new dbconfig.collection_rewardTaskGroup(saveObj).save();
                 }
@@ -1232,117 +1237,18 @@ const dbRewardTask = {
                 if (platformData) {
                     platform = platformData;
 
-                    return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime)
-                }
-            }
-        ).then(
-            rewardTaskGroup => {
-                if (rewardTaskGroup) {
-                    rewardTaskGroup.curConsumption += consumptionRecord.validAmount;
-                    rewardTaskGroup.currentAmt += consumptionRecord.bonusAmount;
-                    let remainingCurConsumption = 0;
-
-                    // Check whether player has lost all credit
-                    if (rewardTaskGroup.currentAmt <= platform.autoApproveLostThreshold) {
-                        rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
-                        rewardTaskGroup.unlockTime = createTime;
-                    }
-                    // Consumption reached
-                    else if (rewardTaskGroup.curConsumption + platform.autoApproveConsumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
-                        rewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
-                        rewardTaskGroup.unlockTime = createTime;
-                        remainingCurConsumption = rewardTaskGroup.curConsumption - (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt);
-                    }
-
-                    let updObj = {
-                        $inc: {
-                            currentAmt: consumptionRecord.bonusAmount,
-                            curConsumption: consumptionRecord.validAmount
-                        },
-                        status: rewardTaskGroup.status,
-                        unlockTime: rewardTaskGroup.unlockTime
-                    };
-
-                    // let forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt - rewardTaskGroup.curConsumption;
-
-
-                    // // XIMA consumption handling
-                    // if (forbidXIMAAmt && forbidXIMAAmt > 0) {
-                    //     let diffAmt = forbidXIMAAmt - consumptionRecord.validAmount;
-                    //     let leftOverAmt = consumptionRecord.validAmount - forbidXIMAAmt;
-                    //
-                    //     if (diffAmt >= 0) {
-                    //         // The XIMA consumption is still sufficient
-                    //         updObj.$inc.forbidXIMAAmt = -consumptionRecord.validAmount;
-                    //         // Mark this consumption record as dirty
-                    //         bDirty = true;
-                    //     } else {
-                    //         // Insufficient XIMA consumption
-                    //         // Add consumption to normal consumption count
-                    //         updObj.$inc.forbidXIMAAmt = -rewardTaskGroup.forbidXIMAAmt;
-                    //         updObj.$inc.curConsumption = consumptionRecord.validAmount - rewardTaskGroup.forbidXIMAAmt;
-                    //         // Return left over amount for XIMA
-                    //         nonDirtyAmount = leftOverAmt;
-                    //     }
-                    // }
-                    // else {
-                    //     updObj.$inc.curConsumption = consumptionRecord.validAmount;
-                    // }
-
-                    if (remainingCurConsumption > 0) {
-                        dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, remainingCurConsumption);
-                    }
-
-                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                        {_id: rewardTaskGroup._id},
-                        updObj,
-                        {new: true}
-                    );
-                } else {
-                    return dbRewardTaskGroup.getFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime).then(
-                        freeRewardTaskGroup => {
-                            if(freeRewardTaskGroup){
-                                freeRewardTaskGroup.curConsumption += consumptionRecord.validAmount ? consumptionRecord.validAmount : 0;
-
-                                freeRewardTaskGroup.currentAmt += consumptionRecord.bonusAmount ? consumptionRecord.bonusAmount : 0;
-
-                                // Check whether player has lost all credit
-                                if (freeRewardTaskGroup.currentAmt && freeRewardTaskGroup.currentAmt < 1) {
-                                    freeRewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
-                                    freeRewardTaskGroup.unlockTime = createTime;
+                    // Recursive update RTG to prevent overflow of curConsumption
+                    return findAndUpdateRTG(consumptionRecord, createTime, platform).then(
+                        updatedRTG => {
+                            if (updatedRTG) {
+                                if (!updatedRTG[0]) {
+                                    return findAndUpdateRTG(consumptionRecord, createTime, platform);
+                                } else if (updatedRTG[1]) {
+                                    dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, updatedRTG[1]);
                                 }
-                                // Consumption reached
-                                else {
-                                    if(freeRewardTaskGroup.hasOwnProperty("targetConsumption") && freeRewardTaskGroup.hasOwnProperty("forbidXIMAAmt")){
-                                        if (freeRewardTaskGroup.curConsumption >= freeRewardTaskGroup.targetConsumption + freeRewardTaskGroup.forbidXIMAAmt) {
-                                            freeRewardTaskGroup.status = constRewardTaskStatus.ACHIEVED;
-                                            freeRewardTaskGroup.unlockTime = createTime;
-                                        }
-                                    }
-                                }
-
-                                let updObj = {
-                                    $inc: {
-                                        currentAmt: consumptionRecord.bonusAmount ? consumptionRecord.bonusAmount : 0,
-                                        curConsumption: consumptionRecord.validAmount ? consumptionRecord.validAmount : 0
-                                    },
-                                };
-
-                                if(freeRewardTaskGroup.status){
-                                    updObj.status = freeRewardTaskGroup.status;
-                                }
-
-                                if(freeRewardTaskGroup.unlockTime){
-                                    updObj.unlockTime = freeRewardTaskGroup.unlockTime;
-                                }
-
-                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                                    {_id: freeRewardTaskGroup._id},
-                                    updObj,
-                                    {new: true}
-                                );
                             }
 
+                            return updatedRTG
                         }
                     );
                 }
@@ -1358,7 +1264,7 @@ const dbRewardTask = {
                 }
             },
             error => {
-                return Q.reject({
+                return Promise.reject({
                     name: "DBError",
                     message: "Error updating reward task group",
                     error: error
@@ -2143,6 +2049,96 @@ const dbRewardTask = {
     getConsumptionReturnPeriodTime: (period) => dbRewardUtil.getConsumptionReturnPeriodTime(period)
 
 };
+
+function findAndUpdateRTG (consumptionRecord, createTime, platform) {
+    let consumptionAmt = 0, remainingCurConsumption = 0;
+
+    return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
+        rewardTaskGroup => {
+            if (rewardTaskGroup) {
+                let consumptionOffset = isNaN(platform.autoApproveConsumptionOffset) ? 0 : platform.autoApproveConsumptionOffset;
+                consumptionAmt = consumptionRecord.validAmount;
+
+                // Check whether player has lost all credit
+                if (rewardTaskGroup.currentAmt + consumptionRecord.bonusAmount <= platform.autoApproveLostThreshold) {
+                    rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
+                    rewardTaskGroup.unlockTime = createTime;
+                }
+                // Consumption reached
+                else if (rewardTaskGroup.curConsumption + consumptionRecord.validAmount + consumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
+                    consumptionAmt = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rewardTaskGroup.curConsumption;
+                    remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
+                }
+
+                let updObj = {
+                    $inc: {
+                        currentAmt: consumptionRecord.bonusAmount,
+                        curConsumption: consumptionAmt
+                    },
+                    status: rewardTaskGroup.status,
+                    unlockTime: rewardTaskGroup.unlockTime
+                };
+
+                // let forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt - rewardTaskGroup.curConsumption;
+
+
+                // // XIMA consumption handling
+                // if (forbidXIMAAmt && forbidXIMAAmt > 0) {
+                //     let diffAmt = forbidXIMAAmt - consumptionRecord.validAmount;
+                //     let leftOverAmt = consumptionRecord.validAmount - forbidXIMAAmt;
+                //
+                //     if (diffAmt >= 0) {
+                //         // The XIMA consumption is still sufficient
+                //         updObj.$inc.forbidXIMAAmt = -consumptionRecord.validAmount;
+                //         // Mark this consumption record as dirty
+                //         bDirty = true;
+                //     } else {
+                //         // Insufficient XIMA consumption
+                //         // Add consumption to normal consumption count
+                //         updObj.$inc.forbidXIMAAmt = -rewardTaskGroup.forbidXIMAAmt;
+                //         updObj.$inc.curConsumption = consumptionRecord.validAmount - rewardTaskGroup.forbidXIMAAmt;
+                //         // Return left over amount for XIMA
+                //         nonDirtyAmount = leftOverAmt;
+                //     }
+                // }
+                // else {
+                //     updObj.$inc.curConsumption = consumptionRecord.validAmount;
+                // }
+
+
+
+                return Promise.all([
+                    dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                        {
+                            _id: rewardTaskGroup._id,
+                            curConsumption: {$lt: rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt}
+                        },
+                        updObj,
+                        {new: true}
+                    ).then(
+                        updatedRTG => {
+                            if (updatedRTG && updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                    {
+                                        _id: updatedRTG._id
+                                    },
+                                    {
+                                        status: constRewardTaskStatus.ACHIEVED,
+                                        unlockTime: createTime
+                                    },
+                                    {new: true}
+                                )
+                            }
+
+                            return updatedRTG
+                        }
+                    ),
+                    Promise.resolve(remainingCurConsumption)
+                ]);
+            }
+        }
+    )
+}
 
 var proto = dbRewardTaskFunc.prototype;
 proto = Object.assign(proto, dbRewardTask);

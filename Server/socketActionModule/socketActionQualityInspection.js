@@ -57,8 +57,8 @@ function socketActionQualityInspection(socketIO, socket) {
         getWorkloadReport: function getWorkloadReport(data){
             var actionName = arguments.callee.name;
             //data = true;
-            var isDataValid = Boolean(data.startTime, data.endTime, data.qaAccount);
-            socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReport, [data.startTime, data.endTime, data.qaAccount], actionName, isDataValid);
+            var isDataValid = Boolean(data.startTime, data.endTime, data.qualityAssessor);
+            socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReport, [data.startTime, data.endTime, data.qualityAssessor], actionName, isDataValid);
         },
         searchLive800: function searchLive800(data){
             var actionName = arguments.callee.name;
@@ -109,7 +109,7 @@ function socketActionQualityInspection(socketIO, socket) {
         },
         getEvaluationProgressRecord: function getEvaluationProgressRecord(data){
             var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data.startDate && data.startDate);
+            var isDataValid = Boolean(data && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbQualityInspection.getEvaluationProgressRecord, [data.platformObjId, data.startDate, data.endDate], actionName, isDataValid);
         }
 

@@ -582,6 +582,11 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'DEMO_PLAYER_VALID_DAYS' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.demoPlayerValidDays}}
+                                    input(type='number', ng-show='vm.configTableEdit', ng-model='vm.platformBasic.demoPlayerValidDays')
+                            tr
                                 td {{'samePhoneNumberRegisterCount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
@@ -594,6 +599,10 @@
                                 td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForDemoPlayer', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'SMS_VERIFICATION' | translate}}
                                 td
@@ -1264,7 +1273,7 @@
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteSmsGroup(vm.deletingSmsGroup)') {{"DELETE" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
-.row(ng-if="checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
+.row(ng-if="vm.selectedConfigTab=='platformBasic' && checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
     .col-md-3
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary

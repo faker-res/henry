@@ -7,6 +7,7 @@ const constQualityInspectionStatus = require('./../const/constQualityInspectionS
 const constQualityInspectionRoleName = require('./../const/constQualityInspectionRoleName');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbQualityInspection = {
     connectMysql: function(){
@@ -169,7 +170,7 @@ var dbQualityInspection = {
 
                 live800Chat.operatorId = item.operator_id;
                 live800Chat.operatorName = item.operator_name;
-                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_id;
+                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_name;
                 live800Chat.live800Acc['name'] = item.operator_name;
                 let dom = new JSDOM(item.content);
                 let content = [];
@@ -368,19 +369,12 @@ var dbQualityInspection = {
                 console.log('yeah');
                 if (error) {
                     console.log(error)
-                    // throw error;
                 }
                 deferred.resolve(results);
                 connection.end();
             });
         })
 
-        // connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-        //     console.log('yeah');
-        //     if (error) throw error;
-        //     deferred.resolve(results);
-        //     connection.end();
-        // });
         return deferred.promise;
     },
     searchMySQLDB:function(queryObj, paginationQuery, connection){
@@ -1032,17 +1026,17 @@ var dbQualityInspection = {
     },
 
     getWorkloadReport: function(startTime, endTime, qaAccount){
-
         let query ={
             createTime: {
                 $gte: new Date(startTime),
                 $lt: new Date(endTime)
             }
-            //status: constQualityInspectionStatus.COMPLETED_READ
         }
 
-        if(qaAccount && qaAccount != "all"){
-            query.qualityAssessor = qaAccount;
+        qaAccount = qaAccount.map(q => ObjectId(q))
+
+        if(qaAccount && qaAccount.length > 0){
+            query.qualityAssessor = {$in: qaAccount};
         }
 
         return dbconfig.collection_qualityInspection.aggregate([
@@ -1339,17 +1333,21 @@ var dbQualityInspection = {
                     console.log(error);
                 }
 
-                results.forEach(result => {
-                    let startTime = new Date(result.storeTime);
-                    let endTime = new Date();
-                    endTime = dbUtility.getISODayEndTime(startTime);
-
-                    proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));
-                });
-                return Q.all(proms).then(data => {
-                    deferred.resolve(data);
-                    connection.end();
-                })
+                if(results){
+                    results.forEach(result => {
+                        if(result){
+                            let startTime = new Date(result.storeTime);
+                            let endTime = new Date();
+                            endTime = dbUtility.getISODayEndTime(startTime);
+    
+                            proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));    
+                        }
+                    });
+                    return Q.all(proms).then(data => {
+                        deferred.resolve(data);
+                        connection.end();
+                    })
+                }
             });
             return deferred.promise;
         }else{

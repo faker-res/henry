@@ -1511,6 +1511,35 @@
     </div>
 </div>
 
+<h3>Create Demo Player (生成试玩账号)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+
+    </div>
+    <div>
+        <label>Telephone
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <div>
+        <input type="text" name="purpose" hidden value="demoAccount" />
+        <button id="getSmsCode" data-api-name="getSMSCode">Get SMS Code</button>
+    </div>
+    <p></p>
+    <button data-api-name="createDemoPlayer">Create</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

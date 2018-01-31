@@ -255,8 +255,6 @@ define(['js/app'], function (myApp) {
                 }
 
                 // Initial Loading
-                vm.evaluationTab = 'unreadEvaluation';
-                vm.inspectionReportTab ='workloadReport';
                 // Initial setting for setting in qualityInspection
                 vm.getOvertimeSetting();
                 // create the conversationDefinition object for old platform
@@ -355,8 +353,8 @@ define(['js/app'], function (myApp) {
 
             };
             vm.nextPG = function(){
-                vm.pgn.index = (vm.pgn.currentPage+1)*vm.pgn.limit;
                 vm.pgn.currentPage += 1;
+                vm.pgn.index = (vm.pgn.currentPage -1)*vm.pgn.limit;
                 vm.searchLive800();
             };
             vm.gotoPG = function(pg, $event){
@@ -365,12 +363,12 @@ define(['js/app'], function (myApp) {
                     $($event.currentTarget).addClass('active');
                 }
                 let pgNo = null;
-                if(pg==0){
+                if(pg<=0){
                     pgNo = 0
-                }else if(pg > 1){
+                }else if(pg >= 1){
                     pgNo = pg;
                 }
-                vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.pgn.index = ((pgNo-1)*vm.pgn.limit);
                 vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
             },
@@ -501,6 +499,7 @@ define(['js/app'], function (myApp) {
 
             vm.initUnreadEvaluation = function(){
                 if(vm.selectedPlatform){
+                    vm.evaluationTab = 'unreadEvaluation';
                     $('#unreadEvaluationStartDatetimePicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
@@ -577,6 +576,7 @@ define(['js/app'], function (myApp) {
 
             vm.initWorkloadProgress = function(){
                 if(vm.selectedPlatform) {
+                    vm.inspectionReportTab ='workloadReport';
                     $('#reportConversationStartDatetimePicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
@@ -1036,7 +1036,16 @@ define(['js/app'], function (myApp) {
                 }
 
                 if(vm.qaAccount && vm.qaAccount != "all"){
-                    sendData.qualityAssessor = vm.qaAccount;
+                    sendData.qualityAssessor = [vm.qaAccount];
+                }else{
+                    let qaArr = [];
+                    vm.qaDepartments.forEach(q => {
+                        if(q && q._id){
+                            qaArr.push(q._id);
+                        }
+
+                    })
+                    sendData.qualityAssessor = qaArr;
                 }
 
                 let resultArr = [];
@@ -1152,8 +1161,6 @@ define(['js/app'], function (myApp) {
                         setTimeout(function () {
                             $('#workloadReportTable').resize();
                         }, 300);
-                    }else{
-                        vm.appealEvaluationTable = "";
                     }
 
                     vm.loadingWorkloadReportTable = false;
@@ -1168,9 +1175,24 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        platformObjId: vm.evaluationProgressPlatform,
+                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
+                    }
+
+                    if(vm.evaluationProgressPlatform && vm.evaluationProgressPlatform.length > 0){
+                        sendData.platformObjId = vm.evaluationProgressPlatform
+                    }else{
+                        if(vm.platformList && vm.platformList.length > 0){
+                            let platformArr = [];
+                            vm.platformList.forEach(p => {
+                                if(p && p.id){
+                                    platformArr.push(p.id);
+                                }
+
+                            })
+                            sendData.platformObjId = platformArr;
+                        }
                     }
                     let resultArr = [];
                     let resultArr2 = [];
