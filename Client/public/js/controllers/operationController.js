@@ -42,7 +42,8 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             AUTOAUDIT: "AutoAudit",
             RECOVER: "Recover",
-            MANUAL: "Manual"
+            MANUAL: "Manual",
+            CSPENDING: "CsPending"
         };
 
         vm.depositMethodList = $scope.depositMethodList;
@@ -1100,7 +1101,7 @@ define(['js/app'], function (myApp) {
 
                             let textClass = '';
                             let fontStyle = {};
-                            if (row.status === 'Pending') {
+                            if (row.status === 'Pending' || row.status === 'CsPending') {
                                 textClass = "text-danger";
                                 fontStyle = {'font-weight': 'bold'};
                             }
@@ -2039,6 +2040,20 @@ define(['js/app'], function (myApp) {
             }, function (error) {
                 console.error(error);
                 vm.changeStatusToPendingFromAutoAuditMessage = $translate("FAIL") + " - " + error.error.message;
+                $scope.safeApply();
+            })
+        };
+
+        vm.approveCsPendingAndChangeStatus = function () {
+            socketService.$socket($scope.AppSocket, 'approveCsPendingAndChangeStatus', {
+                proposalObjId: vm.selectedProposal._id,
+                createTime: vm.selectedProposal.createTime,
+                adminName: authService.adminName
+            }, function (data) {
+                $scope.safeApply();
+                vm.loadProposalQueryData(true);
+            }, function (error) {
+                console.log('error', error);
                 $scope.safeApply();
             })
         };

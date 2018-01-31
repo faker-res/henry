@@ -3184,5 +3184,9 @@
   "Live800Record": "Live800记录",
   "QualityInsectionEvaluation": "我的评估",
   "QualityInsectionCSReport": "客服报表",
-  "QualityInsectionReport": "质检报表"
+  "QualityInsectionReport": "质检报表",
+  "cs approve proposal": "客服审核通过",
+  "CsPending": "待客服审核",
+  "approvedByCs": "审核客服",
+  "needCsApproved": "需要客服审核"
 }

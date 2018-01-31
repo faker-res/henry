@@ -7815,6 +7815,10 @@ let dbPlayerInfo = {
                                                 isAutoApproval: player.platform.enableAutoApplyBonus
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
+                                            if(!player.permission.applyBonus) {
+                                                proposalData.remark = "禁用提款";
+                                                proposalData.needCsApproved = true;
+                                            }
                                             var newProposal = {
                                                 creator: proposalData.creator,
                                                 data: proposalData,
