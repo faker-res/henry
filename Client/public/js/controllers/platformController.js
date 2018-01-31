@@ -288,7 +288,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
                 FREE_TRIAL_REWARD: 'freeTrialReward',
-                DEMO_ACCOUNT: 'demoAccount',
+                DEMO_PLAYER: 'demoPlayer',
                 // RESET_PASSWORD: 'resetPassword'
             };
 
