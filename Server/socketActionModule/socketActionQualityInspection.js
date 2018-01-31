@@ -109,7 +109,7 @@ function socketActionQualityInspection(socketIO, socket) {
         },
         getEvaluationProgressRecord: function getEvaluationProgressRecord(data){
             var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data.startDate && data.startDate);
+            var isDataValid = Boolean(data && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbQualityInspection.getEvaluationProgressRecord, [data.platformObjId, data.startDate, data.endDate], actionName, isDataValid);
         }
 

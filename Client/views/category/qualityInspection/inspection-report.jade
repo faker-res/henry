@@ -38,7 +38,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
                                     span.add-on
                                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'Read')")
                                 button.common-button.btn.btn-primary(ng-click='vm.getWorkloadReport()') {{'SEARCH' | translate}}
                             .inlineBlk(ng-show='vm.loadingWorkloadReportTable')
                                 i.fa.fa-spin.fa-spinner
@@ -57,7 +57,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 label {{'PRODUCT(DEPARTMENT)' | translate}}
                                 select.spicker.form-control(ng-model='vm.evaluationProgressPlatform', multiple, data-actions-box='true', bsp)
                                     option(ng-repeat='(i,v) in vm.platformList', value='{{v.data._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.data.name}}
-                            .inlineBlk.pull-right(style='width:100px;padding-top:20px')
+                            .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'Read')")
                                 button.common-button.btn.btn-primary(ng-click='vm.getEvaluationProgressRecord()') {{'SEARCH' | translate}}
                             .inlineBlk(ng-show='vm.loadingEvaluationProgressTable')
                                 i.fa.fa-spin.fa-spinner
