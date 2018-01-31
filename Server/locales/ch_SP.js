@@ -74,6 +74,7 @@ var simplifiedChinese = {
     "Invalid proposal Id": "提案ID无效",
 
     "Cannot find player for online top up proposal": "无法找到玩家",
+    "player level down already in period": "玩家周期内已降级",
     "Cannot create online top up proposal": "无法创建在线充值提案",
     "Cannot create manual top up proposal": "无法创建手工充值提案",
     "Cannot find payment data": "无法找到支付数据",
@@ -130,6 +131,7 @@ var simplifiedChinese = {
     "Topup amount '$": "您需要有新的存款 '",
     "' is needed for this reward": "元' 才可以领取此优惠，千万别错过了！",
     "There is consumption after topup": "您在最近一笔的存款后已经投注，请在重新存款后、投注前申请！",
+    "There is withdrawal after topup": "您在存款后已经提款,请在重新存款后,提款前申请!",
     "Cannot find top up return event data for platform": "无法找到奖励活动",
     "You have reached the max reward amount today": "已达到当天奖励额度上限",
     "Some top up records have been used": "充值记录已被使用",
@@ -223,7 +225,6 @@ var simplifiedChinese = {
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
     "Connection failed": "连接失败",
     "PlayerPromoCodeReward": "优惠代码",
-    "Player reach participate limit": "次数已用完",
     "PlayerConsumptionReturnSuccess": "玩家洗码（成功）",
     "ManualTopupSuccess": "手工存款（成功）",
     "OnlineTopupSuccess": "在线充值（成功）",
@@ -245,7 +246,8 @@ var simplifiedChinese = {
     "PlayerFreeTrialRewardGroupSuccess": "免费体验金（组）（成功）",
     "PlayerRegisterIntentionSuccess": "玩家注册意象（手动、成功）",
     "PlayerPromoCodeRewardSuccess": "优惠代码（成功）",
-    "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。"
+    "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。",
+    "Concurrent issue detected": "请联系客服",
     //todo::add missing messages here
 
     /*

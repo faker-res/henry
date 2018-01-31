@@ -36,7 +36,11 @@ var PaymentServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerTopUpList, [conn.playerId, data.topUpType, data.startTime, data.endTime, data.startIndex, data.requestCount, !data.sort, data.bDirty, data.bSinceLastConsumption], isValidData);
+        if( !data.bSincelastPlayerWidthDraw ){
+          data.bSincelastPlayerWidthDraw = true;
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerTopUpList, [conn.playerId, data.topUpType, data.startTime, data.endTime, data.startIndex, data.requestCount,
+          !data.sort, data.bDirty, data.bSinceLastConsumption, data.bSinceLastPlayerWidthDraw], isValidData);
     };
 
     this.getTopupHistory.expectsData = '[startIndex]: Number, [requestCount]: Number';
@@ -164,7 +168,9 @@ var PaymentServiceImplement = function () {
         // if ([10, 20, 50, 100].indexOf(data.amount) < 0) {
         //     isValidData = false;
         // }
+
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), data.userAgent, conn.playerId, data.amount, data.wechatName, data.wechatAccount, data.bonusCode, "CLIENT", null, null, null, null, data.limitedOfferObjId], isValidData);
+
     };
 
     this.cancelManualTopupRequest.expectsData = 'proposalId: String';

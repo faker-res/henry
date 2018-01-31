@@ -249,6 +249,8 @@ var proposalExecutor = {
                         throw Error("No platformObjId, needed for refund");
                     }
 
+                    proposalData.data.proposalId = proposalData.proposalId;
+
                     return dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, refundAmount, reason, proposalData.data)
                 }
             );
@@ -400,8 +402,10 @@ var proposalExecutor = {
 
                             proposalData.data.proposalId = proposalData.proposalId;
 
-                            dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
-                                changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            if (proposalData.data.updateAmount > 0) {
+                                dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
+                                    changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            }
                             deferred.resolve(player);
                         },
                         error => {
@@ -435,6 +439,7 @@ var proposalExecutor = {
                 ).then(
                     platform => {
                         if (platform && platform.useProviderGroup) {
+                            proposalData.data.proposalId = proposalData.proposalId;
                             fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
                                 deferred.resolve, deferred.reject);
                         }
@@ -2182,6 +2187,7 @@ var proposalExecutor = {
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: 0,
+                        rewardAppearPeriod: proposalData.data.rewardAppearPeriod,
                         providerGroup: proposalData.data.providerGroup
                     };
                     let deferred1 = Q.defer();
@@ -3086,7 +3092,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         })
                     );
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
-                    if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)) {
+                    if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
+                    || proposalData.data.limitedOfferObjId) {
                         dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
                             dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         }).catch(
@@ -3287,7 +3294,7 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
 }
 
 function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalData) {
-    let transferLog, providerGroup, player, provider;
+    let transferLog, providerGroup, player, provider, creditChangeLog;
     let changedValidCredit = 0, changedLockedCredit = 0;
     return dbconfig.collection_playerCreditTransferLog.findOne({transferId}).lean().then(
         transferLogData => {
@@ -3314,7 +3321,12 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
 
             let playerProm = dbconfig.collection_players.findOne({_id: transferLog.playerObjId}).lean();
 
-            return Promise.all([gameProviderGroupProm, playerProm]);
+            let creditChangeLogProm = dbconfig.collection_creditChangeLog.findOne({
+                platformId: transferLog.platformObjId,
+                transferId: transferId
+            }).lean();
+
+            return Promise.all([gameProviderGroupProm, playerProm, creditChangeLogProm]);
         }
     ).then(
         data => {
@@ -3323,30 +3335,43 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
             }
             providerGroup = data[0];
             player = data[1];
+            creditChangeLog = data[2];
 
             return dbconfig.collection_rewardTaskGroup.findOne({
                 platformId: transferLog.platformObjId,
                 playerId: transferLog.playerObjId,
                 providerGroup: providerGroup._id,
-                status: {$in: [constRewardTaskStatus.STARTED]}
+                status: constRewardTaskStatus.STARTED
             }).lean();
         }
     ).then(
         rewardTaskGroup => {
+            console.log("DEBUG LOG :: Getting reward task group for repair transfer ID: " + transferId + " as", rewardTaskGroup);
             if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
-                changedValidCredit = rewardTaskGroup._inputFreeAmt;
-                changedLockedCredit = rewardTaskGroup._inputRewardAmt;
-                let lockedAmount = rewardTaskGroup.rewardAmt + rewardTaskGroup._inputRewardAmt;
-                let validCredit = rewardTaskGroup._inputFreeAmt;
+                let inputFreeAmt = rewardTaskGroup._inputFreeAmt;
+                let inputRewardAmt = rewardTaskGroup._inputRewardAmt;
+
+                if (creditChangeLog) {
+                    inputFreeAmt = -creditChangeLog.amount;
+                    inputRewardAmt = -creditChangeLog.changedLockedAmount;
+                }
+
+                changedValidCredit = inputFreeAmt;
+                changedLockedCredit = inputRewardAmt;
+                let lockedAmount = rewardTaskGroup.rewardAmt + inputRewardAmt;
+                let validCredit = inputFreeAmt;
 
                 let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                     _id: rewardTaskGroup._id,
                     platformId: rewardTaskGroup.platformId
                 }, {
-                    rewardAmt: lockedAmount,
-                    _inputRewardAmt: 0,
-                    _inputFreeAmt: 0,
-                    inProvider: false
+                    // rewardAmt: lockedAmount,
+                    $inc: {
+                        rewardAmt: lockedAmount,
+                    },
+                    // _inputRewardAmt: 0,
+                    // _inputFreeAmt: 0,
+                    // inProvider: false
                 }, {
                     new: true
                 }).lean();
@@ -3401,7 +3426,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
         }
     ).then(
         updatedPlayer => {
-            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, player.validCredit, null, changedLockedCredit, null, proposalData);
+            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, updatedPlayer.validCredit, null, changedLockedCredit, null, proposalData);
             return updatedPlayer;
         }
     );

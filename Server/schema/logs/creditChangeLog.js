@@ -22,7 +22,9 @@ var creditChangeLogSchema = new Schema({
     // locked Amount
     lockedAmount: {type: Number},
     //changed lockedAmount
-    changedLockedAmount: {type: Number}
+    changedLockedAmount: {type: Number},
+    // transfer id
+    transferId: {type: String, index: true}
 });
 
 module.exports = creditChangeLogSchema;

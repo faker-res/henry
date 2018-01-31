@@ -495,6 +495,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "网银跨行(InterBank Transfer)",
         5: "支付宝(AliPay)"
     };
+
+    $scope.depositMethodList = {
+        Online: 1,
+        ATM: 2,
+        Counter: 3,
+        AliPayTransfer: 4
+    };
+
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
         '2': 'clientType_H5',
@@ -1370,4 +1378,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))
+    $scope.QIREPORT_SEARCH_MAX_TIME_FRAME = 86400000 // 1 days (1000*3600*24)
+
 });

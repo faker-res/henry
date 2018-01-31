@@ -32,7 +32,8 @@ const messageDispatcher = {
                 metaData.senderType = 'System';
                 metaData.platformId = proposalData.data.platformId;
                 //const platformId = metaData.proposalData.data.platformId;
-                const platformId = metaData.platformId;
+                // const platformId = metaData.platformId;
+                const platformId = player.platform;
                 return messageDispatcher.dispatchMessagesOfType(platformId, messageType, metaData);
             }
         )
@@ -186,8 +187,8 @@ const messageDispatcher = {
         if (metaData.proposalData) {
             if(metaData.proposalData.createTime)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.createTime}}', moment(metaData.proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
-            if(metaData.proposalData.rewardAmount)
-                metaData.proposalData.rewardAmount = metaData.proposalData.rewardAmount.toFixed(2);
+            if(metaData.proposalData.data.rewardAmount)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardAmount}}', metaData.proposalData.data.rewardAmount.toFixed(2));
         }
         
         const renderedContent = renderTemplate(messageTemplate.content, metaData);

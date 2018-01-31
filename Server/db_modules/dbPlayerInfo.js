@@ -1245,6 +1245,7 @@ let dbPlayerInfo = {
                         _id: playerData._id,
                         name: playerData.name,
                         platformId: playerData.platform.platformId,
+                        platform: playerData.platform._id,
                         validCredit: playerData.validCredit,
                         realName: playerData.realName
                     }
@@ -2063,7 +2064,7 @@ let dbPlayerInfo = {
                 if (query.dirty != null) {
                     queryObject.bDirty = query.dirty;
                 }
-                if (!games) {
+                if (query.gameName && !games) {
                     queryObject.cpGameType = query.gameName;
                 }
                 if (bGameSearch) {
@@ -2223,7 +2224,7 @@ let dbPlayerInfo = {
             }
         ]);
 
-        var logThatHaveNoProposal = ['TransferIn', 'TransferOut'];
+        var logThatHaveNoProposal = ['TransferIn', 'TransferOut', 'TransferInFailed'];
         return Q.all([a, b, c, totalProm]).then(
             data => {
                 let creditChangeLogs = data[1];
@@ -5513,9 +5514,12 @@ let dbPlayerInfo = {
     },
 
     isPlayerNameValidToRegister: function (query) {
-        return dbconfig.collection_players.findOne(query).then(
-            playerData => {
-                if (playerData) {
+        let playerProm = dbconfig.collection_players.findOne(query).lean();
+        let playerNameProm = dbconfig.collection_playerName.findOne(query).lean();
+
+        return Promise.all([playerProm, playerNameProm]).then(
+            data => {
+                if (!data || data[1] || data [2]) {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
@@ -6720,46 +6724,58 @@ let dbPlayerInfo = {
             platform: platform,
             registrationTime: timeQuery
         };
-        var a = dbconfig.collection_players.find(query).count();
-        var b = dbconfig.collection_players.aggregate([{
-            $match: query,
-        }, {
-            $group: {
-                _id: "$domain",
-                num: {$sum: 1}
-            }
-        }, {
-            $project: {
-                domain: "$_id",
-                num: "$num"
-            }
-        }]);
-        var partnerQuery = {platform: platform, registrationTime: timeQuery}
-        var c = dbconfig.collection_players.aggregate(
-            {$match: partnerQuery},
+
+        // var a = dbconfig.collection_players.find(query).count();
+        // var b = dbconfig.collection_players.aggregate([{
+        //     $match: query,
+        // }, {
+        //     $group: {
+        //         _id: "$domain",
+        //         num: {$sum: 1}
+        //     }
+        // }, {
+        //     $project: {
+        //         domain: "$_id",
+        //         num: "$num"
+        //     }
+        // }]);
+        // var partnerQuery = {platform: platform, registrationTime: timeQuery}
+        // var c = dbconfig.collection_players.aggregate(
+        //     {$match: partnerQuery},
+        //     {
+        //         $group: {
+        //             _id: "$partner",
+        //             num: {$sum: 1}
+        //         }
+        //     }
+        // );
+        // var topupQuery = {
+        //     platform: platform,
+        //     topUpTimes: {$gt: 0},
+        //     topUpSum: {$gt: 0},
+        //     registrationTime: timeQuery
+        // };
+        // var d = dbconfig.collection_players.find(topupQuery).count();
+        //
+        // let topUpMultipleTimesQuery = {
+        //     platform: platform,
+        //     topUpTimes: {$gt: 1},
+        //     topUpSum: {$gt: 0},
+        //     registrationTime: timeQuery
+        // }
+        //
+        // let e = dbconfig.collection_players.find(topUpMultipleTimesQuery).count();
+        let f = dbconfig.collection_players.find(query)
+            .populate({path: "partner", model: dbconfig.collection_partner})
+            .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
+        let g = dbconfig.collection_players.aggregate(
+            {$match: query},
             {
                 $group: {
-                    _id: "$partner",
-                    num: {$sum: 1}
+                    _id: "$domain"
                 }
             }
         );
-        var topupQuery = {
-            platform: platform,
-            topUpTimes: {$gt: 0},
-            topUpSum: {$gt: 0},
-            registrationTime: timeQuery
-        };
-        var d = dbconfig.collection_players.find(topupQuery).count();
-
-        let topUpMultipleTimesQuery = {
-            platform: platform,
-            topUpTimes: {$gt: 1},
-            topUpSum: {$gt: 0},
-            registrationTime: timeQuery
-        }
-
-        let e = dbconfig.collection_players.find(topUpMultipleTimesQuery).count();
         // var d = dbconfig.collection_players.find(query, {_id: 1}).lean().then(
         //     players => {
         //         if (players && players.length > 0) {
@@ -6793,33 +6809,33 @@ let dbPlayerInfo = {
         //         }
         //     }
         // );
-
-        return Q.all([a, b, c, d, e]).then(
-            data => {
-                retData = data;
-                var prop = [];
-                if (data && data[2]) {
-                    data[2].map(item => {
-                        if (item._id) {
-                            prop.push(dbconfig.collection_partner.findOne({_id: item._id}));
-                        }
-                    })
-                }
-                return Q.all(prop);
-            },
-            err => {
-                return err;
-            }
-        ).then(partnerData => {
-            var partnerDataObj = {};
-            partnerData.map(item => {
-                partnerDataObj[item._id] = item;
-            })
-            retData[2].forEach(item => {
-                item.partner = partnerDataObj[item._id];
-            })
-            return retData;
-        })
+        return Q.all([f, g]);
+        // return Q.all([a, b, c, d, e, f, g]).then(
+        //     data => {
+        //         retData = data;
+        //         var prop = [];
+        //         if (data && data[2]) {
+        //             data[2].map(item => {
+        //                 if (item._id) {
+        //                     prop.push(dbconfig.collection_partner.findOne({_id: item._id}));
+        //                 }
+        //             })
+        //         }
+        //         return Q.all(prop);
+        //     },
+        //     err => {
+        //         return err;
+        //     }
+        // ).then(partnerData => {
+        //     var partnerDataObj = {};
+        //     partnerData.map(item => {
+        //         partnerDataObj[item._id] = item;
+        //     })
+        //     retData[2].forEach(item => {
+        //         item.partner = partnerDataObj[item._id];
+        //     })
+        //     return retData;
+        // })
     },
 
     /*
@@ -8344,7 +8360,6 @@ let dbPlayerInfo = {
     },
 
     getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
-        var platformData = null;
         var providerData = null;
         var playerData = null;
         var bTransferIn = false;
@@ -8358,14 +8373,50 @@ let dbPlayerInfo = {
             path: "provider",
             model: dbconfig.collection_gameProvider
         }).lean();
-        return Q.all([playerProm, gameProm]).then(
+
+        function transferCreditToProvider(transferAmount) {
+            bTransferIn = Boolean(transferAmount && ((parseFloat(transferAmount.playerCredit) + parseFloat(transferAmount.rewardCredit)) >= 1));
+
+            //console.log("bTransferIn:", bTransferIn, transferAmount);
+            if (transferAmount && gameData && gameData.provider) {
+                //transfer in to current provider
+                if (bTransferIn) {
+                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1);
+                }
+                else {
+                    //allow player to login if player doesn't have enough credit
+                    return Promise.resolve(true);
+                    // if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId == gameData.provider.providerId) {
+                    //     return true;
+                    // }
+                    // else {
+                    //     //todo::update code here later, for now, it doesn't require credit
+                    //     if (gameId == "19D207EB-C09C-4E87-8CFE-0C0DF71CE232") {
+                    //         return;
+                    //     }
+                    //     else {
+                    //         return Q.reject({
+                    //             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                    //             name: "DataError",
+                    //             errorMessage: "Player does not have enough credit."
+                    //         });
+                    //     }
+                    // }
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Cannot find game"});
+            }
+        }
+
+        return Promise.all([playerProm, gameProm]).then(
             data => {
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
+                    providerData = gameData.provider;
                     // check if the player is forbidden totally
                     if (playerData.permission.forbidPlayerFromLogin) {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             name: "DataError",
                             message: "Player is forbidden",
@@ -8377,7 +8428,7 @@ let dbPlayerInfo = {
                     else if (playerData.permission.forbidPlayerFromEnteringGame) {
                         // var isForbidden = playerData.forbidProviders.some(providerId => String(providerId) === String(gameData.provider._id));
                         // if (isForbidden) {
-                        return Q.reject({
+                        return Promise.reject({
                             name: "DataError",
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             message: "Player is forbidden to the game",
@@ -8397,7 +8448,7 @@ let dbPlayerInfo = {
                         for (let i = 0, len = playerData.forbidProviders.length; i < len; i++) {
                             let forbidProvider = playerData.forbidProviders[i];
                             if (gameData.provider._id.toString() === forbidProvider.toString()) {
-                                return Q.reject({
+                                return Promise.reject({
                                     name: "DataError",
                                     status: constServerCode.PLAYER_IS_FORBIDDEN,
                                     message: "Player is forbidden to the game",
@@ -8409,7 +8460,7 @@ let dbPlayerInfo = {
 
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
                             message: "Game is not available",
@@ -8441,7 +8492,7 @@ let dbPlayerInfo = {
                         platformGame => {
                             if (platformGame) {
                                 if (platformGame.status != constGameStatus.ENABLE) {
-                                    return Q.reject({
+                                    return Promise.reject({
                                         status: constServerCode.CP_NOT_AVAILABLE,
                                         name: "DataError",
                                         message: "Game is not available on platform",
@@ -8449,66 +8500,71 @@ let dbPlayerInfo = {
                                     });
                                 }
 
-                                if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
-                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
-                                }
-                                else {
-                                    return {
+                                if (playerData.platform.useProviderGroup) {
+                                    let retData = {
                                         playerCredit: playerData.validCredit,
-                                        rewardCredit: playerData.lockedCredit
+                                        rewardCredit: 0
                                     };
+
+                                    if (playerData.validCredit >= 1) {
+                                        transferCreditToProvider(retData).catch(errorUtils.reportError);
+                                    } else {
+                                        // Not enough credit to play with local credit
+                                        // Check credits in reward task group
+                                        dbconfig.collection_rewardTaskGroup.find({
+                                            platformId: playerData.platform._id,
+                                            playerId: playerData._id,
+                                            status: {$in: [constRewardTaskStatus.STARTED]}
+                                        }).then(
+                                            rewardGroupData => {
+                                                if (rewardGroupData) {
+                                                    retData.rewardCredit = rewardGroupData.reduce(
+                                                        (arr, inc) => arr + inc.rewardAmt, 0
+                                                    );
+                                                }
+
+                                                // Still not enough credit in RTG, transfer out from last provider
+                                                if (retData.rewardCredit < 1
+                                                    && playerData.lastPlayedProvider
+                                                    && playerData.lastPlayedProvider.status == constGameStatus.ENABLE
+                                                    && playerData.lastPlayedProvider.providerId != gameData.provider.providerId)
+                                                {
+                                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                                                }
+
+                                                return retData;
+                                            }
+                                        ).then(transferCreditToProvider).catch(errorUtils.reportError);
+                                    }
+                                    return true;
+                                } else {
+                                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                        return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider);
+                                    }
+                                    else {
+                                        return transferCreditToProvider({
+                                            playerCredit: playerData.validCredit,
+                                            rewardCredit: playerData.lockedCredit
+                                        });
+                                    }
                                 }
                             }
                             else {
-                                return Q.reject({name: "DataError", message: "Cannot find platform game data"});
+                                return Promise.reject({name: "DataError", message: "Cannot find platform game data"});
                             }
                         }
-                    );
+                    )
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Cannot find player or game"});
+                    return Promise.reject({name: "DataError", message: "Cannot find player or game"});
                 }
             }
         ).then(
-            data => {
-                bTransferIn = (data && ((parseFloat(data.playerCredit) + parseFloat(data.rewardCredit)) >= 1)) ? true : false;
-                //console.log("bTransferIn:", bTransferIn, data);
-                if (data && gameData && gameData.provider) {
-                    if (gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
-                        dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
-                    }
+            () => {
+                if (gameData && gameData.provider && gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
+                    dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
+                }
 
-                    providerData = gameData.provider;
-                    //transfer in to current provider
-                    if (bTransferIn) {
-                        return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1);
-                    }
-                    else {
-                        //allow player to login if player doesn't have enough credit
-                        return true;
-                        // if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId == gameData.provider.providerId) {
-                        //     return true;
-                        // }
-                        // else {
-                        //     //todo::update code here later, for now, it doesn't require credit
-                        //     if (gameId == "19D207EB-C09C-4E87-8CFE-0C0DF71CE232") {
-                        //         return;
-                        //     }
-                        //     else {
-                        //         return Q.reject({
-                        //             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                        //             name: "DataError",
-                        //             errorMessage: "Player does not have enough credit."
-                        //         });
-                        //     }
-                        // }
-                    }
-                } else {
-                    return Q.reject({name: "DataError", message: "Cannot find game"});
-                }
-            }
-        ).then(
-            data => {
                 if (ip == "undefined") {
                     ip = "127.0.0.1";
                 }
@@ -11401,7 +11457,7 @@ let dbPlayerInfo = {
                 outputResult = query.csPromoteWay && query.csPromoteWay.length > 0 ? outputResult.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : outputResult;
                 outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : outputResult;
 
-                return {size: result.length, data: outputResult};
+                return {size: outputResult.length, data: outputResult};
             }
         );
     },
@@ -12627,6 +12683,8 @@ let dbPlayerInfo = {
             lockedCreditList: []
         };
         let playerDetails = {};
+        let gameData = [];
+        let usedTaskGroup = [];
         return dbconfig.collection_players.findOne({_id: playerObjId}, {platform: 1, validCredit: 1, name: 1, _id:0})
             .populate({path: "platform", model: dbconfig.collection_platform, select: ['_id','platformId']}).lean().then(
             (playerData) => {
@@ -12644,9 +12702,19 @@ let dbPlayerInfo = {
 
                     if (platformData && platformData.gameProviders.length > 0) {
                         for (let i = 0; i < platformData.gameProviders.length; i++) {
+                            let nickName = "";
+                            if (platformData.gameProviderInfo) {
+                                for (let j = 0; j < Object.keys(platformData.gameProviderInfo).length; j++) {
+                                    if (Object.keys(platformData.gameProviderInfo)[j].toString() == platformData.gameProviders[i]._id.toString()) {
+                                        nickName = platformData.gameProviderInfo[platformData.gameProviders[i]._id.toString()].localNickName;
+                                    }
+                                }
+                            }
                             providerCredit.gameCreditList[i] = {
+                                providerObjId : platformData.gameProviders[i]._id,
                                 providerId: platformData.gameProviders[i].providerId,
-                                nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                                // nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                                nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                                 status: platformData.gameProviders[i].status
                             };
                         }
@@ -12667,6 +12735,7 @@ let dbPlayerInfo = {
                         let gameCreditProm = cpmsAPI.player_queryCredit(queryObj).then(
                             function (creditData) {
                                 return {
+                                    providerObjId: providerList.gameCreditList[i].providerObjId,
                                     providerId: creditData.providerId,
                                     gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
                                     nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
@@ -12676,6 +12745,7 @@ let dbPlayerInfo = {
                             function (err) {
                                 //todo::for debug, to be removed
                                 return {
+                                    providerObjId: providerList.gameCreditList[i].providerObjId,
                                     providerId: providerList.gameCreditList[i].providerId,
                                     gameCredit: 'unknown',
                                     nickName: providerList.gameCreditList[i].nickName? providerList.gameCreditList[i].nickName: "",
@@ -12692,6 +12762,7 @@ let dbPlayerInfo = {
         ).then(
             gameCreditList => {
                 if (gameCreditList && gameCreditList.length > 0) {
+                    gameData = gameCreditList;
                     for (let i = 0; i < gameCreditList.length; i++) {
                         returnData.gameCreditList[i] = {
                             nickName: gameCreditList[i].nickName? gameCreditList[i].nickName: "",
@@ -12713,19 +12784,75 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardTaskGroup => {
-                console.log(rewardTaskGroup);
 
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
+                    usedTaskGroup = rewardTaskGroup;
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
-                        returnData.lockedCreditList[i] = {
-                            nickName: rewardTaskGroup[i].providerGroup? rewardTaskGroup[i].providerGroup.name: "",
-                            validCredit: rewardTaskGroup[i].rewardAmt
+                        let listData = [];
+                        if (rewardTaskGroup[i].providerGroup && rewardTaskGroup[i].providerGroup.providers.length) {
+                            rewardTaskGroup[i].providerGroup.providers.forEach(rewardItem => {
+                                gameData.forEach(gameItem => {
+                                    if (rewardItem.toString() == gameItem.providerObjId.toString()) {
+                                        listData.push({
+                                            providerId: gameItem.providerId,
+                                            nickName: gameItem.nickName,
+                                            validCredit: gameItem.gameCredit,
+                                            status: gameItem.status
+                                        })
+                                    }
+                                })
+                            })
+                            returnData.lockedCreditList.push({
+                                nickName: rewardTaskGroup[i].providerGroup? rewardTaskGroup[i].providerGroup.name: "",
+                                lockCredit: rewardTaskGroup[i].rewardAmt,
+                                list: listData,
+                            });
                         }
                     }
                 }
-                return returnData;
+
+                return dbconfig.collection_gameProviderGroup.find({platform: playerDetails.platformObjId})
+                    .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
             }
-        );
+        ).then(
+            allProviderGroup => {
+                if (allProviderGroup && allProviderGroup.length > 0) {
+                    let allGroupData = JSON.parse(JSON.stringify(allProviderGroup));
+
+                    for (let m = allProviderGroup.length - 1; m >= 0; m--) {
+                        for (let j = 0; j < usedTaskGroup.length; j++) {
+                            if (usedTaskGroup[j].providerGroup && usedTaskGroup[j].providerGroup._id.toString() == allProviderGroup[m]._id.toString()) {
+                                allGroupData.splice(m, 1);
+                            }
+                        }
+
+                    }
+
+                    for (let l = 0; l < allGroupData.length; l++) {
+                        let dataList = [];
+                        allGroupData[l].providers.forEach(allGroup => {
+                            gameData.forEach(gameItem => {
+                                if (allGroup._id.toString() == gameItem.providerObjId.toString()) {
+                                    dataList.push({
+                                        providerId: gameItem.providerId,
+                                        nickName: gameItem.nickName,
+                                        validCredit: gameItem.gameCredit,
+                                        status: gameItem.status
+                                    });
+                                }
+                            })
+
+                        });
+                        returnData.lockedCreditList.push({
+                            nickName: allGroupData[l].name ? allGroupData[l].name : "",
+                            lockCredit: 0,
+                            list: dataList,
+                        })
+                    }
+                }
+
+                return returnData;
+            });
     },
 
     /**

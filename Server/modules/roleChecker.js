@@ -250,7 +250,7 @@ var roleChecker = {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
                     'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog', 'getPlayerTopUpGroupLog',
-                    'getProviderLatestTimeRecord'],
+                    'getProviderLatestTimeRecord', 'checkTransferInSequence'],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
@@ -605,31 +605,41 @@ var roleChecker = {
             }
         },
         QualityInspection: {
-            Setting: {
+            QualityInsectionSetting: {
                 Read: [],
-                queryByProposalDate: [],
-                Edit: ['updatePlatform'],
-                setting: [],
-                definition: []
+                Edit: ['updatePlatform']
             },
-            Record: {
-                Read: [],
-                queryByProposalDate: [],
+            Live800Record: {
+                Read: ['searchLive800'],
+                Edit: ['rateCSConversation','rateBatchConversation'],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: [],
+                queryByEvaluationStatus: [],
+                queryByQualityAssessor: []
             },
-            Evaluation: {
-                Read: [],
-                queryByProposalDate: [],
+            QualityInsectionEvaluation: {
+                Read: ['getUnreadEvaluationRecord','getReadEvaluationRecord','getAppealEvaluationRecordByConversationDate','getAppealEvaluationRecordByAppealDate'],
+                Edit: ['markEvaluationRecordAsRead','appealEvaluation'],
+                queryByQualityAssessor: [],
+                queryByQualityInspectionDate: [],
+                queryByAppealDate: [],
+                queryByAppealStatus: []
             },
-            CSReport: {
-                Read: [],
-                queryByProposalDate: [],
+            QualityInsectionCSReport: {
+                Read: ['searchLive800Record'],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: []
             },
-            Report: {
-                Read: [],
-                queryByProposalDate: [],
+            QualityInsectionReport: {
+                Read: ['getWorkloadReport','getEvaluationProgressRecord'],
+                queryByQualityAssessor: [],
+                queryByQualityInspectionDate: [],
+                queryByProduct: []
             }
-
-
         }
     },
 

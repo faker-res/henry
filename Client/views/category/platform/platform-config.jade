@@ -377,6 +377,7 @@
                                         th {{'TOP_UP_TIMES' | translate}}
                                         th {{'TOP_UP_AMOUNT' | translate}}
                                         th {{'CONSUMPTION' | translate}}
+                                        th {{'Player Value' | translate}}
                                 tbody
                                     tr
                                         td {{'ACTIVE_PLAYER' | translate}}
@@ -389,6 +390,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerValue')
                                     tr
                                         td {{'VALID_PLAYER' | translate}}
                                         td
@@ -400,6 +404,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerValue')
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.partnerLevelConfigEdit=vm.partnerLevelConfig')
                             text {{'EDIT' | translate}}
