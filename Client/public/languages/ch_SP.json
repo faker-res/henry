@@ -516,6 +516,7 @@
   "Delete": "删除",
   "Edit": "编辑",
   "CreateTrial": "创建试玩玩家",
+  "DemoPlayerPrefix": "试玩账号开头",
   "AdvancedSearch": "高级搜索",
   "EditContact": "编辑联系",
   "PaymentInformation": "支付资料",
@@ -1422,7 +1423,7 @@
   "DOWNLOAD_CSV": "下载",
   "DownloadTranslationCSV": "下载翻译CSV",
 
-  "demoAccount": "试玩帐号",
+  "demoPlayer": "试玩帐号",
   "ACCOUNT_STATUS": "开户状态",
   "createdAccount": "已开户",
   "notYetCreateAccount": "未开户",
@@ -3207,6 +3208,8 @@
   "queryByQualityInspectionDate": "按对话日期查询",
   "queryByAppealDate": "按申诉日期查询",
   "queryByAppealStatus": "按申诉状态查询",
-  "Please select Year - Month": "请选择 年，月份"
+  "Please select Year - Month": "请选择 年，月份",
+  "CsApproveProposal": "客服审核",
+  "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款"
   
 }
