@@ -607,29 +607,39 @@ var roleChecker = {
         QualityInspection: {
             QualityInsectionSetting: {
                 Read: [],
-                queryByProposalDate: [],
-                Edit: ['updatePlatform'],
-                setting: [],
-                definition: []
+                Edit: ['updatePlatform']
             },
             Live800Record: {
-                Read: []
+                Read: ['searchLive800'],
+                Edit: ['rateCSConversation','rateBatchConversation'],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: [],
+                queryByEvaluationStatus: [],
+                queryByQualityAssessor: []
             },
             QualityInsectionEvaluation: {
-                Read: []
-            },
-            QualityInsectionCSReport: {
-                Read: []
-            },
-            QualityInsectionReport: {
-                Read: [],
-                queryByQA: [],
+                Read: ['getUnreadEvaluationRecord','getReadEvaluationRecord','getAppealEvaluationRecordByConversationDate','getAppealEvaluationRecordByAppealDate'],
+                Edit: ['markEvaluationRecordAsRead','appealEvaluation'],
+                queryByQualityAssessor: [],
                 queryByQualityInspectionDate: [],
                 queryByAppealDate: [],
                 queryByAppealStatus: []
+            },
+            QualityInsectionCSReport: {
+                Read: ['searchLive800Record'],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: []
+            },
+            QualityInsectionReport: {
+                Read: ['getWorkloadReport','getEvaluationProgressRecord'],
+                queryByQualityAssessor: [],
+                queryByQualityInspectionDate: [],
+                queryByProduct: []
             }
-
-
         }
     },
 
