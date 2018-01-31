@@ -169,7 +169,7 @@ var dbQualityInspection = {
 
                 live800Chat.operatorId = item.operator_id;
                 live800Chat.operatorName = item.operator_name;
-                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_id;
+                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_name;
                 live800Chat.live800Acc['name'] = item.operator_name;
                 let dom = new JSDOM(item.content);
                 let content = [];
@@ -368,19 +368,12 @@ var dbQualityInspection = {
                 console.log('yeah');
                 if (error) {
                     console.log(error)
-                    // throw error;
                 }
                 deferred.resolve(results);
                 connection.end();
             });
         })
 
-        // connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-        //     console.log('yeah');
-        //     if (error) throw error;
-        //     deferred.resolve(results);
-        //     connection.end();
-        // });
         return deferred.promise;
     },
     searchMySQLDB:function(queryObj, paginationQuery, connection){

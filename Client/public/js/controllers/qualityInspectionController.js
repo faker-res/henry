@@ -353,8 +353,8 @@ define(['js/app'], function (myApp) {
 
             };
             vm.nextPG = function(){
-                vm.pgn.index = (vm.pgn.currentPage+1)*vm.pgn.limit;
                 vm.pgn.currentPage += 1;
+                vm.pgn.index = (vm.pgn.currentPage -1)*vm.pgn.limit;
                 vm.searchLive800();
             };
             vm.gotoPG = function(pg, $event){
@@ -363,12 +363,12 @@ define(['js/app'], function (myApp) {
                     $($event.currentTarget).addClass('active');
                 }
                 let pgNo = null;
-                if(pg==0){
+                if(pg<=0){
                     pgNo = 0
-                }else if(pg > 1){
+                }else if(pg >= 1){
                     pgNo = pg;
                 }
-                vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.pgn.index = ((pgNo-1)*vm.pgn.limit);
                 vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
             },
