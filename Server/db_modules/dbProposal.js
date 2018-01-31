@@ -1978,7 +1978,9 @@ var proposal = {
                         var proposalTypesId = [];
                         for (var i = 0; i < types.length; i++) {
                             if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-                                proposalTypesId.push(types[i]._id);
+                                if (types[i]._id) {
+                                    proposalTypesId.push(types[i]._id);
+                                }
                             }
                         }
 
@@ -2054,7 +2056,7 @@ var proposal = {
                     if (d && d.playerId) {
                         for (var i = 0; i < returnData[0].length; i++) {
 
-                            if (d && d.playerId && d.playerId == returnData[0][i].data.playerId) {
+                            if (d && d.playerId && returnData[0][i].data.playerId && d.playerId == returnData[0][i].data.playerId) {
                                 if (d.csOfficer) {
                                     returnData[0][i].data.csOfficer = d.csOfficer.adminName;
                                 }
