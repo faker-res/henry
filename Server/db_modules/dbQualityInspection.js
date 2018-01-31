@@ -7,6 +7,7 @@ const constQualityInspectionStatus = require('./../const/constQualityInspectionS
 const constQualityInspectionRoleName = require('./../const/constQualityInspectionRoleName');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbQualityInspection = {
     connectMysql: function(){
@@ -1014,14 +1015,14 @@ var dbQualityInspection = {
     },
 
     getWorkloadReport: function(startTime, endTime, qaAccount){
-
         let query ={
             createTime: {
                 $gte: new Date(startTime),
                 $lt: new Date(endTime)
             }
-            //status: constQualityInspectionStatus.COMPLETED_READ
         }
+
+        qaAccount = qaAccount.map(q => ObjectId(q))
 
         if(qaAccount && qaAccount.length > 0){
             query.qualityAssessor = {$in: qaAccount};
