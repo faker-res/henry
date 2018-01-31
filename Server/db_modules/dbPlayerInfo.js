@@ -5576,7 +5576,7 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, playerNameProm]).then(
             data => {
-                if (!data || data[1] || data [2]) {
+                if (!data || data[0] || data [1]) {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
