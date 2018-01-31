@@ -479,7 +479,7 @@ var dbDepartment = {
                         var department = data[j];
                         var parent = department;
                         let count = 0;
-                        while( parent && count < 100){
+                        while( parent && count < 30){
                             count++;
                             if( String(parent._id) == departmentId ){
                                 departmentsTree.push(department);
@@ -520,7 +520,8 @@ var dbDepartment = {
                     for( var j = 0; j < data.length; j++ ){
                         var department = data[j];
                         var parent = department;
-                        while( parent ){
+                        let count = 0;
+                        while( parent && count < 30){
                             if( String(parent._id) == departmentId ){
                                 departmentsTree.push(department);
                                 break;
@@ -528,6 +529,7 @@ var dbDepartment = {
                             else{
                                 parent = parent.parent ? allDepartments[parent.parent] : null;
                             }
+                            count++;
                         }
                     }
                     deferred.resolve(departmentsTree);
