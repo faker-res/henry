@@ -582,6 +582,11 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'DEMO_PLAYER_VALID_DAYS' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.demoPlayerValidDays}}
+                                    input(type='number', ng-show='vm.configTableEdit', ng-model='vm.platformBasic.demoPlayerValidDays')
+                            tr
                                 td {{'samePhoneNumberRegisterCount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
@@ -597,7 +602,7 @@
                             tr
                                 td {{'SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER' | translate}}
                                 td
-                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForTestPlayer', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForDemoPlayer', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'SMS_VERIFICATION' | translate}}
                                 td
