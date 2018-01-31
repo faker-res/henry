@@ -1168,24 +1168,45 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    createDemoPlayer: function (platformId, smsCode, deviceData) {
+    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
+        let platformObjId;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
+                platformObjId = platformData._id;
 
+                if (!platformData.requireSMSVerificationForDemoPlayer) {
+                    return true;
+                }
+
+                if (phoneNumber) {
+                    return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PHONE_NUMBER,
+                        name: "DataError",
+                        message: "Invalid phone number"
+                    });
+                }
+            }
+        ).then(
+            isVerified => {
                 let demoPlayerName = generateDemoPlayerName();
 
                 let demoPlayerData = {
-                    platform: platformData._id,
+                    platform: platformObjId,
                     name: demoPlayerName,
                     password: randomPsw,
                     isTestPlayer: true,
                     isRealPlayer: false
                 };
+                if (phoneNumber) {
+                    demoPlayerData.phoneNumber = phoneNumber;
+                }
 
                 demoPlayerData = Object.assign({}, demoPlayerData, deviceData);
 
@@ -7854,6 +7875,10 @@ let dbPlayerInfo = {
                                                 isAutoApproval: player.platform.enableAutoApplyBonus
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
+                                            if(!player.permission.applyBonus) {
+                                                proposalData.remark = "禁用提款";
+                                                proposalData.needCsApproved = true;
+                                            }
                                             var newProposal = {
                                                 creator: proposalData.creator,
                                                 data: proposalData,
@@ -7867,7 +7892,7 @@ let dbPlayerInfo = {
                                     });
                             });
                     } else {
-                        return Promise.reject({name: "DataError", errorMessage: "There are available reward task group to complete"});
+                        return Promise.reject({status: constServerCode.NOT_ENOUGH_CONSUMPTION, name: "DataError", errorMessage: "There are available reward task group to complete"});
                     }
                 }
             ).then(
