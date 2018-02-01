@@ -34,7 +34,8 @@ define(['js/app'], function (myApp) {
                 FAIL: "Fail",
                 CANCEL: "Cancel",
                 EXPIRED: "Expired",
-                UNDETERMINED: "Undetermined"
+                UNDETERMINED: "Undetermined",
+                CSPENDING: "CsPending"
             };
             vm.allProposalStatus = [
                 "PrePending",
@@ -48,7 +49,8 @@ define(['js/app'], function (myApp) {
                 "Cancel",
                 "Expired",
                 "Undetermined",
-                "Recover"
+                "Recover",
+                "CsPending"
             ];
 
             // vm.allProposalType = [
@@ -997,7 +999,6 @@ define(['js/app'], function (myApp) {
                 $("form[name='form_new_platform'] input").attr('disabled', !bool);
                 $("form[name='form_new_platform'] select").attr('disabled', !bool);
                 $("form[name='form_new_platform'] button").attr('disabled', !bool);
-                $('.demoPlayerPrefixSelection option:selected').text("");
                 console.log("init ed");
                 $scope.safeApply();
             }
@@ -1008,6 +1009,7 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementDay = 0;
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
+                $('.demoPlayerPrefixSelection option:selected').text("");
                 $scope.safeApply();
             }
             vm.getDayName = function (d) {

@@ -1171,14 +1171,14 @@ let dbPlayerInfo = {
 
     createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-        let platformObjId;
+        let platform;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
-                platformObjId = platformData._id;
+                platform = platformData;
 
                 if (!platformData.requireSMSVerificationForDemoPlayer) {
                     return true;
@@ -1196,10 +1196,10 @@ let dbPlayerInfo = {
             }
         ).then(
             isVerified => {
-                let demoPlayerName = generateDemoPlayerName();
+                let demoPlayerName = generateDemoPlayerName(platform.demoPlayerPrefix);
 
                 let demoPlayerData = {
-                    platform: platformObjId,
+                    platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
                     isTestPlayer: true,
@@ -8048,7 +8048,12 @@ let dbPlayerInfo = {
                         type: ObjectId(typeData._id)
                     };
                     if (status) {
-                        queryObj.status = status;
+                        if( Array.isArray(status) ){
+                          queryObj.status = {$in: status};
+                        }
+                        else{
+                            queryObj.status = status;
+                        }
                     }
                     if (startTime || endTime) {
                         queryObj.createTime = {};
