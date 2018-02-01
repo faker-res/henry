@@ -695,6 +695,8 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
+            } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                result = Number.isFinite(parseFloat(val)) ? parseFloat(val).toFixed(2) : val;
             } else if (fieldName == 'bankAccountType') {
                 switch (parseInt(val)) {
                     case 1:
