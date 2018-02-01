@@ -4208,7 +4208,7 @@ let dbPlayerReward = {
 
             // check sms verification
             let checkSMSProm = Promise.resolve(true); // default promise as true if sms checking is not required
-            if (eventData.condition.needSMSVerification && adminInfo && adminInfo.type != 'admin') {
+            if (eventData.condition.needSMSVerification && !adminInfo) {
                 checkSMSProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, playerData.platform, rewardData.smsCode);
             }
 
