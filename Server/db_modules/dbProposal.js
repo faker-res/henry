@@ -1972,7 +1972,7 @@ var proposal = {
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
         let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-        console.log("getPlayerProposalsForPlatformId 0.0", data);
+        console.log("getPlayerProposalsForPlatformId 0.0");
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
             data => {
