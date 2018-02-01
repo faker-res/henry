@@ -131,6 +131,31 @@ define(['js/app'], function (myApp) {
             vm.buildPlatformList = function (data) {
                 vm.platformList = [];
                 for (var i = 0; i < data.length; i++) {
+
+                    // load the default setting for quality inspection evalutation to each platform
+                    if (!data[i].overtimeSetting || data[i].overtimeSetting.length ===0){
+                        vm.getOvertimeSetting(data[i]);
+                    }
+                    // create the conversationDefinition object for old platform without the field
+                    let id=data[i]._id;
+                    let query = {_id: data[i]._id, conversationDefinition: {$exists: true}};
+                    socketService.$socket($scope.AppSocket, 'getPlatformSetting', query, function (data) {
+                        if (data.data.length === 0) {
+                            let sendData = {
+                                query: {_id: id},
+                                updateData: {
+                                    'conversationDefinition.totalSec': 40,
+                                    'conversationDefinition.askingSentence': 2,
+                                    'conversationDefinition.replyingSentence': 2
+                                }
+                            };
+                            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                                vm.loadPlatformData({loadAll: false});
+                                $scope.safeApply();
+                            });
+                        }
+                    });
+                    vm.getConversationDefinition(data[i]);
                     vm.platformList.push(vm.createPlatformNode(data[i]));
                 }
                 //var platformsToDisplay = vm.platformList;
@@ -253,56 +278,6 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
-
-                // Initial Loading
-                // Initial setting for setting in qualityInspection
-                vm.getOvertimeSetting();
-                // create the conversationDefinition object for old platform
-                let query = {_id: vm.selectedPlatform.id, conversationDefinition: {$exists: true}};
-                socketService.$socket($scope.AppSocket, 'getPlatformSetting', query, function (data) {
-                    if (data.data.length === 0) {
-                        let sendData = {
-                            query: {_id: vm.selectedPlatform.id},
-                            updateData: {
-                                'conversationDefinition.totalSec': 40,
-                                'conversationDefinition.askingSentence': 2,
-                                'conversationDefinition.replyingSentence': 2
-                            }
-                        };
-                        socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                            vm.loadPlatformData({loadAll: false});
-                            $scope.safeApply();
-                        });
-
-                    }
-
-                });
-                vm.getConversationDefinition();
-
-
-                // socketService.$socket($scope.AppSocket, 'getDepartmentsbyPlatformObjId', [], function (data){
-                //     let sendQuery ={
-                //         departments: {$in: data.data}
-                //     };
-                //     socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
-                //         vm.selectedCSAccount = [];
-                //         if (data && data.data){
-                //             data.data.forEach(acc => {
-                //                 if (acc.live800Acc && acc.live800Acc.length > 0){
-                //                     vm.selectedCSAccount.push(acc);
-                //                 }
-                //             });
-                //         }
-                //         console.log("vm.selectedCSAccount", vm.selectedCSAccount);
-                //         //$scope.safeApply();
-                //         // // have to re-initiate the #selectCSAccount to show data
-                //         // setTimeout(function () {
-                //         //     $('select#selectCSAccount').multipleSelect();
-                //         // });
-                //
-                //     });
-                // });
-
             };
 
             //create platform node for platform list
@@ -1436,18 +1411,25 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.getConversationDefinition = function () {
-                vm.conversationDefinition = vm.conversationDefinition || {};
-                vm.conversationDefinition.totalSec = vm.selectedPlatform.data.conversationDefinition.totalSec;
-                vm.conversationDefinition.askingSentence = vm.selectedPlatform.data.conversationDefinition.askingSentence;
-                vm.conversationDefinition.replyingSentence = vm.selectedPlatform.data.conversationDefinition.replyingSentence;
+            vm.getConversationDefinition = function (platformData) {
+                if (!platformData){
+                    platformData=vm.selectedPlatform.data;
+                }
 
+                vm.conversationDefinition = vm.conversationDefinition || {};
+                vm.conversationDefinition.totalSec = platformData.conversationDefinition.totalSec;
+                vm.conversationDefinition.askingSentence = platformData.conversationDefinition.askingSentence;
+                vm.conversationDefinition.replyingSentence = platformData.conversationDefinition.replyingSentence;
             };
 
-            vm.getOvertimeSetting = function () {
+            vm.getOvertimeSetting = function (platformData) {
+                if (!platformData){
+                    platformData=vm.selectedPlatform.data;
+
+                }
                 vm.overtimeSetting = vm.overtimeSetting || {};
                 // initiate a basic setting if the setting is empty
-                if (!vm.selectedPlatform.data.overtimeSetting || vm.selectedPlatform.data.overtimeSetting.length === 0) {
+                if (!platformData.overtimeSetting || platformData.overtimeSetting.length === 0) {
 
                         let overtimeSetting = [{
                             conversationInterval: 30,
@@ -1472,7 +1454,7 @@ define(['js/app'], function (myApp) {
                         }];
 
                     let sendData = {
-                        query: {_id: vm.selectedPlatform.id},
+                        query: {_id: platformData._id},
                         updateData: {overtimeSetting: overtimeSetting}
                     };
                     socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -1482,7 +1464,7 @@ define(['js/app'], function (myApp) {
                     vm.overtimeSetting = overtimeSetting;
                 }
                 else {
-                    vm.overtimeSetting = vm.selectedPlatform.data.overtimeSetting;
+                    vm.overtimeSetting = platformData.overtimeSetting;
                 }
 
                 vm.overtimeSetting.sort(function (a, b) {
