@@ -218,7 +218,10 @@ var platformSchema = new Schema({
     // get the QI Department for display livechat related conversation
     qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
     // Demo Player Prefix Code
-    demoPlayerPrefix: {type:String}
+    demoPlayerPrefix: {type:String},
+    manualAuditFirstWithdrawal: {type: Boolean, default: false},
+    manualAuditAfterBankChanged: {type: Boolean, default: false},
+    manualAuditBanWithdrawal: {type: Boolean, default: false},
 });
 
 //add platform id before save

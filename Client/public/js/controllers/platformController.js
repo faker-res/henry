@@ -19100,6 +19100,9 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic = vm.autoApprovalBasic || {};
                 console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
                 vm.autoApprovalBasic.enableAutoApplyBonus = vm.selectedPlatform.data.enableAutoApplyBonus;
+                vm.autoApprovalBasic.manualAuditFirstWithdrawal = vm.selectedPlatform.data.manualAuditFirstWithdrawal;
+                vm.autoApprovalBasic.manualAuditAfterBankChanged = vm.selectedPlatform.data.manualAuditAfterBankChanged;
+                vm.autoApprovalBasic.manualAuditBanWithdrawal = vm.selectedPlatform.data.manualAuditBanWithdrawal;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
                 vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
@@ -19546,6 +19549,9 @@ define(['js/app'], function (myApp) {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         enableAutoApplyBonus: srcData.enableAutoApplyBonus,
+                        manualAuditFirstWithdrawal: srcData.manualAuditFirstWithdrawal,
+                        manualAuditAfterBankChanged: srcData.manualAuditAfterBankChanged,
+                        manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                         autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                         autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
                         autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
