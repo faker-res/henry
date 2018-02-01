@@ -405,20 +405,23 @@ define(['js/app'], function (myApp) {
                         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
                         item.conversation.forEach(function(cv){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                            // load each platform overtimeSetting
                             let overtimeSetting = vm.platformList.filter(pf=>{
                                 if(pf.data.live800CompanyId && pf.data.live800CompanyId.length > 0){
                                     if(pf.data.live800CompanyId.indexOf(String(item.companyId))!=-1){
-                                        return pf
+                                        return pf;
                                     }
                                 };
                             });
                             if(overtimeSetting.length > 0){
                                 overtimeSetting = overtimeSetting[0].data.overtimeSetting;
                             }else{
-                                overtimeSetting = []
+                                overtimeSetting = [];
                             }
                             let otsLength = overtimeSetting.length -1;
                             let colors = '';
+                            // render with different color
                             overtimeSetting.forEach((ots,i)=>{
                                 if(cv.roles==1){
                                     if(i==0){
