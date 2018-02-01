@@ -90,7 +90,6 @@ var dbQualityInspection = {
         }else{
             mysqlAccName = String(acc);
         }
-        console.log(mysqlAccName)
         return mysqlAccName
     },
     searchLive800: function (query) {
@@ -504,18 +503,21 @@ var dbQualityInspection = {
                             lastCustomerCV = item;
                         }
                     } else if (item.roles == 1 && lastCustomerCV) {
-                        // calculate the timeoutRate
                         let timeStamp = item.time - lastCustomerCV.time;
                         let sec = timeStamp / 1000;
                         let rate = 0;
-                        item.timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, item, sec);
+
+
+                        if(lastCV.roles == 1){
+                            // if that's cs conversation before it, no need to rate again.
+                        }else if(lastCV.roles != 1){
+                            // calculate the timeoutRate
+                            item.timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, item, sec);
+                        }
                     } else {
                     }
                 }
-                if (item.roles != 3) {
-                    //system msg should not involve
-                    lastCV = item;
-                }
+                lastCV = item;
                 return item;
             })
         }

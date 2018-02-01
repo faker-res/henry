@@ -383,8 +383,6 @@ define(['js/app'], function (myApp) {
                     fpmsId = [];
                 }
                 var query = {
-                        // 'companyId':270,
-                        // 'operatorId':764,
                         'companyId':vm.companyIds,
                         'fpmsAcc':vm.inspection800.fpms || [],
                         'operatorId':vm.inspection800.live800Accs,
@@ -401,9 +399,9 @@ define(['js/app'], function (myApp) {
                 function success(data) {
                     data.data.forEach(item=>{
                         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
-                        item.conversation.forEach(function(cv){
+                        item.conversation.forEach(function(cv,i){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-
+                            cv.needRate = vm.avoidMultiRateCS(cv,i,item.conversation);
                             // load each platform overtimeSetting
                             let overtimeSetting = vm.getPlatformOvertimeSetting(item);
                             let otsLength = overtimeSetting.length -1;
@@ -411,7 +409,7 @@ define(['js/app'], function (myApp) {
 
                             // render with different color
                             overtimeSetting.forEach((ots,i)=>{
-                                if(cv.roles==1){
+                                if(cv.roles==1 && cv.needRate){
                                     if(i==0){
                                         if(cv.timeoutRate >= overtimeSetting[0].presetMark){
                                             colors = overtimeSetting[0].color;
@@ -468,6 +466,23 @@ define(['js/app'], function (myApp) {
                     overtimeSetting = [];
                 }
                 return overtimeSetting;
+            },
+            vm.avoidMultiRateCS = function(cv, index, conversations){
+                let needRate = null;
+                // only cs need to be rated , cs roles is 1
+                if(cv.roles === 1 && index != 0){
+
+                    if(conversations[index-1].roles==1){
+                        //if last dialog is from cs , which mean after he reply , then no need to rate it twice,
+                        //until next conversation start from customer roles, which is 2
+                        needRate = false;
+                    }else{
+                        needRate = true;
+                    }
+                }else{
+                    needRate = false;
+                }
+                return needRate;
             },
             vm.confirmRate = function(rate){
                 console.log(rate);
