@@ -8860,6 +8860,11 @@ let dbPlayerInfo = {
                                         if (paymentData.merchants[i].merchantNo == merchant) {
                                             status = 1;
                                         }
+
+                                        if (playerData.permission.topupOnline === false) {
+                                            status = 0;
+                                        }
+
                                         var bValidType = true;
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
@@ -8889,6 +8894,11 @@ let dbPlayerInfo = {
                                         if (paymentData.data[i].accountNumber == bank) {
                                             status = 1;
                                         }
+
+                                        if (playerData.permission.topupManual === false) {
+                                            status = 0;
+                                        }
+
                                         var bValidType = true;
                                         resData.forEach(type => {
                                             if (type.type == paymentData.data[i].bankTypeId) {
