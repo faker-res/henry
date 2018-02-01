@@ -4053,7 +4053,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         );
 
         function handlePlayer(proposal) {
-            let phoneNumber = proposal.data ? proposal.data.phoneNumber : "";
+            let phoneNumber = proposal.data && proposal.data.phoneNumber? proposal.data.phoneNumber : "";
             let status = proposal.status ? proposal.status : "";
             let allCountQuery = {};
             let currentCountQuery = {};
@@ -4152,8 +4152,8 @@ function insertPlayerRepeatCount(proposals, platformId) {
 
             return Promise.all([allCountProm, currentCountProm, previousCountProm, futureAllCountProm, futureAfterSuccessCountProm, futureManualAllCountProm]).then(
                 countData => {
-                    let allCount = countData[0];
-                    let currentCount = countData[1];
+                    let allCount = countData[0]? countData[0]: 0;
+                    let currentCount = countData[1]? countData[1]: 0;
                     let previousCount = countData[2] ? countData[2] : 0;
                     let futureSuccessCount = countData[3] ? countData[3] : 0;
                     let futureFailCount = countData[4] ? countData[4] : 0;
