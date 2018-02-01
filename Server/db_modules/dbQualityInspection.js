@@ -769,13 +769,14 @@ var dbQualityInspection = {
         return String(str).replace(/\&#60\;/gi,'').replace(/\&#160\;/gi, ' ').replace(/\&#173\;/gi, '\t')
     },
 
-    getUnreadEvaluationRecord: function (startTime, endTime, index, size) {
+    getUnreadEvaluationRecord: function (startTime, endTime, index, size, adminId) {
         let query = {
             createTime: {
                 $gte: startTime,
                 $lt: endTime
             },
-            status: constQualityInspectionStatus.COMPLETED_UNREAD
+            status: constQualityInspectionStatus.COMPLETED_UNREAD,
+            fpmsAcc: adminId
         }
         let unreadEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
             unreadEvaluationData => {
@@ -847,13 +848,14 @@ var dbQualityInspection = {
         }
     },
 
-    getReadEvaluationRecord: function(startTime, endTime, index, size){
+    getReadEvaluationRecord: function(startTime, endTime, index, size, adminId){
         let query ={
             createTime: {
                 $gte: startTime,
                 $lt: endTime
             },
-            status: constQualityInspectionStatus.COMPLETED_READ
+            status: constQualityInspectionStatus.COMPLETED_READ,
+            fpmsAcc: adminId
         }
         let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
             readEvaluationData => {
@@ -897,12 +899,13 @@ var dbQualityInspection = {
         )
     },
 
-    getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status, index, size){
+    getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status, index, size, adminId){
         let query ={
             createTime: {
                 $gte: startTime,
                 $lt: endTime
-            }
+            },
+            fpmsAcc: adminId
         }
 
         if(status != "all"){
@@ -954,13 +957,14 @@ var dbQualityInspection = {
         )
     },
 
-    getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status, index, size){
+    getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status, index, size, adminId){
 
         let query ={
             processTime: {
                 $gte: startTime,
                 $lt: endTime
-            }
+            },
+            fpmsAcc: adminId
         }
 
         if(status != "all"){
