@@ -2253,7 +2253,6 @@ var dbPlatform = {
                                             let buttonObj = {};
                                             if (b.buttonName) {
                                                 buttonObj.btn = b.buttonName;
-
                                             }
                                             if(b.url){
                                                 buttonObj.btnImg = b.url;
