@@ -648,7 +648,10 @@
                                 td {{'Use Phone Number Two Steps Verification' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.usePhoneNumberTwoStepsVerification', ng-disabled='!vm.configTableEdit')
-
+                            tr
+                                td {{'Player forbid apply bonus, apply bonus proposal need cs approval' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.playerForbidApplyBonusNeedCsApproval', ng-disabled='!vm.configTableEdit')
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}

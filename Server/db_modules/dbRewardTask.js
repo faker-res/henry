@@ -2065,6 +2065,10 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                     rewardTaskGroup.unlockTime = createTime;
                 }
                 // Consumption reached
+                // Case 1: 50 + 45 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 45 - 50 = -5, 5 will be deducted from free amount consumption
+                //     to compensate an early achieved RTG
+                // Case 2: 50 + 50 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 50 - 50 = 0
+                // Case 3: 50 + 55 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 55 - 50 = 5, 5 will be increased to free amount consumption
                 else if (rewardTaskGroup.curConsumption + consumptionRecord.validAmount + consumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
                     consumptionAmt = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rewardTaskGroup.curConsumption;
                     remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
@@ -2078,34 +2082,6 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                     status: rewardTaskGroup.status,
                     unlockTime: rewardTaskGroup.unlockTime
                 };
-
-                // let forbidXIMAAmt = rewardTaskGroup.forbidXIMAAmt - rewardTaskGroup.curConsumption;
-
-
-                // // XIMA consumption handling
-                // if (forbidXIMAAmt && forbidXIMAAmt > 0) {
-                //     let diffAmt = forbidXIMAAmt - consumptionRecord.validAmount;
-                //     let leftOverAmt = consumptionRecord.validAmount - forbidXIMAAmt;
-                //
-                //     if (diffAmt >= 0) {
-                //         // The XIMA consumption is still sufficient
-                //         updObj.$inc.forbidXIMAAmt = -consumptionRecord.validAmount;
-                //         // Mark this consumption record as dirty
-                //         bDirty = true;
-                //     } else {
-                //         // Insufficient XIMA consumption
-                //         // Add consumption to normal consumption count
-                //         updObj.$inc.forbidXIMAAmt = -rewardTaskGroup.forbidXIMAAmt;
-                //         updObj.$inc.curConsumption = consumptionRecord.validAmount - rewardTaskGroup.forbidXIMAAmt;
-                //         // Return left over amount for XIMA
-                //         nonDirtyAmount = leftOverAmt;
-                //     }
-                // }
-                // else {
-                //     updObj.$inc.curConsumption = consumptionRecord.validAmount;
-                // }
-
-
 
                 return Promise.all([
                     dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
