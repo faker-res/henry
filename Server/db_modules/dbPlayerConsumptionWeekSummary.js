@@ -597,20 +597,23 @@ var dbPlayerConsumptionWeekSummary = {
     /**
      * Get consumption return amount for player
      * @param {String} playerId
+     * @param eventCode
      */
     getPlayerConsumptionReturn: function (playerId, eventCode) {
-        var platformData = null;
-        var playerData = null;
+        let platformData = null;
+        let playerData = null;
         let eventObj = null;
+
         //check if player platform has consumption return reward event
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-            .populate({path: "platform", model: dbconfig.collection_platform}).then(
-                function (data) {
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                data => {
                     if (data && data.platform) {
                         playerData = data;
                         platformData = data.platform;
-                        if( eventCode ){
+
+                        if (eventCode) {
                             return dbRewardEvent.getPlatformRewardEventWithCode(data.platform._id, constRewardType.PLAYER_CONSUMPTION_RETURN, eventCode);
                         }
                         else{
@@ -693,7 +696,7 @@ var dbPlayerConsumptionWeekSummary = {
      * @param {ObjectId} proposalTypeId
      * @param {ObjectId} playerId
      * @param {Boolean} bDetail, if contain detailed player info
-     * @param bRequest
+     * @param bRequest - Is user triggered early settlement
      */
     getPlayerConsumptionReturnAmount: function (platformId, event, proposalTypeId, playerId, bDetail, bRequest) {
         let settleTime = event.settlementPeriod == constSettlementPeriod.DAILY ? dbutility.getYesterdayConsumptionReturnSGTime() : dbutility.getLastWeekConsumptionReturnSGTime();
@@ -705,25 +708,25 @@ var dbPlayerConsumptionWeekSummary = {
                 settleTime = dbutility.getCurrentWeekConsumptionReturnSGTime();
             }
         }
-        var eventData = event.param;
-        var summaryDay = {$gte: settleTime.startTime};
+        let eventData = event.param;
+        let summaryDay = {$gte: settleTime.startTime};
         //if preview for settlement, only calculate for settlement time
         //if preview for player request, calculate data until now
         if (bDetail) {
             summaryDay["$lt"] = settleTime.endTime;
         }
-        var summaryProm = dbconfig.collection_playerConsumptionSummary.find(
+        let summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
                 platformId: platformId,
                 playerId: playerId,
                 summaryDay: summaryDay,
                 bDirty: false
             }
-        );
-        var playerLevelProm = dbconfig.collection_players.findOne({_id: playerId}).select("playerLevel playerId name")
+        ).lean();
+        let playerLevelProm = dbconfig.collection_players.findOne({_id: playerId}).select("playerLevel playerId name")
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().exec();
 
-        var gameTypesProm = dbGameType.getAllGameTypes();
+        let gameTypesProm = dbGameType.getAllGameTypes();
 
         return Q.all([summaryProm, playerLevelProm, gameTypesProm]).spread(
             function (consumptionSummaries, playerData, allGameTypes) {
@@ -732,10 +735,10 @@ var dbPlayerConsumptionWeekSummary = {
 
                 if (consumptionSummaries && playerData) {
                     // Process the data into key map
-                    var consumptionSummariesByKey = {};
+                    let consumptionSummariesByKey = {};
                     consumptionSummaries.forEach(
                         function (summary) {
-                            var key = String(summary.playerId + ':' + summary.gameType);
+                            let key = String(summary.playerId + ':' + summary.gameType);
                             if (consumptionSummariesByKey[key]) {
                                 // This is not supposed to happen: There are not supposed to be multiple summaries with the same key.
                                 // But just in case this does happen, let's not lose the player's consumption!
@@ -746,35 +749,35 @@ var dbPlayerConsumptionWeekSummary = {
                             }
                         }
                     );
-                    var returnAmount = 0;
+                    let returnAmount = 0;
 
                     // Check all game types and calculate return amount
-                    var res = {};
+                    let res = {};
                     res.settleTime = settleTime;
                     res.totalConsumptionAmount = 0;
-                    for (var type in allGameTypes) {
-                        var playerLevel = playerData.playerLevel;
-                        var gameType = allGameTypes[type];
-                        var typeKey = String(playerData._id + ':' + gameType);
-                        var consumptionSummary = consumptionSummariesByKey[typeKey];
-                        var eventRatios = eventData.ratio[playerLevel.value];
-                        var ratio = eventRatios && eventRatios[gameType];
+                    for (let type in allGameTypes) {
+                        let playerLevel = playerData.playerLevel;
+                        let gameType = allGameTypes[type];
+                        let typeKey = String(playerData._id + ':' + gameType);
+                        let consumptionSummary = consumptionSummariesByKey[typeKey];
+                        let eventRatios = eventData.ratio[playerLevel.value];
+                        let ratio = eventRatios && eventRatios[gameType];
 
                         if (!eventRatios) {
-                            var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData);
+                            let msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData);
                             //return Q.reject(Error(msg));
                             console.warn(msg);
                             ratio = 0;
                         }
                         if (typeof ratio !== 'number') {
-                            var msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData);
+                            let msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData);
                             //return Q.reject(Error(msg));
                             console.warn(msg);
                             ratio = 0;
                         }
                         if (consumptionSummary && playerLevel && ratio >= 0) {
-                            var consumeValidAmount = consumptionSummary.validAmount;
-                            var returnForThisGameType = consumeValidAmount * ratio;
+                            let consumeValidAmount = consumptionSummary.validAmount;
+                            let returnForThisGameType = consumeValidAmount * ratio;
                             returnAmount += returnForThisGameType;
                             res.totalConsumptionAmount += consumeValidAmount;
                             res[type] = {
@@ -814,7 +817,7 @@ var dbPlayerConsumptionWeekSummary = {
                 }
             },
             function (error) {
-                return Q.reject({
+                return Promise.reject({
                     name: "DBError",
                     message: "Error finding player consumption week summary",
                     error: error
