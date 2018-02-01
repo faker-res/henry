@@ -492,10 +492,8 @@ var dbQualityInspection = {
             let overtimeSetting = platform.overtimeSetting;
             conversation.forEach(item => {
                 if (!firstCV && item.roles == 2) {
-
                     firstCV = item;
                     lastCustomerCV = item;
-                    console.log(item.content)
                 } else {
                     if (item.roles == 2) {
                         // keep the last customer question , to calculate the timeoutRate
@@ -506,7 +504,6 @@ var dbQualityInspection = {
                         let timeStamp = item.time - lastCustomerCV.time;
                         let sec = timeStamp / 1000;
                         let rate = 0;
-
 
                         if(lastCV.roles == 1){
                             // if that's cs conversation before it, no need to rate again.
