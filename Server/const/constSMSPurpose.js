@@ -8,7 +8,7 @@ const constSMSPurpose = {
     UPDATE_BANK_INFO: 'updateBankInfo',
     RESET_PASSWORD: 'resetPassword',
     FREE_TRIAL_REWARD: 'freeTrialReward',
-    DEMO_ACCOUNT: 'demoAccount',
+    DEMO_PLAYER: 'demoPlayer',
 };
 
 module.exports = constSMSPurpose;

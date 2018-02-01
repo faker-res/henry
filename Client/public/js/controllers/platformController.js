@@ -288,7 +288,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
                 FREE_TRIAL_REWARD: 'freeTrialReward',
-                DEMO_ACCOUNT: 'demoAccount',
+                DEMO_PLAYER: 'demoPlayer',
                 // RESET_PASSWORD: 'resetPassword'
             };
 
@@ -19004,6 +19004,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.usePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.usePhoneNumberTwoStepsVerification;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
+                vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -19496,7 +19497,8 @@ define(['js/app'], function (myApp) {
                         useProviderGroup: srcData.useProviderGroup,
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
-                        usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
+                        usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
+                        playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval
                     }
                 };
                 let isProviderGroupOn = false;
@@ -19538,7 +19540,7 @@ define(['js/app'], function (myApp) {
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset
+                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
                     }
                 };
                 console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
