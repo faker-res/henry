@@ -48,8 +48,7 @@ define(['js/app'], function (myApp) {
                 "Cancel",
                 "Expired",
                 "Undetermined",
-                "Recover",
-                "CsPending"
+                "Recover"
             ];
 
             // vm.allProposalType = [
