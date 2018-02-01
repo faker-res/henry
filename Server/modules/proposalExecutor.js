@@ -3358,7 +3358,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
 
                 changedValidCredit = inputFreeAmt;
                 changedLockedCredit = inputRewardAmt;
-                let lockedAmount = rewardTaskGroup.rewardAmt + inputRewardAmt;
+                let lockedAmount = inputRewardAmt;
                 let validCredit = inputFreeAmt;
 
                 let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({

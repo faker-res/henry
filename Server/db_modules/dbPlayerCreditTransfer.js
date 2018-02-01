@@ -1396,7 +1396,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
             let rewardGroupObj;
 
             if (res && res[0]) {
-                let providerPlayerObj = {gameCredit: res[0].credit ? parseFloat(res[0].credit) : 0};
+                let providerPlayerObj = {gameCredit: res[0].credit ? parseInt(res[0].credit) : 0};
                 rewardGroupObj = res[1];
 
                 // Process transfer amount

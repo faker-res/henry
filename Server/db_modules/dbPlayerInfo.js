@@ -88,6 +88,7 @@ let dbPlayerMail = require('../db_modules/dbPlayerMail');
 let dbConsumptionReturnWithdraw = require('../db_modules/dbConsumptionReturnWithdraw');
 let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
+let dbAutoProposal = require('../db_modules/dbAutoProposal');
 
 let dbPlayerInfo = {
 
@@ -315,7 +316,7 @@ let dbPlayerInfo = {
 
                     return Q.all([playerNameChecker, realNameChecker]).then(data => {
                         if (data && data.length == 2 && data[0] && data[1]) {
-                            if (data[0].isPlayerNameValid && data[1].isPlayerNameValid) {
+                            if (data[0].isPlayerNameValid && (data[1].isPlayerNameValid || !inputData.realName)) {
                                 return {"isPlayerNameValid": true};
                             }
                             else {
@@ -5576,7 +5577,7 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, playerNameProm]).then(
             data => {
-                if (!data || data[1] || data [2]) {
+                if (!data || data[0] || data [1]) {
                     return {isPlayerNameValid: false};
                 } else {
                     return {isPlayerNameValid: true};
@@ -7875,6 +7876,10 @@ let dbPlayerInfo = {
                                                 isAutoApproval: player.platform.enableAutoApplyBonus
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
+                                            if(!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
+                                                proposalData.remark = "禁用提款";
+                                                proposalData.needCsApproved = true;
+                                            }
                                             var newProposal = {
                                                 creator: proposalData.creator,
                                                 data: proposalData,
@@ -7888,7 +7893,7 @@ let dbPlayerInfo = {
                                     });
                             });
                     } else {
-                        return Promise.reject({name: "DataError", errorMessage: "There are available reward task group to complete"});
+                        return Promise.reject({status: constServerCode.NOT_ENOUGH_CONSUMPTION, name: "DataError", errorMessage: "There are available reward task group to complete"});
                     }
                 }
             ).then(
@@ -7904,7 +7909,24 @@ let dbPlayerInfo = {
                     }
                 }
             ).then(
-                data => data,
+                data => {
+                    let proposal = Object.assign({}, data);
+                    proposal.type = proposal.type._id;
+                    return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
+                        platform => {
+                            if(platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
+                                let proposals = [];
+                                proposals.push(proposal);
+                                dbAutoProposal.processAutoProposals(proposals, platform, platform.useProviderGroup);
+                            }
+                            return data;
+                        },
+                        error => {
+                            errorUtils.reportError(error);
+                            return data;
+                        }
+                    );
+                },
                 error => {
                     if (bUpdateCredit) {
                         return resetCredit(player._id, player.platform._id, amount, error);

@@ -648,7 +648,10 @@
                                 td {{'Use Phone Number Two Steps Verification' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.usePhoneNumberTwoStepsVerification', ng-disabled='!vm.configTableEdit')
-
+                            tr
+                                td {{'Player forbid apply bonus, apply bonus proposal need cs approval' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.playerForbidApplyBonusNeedCsApproval', ng-disabled='!vm.configTableEdit')
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
@@ -1273,7 +1276,7 @@
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteSmsGroup(vm.deletingSmsGroup)') {{"DELETE" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
-.row(ng-if="checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
+.row(ng-if="vm.selectedConfigTab=='platformBasic' && checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
     .col-md-3
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary

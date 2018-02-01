@@ -223,6 +223,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 checkMsgChinese += "投注额不足：投注额 " + curConsumptionAmount + " ，需求投注额 " + totalConsumptionAmout + "; ";
                 isApprove = false;
             }
+
+            // Consumption reached, check for other conditions
             if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
                 checkMsg += " Denied: Single limit;";
                 checkMsgChinese += " 失败：单限;";
@@ -1166,7 +1168,8 @@ function isFirstWithdrawalAfterPaymentInfoUpdated(proposals) {
         if (proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
             return true;
         }
-        if (proposal.type.name == constProposalType.PLAYER_BONUS) {
+        if (proposal.type.name == constProposalType.PLAYER_BONUS &&
+            (proposal.status != constProposalStatus.REJECTED) || (proposal.status != constProposalStatus.FAIL) || (proposal.status != constProposalStatus.CANCEL)) {
             return false;
         }
     }

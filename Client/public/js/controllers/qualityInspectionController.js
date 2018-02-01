@@ -353,8 +353,8 @@ define(['js/app'], function (myApp) {
 
             };
             vm.nextPG = function(){
-                vm.pgn.index = (vm.pgn.currentPage+1)*vm.pgn.limit;
                 vm.pgn.currentPage += 1;
+                vm.pgn.index = (vm.pgn.currentPage -1)*vm.pgn.limit;
                 vm.searchLive800();
             };
             vm.gotoPG = function(pg, $event){
@@ -363,12 +363,12 @@ define(['js/app'], function (myApp) {
                     $($event.currentTarget).addClass('active');
                 }
                 let pgNo = null;
-                if(pg==0){
+                if(pg<=0){
                     pgNo = 0
-                }else if(pg > 1){
+                }else if(pg >= 1){
                     pgNo = pg;
                 }
-                vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.pgn.index = ((pgNo-1)*vm.pgn.limit);
                 vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
             },
@@ -467,7 +467,7 @@ define(['js/app'], function (myApp) {
                 vm.inspection800.fpms = [];
                 vm.inspection800.status = '1';
                 vm.inspection800.qiUser = 'all';
-                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:5, count:1};
+                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:5, count:0};
 
                 setTimeout(function(){
                     $scope.safeApply();
@@ -1161,8 +1161,6 @@ define(['js/app'], function (myApp) {
                         setTimeout(function () {
                             $('#workloadReportTable').resize();
                         }, 300);
-                    }else{
-                        vm.appealEvaluationTable = "";
                     }
 
                     vm.loadingWorkloadReportTable = false;
@@ -1177,9 +1175,24 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        platformObjId: vm.evaluationProgressPlatform,
+                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
+                    }
+
+                    if(vm.evaluationProgressPlatform && vm.evaluationProgressPlatform.length > 0){
+                        sendData.platformObjId = vm.evaluationProgressPlatform
+                    }else{
+                        if(vm.platformList && vm.platformList.length > 0){
+                            let platformArr = [];
+                            vm.platformList.forEach(p => {
+                                if(p && p.id){
+                                    platformArr.push(p.id);
+                                }
+
+                            })
+                            sendData.platformObjId = platformArr;
+                        }
                     }
                     let resultArr = [];
                     let resultArr2 = [];
@@ -1642,7 +1655,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
                 vm.allCSDepartmentId=[];
-                vm.platformWithCSDepartment=[]; // to filter out the platfrom with CS Department for the Product Filter
+                vm.platformWithCSDepartment=[]; // to filter out the platform with CS Department for the Product Filter
 
 
                 vm.platformList.forEach(platform => {
@@ -1707,27 +1720,21 @@ define(['js/app'], function (myApp) {
                 vm.QIReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
                 utilService.actionAfterLoaded("#QIReportTable", function () {
                     vm.commonInitTime(vm.QIReportQuery, '#QIReportQuery');
-                    // vm.QIReportQuery.pageObj = utilService.createPageForPagingTable("#QIReportTablePage", {}, $translate, vm.QIReportTablePageChange);
                     $scope.safeApply()
                 });
 
             };
-
-
-            // vm.QIReportTablePageChange = function (curP, pageSize) {
-            //     vm.commonPageChangeHandler(curP, pageSize, "QIReportQuery", vm.searchQIRecord)
-            // };
 
             vm.searchQIRecord = function (newSearch) {
 
                 let startTime = vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate();
 
-                let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
-                if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
-                    socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
-                    return;
-                }
+                // let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
+                // if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
+                //     socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
+                //     return;
+                // }
 
                 vm.platformCompanyID=[];
                 vm.platformList.forEach(platform => {
@@ -1938,6 +1945,13 @@ define(['js/app'], function (myApp) {
                         vm.postData.forEach(data=>{
                             data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED
                             data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
+                            // check NaN
+                            if (data.pendingCount == "NaN"){
+                                data.pendingCount=Number(0).toFixed(2);
+                            }
+                            if (data.avgMark == "NaN"){
+                                data.avgMark=Number(0).toFixed(2);
+                            }
                         })
                     }
 
