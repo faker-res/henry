@@ -1171,14 +1171,14 @@ let dbPlayerInfo = {
 
     createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-        let platformObjId;
+        let platform;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
-                platformObjId = platformData._id;
+                platform = platformData;
 
                 if (!platformData.requireSMSVerificationForDemoPlayer) {
                     return true;
@@ -1196,10 +1196,10 @@ let dbPlayerInfo = {
             }
         ).then(
             isVerified => {
-                let demoPlayerName = generateDemoPlayerName();
+                let demoPlayerName = generateDemoPlayerName(platform.demoPlayerPrefix);
 
                 let demoPlayerData = {
-                    platform: platformObjId,
+                    platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
                     isTestPlayer: true,
@@ -8444,16 +8444,17 @@ let dbPlayerInfo = {
     },
 
     getLoginURL: function (playerId, gameId, ip, lang, clientDomainName, clientType, inputDevice) {
-        var providerData = null;
-        var playerData = null;
-        var bTransferIn = false;
-        var gameData = null;
+        let providerData = null;
+        let playerData = null;
+        let platform = null;
+        let bTransferIn = false;
+        let gameData = null;
         //transfer out from current provider
-        var playerProm = dbconfig.collection_players.findOne({playerId: playerId})
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider})
             .lean();
-        var gameProm = dbconfig.collection_game.findOne({gameId: gameId}).populate({
+        let gameProm = dbconfig.collection_game.findOne({gameId: gameId}).populate({
             path: "provider",
             model: dbconfig.collection_gameProvider
         }).lean();
@@ -8498,6 +8499,8 @@ let dbPlayerInfo = {
                     playerData = data[0];
                     gameData = data[1];
                     providerData = gameData.provider;
+                    platform = playerData.platform;
+
                     // check if the player is forbidden totally
                     if (playerData.permission.forbidPlayerFromLogin) {
                         return Promise.reject({
@@ -8544,6 +8547,15 @@ let dbPlayerInfo = {
 
                     //check all status
                     if (gameData.status != constGameStatus.ENABLE) {
+                        return Promise.reject({
+                            status: constServerCode.CP_NOT_AVAILABLE,
+                            name: "DataError",
+                            message: "Game is not available",
+                            gameStatus: gameData.status
+                        });
+                    }
+
+                    if (platform && platform.gameProviderInfo && platform.gameProviderInfo[providerData._id] && platform.gameProviderInfo[providerData._id].isEnable === false) {
                         return Promise.reject({
                             status: constServerCode.CP_NOT_AVAILABLE,
                             name: "DataError",
@@ -8860,6 +8872,11 @@ let dbPlayerInfo = {
                                         if (paymentData.merchants[i].merchantNo == merchant) {
                                             status = 1;
                                         }
+
+                                        if (playerData.permission.topupOnline === false) {
+                                            status = 0;
+                                        }
+
                                         var bValidType = true;
                                         resData.forEach(type => {
                                             if (type.type == paymentData.merchants[i].topupType) {
@@ -8889,6 +8906,11 @@ let dbPlayerInfo = {
                                         if (paymentData.data[i].accountNumber == bank) {
                                             status = 1;
                                         }
+
+                                        if (playerData.permission.topupManual === false) {
+                                            status = 0;
+                                        }
+
                                         var bValidType = true;
                                         resData.forEach(type => {
                                             if (type.type == paymentData.data[i].bankTypeId) {
