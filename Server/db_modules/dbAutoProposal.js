@@ -1169,7 +1169,7 @@ function isFirstWithdrawalAfterPaymentInfoUpdated(proposals) {
             return true;
         }
         if (proposal.type.name == constProposalType.PLAYER_BONUS &&
-            (proposal.status != constProposalStatus.REJECTED) || (proposal.status != constProposalStatus.FAIL) || (proposal.status != constProposalStatus.CANCEL)) {
+            (proposal.status != constProposalStatus.REJECTED) && (proposal.status != constProposalStatus.FAIL) && (proposal.status != constProposalStatus.CANCEL)) {
             return false;
         }
     }
