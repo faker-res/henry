@@ -163,6 +163,10 @@ var dbPlatformGameGroup = {
                         if (game) {
                             for (var j = 0; j < pltGameStatusArr.length; j++) {
                                 if (pltGameStatusArr[j] && game && String(game._id) == String(pltGameStatusArr[j].game)) {
+                                    if (pltGameStatusArr[j].status  !== game.status) {
+                                        game.status = pltGameStatusArr[j].status;
+                                    }
+
                                     if (pltGameStatusArr[j].smallShow && game.smallShow != pltGameStatusArr[j].smallShow) {
                                         game.smallShow = pltGameStatusArr[j].smallShow;
                                     }
