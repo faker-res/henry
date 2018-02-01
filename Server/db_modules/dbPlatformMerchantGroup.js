@@ -50,7 +50,6 @@ var dbPlatformMerchantGroup = {
                           platform: platformId
                       }
                   }
-
             )},
             error => {
                 return dbconfig.collection_platformMerchantGroup.aggregate(
