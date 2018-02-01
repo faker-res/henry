@@ -1972,11 +1972,9 @@ var proposal = {
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
         let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-        console.log("getPlayerProposalsForPlatformId 0.0");
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
             data => {
-                console.log("getPlayerProposalsForPlatformId 0.1", data);
                 if (data && data[0]) { // removed  && data[1]
                     var types = data[0];
                     // var processes = data[1];
@@ -1989,7 +1987,6 @@ var proposal = {
                                 }
                             }
                         }
-                        console.log("getPlayerProposalsForPlatformId 1")
 
                         var queryObj = {
                             type: {$in: proposalTypesId},
@@ -2036,13 +2033,11 @@ var proposal = {
 
                                     return item;
                                 });
-                                console.log("getPlayerProposalsForPlatformId 1.1");
 
                                 return pdata;
                             })
                             .then(proposals => {
                                 proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-                                console.log("getPlayerProposalsForPlatformId 1.2");
                                 return proposals
                             });
 
@@ -2059,9 +2054,7 @@ var proposal = {
                 }
             }
         ).then(returnData => {
-            console.log("getPlayerProposalsForPlatformId 2");
             return Q.all(playerProm).then(data => {
-                console.log("getPlayerProposalsForPlatformId 2.1");
                 data.map(d => {
                     if (d && d.playerId) {
                         for (var i = 0; i < returnData[0].length; i++) {
@@ -2110,7 +2103,6 @@ var proposal = {
                         }
                     }
                 })
-                console.log("getPlayerProposalsForPlatformId 2.2");
 
                 let dataArr = [];
                 if (attemptNo && attemptNo != 0 && attemptNo != -1) {
@@ -2122,7 +2114,6 @@ var proposal = {
                 } else {
                     dataArr = returnData[0];
                 }
-                console.log("getPlayerProposalsForPlatformId 2.3");
 
                 if(dataArr && dataArr.length > 0){
                     for (var i = 0; i < dataArr.length; i++) {
@@ -2131,7 +2122,6 @@ var proposal = {
                         }
                     }
                 }
-                console.log("getPlayerProposalsForPlatformId 2.4");
 
                 return {data: dataArr, size: returnData[1]};
             })
