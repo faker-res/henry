@@ -235,13 +235,13 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 checkMsgChinese += " 失败：日限;";
                 canApprove = false;
             }
-            if (proposal.data.playerStatus == constPlayerStatus.BAN_PLAYER_BONUS || bNoBonusPermission) {
+            if ((proposal.data.playerStatus == constPlayerStatus.BAN_PLAYER_BONUS || bNoBonusPermission) && platformObj.manualAuditBanWithdrawal !== false) {
                 checkMsg += " Denied: Not allowed;";
                 checkMsgChinese += " 失败：禁提;";
                 canApprove = false;
             }
 
-            if (bFirstWithdraw) {
+            if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
                 checkMsg += " Denied: First withdrawal;";
                 checkMsgChinese += " 失败：首提;";
                 canApprove = false;
@@ -259,7 +259,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 canApprove = false;
             }
 
-            if (bUpdatePaymentInfo) {
+            if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
                 checkMsg += ' Denied: Bank Info Changed;';
                 checkMsgChinese += ' 失败：银行资料刚改;';
                 canApprove = false;
