@@ -529,12 +529,11 @@ var dbPlatform = {
     },
 
     addOrRenameProviderInPlatformById: function (platformObjId, providerObjId, localProviderNickName, localProviderPrefix) {
-        var nickNameUpdatePath = "gameProviderInfo." + providerObjId;
-        var nickNameUpdate = {};
-        nickNameUpdate[nickNameUpdatePath] = {
-            localNickName: localProviderNickName,
-            localPrefix: localProviderPrefix
-        };
+        let nickNameUpdatePath = "gameProviderInfo." + providerObjId + ".localNickName";
+        let prefixUpdatePath = "gameProviderInfo." + providerObjId + ".localPrefix";
+        let nickNameUpdate = {};
+        nickNameUpdate[nickNameUpdatePath] = localProviderNickName;
+        nickNameUpdate[prefixUpdatePath] = localProviderPrefix;
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
@@ -548,11 +547,9 @@ var dbPlatform = {
     },
 
     updateProviderFromPlatformById: function (platformObjId, providerObjId, isEnable) {
-        let statusUpdatePath = "gameProviderInfo." + providerObjId;
+        let statusUpdatePath = "gameProviderInfo." + providerObjId + ".isEnable";
         let statusUpdate = {};
-        statusUpdate[statusUpdatePath] = {
-            isEnable: isEnable
-        };
+        statusUpdate[statusUpdatePath] = isEnable;
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
