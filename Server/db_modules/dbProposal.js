@@ -843,7 +843,7 @@ var proposal = {
                     if (proposalData) {
                         var proposalStatus = proposalData.status || proposalData.process.status;
 
-                        if (((proposalData.type.name === "PlayerBonus" && proposalStatus !== "Approved" && proposalStatus !== "Rejected" && proposalStatus !== "Cancel")
+                        if (((proposalData.type.name === "PlayerBonus" && (proposalStatus === "Pending" || proposalStatus === "AutoAudit" || proposalStatus === "CsPending"))
                             || (proposalData.creator.name.toString() == adminId.toString())
                             && (proposalStatus == constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
