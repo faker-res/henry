@@ -1225,33 +1225,37 @@ const dbRewardTask = {
     /**
      *
      * @param consumptionRecord
+     * @param platformObj
      */
-    checkPlayerRewardTaskGroupForConsumption: function (consumptionRecord) {
-        let bDirty = false;
+    checkPlayerRewardTaskGroupForConsumption: function (consumptionRecord, platformObj) {
         let nonDirtyAmount = 0;
         let createTime = new Date(consumptionRecord.createTime);
-        let platform;
+        let platform = platformObj;
 
-        return dbconfig.collection_platform.findOne({_id: consumptionRecord.platformId}).lean().then(
-            platformData => {
-                if (platformData) {
-                    platform = platformData;
+        // Recursive update RTG to prevent overflow of curConsumption
+        return findAndUpdateRTG(consumptionRecord, createTime, platform).then(
+            updatedRTG => {
+                if (updatedRTG) {
+                    if (!updatedRTG[0]) {
+                        // RTG not updated, try again
+                        return findAndUpdateRTG(consumptionRecord, createTime, platform);
+                    } else if (updatedRTG[1]) {
+                        // RTG has fulfilled, if there's amount overflowed, add to free amount consumption
+                        dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, updatedRTG[1]);
+                        // Assume overflow amount is valid for consumption return
+                        nonDirtyAmount = updatedRTG[1];
+                    }
 
-                    // Recursive update RTG to prevent overflow of curConsumption
-                    return findAndUpdateRTG(consumptionRecord, createTime, platform).then(
-                        updatedRTG => {
-                            if (updatedRTG) {
-                                if (!updatedRTG[0]) {
-                                    return findAndUpdateRTG(consumptionRecord, createTime, platform);
-                                } else if (updatedRTG[1]) {
-                                    dbRewardTaskGroup.addRemainingConsumptionToFreeAmountRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.playerId, createTime, updatedRTG[1]);
-                                }
-                            }
-
-                            return updatedRTG
-                        }
-                    );
+                    // Available XIMA Amt
+                    if (updatedRTG[2] && updatedRTG[2] > 0) {
+                        nonDirtyAmount = updatedRTG[2];
+                    }
+                } else {
+                    // No available RTG
+                    nonDirtyAmount = consumptionRecord.validAmount;
                 }
+
+                return updatedRTG
             }
         ).then(
             updatedData => {
@@ -1270,14 +1274,7 @@ const dbRewardTask = {
                     error: error
                 });
             }
-        ).then(
-            () => {
-                return {
-                    bDirty: bDirty,
-                    nonDirtyAmount: nonDirtyAmount
-                }
-            }
-        )
+        ).then(() => nonDirtyAmount)
     },
 
     /**
@@ -2051,7 +2048,7 @@ const dbRewardTask = {
 };
 
 function findAndUpdateRTG (consumptionRecord, createTime, platform) {
-    let consumptionAmt = 0, remainingCurConsumption = 0;
+    let consumptionAmt = 0, remainingCurConsumption = 0, XIMAAmt = 0;
 
     return dbRewardTaskGroup.getPlayerRewardTaskGroup(consumptionRecord.platformId, consumptionRecord.providerId, consumptionRecord.playerId, createTime).then(
         rewardTaskGroup => {
@@ -2072,6 +2069,19 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                 else if (rewardTaskGroup.curConsumption + consumptionRecord.validAmount + consumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
                     consumptionAmt = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rewardTaskGroup.curConsumption;
                     remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
+                }
+
+                // Check returnable amount
+                if (rewardTaskGroup.forbidXIMAAmt && rewardTaskGroup.curConsumption < rewardTaskGroup.forbidXIMAAmt) {
+                    if (rewardTaskGroup.curConsumption + consumptionAmt > rewardTaskGroup.forbidXIMAAmt) {
+                        // Example: 20 - (2640 - 2635) = 15, 15 is available for XIMA
+                        XIMAAmt = consumptionAmt - (rewardTaskGroup.forbidXIMAAmt - rewardTaskGroup.curConsumption);
+                    } else {
+                        // Still in the range of forbidXIMAAmt
+                    }
+                } else {
+                    // No forbidXIMAAmt or curConsumption already over forbidXIMAAmt
+                    XIMAAmt = consumptionRecord.validAmount;
                 }
 
                 let updObj = {
@@ -2109,7 +2119,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                             return updatedRTG
                         }
                     ),
-                    Promise.resolve(remainingCurConsumption)
+                    Promise.resolve(remainingCurConsumption),
+                    Promise.resolve(XIMAAmt)
                 ]);
             }
         }
