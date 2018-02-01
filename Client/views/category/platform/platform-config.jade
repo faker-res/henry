@@ -841,6 +841,18 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.bonusProfitOffset}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.bonusProfitOffset')
+                            tr
+                                td {{'FIRST_WITHDRAWAL_MANUAL_AUDIT' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditFirstWithdrawal', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'MANUAL_AUDIT_AFTER_BANK_CHANGED' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditAfterBankChanged', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'MANUAL_AUDIT_BAN_WITHDRAWAL' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditBanWithdrawal', ng-disabled='!vm.configTableEdit')
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}

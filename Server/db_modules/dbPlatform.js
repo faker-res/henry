@@ -2249,16 +2249,19 @@ var dbPlatform = {
                                 if (info.imageButton && info.imageButton.length > 0) {
                                     let buttonList = [];
                                     info.imageButton.forEach(b => {
-                                        let buttonObj = {};
-                                        if (b.buttonName) {
-                                            buttonObj.btn = b.buttonName;
-
+                                        if(b){
+                                            let buttonObj = {};
+                                            if (b.buttonName) {
+                                                buttonObj.btn = b.buttonName;
+                                            }
+                                            if(b.url){
+                                                buttonObj.btnImg = b.url;
+                                            }
+                                            if (b.hyperLink) {
+                                                buttonObj.extString = b.hyperLink;
+                                            }
+                                            buttonList.push(buttonObj);
                                         }
-                                        if (b.hyperLink) {
-                                            buttonObj.extString = b.hyperLink;
-                                        }
-                                        buttonList.push(buttonObj);
-
                                     })
                                     activityListObj.btnList = buttonList;
                                 } else {

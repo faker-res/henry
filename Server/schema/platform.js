@@ -218,7 +218,13 @@ var platformSchema = new Schema({
     // get the QI Department for display livechat related conversation
     qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
     // Demo Player Prefix Code
-    demoPlayerPrefix: {type:String}
+    demoPlayerPrefix: {type:String},
+    // manual audit for player first time withdrawal
+    manualAuditFirstWithdrawal: {type: Boolean, default: true},
+    // manual audit once after player change bank detail
+    manualAuditAfterBankChanged: {type: Boolean, default: true},
+    // manual audit if player's applyBonus permission banned
+    manualAuditBanWithdrawal: {type: Boolean, default: true},
 });
 
 //add platform id before save

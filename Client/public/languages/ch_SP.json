@@ -3210,6 +3210,9 @@
   "queryByAppealStatus": "按申诉状态查询",
   "Please select Year - Month": "请选择 年，月份",
   "CsApproveProposal": "客服审核",
-  "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款"
-  
+  "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款",
+  "FIRST_WITHDRAWAL_MANUAL_AUDIT": "首次提款转人工审核（不论金额）",
+  "MANUAL_AUDIT_AFTER_BANK_CHANGED": "银改之后第一次提款转人工审核（不论金额）",
+  "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）"
+
 }
