@@ -12640,6 +12640,8 @@ define(['js/app'], function (myApp) {
         vm.submitPlayerFeedbackQuery = function (isNewSearch) {
             if (!vm.selectedPlatform) return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
+            let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
+            let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
             let sendQuery = {platform: vm.selectedPlatform.id};
             let sendQueryOr = [];
 
@@ -12745,6 +12747,9 @@ define(['js/app'], function (myApp) {
                 sendQuery.isNewSystem = {$ne: true};
             } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
                 sendQuery.isNewSystem = true;
+            }
+            if (startTime && endTime) {
+                sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
             }
 
             $('#platformFeedbackSpin').show();
@@ -12885,8 +12890,22 @@ define(['js/app'], function (myApp) {
                     vm.setupGameProviderMultiInputFeedback();
                 });
             utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
-                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
+                $('#registerStartTimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true,
+                    pickTime: true,
+                });
+                vm.playerFeedbackQuery.registerStartTime = $('#registerStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                $('#registerEndTimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true,
+                    pickTime: true,
+                });
+                vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
 
+                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
                     var isChange = false;
                     if (pageSize != vm.playerFeedbackQuery.limit) {
                         isChange = true;

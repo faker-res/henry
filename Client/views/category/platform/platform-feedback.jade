@@ -129,6 +129,18 @@
                     option(value='new') {{'NEW_SYSTEM'|translate}}
                     option(value='old') {{'OLD_SYSTEM'|translate}}
             .inlineBlk
+                label.control-label {{'REGISTRATION_TIME_START' | translate}}
+                #registerStartTimePicker.datetimepicker.form-control
+                    input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                    span.add-on
+                        i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+            .inlineBlk
+                label.control-label {{'REGISTRATION_TIME_END' | translate}}
+                #registerEndTimePicker.datetimepicker.form-control
+                    input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                    span.add-on
+                        i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+            .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_SINGLE" | translate}}
             .inlineBlk
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.submitPlayerFeedbackQuery(true);') {{"SEARCH_LIST" | translate}}

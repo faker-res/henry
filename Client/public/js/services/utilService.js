@@ -239,6 +239,12 @@ define([], function () {
             date.setHours(23, 59, 59, 999);
             return new Date(date.getTime() + 1 - new Date().getTimezoneOffset() * 60 * 1000);
         }
+        this.setLastYearLocalDay = function (date) {
+            if (!date) return null;
+            date.setHours(0, 0, 0, 0);
+            date.setFullYear(date.getFullYear() - 1)
+            return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);
+        }
         this.setThisDayStartTime = function (date) {
             if (!date) return null;
             return new Date(date.setHours(0, 0, 0, 0));
