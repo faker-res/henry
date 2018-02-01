@@ -163,7 +163,7 @@ var dbPlatformGameGroup = {
                         if (game) {
                             for (var j = 0; j < pltGameStatusArr.length; j++) {
                                 if (pltGameStatusArr[j] && game && String(game._id) == String(pltGameStatusArr[j].game)) {
-                                    if (pltGameStatusArr[j].status  !== game.status) {
+                                    if (pltGameStatusArr[j].status !== constGameStatus.ENABLE &&  game.status == 1) {
                                         game.status = pltGameStatusArr[j].status;
                                     }
 
