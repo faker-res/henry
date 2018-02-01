@@ -6,7 +6,7 @@ const constMessageTypeParam = {
 
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'ximaAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -14,7 +14,7 @@ const constMessageTypeParam = {
         name:"ManualTopupSuccess",
         params:[
             {parameterName:'proposalData.data.amount' , description:'manualTopupAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -22,7 +22,7 @@ const constMessageTypeParam = {
         name:"OnlineTopupSuccess",
         params:[
             {parameterName:'proposalData.data.amount' , description:'onlineTopupAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -30,7 +30,7 @@ const constMessageTypeParam = {
         name:"AlipayTopupSuccess",
         params:[
             {parameterName:'proposalData.data.amount' , description:'alipayTopupAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -38,7 +38,7 @@ const constMessageTypeParam = {
         name:"WechatTopupSuccess",
         params:[
             {parameterName:'proposalData.data.amount' , description:'wechatTopupAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -46,7 +46,7 @@ const constMessageTypeParam = {
         name:"WithdrawSuccess",
         params:[
             {parameterName:'proposalData.data.amount' , description:'withdrawAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -62,7 +62,7 @@ const constMessageTypeParam = {
         name:"PlayerLimitedOfferRewardSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'limitedOfferRewardAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -70,7 +70,7 @@ const constMessageTypeParam = {
         name:"UpdateBankInfoSuccess",
         params:[
             {parameterName:'proposalData.data.bankAccount' , description:'bankcardLast4Number(new)'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -78,7 +78,7 @@ const constMessageTypeParam = {
         name:"UpdatePhoneInfoSuccess",
         params:[
             {parameterName:'proposalData.data.phoneNumber' , description:'phoneLast4Number(new)'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
         ]
     },
@@ -99,7 +99,7 @@ const constMessageTypeParam = {
         name:"PlayerTopUpReturnGroupSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
             {parameterName:'proposalData.data.eventName' , description:'rewardEventName'},
         ]
@@ -108,7 +108,7 @@ const constMessageTypeParam = {
         name:"PlayerLoseReturnRewardGroupSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
             {parameterName:'proposalData.data.eventName' , description:'rewardEventName'},
         ]
@@ -117,7 +117,7 @@ const constMessageTypeParam = {
         name:"PlayerConsecutiveRewardGroupSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
             {parameterName:'proposalData.data.eventName' , description:'rewardEventName'},
         ]
@@ -126,7 +126,7 @@ const constMessageTypeParam = {
         name:"PlayerConsumptionRewardGroupSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
             {parameterName:'proposalData.data.eventName' , description:'rewardEventName'},
         ]
@@ -135,7 +135,7 @@ const constMessageTypeParam = {
         name:"PlayerFreeTrialRewardGroupSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
             {parameterName:'proposalData.data.eventName' , description:'rewardEventName'},
         ]
@@ -144,14 +144,14 @@ const constMessageTypeParam = {
         name:"PlayerRegisterIntentionSuccess",
         params:[
             {parameterName:'proposalData.data.playerName' , description:'PLAYER_NAME'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
         ]
     },
     PLAYER_PROMO_CODE_REWARD_SUCCESS:{
         name:"PlayerPromoCodeRewardSuccess",
         params:[
             {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
-            {parameterName:'proposalData.createTime' , description:'executeTime'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
             {parameterName:'proposalData.data.promoCodeName' , description:'promoCodeName'}
         ]
