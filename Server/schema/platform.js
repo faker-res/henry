@@ -219,9 +219,12 @@ var platformSchema = new Schema({
     qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
     // Demo Player Prefix Code
     demoPlayerPrefix: {type:String},
-    manualAuditFirstWithdrawal: {type: Boolean, default: false},
-    manualAuditAfterBankChanged: {type: Boolean, default: false},
-    manualAuditBanWithdrawal: {type: Boolean, default: false},
+    // manual audit for player first time withdrawal
+    manualAuditFirstWithdrawal: {type: Boolean, default: true},
+    // manual audit once after player change bank detail
+    manualAuditAfterBankChanged: {type: Boolean, default: true},
+    // manual audit if player's applyBonus permission banned
+    manualAuditBanWithdrawal: {type: Boolean, default: true},
 });
 
 //add platform id before save
