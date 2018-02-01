@@ -999,7 +999,6 @@ define(['js/app'], function (myApp) {
                 $("form[name='form_new_platform'] input").attr('disabled', !bool);
                 $("form[name='form_new_platform'] select").attr('disabled', !bool);
                 $("form[name='form_new_platform'] button").attr('disabled', !bool);
-                $('.demoPlayerPrefixSelection option:selected').text("");
                 console.log("init ed");
                 $scope.safeApply();
             }
@@ -1010,6 +1009,7 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementDay = 0;
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
+                $('.demoPlayerPrefixSelection option:selected').text("");
                 $scope.safeApply();
             }
             vm.getDayName = function (d) {
@@ -7321,9 +7321,11 @@ define(['js/app'], function (myApp) {
                 if (playerPermission.levelChange === false && newPlayerData.playerLevel != oldPlayerData.playerLevel) {
                     newPlayerData.playerLevel = oldPlayerData.playerLevel;
                     socketService.showErrorMessage($translate("level change fail, please contact cs"));
+                    return;
                 }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
+                let updatedKeys = Object.keys(updateData);
                 var updateSMS = {
                     receiveSMS: updateData.receiveSMS != null ? updateData.receiveSMS : undefined,
                     smsSetting: updateData.smsSetting ? updateData.smsSetting : undefined
@@ -7345,18 +7347,20 @@ define(['js/app'], function (myApp) {
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = playerId;
                     var isUpdate = false;
-                    updateData.playerName = newPlayerData.name || vm.editPlayer.name
+
+                    updateData.playerName = newPlayerData.name || vm.editPlayer.name;
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
-                    Object.keys(newPlayerData).forEach(function (key) {
-                        if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
-                                //do nothing
-                            } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
-                                //do nothing
-                            } else {
-                                isUpdate = true;
-                            }
+                    // Object.keys(newPlayerData).forEach(function (key) {
+                    updatedKeys.forEach(function (key) {
+                        // if (newPlayerData[key] != oldPlayerData[key]) {
+                        if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
+                            //do nothing
+                        } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
+                            //do nothing
+                        } else {
+                            isUpdate = true;
                         }
+                        // }
                     });
 
                     if (updateData.partner == null) {
@@ -11851,7 +11855,13 @@ define(['js/app'], function (myApp) {
                         if (!isEqualArray(newObj[key], oldObj[key])) {
                             changes[key] = newObj[key];
                         }
-                    } else if (JSON.stringify(newObj[key]) !== JSON.stringify(oldObj[key])) {
+                    } else if (newObj[key] instanceof Date) {
+                        let newValue = new Date(newObj[key]);
+                        let oldValue = new Date(oldObj[key]);
+                        if (newValue.getTime() !== oldValue.getTime()) {
+                            changes[key] = newObj[key];
+                        }
+                    } else if (JSON.stringify(newObj[key]) !== JSON.stringify(oldObj[key]) && newObj[key] != oldObj[key]) {
                         changes[key] = newObj[key];
                     }
                 }
