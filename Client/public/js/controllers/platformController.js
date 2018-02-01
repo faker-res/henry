@@ -34,7 +34,8 @@ define(['js/app'], function (myApp) {
                 FAIL: "Fail",
                 CANCEL: "Cancel",
                 EXPIRED: "Expired",
-                UNDETERMINED: "Undetermined"
+                UNDETERMINED: "Undetermined",
+                CSPENDING: "CsPending"
             };
             vm.allProposalStatus = [
                 "PrePending",
@@ -48,7 +49,8 @@ define(['js/app'], function (myApp) {
                 "Cancel",
                 "Expired",
                 "Undetermined",
-                "Recover"
+                "Recover",
+                "CsPending"
             ];
 
             // vm.allProposalType = [
