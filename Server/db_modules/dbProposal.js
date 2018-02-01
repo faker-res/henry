@@ -1972,7 +1972,6 @@ var proposal = {
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
         let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
             data => {
@@ -1983,7 +1982,9 @@ var proposal = {
                         var proposalTypesId = [];
                         for (var i = 0; i < types.length; i++) {
                             if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-                                proposalTypesId.push(types[i]._id);
+                                if (types[i]._id) {
+                                    proposalTypesId.push(types[i]._id);
+                                }
                             }
                         }
 
@@ -2037,7 +2038,6 @@ var proposal = {
                             })
                             .then(proposals => {
                                 proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
                                 return proposals
                             });
 
@@ -2059,7 +2059,7 @@ var proposal = {
                     if (d && d.playerId) {
                         for (var i = 0; i < returnData[0].length; i++) {
 
-                            if (d && d.playerId && d.playerId == returnData[0][i].data.playerId) {
+                            if (d && d.playerId && returnData[0][i].data.playerId && d.playerId == returnData[0][i].data.playerId) {
                                 if (d.csOfficer) {
                                     returnData[0][i].data.csOfficer = d.csOfficer.adminName;
                                 }
@@ -4043,7 +4043,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         );
 
         function handlePlayer(proposal) {
-            let phoneNumber = proposal.data ? proposal.data.phoneNumber : "";
+            let phoneNumber = proposal.data && proposal.data.phoneNumber? proposal.data.phoneNumber : "";
             let status = proposal.status ? proposal.status : "";
             let allCountQuery = {};
             let currentCountQuery = {};
@@ -4142,8 +4142,8 @@ function insertPlayerRepeatCount(proposals, platformId) {
 
             return Promise.all([allCountProm, currentCountProm, previousCountProm, futureAllCountProm, futureAfterSuccessCountProm, futureManualAllCountProm]).then(
                 countData => {
-                    let allCount = countData[0];
-                    let currentCount = countData[1];
+                    let allCount = countData[0]? countData[0]: 0;
+                    let currentCount = countData[1]? countData[1]: 0;
                     let previousCount = countData[2] ? countData[2] : 0;
                     let futureSuccessCount = countData[3] ? countData[3] : 0;
                     let futureFailCount = countData[4] ? countData[4] : 0;

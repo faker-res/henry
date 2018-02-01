@@ -264,9 +264,7 @@ function socketActionProposal(socketIO, socket) {
                 _id: ObjectId(data.proposalObjId)
             }
             let updateData = {
-                data: {
-                    remarks: data.remarks
-                }
+                "data.remarks": data.remarks
             }
             socketUtil.emitter(self.socket, dbProposal.updateProposalRemarks, [query, updateData], actionName, isValidData);
 

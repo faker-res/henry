@@ -34,7 +34,8 @@ define(['js/app'], function (myApp) {
                 FAIL: "Fail",
                 CANCEL: "Cancel",
                 EXPIRED: "Expired",
-                UNDETERMINED: "Undetermined"
+                UNDETERMINED: "Undetermined",
+                CSPENDING: "CsPending"
             };
             vm.allProposalStatus = [
                 "PrePending",
@@ -48,7 +49,8 @@ define(['js/app'], function (myApp) {
                 "Cancel",
                 "Expired",
                 "Undetermined",
-                "Recover"
+                "Recover",
+                "CsPending"
             ];
 
             // vm.allProposalType = [
@@ -288,7 +290,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
                 FREE_TRIAL_REWARD: 'freeTrialReward',
-                DEMO_ACCOUNT: 'demoAccount',
+                DEMO_PLAYER: 'demoPlayer',
                 // RESET_PASSWORD: 'resetPassword'
             };
 
@@ -799,12 +801,27 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
                 }
             };
+            vm.prepareDemoPlayerPrefix = function(){
+                var alphabet = 97; //represent alphabet a
+                var totalNumberOfAlphabet = 26;
+                for(var i = 0; i < totalNumberOfAlphabet; i++){
+                    var character = String.fromCharCode(alphabet + i);
+                    $('.demoPlayerPrefixSelection').append($('<option>', {
+                        value: character,
+                        text: character
+                    }));
+                }
+            };
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
+                vm.prepareDemoPlayerPrefix();
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
+                if(vm.showPlatform.demoPlayerPrefix){
+                    $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
+                }
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
                 vm.convertDepartment();
                 if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
@@ -992,6 +1009,7 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementDay = 0;
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
+                $('.demoPlayerPrefixSelection option:selected').text("");
                 $scope.safeApply();
             }
             vm.getDayName = function (d) {
@@ -7303,9 +7321,11 @@ define(['js/app'], function (myApp) {
                 if (playerPermission.levelChange === false && newPlayerData.playerLevel != oldPlayerData.playerLevel) {
                     newPlayerData.playerLevel = oldPlayerData.playerLevel;
                     socketService.showErrorMessage($translate("level change fail, please contact cs"));
+                    return;
                 }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
+                let updatedKeys = Object.keys(updateData);
                 var updateSMS = {
                     receiveSMS: updateData.receiveSMS != null ? updateData.receiveSMS : undefined,
                     smsSetting: updateData.smsSetting ? updateData.smsSetting : undefined
@@ -7327,18 +7347,20 @@ define(['js/app'], function (myApp) {
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = playerId;
                     var isUpdate = false;
-                    updateData.playerName = newPlayerData.name || vm.editPlayer.name
+
+                    updateData.playerName = newPlayerData.name || vm.editPlayer.name;
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
-                    Object.keys(newPlayerData).forEach(function (key) {
-                        if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
-                                //do nothing
-                            } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
-                                //do nothing
-                            } else {
-                                isUpdate = true;
-                            }
+                    // Object.keys(newPlayerData).forEach(function (key) {
+                    updatedKeys.forEach(function (key) {
+                        // if (newPlayerData[key] != oldPlayerData[key]) {
+                        if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
+                            //do nothing
+                        } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
+                            //do nothing
+                        } else {
+                            isUpdate = true;
                         }
+                        // }
                     });
 
                     if (updateData.partner == null) {
@@ -11833,7 +11855,13 @@ define(['js/app'], function (myApp) {
                         if (!isEqualArray(newObj[key], oldObj[key])) {
                             changes[key] = newObj[key];
                         }
-                    } else if (JSON.stringify(newObj[key]) !== JSON.stringify(oldObj[key])) {
+                    } else if (newObj[key] instanceof Date) {
+                        let newValue = new Date(newObj[key]);
+                        let oldValue = new Date(oldObj[key]);
+                        if (newValue.getTime() !== oldValue.getTime()) {
+                            changes[key] = newObj[key];
+                        }
+                    } else if (JSON.stringify(newObj[key]) !== JSON.stringify(oldObj[key]) && newObj[key] != oldObj[key]) {
                         changes[key] = newObj[key];
                     }
                 }
@@ -18988,6 +19016,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.usePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.usePhoneNumberTwoStepsVerification;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
+                vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -19480,7 +19509,8 @@ define(['js/app'], function (myApp) {
                         useProviderGroup: srcData.useProviderGroup,
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
-                        usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
+                        usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
+                        playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval
                     }
                 };
                 let isProviderGroupOn = false;
@@ -19522,7 +19552,7 @@ define(['js/app'], function (myApp) {
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset
+                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
                     }
                 };
                 console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));

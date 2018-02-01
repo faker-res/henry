@@ -1171,14 +1171,14 @@ let dbPlayerInfo = {
 
     createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-        let platformObjId;
+        let platform;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
-                platformObjId = platformData._id;
+                platform = platformData;
 
                 if (!platformData.requireSMSVerificationForDemoPlayer) {
                     return true;
@@ -1196,10 +1196,10 @@ let dbPlayerInfo = {
             }
         ).then(
             isVerified => {
-                let demoPlayerName = generateDemoPlayerName();
+                let demoPlayerName = generateDemoPlayerName(platform.demoPlayerPrefix);
 
                 let demoPlayerData = {
-                    platform: platformObjId,
+                    platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
                     isTestPlayer: true,
@@ -7876,7 +7876,7 @@ let dbPlayerInfo = {
                                                 isAutoApproval: player.platform.enableAutoApplyBonus
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
-                                            if(!player.permission.applyBonus) {
+                                            if(!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
                                                 proposalData.remark = "禁用提款";
                                                 proposalData.needCsApproved = true;
                                             }
@@ -7911,11 +7911,10 @@ let dbPlayerInfo = {
             ).then(
                 data => {
                     let proposal = Object.assign({}, data);
-                    let proposalTypeDetail = data.type;
                     proposal.type = proposal.type._id;
                     return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
                         platform => {
-                            if(platform && platform.useProviderGroup) {
+                            if(platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
                                 let proposals = [];
                                 proposals.push(proposal);
                                 dbAutoProposal.processAutoProposals(proposals, platform, platform.useProviderGroup);
@@ -8049,7 +8048,12 @@ let dbPlayerInfo = {
                         type: ObjectId(typeData._id)
                     };
                     if (status) {
-                        queryObj.status = status;
+                        if( Array.isArray(status) ){
+                          queryObj.status = {$in: status};
+                        }
+                        else{
+                            queryObj.status = status;
+                        }
                     }
                     if (startTime || endTime) {
                         queryObj.createTime = {};
