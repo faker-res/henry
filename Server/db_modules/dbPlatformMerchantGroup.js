@@ -26,7 +26,14 @@ var dbPlatformMerchantGroup = {
      * @param {Json}  query - queryData
      * @param {Json}  updateData -  updateData
      */
-    updatePlatformMerchantGroup: function (query, updateData) {
+    updatePlatformMerchantGroup: function (query, data) {
+        let updateData = {};
+        if(data.type == 'addToSet'){
+          updateData = {'$addToSet': {merchantNames : {$each: data.data}}}
+        }else if(data.type == 'pull'){
+          updateData = {'$pull': {merchantNames : {$in: data.data}}}
+        }
+
         return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
 
@@ -36,13 +43,15 @@ var dbPlatformMerchantGroup = {
      */
     getPlatformMerchantGroup: function (platformId) {
         return dbPlatformMerchantGroup.syncMerchantGroupData(platformId).then(
-            data => dbconfig.collection_platformMerchantGroup.aggregate(
-                {
-                    $match: {
-                        platform: platformId
-                    }
-                }
-            ),
+            data => {
+              return dbconfig.collection_platformMerchantGroup.aggregate(
+                  {
+                      $match: {
+                          platform: platformId
+                      }
+                  }
+
+            )},
             error => {
                 return dbconfig.collection_platformMerchantGroup.aggregate(
                     {
@@ -153,10 +162,9 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             data=> {
-                var merchantsArr = data.merchants || [];
+                var merchantsArr = data.merchantNames || [];
                 for (let i = 0; i < allMerchants.length; i++) {
-
-                    if (merchantsArr.indexOf(allMerchants[i].merchantNo) != -1) {
+                    if (merchantsArr.indexOf(allMerchants[i].name) != -1) {
                         allMerchants[i].isIncluded = true;
                     } else {
                         allMerchants[i].isIncluded = false;
