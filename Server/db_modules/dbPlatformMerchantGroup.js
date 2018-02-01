@@ -28,10 +28,10 @@ var dbPlatformMerchantGroup = {
      */
     updatePlatformMerchantGroup: function (query, data) {
         let updateData = {};
-        if(data.type == 'addToSet'){
-          updateData = {'$addToSet': {merchantNames : {$each: data.data}}}
-        }else if(data.type == 'pull'){
-          updateData = {'$pull': {merchantNames : {$in: data.data}}}
+        if (data.type == 'addToSet') {
+            updateData = {'$addToSet': {merchantNames: {$each: data.data}}}
+        } else if (data.type == 'pull') {
+            updateData = {'$pull': {merchantNames: {$in: data.data}}}
         }
 
         return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
@@ -44,13 +44,14 @@ var dbPlatformMerchantGroup = {
     getPlatformMerchantGroup: function (platformId) {
         return dbPlatformMerchantGroup.syncMerchantGroupData(platformId).then(
             data => {
-              return dbconfig.collection_platformMerchantGroup.aggregate(
-                  {
-                      $match: {
-                          platform: platformId
-                      }
-                  }
-            )},
+                return dbconfig.collection_platformMerchantGroup.aggregate(
+                    {
+                        $match: {
+                            platform: platformId
+                        }
+                    }
+                )
+            },
             error => {
                 return dbconfig.collection_platformMerchantGroup.aggregate(
                     {
