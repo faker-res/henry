@@ -5548,7 +5548,7 @@ define(['js/app'], function (myApp) {
                                         vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
                                             if (group.providerGroup.name == "LOCAL_CREDIT") {
                                                 group.validCredit = row.validCredit;
-                                                group.curConsumption = group.curConsumption.toFixed(2);
+                                                group.curConsumption = group.curConsumption;
                                             }
                                             return group;
                                         });
