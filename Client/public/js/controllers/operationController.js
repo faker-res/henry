@@ -695,6 +695,8 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
+            } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                result = Number.isFinite(parseFloat(val)) ? parseFloat(val).toFixed(2) : val;
             } else if (fieldName == 'bankAccountType') {
                 switch (parseInt(val)) {
                     case 1:
@@ -1935,7 +1937,8 @@ define(['js/app'], function (myApp) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
                 var creatorId = (proposal && proposal.creator) ? proposal.creator.id : '';
                 var proposalStatus = proposal.status || proposal.process.status;
-                return (creatorId == authService.adminId) && (proposalStatus == "Pending" || proposalStatus === "AutoAudit");
+                return ((creatorId == authService.adminId) && (proposalStatus == "Pending" || proposalStatus === "AutoAudit"))
+                    || (proposal.type.name === "PlayerBonus" && (proposalStatus === "Pending" || proposalStatus === "AutoAudit" || proposalStatus === "CsPending"));
             }
 
             vm.selectedProposal.showCancel = canCancelProposal(vm.selectedProposal);
