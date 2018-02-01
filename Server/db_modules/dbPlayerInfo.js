@@ -8048,7 +8048,12 @@ let dbPlayerInfo = {
                         type: ObjectId(typeData._id)
                     };
                     if (status) {
-                        queryObj.status = status;
+                        if( Array.isArray(status) ){
+                          queryObj.status = {$in: status};
+                        }
+                        else{
+                            queryObj.status = status;
+                        }
                     }
                     if (startTime || endTime) {
                         queryObj.createTime = {};
