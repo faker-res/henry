@@ -1199,7 +1199,7 @@ let dbPlayerInfo = {
                 let demoPlayerName = generateDemoPlayerName(platform.demoPlayerPrefix);
 
                 let demoPlayerData = {
-                    platform: platform,
+                    platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
                     isTestPlayer: true,
