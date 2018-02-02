@@ -3463,6 +3463,10 @@ let dbPlayerInfo = {
                             for (let i = 0; i < players.length; i++) {
                                 let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                                 calculatePlayerValueProms.push(calculateProm);
+
+                                if (players[i].isTestPlayer) {
+                                    isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
+                                }
                             }
                             return Promise.all(calculatePlayerValueProms);
 
@@ -3682,6 +3686,16 @@ let dbPlayerInfo = {
                         });
                         return;
                     }
+
+                    if (playerObj.isTestPlayer && isDemoPlayerExpire(playerObj, platformObj.demoPlayerValidDays)) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                        return;
+                    }
+
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
@@ -8342,6 +8356,15 @@ let dbPlayerInfo = {
                     playerData => {
                         if (playerData) {
                             if (playerData.lastLoginIp == playerIp) {
+                                if (playerData.isTestPlayer && isDemoPlayerExpire(playerData, playerData.platform.demoPlayerValidDays)) {
+                                    deferred.reject({
+                                        name: "DataError",
+                                        message: "Player is not enable",
+                                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                                    });
+                                    return;
+                                }
+
                                 conn.isAuth = true;
                                 conn.playerId = playerId;
                                 conn.playerObjId = playerData._id;
@@ -13225,6 +13248,37 @@ function generateDemoPlayerName(platformDemoPlayerPrefix) {
     }
 
     return namePrefix + platformDemoPlayerPrefix + numArray.join("");
+}
+
+function isDemoPlayerExpire(player, expireDays) {
+    expireDays = expireDays || 7;
+
+    if (!player || !player.isTestPlayer) {
+        return false;
+    }
+
+    if (player.permission && player.permission.forbidPlayerFromLogin) {
+        return true;
+    }
+
+    if (player.name && player.name[0] !== "f") {
+        return false;
+    }
+
+    let currentTime = new Date();
+    let playerCreateTime = new Date(player.registrationTime);
+    let expireTime = new Date(playerCreateTime.setDate(playerCreateTime.getDate() + expireDays));
+
+    if (currentTime > expireTime) {
+        dbconfig.collection_players.update({
+            _id: player._id,
+            platform: player.platform
+        }, {
+            "permission.forbidPlayerFromLogin": true
+        }).catch(errorUtils.reportError);
+        return true;
+    }
+    return false;
 }
 
 
