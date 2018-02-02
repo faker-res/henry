@@ -1767,7 +1767,7 @@ define(['js/app'], function (myApp) {
                     vm.drawVertificationSMSTable(result.map(item => {
                         item.createTime = vm.dateReformat(item.createTime);
                         item.status = $translate(item.status);
-                        item.purpose = $translate(item.purpose);
+                        item.purpose$ = $translate(item.purpose);
                         switch (item.validationStatus$) {
                             case 0:
                             case 1:
@@ -1806,7 +1806,7 @@ define(['js/app'], function (myApp) {
                         },
                         {'title': $translate('SENT TIME'), data: 'createTime', bSortable: true},
                         {'title': $translate('VERIFICATION_CODE'), data: 'message'},
-                        {'title': $translate('Type'), data: 'purpose'},
+                        {'title': $translate('Type'), data: 'purpose$'},
                         {
                             'title': $translate('DEVICE'),
                             data: 'inputDevice',
@@ -1818,7 +1818,21 @@ define(['js/app'], function (myApp) {
                                 }
                             }
                         },
-                        {'title': $translate('PHONE'), sClass: "wordWrap realNameCell", data: 'tel'},
+                        {
+                            'title': $translate('PHONE'),
+                            sClass: "wordWrap realNameCell",
+                            data: 'tel',
+                            render: function (data, type, row) {
+                                if (!(row.data && row.data.isRegistered) && row.purpose == "demoPlayer") {
+                                    var link = $('<a>', {
+                                        'ng-click': "vm.callDemoPlayer(" + JSON.stringify(row) + ")",
+                                    }).text(data);
+                                    return link.prop('outerHTML');
+                                } else {
+                                    return data;
+                                }
+                            }
+                        },
                         {'title': $translate('Proposal No'), data: 'proposalId'},
                         {'title': $translate('SEND') + $translate('STATUS'), data: 'status'},
                     ],
@@ -6741,6 +6755,22 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
             }
+
+            vm.callDemoPlayer = function (data) {
+                var phoneCall = {
+                    // playerId: "5a74167afe96b103da96f5fc",//data.playerId,
+                    name: $translate("demoPlayer"),
+                    toText: $translate("demoPlayer"),
+                    platform: "jinshihao",
+                    loadingNumber: true,
+                }
+                $scope.initPhoneCall(phoneCall);
+                $scope.phoneCall.phone = data.tel;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.safeApply();
+                $scope.makePhoneCall();
+            }
+
             vm.sendSMSToPlayer = function () {
                 vm.sendSMSResult = {sent: "sending"};
 

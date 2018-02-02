@@ -41,6 +41,7 @@ const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
 const errorUtils = require('../modules/errorUtils');
 const request = require('request');
+const constSMSPurpose = require("../const/constSMSPurpose");
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -1524,8 +1525,12 @@ var dbPlatform = {
             smsLogsWithCount => {
                 if (smsLogsWithCount.length > 0) {
                     smsLogsWithCount.map(function (sms) {
-                        if (sms.tel) {
-                            sms.tel = dbUtility.encodePhoneNum(sms.tel);
+                        if (sms.purpose && sms.purpose == constSMSPurpose.DEMO_PLAYER && !(sms.data && sms.data.isRegistered)) {
+
+                        } else {
+                            if (sms.tel) {
+                                sms.tel = dbUtility.encodePhoneNum(sms.tel);
+                            }
                         }
                         return sms
                     })

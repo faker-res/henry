@@ -1070,6 +1070,16 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                if (playerData.isRealPlayer && playerData.platform && playerdata.phoneNumber) {
+                    dbconfig.collection_smsLog.update(
+                        {
+                            platform: playerData.platform,
+                            tel: playerdata.phoneNumber,
+                            purpose: constSMSPurpose.DEMO_PLAYER,
+                            "data.isRegistered":{$exists: false}
+                        },
+                        {"data.isRegistered": true}, {multi: true}).lean().catch(errorUtils.reportError);
+                    }
                 if (data && data[0] && data[1]) {
                     var proms = [];
                     var playerUpdateData = {
@@ -1220,16 +1230,6 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
 
-                if (playerData && playerData.platform && phoneNumber) {
-                    dbconfig.collection_smsLog.findOneAndUpdate(
-                        {
-                            platform: playerData.platform,
-                            tel: phoneNumber,
-                            purpose: constSMSPurpose.DEMO_PLAYER,
-                            used: true
-                        },
-                        {"data.isRegistered": true}).lean().catch(errorUtils.reportError);
-                }
                 playerData.password = randomPsw;
 
                 return playerData;
