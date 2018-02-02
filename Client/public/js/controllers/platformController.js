@@ -4520,7 +4520,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
                         "language": {

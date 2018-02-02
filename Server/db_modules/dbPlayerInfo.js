@@ -3485,6 +3485,10 @@ let dbPlayerInfo = {
                             for (let i = 0; i < players.length; i++) {
                                 let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                                 calculatePlayerValueProms.push(calculateProm);
+
+                                if (players[i].isTestPlayer) {
+                                    isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
+                                }
                             }
                             return Promise.all(calculatePlayerValueProms);
 
@@ -3628,19 +3632,28 @@ let dbPlayerInfo = {
                     platformPrefix = platformData.prefix;
                     playerData.prefixName = platformData.prefix + playerData.name;
 
-                    return dbconfig.collection_players.findOne(
-                        {
-                            $or: [
-                                {
-                                    name: playerData.prefixName.toLowerCase(),
-                                    platform: platformData._id
-                                },
-                                {
-                                    phoneNumber: playerData.name,
-                                    platform: platformData._id
-                                }
-                            ]
-                        }).lean();
+                    let playerQuery = {
+                        $or: [
+                            {
+                                name: playerData.prefixName.toLowerCase(),
+                                platform: platformData._id
+                            },
+                            {
+                                phoneNumber: playerData.name,
+                                platform: platformData._id
+                            }
+                        ]
+                    };
+
+                    if (playerData.name && playerData.name[0] === "f") {
+                        playerQuery.$or.push({
+                            name: playerData.name,
+                            platform: platformData._id,
+                            isRealPlayer: false
+                        });
+                    }
+
+                    return dbconfig.collection_players.findOne(playerQuery).lean();
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Cannot find platform"});
@@ -3704,6 +3717,16 @@ let dbPlayerInfo = {
                         });
                         return;
                     }
+
+                    if (playerObj.isTestPlayer && isDemoPlayerExpire(playerObj, platformObj.demoPlayerValidDays)) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                        return;
+                    }
+
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
@@ -5736,7 +5759,7 @@ let dbPlayerInfo = {
                             path: "process",
                             model: dbconfig.collection_proposalProcess
                         })
-                        .lean().sort({createTime: 1}).skip(startIndex).limit(count);
+                        .lean().sort({createTime: -1}).skip(startIndex).limit(count);
                     return Q.all([countProm, rewardProm]).catch(
                         error => Q.reject({name: "DBError", message: "Error in finding proposal", error: error})
                     );
@@ -8364,6 +8387,15 @@ let dbPlayerInfo = {
                     playerData => {
                         if (playerData) {
                             if (playerData.lastLoginIp == playerIp) {
+                                if (playerData.isTestPlayer && isDemoPlayerExpire(playerData, playerData.platform.demoPlayerValidDays)) {
+                                    deferred.reject({
+                                        name: "DataError",
+                                        message: "Player is not enable",
+                                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                                    });
+                                    return;
+                                }
+
                                 conn.isAuth = true;
                                 conn.playerId = playerId;
                                 conn.playerObjId = playerData._id;
@@ -8914,9 +8946,9 @@ let dbPlayerInfo = {
                                             status = 1;
                                         }
 
-                                        if (playerData.permission.topupOnline === false) {
-                                            status = 0;
-                                        }
+                                        //if (playerData.permission.topupOnline === false) {
+                                        //    status = 0;
+                                        //}
 
                                         var bValidType = true;
                                         resData.forEach(type => {
@@ -8930,7 +8962,7 @@ let dbPlayerInfo = {
                                                 }
                                             }
                                         });
-                                        if (bValidType && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                        if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             resData.push({type: paymentData.merchants[i].topupType, status: status, maxDepositAmount: paymentData.merchants[i].permerchantLimits});
                                         }
                                     }
@@ -8948,9 +8980,9 @@ let dbPlayerInfo = {
                                             status = 1;
                                         }
 
-                                        if (playerData.permission.topupManual === false) {
-                                            status = 0;
-                                        }
+                                        //if (playerData.permission.topupManual === false) {
+                                        //    status = 0;
+                                        //}
 
                                         var bValidType = true;
                                         resData.forEach(type => {
@@ -8961,7 +8993,7 @@ let dbPlayerInfo = {
                                                 }
                                             }
                                         });
-                                        if (bValidType && paymentData.data[i].status == "NORMAL") {
+                                        if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
                                             resData.push({
                                                 type: paymentData.data[i].bankTypeId,
                                                 status: status,
@@ -13268,6 +13300,37 @@ function generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count) 
             return generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count);
         }
     );
+}
+
+function isDemoPlayerExpire(player, expireDays) {
+    expireDays = expireDays || 7;
+
+    if (!player || !player.isTestPlayer) {
+        return false;
+    }
+
+    if (player.permission && player.permission.forbidPlayerFromLogin) {
+        return true;
+    }
+
+    if (player.name && player.name[0] !== "f") {
+        return false;
+    }
+
+    let currentTime = new Date();
+    let playerCreateTime = new Date(player.registrationTime);
+    let expireTime = new Date(playerCreateTime.setDate(playerCreateTime.getDate() + expireDays));
+
+    if (currentTime > expireTime) {
+        dbconfig.collection_players.update({
+            _id: player._id,
+            platform: player.platform
+        }, {
+            "permission.forbidPlayerFromLogin": true
+        }).catch(errorUtils.reportError);
+        return true;
+    }
+    return false;
 }
 
 

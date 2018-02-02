@@ -326,13 +326,11 @@ var proposal = {
                     if (data[2]) {
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
-                            proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPartnerLevel = data[2].level.name;
                             proposalData.data.proposalPartnerLevelValue = data[2].level.value;
                         }
                         else {
                             proposalData.data.playerName = data[2].name;
-                            proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
                             proposalData.data.playerLevelName = data[2].playerLevel.name;
                             proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
@@ -2540,12 +2538,11 @@ var proposal = {
         var summary = {};
 
         if (reqData.status) {
-            /**
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
-            }**/
+            }
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
