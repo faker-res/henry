@@ -357,13 +357,15 @@ let dbPlayerInfo = {
                         if (platformObj.allowSamePhoneNumberToRegister === true) {
                             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-                                platform: platformObjId
+                                platform: platformObjId,
+                                isRealPlayer: true
                             }, platformObj.samePhoneNumberRegisterCount);
                             // return {isPhoneNumberValid: true}
                         } else {
                             return dbPlayerInfo.isPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-                                platform: platformObjId
+                                platform: platformObjId,
+                                isRealPlayer: true
                             });
                         }
                     } else {
@@ -950,13 +952,15 @@ let dbPlayerInfo = {
                     if (platformData.allowSamePhoneNumberToRegister === true) {
                         return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                            platform: playerdata.platform
+                            platform: playerdata.platform,
+                            isRealPlayer: true
                         }, platformData.samePhoneNumberRegisterCount);
                         // return {isPhoneNumberValid: true};
                     } else {
                         return dbPlayerInfo.isPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                            platform: playerdata.platform
+                            platform: playerdata.platform,
+                            isRealPlayer: true
                         });
                     }
                 } else {
