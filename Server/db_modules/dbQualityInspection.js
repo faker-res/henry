@@ -1227,11 +1227,13 @@ var dbQualityInspection = {
 
                         // calculate a sum of total rating
                         let totalInspectionRate = 0;
+                        let totalTimeoutRate = 0;
                         uItem.conversation.forEach(item=>{
-                            totalInspectionRate += item.timeoutRate;
                             totalInspectionRate += item.inspectionRate;
+                            totalTimeoutRate += item.timeoutRate;
                         });
                         uItem.totalInspectionRate = totalInspectionRate;
+                        uItem.totalTimeoutRate = totalTimeoutRate
 
                         if (qaData.length == 0) {
                             return dbconfig.collection_qualityInspection(uItem).save();
@@ -1259,11 +1261,13 @@ var dbQualityInspection = {
         let live800Acc = data.live800Acc.id  ? data.live800Acc.id :'xxx';
         let query = { 'live800Acc': {$in: [live800Acc]} };
         let totalInspectionRate = 0;
+        let totalTimeoutRate = 0;
         data.conversation.forEach(item=>{
-            totalInspectionRate += item.timeoutRate;
             totalInspectionRate += item.inspectionRate;
+            totalTimeoutRate += item.timeoutRate;
         });
         data.totalInspectionRate = totalInspectionRate;
+        data.totalTimeoutRate = totalTimeoutRate;
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
               let cs = item ? item._id:null;
@@ -1287,9 +1291,7 @@ var dbQualityInspection = {
                     })
                 }
             })
-
-
-        })
+        });
 
         return deferred.promise;
     },
