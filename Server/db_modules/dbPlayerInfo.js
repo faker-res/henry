@@ -60,6 +60,7 @@ var SMSSender = require('../modules/SMSSender');
 var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
+const constSMSPurpose = require("../const/constSMSPurpose");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -1219,6 +1220,16 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
 
+                if (playerData && playerData.platform && phoneNumber) {
+                    dbconfig.collection_smsLog.findOneAndUpdate(
+                        {
+                            platform: playerData.platform,
+                            tel: phoneNumber,
+                            purpose: constSMSPurpose.DEMO_PLAYER,
+                            used: true
+                        },
+                        {"data.isRegistered": true}).lean().catch(errorUtils.reportError);
+                }
                 playerData.password = randomPsw;
 
                 return playerData;
