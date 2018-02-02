@@ -321,7 +321,14 @@ define(['js/app'], function (myApp) {
             };
             vm.batchSave = function(){
                 console.log(vm.batchEditList);
-                socketService.$socket($scope.AppSocket, 'rateBatchConversation', {batchData:vm.batchEditList}, function(data){
+
+                let batchEdit = [];
+                vm.conversationForm.forEach(item=>{
+                    if(vm.batchEditList.indexOf(String(item.messageId))!= -1){
+                        batchEdit.push(item);
+                    };
+                });
+                socketService.$socket($scope.AppSocket, 'rateBatchConversation', {batchData:batchEdit}, function(data){
                     // console.log(data);
                     vm.searchLive800();
                 });

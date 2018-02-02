@@ -1211,14 +1211,14 @@ var dbQualityInspection = {
     rateBatchConversation: function(cvs, accName){
         var deferred = Q.defer();
         let proms = [];
-        console.log(cvs)
         cvs.batchData.forEach(uItem=>{
+            console.log(uItem)
             console.log(uItem.live800Acc);
             let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
             let prom = dbconfig.collection_admin.findOne(query).then(
                 item=>{
                     console.log(item);
-                    let adminName = item ? item.adminName:'x';
+                    let adminName = item ? item._id:null;
                     return adminName
                 })
                 .then(udata=>{
@@ -1227,7 +1227,16 @@ var dbQualityInspection = {
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
                         uItem.fpmsAcc = udata;
-                        uItem.status = 2;
+                        uItem.status = 4;
+
+                        // calculate a sum of total rating
+                        let totalInspectionRate = 0;
+                        uItem.conversation.forEach(item=>{
+                            totalInspectionRate += item.timeoutRate;
+                            totalInspectionRate += item.inspectionRate;
+                        });
+                        uItem.totalInspectionRate = totalInspectionRate;
+
                         if (qaData.length == 0) {
                             return dbconfig.collection_qualityInspection(uItem).save();
                         }else{
@@ -1253,7 +1262,14 @@ var dbQualityInspection = {
         console.log(data);
         let live800Acc = data.live800Acc.id  ? data.live800Acc.id :'xxx';
         let query = { 'live800Acc': {$in: [live800Acc]} };
-        console.log(data.live800Acc)
+        console.log(data.live800Acc);
+        let totalInspectionRate = 0;
+        data.conversation.forEach(item=>{
+            totalInspectionRate += item.timeoutRate;
+            totalInspectionRate += item.inspectionRate;
+        });
+        console.log(totalInspectionRate)
+        data.totalInspectionRate = totalInspectionRate;
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
               let cs = item ? item._id:null;
