@@ -1169,7 +1169,7 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData) {
+    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
         let platform;
 
@@ -1187,8 +1187,12 @@ let dbPlayerInfo = {
                 }
 
                 if (phoneNumber) {
+                    let phoneDuplicateProm = dbPlayerInfo.isPhoneNumberValidToRegister({
+                        phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                        platform: platform._id
+                    });
                     let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
-                    return Promise.all([demoNameProm, smsValidationProm]);
+                    return Promise.all([demoNameProm, phoneDuplicateProm, smsValidationProm]);
                 } else {
                     return Promise.reject({
                         status: constServerCode.INVALID_PHONE_NUMBER,
@@ -1199,9 +1203,16 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (!data || !data[0]) {
+                if (!data || !data[0] || !data[1]) {
                     return Promise.reject({
                         message: "Error in getting player data"
+                    });
+                }
+                if(data[1].isPhoneNumberValid === false) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        name: "DataError",
+                        message: "Phone number already exists"
                     });
                 }
 
