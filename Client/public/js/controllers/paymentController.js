@@ -1093,7 +1093,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getPlatformMerchantGroup', {platform: vm.selectedPlatform.id}, function (data) {
                     console.log('merchantgroup', data);
                     //provider list init
-                    vm.platformMerchantGroupList = data.data;
+                    vm.platformMerchantGroupList = data.data ? data.data : [];
                     vm.platformMerchantGroupListCheck = {};
                     $.each(vm.platformMerchantGroupList, function (i, v) {
                         vm.platformMerchantGroupListCheck[v._id] = true;
