@@ -8903,9 +8903,9 @@ let dbPlayerInfo = {
                                             status = 1;
                                         }
 
-                                        if (playerData.permission.topupOnline === false) {
-                                            status = 0;
-                                        }
+                                        //if (playerData.permission.topupOnline === false) {
+                                        //    status = 0;
+                                        //}
 
                                         var bValidType = true;
                                         resData.forEach(type => {
@@ -8919,7 +8919,7 @@ let dbPlayerInfo = {
                                                 }
                                             }
                                         });
-                                        if (bValidType && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                        if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             resData.push({type: paymentData.merchants[i].topupType, status: status, maxDepositAmount: paymentData.merchants[i].permerchantLimits});
                                         }
                                     }
@@ -8937,9 +8937,9 @@ let dbPlayerInfo = {
                                             status = 1;
                                         }
 
-                                        if (playerData.permission.topupManual === false) {
-                                            status = 0;
-                                        }
+                                        //if (playerData.permission.topupManual === false) {
+                                        //    status = 0;
+                                        //}
 
                                         var bValidType = true;
                                         resData.forEach(type => {
@@ -8950,7 +8950,7 @@ let dbPlayerInfo = {
                                                 }
                                             }
                                         });
-                                        if (bValidType && paymentData.data[i].status == "NORMAL") {
+                                        if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
                                             resData.push({
                                                 type: paymentData.data[i].bankTypeId,
                                                 status: status,
