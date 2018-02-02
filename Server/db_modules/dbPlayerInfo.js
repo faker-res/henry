@@ -60,6 +60,7 @@ var SMSSender = require('../modules/SMSSender');
 var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
+const constSMSPurpose = require("../const/constSMSPurpose");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -1069,6 +1070,16 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                if (playerData.isRealPlayer && playerData.platform && playerdata.phoneNumber) {
+                    dbconfig.collection_smsLog.update(
+                        {
+                            platform: playerData.platform,
+                            tel: playerdata.phoneNumber,
+                            purpose: constSMSPurpose.DEMO_PLAYER,
+                            "data.isRegistered":{$exists: false}
+                        },
+                        {"data.isRegistered": true}, {multi: true}).lean().catch(errorUtils.reportError);
+                    }
                 if (data && data[0] && data[1]) {
                     var proms = [];
                     var playerUpdateData = {
