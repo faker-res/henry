@@ -8920,7 +8920,7 @@ let dbPlayerInfo = {
                                                 }
                                             }
                                         });
-                                        if (bValidType && status == 1 && paymentData.data[i].status == "NORMAL") {
+                                        if (bValidType && paymentData.data[i].status == "NORMAL") {
                                             resData.push({
                                                 type: paymentData.data[i].bankTypeId,
                                                 status: status,

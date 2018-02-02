@@ -60,7 +60,8 @@ define(['js/app'], function (myApp) {
         vm.getDepositMethodbyId = {
             1: 'Online',
             2: 'ATM',
-            3: 'Counter'
+            3: 'Counter',
+            4: 'AliPayTransfer'
         };
 
         vm.topUpField = {
@@ -2047,7 +2048,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
-                            var text = $translate(data ? vm.depositMethodList[data] : "");
+                            var text = $translate(data ? vm.getDepositMethodbyId[data]: "");
                             return "<div>" + text + "</div>";
                         }
                     },
