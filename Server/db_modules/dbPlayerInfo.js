@@ -11894,7 +11894,7 @@ let dbPlayerInfo = {
             }
 
             // Player Score Query Operator
-            if (query.playerScoreValue) {
+            if (query.playerScoreValue || Number(query.playerScoreValue) === 0) {
                 switch (query.valueScoreOperator) {
                     case '>=':
                         playerQuery.valueScore = {$gte: query.playerScoreValue};
@@ -11973,7 +11973,7 @@ let dbPlayerInfo = {
                         return "";
                     }
 
-                    if (query.consumptionTimesValue && query.consumptionTimesOperator) {
+                    if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesOperator) {
                         let relevant = true;
                         switch (query.consumptionTimesOperator) {
                             case '>=':
@@ -11997,7 +11997,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    if (query.profitAmountValue && query.profitAmountOperator) {
+                    if ((query.profitAmountValue || Number(query.profitAmountValue) === 0) && query.profitAmountOperator) {
                         let relevant = true;
                         switch (query.profitAmountOperator) {
                             case '>=':
@@ -12061,7 +12061,7 @@ let dbPlayerInfo = {
                     result.rewardAmount = rewardDetail && rewardDetail.amount ? rewardDetail.amount : 0;
 
                     // filter irrelevant result base on query
-                    if (query.topUpTimesValue && query.topUpTimesOperator) {
+                    if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator) {
                         let relevant = true;
                         switch (query.topUpTimesOperator) {
                             case '>=':
@@ -12085,7 +12085,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    if (query.bonusTimesValue && query.bonusTimesOperator) {
+                    if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator) {
                         let relevant = true;
                         switch (query.bonusTimesOperator) {
                             case '>=':
@@ -12109,7 +12109,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    if (query.topUpAmountValue && query.topUpAmountOperator) {
+                    if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator) {
                         let relevant = true;
                         switch (query.topUpAmountOperator) {
                             case '>=':
