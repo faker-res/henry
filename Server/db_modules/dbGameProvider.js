@@ -371,6 +371,13 @@ var dbGameProvider = {
         }).lean();
     },
 
+    getProviderGroupByProviderId: (platformObjId, providerId) => {
+        return dbconfig.collection_gameProviderGroup.findOne({
+            platform: platformObjId,
+            providers: providerId
+        }).lean();
+    },
+
     updatePlatformProviderGroup: (platformObjId, gameProviderGroup) => {
         let promArr = [];
 

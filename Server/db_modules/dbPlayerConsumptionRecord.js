@@ -16,7 +16,6 @@ const constShardKeys = require('../const/constShardKeys');
 const constSystemParam = require('../const/constSystemParam');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const promiseUtils = require("../modules/promiseUtils.js");
-const constGameStatus = require("./../const/constGameStatus");
 const constServerCode = require('../const/constServerCode');
 const dataUtils = require("../modules/dataUtils.js");
 const mongoose = require('mongoose');
@@ -26,6 +25,8 @@ const constProposalStatus = require('./../const/constProposalStatus');
 const errorUtils = require('./../modules/errorUtils');
 
 let dbUtility = require('./../modules/dbutility');
+
+let dbGameProvider = require('../db_modules/dbGameProvider');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
@@ -869,6 +870,8 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
+
+                    updateRTG(oldData, recordData).catch(errorUtils.reportError);
 
                     delete recordData.name;
                     return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
@@ -2108,6 +2111,33 @@ var dbPlayerConsumptionRecord = {
     }
 
 };
+
+function updateRTG (oldData, newData) {
+    let incBonusAmt = 0, incValidAmt = 0;
+
+    if (oldData && newData && (oldData.bonusAmount != newData.bonusAmount || oldData.validAmount != newData.validAmount)) {
+        incBonusAmt = newData.bonusAmount - oldData.bonusAmount;
+        incValidAmt = newData.validAmount - oldData.validAmount;
+
+        return dbGameProvider.getProviderGroupByProviderId(oldData.platformId, oldData.providerId).then(
+            providerGroupObj => {
+                // Find available RTG to update
+                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                    platformId: oldData.platformId,
+                    playerId: oldData.playerId,
+                    providerGroup: providerGroupObj._id,
+                    status: constRewardTaskStatus.STARTED,
+                    createTime: {$lt: oldData.createTime}
+                }, {
+                    $inc: {
+                        currentAmt: incBonusAmt,
+                        curConsumption: incValidAmt
+                    }
+                });
+            }
+        )
+    }
+}
 
 // module.exports = dbPlayerConsumptionRecord;
 var proto = dbPlayerConsumptionRecordFunc.prototype;
