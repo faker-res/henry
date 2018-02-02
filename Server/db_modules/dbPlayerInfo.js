@@ -1169,7 +1169,7 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData) {
+    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
         let platform;
 
@@ -1182,13 +1182,17 @@ let dbPlayerInfo = {
 
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
 
-                if (!platformData.requireSMSVerificationForDemoPlayer) {
+                if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
                     return Promise.all([demoNameProm]);
                 }
 
                 if (phoneNumber) {
+                    let phoneDuplicateProm = dbPlayerInfo.isPhoneNumberValidToRegister({
+                        phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                        platform: platform._id
+                    });
                     let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
-                    return Promise.all([demoNameProm, smsValidationProm]);
+                    return Promise.all([demoNameProm, phoneDuplicateProm, smsValidationProm]);
                 } else {
                     return Promise.reject({
                         status: constServerCode.INVALID_PHONE_NUMBER,
@@ -1199,9 +1203,16 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (!data || !data[0]) {
+                if (!data || !data[0] || !data[1]) {
                     return Promise.reject({
                         message: "Error in getting player data"
+                    });
+                }
+                if(data[1].isPhoneNumberValid === false) {
+                    return Promise.reject({
+                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                        name: "DataError",
+                        message: "Phone number already exists"
                     });
                 }
 
@@ -3474,6 +3485,10 @@ let dbPlayerInfo = {
                             for (let i = 0; i < players.length; i++) {
                                 let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                                 calculatePlayerValueProms.push(calculateProm);
+
+                                if (players[i].isTestPlayer) {
+                                    isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
+                                }
                             }
                             return Promise.all(calculatePlayerValueProms);
 
@@ -3617,19 +3632,28 @@ let dbPlayerInfo = {
                     platformPrefix = platformData.prefix;
                     playerData.prefixName = platformData.prefix + playerData.name;
 
-                    return dbconfig.collection_players.findOne(
-                        {
-                            $or: [
-                                {
-                                    name: playerData.prefixName.toLowerCase(),
-                                    platform: platformData._id
-                                },
-                                {
-                                    phoneNumber: playerData.name,
-                                    platform: platformData._id
-                                }
-                            ]
-                        }).lean();
+                    let playerQuery = {
+                        $or: [
+                            {
+                                name: playerData.prefixName.toLowerCase(),
+                                platform: platformData._id
+                            },
+                            {
+                                phoneNumber: playerData.name,
+                                platform: platformData._id
+                            }
+                        ]
+                    };
+
+                    if (playerData.name && playerData.name[0] === "f") {
+                        playerQuery.$or.push({
+                            name: playerData.name,
+                            platform: platformData._id,
+                            isRealPlayer: false
+                        });
+                    }
+
+                    return dbconfig.collection_players.findOne(playerQuery).lean();
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Cannot find platform"});
@@ -3693,6 +3717,16 @@ let dbPlayerInfo = {
                         });
                         return;
                     }
+
+                    if (playerObj.isTestPlayer && isDemoPlayerExpire(playerObj, platformObj.demoPlayerValidDays)) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Player is not enable",
+                            code: constServerCode.PLAYER_IS_FORBIDDEN
+                        });
+                        return;
+                    }
+
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
@@ -8353,6 +8387,15 @@ let dbPlayerInfo = {
                     playerData => {
                         if (playerData) {
                             if (playerData.lastLoginIp == playerIp) {
+                                if (playerData.isTestPlayer && isDemoPlayerExpire(playerData, playerData.platform.demoPlayerValidDays)) {
+                                    deferred.reject({
+                                        name: "DataError",
+                                        message: "Player is not enable",
+                                        code: constServerCode.PLAYER_IS_FORBIDDEN
+                                    });
+                                    return;
+                                }
+
                                 conn.isAuth = true;
                                 conn.playerId = playerId;
                                 conn.playerObjId = playerData._id;
@@ -9313,15 +9356,37 @@ let dbPlayerInfo = {
                     });
                 }
 
-                if (eventData.validStartTime && eventData.validEndTime) {
-                    // TODO Temoporary hardcoding: Only can apply 1 time within period
-                    return dbconfig.collection_proposalType.findOne({
-                        platformId: player.platform._id,
-                        name: constProposalType.PLAYER_TOP_UP_RETURN
-                    }).lean();
+                // Check if any withdrawal occured between top up and apply top up return reward
+                let withdrawalQ = {
+                    'data.platformId': player.platform._id,
+                    'data.playerObjId': player._id,
+                    settleTime: {$gt: record.settlementTime},
+                    status: {$nin: [constProposalStatus.CANCEL, constProposalStatus.REJECTED, constProposalStatus.FAIL]}
+                };
+
+                return dbPropUtil.getOneProposalDataOfType(player.platform._id, constProposalType.PLAYER_BONUS, withdrawalQ);
+            }
+        ).then(
+            withdrawData => {
+                if (!withdrawData) {
+                    if (eventData.validStartTime && eventData.validEndTime) {
+                        // TODO Temoporary hardcoding: Only can apply 1 time within period
+                        return dbconfig.collection_proposalType.findOne({
+                            platformId: player.platform._id,
+                            name: constProposalType.PLAYER_TOP_UP_RETURN
+                        }).lean();
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
-                    return false;
+                    // There is withdrawal after top up and before apply top up return
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "There is withdrawal after topup"
+                    });
                 }
             }
         ).then(
@@ -11851,7 +11916,7 @@ let dbPlayerInfo = {
             }
 
             // Player Score Query Operator
-            if (query.playerScoreValue) {
+            if (query.playerScoreValue || Number(query.playerScoreValue) === 0) {
                 switch (query.valueScoreOperator) {
                     case '>=':
                         playerQuery.valueScore = {$gte: query.playerScoreValue};
@@ -11930,7 +11995,7 @@ let dbPlayerInfo = {
                         return "";
                     }
 
-                    if (query.consumptionTimesValue && query.consumptionTimesOperator) {
+                    if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesOperator) {
                         let relevant = true;
                         switch (query.consumptionTimesOperator) {
                             case '>=':
@@ -11954,7 +12019,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    if (query.profitAmountValue && query.profitAmountOperator) {
+                    if ((query.profitAmountValue || Number(query.profitAmountValue) === 0) && query.profitAmountOperator) {
                         let relevant = true;
                         switch (query.profitAmountOperator) {
                             case '>=':
@@ -12018,7 +12083,7 @@ let dbPlayerInfo = {
                     result.rewardAmount = rewardDetail && rewardDetail.amount ? rewardDetail.amount : 0;
 
                     // filter irrelevant result base on query
-                    if (query.topUpTimesValue && query.topUpTimesOperator) {
+                    if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator) {
                         let relevant = true;
                         switch (query.topUpTimesOperator) {
                             case '>=':
@@ -12042,7 +12107,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    if (query.bonusTimesValue && query.bonusTimesOperator) {
+                    if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator) {
                         let relevant = true;
                         switch (query.bonusTimesOperator) {
                             case '>=':
@@ -12066,7 +12131,7 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    if (query.topUpAmountValue && query.topUpAmountOperator) {
+                    if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator) {
                         let relevant = true;
                         switch (query.topUpAmountOperator) {
                             case '>=':
@@ -13257,6 +13322,37 @@ function generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count) 
             return generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count);
         }
     );
+}
+
+function isDemoPlayerExpire(player, expireDays) {
+    expireDays = expireDays || 7;
+
+    if (!player || !player.isTestPlayer) {
+        return false;
+    }
+
+    if (player.permission && player.permission.forbidPlayerFromLogin) {
+        return true;
+    }
+
+    if (player.name && player.name[0] !== "f") {
+        return false;
+    }
+
+    let currentTime = new Date();
+    let playerCreateTime = new Date(player.registrationTime);
+    let expireTime = new Date(playerCreateTime.setDate(playerCreateTime.getDate() + expireDays));
+
+    if (currentTime > expireTime) {
+        dbconfig.collection_players.update({
+            _id: player._id,
+            platform: player.platform
+        }, {
+            "permission.forbidPlayerFromLogin": true
+        }).catch(errorUtils.reportError);
+        return true;
+    }
+    return false;
 }
 
 

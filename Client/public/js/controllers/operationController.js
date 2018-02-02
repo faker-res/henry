@@ -781,6 +781,7 @@ define(['js/app'], function (myApp) {
             } else if (fieldName === 'userAgent') {
                 result = $translate($scope.userAgentType[val]) || '';
             }
+            
             return $sce.trustAsHtml(result);
         };
         // vm.getTopupIntentionData = function (callback) {

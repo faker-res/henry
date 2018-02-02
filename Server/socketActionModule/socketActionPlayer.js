@@ -135,7 +135,8 @@ function socketActionPlayer(socketIO, socket) {
         createDemoPlayer: function createDemoPlayer(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createDemoPlayer, [data.platformId], actionName, isValidData);
+            let isBackStageGenerated = true;
+            socketUtil.emitter(self.socket, dbPlayerInfo.createDemoPlayer, [data.platformId, null, null, null, isBackStageGenerated], actionName, isValidData);
         },
 
         /**
