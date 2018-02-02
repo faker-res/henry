@@ -7768,8 +7768,7 @@ define(['js/app'], function (myApp) {
 
             vm.createTrialPlayerAccount = function () {
                 //createTestPlayerForPlatform
-                console.log('here', vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'createTestPlayerForPlatform', {platformId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
                     vm.createtrail = data.data;
                     vm.testPlayerName = data.data.name;
                     vm.testPlayerPassword = data.data.password;
