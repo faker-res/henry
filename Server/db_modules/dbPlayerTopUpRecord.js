@@ -1982,7 +1982,9 @@ var dbPlayerTopUpRecord = {
                                             playerData.wechatPayGroup.wechats.forEach(
                                                 pWechat => {
                                                     if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
-                                                        bValid = true;
+                                                        if(!playerData.permission.disableWechatPay){
+                                                            bValid = true;
+                                                        }
                                                         maxDeposit = wechat.singleLimit > maxDeposit? wechat.singleLimit: maxDeposit;
                                                     }
                                                 }
@@ -1990,7 +1992,7 @@ var dbPlayerTopUpRecord = {
                                         }
                                     );
                                 }
-                                if (bValid)
+                                if (bValid || maxDeposit > 0)
                                     bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
@@ -2022,7 +2024,9 @@ var dbPlayerTopUpRecord = {
                                             playerData.alipayGroup.alipays.forEach(
                                                 pAlipay => {
                                                     if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
-                                                        bValid = true;
+                                                        if(!playerData.permission.alipayTransaction) {
+                                                            bValid = true;
+                                                        }
                                                         maxDeposit = alipay.singleLimit > maxDeposit? alipay.singleLimit: maxDeposit;
                                                     }
                                                 }
@@ -2030,7 +2034,7 @@ var dbPlayerTopUpRecord = {
                                         }
                                     );
                                 }
-                                if (bValid)
+                                if (bValid || maxDeposit > 0)
                                     bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
