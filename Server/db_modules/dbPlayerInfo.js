@@ -1182,7 +1182,7 @@ let dbPlayerInfo = {
 
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
 
-                if (!platformData.requireSMSVerificationForDemoPlayer) {
+                if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
                     return Promise.all([demoNameProm]);
                 }
 
