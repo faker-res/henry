@@ -1180,12 +1180,15 @@ let dbPlayerInfo = {
                 }
                 platform = platformData;
 
+                let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
+
                 if (!platformData.requireSMSVerificationForDemoPlayer) {
-                    return true;
+                    return Promise.all([demoNameProm]);
                 }
 
                 if (phoneNumber) {
-                    return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
+                    let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
+                    return Promise.all([demoNameProm, smsValidationProm]);
                 } else {
                     return Promise.reject({
                         status: constServerCode.INVALID_PHONE_NUMBER,
@@ -1195,8 +1198,14 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            isVerified => {
-                let demoPlayerName = generateDemoPlayerName(platform.demoPlayerPrefix);
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.reject({
+                        message: "Error in getting player data"
+                    });
+                }
+
+                let demoPlayerName = data[0];
 
                 let demoPlayerData = {
                     platform: platform._id,
@@ -1209,7 +1218,9 @@ let dbPlayerInfo = {
                     demoPlayerData.phoneNumber = phoneNumber;
                 }
 
-                demoPlayerData = Object.assign({}, demoPlayerData, deviceData);
+                if (deviceData) {
+                    demoPlayerData = Object.assign({}, demoPlayerData, deviceData);
+                }
 
                 return dbPlayerInfo.createPlayerInfo(demoPlayerData, true, true);
             }
@@ -5714,7 +5725,7 @@ let dbPlayerInfo = {
                             path: "process",
                             model: dbconfig.collection_proposalProcess
                         })
-                        .lean().sort({createTime: 1}).skip(startIndex).limit(count);
+                        .lean().sort({createTime: -1}).skip(startIndex).limit(count);
                     return Q.all([countProm, rewardProm]).catch(
                         error => Q.reject({name: "DBError", message: "Error in finding proposal", error: error})
                     );
@@ -8581,6 +8592,16 @@ let dbPlayerInfo = {
                         });
                     }
 
+                    let isFirstTransfer = true;
+                    if (playerData.gameProviderPlayed) {
+                        for (let i = 0; i < playerData.gameProviderPlayed.length; i++) {
+                            let playedProviderObjId = String(playerData.gameProviderPlayed[i]);
+                            if (playedProviderObjId === String(providerData._id)) {
+                                isFirstTransfer = false;
+                            }
+                        }
+                    }
+
                     return dbconfig.collection_platformGameStatus.findOne({
                         platform: playerData.platform._id,
                         game: gameData._id
@@ -8602,12 +8623,14 @@ let dbPlayerInfo = {
                                         rewardCredit: 0
                                     };
 
+                                    let transferProm = Promise.resolve();
+
                                     if (playerData.validCredit >= 1) {
-                                        transferCreditToProvider(retData).catch(errorUtils.reportError);
+                                        transferProm = transferCreditToProvider(retData);
                                     } else {
                                         // Not enough credit to play with local credit
                                         // Check credits in reward task group
-                                        dbconfig.collection_rewardTaskGroup.find({
+                                        transferProm = dbconfig.collection_rewardTaskGroup.find({
                                             platformId: playerData.platform._id,
                                             playerId: playerData._id,
                                             status: {$in: [constRewardTaskStatus.STARTED]}
@@ -8630,9 +8653,16 @@ let dbPlayerInfo = {
 
                                                 return retData;
                                             }
-                                        ).then(transferCreditToProvider).catch(errorUtils.reportError);
+                                        ).then(transferCreditToProvider);
                                     }
-                                    return true;
+
+                                    if (isFirstTransfer) {
+                                        return transferProm;
+                                    }
+                                    else {
+                                        transferProm.catch(errorUtils.reportError);
+                                        return true;
+                                    }
                                 } else {
                                     if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                         return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider);
@@ -8678,7 +8708,7 @@ let dbPlayerInfo = {
             }
         ).then(
             loginData => {
-                dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id);
+                dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
         );
@@ -13196,7 +13226,8 @@ function checkLimitedOfferToApply (proposalData) {
     }
 }
 
-function generateDemoPlayerName(platformDemoPlayerPrefix) {
+function generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count) {
+    count = count || 0;
     let namePrefix = "f";
     platformDemoPlayerPrefix = platformDemoPlayerPrefix || "a";
     let numArray = [];
@@ -13205,7 +13236,27 @@ function generateDemoPlayerName(platformDemoPlayerPrefix) {
         numArray.push(chance.character({pool: '0123456789'}))
     }
 
-    return namePrefix + platformDemoPlayerPrefix + numArray.join("");
+    let demoPlayerName = namePrefix + platformDemoPlayerPrefix + numArray.join("");
+
+    return dbPlayerInfo.isPlayerNameValidToRegister({
+        name: demoPlayerName,
+        platform: platformObjId
+    }).then(
+        data => {
+            if (data && data.isPlayerNameValid) {
+                return demoPlayerName;
+            }
+
+            count++;
+            if (count > 10) {
+                return Promise.reject({
+                    message: "Fail to generate demo player name."
+                });
+            }
+
+            return generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count);
+        }
+    );
 }
 
 

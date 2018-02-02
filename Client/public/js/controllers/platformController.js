@@ -7,6 +7,7 @@ define(['js/app'], function (myApp) {
     var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
 
             var $translate = $filter('translate');
+            let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
             var vm = this;
 
             // For debugging:
@@ -4519,7 +4520,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
                         "language": {
@@ -4918,13 +4919,13 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.validCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                         )
                                 } else {
                                     link.append(
                                         $('<text>', {
                                             'data-row': JSON.stringify(row)
-                                        }).text(row.validCredit.toFixed(2))
+                                        }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                     )
                                 }
                                 link.append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
@@ -4941,7 +4942,7 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.lockedCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.lockedCredit))
                                         )
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
@@ -4959,7 +4960,7 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.lockedCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.lockedCredit))
                                         )
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
@@ -7768,8 +7769,7 @@ define(['js/app'], function (myApp) {
 
             vm.createTrialPlayerAccount = function () {
                 //createTestPlayerForPlatform
-                console.log('here', vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'createTestPlayerForPlatform', {platformId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
                     vm.createtrail = data.data;
                     vm.testPlayerName = data.data.name;
                     vm.testPlayerPassword = data.data.password;
@@ -9504,7 +9504,7 @@ define(['js/app'], function (myApp) {
                         } else if (item.data.negativeProfitAmount) {
                             item.involveAmount$ = item.data.negativeProfitAmount;
                         }
-                        item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                        item.involveAmount$ = $noRoundTwoDecimalPlaces(item.involveAmount$);
                         item.typeName = $translate(item.type.name || "Unknown");
                         item.mainType$ = $translate(item.mainType || "Unknown");
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
@@ -9684,11 +9684,11 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                     sortCol: vm.playerExpenseLog.sortCol || null
                 };
-                if (vm.queryPara.playerExpense.dirty == 'Y') {
-                    sendData.dirty = true;
-                } else if (vm.queryPara.playerExpense.dirty == 'N') {
-                    sendData.dirty = false;
-                }
+                // if (vm.queryPara.playerExpense.dirty == 'Y') {
+                //     sendData.dirty = true;
+                // } else if (vm.queryPara.playerExpense.dirty == 'N') {
+                //     sendData.dirty = false;
+                // }
                 if (vm.queryPara.playerExpense.providerId) {
                     sendData.providerId = vm.queryPara.playerExpense.providerId
                 }
@@ -9774,7 +9774,7 @@ define(['js/app'], function (myApp) {
                             },
                             {title: $translate('Total Amount'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
                             //     data: "commissionAmount$",
@@ -17744,7 +17744,7 @@ define(['js/app'], function (myApp) {
                 } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                     result = utilService.getFormatTime(val);
                 } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
-                    result = Number.isFinite(parseFloat(val)) ? parseFloat(val).toFixed(2) : val;
+                    result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
                 } else if (fieldName == 'bankAccountType') {
                     switch (parseInt(val)) {
                         case 1:

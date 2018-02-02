@@ -619,12 +619,12 @@
                                     label {{'GAME_PROVIDER' | translate}}
                                     select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
                                         option(value='') {{'any' | translate}}
-                                .inlineBlk
-                                    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
-                                    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
-                                        option(value='') {{'any' | translate}}
-                                        option(value='N') {{'ABLE' | translate}}
-                                        option(value='Y') {{'UNABLE' | translate}}
+                                //.inlineBlk
+                                //    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
+                                //    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
+                                //        option(value='') {{'any' | translate}}
+                                //        option(value='N') {{'ABLE' | translate}}
+                                //        option(value='Y') {{'UNABLE' | translate}}
                                 .inlineBlk
                                     button.btn.btn-primary(ng-click='vm.getPlayerExpenseByFilter(true)') {{'SEARCH' | translate}}
                             .well

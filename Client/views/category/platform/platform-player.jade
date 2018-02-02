@@ -873,8 +873,8 @@ include modalGameCreditLog
                 tbody(ng-repeat="group in vm.rewardTaskGroupPopoverData | orderBy:'providerGroup.providers'")
                     tr
                         td {{group.providerGroup.name | translate}}
-                        td {{group.providerGroup.name == "LOCAL_CREDIT" ? group.validCredit.toFixed(2) : group.rewardAmt.toFixed(2)}}
-                        td {{group.curConsumption.toFixed(2)}} / {{ (group.targetConsumption + group.forbidXIMAAmt).toFixed(2) }}
+                        td {{group.providerGroup.name == "LOCAL_CREDIT" ? group.validCredit : group.rewardAmt | noRoundTwoDecimalPlaces}}
+                        td {{group.curConsumption | noRoundTwoDecimalPlaces }} / {{ (group.targetConsumption + group.forbidXIMAAmt) | noRoundTwoDecimalPlaces }}
 
 //#modalPlayerFeedbackRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
 //    .modal-dialog(style='width:60%;')
