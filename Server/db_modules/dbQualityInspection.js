@@ -337,7 +337,6 @@ var dbQualityInspection = {
         let platform = platform.filter(item=>{
             return item.live800CompanyId == cv.company_id;
         });
-        console.log(platform);
         if(platform.length > 0){
             platform = platform[0];
         }

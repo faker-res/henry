@@ -320,8 +320,6 @@ define(['js/app'], function (myApp) {
                 })
             };
             vm.batchSave = function(){
-                console.log(vm.batchEditList);
-
                 let batchEdit = [];
                 vm.conversationForm.forEach(item=>{
                     if(vm.batchEditList.indexOf(String(item.messageId))!= -1){
