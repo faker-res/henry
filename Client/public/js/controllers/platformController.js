@@ -895,7 +895,7 @@ define(['js/app'], function (myApp) {
                         vm.loadAlldepartment();
                         vm.rewardTabClicked();
                         vm.getPlatformRewardProposal();
-                        vm.getPlatformPlayersData(true);
+                        vm.getPlatformPlayersData(true, true);
                         //     break;
                         // case "Partner":
                         vm.getPlatformPartnersData();
@@ -4606,7 +4606,7 @@ define(['js/app'], function (myApp) {
 
 
             //get all platform players data from server
-            vm.getPlatformPlayersData = function (newSearch) {
+            vm.getPlatformPlayersData = function (newSearch, initPage) {
 
                 // $('#loadingPlayerTableSpin').show();
                 socketService.$socket($scope.AppSocket, 'getPlayersCountByPlatform', {platform: vm.selectedPlatform.id}, function (playerCount) {
@@ -4615,7 +4615,10 @@ define(['js/app'], function (myApp) {
                 });
                 vm.advancedQueryObj = vm.advancedQueryObj || {};
                 vm.drawPlayerTable([]);
-                vm.advancedPlayerQuery(newSearch);
+
+                if (!initPage) {
+                    vm.advancedPlayerQuery(newSearch);
+                }
 
             };
 
