@@ -817,7 +817,6 @@ define(['js/app'], function (myApp) {
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
-                vm.prepareDemoPlayerPrefix();
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
                 if(vm.showPlatform.demoPlayerPrefix){
@@ -20881,6 +20880,7 @@ define(['js/app'], function (myApp) {
                         vm.phonePattern = /^[0-9]{8,18}$/;
                         vm.showPlatformList = true;
                         vm.showPlatformDropDownList = false;
+                        vm.prepareDemoPlayerPrefix();
                         vm.showPlatformDetailTab(null);
                         vm.showRewardSettingsTab(null);
                         vm.showReapplyLostOrderTab(null);
