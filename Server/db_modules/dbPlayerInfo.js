@@ -8592,6 +8592,16 @@ let dbPlayerInfo = {
                         });
                     }
 
+                    let isFirstTransfer = true;
+                    if (playerData.gameProviderPlayed) {
+                        for (let i = 0; i < playerData.gameProviderPlayed.length; i++) {
+                            let playedProviderObjId = String(playerData.gameProviderPlayed[i]);
+                            if (playedProviderObjId === String(providerData._id)) {
+                                isFirstTransfer = false;
+                            }
+                        }
+                    }
+
                     return dbconfig.collection_platformGameStatus.findOne({
                         platform: playerData.platform._id,
                         game: gameData._id
@@ -8613,12 +8623,14 @@ let dbPlayerInfo = {
                                         rewardCredit: 0
                                     };
 
+                                    let transferProm = Promise.resolve();
+
                                     if (playerData.validCredit >= 1) {
-                                        transferCreditToProvider(retData).catch(errorUtils.reportError);
+                                        transferProm = transferCreditToProvider(retData);
                                     } else {
                                         // Not enough credit to play with local credit
                                         // Check credits in reward task group
-                                        dbconfig.collection_rewardTaskGroup.find({
+                                        transferProm = dbconfig.collection_rewardTaskGroup.find({
                                             platformId: playerData.platform._id,
                                             playerId: playerData._id,
                                             status: {$in: [constRewardTaskStatus.STARTED]}
@@ -8641,9 +8653,16 @@ let dbPlayerInfo = {
 
                                                 return retData;
                                             }
-                                        ).then(transferCreditToProvider).catch(errorUtils.reportError);
+                                        ).then(transferCreditToProvider);
                                     }
-                                    return true;
+
+                                    if (isFirstTransfer) {
+                                        return transferProm;
+                                    }
+                                    else {
+                                        transferProm.catch(errorUtils.reportError);
+                                        return true;
+                                    }
                                 } else {
                                     if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.status == constGameStatus.ENABLE && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
                                         return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true).then(transferCreditToProvider);
@@ -8689,7 +8708,7 @@ let dbPlayerInfo = {
             }
         ).then(
             loginData => {
-                dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id);
+                dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
         );

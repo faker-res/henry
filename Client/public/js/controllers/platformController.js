@@ -4520,7 +4520,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
                         "language": {
@@ -9684,11 +9684,11 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                     sortCol: vm.playerExpenseLog.sortCol || null
                 };
-                if (vm.queryPara.playerExpense.dirty == 'Y') {
-                    sendData.dirty = true;
-                } else if (vm.queryPara.playerExpense.dirty == 'N') {
-                    sendData.dirty = false;
-                }
+                // if (vm.queryPara.playerExpense.dirty == 'Y') {
+                //     sendData.dirty = true;
+                // } else if (vm.queryPara.playerExpense.dirty == 'N') {
+                //     sendData.dirty = false;
+                // }
                 if (vm.queryPara.playerExpense.providerId) {
                     sendData.providerId = vm.queryPara.playerExpense.providerId
                 }
@@ -9774,7 +9774,7 @@ define(['js/app'], function (myApp) {
                             },
                             {title: $translate('Total Amount'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
                             //     data: "commissionAmount$",
