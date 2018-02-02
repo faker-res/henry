@@ -24,6 +24,7 @@ var dbQualityInspection = {
         let queryObj = "";
         let operatorId = null;
         let dbResult = null;
+        let mongoDataCount = 0;
         console.log(query);
         if (query.companyId&&query.companyId.length > 0) {
             let companyId = query.companyId.join(',');
@@ -47,8 +48,16 @@ var dbQualityInspection = {
         }
         if(query.status=='all'||query.status=='1'){
             let connection = dbQualityInspection.connectMysql();
-            connection.connect();
-            dbResult = dbQualityInspection.countMySQLDB(queryObj,connection);
+            console.log(query)
+
+            let mysqlCount = dbQualityInspection.countMySQLDB(queryObj, connection);
+            if(query.status=='1'){
+                let mongoData = dbQualityInspection.countMongoDB(query, mysqlCount);
+                dbResult = dbQualityInspection.resolvePromise(mongoData);
+                console.log(mongoDataCount);
+            }else{
+                dbResult = mysqlCount;
+            }
             return dbResult;
         }else{
             let queryQA = {};
@@ -250,8 +259,40 @@ var dbQualityInspection = {
                 return results;
             })
     },
-
-
+    countMongoDB: function(query, mysqlProm){
+        let deferred = Q.defer();
+        let queryQA = {};
+        if (query.startTime && query.endTime) {
+            queryQA.createTime = {'$lte':new Date(query.endTime),
+                '$gte': new Date(query.startTime)}
+        }
+        if(query.fpmsAcc && query.fpmsAcc.length > 0){
+            if(query.fpmsAcc!='all') {
+                queryQA.fpmsAcc = {'$in': query.fpmsAcc};
+            }
+        }
+        if (query.operatorId && query.operatorId.length > 0) {
+            if(query.operatorId!='all'){
+                queryQA['live800Acc.id'] = { '$in':query.operatorId}
+            }
+        }
+        if(query.companyId && query.companyId.length > 0 ){
+            queryQA.companyId = {'$in':query.companyId};
+        }
+        if(query.qualityAssessor && query.qualityAssessor.length > 0){
+            if(query.qualityAssessor!='all') {
+                queryQA.qualityAssessor = {'$in': query.qualityAssessor};
+            }
+        }
+        let countQuery = dbconfig.collection_qualityInspection.find(queryQA).count();
+        Q.all([countQuery, mysqlProm]).then(data=>{
+            let mongoCount = data[0];
+            let mysqlCount = data[1];
+            let countData = mysqlCount - mongoCount;
+            deferred.resolve(countData);
+        })
+        return deferred.promise;
+    },
     fillContent: function(data){
         let deferred = Q.defer();
         let combineData = [];
@@ -460,7 +501,7 @@ var dbQualityInspection = {
     },
     searchMySQLDB:function(queryObj, paginationQuery, connection){
         var deferred = Q.defer();
-        
+
         connection.query("SELECT * FROM chat_content WHERE " + queryObj + paginationQuery, function (error, results, fields) {
             // if (error) throw error;
             if(error){
@@ -472,24 +513,22 @@ var dbQualityInspection = {
         return deferred.promise;
     },
     countMySQLDB:function(queryObj,connection){
-        var deferred = Q.defer();
-        console.log(queryObj);
-        connection.query("SELECT COUNT(msg_id) FROM chat_content WHERE" + queryObj, function (error, results, fields) {
-            // console.log('result',results);
-            // if (error) throw error;
-            let countNo = 0;
-            if(results){
-                if(results[0] && results[0]['COUNT(msg_id)']){
-                    countNo = results[0]['COUNT(msg_id)'];
+        let deferred = Q.defer();
+            connection.connect();
+            console.log(queryObj);
+            connection.query("SELECT COUNT(msg_id) FROM chat_content WHERE" + queryObj, function (error, results, fields) {
+                let countNo = 0;
+                if(results){
+                    if(results[0] && results[0]['COUNT(msg_id)']){
+                        countNo = results[0]['COUNT(msg_id)'];
+                    }
+                    if(error){
+                        console.log(error);
+                    }
                 }
-                if(error){
-                    console.log(error);
-                }
-            }
-
-            deferred.resolve(countNo);
-            connection.end();
-        });
+                deferred.resolve(countNo);
+                connection.end();
+            });
         return deferred.promise;
     },
     getMongoCV:function(dbResult){
