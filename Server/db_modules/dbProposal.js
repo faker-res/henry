@@ -843,9 +843,10 @@ var proposal = {
                     if (proposalData) {
                         var proposalStatus = proposalData.status || proposalData.process.status;
 
-                        if (((proposalData.type.name === "PlayerBonus" && (proposalStatus === "Pending" || proposalStatus === "AutoAudit" || proposalStatus === "CsPending"))
-                            || (proposalData.creator.name.toString() == adminId.toString())
-                            && (proposalStatus == constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
+                        if (((proposalData.type.name === constProposalType.PLAYER_BONUS
+                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
+                                || (proposalData.creator.name.toString() == adminId.toString())
+                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
