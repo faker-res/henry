@@ -10,6 +10,8 @@ var qualityInspectionSchema = new Schema({
     createTime:{type: Date, default: null, index: true},
     appealReason: {type: String},
     companyId: {type: String, required: true,index: true},
+    totalInspectionRate :{type: Number, default: 0},
+    totalTimeoutRate:{type: Number, default: 0},
     live800Acc: {
         id: {type: String, required: true, index: true},
         name: {type: String, required: true, index: true}

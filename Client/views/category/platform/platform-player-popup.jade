@@ -518,7 +518,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")')
-                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | number : 3}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | number : 3}} )
+                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | noRoundTwoDecimalPlaces}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | noRoundTwoDecimalPlaces}} )
             .modal-body
                 //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
                 //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.fixPlayerRewardAmount.rewardInfo.length > 0 || vm.fixPlayerRewardAmount.isProcessing', ng-click='vm.sendFixPlayerRewardAmount()') {{'Fix Player RewardAmount' | translate}}
@@ -619,12 +619,12 @@
                                     label {{'GAME_PROVIDER' | translate}}
                                     select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
                                         option(value='') {{'any' | translate}}
-                                .inlineBlk
-                                    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
-                                    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
-                                        option(value='') {{'any' | translate}}
-                                        option(value='N') {{'ABLE' | translate}}
-                                        option(value='Y') {{'UNABLE' | translate}}
+                                //.inlineBlk
+                                //    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
+                                //    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
+                                //        option(value='') {{'any' | translate}}
+                                //        option(value='N') {{'ABLE' | translate}}
+                                //        option(value='Y') {{'UNABLE' | translate}}
                                 .inlineBlk
                                     button.btn.btn-primary(ng-click='vm.getPlayerExpenseByFilter(true)') {{'SEARCH' | translate}}
                             .well

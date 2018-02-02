@@ -395,6 +395,11 @@
   "VALID_REWARD": "有效优惠",
   "VALID_PLAYER": "有效玩家",
   "ACTIVE_PLAYER": "活跃玩家",
+  "DAILY_ACTIVE_PLAYER": "活跃玩家 (日)",
+  "WEEKLY_ACTIVE_PLAYER": "活跃玩家 (周)",
+  "HALFMONTH_ACTIVE_PLAYER": "活跃玩家 (半月)",
+  "MONTHLY_ACTIVE_PLAYER": "活跃玩家 (月)",
+  "SEASON_ACTIVE_PLAYER": "活跃玩家 (季)",
   "REFERRAL": "推荐人",
   "REFERRER": "推荐的人",
   "LAST_LOGIN_IP": "最后登录 IP",
@@ -1815,7 +1820,7 @@
   "topupType": "充值类型",
   "merchantGroup": "商户组",
   "_id": "ID",
-  "playerName": "玩家姓名",
+  "playerName": "玩家账号",
   "referralName": "推荐人姓名",
   "referralTopUpAmount": "被推荐人充值额",
   "updateAmount": "变更额度",
@@ -3213,6 +3218,7 @@
   "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款",
   "FIRST_WITHDRAWAL_MANUAL_AUDIT": "首次提款转人工审核（不论金额）",
   "MANUAL_AUDIT_AFTER_BANK_CHANGED": "银改之后第一次提款转人工审核（不论金额）",
-  "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）"
+  "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）",
+  "consumeValidAmount": "有效流水"
 
 }

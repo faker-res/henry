@@ -326,13 +326,11 @@ var proposal = {
                     if (data[2]) {
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
-                            proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPartnerLevel = data[2].level.name;
                             proposalData.data.proposalPartnerLevelValue = data[2].level.value;
                         }
                         else {
                             proposalData.data.playerName = data[2].name;
-                            proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
                             proposalData.data.playerLevelName = data[2].playerLevel.name;
                             proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
@@ -841,14 +839,12 @@ var proposal = {
             .then(
                 function (proposalData) {
                     if (proposalData) {
-                        var reject = true;
                         var proposalStatus = proposalData.status || proposalData.process.status;
-                        if (proposalData.creator.name.toString() != adminId.toString()) {
-                            reject = false;
-                        } else if (proposalStatus != constProposalStatus.PENDING && proposalStatus !== constProposalStatus.AUTOAUDIT) {
-                            reject = false;
-                        }
-                        if (reject) {
+
+                        if (((proposalData.type.name === constProposalType.PLAYER_BONUS
+                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
+                                || (proposalData.creator.name.toString() == adminId.toString())
+                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
@@ -2542,12 +2538,11 @@ var proposal = {
         var summary = {};
 
         if (reqData.status) {
-            /**
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
-            }**/
+            }
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]

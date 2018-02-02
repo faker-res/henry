@@ -100,7 +100,7 @@ function socketActionQualityInspection(socketIO, socket) {
         rateBatchConversation: function rateBatchConversation(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
-            socketUtil.emitter(self.socket, dbQualityInspection.rateBatchConversation, [data, getAdminName()], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.rateBatchConversation, [data, getAdminId()], actionName, isDataValid);
         },
         getEvaluationRecordYearMonth: function getEvaluationRecordYearMonth(data){
             var actionName = arguments.callee.name;

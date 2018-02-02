@@ -120,13 +120,23 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
-         * Create a test player for platform
+         * Create a test player for platform (to be deprecated)
          * @param {json} data - It has to contain platform id
          */
         createTestPlayerForPlatform: function createTestPlayerForPlatform(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlayerInfo.createTestPlayerForPlatform, [data.platformId], actionName, isValidData);
+        },
+        /**
+         * Create a test player for platform
+         * @param {json} data - It has to contain platform id (not object id)
+         */
+        createDemoPlayer: function createDemoPlayer(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            let isBackStageGenerated = true;
+            socketUtil.emitter(self.socket, dbPlayerInfo.createDemoPlayer, [data.platformId, null, null, null, isBackStageGenerated], actionName, isValidData);
         },
 
         /**

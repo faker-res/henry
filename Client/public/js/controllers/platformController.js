@@ -7,6 +7,7 @@ define(['js/app'], function (myApp) {
     var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
 
             var $translate = $filter('translate');
+            let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
             var vm = this;
 
             // For debugging:
@@ -816,7 +817,6 @@ define(['js/app'], function (myApp) {
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
-                vm.prepareDemoPlayerPrefix();
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
                 if(vm.showPlatform.demoPlayerPrefix){
@@ -4519,7 +4519,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
                         "language": {
@@ -4918,13 +4918,13 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.validCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                         )
                                 } else {
                                     link.append(
                                         $('<text>', {
                                             'data-row': JSON.stringify(row)
-                                        }).text(row.validCredit.toFixed(2))
+                                        }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                     )
                                 }
                                 link.append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
@@ -4941,7 +4941,7 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.lockedCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.lockedCredit))
                                         )
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
@@ -4959,7 +4959,7 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.lockedCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.lockedCredit))
                                         )
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
@@ -5548,7 +5548,7 @@ define(['js/app'], function (myApp) {
                                         vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
                                             if (group.providerGroup.name == "LOCAL_CREDIT") {
                                                 group.validCredit = row.validCredit;
-                                                group.curConsumption = group.curConsumption.toFixed(2);
+                                                group.curConsumption = group.curConsumption;
                                             }
                                             return group;
                                         });
@@ -7768,8 +7768,7 @@ define(['js/app'], function (myApp) {
 
             vm.createTrialPlayerAccount = function () {
                 //createTestPlayerForPlatform
-                console.log('here', vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'createTestPlayerForPlatform', {platformId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
                     vm.createtrail = data.data;
                     vm.testPlayerName = data.data.name;
                     vm.testPlayerPassword = data.data.password;
@@ -9504,7 +9503,7 @@ define(['js/app'], function (myApp) {
                         } else if (item.data.negativeProfitAmount) {
                             item.involveAmount$ = item.data.negativeProfitAmount;
                         }
-                        item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                        item.involveAmount$ = $noRoundTwoDecimalPlaces(item.involveAmount$);
                         item.typeName = $translate(item.type.name || "Unknown");
                         item.mainType$ = $translate(item.mainType || "Unknown");
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
@@ -9684,11 +9683,11 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                     sortCol: vm.playerExpenseLog.sortCol || null
                 };
-                if (vm.queryPara.playerExpense.dirty == 'Y') {
-                    sendData.dirty = true;
-                } else if (vm.queryPara.playerExpense.dirty == 'N') {
-                    sendData.dirty = false;
-                }
+                // if (vm.queryPara.playerExpense.dirty == 'Y') {
+                //     sendData.dirty = true;
+                // } else if (vm.queryPara.playerExpense.dirty == 'N') {
+                //     sendData.dirty = false;
+                // }
                 if (vm.queryPara.playerExpense.providerId) {
                     sendData.providerId = vm.queryPara.playerExpense.providerId
                 }
@@ -9774,7 +9773,7 @@ define(['js/app'], function (myApp) {
                             },
                             {title: $translate('Total Amount'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
                             //     data: "commissionAmount$",
@@ -12640,6 +12639,8 @@ define(['js/app'], function (myApp) {
         vm.submitPlayerFeedbackQuery = function (isNewSearch) {
             if (!vm.selectedPlatform) return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
+            let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
+            let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
             let sendQuery = {platform: vm.selectedPlatform.id};
             let sendQueryOr = [];
 
@@ -12745,6 +12746,9 @@ define(['js/app'], function (myApp) {
                 sendQuery.isNewSystem = {$ne: true};
             } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
                 sendQuery.isNewSystem = true;
+            }
+            if (startTime && endTime) {
+                sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
             }
 
             $('#platformFeedbackSpin').show();
@@ -12885,8 +12889,22 @@ define(['js/app'], function (myApp) {
                     vm.setupGameProviderMultiInputFeedback();
                 });
             utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
-                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
+                $('#registerStartTimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true,
+                    pickTime: true,
+                });
+                vm.playerFeedbackQuery.registerStartTime = $('#registerStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                $('#registerEndTimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true,
+                    pickTime: true,
+                });
+                vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
 
+                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
                     var isChange = false;
                     if (pageSize != vm.playerFeedbackQuery.limit) {
                         isChange = true;
@@ -17725,7 +17743,7 @@ define(['js/app'], function (myApp) {
                 } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                     result = utilService.getFormatTime(val);
                 } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
-                    result = Number.isFinite(parseFloat(val)) ? parseFloat(val).toFixed(2) : val;
+                    result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
                 } else if (fieldName == 'bankAccountType') {
                     switch (parseInt(val)) {
                         case 1:
@@ -20862,6 +20880,7 @@ define(['js/app'], function (myApp) {
                         vm.phonePattern = /^[0-9]{8,18}$/;
                         vm.showPlatformList = true;
                         vm.showPlatformDropDownList = false;
+                        vm.prepareDemoPlayerPrefix();
                         vm.showPlatformDetailTab(null);
                         vm.showRewardSettingsTab(null);
                         vm.showReapplyLostOrderTab(null);
