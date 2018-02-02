@@ -2612,6 +2612,7 @@ let dbPlayerReward = {
                         rewardAmount: promoCodeObj.amount,
                         spendingAmount: promoCodeObj.requiredConsumption,
                         promoCode: promoCodeObj.code,
+                        disableWithdraw: promoCodeObj.disableWithdraw,
                         PROMO_CODE_TYPE: promoCodeObj.promoCodeTypeObjId.name,
                         promoCodeTypeValue: promoCodeObj.promoCodeTypeObjId.type,
                         applyAmount: topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0,
