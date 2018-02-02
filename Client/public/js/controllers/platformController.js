@@ -7,6 +7,7 @@ define(['js/app'], function (myApp) {
     var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
 
             var $translate = $filter('translate');
+            let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
             var vm = this;
 
             // For debugging:
@@ -34,7 +35,8 @@ define(['js/app'], function (myApp) {
                 FAIL: "Fail",
                 CANCEL: "Cancel",
                 EXPIRED: "Expired",
-                UNDETERMINED: "Undetermined"
+                UNDETERMINED: "Undetermined",
+                CSPENDING: "CsPending"
             };
             vm.allProposalStatus = [
                 "PrePending",
@@ -48,7 +50,8 @@ define(['js/app'], function (myApp) {
                 "Cancel",
                 "Expired",
                 "Undetermined",
-                "Recover"
+                "Recover",
+                "CsPending"
             ];
 
             // vm.allProposalType = [
@@ -288,7 +291,13 @@ define(['js/app'], function (myApp) {
                 UPDATE_BANK_INFO_FIRST: 'updateBankInfoFirst',
                 UPDATE_BANK_INFO: 'updateBankInfo',
                 FREE_TRIAL_REWARD: 'freeTrialReward',
+                DEMO_PLAYER: 'demoPlayer',
                 // RESET_PASSWORD: 'resetPassword'
+            };
+
+            vm.allAccountStatus = {
+                CREATED_ACCOUNT: 'createdAccount',
+                NOT_YET_CREATE_ACCOUNT: 'notYetCreateAccount',
             };
 
             vm.constProposalStatus = {
@@ -793,12 +802,27 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
                 }
             };
+            vm.prepareDemoPlayerPrefix = function(){
+                var alphabet = 97; //represent alphabet a
+                var totalNumberOfAlphabet = 26;
+                for(var i = 0; i < totalNumberOfAlphabet; i++){
+                    var character = String.fromCharCode(alphabet + i);
+                    $('.demoPlayerPrefixSelection').append($('<option>', {
+                        value: character,
+                        text: character
+                    }));
+                }
+            };
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
                 vm.curPlatformText = node.text;
+                vm.prepareDemoPlayerPrefix();
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
+                if(vm.showPlatform.demoPlayerPrefix){
+                    $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
+                }
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
                 vm.convertDepartment();
                 if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
@@ -986,6 +1010,7 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementDay = 0;
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
+                $('.demoPlayerPrefixSelection option:selected').text("");
                 $scope.safeApply();
             }
             vm.getDayName = function (d) {
@@ -1704,6 +1729,8 @@ define(['js/app'], function (myApp) {
             vm.initVertificationSMS = function () {
                 vm.smsRecordQuery = {};
                 vm.smsRecordQuery.purpose = "";
+                vm.smsRecordQuery.accountStatus = "";
+                vm.smsRecordQuery.inputDevice = "";
                 vm.smsRecordQuery.index = 0;
                 vm.smsRecordQuery.limit = 10;
                 vm.initQueryTimeFilter('smsRecordQueryDiv', function () {
@@ -1719,6 +1746,7 @@ define(['js/app'], function (myApp) {
                 var sendQuery = {
                     recipientName: vm.smsRecordQuery.recipientName,
                     purpose: vm.smsRecordQuery.purpose,
+                    accountStatus: vm.smsRecordQuery.accountStatus,
                     inputDevice: vm.smsRecordQuery.inputDevice,
                     type: 'registration',
                     status: 'all',
@@ -1729,7 +1757,8 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : vm.smsRecordQuery.limit,
                     platformObjId: vm.selectedPlatform.data._id,
                     sortCol: vm.smsRecordQuery.sortCol
-                }
+                };
+
                 $('#loadVertificationSMSIcon').show();
                 socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
                     vm.smsRecordQuery.loading = false;
@@ -4491,7 +4520,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
                         "language": {
@@ -4890,13 +4919,13 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.validCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                         )
                                 } else {
                                     link.append(
                                         $('<text>', {
                                             'data-row': JSON.stringify(row)
-                                        }).text(row.validCredit.toFixed(2))
+                                        }).text($noRoundTwoDecimalPlaces(row.validCredit))
                                     )
                                 }
                                 link.append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
@@ -4913,7 +4942,7 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.lockedCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.lockedCredit))
                                         )
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
@@ -4931,7 +4960,7 @@ define(['js/app'], function (myApp) {
                                                 'data-trigger': 'focus',
                                                 'data-placement': 'bottom',
                                                 'data-container': 'body'
-                                            }).text(row.lockedCredit.toFixed(2))
+                                            }).text($noRoundTwoDecimalPlaces(row.lockedCredit))
                                         )
                                         .append($('<span>').html('&nbsp;&nbsp;&nbsp;'));
                                 }
@@ -5520,7 +5549,7 @@ define(['js/app'], function (myApp) {
                                         vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
                                             if (group.providerGroup.name == "LOCAL_CREDIT") {
                                                 group.validCredit = row.validCredit;
-                                                group.curConsumption = group.curConsumption.toFixed(2);
+                                                group.curConsumption = group.curConsumption;
                                             }
                                             return group;
                                         });
@@ -7293,9 +7322,11 @@ define(['js/app'], function (myApp) {
                 if (playerPermission.levelChange === false && newPlayerData.playerLevel != oldPlayerData.playerLevel) {
                     newPlayerData.playerLevel = oldPlayerData.playerLevel;
                     socketService.showErrorMessage($translate("level change fail, please contact cs"));
+                    return;
                 }
                 oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
+                let updatedKeys = Object.keys(updateData);
                 var updateSMS = {
                     receiveSMS: updateData.receiveSMS != null ? updateData.receiveSMS : undefined,
                     smsSetting: updateData.smsSetting ? updateData.smsSetting : undefined
@@ -7317,18 +7348,20 @@ define(['js/app'], function (myApp) {
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = playerId;
                     var isUpdate = false;
-                    updateData.playerName = newPlayerData.name || vm.editPlayer.name
+
+                    updateData.playerName = newPlayerData.name || vm.editPlayer.name;
                     // compare newplayerData & oldPlayerData, if different , update it , exclude bankgroup
-                    Object.keys(newPlayerData).forEach(function (key) {
-                        if (newPlayerData[key] != oldPlayerData[key]) {
-                            if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
-                                //do nothing
-                            } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
-                                //do nothing
-                            } else {
-                                isUpdate = true;
-                            }
+                    // Object.keys(newPlayerData).forEach(function (key) {
+                    updatedKeys.forEach(function (key) {
+                        // if (newPlayerData[key] != oldPlayerData[key]) {
+                        if (key == "smsSetting" || key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
+                            //do nothing
+                        } else if (key == "partnerName" && oldPlayerData.partner == newPlayerData.partner) {
+                            //do nothing
+                        } else {
+                            isUpdate = true;
                         }
+                        // }
                     });
 
                     if (updateData.partner == null) {
@@ -7736,8 +7769,7 @@ define(['js/app'], function (myApp) {
 
             vm.createTrialPlayerAccount = function () {
                 //createTestPlayerForPlatform
-                console.log('here', vm.selectedPlatform.id);
-                socketService.$socket($scope.AppSocket, 'createTestPlayerForPlatform', {platformId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
                     vm.createtrail = data.data;
                     vm.testPlayerName = data.data.name;
                     vm.testPlayerPassword = data.data.password;
@@ -9472,11 +9504,11 @@ define(['js/app'], function (myApp) {
                         } else if (item.data.negativeProfitAmount) {
                             item.involveAmount$ = item.data.negativeProfitAmount;
                         }
-                        item.involveAmount$ = parseFloat(item.involveAmount$).toFixed(2);
+                        item.involveAmount$ = $noRoundTwoDecimalPlaces(item.involveAmount$);
                         item.typeName = $translate(item.type.name || "Unknown");
                         item.mainType$ = $translate(item.mainType || "Unknown");
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
-                        item.status$ = $translate(item.status ? item.status : item.process.status);
+                        item.status$ = $translate(item.status ? item.type.name == "PlayerBonus" || item.type.name == "PartnerBonus" ? item.status == "Approved" ? "approved" : item.status : item.status : item.process.status);
                         return item;
                     })
                     vm.playerProposal.totalCount = data.data.size;
@@ -9652,11 +9684,11 @@ define(['js/app'], function (myApp) {
                     limit: newSearch ? 10 : (vm.playerExpenseLog.limit || 10),
                     sortCol: vm.playerExpenseLog.sortCol || null
                 };
-                if (vm.queryPara.playerExpense.dirty == 'Y') {
-                    sendData.dirty = true;
-                } else if (vm.queryPara.playerExpense.dirty == 'N') {
-                    sendData.dirty = false;
-                }
+                // if (vm.queryPara.playerExpense.dirty == 'Y') {
+                //     sendData.dirty = true;
+                // } else if (vm.queryPara.playerExpense.dirty == 'N') {
+                //     sendData.dirty = false;
+                // }
                 if (vm.queryPara.playerExpense.providerId) {
                     sendData.providerId = vm.queryPara.playerExpense.providerId
                 }
@@ -9742,7 +9774,7 @@ define(['js/app'], function (myApp) {
                             },
                             {title: $translate('Total Amount'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
+                            //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
                             //     data: "commissionAmount$",
@@ -11823,7 +11855,13 @@ define(['js/app'], function (myApp) {
                         if (!isEqualArray(newObj[key], oldObj[key])) {
                             changes[key] = newObj[key];
                         }
-                    } else if (JSON.stringify(newObj[key]) !== JSON.stringify(oldObj[key])) {
+                    } else if (newObj[key] instanceof Date) {
+                        let newValue = new Date(newObj[key]);
+                        let oldValue = new Date(oldObj[key]);
+                        if (newValue.getTime() !== oldValue.getTime()) {
+                            changes[key] = newObj[key];
+                        }
+                    } else if (JSON.stringify(newObj[key]) !== JSON.stringify(oldObj[key]) && newObj[key] != oldObj[key]) {
                         changes[key] = newObj[key];
                     }
                 }
@@ -12602,6 +12640,8 @@ define(['js/app'], function (myApp) {
         vm.submitPlayerFeedbackQuery = function (isNewSearch) {
             if (!vm.selectedPlatform) return;
             console.log('vm.feedback', vm.playerFeedbackQuery);
+            let startTime = $('#registerStartTimePicker').data('datetimepicker').getLocalDate();
+            let endTime = $('#registerEndTimePicker').data('datetimepicker').getLocalDate();
             let sendQuery = {platform: vm.selectedPlatform.id};
             let sendQueryOr = [];
 
@@ -12707,6 +12747,9 @@ define(['js/app'], function (myApp) {
                 sendQuery.isNewSystem = {$ne: true};
             } else if (vm.playerFeedbackQuery.isNewSystem === "new") {
                 sendQuery.isNewSystem = true;
+            }
+            if (startTime && endTime) {
+                sendQuery.registrationTime = {$gte: startTime, $lt: endTime};
             }
 
             $('#platformFeedbackSpin').show();
@@ -12847,8 +12890,22 @@ define(['js/app'], function (myApp) {
                     vm.setupGameProviderMultiInputFeedback();
                 });
             utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
-                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
+                $('#registerStartTimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true,
+                    pickTime: true,
+                });
+                vm.playerFeedbackQuery.registerStartTime = $('#registerStartTimePicker').data('datetimepicker').setDate(utilService.setLastYearLocalDay(new Date()));
+                $('#registerEndTimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy hh:mm:ss',
+                    pick12HourFormat: true,
+                    pickTime: true,
+                });
+                vm.playerFeedbackQuery.registerEndTime = $('#registerEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
 
+                vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {pageSize: vm.playerFeedbackQuery.limit}, $translate, function (curP, pageSize) {
                     var isChange = false;
                     if (pageSize != vm.playerFeedbackQuery.limit) {
                         isChange = true;
@@ -17686,6 +17743,8 @@ define(['js/app'], function (myApp) {
                     result = vm.getProviderGroupNameById(val);
                 } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                     result = utilService.getFormatTime(val);
+                } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                    result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
                 } else if (fieldName == 'bankAccountType') {
                     switch (parseInt(val)) {
                         case 1:
@@ -18978,6 +19037,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.usePointSystem = vm.selectedPlatform.data.usePointSystem;
                 vm.platformBasic.usePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.usePhoneNumberTwoStepsVerification;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
+                vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -19059,6 +19119,9 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic = vm.autoApprovalBasic || {};
                 console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
                 vm.autoApprovalBasic.enableAutoApplyBonus = vm.selectedPlatform.data.enableAutoApplyBonus;
+                vm.autoApprovalBasic.manualAuditFirstWithdrawal = typeof vm.selectedPlatform.data.manualAuditFirstWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditFirstWithdrawal : true;
+                vm.autoApprovalBasic.manualAuditAfterBankChanged = typeof vm.selectedPlatform.data.manualAuditAfterBankChanged === 'boolean' ? vm.selectedPlatform.data.manualAuditAfterBankChanged : true;
+                vm.autoApprovalBasic.manualAuditBanWithdrawal = typeof vm.selectedPlatform.data.manualAuditBanWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditBanWithdrawal : true;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
                 vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
                 vm.autoApprovalBasic.showAutoApproveRepeatCount = vm.selectedPlatform.data.autoApproveRepeatCount;
@@ -19470,7 +19533,8 @@ define(['js/app'], function (myApp) {
                         useProviderGroup: srcData.useProviderGroup,
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
-                        usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification
+                        usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
+                        playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval
                     }
                 };
                 let isProviderGroupOn = false;
@@ -19504,6 +19568,9 @@ define(['js/app'], function (myApp) {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         enableAutoApplyBonus: srcData.enableAutoApplyBonus,
+                        manualAuditFirstWithdrawal: srcData.manualAuditFirstWithdrawal,
+                        manualAuditAfterBankChanged: srcData.manualAuditAfterBankChanged,
+                        manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
                         autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
                         autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
                         autoApproveRepeatCount: srcData.showAutoApproveRepeatCount,
@@ -19512,7 +19579,7 @@ define(['js/app'], function (myApp) {
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset
+                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
                     }
                 };
                 console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));

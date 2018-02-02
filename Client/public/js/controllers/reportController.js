@@ -5,6 +5,7 @@ define(['js/app'], function (myApp) {
     var injectParams = ['$sce', '$scope', '$filter', '$location', '$log', '$timeout', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$compile"];
     var reportController = function ($sce, $scope, $filter, $location, $log, $timeout, authService, socketService, utilService, CONFIG, $cookies, $compile) {
         var $translate = $filter('translate');
+        let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         var vm = this;
 
         // For debugging:
@@ -38,7 +39,8 @@ define(['js/app'], function (myApp) {
             FAIL: "Fail",
             CANCEL: "Cancel",
             EXPIRED: "Expired",
-            UNDETERMINED: "Undetermined"
+            UNDETERMINED: "Undetermined",
+            CSPENDING: "CsPending"
         };
         vm.topUpTypeList = {
             TOPUPMANUAL: 1,
@@ -59,7 +61,8 @@ define(['js/app'], function (myApp) {
         vm.getDepositMethodbyId = {
             1: 'Online',
             2: 'ATM',
-            3: 'Counter'
+            3: 'Counter',
+            4: 'AliPayTransfer'
         };
 
         vm.topUpField = {
@@ -422,6 +425,8 @@ define(['js/app'], function (myApp) {
                 result = getProviderGroupNameById(val);
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
+            } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
             } else if (fieldName == 'bankAccountType') {
                 switch (parseInt(val)) {
                     case 1:
@@ -2044,7 +2049,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
-                            var text = $translate(data ? vm.depositMethodList[data] : "");
+                            var text = $translate(data ? vm.getDepositMethodbyId[data]: "");
                             return "<div>" + text + "</div>";
                         }
                     },

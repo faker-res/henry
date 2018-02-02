@@ -11,6 +11,10 @@
                 label {{"Type"|translate}}
                 select.form-control(ng-model="vm.smsRecordQuery.purpose", ng-options='v | translate for (i,v) in vm.allSMSPurpose')
                     option(value='') {{'all'|translate}}
+            .inlineBlk(ng-if='vm.smsRecordQuery.purpose === "demoPlayer"')
+                label {{"ACCOUNT_STATUS"|translate}}
+                select.form-control(ng-model="vm.smsRecordQuery.accountStatus", ng-options='v | translate for (i,v) in vm.allAccountStatus')
+                    option(value='') {{'all'|translate}}
             .inlineBlk
                 label {{"DEVICE"|translate}}
                 select.form-control(ng-model="vm.smsRecordQuery.inputDevice")

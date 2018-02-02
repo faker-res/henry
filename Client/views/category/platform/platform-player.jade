@@ -873,8 +873,8 @@ include modalGameCreditLog
                 tbody(ng-repeat="group in vm.rewardTaskGroupPopoverData | orderBy:'providerGroup.providers'")
                     tr
                         td {{group.providerGroup.name | translate}}
-                        td {{group.providerGroup.name == "LOCAL_CREDIT" ? group.validCredit : group.rewardAmt}}
-                        td {{group.curConsumption}} / {{group.targetConsumption + group.forbidXIMAAmt}}
+                        td {{group.providerGroup.name == "LOCAL_CREDIT" ? group.validCredit : group.rewardAmt | noRoundTwoDecimalPlaces}}
+                        td {{group.curConsumption | noRoundTwoDecimalPlaces }} / {{ (group.targetConsumption + group.forbidXIMAAmt) | noRoundTwoDecimalPlaces }}
 
 //#modalPlayerFeedbackRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
 //    .modal-dialog(style='width:60%;')
@@ -1310,49 +1310,6 @@ include modalGameCreditLog
                     table#playerCreditLogTbl.common-table.display(style='min-width:100%')
                     #playerCreditLogTblPage.height30
 
-
-#modalPlayerApiLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"Player API Log" | translate}} : {{vm.selectedSinglePlayer.name}}
-            .modal-body
-                #playerApiLogQuery.well
-                    .inlineBlk
-                        label {{"Start date" | translate}}
-                        .startTime
-                    .inlineBlk
-                        label {{"End date" | translate}}
-                        .endTime
-                    .inlineBlk
-                        label {{"API Action" | translate}}
-                        select.form-control.apiAction(ng-model='vm.playerApiLog.apiAction')
-                            option(value='') {{'ALL' | translate}}
-                            option(value="player - create") {{"玩家开户" | translate}}
-                            option(value="login") {{"login" | translate}}
-                            option(value="createPlayerPartner") {{"玩家+代理开户" | translate}}
-                            option(value="loginPlayerPartner") {{"玩家+代理登录" | translate}}
-                            option(value="updatePaymentInfo") {{"修改玩家的支付信息" | translate}}
-                            option(value="updatePlayerPartnerPaymentInfo") {{"修改玩家+代理的支付信息" | translate}}
-                            option(value="updatePassword") {{"修改玩家登录密码" | translate}}
-                            option(value="updatePasswordPlayerPartner") {{"修改玩家+代理登录密码" | translate}}
-                            option(value="updateSmsSetting") {{"设置短信通知" | translate}}
-                            option(value="player - update") {{"修改玩家信息" | translate}}
-                            option(value="updatePhotoUrl") {{"修改玩家头像" | translate}}
-                            option(value="getLoginURL") {{"登陆游戏" | translate}}
-                            option(value="modifyGamePassword") {{"修改游戏密码" | translate}}
-                            option(value="topUpIntention - add") {{"添加充值意向" | translate}}
-                            option(value="topUpIntention - update") {{"修改充值意向" | translate}}
-                            option(value="requestConsumeRebate") {{"申请结算消费返点" | translate}}
-                            option(value="createFirstTopUpRewardProposal") {{"创建首冲奖励提案" | translate}}
-                            option(value="applyProviderReward") {{"申请游戏提供商奖励" | translate}}
-                            option(value="applyRewardEvent") {{"申请奖励活动" | translate}}
-                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
-                div
-                    label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
-                    table#playerApiLogTbl.common-table.display(style='min-width:100%')
-                    #playerApiLogTblPage.height30
 
 #sameNumPlayerListTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')

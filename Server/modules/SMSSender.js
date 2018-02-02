@@ -46,10 +46,17 @@ const SMSSender = {
                                 if(template.type === constMessageType.UPDATE_PASSWORD)
                                     template.content = template.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
                                 if(proposalData){
-                                    template.content = template.content.replace('{{proposalData.createTime}}', moment(proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
+                                    if(proposalData.createTime)
+                                        template.content = template.content.replace('{{proposalData.createTime}}', moment(proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
+                                    if(proposalData.settleTime)
+                                        //use current Date for settleTime, because settleTime only update after proposalExecutor ,
+                                        //and sendMessageToPlayer will call before settleTime update
+                                        template.content = template.content.replace('{{proposalData.settleTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
                                     let metaData = {proposalData: proposalData};
                                     if(proposalData.data.rewardAmount)
                                         template.content = template.content.replace('{{proposalData.data.rewardAmount}}', proposalData.data.rewardAmount.toFixed(2));
+                                    if(proposalData.data.amount)
+                                        template.content = template.content.replace('{{proposalData.data.amount}}', proposalData.data.amount.toFixed(2));
                                     template.content = renderTemplate(template.content, metaData);
                                 }
 

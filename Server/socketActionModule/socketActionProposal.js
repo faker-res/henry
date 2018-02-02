@@ -264,9 +264,7 @@ function socketActionProposal(socketIO, socket) {
                 _id: ObjectId(data.proposalObjId)
             }
             let updateData = {
-                data: {
-                    remarks: data.remarks
-                }
+                "data.remarks": data.remarks
             }
             socketUtil.emitter(self.socket, dbProposal.updateProposalRemarks, [query, updateData], actionName, isValidData);
 
@@ -505,7 +503,13 @@ function socketActionProposal(socketIO, socket) {
             data.limit = data.limit || 10;
             data.index = data.index || 0;
             socketUtil.emitter(self.socket, dbProposal.getPaymentMonitorResult, [data, data.index, data.limit], actionName, isValidData);
-        }
+        },
+
+        approveCsPendingAndChangeStatus: function approveCsPendingAndChangeStatus(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.proposalObjId && data.createTime);
+            socketUtil.emitter(self.socket, dbProposal.approveCsPendingAndChangeStatus, [data.proposalObjId, data.createTime, data.adminName], actionName, isDataValid);
+        },
 
     };
     socketActionProposal.actions = this.actions;

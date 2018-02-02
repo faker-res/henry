@@ -187,8 +187,14 @@ const messageDispatcher = {
         if (metaData.proposalData) {
             if(metaData.proposalData.createTime)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.createTime}}', moment(metaData.proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
+            if(metaData.proposalData.settleTime)
+                //use current Date for settleTime, because settleTime only update after proposalExecutor ,
+                //and sendMessageToPlayer will call before settleTime update
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.settleTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
             if(metaData.proposalData.data.rewardAmount)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardAmount}}', metaData.proposalData.data.rewardAmount.toFixed(2));
+            if(metaData.proposalData.data.amount)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.amount}}', metaData.proposalData.data.amount.toFixed(2));
         }
         
         const renderedContent = renderTemplate(messageTemplate.content, metaData);

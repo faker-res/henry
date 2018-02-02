@@ -7,6 +7,7 @@ const constQualityInspectionStatus = require('./../const/constQualityInspectionS
 const constQualityInspectionRoleName = require('./../const/constQualityInspectionRoleName');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbQualityInspection = {
     connectMysql: function(){
@@ -48,7 +49,6 @@ var dbQualityInspection = {
             let connection = dbQualityInspection.connectMysql();
             connection.connect();
             dbResult = dbQualityInspection.countMySQLDB(queryObj,connection);
-            console.log(dbResult);
             return dbResult;
         }else{
             let queryQA = {};
@@ -90,7 +90,6 @@ var dbQualityInspection = {
         }else{
             mysqlAccName = String(acc);
         }
-        console.log(mysqlAccName)
         return mysqlAccName
     },
     searchLive800: function (query) {
@@ -152,10 +151,13 @@ var dbQualityInspection = {
     constructCV: function(dataResult){
         let deferred = Q.defer();
         let liveChats = [];
+        let platformProm = dbconfig.collection_platform.find().lean();
+        Q.all([dataResult, platformProm]).then(results=>{
 
-        Q.all(dataResult).then(results=>{
+            let sqlData = results[0];
+            let platformDetails = results[1];
 
-            results.forEach(item => {
+            sqlData.forEach(item => {
                 let live800Chat = {conversation: [],live800Acc:{}};
                 live800Chat.messageId = item.msg_id;
                 live800Chat.status = item.status;
@@ -169,23 +171,25 @@ var dbQualityInspection = {
 
                 live800Chat.operatorId = item.operator_id;
                 live800Chat.operatorName = item.operator_name;
-                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_id;
+                live800Chat.live800Acc['id'] = item.company_id+'-'+item.operator_name;
                 live800Chat.live800Acc['name'] = item.operator_name;
                 let dom = new JSDOM(item.content);
                 let content = [];
-                let sys = dom.window.document.getElementsByTagName("sys");
                 let he = dom.window.document.getElementsByTagName("he");
                 let i = dom.window.document.getElementsByTagName("i");
 
                 partI = dbQualityInspection.reGroup(i, 1);
                 partHe = dbQualityInspection.reGroup(he, 2);
-                partSYS = dbQualityInspection.reGroup(sys, 3);
-                content = partI.concat(partHe, partSYS);
+                content = partI.concat(partHe);
                 content.sort(function (a, b) {
                     return a.time - b.time;
                 });
 
-                live800Chat.conversation = content;
+                let platformInfo = platformDetails.filter(item => {
+                    return item.live800CompanyId == live800Chat.companyId;
+                });
+                platformInfo = platformInfo[0] ? platformInfo[0] : [];
+                live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
 
                 liveChats.push(live800Chat);
             });
@@ -284,8 +288,11 @@ var dbQualityInspection = {
     },
     getMySQLConversation: function(sqlResult, queryObj){
         let deferred = Q.defer();
+        let platformProm = dbconfig.collection_platform.find().lean();
+        Q.all([sqlResult, platformProm]).then(queryResult => {
 
-        Q.all(sqlResult).then(results => {
+            results = queryResult[0];
+            platforms = queryResult[1];
             let msgIds = []
             if(results.length == 0){
                 deferred.resolve([]);
@@ -308,6 +315,7 @@ var dbQualityInspection = {
                 return Q.all(dbData).then(dbResult => {
                     let reformatData = [];
                     dbResult.forEach(item => {
+                        //let isValidCV = vm.isValidCV(item, platforms);
                         let dData = {};
                         dData.messageId = item.msg_id;
                         let conversation = dbQualityInspection.conversationReformat(item.content);
@@ -324,6 +332,70 @@ var dbQualityInspection = {
         })
         return deferred.promise;
     },
+    isValidCV: function(cv, platforms){
+        let result = true
+        let platform = platform.filter(item=>{
+            return item.live800CompanyId == cv.company_id;
+        });
+        if(platform.length > 0){
+            platform = platform[0];
+        }
+
+        if(platform.conversationDefinition){
+            let conversationDefinition = platform.conversationDefinition;
+            conversationDefinition;
+            let noValidMathCount = 0;
+
+            let firstCV = cv.conversation[0];
+            let lastCV = cv.conversation[1];
+
+            // time validation
+            let dialogTime = (lastCV - firstCV)/1000;
+            if(dialogTime < conversationDefinition.totalSec){
+                noValidMathCount += 1;
+            }
+            //conversation time validation
+            let csCVCount = 0;
+            let customerCVCount = 0;
+            conversation.forEach(item => {
+                if (!firstCV && item.roles == 2) {
+                    firstCV = item;
+                    lastCustomerCV = item;
+                    customerCVCount += 1;
+                } else {
+                    if (item.roles == 2) {
+                        // keep the last customer question , to calculate the timeoutRate
+                        if (lastCV.roles == 1) {
+                            lastCustomerCV = item;
+                            customerCVCount += 1;
+                        }
+                    } else if (item.roles == 1 && lastCustomerCV) {
+
+                        if(lastCV.roles == 1){
+                            // if that's cs conversation before it, no need to rate again.
+                        }else if(lastCV.roles != 1){
+                            // calculate the timeoutRate
+                            csCVCount += 1;
+                        }
+                    } else {
+                    }
+                }
+                lastCV = item;
+            })
+            if(customerCVCount < conversationDefinition.askingSentence){
+                noValidMathCount +=1;
+            }
+            if(csCVCount < conversationDefinition.replyingSentence){
+                noValidMathCount +=1;
+            }
+
+            if(noValidMathCount >= 3){
+                result = true
+            }
+            return result;
+        }
+
+    },
     resolvePromise: function(results){
       let deferred = Q.defer();
       Q.all(results).then(data=>{
@@ -334,14 +406,12 @@ var dbQualityInspection = {
     conversationReformat:function(myContent){
             let dom = new JSDOM(myContent);
             let content = [];
-            let sys = dom.window.document.getElementsByTagName("sys");
             let he = dom.window.document.getElementsByTagName("he");
             let i = dom.window.document.getElementsByTagName("i");
 
             partI = dbQualityInspection.reGroup(i, 1);
             partHe = dbQualityInspection.reGroup(he, 2);
-            partSYS = dbQualityInspection.reGroup(sys, 3);
-            content = partI.concat(partHe, partSYS);
+            content = partI.concat(partHe);
             content.sort(function (a, b) {
                 return a.time - b.time;
             });
@@ -368,19 +438,12 @@ var dbQualityInspection = {
                 console.log('yeah');
                 if (error) {
                     console.log(error)
-                    // throw error;
                 }
                 deferred.resolve(results);
                 connection.end();
             });
         })
 
-        // connection.query("SELECT * FROM chat_content WHERE " + queryObj, function (error, results, fields) {
-        //     console.log('yeah');
-        //     if (error) throw error;
-        //     deferred.resolve(results);
-        //     connection.end();
-        // });
         return deferred.promise;
     },
     searchMySQLDB:function(queryObj, paginationQuery, connection){
@@ -447,14 +510,12 @@ var dbQualityInspection = {
 
                 let dom = new JSDOM(item.content);
                 let content = [];
-                let sys = dom.window.document.getElementsByTagName("sys");
                 let he = dom.window.document.getElementsByTagName("he");
                 let i = dom.window.document.getElementsByTagName("i");
 
                 partI = dbQualityInspection.reGroup(i, 1);
                 partHe = dbQualityInspection.reGroup(he, 2);
-                partSYS = dbQualityInspection.reGroup(sys, 3);
-                content = partI.concat(partHe, partSYS);
+                content = partI.concat(partHe);
                 content.sort(function (a, b) {
                     return a.time - b.time;
                 });
@@ -499,7 +560,6 @@ var dbQualityInspection = {
             let overtimeSetting = platform.overtimeSetting;
             conversation.forEach(item => {
                 if (!firstCV && item.roles == 2) {
-
                     firstCV = item;
                     lastCustomerCV = item;
                 } else {
@@ -509,18 +569,20 @@ var dbQualityInspection = {
                             lastCustomerCV = item;
                         }
                     } else if (item.roles == 1 && lastCustomerCV) {
-                        // calculate the timeoutRate
                         let timeStamp = item.time - lastCustomerCV.time;
                         let sec = timeStamp / 1000;
                         let rate = 0;
-                        item.timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, item, sec);
+
+                        if(lastCV.roles == 1){
+                            // if that's cs conversation before it, no need to rate again.
+                        }else if(lastCV.roles != 1){
+                            // calculate the timeoutRate
+                            item.timeoutRate = dbQualityInspection.rateByCVTime(overtimeSetting, item, sec);
+                        }
                     } else {
                     }
                 }
-                if (item.roles != 3) {
-                    //system msg should not involve
-                    lastCV = item;
-                }
+                lastCV = item;
                 return item;
             })
         }
@@ -582,18 +644,13 @@ var dbQualityInspection = {
             }
         }
         if (query.operatorId && query.operatorId.length > 0) {
-            if (query.operatorId.length > 1 ){
-                queryObj += "operator_id IN ('" ;
-                for (let i=0; i< query.operatorId.length; i++){
-                    if (i == query.operatorId.length-1){
-                        queryObj +=  query.operatorId[i] + "')" + " AND "
-                    }else{
-                        queryObj +=   query.operatorId[i] + "','"
-                    }
-                }
-            }else{
-                queryObj += "operator_id=" + query.operatorId + " AND ";
+            let operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+
+            if(Array.isArray(query.operatorId)){
+                operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                    queryObj += "operator_name IN (" + operatorId + ") AND ";
             }
+
         }
         if (query.startTime && query.endTime) {
             var startTime = dbUtility.getLocalTimeString(query.startTime);
@@ -606,30 +663,32 @@ var dbQualityInspection = {
 
         let connection = dbQualityInspection.connectMysql();
         connection.connect();
-
         let dbRawResult = dbQualityInspection.searchMySQLDBConstraint(queryObj,connection);
-        let mongoResult = dbQualityInspection.getMongoCVConstraint(dbRawResult);
+        let mongoResult = dbQualityInspection.getMongoCVConstraint(dbRawResult).catch(error => {  return Q.reject({name: "DBError", message: error}); });
         conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         let progressReport = dbQualityInspection.getProgressReportByOperator(query.companyId,query.operatorId,startTime,endTime);
-
-
         return Q.all([conversationForm,progressReport]);
     },
     searchMySQLDBConstraint:function(queryObj,connection){
         var deferred = Q.defer();
-        connection.query("SELECT msg_id, company_id, operator_id, operator_name, content FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+        if (connection){
+            connection.query("SELECT msg_id, company_id, operator_id, operator_name, content FROM chat_content WHERE " + queryObj, function (error, results, fields) {
+                if(error){
+                    console.log(error);
+                }
+                deferred.resolve(results);
+                connection.end();
+            });
+            return deferred.promise;
 
-            if(error){
-                console.log(error);
-            }
-            deferred.resolve(results);
-            connection.end();
-        });
-        return deferred.promise;
+        }else{
+            return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
+        }
     },
     getMongoCVConstraint:function(dbResult){
         var deferred = Q.defer();
         let proms = [];
+        let item;
         Q.all(dbResult).then(results=>{
             console.log(results);
             if(results.length == 0){
@@ -641,22 +700,20 @@ var dbQualityInspection = {
                 live800Chat.fpmsAcc = item.operator_name ;
                 live800Chat.companyId = item.company_id || "";
                 live800Chat.live800Acc['id'] = item.operator_id;
-                //live800Chat.status = item.status || 1;
+                live800Chat.status = item.status || 1;
                 let dom = new JSDOM(item.content);
                 let content = [];
-                let sys = dom.window.document.getElementsByTagName("sys");
                 let he = dom.window.document.getElementsByTagName("he");
                 let i = dom.window.document.getElementsByTagName("i");
 
                 partI = dbQualityInspection.reGroup(i, 1);
                 partHe = dbQualityInspection.reGroup(he, 2);
-                partSYS = dbQualityInspection.reGroup(sys, 3);
-                content = partI.concat(partHe, partSYS);
+                content = partI.concat(partHe);
                 content.sort(function (a, b) {
                     return a.time - b.time;
                 });
 
-                live800Chat.conversation = dbQualityInspection.drawColor(content);
+                live800Chat.conversation = dbQualityInspection.calculateRate(content);
 
                 let queryQA = {messageId: String(item.msg_id)};
                 let prom = dbconfig.collection_qualityInspection.find(queryQA)
@@ -669,11 +726,13 @@ var dbQualityInspection = {
                         return live800Chat;
                     });
                 proms.push(prom);
-            });
+            })
             deferred.resolve(proms);
-        })
-        return deferred.promise;
+        }, (error) => {
+            return Q.reject({name: "DBError", message: error});
+        });
 
+        return deferred.promise;
     },
     getProgressReportByAdmin: function (companyId,operatorId,startTime,endTime){
 
@@ -777,13 +836,14 @@ var dbQualityInspection = {
         return String(str).replace(/\&#60\;/gi,'').replace(/\&#160\;/gi, ' ').replace(/\&#173\;/gi, '\t')
     },
 
-    getUnreadEvaluationRecord: function (startTime, endTime, index, size) {
+    getUnreadEvaluationRecord: function (startTime, endTime, index, size, adminId) {
         let query = {
             createTime: {
                 $gte: startTime,
                 $lt: endTime
             },
-            status: constQualityInspectionStatus.COMPLETED_UNREAD
+            status: constQualityInspectionStatus.COMPLETED_UNREAD,
+            fpmsAcc: adminId
         }
         let unreadEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
             unreadEvaluationData => {
@@ -855,13 +915,14 @@ var dbQualityInspection = {
         }
     },
 
-    getReadEvaluationRecord: function(startTime, endTime, index, size){
+    getReadEvaluationRecord: function(startTime, endTime, index, size, adminId){
         let query ={
             createTime: {
                 $gte: startTime,
                 $lt: endTime
             },
-            status: constQualityInspectionStatus.COMPLETED_READ
+            status: constQualityInspectionStatus.COMPLETED_READ,
+            fpmsAcc: adminId
         }
         let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
             readEvaluationData => {
@@ -905,12 +966,13 @@ var dbQualityInspection = {
         )
     },
 
-    getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status, index, size){
+    getAppealEvaluationRecordByConversationDate: function(startTime, endTime, status, index, size, adminId){
         let query ={
             createTime: {
                 $gte: startTime,
                 $lt: endTime
-            }
+            },
+            fpmsAcc: adminId
         }
 
         if(status != "all"){
@@ -962,13 +1024,14 @@ var dbQualityInspection = {
         )
     },
 
-    getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status, index, size){
+    getAppealEvaluationRecordByAppealDate: function(startTime, endTime, status, index, size, adminId){
 
         let query ={
             processTime: {
                 $gte: startTime,
                 $lt: endTime
-            }
+            },
+            fpmsAcc: adminId
         }
 
         if(status != "all"){
@@ -1021,17 +1084,17 @@ var dbQualityInspection = {
     },
 
     getWorkloadReport: function(startTime, endTime, qaAccount){
-
         let query ={
             createTime: {
                 $gte: new Date(startTime),
                 $lt: new Date(endTime)
             }
-            //status: constQualityInspectionStatus.COMPLETED_READ
         }
 
-        if(qaAccount && qaAccount != "all"){
-            query.qualityAssessor = qaAccount;
+        qaAccount = qaAccount.map(q => ObjectId(q))
+
+        if(qaAccount && qaAccount.length > 0){
+            query.qualityAssessor = {$in: qaAccount};
         }
 
         return dbconfig.collection_qualityInspection.aggregate([
@@ -1147,14 +1210,11 @@ var dbQualityInspection = {
     rateBatchConversation: function(cvs, accName){
         var deferred = Q.defer();
         let proms = [];
-        console.log(cvs)
         cvs.batchData.forEach(uItem=>{
-            console.log(uItem.live800Acc);
             let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
             let prom = dbconfig.collection_admin.findOne(query).then(
                 item=>{
-                    console.log(item);
-                    let adminName = item ? item.adminName:'x';
+                    let adminName = item ? item._id:null;
                     return adminName
                 })
                 .then(udata=>{
@@ -1163,7 +1223,18 @@ var dbQualityInspection = {
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
                         uItem.fpmsAcc = udata;
-                        uItem.status = 7;
+                        uItem.status = 4;
+
+                        // calculate a sum of total rating
+                        let totalInspectionRate = 0;
+                        let totalTimeoutRate = 0;
+                        uItem.conversation.forEach(item=>{
+                            totalInspectionRate += item.inspectionRate;
+                            totalTimeoutRate += item.timeoutRate;
+                        });
+                        uItem.totalInspectionRate = totalInspectionRate;
+                        uItem.totalTimeoutRate = totalTimeoutRate
+
                         if (qaData.length == 0) {
                             return dbconfig.collection_qualityInspection(uItem).save();
                         }else{
@@ -1189,7 +1260,14 @@ var dbQualityInspection = {
         console.log(data);
         let live800Acc = data.live800Acc.id  ? data.live800Acc.id :'xxx';
         let query = { 'live800Acc': {$in: [live800Acc]} };
-        console.log(data.live800Acc)
+        let totalInspectionRate = 0;
+        let totalTimeoutRate = 0;
+        data.conversation.forEach(item=>{
+            totalInspectionRate += item.inspectionRate;
+            totalTimeoutRate += item.timeoutRate;
+        });
+        data.totalInspectionRate = totalInspectionRate;
+        data.totalTimeoutRate = totalTimeoutRate;
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
               let cs = item ? item._id:null;
@@ -1213,9 +1291,7 @@ var dbQualityInspection = {
                     })
                 }
             })
-
-
-        })
+        });
 
         return deferred.promise;
     },

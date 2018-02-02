@@ -529,12 +529,11 @@ var dbPlatform = {
     },
 
     addOrRenameProviderInPlatformById: function (platformObjId, providerObjId, localProviderNickName, localProviderPrefix) {
-        var nickNameUpdatePath = "gameProviderInfo." + providerObjId;
-        var nickNameUpdate = {};
-        nickNameUpdate[nickNameUpdatePath] = {
-            localNickName: localProviderNickName,
-            localPrefix: localProviderPrefix
-        };
+        let nickNameUpdatePath = "gameProviderInfo." + providerObjId + ".localNickName";
+        let prefixUpdatePath = "gameProviderInfo." + providerObjId + ".localPrefix";
+        let nickNameUpdate = {};
+        nickNameUpdate[nickNameUpdatePath] = localProviderNickName;
+        nickNameUpdate[prefixUpdatePath] = localProviderPrefix;
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
@@ -548,11 +547,9 @@ var dbPlatform = {
     },
 
     updateProviderFromPlatformById: function (platformObjId, providerObjId, isEnable) {
-        let statusUpdatePath = "gameProviderInfo." + providerObjId;
+        let statusUpdatePath = "gameProviderInfo." + providerObjId + ".isEnable";
         let statusUpdate = {};
-        statusUpdate[statusUpdatePath] = {
-            isEnable: isEnable
-        };
+        statusUpdate[statusUpdatePath] = isEnable;
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
@@ -1504,6 +1501,7 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
+        data.accountStatus ? query.accountStatus = data.accountStatus : "";
         data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
@@ -2230,45 +2228,50 @@ var dbPlatform = {
                 advertisementInfo => {
                     if (advertisementInfo) {
                         advertisementInfo.map(info => {
-                            let activityListObj = {};
-                            if (info.advertisementCode) {
-                                activityListObj.code = info.advertisementCode;
-                            }
-
-                            if (info.title && info.title.length > 0) {
-                                activityListObj.title = info.title;
-                            }
-
-                            if (info.hasOwnProperty('status')) {
-                                activityListObj.status = info.status;
-                            }
-
-                            if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
-                                activityListObj.bannerImg = 'getHashFile("' + info.backgroundBannerImage.hyperLink + '")';
-                            }
-
-                            if (info.imageButton && info.imageButton.length > 0) {
-                                let buttonList = [];
-                                info.imageButton.forEach(b => {
-                                    let buttonObj = {};
-                                    if (b.buttonName) {
-                                        buttonObj.btn = b.buttonName;
-
-                                    }
-                                    if (b.css) {
-                                        buttonObj.extString = "style(\"" + b.css + "\") my_href=\"" + b.hyperLink + "\"";
-                                    }
-                                    buttonList.push(buttonObj);
-
-                                })
-                                activityListObj.btnList = buttonList;
-                            } else {
-                                if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
-                                    activityListObj.extString = "my_href_w='" + info.backgroundBannerImage.hyperLink + "'";
+                            if(info){
+                                let activityListObj = {};
+                                if (info.advertisementCode) {
+                                    activityListObj.code = info.advertisementCode;
                                 }
-                            }
 
-                            returnedObj.activityList.push(activityListObj);
+                                if (info.title && info.title.length > 0) {
+                                    activityListObj.title = info.title;
+                                }
+
+                                if (info.hasOwnProperty('status')) {
+                                    activityListObj.status = info.status;
+                                }
+
+                                if (info.backgroundBannerImage && info.backgroundBannerImage.url) {
+                                    activityListObj.bannerImg = info.backgroundBannerImage.url;
+                                }
+
+                                if (info.imageButton && info.imageButton.length > 0) {
+                                    let buttonList = [];
+                                    info.imageButton.forEach(b => {
+                                        if(b){
+                                            let buttonObj = {};
+                                            if (b.buttonName) {
+                                                buttonObj.btn = b.buttonName;
+                                            }
+                                            if(b.url){
+                                                buttonObj.btnImg = b.url;
+                                            }
+                                            if (b.hyperLink) {
+                                                buttonObj.extString = b.hyperLink;
+                                            }
+                                            buttonList.push(buttonObj);
+                                        }
+                                    })
+                                    activityListObj.btnList = buttonList;
+                                } else {
+                                    if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
+                                        activityListObj.extString = info.backgroundBannerImage.hyperLink;
+                                    }
+                                }
+
+                                returnedObj.activityList.push(activityListObj);
+                            }
                         })
                         return returnedObj;
                     }

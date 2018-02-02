@@ -131,6 +131,31 @@ define(['js/app'], function (myApp) {
             vm.buildPlatformList = function (data) {
                 vm.platformList = [];
                 for (var i = 0; i < data.length; i++) {
+
+                    // load the default setting for quality inspection evalutation to each platform
+                    if (!data[i].overtimeSetting || data[i].overtimeSetting.length ===0){
+                        vm.getOvertimeSetting(data[i]);
+                    }
+                    // create the conversationDefinition object for old platform without the field
+                    let id=data[i]._id;
+                    let query = {_id: data[i]._id, conversationDefinition: {$exists: true}};
+                    socketService.$socket($scope.AppSocket, 'getPlatformSetting', query, function (data) {
+                        if (data.data.length === 0) {
+                            let sendData = {
+                                query: {_id: id},
+                                updateData: {
+                                    'conversationDefinition.totalSec': 40,
+                                    'conversationDefinition.askingSentence': 2,
+                                    'conversationDefinition.replyingSentence': 2
+                                }
+                            };
+                            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                                vm.loadPlatformData({loadAll: false});
+                                $scope.safeApply();
+                            });
+                        }
+                    });
+                    vm.getConversationDefinition(data[i]);
                     vm.platformList.push(vm.createPlatformNode(data[i]));
                 }
                 //var platformsToDisplay = vm.platformList;
@@ -253,56 +278,6 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
-
-                // Initial Loading
-                // Initial setting for setting in qualityInspection
-                vm.getOvertimeSetting();
-                // create the conversationDefinition object for old platform
-                let query = {_id: vm.selectedPlatform.id, conversationDefinition: {$exists: true}};
-                socketService.$socket($scope.AppSocket, 'getPlatformSetting', query, function (data) {
-                    if (data.data.length === 0) {
-                        let sendData = {
-                            query: {_id: vm.selectedPlatform.id},
-                            updateData: {
-                                'conversationDefinition.totalSec': 40,
-                                'conversationDefinition.askingSentence': 2,
-                                'conversationDefinition.replyingSentence': 2
-                            }
-                        };
-                        socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                            vm.loadPlatformData({loadAll: false});
-                            $scope.safeApply();
-                        });
-
-                    }
-
-                });
-                vm.getConversationDefinition();
-
-
-                // socketService.$socket($scope.AppSocket, 'getDepartmentsbyPlatformObjId', [], function (data){
-                //     let sendQuery ={
-                //         departments: {$in: data.data}
-                //     };
-                //     socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
-                //         vm.selectedCSAccount = [];
-                //         if (data && data.data){
-                //             data.data.forEach(acc => {
-                //                 if (acc.live800Acc && acc.live800Acc.length > 0){
-                //                     vm.selectedCSAccount.push(acc);
-                //                 }
-                //             });
-                //         }
-                //         console.log("vm.selectedCSAccount", vm.selectedCSAccount);
-                //         //$scope.safeApply();
-                //         // // have to re-initiate the #selectCSAccount to show data
-                //         // setTimeout(function () {
-                //         //     $('select#selectCSAccount').multipleSelect();
-                //         // });
-                //
-                //     });
-                // });
-
             };
 
             //create platform node for platform list
@@ -345,16 +320,21 @@ define(['js/app'], function (myApp) {
                 })
             };
             vm.batchSave = function(){
-                console.log(vm.batchEditList);
-                socketService.$socket($scope.AppSocket, 'rateBatchConversation', {batchData:vm.batchEditList}, function(data){
+                let batchEdit = [];
+                vm.conversationForm.forEach(item=>{
+                    if(vm.batchEditList.indexOf(String(item.messageId))!= -1){
+                        batchEdit.push(item);
+                    };
+                });
+                socketService.$socket($scope.AppSocket, 'rateBatchConversation', {batchData:batchEdit}, function(data){
                     // console.log(data);
                     vm.searchLive800();
                 });
 
             };
             vm.nextPG = function(){
-                vm.pgn.index = (vm.pgn.currentPage+1)*vm.pgn.limit;
                 vm.pgn.currentPage += 1;
+                vm.pgn.index = (vm.pgn.currentPage -1)*vm.pgn.limit;
                 vm.searchLive800();
             };
             vm.gotoPG = function(pg, $event){
@@ -363,12 +343,12 @@ define(['js/app'], function (myApp) {
                     $($event.currentTarget).addClass('active');
                 }
                 let pgNo = null;
-                if(pg==0){
+                if(pg<=0){
                     pgNo = 0
-                }else if(pg > 1){
+                }else if(pg >= 1){
                     pgNo = pg;
                 }
-                vm.pgn.index = (pgNo*vm.pgn.limit);
+                vm.pgn.index = ((pgNo-1)*vm.pgn.limit);
                 vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
             },
@@ -383,8 +363,6 @@ define(['js/app'], function (myApp) {
                     fpmsId = [];
                 }
                 var query = {
-                        // 'companyId':270,
-                        // 'operatorId':764,
                         'companyId':vm.companyIds,
                         'fpmsAcc':vm.inspection800.fpms || [],
                         'operatorId':vm.inspection800.live800Accs,
@@ -399,16 +377,19 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
-                    let overtimeSetting = vm.selectedPlatform.data.overtimeSetting;
-
                     data.data.forEach(item=>{
                         item.statusName = item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]);
-                        item.conversation.forEach(function(cv){
+                        item.conversation.forEach(function(cv,i){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+                            cv.needRate = vm.avoidMultiRateCS(cv,i,item.conversation);
+                            // load each platform overtimeSetting
+                            let overtimeSetting = vm.getPlatformOvertimeSetting(item);
                             let otsLength = overtimeSetting.length -1;
                             let colors = '';
+
+                            // render with different color
                             overtimeSetting.forEach((ots,i)=>{
-                                if(cv.roles==1){
+                                if(cv.roles==1 && cv.needRate){
                                     if(i==0){
                                         if(cv.timeoutRate >= overtimeSetting[0].presetMark){
                                             colors = overtimeSetting[0].color;
@@ -451,6 +432,38 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 }
             };
+            vm.getPlatformOvertimeSetting = function(item){
+                let overtimeSetting = vm.platformList.filter(pf=>{
+                    if(pf.data.live800CompanyId && pf.data.live800CompanyId.length > 0){
+                        if(pf.data.live800CompanyId.indexOf(String(item.companyId))!=-1){
+                            return pf;
+                        }
+                    };
+                });
+                if(overtimeSetting.length > 0){
+                    overtimeSetting = overtimeSetting[0].data.overtimeSetting;
+                }else{
+                    overtimeSetting = [];
+                }
+                return overtimeSetting;
+            },
+            vm.avoidMultiRateCS = function(cv, index, conversations){
+                let needRate = null;
+                // only cs need to be rated , cs roles is 1
+                if(cv.roles === 1 && index != 0){
+
+                    if(conversations[index-1].roles==1){
+                        //if last dialog is from cs , which mean after he reply , then no need to rate it twice,
+                        //until next conversation start from customer roles, which is 2
+                        needRate = false;
+                    }else{
+                        needRate = true;
+                    }
+                }else{
+                    needRate = false;
+                }
+                return needRate;
+            },
             vm.confirmRate = function(rate){
                 console.log(rate);
                 rate.editable = false;
@@ -467,7 +480,7 @@ define(['js/app'], function (myApp) {
                 vm.inspection800.fpms = [];
                 vm.inspection800.status = '1';
                 vm.inspection800.qiUser = 'all';
-                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:5, count:1};
+                vm.pgn = {index:0, currentPage:1, totalPage:1, limit:5, count:0};
 
                 setTimeout(function(){
                     $scope.safeApply();
@@ -1036,7 +1049,16 @@ define(['js/app'], function (myApp) {
                 }
 
                 if(vm.qaAccount && vm.qaAccount != "all"){
-                    sendData.qualityAssessor = vm.qaAccount;
+                    sendData.qualityAssessor = [vm.qaAccount];
+                }else{
+                    let qaArr = [];
+                    vm.qaDepartments.forEach(q => {
+                        if(q && q._id){
+                            qaArr.push(q._id);
+                        }
+
+                    })
+                    sendData.qualityAssessor = qaArr;
                 }
 
                 let resultArr = [];
@@ -1152,8 +1174,6 @@ define(['js/app'], function (myApp) {
                         setTimeout(function () {
                             $('#workloadReportTable').resize();
                         }, 300);
-                    }else{
-                        vm.appealEvaluationTable = "";
                     }
 
                     vm.loadingWorkloadReportTable = false;
@@ -1168,9 +1188,24 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        platformObjId: vm.evaluationProgressPlatform,
+                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
+                    }
+
+                    if(vm.evaluationProgressPlatform && vm.evaluationProgressPlatform.length > 0){
+                        sendData.platformObjId = vm.evaluationProgressPlatform
+                    }else{
+                        if(vm.platformList && vm.platformList.length > 0){
+                            let platformArr = [];
+                            vm.platformList.forEach(p => {
+                                if(p && p.id){
+                                    platformArr.push(p.id);
+                                }
+
+                            })
+                            sendData.platformObjId = platformArr;
+                        }
                     }
                     let resultArr = [];
                     let resultArr2 = [];
@@ -1396,18 +1431,25 @@ define(['js/app'], function (myApp) {
             }
 
 
-            vm.getConversationDefinition = function () {
-                vm.conversationDefinition = vm.conversationDefinition || {};
-                vm.conversationDefinition.totalSec = vm.selectedPlatform.data.conversationDefinition.totalSec;
-                vm.conversationDefinition.askingSentence = vm.selectedPlatform.data.conversationDefinition.askingSentence;
-                vm.conversationDefinition.replyingSentence = vm.selectedPlatform.data.conversationDefinition.replyingSentence;
+            vm.getConversationDefinition = function (platformData) {
+                if (!platformData){
+                    platformData=vm.selectedPlatform.data;
+                }
 
+                vm.conversationDefinition = vm.conversationDefinition || {};
+                vm.conversationDefinition.totalSec = platformData.conversationDefinition.totalSec;
+                vm.conversationDefinition.askingSentence = platformData.conversationDefinition.askingSentence;
+                vm.conversationDefinition.replyingSentence = platformData.conversationDefinition.replyingSentence;
             };
 
-            vm.getOvertimeSetting = function () {
+            vm.getOvertimeSetting = function (platformData) {
+                if (!platformData){
+                    platformData=vm.selectedPlatform.data;
+
+                }
                 vm.overtimeSetting = vm.overtimeSetting || {};
                 // initiate a basic setting if the setting is empty
-                if (!vm.selectedPlatform.data.overtimeSetting || vm.selectedPlatform.data.overtimeSetting.length === 0) {
+                if (!platformData.overtimeSetting || platformData.overtimeSetting.length === 0) {
 
                         let overtimeSetting = [{
                             conversationInterval: 30,
@@ -1432,7 +1474,7 @@ define(['js/app'], function (myApp) {
                         }];
 
                     let sendData = {
-                        query: {_id: vm.selectedPlatform.id},
+                        query: {_id: platformData._id},
                         updateData: {overtimeSetting: overtimeSetting}
                     };
                     socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -1442,7 +1484,7 @@ define(['js/app'], function (myApp) {
                     vm.overtimeSetting = overtimeSetting;
                 }
                 else {
-                    vm.overtimeSetting = vm.selectedPlatform.data.overtimeSetting;
+                    vm.overtimeSetting = platformData.overtimeSetting;
                 }
 
                 vm.overtimeSetting.sort(function (a, b) {
@@ -1633,7 +1675,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
                 vm.allCSDepartmentId=[];
-                vm.platformWithCSDepartment=[]; // to filter out the platfrom with CS Department for the Product Filter
+                vm.platformWithCSDepartment=[]; // to filter out the platform with CS Department for the Product Filter
 
 
                 vm.platformList.forEach(platform => {
@@ -1698,27 +1740,21 @@ define(['js/app'], function (myApp) {
                 vm.QIReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
                 utilService.actionAfterLoaded("#QIReportTable", function () {
                     vm.commonInitTime(vm.QIReportQuery, '#QIReportQuery');
-                    // vm.QIReportQuery.pageObj = utilService.createPageForPagingTable("#QIReportTablePage", {}, $translate, vm.QIReportTablePageChange);
                     $scope.safeApply()
                 });
 
             };
-
-
-            // vm.QIReportTablePageChange = function (curP, pageSize) {
-            //     vm.commonPageChangeHandler(curP, pageSize, "QIReportQuery", vm.searchQIRecord)
-            // };
 
             vm.searchQIRecord = function (newSearch) {
 
                 let startTime = vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate();
 
-                let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
-                if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
-                    socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
-                    return;
-                }
+                // let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
+                // if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
+                //     socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
+                //     return;
+                // }
 
                 vm.platformCompanyID=[];
                 vm.platformList.forEach(platform => {
@@ -1929,6 +1965,13 @@ define(['js/app'], function (myApp) {
                         vm.postData.forEach(data=>{
                             data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED
                             data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
+                            // check NaN
+                            if (data.pendingCount == "NaN"){
+                                data.pendingCount=Number(0).toFixed(2);
+                            }
+                            if (data.avgMark == "NaN"){
+                                data.avgMark=Number(0).toFixed(2);
+                            }
                         })
                     }
 

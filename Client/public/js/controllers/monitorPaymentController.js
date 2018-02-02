@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', 'CONFIG', "$cookies"];
     let monitorPaymentController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, CONFIG, $cookies) {
         let $translate = $filter('translate');
+        let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let vm = this;
 
         window.VM = vm;
@@ -1025,6 +1026,8 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
+            } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
             } else if (fieldName === 'bankAccountType') {
                 switch (parseInt(val)) {
                     case 1:

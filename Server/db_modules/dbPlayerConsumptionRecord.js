@@ -16,7 +16,6 @@ const constShardKeys = require('../const/constShardKeys');
 const constSystemParam = require('../const/constSystemParam');
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const promiseUtils = require("../modules/promiseUtils.js");
-const constGameStatus = require("./../const/constGameStatus");
 const constServerCode = require('../const/constServerCode');
 const dataUtils = require("../modules/dataUtils.js");
 const mongoose = require('mongoose');
@@ -26,6 +25,8 @@ const constProposalStatus = require('./../const/constProposalStatus');
 const errorUtils = require('./../modules/errorUtils');
 
 let dbUtility = require('./../modules/dbutility');
+
+let dbGameProvider = require('../db_modules/dbGameProvider');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
@@ -520,8 +521,9 @@ var dbPlayerConsumptionRecord = {
     /**
      * TODO:: WORK IN PROGRESS
      * @param data
+     * @param platformObj
      */
-    createPlayerConsumptionRecordForProviderGroup: function (data) {
+    createPlayerConsumptionRecordForProviderGroup: (data, platformObj) => {
         let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let record = null;
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
@@ -533,26 +535,27 @@ var dbPlayerConsumptionRecord = {
 
                 if (record) {
                     // check player's on-going reward task group
-                    return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record);
+                    return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
                 }
                 else {
-                    return Q.reject({name: "DBError", message: "Error creating consumption record", error: error});
+                    return Promise.reject({name: "DBError", message: "Error creating consumption record", error: error});
                 }
             },
             error => {
-                return Q.reject({name: "DBError", message: "Error creating consumption record", error: error});
+                return Promise.reject({name: "DBError", message: "Error creating consumption record", error: error});
             }
         ).then(
-            checkRes => {
-                if (checkRes && !checkRes.bDirty) {
+            returnableAmt => {
+                if (returnableAmt && returnableAmt > 0) {
                     // Update consumption summary record (XIMA purpose)
                     let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
                     let summaryDay = recordDateNoon;
-                    let consumptionAmount = record.validAmount ? record.validAmount : record.amount;
+                    let consumptionAmount = returnableAmt;
 
                     if (record.createTime.getTime() < recordDateNoon.getTime()) {
                         summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
                     }
+
                     let query = {
                         playerId: record.playerId,
                         platformId: record.platformId,
@@ -560,20 +563,16 @@ var dbPlayerConsumptionRecord = {
                         summaryDay: summaryDay,
                         bDirty: false
                     };
-                    //
-                    // // Handle left over amount from partial XIMA
-                    // if (checkRes && checkRes.nonDirtyAmount > 0) {
-                    //     consumptionAmount = checkRes.nonDirtyAmount;
-                    // }
 
                     let updateData = {
                         $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
                     };
+
                     return dbPlayerConsumptionRecord.upsert(query, updateData);
                 }
             },
             error => {
-                return Q.reject({name: "DBError", message: "Error checking player reward task group", error: error});
+                return Promise.reject({name: "DBError", message: "Error checking player reward task group", error: error});
             }
         ).then(
             () => {
@@ -592,7 +591,7 @@ var dbPlayerConsumptionRecord = {
                 ).exec();
             },
             error => {
-                return Q.reject({
+                return Promise.reject({
                     name: "DBError",
                     message: "Error in upserting consumption summary record",
                     error: error
@@ -652,17 +651,20 @@ var dbPlayerConsumptionRecord = {
 
     /**
      *  Create player consumption record
-     * @param {Json} data
+     * @param recordData
      * @param {Boolean} resolveError
      */
     createExternalPlayerConsumptionRecord: function (recordData, resolveError) {
         let verifiedData = null;
         let providerId = recordData.providerId;
         let isProviderGroup = false;
+        let platformObj;
 
-        return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).then(
+        return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).lean().then(
             platformData => {
                 if (platformData) {
+                    platformObj = platformData;
+
                     // Check useProviderGroup flag
                     isProviderGroup = Boolean(platformData.useProviderGroup);
 
@@ -741,7 +743,7 @@ var dbPlayerConsumptionRecord = {
                     delete recordData.name;
 
                     if (isProviderGroup) {
-                        return dbPlayerConsumptionRecord.createPlayerConsumptionRecordForProviderGroup(recordData);
+                        return dbPlayerConsumptionRecord.createPlayerConsumptionRecordForProviderGroup(recordData, platformObj);
                     } else {
                         return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(recordData);
                     }
@@ -868,6 +870,8 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
+
+                    updateRTG(oldData, recordData).catch(errorUtils.reportError);
 
                     delete recordData.name;
                     return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
@@ -1216,7 +1220,7 @@ var dbPlayerConsumptionRecord = {
         if (gameId) {
             query.gameId = gameId;
         }
-        var recordsProm = dbconfig.collection_playerConsumptionRecord.find(query).lean().skip(startIndex).limit(count)
+        var recordsProm = dbconfig.collection_playerConsumptionRecord.find(query).sort({createTime: -1}).lean().skip(startIndex).limit(count)
             .populate({
                 path: "gameId",
                 model: dbconfig.collection_game
@@ -2107,6 +2111,33 @@ var dbPlayerConsumptionRecord = {
     }
 
 };
+
+function updateRTG (oldData, newData) {
+    let incBonusAmt = 0, incValidAmt = 0;
+
+    if (oldData && newData && (oldData.bonusAmount != newData.bonusAmount || oldData.validAmount != newData.validAmount)) {
+        incBonusAmt = newData.bonusAmount - oldData.bonusAmount;
+        incValidAmt = newData.validAmount - oldData.validAmount;
+
+        return dbGameProvider.getProviderGroupByProviderId(oldData.platformId, oldData.providerId).then(
+            providerGroupObj => {
+                // Find available RTG to update
+                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                    platformId: oldData.platformId,
+                    playerId: oldData.playerId,
+                    providerGroup: providerGroupObj._id,
+                    status: constRewardTaskStatus.STARTED,
+                    createTime: {$lt: oldData.createTime}
+                }, {
+                    $inc: {
+                        currentAmt: incBonusAmt,
+                        curConsumption: incValidAmt
+                    }
+                });
+            }
+        )
+    }
+}
 
 // module.exports = dbPlayerConsumptionRecord;
 var proto = dbPlayerConsumptionRecordFunc.prototype;

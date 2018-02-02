@@ -6,6 +6,7 @@ define(['js/app'], function (myApp) {
 
     var operationController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, $translate, CONFIG, $cookies) {
         var $translate = $filter('translate');
+        let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         var vm = this;
 
         // For debugging:
@@ -42,7 +43,8 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             AUTOAUDIT: "AutoAudit",
             RECOVER: "Recover",
-            MANUAL: "Manual"
+            MANUAL: "Manual",
+            CSPENDING: "CsPending"
         };
 
         vm.depositMethodList = $scope.depositMethodList;
@@ -694,6 +696,8 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
+            } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
             } else if (fieldName == 'bankAccountType') {
                 switch (parseInt(val)) {
                     case 1:
@@ -777,6 +781,7 @@ define(['js/app'], function (myApp) {
             } else if (fieldName === 'userAgent') {
                 result = $translate($scope.userAgentType[val]) || '';
             }
+            
             return $sce.trustAsHtml(result);
         };
         // vm.getTopupIntentionData = function (callback) {
@@ -1100,7 +1105,7 @@ define(['js/app'], function (myApp) {
 
                             let textClass = '';
                             let fontStyle = {};
-                            if (row.status === 'Pending') {
+                            if (row.status === 'Pending' || row.status === 'CsPending') {
                                 textClass = "text-danger";
                                 fontStyle = {'font-weight': 'bold'};
                             }
@@ -1934,7 +1939,8 @@ define(['js/app'], function (myApp) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
                 var creatorId = (proposal && proposal.creator) ? proposal.creator.id : '';
                 var proposalStatus = proposal.status || proposal.process.status;
-                return (creatorId == authService.adminId) && (proposalStatus == "Pending" || proposalStatus === "AutoAudit");
+                return ((creatorId == authService.adminId) && (proposalStatus == "Pending" || proposalStatus === "AutoAudit"))
+                    || (proposal.type.name === "PlayerBonus" && (proposalStatus === "Pending" || proposalStatus === "AutoAudit" || proposalStatus === "CsPending"));
             }
 
             vm.selectedProposal.showCancel = canCancelProposal(vm.selectedProposal);
@@ -2040,6 +2046,18 @@ define(['js/app'], function (myApp) {
                 console.error(error);
                 vm.changeStatusToPendingFromAutoAuditMessage = $translate("FAIL") + " - " + error.error.message;
                 $scope.safeApply();
+            })
+        };
+
+        vm.approveCsPendingAndChangeStatus = function () {
+            socketService.$socket($scope.AppSocket, 'approveCsPendingAndChangeStatus', {
+                proposalObjId: vm.selectedProposal._id,
+                createTime: vm.selectedProposal.createTime,
+                adminName: authService.adminName
+            }, function (data) {
+                vm.loadProposalQueryData(true);
+            }, function (error) {
+                console.log('error', error);
             })
         };
 

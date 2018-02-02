@@ -28,7 +28,7 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data.startTime, data.endTime);
             var index = data.index || 0;
             var size = data.limit || 1;
-            socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.startTime, data.endTime, index, size], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.getUnreadEvaluationRecord, [data.startTime, data.endTime, index, size, getAdminId()], actionName, isDataValid);
         },
         getReadEvaluationRecord: function getReadEvaluationRecord(data){
             var actionName = arguments.callee.name;
@@ -36,7 +36,7 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data.startTime, data.endTime);
             var index = data.index || 0;
             var size = data.limit || 1;
-            socketUtil.emitter(self.socket, dbQualityInspection.getReadEvaluationRecord, [data.startTime, data.endTime, index, size], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.getReadEvaluationRecord, [data.startTime, data.endTime, index, size, getAdminId()], actionName, isDataValid);
         },
         getAppealEvaluationRecordByConversationDate: function getAppealEvaluationRecordByConversationDate(data){
             var actionName = arguments.callee.name;
@@ -44,7 +44,7 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data.startTime, data.endTime, data.status);
             var index = data.index || 0;
             var size = data.limit || 1;
-            socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByConversationDate, [data.startTime, data.endTime, data.status, index, size], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByConversationDate, [data.startTime, data.endTime, data.status, index, size, getAdminId()], actionName, isDataValid);
         },
         getAppealEvaluationRecordByAppealDate: function getAppealEvaluationRecordByAppealDate(data){
             var actionName = arguments.callee.name;
@@ -52,13 +52,13 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data.startTime, data.endTime, data.status);
             var index = data.index || 0;
             var size = data.limit || 1;
-            socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByAppealDate, [data.startTime, data.endTime, data.status, index, size], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.getAppealEvaluationRecordByAppealDate, [data.startTime, data.endTime, data.status, index, size, getAdminId()], actionName, isDataValid);
         },
         getWorkloadReport: function getWorkloadReport(data){
             var actionName = arguments.callee.name;
             //data = true;
-            var isDataValid = Boolean(data.startTime, data.endTime, data.qaAccount);
-            socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReport, [data.startTime, data.endTime, data.qaAccount], actionName, isDataValid);
+            var isDataValid = Boolean(data.startTime, data.endTime, data.qualityAssessor);
+            socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReport, [data.startTime, data.endTime, data.qualityAssessor], actionName, isDataValid);
         },
         searchLive800: function searchLive800(data){
             var actionName = arguments.callee.name;
@@ -100,7 +100,7 @@ function socketActionQualityInspection(socketIO, socket) {
         rateBatchConversation: function rateBatchConversation(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
-            socketUtil.emitter(self.socket, dbQualityInspection.rateBatchConversation, [data, getAdminName()], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.rateBatchConversation, [data, getAdminId()], actionName, isDataValid);
         },
         getEvaluationRecordYearMonth: function getEvaluationRecordYearMonth(data){
             var actionName = arguments.callee.name;

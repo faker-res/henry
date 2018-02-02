@@ -300,7 +300,7 @@ var proposal = {
                     let queryObj = {
                         type: proposalData.type,
                         "data.platformId": data[0].platformId,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
+                        status: {$in: [constProposalStatus.CSPENDING, constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
                     };
                     let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
@@ -326,13 +326,11 @@ var proposal = {
                     if (data[2]) {
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
-                            proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPartnerLevel = data[2].level.name;
                             proposalData.data.proposalPartnerLevelValue = data[2].level.value;
                         }
                         else {
                             proposalData.data.playerName = data[2].name;
-                            proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
                             proposalData.data.playerLevelName = data[2].playerLevel.name;
                             proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
@@ -342,6 +340,11 @@ var proposal = {
                     // SCHEDULED AUTO APPROVAL
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
+                    }
+
+                    if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.needCsApproved) {
+                        bExecute = false;
+                        proposalData.status = constProposalStatus.CSPENDING;
                     }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
@@ -836,14 +839,12 @@ var proposal = {
             .then(
                 function (proposalData) {
                     if (proposalData) {
-                        var reject = true;
                         var proposalStatus = proposalData.status || proposalData.process.status;
-                        if (proposalData.creator.name.toString() != adminId.toString()) {
-                            reject = false;
-                        } else if (proposalStatus != constProposalStatus.PENDING && proposalStatus !== constProposalStatus.AUTOAUDIT) {
-                            reject = false;
-                        }
-                        if (reject) {
+
+                        if (((proposalData.type.name === constProposalType.PLAYER_BONUS
+                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
+                                || (proposalData.creator.name.toString() == adminId.toString())
+                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
@@ -1967,7 +1968,6 @@ var proposal = {
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
         let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
             data => {
@@ -1978,7 +1978,9 @@ var proposal = {
                         var proposalTypesId = [];
                         for (var i = 0; i < types.length; i++) {
                             if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-                                proposalTypesId.push(types[i]._id);
+                                if (types[i]._id) {
+                                    proposalTypesId.push(types[i]._id);
+                                }
                             }
                         }
 
@@ -2032,7 +2034,6 @@ var proposal = {
                             })
                             .then(proposals => {
                                 proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
                                 return proposals
                             });
 
@@ -2054,7 +2055,7 @@ var proposal = {
                     if (d && d.playerId) {
                         for (var i = 0; i < returnData[0].length; i++) {
 
-                            if (d && d.playerId && d.playerId == returnData[0][i].data.playerId) {
+                            if (d && d.playerId && returnData[0][i].data.playerId && d.playerId == returnData[0][i].data.playerId) {
                                 if (d.csOfficer) {
                                     returnData[0][i].data.csOfficer = d.csOfficer.adminName;
                                 }
@@ -2537,12 +2538,11 @@ var proposal = {
         var summary = {};
 
         if (reqData.status) {
-            /**
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
-            }**/
+            }
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
@@ -3601,6 +3601,39 @@ var proposal = {
                 return {size: proposalCount, data: proposals}
             }
         );
+    },
+
+    approveCsPendingAndChangeStatus: (proposalObjId, createTime, adminName) => {
+        return dbconfig.collection_proposal.findOne({_id: proposalObjId})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
+            proposal => {
+                if(!proposal) Q.reject({name: 'DataError', message: 'Can not find proposal'});
+
+                // auto approval or audit process step
+                if(proposal.data.isAutoApproval ||　proposal.process){
+                    return dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        status: constProposalStatus.CSPENDING,
+                        createTime: createTime
+                    }, {
+                        status: proposal.data.isAutoApproval ? constProposalStatus.AUTOAUDIT : constProposalStatus.PENDING,
+                        'data.approvedByCs':adminName
+                    });
+                } else {
+                    // approved
+                    return dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        status: constProposalStatus.CSPENDING,
+                        createTime: createTime
+                    }, {
+                        'data.approvedByCs':adminName,
+                        status: constProposalStatus.APPROVED,
+                    }).then(
+                        () =>  proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, true, proposal)
+                    );
+                }
+            }
+        )
     }
 };
 
@@ -4005,7 +4038,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         );
 
         function handlePlayer(proposal) {
-            let phoneNumber = proposal.data ? proposal.data.phoneNumber : "";
+            let phoneNumber = proposal.data && proposal.data.phoneNumber? proposal.data.phoneNumber : "";
             let status = proposal.status ? proposal.status : "";
             let allCountQuery = {};
             let currentCountQuery = {};
@@ -4104,8 +4137,8 @@ function insertPlayerRepeatCount(proposals, platformId) {
 
             return Promise.all([allCountProm, currentCountProm, previousCountProm, futureAllCountProm, futureAfterSuccessCountProm, futureManualAllCountProm]).then(
                 countData => {
-                    let allCount = countData[0];
-                    let currentCount = countData[1];
+                    let allCount = countData[0]? countData[0]: 0;
+                    let currentCount = countData[1]? countData[1]: 0;
                     let previousCount = countData[2] ? countData[2] : 0;
                     let futureSuccessCount = countData[3] ? countData[3] : 0;
                     let futureFailCount = countData[4] ? countData[4] : 0;

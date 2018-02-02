@@ -1150,17 +1150,21 @@ let dbPlayerCreditTransfer = {
                             inProvider: false
                         }, {
                             new: true
-                        })
-                        //     .then(
-                        //     updatedRewardGroup => {
-                        //         // Check whether provider group has undergo operation
-                        //         if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
-                        //             return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
-                        //         }
-                        //
-                        //         return true;
-                        //     }
-                        // )
+                        }).then(
+                            updatedRewardGroup => {
+                                // Check whether provider group has undergo operation
+                                if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
+                                    // SYSTEM DEBUG LOG - RTG became no credit after credit change
+                                    if (updatedRewardGroup.status == constRewardTaskStatus.NO_CREDIT) {
+                                        console.log("ERROR - No credit after RTG credit change", playerObjId);
+                                    }
+
+                                    return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
+                                }
+
+                                return true;
+                            }
+                        )
                     } else {
                         return true;
                     }
@@ -1396,7 +1400,7 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
             let rewardGroupObj;
 
             if (res && res[0]) {
-                let providerPlayerObj = {gameCredit: res[0].credit ? parseFloat(res[0].credit) : 0};
+                let providerPlayerObj = {gameCredit: res[0].credit ? parseInt(res[0].credit) : 0};
                 rewardGroupObj = res[1];
 
                 // Process transfer amount
