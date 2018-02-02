@@ -111,6 +111,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbQualityInspection.getEvaluationProgressRecord, [data.platformObjId, data.startDate, data.endDate], actionName, isDataValid);
+        },
+        summarizeLive800Record: function summarizeLive800Record(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = true;
+            socketUtil.emitter(self.socket, dbQualityInspection.summarizeLive800Record, [], actionName, isDataValid);
         }
 
 

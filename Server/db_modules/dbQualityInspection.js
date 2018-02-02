@@ -622,12 +622,12 @@ var dbQualityInspection = {
         let proms = [];
         let item;
         Q.all(dbResult).then(results=>{
-            console.log(results);
+            //console.log(results);
             if(results.length == 0){
                 deferred.resolve([]);
             }
             results.forEach(item => {
-                console.log(item);
+                //console.log(item);
                 let live800Chat = {conversation: [], live800Acc:{}};
                 live800Chat.fpmsAcc = item.operator_name ;
                 live800Chat.companyId = item.company_id || "";
@@ -663,6 +663,7 @@ var dbQualityInspection = {
         }, (error) => {
             return Q.reject({name: "DBError", message: error});
         });
+
 
         return deferred.promise;
     },
@@ -1391,6 +1392,220 @@ var dbQualityInspection = {
         )
 
     },
+
+    summarizeLive800Record: function(startTime, endTime){
+        let startDate = new Date()
+        let endDate = new Date();
+        let queryString;
+
+        // startTime = new Date(startDate - 10);
+        // endTime = new Date(endDate - 10);
+
+        if(startTime && endTime){
+            //endDate.setHours(23, 59, 59, 999);
+            startDate = dbUtility.getLocalTimeString(startTime);
+            endDate = dbUtility.getLocalTimeString(endTime);
+
+            queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime, company_id, operator_id, operator_name   FROM chat_content " +
+                "WHERE store_time BETWEEN CAST('"+ startDate + "' as DATETIME) AND CAST('"+ endDate + "' AS DATETIME) " +
+                "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd') company_id, operator_id ";
+        }else{
+            let curTime = new Date();
+
+            startDate.setHours(0, 0, 0, 0);
+            startDate.setDate(curTime.getDate() - 1);
+
+            endDate.setHours(23, 59, 59, 999);
+            endDate.setDate(curTime.getDate() - 1);
+
+            startDate = dbUtility.getLocalTimeString(startDate);
+            endDate = dbUtility.getLocalTimeString(endDate);
+
+            queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime, company_id, operator_id, operator_name   FROM chat_content " +
+                "WHERE store_time BETWEEN CAST('"+ startDate + "' as DATETIME) AND CAST('"+ endDate + "' AS DATETIME) " +
+                "GROUP BY company_id, operator_id ";
+        }
+
+
+
+        console.log("AAAAAAAAAAAAAAAAAAAA",queryString)
+        let connection = dbQualityInspection.connectMysql();
+        connection.connect();
+        return dbQualityInspection.getSummarizedLive800Record(queryString, connection)
+    },
+
+    getSummarizedLive800Record:function(queryString, connection){
+        var deferred = Q.defer();
+
+        let conversationForm = [];
+
+        if(connection){
+            let a = connection.query(queryString, function (error, results, fields) {
+                //console.log("live 800 result",results)
+                if(error){
+                    console.log(error);
+                }
+
+                if(results){
+                    console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFF",results);
+                    results.forEach(result => {
+                        let totalInvalidConversation = 0;
+                        let totalValidConversation = 0;
+                        if(result){
+                            let ytdStartTime = new Date(result.storeTime);
+                            let ytdEndTime = new Date(result.storeTime);
+                            ytdEndTime.setHours(23, 59, 59, 999);
+
+
+                            ytdStartTime = dbUtility.getLocalTimeString(ytdStartTime);
+                            ytdEndTime = dbUtility.getLocalTimeString(ytdEndTime);
+
+
+                            let query = "SELECT CAST(store_time AS DATE) AS createTime, company_id, operator_id , operator_name, content   FROM chat_content " +
+                                "WHERE store_time BETWEEN CAST('"+ ytdStartTime + "' as DATETIME) AND CAST('"+ ytdEndTime + "' AS DATETIME) " +
+                                "AND company_id = '" + result.company_id + "' AND operator_id = '" + result.operator_id + "' ";
+
+                            let proms = [];
+                            connection.query(query, function (detailsError, detailsResults, fields) {
+
+                                if(detailsError){
+                                    console.log(detailsError);
+                                }
+
+                                if(detailsResults){
+                                    let calculatedResult = dbQualityInspection.RestructureConversationContent(detailsResults);
+                                    proms.push(calculatedResult);
+                                }
+
+                                return Promise.all(proms).then(
+                                    data => {
+                                        if(data && data.length > 0 && data[0] && data[0].length > 0){
+                                            let updateData = {
+                                                live800Acc: {}
+                                            };
+
+                                            totalInvalidConversation = data[0].filter(d => d.isValidConversation == false).length;
+                                            totalValidConversation = data[0].filter(d => d.isValidConversation == true).length;
+                                            updateData.effectiveRecord = totalValidConversation;
+                                            updateData.nonEffectiveRecord = totalInvalidConversation;
+
+                                            if(result.storeTime){
+                                                updateData.createTime = result.storeTime;
+                                            }
+
+                                            if(result.company_id){
+                                                updateData.companyId = result.company_id;
+                                            }
+
+                                            if(result.totalRecord){
+                                                updateData.totalRecord = result.totalRecord;
+                                            }
+
+                                            if(result.operator_id){
+                                                updateData.live800Acc.id = result.operator_id
+                                            }
+
+                                            if(result.operator_name){
+                                                updateData.live800Acc.name = result.operator_name
+                                            }
+
+                                            let query = {
+                                                createTime: {
+                                                    $gte: new Date(ytdStartTime),
+                                                    $lt: new Date(ytdEndTime)
+                                                },
+                                                companyId: result.company_id,
+                                                'live800Acc.id': result.operator_id
+                                            }
+
+                                            return dbconfig.collection_live800RecordDaySummary.find(query).lean().then(
+                                                data => {
+                                                    if(data && data.length > 0){
+                                                        deferred.resolve();
+                                                    }else{
+                                                        dbconfig.collection_live800RecordDaySummary(updateData).save();
+                                                        deferred.resolve(result);
+                                                    }
+                                            });
+                                        }
+                                    }
+                                );
+                            })
+                        }
+                    });
+
+                }
+            });
+            return deferred.promise;
+        }else{
+            return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
+        }
+
+    },
+
+    RestructureConversationContent: function(dbResult){
+        let proms = [];
+
+        if(dbResult && dbResult.length > 0){
+            dbResult.map(
+                result => {
+                    if(result){
+                        let content = [];
+                        if(result.content){
+                            let dom = new JSDOM(result.content);
+
+                            let he = dom.window.document.getElementsByTagName("he");
+                            let i = dom.window.document.getElementsByTagName("i");
+
+                            partI = dbQualityInspection.reGroup(i, 1);
+                            partHe = dbQualityInspection.reGroup(he, 2);
+                            content = partI.concat(partHe);
+                            content.sort(function (a, b) {
+                                return a.time - b.time;
+                            });
+                        }
+                        proms.push(dbQualityInspection.calculateValidityOfConversation(content,result.company_id, result));
+                    }
+                }
+            )
+
+            return Promise.all(proms)
+        }
+    },
+
+    calculateValidityOfConversation: function(structuredConversation,companyId, live800SummarizedRecords){
+        if(structuredConversation && structuredConversation.length > 0) {
+            return dbconfig.collection_platform.findOne({live800CompanyId: {$in: [companyId]}}).lean().then(
+                platformDetail => {
+                    if (platformDetail && platformDetail.conversationDefinition && platformDetail.conversationDefinition.totalSec &&
+                        platformDetail.conversationDefinition.askingSentence && platformDetail.conversationDefinition.replyingSentence) {
+
+                        let firstConversationDate = new Date(Number(structuredConversation[0].time));
+                        let lastConversationDate = new Date(Number(structuredConversation[structuredConversation.length - 1].time));
+                        let isConversationMoreThan40Minutes =  ((lastConversationDate.getTime() - firstConversationDate.getTime()) / 1000) >= platformDetail.conversationDefinition.totalSec;
+                        let isCSMoreThanTwo = structuredConversation.filter(s => s.roles == 1).length >= platformDetail.conversationDefinition.askingSentence;
+                        let isPlayerMoreThanTwo = structuredConversation.filter(s => s.roles == 2).length >= platformDetail.conversationDefinition.replyingSentence;
+
+                        if(isConversationMoreThan40Minutes && isCSMoreThanTwo && isPlayerMoreThanTwo){
+                            live800SummarizedRecords.isValidConversation = true;
+                        }
+                        else{
+                            live800SummarizedRecords.isValidConversation = false;
+                        }
+                    }else{
+                        live800SummarizedRecords.isValidConversation = false;
+                    }
+
+                    return live800SummarizedRecords;
+                }
+            )
+        }else{
+            live800SummarizedRecords.isValidConversation = false;
+        }
+
+        return live800SummarizedRecords;
+    },
+
 
 };
 module.exports = dbQualityInspection;

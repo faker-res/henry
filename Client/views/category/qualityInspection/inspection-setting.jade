@@ -12,6 +12,11 @@
                         span {{"EFFECTIVE_CONVERSATION_DEFINITION" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "setting"}', ng-click='vm.configTabClicked("setting")')
                         span {{"OVERTIME_CONVERSATION_SETTING" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "setting"}', ng-click='vm.testSchedulerFunction();')
+                        span {{"TESTING" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "setting"}')
+                        .inlineBlk(ng-show='vm.loadingTest')
+                            i.fa.fa-spin.fa-spinner
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary

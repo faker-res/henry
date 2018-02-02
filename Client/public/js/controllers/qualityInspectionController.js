@@ -2301,6 +2301,15 @@ define(['js/app'], function (myApp) {
                 if (isChange) return serchFunc.call(this);
             }
 
+            vm.testSchedulerFunction = function(){
+                let sendData = {};
+                vm.loadingTest = true;
+                socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
+                    vm.loadingTest = false;
+                    $scope.safeApply();
+                });
+            }
+
             //****** CS Report Tab ******* ENDd //
 
 
