@@ -248,6 +248,7 @@ var simplifiedChinese = {
     "PlayerPromoCodeRewardSuccess": "优惠代码（成功）",
     "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。",
     "Concurrent issue detected": "请联系客服",
+    "Fail to generate demo player name.": "生成试玩玩家账号失败，请联系客服。",
     //todo::add missing messages here
 
     /*

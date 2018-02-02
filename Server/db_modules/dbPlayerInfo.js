@@ -1180,12 +1180,15 @@ let dbPlayerInfo = {
                 }
                 platform = platformData;
 
+                let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
+
                 if (!platformData.requireSMSVerificationForDemoPlayer) {
-                    return true;
+                    return Promise.all([demoNameProm]);
                 }
 
                 if (phoneNumber) {
-                    return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
+                    let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
+                    return Promise.all([demoNameProm, smsValidationProm]);
                 } else {
                     return Promise.reject({
                         status: constServerCode.INVALID_PHONE_NUMBER,
@@ -1195,8 +1198,14 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            isVerified => {
-                let demoPlayerName = generateDemoPlayerName(platform.demoPlayerPrefix);
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.reject({
+                        message: "Error in getting player data"
+                    });
+                }
+
+                let demoPlayerName = data[0];
 
                 let demoPlayerData = {
                     platform: platform._id,
@@ -1209,7 +1218,9 @@ let dbPlayerInfo = {
                     demoPlayerData.phoneNumber = phoneNumber;
                 }
 
-                demoPlayerData = Object.assign({}, demoPlayerData, deviceData);
+                if (deviceData) {
+                    demoPlayerData = Object.assign({}, demoPlayerData, deviceData);
+                }
 
                 return dbPlayerInfo.createPlayerInfo(demoPlayerData, true, true);
             }
@@ -13196,7 +13207,8 @@ function checkLimitedOfferToApply (proposalData) {
     }
 }
 
-function generateDemoPlayerName(platformDemoPlayerPrefix) {
+function generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count) {
+    count = count || 0;
     let namePrefix = "f";
     platformDemoPlayerPrefix = platformDemoPlayerPrefix || "a";
     let numArray = [];
@@ -13205,7 +13217,27 @@ function generateDemoPlayerName(platformDemoPlayerPrefix) {
         numArray.push(chance.character({pool: '0123456789'}))
     }
 
-    return namePrefix + platformDemoPlayerPrefix + numArray.join("");
+    let demoPlayerName = namePrefix + platformDemoPlayerPrefix + numArray.join("");
+
+    return dbPlayerInfo.isPlayerNameValidToRegister({
+        name: demoPlayerName,
+        platform: platformObjId
+    }).then(
+        data => {
+            if (data && data.isPlayerNameValid) {
+                return demoPlayerName;
+            }
+
+            count++;
+            if (count > 10) {
+                return Promise.reject({
+                    message: "Fail to generate demo player name."
+                });
+            }
+
+            return generateDemoPlayerName(platformDemoPlayerPrefix, platformObjId, count);
+        }
+    );
 }
 
 
