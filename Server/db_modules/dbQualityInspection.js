@@ -1212,12 +1212,9 @@ var dbQualityInspection = {
         var deferred = Q.defer();
         let proms = [];
         cvs.batchData.forEach(uItem=>{
-            console.log(uItem)
-            console.log(uItem.live800Acc);
             let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
             let prom = dbconfig.collection_admin.findOne(query).then(
                 item=>{
-                    console.log(item);
                     let adminName = item ? item._id:null;
                     return adminName
                 })
@@ -1262,13 +1259,11 @@ var dbQualityInspection = {
         console.log(data);
         let live800Acc = data.live800Acc.id  ? data.live800Acc.id :'xxx';
         let query = { 'live800Acc': {$in: [live800Acc]} };
-        console.log(data.live800Acc);
         let totalInspectionRate = 0;
         data.conversation.forEach(item=>{
             totalInspectionRate += item.timeoutRate;
             totalInspectionRate += item.inspectionRate;
         });
-        console.log(totalInspectionRate)
         data.totalInspectionRate = totalInspectionRate;
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
