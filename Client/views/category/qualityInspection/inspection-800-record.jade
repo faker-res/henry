@@ -139,7 +139,7 @@ div(style='display:none')
                         div.col-md-1.text-center(style="padding:10px;") {{convert.displayTime}}
                         div.col-md-4.text-center(style="padding:10px;") {{convert.content}}
                         div.col-md-1.text-center
-                            input.form-control(type="number",value="{{convert.timeoutRate}}",DISABLED, ng-show="convert.roles==1")
+                            input.form-control(type="number",value="convert.timeoutRate",DISABLED, ng-show="convert.roles==1")
                         div.col-md-1.text-center(ng-show="convert.roles==1")
                             div(ng-if='cform.editable')
                                 input.form-control(type="number",ng-model="convert.inspectionRate")

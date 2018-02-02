@@ -288,8 +288,11 @@ var dbQualityInspection = {
     },
     getMySQLConversation: function(sqlResult, queryObj){
         let deferred = Q.defer();
+        let platformProm = dbconfig.collection_platform.find().lean();
+        Q.all([sqlResult, platformProm]).then(queryResult => {
 
-        Q.all(sqlResult).then(results => {
+            results = queryResult[0];
+            platforms = queryResult[1];
             let msgIds = []
             if(results.length == 0){
                 deferred.resolve([]);
@@ -312,6 +315,7 @@ var dbQualityInspection = {
                 return Q.all(dbData).then(dbResult => {
                     let reformatData = [];
                     dbResult.forEach(item => {
+                        //let isValidCV = vm.isValidCV(item, platforms);
                         let dData = {};
                         dData.messageId = item.msg_id;
                         let conversation = dbQualityInspection.conversationReformat(item.content);
@@ -327,6 +331,70 @@ var dbQualityInspection = {
             }
         })
         return deferred.promise;
+    },
+    isValidCV: function(cv, platforms){
+        let result = true
+        let platform = platform.filter(item=>{
+            return item.live800CompanyId == cv.company_id;
+        });
+        if(platform.length > 0){
+            platform = platform[0];
+        }
+
+        if(platform.conversationDefinition){
+            let conversationDefinition = platform.conversationDefinition;
+            conversationDefinition;
+            let noValidMathCount = 0;
+
+            let firstCV = cv.conversation[0];
+            let lastCV = cv.conversation[1];
+
+            // time validation
+            let dialogTime = (lastCV - firstCV)/1000;
+            if(dialogTime < conversationDefinition.totalSec){
+                noValidMathCount += 1;
+            }
+            //conversation time validation
+            let csCVCount = 0;
+            let customerCVCount = 0;
+            conversation.forEach(item => {
+                if (!firstCV && item.roles == 2) {
+                    firstCV = item;
+                    lastCustomerCV = item;
+                    customerCVCount += 1;
+                } else {
+                    if (item.roles == 2) {
+                        // keep the last customer question , to calculate the timeoutRate
+                        if (lastCV.roles == 1) {
+                            lastCustomerCV = item;
+                            customerCVCount += 1;
+                        }
+                    } else if (item.roles == 1 && lastCustomerCV) {
+
+                        if(lastCV.roles == 1){
+                            // if that's cs conversation before it, no need to rate again.
+                        }else if(lastCV.roles != 1){
+                            // calculate the timeoutRate
+                            csCVCount += 1;
+                        }
+                    } else {
+                    }
+                }
+                lastCV = item;
+            })
+            if(customerCVCount < conversationDefinition.askingSentence){
+                noValidMathCount +=1;
+            }
+            if(csCVCount < conversationDefinition.replyingSentence){
+                noValidMathCount +=1;
+            }
+
+            if(noValidMathCount >= 3){
+                result = true
+            }
+            return result;
+        }
+
     },
     resolvePromise: function(results){
       let deferred = Q.defer();
@@ -1142,14 +1210,11 @@ var dbQualityInspection = {
     rateBatchConversation: function(cvs, accName){
         var deferred = Q.defer();
         let proms = [];
-        console.log(cvs)
         cvs.batchData.forEach(uItem=>{
-            console.log(uItem.live800Acc);
             let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
             let prom = dbconfig.collection_admin.findOne(query).then(
                 item=>{
-                    console.log(item);
-                    let adminName = item ? item.adminName:'x';
+                    let adminName = item ? item._id:null;
                     return adminName
                 })
                 .then(udata=>{
@@ -1158,7 +1223,16 @@ var dbQualityInspection = {
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
                         uItem.fpmsAcc = udata;
-                        uItem.status = 7;
+                        uItem.status = 4;
+
+                        // calculate a sum of total rating
+                        let totalInspectionRate = 0;
+                        uItem.conversation.forEach(item=>{
+                            totalInspectionRate += item.timeoutRate;
+                            totalInspectionRate += item.inspectionRate;
+                        });
+                        uItem.totalInspectionRate = totalInspectionRate;
+
                         if (qaData.length == 0) {
                             return dbconfig.collection_qualityInspection(uItem).save();
                         }else{
@@ -1184,7 +1258,12 @@ var dbQualityInspection = {
         console.log(data);
         let live800Acc = data.live800Acc.id  ? data.live800Acc.id :'xxx';
         let query = { 'live800Acc': {$in: [live800Acc]} };
-        console.log(data.live800Acc)
+        let totalInspectionRate = 0;
+        data.conversation.forEach(item=>{
+            totalInspectionRate += item.timeoutRate;
+            totalInspectionRate += item.inspectionRate;
+        });
+        data.totalInspectionRate = totalInspectionRate;
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
               let cs = item ? item._id:null;
