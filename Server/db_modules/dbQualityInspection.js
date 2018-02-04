@@ -1394,6 +1394,95 @@ var dbQualityInspection = {
         }
     },
 
+    getEvaluationProgressRecord2: function (platformObjId, startDate, endDate) {
+        if(startDate && endDate) {
+            // let startTime = dbUtility.getLocalTimeString(startDate);
+            // let endTime = dbUtility.getLocalTimeString(endDate);
+            let proms = [];
+            if (platformObjId && platformObjId.length > 0) {
+                return dbconfig.collection_platform.find({_id: {$in: platformObjId}}).lean().then(
+                    platformDetail => {
+                        if (platformDetail && platformDetail.length > 0) {
+                            platformDetail.map(p => {
+
+                                if(p && p.live800CompanyId && p.live800CompanyId.length > 0){
+                                    let platformName = p.name ? p.name : (p.platformName ? p.platformName : "");
+                                    let query = {
+                                        createTime: {
+                                            $gte: new Date(startDate),
+                                            $lt: new Date(endDate)
+                                        },
+                                        companyId: {$in: p.live800CompanyId}
+                                    }
+
+                                    let summarizedData =  dbconfig.collection_live800RecordDaySummary.aggregate([
+                                        {
+                                            $match: query
+                                        },
+                                        {
+                                            "$group": {
+                                                "_id": {
+                                                    "companyId": "$companyId",
+                                                    "date": "$createTime"
+                                                },
+                                                "sumOfTotalRecord": {$sum: "$effectiveRecord"},
+                                            }
+                                        }
+                                    ]).then(
+                                        live800SummarizeRecord => {
+                                            let sumOfTotalRecord = 0;
+                                            if(live800SummarizeRecord && live800SummarizeRecord.length > 0){
+                                                live800SummarizeRecord.forEach(l => {
+                                                    if(l && l.sumOfTotalRecord){
+                                                        sumOfTotalRecord += l.sumOfTotalRecord;
+                                                    }
+
+                                                })
+                                            }
+
+                                            return {date: live800SummarizeRecord[0]._id.date, totalRecord: sumOfTotalRecord};
+
+
+                                    }).then(
+                                        totalRecordData => {
+                                            if(totalRecordData){
+                                                return dbconfig.collection_qualityInspection.find(query).count().then(
+                                                    qualityInspectionCount => {
+                                                        let isCompleted = false;
+                                                        if(qualityInspectionCount){
+                                                            if(totalRecordData.totalRecord - qualityInspectionCount == 0){
+                                                                isCompleted = true;
+                                                            }
+                                                        }
+
+                                                        let result = {
+                                                            platformName: platformName,
+                                                            totalRecord: totalRecordData.totalRecord || 0,
+                                                            isCompleted: isCompleted,
+                                                            totalRecordFromFPMS:qualityInspectionCount ? qualityInspectionCount : 0,
+                                                            date: totalRecordData.date
+                                                        };
+                                                        return result;
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    )
+
+                                    proms.push(summarizedData);
+                                }
+                            })
+
+                            return Promise.all(proms);
+                        }
+                    }
+                )
+            }else{
+
+            }
+        }
+    },
+
     getLive800RecordByMySQL:function(queryString,live800CompanyId, connection){
         var deferred = Q.defer();
         let proms = [];
