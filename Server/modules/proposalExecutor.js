@@ -1440,7 +1440,7 @@ var proposalExecutor = {
                             sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
                             return dbconfig.collection_playerConsumptionSummary.remove(
                                 {_id: {$in: proposalData.data.summaryIds}}
-                            );
+                            ).catch(errorUtils.reportError);
                         }
                     ).then(deferred.resolve, deferred.reject);
                 }
