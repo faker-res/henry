@@ -46,12 +46,12 @@ var dbQualityInspection = {
             let endTime = dbUtility.getLocalTimeString(query.endTime);
             queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
         }
-        if(query.status=='all'||query.status=='1'){
+        if(query.status=='all'||query.status == constQualityInspectionStatus.PENDINGTOPROCESS){
             let connection = dbQualityInspection.connectMysql();
             console.log(query)
 
             let mysqlCount = dbQualityInspection.countMySQLDB(queryObj, connection);
-            if(query.status=='1'){
+            if(query.status==constQualityInspectionStatus.PENDINGTOPROCESS){
                 let mongoData = dbQualityInspection.countMongoDB(query, mysqlCount);
                 dbResult = dbQualityInspection.resolvePromise(mongoData);
                 console.log(mongoDataCount);
@@ -133,13 +133,13 @@ var dbQualityInspection = {
             paginationQuery += " LIMIT " + query.limit + " OFFSET " + query.index;
         }
         console.log(queryObj);
-        if(query.status!='all' && query.status!=1 && query.status!=7) {
+        if(query.status!='all' && query.status != constQualityInspectionStatus.PENDINGTOPROCESS && query.status != constQualityInspectionStatus.NOT_EVALUATED) {
 
             //get status equal to not 1 & all
             let dbResult = dbQualityInspection.searchMongoDB(query);
             let result = dbQualityInspection.getMySQLConversation(dbResult, query);
             conversationForm = dbQualityInspection.fillContent(result);
-        }else if(query.status!='all' && query.status==1){
+        }else if(query.status!='all' && query.status==constQualityInspectionStatus.PENDINGTOPROCESS){
 
             //get status equal to "1"
             delete query.status;
@@ -154,7 +154,7 @@ var dbQualityInspection = {
             let dbResult = dbQualityInspection.searchMySQLDB(queryObj, paginationQuery, connection);
 
             let noValidCV = false;
-            if(query.status == 7){
+            if(query.status == constQualityInspectionStatus.NOT_EVALUATED){
                 noValidCV = true;
             }
 
@@ -789,7 +789,7 @@ var dbQualityInspection = {
                 live800Chat.fpmsAcc = item.operator_name ;
                 live800Chat.companyId = item.company_id || "";
                 live800Chat.live800Acc['id'] = item.operator_id;
-                live800Chat.status = item.status || 1;
+                live800Chat.status = item.status || constQualityInspectionStatus.PENDINGTOPROCESS;
                 let dom = new JSDOM(item.content);
                 let content = [];
                 let he = dom.window.document.getElementsByTagName("he");
@@ -1312,7 +1312,7 @@ var dbQualityInspection = {
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
                         uItem.fpmsAcc = udata;
-                        uItem.status = 4;
+                        uItem.status = constQualityInspectionStatus.COMPLETED;
 
                         // calculate a sum of total rating
                         let totalInspectionRate = 0;
@@ -1368,7 +1368,7 @@ var dbQualityInspection = {
                 data.qualityAssessor = adminId;
                 data.processTime = Date.now();
                 data.fpmsAcc = udata;
-                data.status = 2;
+                data.status = constQualityInspectionStatus.COMPLETED_UNREAD;
                 if (qaData.length == 0) {
                     return dbconfig.collection_qualityInspection(data).save();
                 }else{
