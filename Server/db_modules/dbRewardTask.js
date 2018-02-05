@@ -2056,17 +2056,13 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                 let consumptionOffset = isNaN(platform.autoApproveConsumptionOffset) ? 0 : platform.autoApproveConsumptionOffset;
                 consumptionAmt = consumptionRecord.validAmount;
 
-                // Check whether player has lost all credit
-                if (rewardTaskGroup.currentAmt + consumptionRecord.bonusAmount <= platform.autoApproveLostThreshold) {
-                    rewardTaskGroup.status = constRewardTaskStatus.NO_CREDIT;
-                    rewardTaskGroup.unlockTime = createTime;
-                }
-                // Consumption reached
-                // Case 1: 50 + 45 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 45 - 50 = -5, 5 will be deducted from free amount consumption
-                //     to compensate an early achieved RTG
-                // Case 2: 50 + 50 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 50 - 50 = 0
-                // Case 3: 50 + 55 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 55 - 50 = 5, 5 will be increased to free amount consumption
-                else if (rewardTaskGroup.curConsumption + consumptionRecord.validAmount + consumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
+                // Check if consumption has reached
+                if (rewardTaskGroup.curConsumption + consumptionRecord.validAmount + consumptionOffset >= rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) {
+                    // Consumption reached
+                    // Case 1: 50 + 45 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 45 - 50 = -5, 5 will be deducted from free amount consumption
+                    //     to compensate an early achieved RTG
+                    // Case 2: 50 + 50 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 50 - 50 = 0
+                    // Case 3: 50 + 55 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 55 - 50 = 5, 5 will be increased to free amount consumption
                     consumptionAmt = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rewardTaskGroup.curConsumption;
                     remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
                 }
@@ -2088,9 +2084,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                     $inc: {
                         currentAmt: consumptionRecord.bonusAmount,
                         curConsumption: consumptionAmt
-                    },
-                    status: rewardTaskGroup.status,
-                    unlockTime: rewardTaskGroup.unlockTime
+                    }
                 };
 
                 return Promise.all([
@@ -2103,15 +2097,26 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                         {new: true}
                     ).then(
                         updatedRTG => {
-                            if (updatedRTG && updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                            // RTG updated successfully
+                            if (updatedRTG) {
+                                let statusUpdObj = {
+                                    unlockTime: createTime
+                                };
+
+                                // Check whether player has lost all credit
+                                if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
+                                    statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
+                                }
+
+                                if (updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                                    statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
+                                }
+
                                 return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                     {
                                         _id: updatedRTG._id
                                     },
-                                    {
-                                        status: constRewardTaskStatus.ACHIEVED,
-                                        unlockTime: createTime
-                                    },
+                                    statusUpdObj,
                                     {new: true}
                                 )
                             }
