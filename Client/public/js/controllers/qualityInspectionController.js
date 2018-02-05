@@ -507,7 +507,7 @@ define(['js/app'], function (myApp) {
                     format: 'dd/MM/yyyy hh:mm:ss',
                     pick12HourFormat: true
                 });
-                $('#live800endDatetimePicker').data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                $('#live800endDatetimePicker').data('datetimepicker').setLocalDate(utilService.getTodayStartTime());
             }
 
             vm.initUnreadEvaluation = function(){
@@ -659,6 +659,28 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.initManualSummarizeLive800Record = function(){
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#live800SummarizeEndDatetimePicker', function () {
+                        $('#live800SummarizeStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#live800SummarizeStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                        $('#live800SummarizeEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#live800SummarizeEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    });
+                }
+            };
+
             vm.commonSortChangeHandler = function (a, objName, searchFunc) {
                 if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
                 var sortCol = a.aaSorting[0][0];
@@ -729,7 +751,7 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if(data.conversation){
-                                    data.conversation.forEach(function(cv){
+                                    data.conversation.forEach(function(cv,i){
                                         if(cv){
                                             if(cv.roles){
                                                 cv.roleName = vm.roleType[cv.roles];
@@ -738,10 +760,37 @@ define(['js/app'], function (myApp) {
                                             if(cv.time){
                                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
                                             }
+
+                                            cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                            // load each platform overtimeSetting
+                                            let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                            let otsLength = overtimeSetting.length -1;
+                                            let colors = '';
+
+                                            // render with different color
+                                            overtimeSetting.forEach((ots,i)=>{
+                                                if(cv.roles==1 && cv.needRate){
+                                                    if(i==0){
+                                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                            colors = overtimeSetting[0].color;
+                                                        }
+                                                    }else if(i==otsLength){
+                                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                            colors = overtimeSetting[i].color;
+                                                        }
+                                                    }else{
+                                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                            colors = overtimeSetting[i].color;
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                            cv.colors = colors;
+                                            return cv;
                                         }
                                     });
                                 }
-
                             }
 
                             return data;
@@ -805,9 +854,37 @@ define(['js/app'], function (myApp) {
                                     data.status = vm.constQualityInspectionStatus[data.status];
                                 }
 
-                                data.conversation.forEach(function(cv){
+                                data.conversation.forEach(function(cv,i){
                                     cv.roleName = vm.roleType[cv.roles];
                                     cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                    cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                    // load each platform overtimeSetting
+                                    let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                    let otsLength = overtimeSetting.length -1;
+                                    let colors = '';
+
+                                    // render with different color
+                                    overtimeSetting.forEach((ots,i)=>{
+                                        if(cv.roles==1 && cv.needRate){
+                                            if(i==0){
+                                                if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                    colors = overtimeSetting[0].color;
+                                                }
+                                            }else if(i==otsLength){
+                                                if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                    colors = overtimeSetting[i].color;
+                                                }
+                                            }else{
+                                                if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                    colors = overtimeSetting[i].color;
+                                                }
+                                            }
+                                        }
+                                    });
+                                    cv.colors = colors;
+                                    return cv;
 
                                 });
 
@@ -874,9 +951,37 @@ define(['js/app'], function (myApp) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
-                            data.conversation.forEach(function(cv){
+                            data.conversation.forEach(function(cv,i){
                                 cv.roleName = vm.roleType[cv.roles];
                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                // load each platform overtimeSetting
+                                let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                let otsLength = overtimeSetting.length -1;
+                                let colors = '';
+
+                                // render with different color
+                                overtimeSetting.forEach((ots,i)=>{
+                                    if(cv.roles==1 && cv.needRate){
+                                        if(i==0){
+                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                colors = overtimeSetting[0].color;
+                                            }
+                                        }else if(i==otsLength){
+                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                colors = overtimeSetting[i].color;
+                                            }
+                                        }else{
+                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                colors = overtimeSetting[i].color;
+                                            }
+                                        }
+                                    }
+                                });
+                                cv.colors = colors;
+                                return cv;
 
                             });
 
@@ -940,9 +1045,37 @@ define(['js/app'], function (myApp) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
-                            data.conversation.forEach(function(cv){
+                            data.conversation.forEach(function(cv,i){
                                 cv.roleName = vm.roleType[cv.roles];
                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                // load each platform overtimeSetting
+                                let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                let otsLength = overtimeSetting.length -1;
+                                let colors = '';
+
+                                // render with different color
+                                overtimeSetting.forEach((ots,i)=>{
+                                    if(cv.roles==1 && cv.needRate){
+                                        if(i==0){
+                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                colors = overtimeSetting[0].color;
+                                            }
+                                        }else if(i==otsLength){
+                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                colors = overtimeSetting[i].color;
+                                            }
+                                        }else{
+                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                colors = overtimeSetting[i].color;
+                                            }
+                                        }
+                                    }
+                                });
+                                cv.colors = colors;
+                                return cv;
 
                             });
 
@@ -1188,7 +1321,6 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
                     }
@@ -1208,7 +1340,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     let resultArr = [];
-                    let resultArr2 = [];
 
                     let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
@@ -1279,43 +1410,26 @@ define(['js/app'], function (myApp) {
                             }
                             let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
 
-                            resultArr.push({calendarData: calendarData, calendarTitle: weekDay});
-
                             data.data.map(result => {
                                 if(result && result.length > 0){
-                                    let calendarDataObj = resultObj;
+                                    let calendarDataObj = jQuery.extend(true, {}, resultObj);
                                     result.forEach(resultByPlatform => {
                                         if(resultByPlatform){
                                             resultByPlatform.date = new Date(resultByPlatform.date);
-                                                calendarDataObj.calendarData.map(calendarData => {
-                                                    let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
-                                                    if(arrIndex != -1){
-                                                        calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
-                                                    }
-                                                })
+                                            calendarDataObj.calendarData.map(calendarData => {
+                                                let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
+                                                if(arrIndex != -1){
+                                                    calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
+                                                }
+                                            })
                                         }
-
                                     })
 
-                                    let calendarData2 = [];
-
-                                    calendarData2.push(firstRow);
-                                    calendarData2.push(secondRow);
-                                    calendarData2.push(thirdRow);
-                                    calendarData2.push(fouthRow);
-                                    calendarData2.push(fifthRow);
-                                    if(sixthRow.length > 0){
-                                        calendarData2.push(sixthRow);
-                                    }
-
-                                    resultArr2.push({platformName: result[0].platformName, calendarData: calendarData2, calendarTitle: weekDay});
-
+                                    resultArr.push({platformName: result[0].platformName, calendarData: calendarDataObj.calendarData, calendarTitle: calendarDataObj.calendarTitle});
                                 }
-
                             })
-
                             vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                            vm.evaluationProgressTable = resultArr2;
+                            vm.evaluationProgressTable = resultArr;
                             vm.loadingEvaluationProgressTable = false
                             $scope.safeApply();
                         }
@@ -2277,6 +2391,24 @@ define(['js/app'], function (myApp) {
                     vm[objKey].index = (curP - 1) * pageSize;
                 }
                 if (isChange) return serchFunc.call(this);
+            }
+
+            vm.summarizeLive800Record = function(){
+                vm.loadingSummarizeLive800Record = true;
+                var startTime = $('#live800SummarizeStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#live800SummarizeEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                vm.loadingSummarizeLive800Record = true;
+                socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.loadingSummarizeLive800Record = false;
+                    })
+                });
             }
 
             //****** CS Report Tab ******* ENDd //
