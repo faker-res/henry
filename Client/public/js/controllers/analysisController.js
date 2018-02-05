@@ -692,7 +692,7 @@ define(['js/app'], function (myApp) {
         vm.calculateNewPlayerLineDataAndAverage = (data, key, label) => {
             var graphData = [];
             let averageData = [];
-            let average = Math.floor(data.reduce((a, item) => a + item[key].length, 0) / data.length);
+            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + item[key].length, 0) / data.length) : 0;
             data.map(item => {
                 graphData.push([new Date(item.date), item[key].length]);
                 averageData.push([new Date(item.date), average]);
@@ -842,7 +842,7 @@ define(['js/app'], function (myApp) {
 
                 var graphData = [];
                 let averageData = [];
-                let average = Math.floor(data1.data.reduce((a, item) => a + item.number, 0) / data1.data.length);
+                let average = data1.data.length !== 0? Math.floor(data1.data.reduce((a, item) => a + item.number, 0) / data1.data.length) : 0;
                 data1.data.map(item => {
                     var localTime = new Date(item._id.date);
                     graphData.push([localTime, item.number]);
