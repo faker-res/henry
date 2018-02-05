@@ -659,6 +659,28 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.initManualSummarizeLive800Record = function(){
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#live800SummarizeEndDatetimePicker', function () {
+                        $('#live800SummarizeStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#live800SummarizeStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                        $('#live800SummarizeEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#live800SummarizeEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    });
+                }
+            };
+
             vm.commonSortChangeHandler = function (a, objName, searchFunc) {
                 if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
                 var sortCol = a.aaSorting[0][0];
@@ -738,36 +760,9 @@ define(['js/app'], function (myApp) {
                                             if(cv.time){
                                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
                                             }
-
-                                            // load each platform overtimeSetting
-                                            let overtimeSetting = vm.getPlatformOvertimeSetting(data);
-                                            let otsLength = overtimeSetting.length -1;
-                                            let colors = '';
-
-                                            // render with different color
-                                            overtimeSetting.forEach((ots,i)=>{
-                                                if(cv.roles==1){
-                                                    if(i==0){
-                                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                            colors = overtimeSetting[0].color;
-                                                        }
-                                                    }else if(i==otsLength){
-                                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                            colors = overtimeSetting[i].color;
-                                                        }
-                                                    }else{
-                                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                            colors = overtimeSetting[i].color;
-                                                        }
-                                                    }
-                                                }
-                                            });
-                                            cv.colors = colors;
-                                            return cv;
                                         }
                                     });
                                 }
-
                             }
 
                             return data;
@@ -1214,7 +1209,6 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
                     }
@@ -1234,7 +1228,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     let resultArr = [];
-                    //let resultArr2 = [];
 
                     let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
@@ -1312,169 +1305,19 @@ define(['js/app'], function (myApp) {
                                         if(resultByPlatform){
                                             resultByPlatform.date = new Date(resultByPlatform.date);
                                             calendarDataObj.calendarData.map(calendarData => {
-                                                    let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
-                                                    if(arrIndex != -1){
-                                                        calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
-                                                    }
-                                                })
+                                                let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
+                                                if(arrIndex != -1){
+                                                    calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
+                                                }
+                                            })
                                         }
                                     })
 
                                     resultArr.push({platformName: result[0].platformName, calendarData: calendarDataObj.calendarData, calendarTitle: calendarDataObj.calendarTitle});
                                 }
-
                             })
-
                             vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
                             vm.evaluationProgressTable = resultArr;
-                            vm.loadingEvaluationProgressTable = false
-                            $scope.safeApply();
-                        }
-
-                    });
-                }
-                else{
-                    socketService.showErrorMessage($translate('Please select Year - Month'));
-                    vm.loadingEvaluationProgressTable = false
-                    $scope.safeApply();
-                }
-            }
-
-            vm.getEvaluationProgressRecord2 = function() {
-                if(vm.yearMonth){
-                    vm.loadingEvaluationProgressTable = true;
-                    let yearMonthObj = JSON.parse(vm.yearMonth)
-                    let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
-                    let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-                    let sendData = {
-                        //platformObjId: vm.evaluationProgressPlatform,
-                        startDate: startDate,
-                        endDate: endDate
-                    }
-
-                    if(vm.evaluationProgressPlatform && vm.evaluationProgressPlatform.length > 0){
-                        sendData.platformObjId = vm.evaluationProgressPlatform
-                    }else{
-                        if(vm.platformList && vm.platformList.length > 0){
-                            let platformArr = [];
-                            vm.platformList.forEach(p => {
-                                if(p && p.id){
-                                    platformArr.push(p.id);
-                                }
-
-                            })
-                            sendData.platformObjId = platformArr;
-                        }
-                    }
-                    let resultArr = [];
-                    let resultArr2 = [];
-
-                    let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-                    let rowMaxLength = 7;
-                    socketService.$socket($scope.AppSocket, 'getEvaluationProgressRecord', sendData, function (data) {
-                        if(data && data.data && data.data.length > 0){
-                            //let result = data.data.sort(function(a,b) {return (a.platformName > b.platformName) ? 1 : ((b.platformName > a.platformName) ? -1 : 0);} );
-                            let counter = 1;
-                            let firstRow = [];
-                            let secondRow = [];
-                            let thirdRow = [];
-                            let fouthRow = [];
-                            let fifthRow = [];
-                            let sixthRow = [];
-                            for(let day = 1; day <= endDate.getDate(); day ++){
-                                if(day == 1){
-                                    for(let i = 0; i < startDate.getDay(); i++){
-                                        firstRow.push({day: "-", isCompleted: false});
-                                    }
-                                    firstRow.push({day: day});
-
-                                    if(firstRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 1){
-                                    firstRow.push({day: day});
-                                    if(firstRow.length == 7){
-                                        counter += 1;
-                                    }
-
-                                }else if(counter == 2){
-                                    secondRow.push({day: day});
-                                    if(secondRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 3){
-                                    thirdRow.push({day: day});
-                                    if(thirdRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 4){
-                                    fouthRow.push({day: day});
-                                    if(fouthRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 5){
-                                    fifthRow.push({day: day});
-                                    if(fifthRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }else if(counter == 6){
-                                    sixthRow.push({day: day});
-                                    if(sixthRow.length == 7){
-                                        counter += 1;
-                                    }
-                                }
-                            }
-
-                            let calendarData = [];
-
-                            calendarData.push(firstRow);
-                            calendarData.push(secondRow);
-                            calendarData.push(thirdRow);
-                            calendarData.push(fouthRow);
-                            calendarData.push(fifthRow);
-                            if(sixthRow.length > 0){
-                                calendarData.push(sixthRow);
-                            }
-                            let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
-
-                            resultArr.push({calendarData: calendarData, calendarTitle: weekDay});
-
-                            data.data.map(result => {
-                                //if(result && result.length > 0){
-                                    let calendarDataObj = resultObj;
-                                    //result.forEach(resultByPlatform => {
-                                        //if(resultByPlatform){
-                                result.date = new Date(result.date);
-                                            calendarDataObj.calendarData.map(calendarData => {
-                                                let arrIndex = calendarData.findIndex(c => c.day == result.date.getDate())
-                                                if(arrIndex != -1){
-                                                    calendarData[arrIndex].isCompleted = result.isCompleted;
-                                                }
-                                            })
-                                        //}
-
-                                    //})
-
-                                    let calendarData2 = [];
-
-                                    calendarData2.push(firstRow);
-                                    calendarData2.push(secondRow);
-                                    calendarData2.push(thirdRow);
-                                    calendarData2.push(fouthRow);
-                                    calendarData2.push(fifthRow);
-                                    if(sixthRow.length > 0){
-                                        calendarData2.push(sixthRow);
-                                    }
-
-                                    resultArr2.push({platformName: result.platformName, calendarData: calendarData2, calendarTitle: weekDay});
-
-                                //}
-
-                            })
-
-                            vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                            vm.evaluationProgressTable = resultArr2;
                             vm.loadingEvaluationProgressTable = false
                             $scope.safeApply();
                         }
@@ -2438,11 +2281,19 @@ define(['js/app'], function (myApp) {
                 if (isChange) return serchFunc.call(this);
             }
 
-            vm.testSchedulerFunction = function(){
-                let sendData = {};
-                vm.loadingTest = true;
+            vm.summarizeLive800Record = function(){
+                vm.loadingSummarizeLive800Record = true;
+                var startTime = $('#live800SummarizeStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#live800SummarizeEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                vm.loadingSummarizeLive800Record = true;
                 socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
-                    vm.loadingTest = false;
+                    vm.loadingSummarizeLive800Record = false;
                     $scope.safeApply();
                 });
             }
