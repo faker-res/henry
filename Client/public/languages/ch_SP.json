@@ -3220,6 +3220,8 @@
   "MANUAL_AUDIT_AFTER_BANK_CHANGED": "银改之后第一次提款转人工审核（不论金额）",
   "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）",
   "consumeValidAmount": "有效流水",
+  "average line": "平均线",
+  "average value": "平均值",
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话"
 
 }
