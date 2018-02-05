@@ -600,7 +600,7 @@ var dbQualityInspection = {
                 }
             });
             deferred.resolve(proms);
-        })
+        });
       return deferred.promise;
 
     },

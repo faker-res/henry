@@ -507,7 +507,7 @@ define(['js/app'], function (myApp) {
                     format: 'dd/MM/yyyy hh:mm:ss',
                     pick12HourFormat: true
                 });
-                $('#live800endDatetimePicker').data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                $('#live800endDatetimePicker').data('datetimepicker').setLocalDate(utilService.getTodayStartTime());
             }
 
             vm.initUnreadEvaluation = function(){

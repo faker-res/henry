@@ -58,11 +58,11 @@ div
 div(style='height:50px')
     .row(style='background-color:#337ab7;')
         div.col-md-1(style="height:50px")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%)')
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%)') 选取
         div.col-md-1(style="height:50px")
             div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 评估状态
         div.col-md-7(style="height:50px")
-            div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold;") FPMS
+            div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold;") Live800{{"Account" | translate}}
             div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 类型
             div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 时间
             div.col-md-4.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 对话内容
@@ -139,10 +139,10 @@ div(style='display:none')
                         div.col-md-1.text-center(style="padding:10px;") {{convert.displayTime}}
                         div.col-md-4.text-center(style="padding:10px;") {{convert.content}}
                         div.col-md-1.text-center
-                            input.form-control(type="number",value="{{convert.timeoutRate}}",readonly="readonly", ng-show="convert.roles==1")
+                            input(type="number",value="{{convert.timeoutRate}}",readonly="readonly", ng-show="convert.roles==1")
                         div.col-md-1.text-center(ng-show="convert.roles==1")
                             div(ng-if='cform.editable')
-                                input.form-control(type="number",ng-model="convert.inspectionRate")
+                                input(type="number",ng-model="convert.inspectionRate")
                             div(ng-if='!cform.editable')
                                 div(style='text-align:center') {{convert.inspectionRate}}
                         div.col-md-2.text-center
