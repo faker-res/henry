@@ -10,7 +10,7 @@ var smsLogSchema = new Schema ({
     // recipient name will be either player name or partner name (or name that failed registration tried)
     recipientName: {type: String, required: false},
     // purpose of the sms
-    purpose: String,
+    purpose: {type: String, index: true},
     channel: {type: Number, required: true},
     platform: {type: Schema.ObjectId, ref: 'platform', required: false},
     platformId: {type: String, required: false},
@@ -35,6 +35,8 @@ var smsLogSchema = new Schema ({
     used: {type: Boolean, default: false},
     // sms code invalidated (due to exceeding amount of failing tries)
     invalidated: {type: Boolean, default: false},
+    // sms log data
+    data: {type: JSON, default: {}}
 });
 
 module.exports = smsLogSchema;

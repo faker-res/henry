@@ -60,6 +60,7 @@ var SMSSender = require('../modules/SMSSender');
 var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
+const constSMSPurpose = require("../const/constSMSPurpose");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -1069,6 +1070,16 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                if (playerData.isRealPlayer && playerData.platform && playerdata.phoneNumber) {
+                    dbconfig.collection_smsLog.update(
+                        {
+                            platform: playerData.platform,
+                            tel: playerdata.phoneNumber,
+                            purpose: constSMSPurpose.DEMO_PLAYER,
+                            "data.isRegistered":{$exists: false}
+                        },
+                        {"data.isRegistered": true}, {multi: true}).lean().catch(errorUtils.reportError);
+                    }
                 if (data && data[0] && data[1]) {
                     var proms = [];
                     var playerUpdateData = {
@@ -9356,15 +9367,37 @@ let dbPlayerInfo = {
                     });
                 }
 
-                if (eventData.validStartTime && eventData.validEndTime) {
-                    // TODO Temoporary hardcoding: Only can apply 1 time within period
-                    return dbconfig.collection_proposalType.findOne({
-                        platformId: player.platform._id,
-                        name: constProposalType.PLAYER_TOP_UP_RETURN
-                    }).lean();
+                // Check if any withdrawal occured between top up and apply top up return reward
+                let withdrawalQ = {
+                    'data.platformId': player.platform._id,
+                    'data.playerObjId': player._id,
+                    settleTime: {$gt: record.settlementTime},
+                    status: {$nin: [constProposalStatus.CANCEL, constProposalStatus.REJECTED, constProposalStatus.FAIL]}
+                };
+
+                return dbPropUtil.getOneProposalDataOfType(player.platform._id, constProposalType.PLAYER_BONUS, withdrawalQ);
+            }
+        ).then(
+            withdrawData => {
+                if (!withdrawData) {
+                    if (eventData.validStartTime && eventData.validEndTime) {
+                        // TODO Temoporary hardcoding: Only can apply 1 time within period
+                        return dbconfig.collection_proposalType.findOne({
+                            platformId: player.platform._id,
+                            name: constProposalType.PLAYER_TOP_UP_RETURN
+                        }).lean();
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
-                    return false;
+                    // There is withdrawal after top up and before apply top up return
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
+                        name: "DataError",
+                        message: "There is withdrawal after topup"
+                    });
                 }
             }
         ).then(
