@@ -46,12 +46,12 @@ var dbQualityInspection = {
             let endTime = dbUtility.getLocalTimeString(query.endTime);
             queryObj += " store_time BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME)";
         }
-        if(query.status=='all'||query.status=='1'){
+        if(query.status=='all'||query.status == constQualityInspectionStatus.PENDINGTOPROCESS){
             let connection = dbQualityInspection.connectMysql();
             console.log(query)
 
             let mysqlCount = dbQualityInspection.countMySQLDB(queryObj, connection);
-            if(query.status=='1'){
+            if(query.status==constQualityInspectionStatus.PENDINGTOPROCESS){
                 let mongoData = dbQualityInspection.countMongoDB(query, mysqlCount);
                 dbResult = dbQualityInspection.resolvePromise(mongoData);
                 console.log(mongoDataCount);
@@ -133,13 +133,13 @@ var dbQualityInspection = {
             paginationQuery += " LIMIT " + query.limit + " OFFSET " + query.index;
         }
         console.log(queryObj);
-        if(query.status!='all' && query.status!=1) {
+        if(query.status!='all' && query.status != constQualityInspectionStatus.PENDINGTOPROCESS && query.status != constQualityInspectionStatus.NOT_EVALUATED) {
 
             //get status equal to not 1 & all
             let dbResult = dbQualityInspection.searchMongoDB(query);
             let result = dbQualityInspection.getMySQLConversation(dbResult, query);
             conversationForm = dbQualityInspection.fillContent(result);
-        }else if(query.status!='all' && query.status==1){
+        }else if(query.status!='all' && query.status==constQualityInspectionStatus.PENDINGTOPROCESS){
 
             //get status equal to "1"
             delete query.status;
@@ -149,11 +149,16 @@ var dbQualityInspection = {
             conversationForm = dbQualityInspection.constructCV(dbResult);
             console.log(conversationForm);
         }else{
-
-            //get status equal to "all"
+            //get status equal to "all" OR status equal 7
             let connection = dbQualityInspection.connectMysql();
             let dbResult = dbQualityInspection.searchMySQLDB(queryObj, paginationQuery, connection);
-            let mongoResult = dbQualityInspection.getMongoCV(dbResult);
+
+            let noValidCV = false;
+            if(query.status == constQualityInspectionStatus.NOT_EVALUATED){
+                noValidCV = true;
+            }
+
+            let mongoResult = dbQualityInspection.getMongoCV(dbResult, noValidCV);
             conversationForm = dbQualityInspection.resolvePromise(mongoResult);
         }
         return conversationForm;
@@ -205,7 +210,7 @@ var dbQualityInspection = {
 
                 platformInfo = platformInfo[0] ? platformInfo[0] : [];
                 live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
-                let isValidCV = dbQualityInspection.isValidCV(live800Chat, platformDetails);
+                let isValidCV = dbQualityInspection.isValidCV(live800Chat, platformDetails, true);
                 if(isValidCV){
                     liveChats.push(live800Chat);
                 }
@@ -306,7 +311,6 @@ var dbQualityInspection = {
     fillContent: function(data){
         let deferred = Q.defer();
         let combineData = [];
-
         Q.all(data).then(results => {
             let mongoData = results.mongo;
             let mysqlData = results.mysql;
@@ -314,17 +318,17 @@ var dbQualityInspection = {
                 deferred.resolve([]);
             }else{
                 mongoData.forEach(item => {
-                    let cData = {}
+                    let cData = {};
                     cData = item;
                     let mysqlCV = mysqlData.filter(sqlItem => {
                         return sqlItem.messageId == item.messageId;
-                    })
+                    });
                     if (mysqlCV.length > 0) {
                         let conversation = mysqlCV[0].conversation;
                         item.conversation.forEach(cv => {
                             let overrideCV = conversation.filter(mycv => {
                                 return cv.time == mycv.time;
-                            })
+                            });
                             if (overrideCV.length > 0) {
                                 let roles = overrideCV[0].roles;
                                 cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
@@ -374,24 +378,26 @@ var dbQualityInspection = {
                         let conversation = dbQualityInspection.conversationReformat(item.content);
                         dData.conversation = conversation;
                         reformatData.push(dData);
-                    })
+                    });
                     let cv = {
                         mongo: results,
                         mysql: reformatData
-                    }
+                    };
                     deferred.resolve(cv);
                 })
             }
         })
         return deferred.promise;
     },
-    isValidCV: function(cv, platforms){
+    isValidCV: function(cv, platforms, needValidCV){
         //based on platform's conversationDefinition setting, filter conversation which is
         // not qualified to rate , example: conversation is too fast, less of conversation .
-        let result = true;
+        let result = needValidCV;
         let platform = platforms.filter(item => {
-            if (item.live800CompanyId) {
-                return item.live800CompanyId.indexOf(String(cv.companyId)) != -1;
+            if (item.live800CompanyId && item.live800CompanyId.length > 0) {
+                if(item.live800CompanyId.indexOf(String(cv.companyId)) != -1){
+                    return item;
+                }
             }
         });
         if (platform.length > 0) {
@@ -452,9 +458,17 @@ var dbQualityInspection = {
             if (csCVCount < conversationDefinition.replyingSentence) {
                 noValidMathCount += 1;
             }
+
             // one of these condition error, then this conversation will hide
-            if (noValidMathCount >= 1) {
-                result = false
+
+            if(needValidCV){
+                if (noValidMathCount >= 1) {
+                    result = false
+                }
+            }else{
+                if (noValidMathCount >= 1) {
+                    result = true
+                }
             }
         }
         return result;
@@ -540,7 +554,7 @@ var dbQualityInspection = {
             });
         return deferred.promise;
     },
-    getMongoCV:function(dbResult){
+    getMongoCV:function(dbResult, noValidCV){
         var deferred = Q.defer();
 
         let platformProm = dbconfig.collection_platform.find().lean();
@@ -550,6 +564,7 @@ var dbQualityInspection = {
 
             let sqlData = results[0];
             let platformDetails = results[1];
+            let isValidCV;
             if (sqlData.length == 0) {
                 deferred.resolve([]);
             }
@@ -588,7 +603,15 @@ var dbQualityInspection = {
                 });
                 platformInfo = platformInfo[0] ? platformInfo[0] : [];
                 live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
-                let isValidCV = dbQualityInspection.isValidCV(live800Chat, platformDetails);
+
+
+                if(noValidCV){
+                    // when status = 7, show only un_evaluate data to user;
+                    isValidCV = dbQualityInspection.isValidCV(live800Chat, platformDetails, false);
+                }else{
+                    // only display valid conversation to user
+                    isValidCV = dbQualityInspection.isValidCV(live800Chat, platformDetails, true);
+                }
 
                 if(isValidCV){
                     let queryQA = {messageId: String(item.msg_id)};
@@ -609,7 +632,7 @@ var dbQualityInspection = {
                 }
             });
             deferred.resolve(proms);
-        })
+        });
       return deferred.promise;
 
     },
@@ -690,7 +713,6 @@ var dbQualityInspection = {
         });
         return cvs;
     },
-
     getProgressReportByOperator: function (companyId,operatorId,startTime,endTime){
 
        //var startTime = dbUtility.getLocalTimeString(startTime);
@@ -1151,7 +1173,7 @@ var dbQualityInspection = {
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
                         uItem.fpmsAcc = udata;
-                        uItem.status = 4;
+                        uItem.status = constQualityInspectionStatus.COMPLETED;
 
                         // calculate a sum of total rating
                         let totalInspectionRate = 0;
@@ -1207,7 +1229,7 @@ var dbQualityInspection = {
                 data.qualityAssessor = adminId;
                 data.processTime = Date.now();
                 data.fpmsAcc = udata;
-                data.status = 2;
+                data.status = constQualityInspectionStatus.COMPLETED_UNREAD;
                 if (qaData.length == 0) {
                     return dbconfig.collection_qualityInspection(data).save();
                 }else{
