@@ -9072,7 +9072,8 @@ let dbPlayerInfo = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.bonusId) {
-                        if (proposalData.status != constProposalStatus.PENDING && proposalData.status != constProposalStatus.AUTOAUDIT) {
+                        if (proposalData.status != constProposalStatus.PENDING && proposalData.status != constProposalStatus.AUTOAUDIT
+                          && proposalData.status != constProposalStatus.CSPENDING) {
                             return Q.reject({
                                 status: constServerCode.DATA_INVALID,
                                 name: "DBError",
