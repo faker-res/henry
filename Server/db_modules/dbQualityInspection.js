@@ -1463,9 +1463,6 @@ var dbQualityInspection = {
     },
     getProgressReportMarksByOperator: function (companyId,operatorId,startTime,endTime) {
 
-        //var startTime = dbUtility.getLocalTimeString(startTime);
-        //var endTime = dbUtility.getLocalTimeString(endTime);
-
         return dbconfig.collection_qualityInspection.aggregate([
             {
                 $match: {
@@ -1559,8 +1556,6 @@ var dbQualityInspection = {
                         "companyId": "$companyId",
                         "operatorId": "$live800Acc.id",
                         "operatorName": "$live800Acc.name",
-
-
                     },
                     "totalCount": {$sum: "$totalRecord"},
                     "totalEffectiveCount": {$sum:"$effectiveRecord"},
@@ -1605,7 +1600,6 @@ var dbQualityInspection = {
                         "status": "$status"
                     },
                     "count": {"$sum": 1},
-
                 }
             }
         ]).then(data => {
