@@ -596,6 +596,9 @@ define(['js/app'], function (myApp) {
                     vm.currentFreeAmount = null;
                     vm.playerCreditDetails = null;
                     $('#rewardTaskLogTbl').empty();
+
+                    $scope.$socketPromise('getPrevious10PlayerRTG', {platformId: vm.selectedPlatform.id , playerId: vm.selectedSinglePlayer._id})
+                        .then(last10Data => console.log('Player last 10 RTG', last10Data));
                 }
             };
 
@@ -8179,26 +8182,26 @@ define(['js/app'], function (myApp) {
                     return deferred.promise;
                 };
 
-        vm.getRewardTaskGroupDetail = (playerId, callback) => {
-            return $scope.$socketPromise('getPlayerAllRewardTaskGroupDetailByPlayerObjId', {_id: playerId}).then(
-                res => {
-                    res.data.map(r => {
-                        if(r.providerGroup == null){
-                            r.providerGroup = {
-                                name : "LOCAL_CREDIT"
+            vm.getRewardTaskGroupDetail = (playerId, callback) => {
+                return $scope.$socketPromise('getPlayerAllRewardTaskGroupDetailByPlayerObjId', {_id: playerId}).then(
+                    res => {
+                        res.data.map(r => {
+                            if(r.providerGroup == null){
+                                r.providerGroup = {
+                                    name : "LOCAL_CREDIT"
+                                }
                             }
+                            return r;
+                        })
+                        vm.curRewardTask = res.data;
+                        console.log('vm.curRewardTask', vm.curRewardTask);
+                        $scope.safeApply();
+                        if (callback) {
+                            callback(vm.curRewardTask);
                         }
-                        return r;
-                    })
-                    vm.curRewardTask = res.data;
-                    console.log('vm.curRewardTask', vm.curRewardTask);
-                    $scope.safeApply();
-                    if (callback) {
-                        callback(vm.curRewardTask);
                     }
-                }
-            )
-        }
+                )
+            };
 
             // vm.prepareShowFeedbackRecord = function () {
             //     vm.playerFeedbackData = [];
