@@ -2079,6 +2079,10 @@ var proposalExecutor = {
                         prom = Promise.resolve();
                     }
 
+                    if (proposalData.data.disableWithdraw) {
+                        disablePlayerWithdrawal(proposalData.data.playerObjId, proposalData.data.platformId).catch(errorUtils.reportError);
+                    }
+
                     prom.then(
                         data => {
                             createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_PROMO_CODE_REWARD, proposalData);
@@ -3179,6 +3183,16 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         }
     );
 }
+
+function disablePlayerWithdrawal(playerObjId, platformObjId) {
+    return dbconfig.collection_players.findOneAndUpdate({
+        _id: playerObjId,
+        platform: platformObjId
+    }, {
+        $set: {"permission.applyBonus": false}
+    }).lean().exec();
+}
+
 function sendMessageToPlayer (proposalData,type,metaDataObj) {
     //type that need to add 'Success' status
     let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,

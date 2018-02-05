@@ -60,6 +60,7 @@ var SMSSender = require('../modules/SMSSender');
 var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
+const constSMSPurpose = require("../const/constSMSPurpose");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -357,13 +358,15 @@ let dbPlayerInfo = {
                         if (platformObj.allowSamePhoneNumberToRegister === true) {
                             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-                                platform: platformObjId
+                                platform: platformObjId,
+                                isRealPlayer: true
                             }, platformObj.samePhoneNumberRegisterCount);
                             // return {isPhoneNumberValid: true}
                         } else {
                             return dbPlayerInfo.isPhoneNumberValidToRegister({
                                 phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
-                                platform: platformObjId
+                                platform: platformObjId,
+                                isRealPlayer: true
                             });
                         }
                     } else {
@@ -950,13 +953,15 @@ let dbPlayerInfo = {
                     if (platformData.allowSamePhoneNumberToRegister === true) {
                         return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                            platform: playerdata.platform
+                            platform: playerdata.platform,
+                            isRealPlayer: true
                         }, platformData.samePhoneNumberRegisterCount);
                         // return {isPhoneNumberValid: true};
                     } else {
                         return dbPlayerInfo.isPhoneNumberValidToRegister({
                             phoneNumber: rsaCrypto.encrypt(playerdata.phoneNumber),
-                            platform: playerdata.platform
+                            platform: playerdata.platform,
+                            isRealPlayer: true
                         });
                     }
                 } else {
@@ -1069,6 +1074,16 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
+                if (playerData.isRealPlayer && playerData.platform && playerdata.phoneNumber) {
+                    dbconfig.collection_smsLog.update(
+                        {
+                            platform: playerData.platform,
+                            tel: playerdata.phoneNumber,
+                            purpose: constSMSPurpose.DEMO_PLAYER,
+                            "data.isRegistered":{$exists: false}
+                        },
+                        {"data.isRegistered": true}, {multi: true}).lean().catch(errorUtils.reportError);
+                    }
                 if (data && data[0] && data[1]) {
                     var proms = [];
                     var playerUpdateData = {
@@ -1175,24 +1190,66 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
+                let promArr = [];
+                
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
                 platform = platformData;
 
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
+                promArr.push(demoNameProm);
+
+                if(deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
+                    let anHourAgo = new Date(Date.now()-60*60*1000).toISOString();
+                    let now = new Date(Date.now()).toISOString();
+                    let ipQuery = {
+                        'loginIps.0': deviceData.lastLoginIp,
+                        registrationTime: {
+                            $lte: now,
+                            $gte: anHourAgo
+                        },
+                        platform: platform._id
+                    };
+
+                    let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
+                        data => {
+                            if(data >= 5) {
+                                return Promise.reject({
+                                    name: "DataError",
+                                    message: "Player registration limit exceed (IP Address)"
+                                });
+                            }
+                        }
+                    );
+                    promArr.push(ipDuplicateProm);
+                }
 
                 if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
-                    return Promise.all([demoNameProm]);
+                    return Promise.all(promArr);
                 }
 
                 if (phoneNumber) {
                     let phoneDuplicateProm = dbPlayerInfo.isPhoneNumberValidToRegister({
                         phoneNumber: rsaCrypto.encrypt(phoneNumber),
                         platform: platform._id
-                    });
+                    }).then(
+                        data => {
+                            if(data.isPhoneNumberValid === false) {
+                                return Promise.reject({
+                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                                    name: "DataError",
+                                    message: "Phone number already exists"
+                                });
+                            }
+                        }
+                    );
+                    promArr.push(phoneDuplicateProm);
+
                     let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
-                    return Promise.all([demoNameProm, phoneDuplicateProm, smsValidationProm]);
+                    promArr.push(smsValidationProm);
+
+                    return Promise.all(promArr);
                 } else {
                     return Promise.reject({
                         status: constServerCode.INVALID_PHONE_NUMBER,
@@ -1203,16 +1260,9 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (!data || !data[0] || !data[1]) {
+                if (!data || !data[0]) {
                     return Promise.reject({
                         message: "Error in getting player data"
-                    });
-                }
-                if(data[1].isPhoneNumberValid === false) {
-                    return Promise.reject({
-                        status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                        name: "DataError",
-                        message: "Phone number already exists"
                     });
                 }
 
