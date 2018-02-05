@@ -663,7 +663,7 @@ var dbQualityInspection = {
                     timeoutRate = overtimeSetting[i].presetMark;
                 }
             }else{
-                if(sec < overtimeSetting[i-1].conversationInterval && sec > overtimeSetting[i+1].conversationInterval){
+                if(sec > overtimeSetting[i-1].conversationInterval && sec <= overtimeSetting[i].conversationInterval){
                     timeoutRate = overtimeSetting[i].presetMark;
                 }
             }
