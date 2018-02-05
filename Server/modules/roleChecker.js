@@ -557,6 +557,7 @@ var roleChecker = {
                 ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
                 ConsumptionInterval: ['getConsumptionIntervalData'],
                 ClientSource: [],
+                LoginPlayer: [],
 
             }
         },

@@ -74,15 +74,18 @@ define(['js/app'], function (myApp) {
                         vm.plotAllPlatformPlayerBonusPie();
                         break;
                     case "NEW_PLAYER":
+                        vm.platformNewPlayerAnalysisSort = {};
                         vm.initSearchParameter('newPlayer', 'day', 3);
                         vm.getPartnerLevelConfig();
                         vm.plotNewPlayerLine();
                         break;
+                    case "LOGIN_PLAYER":
+                        vm.initSearchParameter('loginPlayer', 'day', 3);
+                        vm.plotLoginPlayerLine();
+                        break;
                     case "ACTIVE_PLAYER":
                         vm.initSearchParameter('activePlayer', 'day', 3);
-                        vm.initSearchParameter('loginPlayer', 'day', 3);
                         vm.plotActivePlayerLine();
-                        vm.plotLoginPlayerLine();
                         break;
                     case "PEAK_HOUR":
                         vm.plotPeakhourOnlinePlayerLine();
@@ -524,7 +527,7 @@ define(['js/app'], function (myApp) {
                     vm.platformNewPlayerAnalysisData.push({
                         date: periodDateData[i],
                         players: newPlayerWithinPeriod,
-                        topupPlayer: newPlayerWithinPeriod.filter(player => player.topUpTimes === 1 ),
+                        topupPlayer: newPlayerWithinPeriod.filter(player => player.topUpTimes > 0 ),
                         multiTopupPlayer: newPlayerWithinPeriod.filter(player => player.topUpTimes > 1),
                         validPlayer: newPlayerWithinPeriod.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue),
                     });
@@ -838,9 +841,12 @@ define(['js/app'], function (myApp) {
 
 
                 var graphData = [];
+                let averageData = [];
+                let average = Math.floor(data1.data.reduce((a, item) => a + item.number, 0) / data1.data.length);
                 data1.data.map(item => {
                     var localTime = new Date(item._id.date);
                     graphData.push([localTime, item.number]);
+                    averageData.push([localTime, average]);
                 })
                 // var loginPlayerData = data1.data;
                 // var loginPlayerObjData = {};
@@ -924,7 +930,7 @@ define(['js/app'], function (myApp) {
                 socketService.$plotLine(placeholder, [{
                     label: $translate('Login Player'),
                     data: graphData
-                }], newOptions);
+                },{label: $translate('average line'), data: averageData}], newOptions);
                 $(placeholder).bind("plothover", function (event, pos, obj) {
                     var previousPoint;
                     if (!obj) {
@@ -968,7 +974,6 @@ define(['js/app'], function (myApp) {
                 dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
                 var a = $('#loginPlayerAnalysisTable').DataTable(dataOptions);
                 a.columns.adjust().draw();
-
             });
         };
         // login Player end= =========================================
