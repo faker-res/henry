@@ -235,9 +235,12 @@ const dbRewardTask = {
                     }
 
                     if (rewardData.useConsumption) {
-                        // updObj.$inc.forbidXIMAAmt = consumptionAmt;
-                        updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
-                        updObj.$inc.targetConsumption = -rewardData.applyAmount;
+                        if(rewardType == constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+                            updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                            updObj.$inc.targetConsumption = -rewardData.applyAmount;
+                        } else {
+                            updObj.$inc.forbidXIMAAmt = consumptionAmt;
+                        }
                     } else {
                         updObj.$inc.targetConsumption = consumptionAmt;
                     }
