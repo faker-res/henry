@@ -235,7 +235,9 @@ const dbRewardTask = {
                     }
 
                     if (rewardData.useConsumption) {
-                        updObj.$inc.forbidXIMAAmt = consumptionAmt;
+                        // updObj.$inc.forbidXIMAAmt = consumptionAmt;
+                        updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                        updObj.$inc.targetConsumption = -rewardData.applyAmount;
                     } else {
                         updObj.$inc.targetConsumption = consumptionAmt;
                     }
