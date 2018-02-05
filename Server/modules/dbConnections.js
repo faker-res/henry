@@ -11,7 +11,7 @@ function createConnection(dbURL, callback) {
         replset: {
             socketOptions: {
                 keepAlive: 1,
-                connectTimeoutMS: 30000,
+                connectTimeoutMS: 45000,
                 socketTimeoutMS: 60000
             }
         },
@@ -20,7 +20,7 @@ function createConnection(dbURL, callback) {
             reconnectInterval: 5000,
             socketOptions: {
                 keepAlive: 1,
-                connectTimeoutMS: 30000,
+                connectTimeoutMS: 45000,
                 socketTimeoutMS: 60000
             }
         }
