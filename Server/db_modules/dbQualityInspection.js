@@ -211,6 +211,7 @@ var dbQualityInspection = {
         return deferred.promise;
     },
     searchMongoDB:function(query){
+        let deferred = Q.defer();
         let queryQA = {};
         if (query.status){
             queryQA.status = query.status;
@@ -238,7 +239,7 @@ var dbQualityInspection = {
             }
         }
         console.log(queryQA);
-        return dbconfig.collection_qualityInspection.find(queryQA)
+        let qaResult =  dbconfig.collection_qualityInspection.find(queryQA)
             .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
             .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
             .lean()
@@ -257,7 +258,11 @@ var dbQualityInspection = {
                     return live800Chat;
                 });
                 return results;
-            })
+            });
+        Q.all(qaResult).then(data=>{
+            deferred.resolve(data);
+        })
+        return deferred.promise;
     },
     countMongoDB: function(query, mysqlProm){
         let deferred = Q.defer();
@@ -488,7 +493,6 @@ var dbQualityInspection = {
             }
             console.log("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery);
             connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery, function (error, results, fields) {
-                console.log('yeah');
                 if (error) {
                     console.log(error)
                 }
