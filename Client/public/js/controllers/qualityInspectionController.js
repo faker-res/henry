@@ -738,6 +738,32 @@ define(['js/app'], function (myApp) {
                                             if(cv.time){
                                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
                                             }
+
+                                            // load each platform overtimeSetting
+                                            let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                            let otsLength = overtimeSetting.length -1;
+                                            let colors = '';
+
+                                            // render with different color
+                                            overtimeSetting.forEach((ots,i)=>{
+                                                if(cv.roles==1){
+                                                    if(i==0){
+                                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                            colors = overtimeSetting[0].color;
+                                                        }
+                                                    }else if(i==otsLength){
+                                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                            colors = overtimeSetting[i].color;
+                                                        }
+                                                    }else{
+                                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                            colors = overtimeSetting[i].color;
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                            cv.colors = colors;
+                                            return cv;
                                         }
                                     });
                                 }
@@ -1208,7 +1234,7 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     let resultArr = [];
-                    let resultArr2 = [];
+                    //let resultArr2 = [];
 
                     let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
@@ -1279,43 +1305,28 @@ define(['js/app'], function (myApp) {
                             }
                             let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
 
-                            resultArr.push({calendarData: calendarData, calendarTitle: weekDay});
-
                             data.data.map(result => {
                                 if(result && result.length > 0){
-                                    let calendarDataObj = resultObj;
+                                    let calendarDataObj = jQuery.extend(true, {}, resultObj);
                                     result.forEach(resultByPlatform => {
                                         if(resultByPlatform){
                                             resultByPlatform.date = new Date(resultByPlatform.date);
-                                                calendarDataObj.calendarData.map(calendarData => {
+                                            calendarDataObj.calendarData.map(calendarData => {
                                                     let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
                                                     if(arrIndex != -1){
                                                         calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
                                                     }
                                                 })
                                         }
-
                                     })
 
-                                    let calendarData2 = [];
-
-                                    calendarData2.push(firstRow);
-                                    calendarData2.push(secondRow);
-                                    calendarData2.push(thirdRow);
-                                    calendarData2.push(fouthRow);
-                                    calendarData2.push(fifthRow);
-                                    if(sixthRow.length > 0){
-                                        calendarData2.push(sixthRow);
-                                    }
-
-                                    resultArr2.push({platformName: result[0].platformName, calendarData: calendarData2, calendarTitle: weekDay});
-
+                                    resultArr.push({platformName: result[0].platformName, calendarData: calendarDataObj.calendarData, calendarTitle: calendarDataObj.calendarTitle});
                                 }
 
                             })
 
                             vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                            vm.evaluationProgressTable = resultArr2;
+                            vm.evaluationProgressTable = resultArr;
                             vm.loadingEvaluationProgressTable = false
                             $scope.safeApply();
                         }

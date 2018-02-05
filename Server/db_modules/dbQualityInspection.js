@@ -1308,7 +1308,7 @@ var dbQualityInspection = {
 
     },
 
-    getEvaluationProgressRecord: function (platformObjId, startDate, endDate) {
+    getEvaluationProgressRecord2: function (platformObjId, startDate, endDate) {
         if(startDate && endDate){
             let startTime = dbUtility.getLocalTimeString(startDate);
             let endTime = dbUtility.getLocalTimeString(endDate);
@@ -1394,10 +1394,8 @@ var dbQualityInspection = {
         }
     },
 
-    getEvaluationProgressRecord2: function (platformObjId, startDate, endDate) {
+    getEvaluationProgressRecord: function (platformObjId, startDate, endDate) {
         if(startDate && endDate) {
-            // let startTime = dbUtility.getLocalTimeString(startDate);
-            // let endTime = dbUtility.getLocalTimeString(endDate);
             let proms = [];
             if (platformObjId && platformObjId.length > 0) {
                 return dbconfig.collection_platform.find({_id: {$in: platformObjId}}).lean().then(
@@ -1422,7 +1420,6 @@ var dbQualityInspection = {
                                         {
                                             "$group": {
                                                 "_id": {
-                                                    "companyId": "$companyId",
                                                     "date": "$createTime"
                                                 },
                                                 "sumOfTotalRecord": {$sum: "$effectiveRecord"},
@@ -1430,55 +1427,56 @@ var dbQualityInspection = {
                                         }
                                     ]).then(
                                         live800SummarizeRecord => {
-                                            let sumOfTotalRecord = 0;
                                             if(live800SummarizeRecord && live800SummarizeRecord.length > 0){
-                                                live800SummarizeRecord.forEach(l => {
-                                                    if(l && l.sumOfTotalRecord){
-                                                        sumOfTotalRecord += l.sumOfTotalRecord;
-                                                    }
+                                                let summarizedRecordArr = [];
+                                                live800SummarizeRecord.map(l => {
+                                                    if(l && l._id && l._id.date){
+                                                        let startTime = new Date(l._id.date);
+                                                        let endTime = new Date();
+                                                        endTime.setHours(23, 59, 59, 999);
+                                                        endTime.setDate(l._id.date.getDate());
 
-                                                })
-                                            }
-
-                                            return {date: live800SummarizeRecord[0]._id.date, totalRecord: sumOfTotalRecord};
-
-
-                                    }).then(
-                                        totalRecordData => {
-                                            if(totalRecordData){
-                                                return dbconfig.collection_qualityInspection.find(query).count().then(
-                                                    qualityInspectionCount => {
-                                                        let isCompleted = false;
-                                                        if(qualityInspectionCount){
-                                                            if(totalRecordData.totalRecord - qualityInspectionCount == 0){
-                                                                isCompleted = true;
-                                                            }
+                                                        let queryToGetQIRecord = {
+                                                            createTime: {
+                                                                $gte: new Date(startTime),
+                                                                $lt: new Date(endTime)
+                                                            },
+                                                            companyId: {$in: p.live800CompanyId}
                                                         }
+                                                        let calculatedData = dbconfig.collection_qualityInspection.find(queryToGetQIRecord).count().then(
+                                                            qualityInspectionCount => {
+                                                                let isCompleted = false;
+                                                                if(qualityInspectionCount){
+                                                                    if(l.sumOfTotalRecord - qualityInspectionCount == 0){
+                                                                        isCompleted = true;
+                                                                    }
+                                                                }
 
-                                                        let result = {
-                                                            platformName: platformName,
-                                                            totalRecord: totalRecordData.totalRecord || 0,
-                                                            isCompleted: isCompleted,
-                                                            totalRecordFromFPMS:qualityInspectionCount ? qualityInspectionCount : 0,
-                                                            date: totalRecordData.date
-                                                        };
-                                                        return result;
+                                                                let result = {
+                                                                    platformName: platformName,
+                                                                    totalRecord: l.sumOfTotalRecord || 0,
+                                                                    isCompleted: isCompleted,
+                                                                    totalRecordFromFPMS:qualityInspectionCount ? qualityInspectionCount : 0,
+                                                                    date: l._id.date
+                                                                };
+                                                                return result;
+                                                            }
+                                                        )
+                                                        summarizedRecordArr.push(calculatedData);
                                                     }
-                                                )
-                                            }
-                                        }
-                                    )
+                                                })
 
+                                                return Promise.all(summarizedRecordArr);
+                                            }
+                                    })
                                     proms.push(summarizedData);
                                 }
                             })
 
-                            return Promise.all(proms);
+                            return Promise.all(proms)
                         }
                     }
                 )
-            }else{
-
             }
         }
     },
@@ -1568,17 +1566,34 @@ var dbQualityInspection = {
         let endDate = new Date();
         let queryString;
 
-        // startTime = new Date(startDate - 10);
-        // endTime = new Date(endDate - 10);
+        // let curTime2 = new Date();
+        // let startTime = new Date();
+        // let endTime = new Date();
+        // startTime.setHours(0, 0, 0, 0);
+        // startTime.setDate(curTime2.getDate() - 30);
+        //
+        //
+        //
+        // endTime.setHours(23, 59, 59, 999);
+        // endTime.setDate(curTime2.getDate());
+
 
         if(startTime && endTime){
-            //endDate.setHours(23, 59, 59, 999);
+            startDate.setHours(0, 0, 0, 0);
+            startDate.setDate(startTime.getDate());
+
+            endDate.setHours(23, 59, 59, 999);
+            endDate.setDate(endTime.getDate());
+
+            console.log("AAAAAAAAAAAAAAAAAAAA",startTime)
+            console.log("BBBBBBBBBBBBBBBBBBB",endTime)
+
             startDate = dbUtility.getLocalTimeString(startTime);
             endDate = dbUtility.getLocalTimeString(endTime);
 
             queryString = "SELECT COUNT(*) AS totalRecord, CAST(store_time AS DATE) AS storeTime, company_id, operator_id, operator_name   FROM chat_content " +
                 "WHERE store_time BETWEEN CAST('"+ startDate + "' as DATETIME) AND CAST('"+ endDate + "' AS DATETIME) " +
-                "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd') company_id, operator_id ";
+                "GROUP BY FORMAT(CAST(store_time AS DATE),'yyyy-MM-dd'), company_id, operator_id ";
         }else{
             let curTime = new Date();
 
@@ -1596,9 +1611,6 @@ var dbQualityInspection = {
                 "GROUP BY company_id, operator_id ";
         }
 
-
-
-        console.log("AAAAAAAAAAAAAAAAAAAA",queryString)
         let connection = dbQualityInspection.connectMysql();
         connection.connect();
         return dbQualityInspection.getSummarizedLive800Record(queryString, connection)
@@ -1617,7 +1629,6 @@ var dbQualityInspection = {
                 }
 
                 if(results){
-                    console.log("FFFFFFFFFFFFFFFFFFFFFFFFFFFFF",results);
                     results.forEach(result => {
                         let totalInvalidConversation = 0;
                         let totalValidConversation = 0;
