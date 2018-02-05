@@ -386,10 +386,9 @@ var dbQualityInspection = {
         let result = true;
         let platform = platforms.filter(item => {
             if (item.live800CompanyId && item.live800CompanyId.length > 0) {
-                console.log(cv.companyId);
-                console.log(item.live800CompanyId);
-                console.log(item.live800CompanyId.indexOf(String(cv.companyId), Number(cv.companyId)))
-                return item.live800CompanyId.indexOf(String(cv.companyId), Number(cv.companyId)) != -1;
+                if(item.live800CompanyId.indexOf(String(cv.companyId)) != -1){
+                    return item;
+                }
             }
         });
         if (platform.length > 0) {
