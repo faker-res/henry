@@ -3193,7 +3193,7 @@
   "EVALUATION_REVIEW": "质检评语",
   "CS Department":"客服部门",
   "QI Department":"质检部门",
-  "Exceed QI Report search max time frame": "请将搜索时间范围限制在一天内",
+  "Exceed QI Report search max time frame": "搜索结束时间限制在当天 00:00:00",
   "no domain": "无域名",
   "QualityInsectionSetting": "设置",
   "Live800Record": "Live800记录",

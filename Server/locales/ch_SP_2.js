@@ -225,7 +225,8 @@ var simplifiedChinese = {
     "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
     "Connection failed": "连接失败",
     "PlayerPromoCodeReward": "优惠代码",
-    "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。"
+    "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。",
+    "This IP address has applied for max reward times in event period": "此IP已经达到了该优惠周期内的申请上限"
     //todo::add missing messages here
 
     /*

@@ -682,6 +682,7 @@ var dbQualityInspection = {
         });
         return cvs;
     },
+<<<<<<< HEAD
 
     searchLive800Record: function (query) {
        let conversationForm = [];
@@ -832,19 +833,24 @@ var dbQualityInspection = {
 
        //var startTime = dbUtility.getLocalTimeString(startTime);
        //var endTime = dbUtility.getLocalTimeString(endTime);
+=======
+    getProgressReportStatusByOperator: function (companyId,operatorId,startTime,endTime){
+>>>>>>> upstream/develop-1.1
 
         return dbconfig.collection_qualityInspection.aggregate([
             {
                 $match: {
                     createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
                     companyId: {$in: companyId},
-                    "live800Acc.id": {$in: operatorId}
+                    "live800Acc.name": {$in: operatorId}
                 },
             },
             {
                 "$group": {
                     "_id": {
+                        "companyId": "$companyId",
                         "operatorId": "$live800Acc.id",
+                        "operatorName": "$live800Acc.name",
                         "status": "$status"
                     },
                     "count": {"$sum": 1},
@@ -856,7 +862,9 @@ var dbQualityInspection = {
                 data.forEach(d => {
                     if(d){
                         resultArr.push({
+                            companyId: d._id.companyId,
                             operatorId: d._id.operatorId,
+                            operatorName: d._id.operatorName,
                             status: d._id.status,
                             count: d.count
                         });
@@ -864,6 +872,8 @@ var dbQualityInspection = {
                 });
                 return resultArr;
             }
+        }, error => {
+            return Q.reject({name: "DBError", message: error});
         })
     },
     reGroup: function(arrs,type){
@@ -1618,6 +1628,244 @@ var dbQualityInspection = {
         )
 
     },
+    splitOperatorIdToArray:function(operatorIdArr){
+        let results = [];
+        operatorIdArr.forEach(item=>{
+            let operator = dbQualityInspection.splitLive800Acc(item);
+            results.push(operator);
+        });
+
+        return results;
+    },
+    searchLive800SettlementRecord: function (data) {
+        if (data) {
+            let summaryProm;
+            let ProgressStatusProm;
+            let ProgressMarkProm;
+            let operatorName = [];
+            if (data.operatorId && data.operatorId.length > 0) {
+                if (Array.isArray(data.operatorId)) {
+                    operatorName = dbQualityInspection.splitOperatorIdToArray(data.operatorId);
+                }
+            }
+
+            if (data.companyId.length != 0 && operatorName.length != 0) {
+                summaryProm = dbQualityInspection.getLive800RecordDaySummary(data.companyId, operatorName, data.startTime, data.endTime);
+                ProgressStatusProm = dbQualityInspection.getProgressReportStatusByOperator(data.companyId, operatorName, data.startTime, data.endTime);
+                ProgressMarkProm = dbQualityInspection.getProgressReportMarksByOperator(data.companyId, operatorName, data.startTime, data.endTime);
+            }
+            else {
+                summaryProm = dbQualityInspection.getAllLive800RecordDaySummary(data.startTime, data.endTime);
+                ProgressStatusProm = dbQualityInspection.getAllProgressReportStatusByOperator( data.startTime, data.endTime);
+                ProgressMarkProm = dbQualityInspection.getAllProgressReportMarksByOperator( data.startTime, data.endTime);
+            }
+            return Q.all([summaryProm,ProgressStatusProm,ProgressMarkProm]);
+        }
+    },
+    getLive800RecordDaySummary: function (companyId,operatorName,startTime,endTime) {
+
+        return dbconfig.collection_live800RecordDaySummary.aggregate([
+                {
+                    $match: {
+                        createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                        companyId: {$in: companyId},
+                        "live800Acc.name": {$in: operatorName}
+                    },
+                },
+                {
+                    $group: {
+                        "_id": {
+                            "companyId": "$companyId",
+                            "operatorId": "$live800Acc.id",
+                            "operatorName": "$live800Acc.name",
+                        },
+                        "totalCount": {$sum: "$totalRecord"},
+                        "totalEffectiveCount": {$sum:"$effectiveRecord"},
+                        "totalNonEffectiveCount":{$sum: "$nonEffectiveRecord"},
+                    }
+                }
+            ]).exec().then(data => {
+                let resultArr = [];
+                if(data && data.length > 0){
+                    data.forEach(d => {
+                        if(d){
+                            resultArr.push({
+                                companyId: d._id.companyId,
+                                operatorId: d._id.companyId +"-"+d._id.operatorName,
+                                operatorName: d._id.operatorName,
+                                totalCount: d.totalCount,
+                                totalEffectiveCount: d.totalEffectiveCount,
+                                totalNonEffectiveCount: d.totalNonEffectiveCount
+                            });
+                        }
+                    });
+                    return resultArr;
+                }
+            }, error =>{
+                return Q.reject({name: "DBError", message: error});
+            });
+    },
+    getProgressReportMarksByOperator: function (companyId,operatorId,startTime,endTime) {
+
+        return dbconfig.collection_qualityInspection.aggregate([
+            {
+                $match: {
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                    companyId: {$in: companyId},
+                    "live800Acc.name": {$in: operatorId}
+                },
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "companyId": "$companyId",
+                        "operatorId": "$live800Acc.id",
+                        "operatorName": "$live800Acc.name",
+                    },
+                    "totalOvertimeRate": {$sum: "$totalOvertimeRate"},
+                    "totalInspectionRate": {$sum:"$totalInspectionRate"},
+                }
+            }
+        ]).then(data => {
+            let resultArr = [];
+            if (data && data.length > 0) {
+                data.forEach(d => {
+                    if (d) {
+                        resultArr.push({
+                            companyId: d._id.companyId,
+                            operatorId: d._id.operatorId,
+                            operatorName: d._id.operatorName,
+                            totalOvertimeRate: d.totalOvertimeRate,
+                            totalInspectionRate: d.totalInspectionRate
+                        });
+                    }
+                });
+                return resultArr;
+            }
+        }, error => {
+            return Q.reject({name: "DBError", message: error});
+        })
+    },
+    getAllProgressReportMarksByOperator: function (startTime,endTime) {
+
+        return dbconfig.collection_qualityInspection.aggregate([
+            {
+                $match: {
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                },
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "companyId": "$companyId",
+                        "operatorId": "$live800Acc.id",
+                        "operatorName": "$live800Acc.name",
+                    },
+                    "totalOvertimeRate": {$sum: "$totalOvertimeRate"},
+                    "totalInspectionRate": {$sum:"$totalInspectionRate"},
+
+                }
+            }
+        ]).then(data => {
+            let resultArr = [];
+            if (data && data.length > 0) {
+                data.forEach(d => {
+                    if (d) {
+                        resultArr.push({
+                            companyId: d._id.companyId,
+                            operatorId: d._id.operatorId,
+                            operatorName: d._id.operatorName,
+                            totalOvertimeRate: d.totalOvertimeRate,
+                            totalInspectionRate: d.totalInspectionRate
+                        });
+                    }
+                });
+                return resultArr;
+            }
+        }, error => {
+            return Q.reject({name: "DBError", message: error});
+        })
+    },
+    getAllLive800RecordDaySummary: function (startTime,endTime) {
+
+        return dbconfig.collection_live800RecordDaySummary.aggregate([
+            {
+                $match: {
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                },
+            },
+            {
+                $group: {
+                    "_id": {
+                        "companyId": "$companyId",
+                        "operatorId": "$live800Acc.id",
+                        "operatorName": "$live800Acc.name",
+                    },
+                    "totalCount": {$sum: "$totalRecord"},
+                    "totalEffectiveCount": {$sum:"$effectiveRecord"},
+                    "totalNonEffectiveCount":{$sum: "$nonEffectiveRecord"},
+                }
+            }
+        ]).exec().then(data => {
+            let resultArr = [];
+            if(data && data.length > 0){
+                data.forEach(d => {
+                    if(d){
+                        resultArr.push({
+                            companyId: d._id.companyId,
+                            operatorId: d._id.companyId +"-"+d._id.operatorName,
+                            operatorName: d._id.operatorName,
+                            totalCount: d.totalCount,
+                            totalEffectiveCount: d.totalEffectiveCount,
+                            totalNonEffectiveCount: d.totalNonEffectiveCount
+                        });
+                    }
+                });
+                return resultArr;
+            }
+        }, error =>{
+            return Q.reject({name: "DBError", message: error});
+        });
+    },
+    getAllProgressReportStatusByOperator: function (startTime,endTime){
+
+        return dbconfig.collection_qualityInspection.aggregate([
+            {
+                $match: {
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                },
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "companyId": "$companyId",
+                        "operatorId": "$live800Acc.id",
+                        "operatorName": "$live800Acc.name",
+                        "status": "$status"
+                    },
+                    "count": {"$sum": 1},
+                }
+            }
+        ]).then(data => {
+            let resultArr = [];
+            if(data && data.length > 0){
+                data.forEach(d => {
+                    if(d){
+                        resultArr.push({
+                            companyId: d._id.companyId,
+                            operatorId: d._id.operatorId,
+                            operatorName: d._id.operatorName,
+                            status: d._id.status,
+                            count: d.count
+                        });
+                    }
+                });
+                return resultArr;
+            }
+        }, error => {
+            return Q.reject({name: "DBError", message: error});
+        })
+    }
 
     summarizeLive800Record: function(startTime, endTime){
         let startDate = new Date()
