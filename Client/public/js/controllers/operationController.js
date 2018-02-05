@@ -126,6 +126,7 @@ define(['js/app'], function (myApp) {
                 vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
             });
             vm.getPlatformProviderGroup();
+            vm.getAllGameTypes();
             $scope.safeApply();
         };
 
@@ -774,6 +775,22 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'applyForDate') {
                 result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+            } else if (fieldName === 'returnDetail') {
+                // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
+
+                let newReturnDetail = {};
+                Object.keys(val).forEach(
+                    key => {
+                        if (key && key.indexOf(':') != -1) {
+                            let splitGameTypeIdArr = key.split(':');
+                            let gameTypeId = splitGameTypeIdArr[1];
+                            newReturnDetail[splitGameTypeIdArr[0]+':'+vm.allGameTypes[gameTypeId]] = val[key];
+                        }
+                });
+                result = JSON.stringify(newReturnDetail || val)
+                    .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                    .replace(new RegExp('ratio','gm'), $translate('RATIO'))
+                    .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
@@ -861,6 +878,22 @@ define(['js/app'], function (myApp) {
                     callback(data.data);
                 }
             });
+        };
+
+        vm.getAllGameTypes = function () {
+            return $scope.$socketPromise('getGameTypeList', {})
+                .then(function (data) {
+                    var gameTypes = data.data;
+                    vm.allGameTypesList = gameTypes;
+                    var allGameTypes = {};
+                    gameTypes.forEach(function (gameType) {
+                        var GAMETYPE = gameType.gameTypeId;
+                        allGameTypes[GAMETYPE] = gameType.name;
+                    });
+                    vm.allGameTypes = allGameTypes;
+                }, function (err) {
+                    console.log('err', err);
+                });
         };
 
         vm.getRewardList = function (callback) {
@@ -2607,6 +2640,9 @@ define(['js/app'], function (myApp) {
         }
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
             var isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
             if (pageSize != vm[objKey].limit) {
                 isChange = true;
                 vm[objKey].limit = pageSize;

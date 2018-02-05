@@ -244,7 +244,12 @@ let dbRewardTaskGroup = {
         );
     },
 
-
+    getPrevious10PlayerRTG: (platformId, playerId) => {
+        return dbconfig.collection_rewardTaskGroup.find({
+            platformId: platformId,
+            playerId: playerId
+        }).sort({createTime:-1}).limit(10).lean();
+    },
 
 };
 

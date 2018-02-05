@@ -2024,7 +2024,7 @@ var dbPlayerTopUpRecord = {
                                             playerData.alipayGroup.alipays.forEach(
                                                 pAlipay => {
                                                     if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
-                                                        if(!playerData.permission.alipayTransaction) {
+                                                        if(playerData.permission.alipayTransaction) {
                                                             bValid = true;
                                                         }
                                                         maxDeposit = alipay.singleLimit > maxDeposit? alipay.singleLimit: maxDeposit;

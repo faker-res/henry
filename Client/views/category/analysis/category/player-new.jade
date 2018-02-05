@@ -39,5 +39,111 @@
                         #line-newPlayer.lineChart.graphDiv
             .col-md-6
                 .graph
-                    table#newPlayerAnalysisTable.display.tableDiv(style='width:100%')
+                    //table#newPlayerAnalysisTable.display.tableDiv(style='width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th {{ vm.platformNewPlayerDataPeriodText | translate}}
+                                th {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformNewPlayerAnalysisData')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.players.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformNewPlayerAverage }}
+.section
+    .row
+        .titlePic
+            .title
+                text {{"Player with Top-ups" | translate}}
+    div(style='width:100%')
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-newPlayerTopup.lineChart.graphDiv(style='height:600px')
+            .col-md-6
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th {{ vm.platformNewPlayerDataPeriodText | translate}}
+                                th {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformNewPlayerAnalysisData')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.topupPlayer.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformNewPlayerTopupAverage }}
+
+.section
+    .row
+        .titlePic
+            .title
+                text {{"Player with Top-ups Multiple Times" | translate}}
+    div(style='width:100%')
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-newPlayerMultiTopup.lineChart.graphDiv(style='height:600px')
+            .col-md-6
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th {{ vm.platformNewPlayerDataPeriodText | translate}}
+                                th {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformNewPlayerAnalysisData')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.multiTopupPlayer.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformNewPlayerMultiTopupAverage }}
+
+.section
+    .row
+        .titlePic
+            .title
+                text {{"Valid Player" | translate}}
+    div(style='width:100%')
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-newPlayerValidPlayer.lineChart.graphDiv(style='height:600px')
+            .col-md-6
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th {{ vm.platformNewPlayerDataPeriodText | translate}}
+                                th {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformNewPlayerAnalysisData')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.validPlayer.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformNewPlayerValidPlayerAverage }}
+
 p(ng-init="vm.loadPageFunc('NEW_PLAYER')")

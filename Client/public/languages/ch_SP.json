@@ -1820,7 +1820,7 @@
   "topupType": "充值类型",
   "merchantGroup": "商户组",
   "_id": "ID",
-  "playerName": "玩家姓名",
+  "playerName": "玩家账号",
   "referralName": "推荐人姓名",
   "referralTopUpAmount": "被推荐人充值额",
   "updateAmount": "变更额度",
@@ -3183,7 +3183,7 @@
   "collapse": "收起",
   "expand": "展开",
   "EVALUATION_STATUS": "评估状态",
-  "FPMS_ACC":"FPMS账户",
+  "LIVE800_ACC":"Live800账号",
   "QUALITY_ASSESSOR": "质检评估员",
   "EVALUATED_TIME":"评估时间",
   "APPEAL_REASON": "申诉内容",
@@ -3193,7 +3193,7 @@
   "EVALUATION_REVIEW": "质检评语",
   "CS Department":"客服部门",
   "QI Department":"质检部门",
-  "Exceed QI Report search max time frame": "请将搜索时间范围限制在一天内",
+  "Exceed QI Report search max time frame": "搜索结束时间限制在当天 00:00:00",
   "no domain": "无域名",
   "QualityInsectionSetting": "设置",
   "Live800Record": "Live800记录",
@@ -3218,6 +3218,10 @@
   "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款",
   "FIRST_WITHDRAWAL_MANUAL_AUDIT": "首次提款转人工审核（不论金额）",
   "MANUAL_AUDIT_AFTER_BANK_CHANGED": "银改之后第一次提款转人工审核（不论金额）",
-  "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）"
+  "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）",
+  "consumeValidAmount": "有效流水",
+  "average line": "平均线",
+  "average value": "平均值",
+  "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话"
 
 }

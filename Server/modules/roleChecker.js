@@ -608,7 +608,8 @@ var roleChecker = {
         QualityInspection: {
             QualityInsectionSetting: {
                 Read: [],
-                Edit: ['updatePlatform']
+                Edit: ['updatePlatform','summarizeLive800Record'],
+                queryByQualityInspectionDate: []
             },
             Live800Record: {
                 Read: ['searchLive800'],
