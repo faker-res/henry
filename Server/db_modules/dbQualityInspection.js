@@ -286,8 +286,8 @@ var dbQualityInspection = {
         }
         let countQuery = dbconfig.collection_qualityInspection.find(queryQA).count();
         Q.all([countQuery, mysqlProm]).then(data=>{
-            let mongoCount = data[0];
-            let mysqlCount = data[1];
+            let mongoCount = data[0] || 0;
+            let mysqlCount = data[1] || 0;
             let countData = mysqlCount - mongoCount;
             deferred.resolve(countData);
         })
