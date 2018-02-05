@@ -7,7 +7,10 @@ var live800RecordDaySummarySchema = new Schema({
     nonEffectiveRecord: {type: Number, default: 0},
     effectiveRecord: {type: Number, default: 0},
     companyId: {type: String, required: true,index: true},
-    live800Acc: {type: String, required: true, index: true},
+    live800Acc: {
+        id: {type: String, required: true, index: true},
+        name: {type: String, required: true, index: true}
+    },
 });
 
 module.exports = live800RecordDaySummarySchema;
