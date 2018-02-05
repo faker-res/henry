@@ -1547,7 +1547,7 @@ var proposal = {
                                         docId: "$_id",
                                         relatedAmount: {$sum: ["$data.amount", "$data.rewardAmount", "$data.topUpAmount", "$data.updateAmount", "$data.negativeProfitAmount", "$data.commissionAmount"]}
                                     }
-                                }, {$sort: sortCol}, {$skip: index}, {$limit: size}).then(
+                                }, {$sort: sortCol}, {$skip: index}, {$limit: size}).read("secondaryPreferred").then(
                                 aggr => {
                                     var retData = [];
 
@@ -1575,7 +1575,7 @@ var proposal = {
                                         retData.push(prom);
                                     }
                                     return Q.all(retData);
-                                }).read("secondaryPreferred");
+                                });
                         var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
                             {
@@ -2538,12 +2538,11 @@ var proposal = {
         var summary = {};
 
         if (reqData.status) {
-            /**
             if (reqData.status == constProposalStatus.SUCCESS) {
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
-            }**/
+            }
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
