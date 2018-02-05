@@ -47,7 +47,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     thead(style='background-color:#337ab7;')
                                         th(style="width: 40px;") {{}}
                                         th.col-md-1 {{"EVALUATION_STATUS" | translate}}
-                                        th(style="width: 78.18px;") {{"FPMS_ACC" | translate}}
+                                        th(style="width: 78.18px;") {{"LIVE800_ACC" | translate}}
                                         th(style="width: 78.18px;") {{"Type" | translate}}
                                         th(style="width: 77.27px;") {{"TIME" | translate}}
                                         th(style="width: 309.09px;") {{"CONVERSATION_CONTENT" | translate}}
@@ -73,7 +73,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td(style="width: 77.27px;")
                                                             td(style="width: 77.27px;")
                                                             td(style="width: 231.82px;")
-                                                        tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;")
+                                                        tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word;background-color:{{conversation.colors}};")
                                                             td(style="width: 78.18px;") {{unreadEvaluation.fpmsAcc}}
                                                             td(style="width: 78.18px;") {{conversation.roleName}}
                                                             td(style="width: 77.27px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
@@ -126,7 +126,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 table(style="width: 100%; text-align: center;")
                                     thead(style='background-color:#337ab7;')
                                         th.col-md-1 {{"EVALUATION_STATUS" | translate}}
-                                        th(style="width: 102.73px;") {{"FPMS_ACC" | translate}}
+                                        th(style="width: 102.73px;") {{"LIVE800_ACC" | translate}}
                                         th(style="width: 102.73px;") {{"Type" | translate}}
                                         th(style="width: 102.73px;") {{"TIME" | translate}}
                                         th(style="width: 410.91px;") {{"CONVERSATION_CONTENT" | translate}}
@@ -215,7 +215,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 table#appealEvaluationTable(style="width: 100%; text-align: center; border: 1px solid;")
                                     thead(style='background-color:#337ab7;')
                                         th.col-md-1 {{"EVALUATION_STATUS" | translate}}
-                                        th(style="width: 80px;") {{"FPMS_ACC" | translate}}
+                                        th(style="width: 80px;") {{"LIVE800_ACC" | translate}}
                                         th(style="width: 80px;") {{"Type" | translate}}
                                         th(style="width: 89px;") {{"TIME" | translate}}
                                         th(style="width: 320px;") {{"CONVERSATION_CONTENT" | translate}}

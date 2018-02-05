@@ -659,6 +659,28 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.initManualSummarizeLive800Record = function(){
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#live800SummarizeEndDatetimePicker', function () {
+                        $('#live800SummarizeStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#live800SummarizeStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                        $('#live800SummarizeEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#live800SummarizeEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    });
+                }
+            };
+
             vm.commonSortChangeHandler = function (a, objName, searchFunc) {
                 if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
                 var sortCol = a.aaSorting[0][0];
@@ -741,7 +763,6 @@ define(['js/app'], function (myApp) {
                                         }
                                     });
                                 }
-
                             }
 
                             return data;
@@ -1188,7 +1209,6 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
                     }
@@ -1208,7 +1228,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     let resultArr = [];
-                    let resultArr2 = [];
 
                     let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
@@ -1279,43 +1298,26 @@ define(['js/app'], function (myApp) {
                             }
                             let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
 
-                            resultArr.push({calendarData: calendarData, calendarTitle: weekDay});
-
                             data.data.map(result => {
                                 if(result && result.length > 0){
-                                    let calendarDataObj = resultObj;
+                                    let calendarDataObj = jQuery.extend(true, {}, resultObj);
                                     result.forEach(resultByPlatform => {
                                         if(resultByPlatform){
                                             resultByPlatform.date = new Date(resultByPlatform.date);
-                                                calendarDataObj.calendarData.map(calendarData => {
-                                                    let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
-                                                    if(arrIndex != -1){
-                                                        calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
-                                                    }
-                                                })
+                                            calendarDataObj.calendarData.map(calendarData => {
+                                                let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
+                                                if(arrIndex != -1){
+                                                    calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
+                                                }
+                                            })
                                         }
-
                                     })
 
-                                    let calendarData2 = [];
-
-                                    calendarData2.push(firstRow);
-                                    calendarData2.push(secondRow);
-                                    calendarData2.push(thirdRow);
-                                    calendarData2.push(fouthRow);
-                                    calendarData2.push(fifthRow);
-                                    if(sixthRow.length > 0){
-                                        calendarData2.push(sixthRow);
-                                    }
-
-                                    resultArr2.push({platformName: result[0].platformName, calendarData: calendarData2, calendarTitle: weekDay});
-
+                                    resultArr.push({platformName: result[0].platformName, calendarData: calendarDataObj.calendarData, calendarTitle: calendarDataObj.calendarTitle});
                                 }
-
                             })
-
                             vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                            vm.evaluationProgressTable = resultArr2;
+                            vm.evaluationProgressTable = resultArr;
                             vm.loadingEvaluationProgressTable = false
                             $scope.safeApply();
                         }
@@ -2277,6 +2279,23 @@ define(['js/app'], function (myApp) {
                     vm[objKey].index = (curP - 1) * pageSize;
                 }
                 if (isChange) return serchFunc.call(this);
+            }
+
+            vm.summarizeLive800Record = function(){
+                vm.loadingSummarizeLive800Record = true;
+                var startTime = $('#live800SummarizeStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#live800SummarizeEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                vm.loadingSummarizeLive800Record = true;
+                socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
+                    vm.loadingSummarizeLive800Record = false;
+                    $scope.safeApply();
+                });
             }
 
             //****** CS Report Tab ******* ENDd //
