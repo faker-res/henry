@@ -196,8 +196,13 @@ var dbQualityInspection = {
                 });
 
                 let platformInfo = platformDetails.filter(item => {
-                    return item.live800CompanyId == live800Chat.companyId;
+                    if(item.live800CompanyId && item.live800CompanyId.length > 0){
+                        if(item.live800CompanyId.indexOf(String(live800Chat.companyId)) != -1){
+                            return item;
+                        }
+                    }
                 });
+
                 platformInfo = platformInfo[0] ? platformInfo[0] : [];
                 live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
                 let isValidCV = dbQualityInspection.isValidCV(live800Chat, platformDetails);
@@ -575,7 +580,11 @@ var dbQualityInspection = {
                     return a.time - b.time;
                 });
                 let platformInfo = platformDetails.filter(item => {
-                    return item.live800CompanyId == live800Chat.companyId;
+                    if(item.live800CompanyId && item.live800CompanyId.length > 0){
+                        if(item.live800CompanyId.indexOf(String(live800Chat.companyId)) != -1){
+                            return item;
+                        }
+                    }
                 });
                 platformInfo = platformInfo[0] ? platformInfo[0] : [];
                 live800Chat.conversation = dbQualityInspection.calculateRate(content, platformInfo);
@@ -659,7 +668,7 @@ var dbQualityInspection = {
                     timeoutRate = overtimeSetting[i].presetMark;
                 }
             }else{
-                if(sec < overtimeSetting[i-1].conversationInterval && sec > overtimeSetting[i+1].conversationInterval){
+                if(sec > overtimeSetting[i-1].conversationInterval && sec <= overtimeSetting[i].conversationInterval){
                     timeoutRate = overtimeSetting[i].presetMark;
                 }
             }
@@ -790,7 +799,7 @@ var dbQualityInspection = {
             }
         ).then(
             finalResult => {
-                if(finalResult){
+                if(finalResult && finalResult.length > 0){
                     return finalResult;
                 }
             }
@@ -1306,7 +1315,7 @@ var dbQualityInspection = {
                                 }
                             })
 
-                            return Promise.all(proms)
+                            return Promise.all(proms);
                         }
                     }
                 )

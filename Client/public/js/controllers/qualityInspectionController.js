@@ -751,7 +751,7 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if(data.conversation){
-                                    data.conversation.forEach(function(cv){
+                                    data.conversation.forEach(function(cv,i){
                                         if(cv){
                                             if(cv.roles){
                                                 cv.roleName = vm.roleType[cv.roles];
@@ -760,6 +760,34 @@ define(['js/app'], function (myApp) {
                                             if(cv.time){
                                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
                                             }
+
+                                            cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                            // load each platform overtimeSetting
+                                            let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                            let otsLength = overtimeSetting.length -1;
+                                            let colors = '';
+
+                                            // render with different color
+                                            overtimeSetting.forEach((ots,i)=>{
+                                                if(cv.roles==1 && cv.needRate){
+                                                    if(i==0){
+                                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                            colors = overtimeSetting[0].color;
+                                                        }
+                                                    }else if(i==otsLength){
+                                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                            colors = overtimeSetting[i].color;
+                                                        }
+                                                    }else{
+                                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                            colors = overtimeSetting[i].color;
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                            cv.colors = colors;
+                                            return cv;
                                         }
                                     });
                                 }
@@ -826,9 +854,37 @@ define(['js/app'], function (myApp) {
                                     data.status = vm.constQualityInspectionStatus[data.status];
                                 }
 
-                                data.conversation.forEach(function(cv){
+                                data.conversation.forEach(function(cv,i){
                                     cv.roleName = vm.roleType[cv.roles];
                                     cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                    cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                    // load each platform overtimeSetting
+                                    let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                    let otsLength = overtimeSetting.length -1;
+                                    let colors = '';
+
+                                    // render with different color
+                                    overtimeSetting.forEach((ots,i)=>{
+                                        if(cv.roles==1 && cv.needRate){
+                                            if(i==0){
+                                                if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                    colors = overtimeSetting[0].color;
+                                                }
+                                            }else if(i==otsLength){
+                                                if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                    colors = overtimeSetting[i].color;
+                                                }
+                                            }else{
+                                                if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                    colors = overtimeSetting[i].color;
+                                                }
+                                            }
+                                        }
+                                    });
+                                    cv.colors = colors;
+                                    return cv;
 
                                 });
 
@@ -895,9 +951,37 @@ define(['js/app'], function (myApp) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
-                            data.conversation.forEach(function(cv){
+                            data.conversation.forEach(function(cv,i){
                                 cv.roleName = vm.roleType[cv.roles];
                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                // load each platform overtimeSetting
+                                let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                let otsLength = overtimeSetting.length -1;
+                                let colors = '';
+
+                                // render with different color
+                                overtimeSetting.forEach((ots,i)=>{
+                                    if(cv.roles==1 && cv.needRate){
+                                        if(i==0){
+                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                colors = overtimeSetting[0].color;
+                                            }
+                                        }else if(i==otsLength){
+                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                colors = overtimeSetting[i].color;
+                                            }
+                                        }else{
+                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                colors = overtimeSetting[i].color;
+                                            }
+                                        }
+                                    }
+                                });
+                                cv.colors = colors;
+                                return cv;
 
                             });
 
@@ -961,9 +1045,37 @@ define(['js/app'], function (myApp) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
-                            data.conversation.forEach(function(cv){
+                            data.conversation.forEach(function(cv,i){
                                 cv.roleName = vm.roleType[cv.roles];
                                 cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                // load each platform overtimeSetting
+                                let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                let otsLength = overtimeSetting.length -1;
+                                let colors = '';
+
+                                // render with different color
+                                overtimeSetting.forEach((ots,i)=>{
+                                    if(cv.roles==1 && cv.needRate){
+                                        if(i==0){
+                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
+                                                colors = overtimeSetting[0].color;
+                                            }
+                                        }else if(i==otsLength){
+                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
+                                                colors = overtimeSetting[i].color;
+                                            }
+                                        }else{
+                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
+                                                colors = overtimeSetting[i].color;
+                                            }
+                                        }
+                                    }
+                                });
+                                cv.colors = colors;
+                                return cv;
 
                             });
 
@@ -2293,8 +2405,9 @@ define(['js/app'], function (myApp) {
 
                 vm.loadingSummarizeLive800Record = true;
                 socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
-                    vm.loadingSummarizeLive800Record = false;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        vm.loadingSummarizeLive800Record = false;
+                    })
                 });
             }
 
