@@ -3183,7 +3183,7 @@
   "collapse": "收起",
   "expand": "展开",
   "EVALUATION_STATUS": "评估状态",
-  "FPMS_ACC":"FPMS账户",
+  "LIVE800_ACC":"Live800账号",
   "QUALITY_ASSESSOR": "质检评估员",
   "EVALUATED_TIME":"评估时间",
   "APPEAL_REASON": "申诉内容",
@@ -3193,7 +3193,7 @@
   "EVALUATION_REVIEW": "质检评语",
   "CS Department":"客服部门",
   "QI Department":"质检部门",
-  "Exceed QI Report search max time frame": "请将搜索时间范围限制在一天内",
+  "Exceed QI Report search max time frame": "搜索结束时间限制在当天 00:00:00",
   "no domain": "无域名",
   "QualityInsectionSetting": "设置",
   "Live800Record": "Live800记录",
@@ -3221,6 +3221,7 @@
   "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）",
   "consumeValidAmount": "有效流水",
   "average line": "平均线",
-  "average value": "平均值"
+  "average value": "平均值",
+  "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话"
 
 }

@@ -8756,8 +8756,8 @@ let dbPlayerInfo = {
                                             }
                                         ).then(transferCreditToProvider);
                                     }
-
-                                    if (isFirstTransfer) {
+                                    //if it's ipm, don't use async here
+                                    if (isFirstTransfer && (providerData && providerData.providerId != "51")) {
                                         return transferProm;
                                     }
                                     else {
@@ -9080,7 +9080,8 @@ let dbPlayerInfo = {
             proposalData => {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.bonusId) {
-                        if (proposalData.status != constProposalStatus.PENDING && proposalData.status != constProposalStatus.AUTOAUDIT) {
+                        if (proposalData.status != constProposalStatus.PENDING && proposalData.status != constProposalStatus.AUTOAUDIT
+                          && proposalData.status != constProposalStatus.CSPENDING) {
                             return Q.reject({
                                 status: constServerCode.DATA_INVALID,
                                 name: "DBError",

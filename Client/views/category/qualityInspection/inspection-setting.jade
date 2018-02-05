@@ -12,6 +12,8 @@
                         span {{"EFFECTIVE_CONVERSATION_DEFINITION" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "setting"}', ng-click='vm.configTabClicked("setting")')
                         span {{"OVERTIME_CONVERSATION_SETTING" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "manualSummarizeLive800Record"}', ng-click='vm.configTabClicked("manualSummarizeLive800Record");vm.initManualSummarizeLive800Record();')
+                        span {{"MANUAL_SUMMARIZE_LIVE800RECORD" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -134,6 +136,28 @@
                             i.fa.fa-check
                             text {{"SAVE" | translate}}
 
+
+
+                div(ng-if='vm.selectedConfigTab=="manualSummarizeLive800Record" && checkViewPermission("QualityInspection", "QualityInsectionSetting", "Edit")')
+                    .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'queryByQualityInspectionDate')")
+                        label {{'START_DATE' | translate}}
+                        #live800SummarizeStartDatetimePicker.input-append.form-control
+                            input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd", type='text')
+                            span.add-on
+                                i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                    .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'queryByQualityInspectionDate')")
+                        label {{'END_DATE' | translate}}
+                        br
+                        #live800SummarizeEndDatetimePicker.input-append.form-control
+                            input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd', type='text')
+                            span.add-on
+                                i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                            // !!! take not on checkViewPermission !!!!
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.summarizeLive800Record()')
+                        text {{'SUBMIT' | translate}}
+                        img.img-edit
+                    .inlineBlk(ng-show='vm.loadingSummarizeLive800Record')
+                        i.fa.fa-spin.fa-spinner
 //
 //.row(ng-if="checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
 //    .col-md-3

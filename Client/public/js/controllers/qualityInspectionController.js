@@ -659,6 +659,28 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.initManualSummarizeLive800Record = function(){
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#live800SummarizeEndDatetimePicker', function () {
+                        $('#live800SummarizeStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#live800SummarizeStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+
+                        $('#live800SummarizeEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#live800SummarizeEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    });
+                }
+            };
+
             vm.commonSortChangeHandler = function (a, objName, searchFunc) {
                 if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
                 var sortCol = a.aaSorting[0][0];
@@ -741,7 +763,6 @@ define(['js/app'], function (myApp) {
                                         }
                                     });
                                 }
-
                             }
 
                             return data;
@@ -1188,7 +1209,6 @@ define(['js/app'], function (myApp) {
                     let startDate = new Date(yearMonthObj.month + "-" + "01-" + yearMonthObj.year);
                     let endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
                     let sendData = {
-                        //platformObjId: vm.evaluationProgressPlatform,
                         startDate: startDate,
                         endDate: endDate
                     }
@@ -1208,7 +1228,6 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     let resultArr = [];
-                    let resultArr2 = [];
 
                     let weekDay = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
@@ -1279,43 +1298,26 @@ define(['js/app'], function (myApp) {
                             }
                             let resultObj = {calendarData: calendarData, calendarTitle: weekDay};
 
-                            resultArr.push({calendarData: calendarData, calendarTitle: weekDay});
-
                             data.data.map(result => {
                                 if(result && result.length > 0){
-                                    let calendarDataObj = resultObj;
+                                    let calendarDataObj = jQuery.extend(true, {}, resultObj);
                                     result.forEach(resultByPlatform => {
                                         if(resultByPlatform){
                                             resultByPlatform.date = new Date(resultByPlatform.date);
-                                                calendarDataObj.calendarData.map(calendarData => {
-                                                    let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
-                                                    if(arrIndex != -1){
-                                                        calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
-                                                    }
-                                                })
+                                            calendarDataObj.calendarData.map(calendarData => {
+                                                let arrIndex = calendarData.findIndex(c => c.day == resultByPlatform.date.getDate())
+                                                if(arrIndex != -1){
+                                                    calendarData[arrIndex].isCompleted = resultByPlatform.isCompleted;
+                                                }
+                                            })
                                         }
-
                                     })
 
-                                    let calendarData2 = [];
-
-                                    calendarData2.push(firstRow);
-                                    calendarData2.push(secondRow);
-                                    calendarData2.push(thirdRow);
-                                    calendarData2.push(fouthRow);
-                                    calendarData2.push(fifthRow);
-                                    if(sixthRow.length > 0){
-                                        calendarData2.push(sixthRow);
-                                    }
-
-                                    resultArr2.push({platformName: result[0].platformName, calendarData: calendarData2, calendarTitle: weekDay});
-
+                                    resultArr.push({platformName: result[0].platformName, calendarData: calendarDataObj.calendarData, calendarTitle: calendarDataObj.calendarTitle});
                                 }
-
                             })
-
                             vm.evaluationProgressTableTitle = yearMonthObj.year + "-" + yearMonthObj.month + " " + $translate('MONTH');
-                            vm.evaluationProgressTable = resultArr2;
+                            vm.evaluationProgressTable = resultArr;
                             vm.loadingEvaluationProgressTable = false
                             $scope.safeApply();
                         }
@@ -1528,7 +1530,6 @@ define(['js/app'], function (myApp) {
                 vm.CSDepartmentId=[];
 
                 if (seletedProductsId !== 'all') {
-                    console.log("-----------------", seletedProductsId);
                     // select the CS account that bound to the selected platform
 
                     vm.platformList.forEach(platform => {
@@ -1623,7 +1624,6 @@ define(['js/app'], function (myApp) {
 
                 if (csAcc.length !== vm.selectedCSAccount.length && csAcc.length>0) {
 
-                    console.log("-----------------", csAcc);
                     //select the Live800 account that bound to the selected CS account
                     csAcc.forEach(filterAcc => {
                         vm.selectedCSAccount.forEach(acc => {
@@ -1638,7 +1638,6 @@ define(['js/app'], function (myApp) {
                     });
                 } else {
                     // select all by default
-                    console.log("-----------------", csAcc);
                     //select the Live800 account that bound to the selected CS account
                     vm.selectedCSAccount.forEach(acc => {
                         acc.live800Acc.forEach(liveAcc => {
@@ -1659,13 +1658,15 @@ define(['js/app'], function (myApp) {
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss'
                 });
-                obj.startTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayStartTime()));
+                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
+                var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
+                obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
 
                 obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss'
                 });
-                obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayEndTime()));
+                obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayStartTime()));
             };
 
 
@@ -1750,11 +1751,11 @@ define(['js/app'], function (myApp) {
                 let startTime = vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate();
 
-                // let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
-                // if (searchInterval > $scope.QIREPORT_SEARCH_MAX_TIME_FRAME) {
-                //     socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
-                //     return;
-                // }
+                let searchInterval = new Date(endTime).getTime() - new Date(utilService.getTodayStartTime()).getTime();
+                if (searchInterval > 0) {
+                    socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
+                    return;
+                }
 
                 vm.platformCompanyID=[];
                 vm.platformList.forEach(platform => {
@@ -1771,24 +1772,21 @@ define(['js/app'], function (myApp) {
                     if(index != -1) {
                         vm.companyID=vm.platformCompanyID[index].companyId;
                     }
-                }else {
+                }
+                else {
                     vm.platformCompanyID.forEach(platform => {
                         platform.companyId.forEach(id => {
                             vm.companyID.push(id);
                         })
-                    })
+                    });
+                    if (vm.selectedLive800.length === vm.allLive800Acc.length){
+                        // selected all
+                        vm.selectedLive800=[];
+                        vm.companyID=[];
+                    }
                 }
                 $('#QIReportTableSpin').show();
 
-                // select all the bounded live800Acc if there is no selection on Live800Acc filter
-                if (vm.selectedLive800 && vm.selectedLive800.length ==0){
-                    vm.selectedLive800 =[];
-                    if (vm.allLive800Acc && vm.allLive800Acc.length>0) {
-                        vm.allLive800Acc.forEach(each => {
-                            vm.selectedLive800.push(each.live800Acc);
-                        })
-                    }
-                }
                 var query = {
                     'companyId':vm.companyID,
                     'operatorId':vm.selectedLive800,
@@ -1796,183 +1794,150 @@ define(['js/app'], function (myApp) {
                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate(),
                 };
 
-                socketService.$socket($scope.AppSocket, 'searchLive800Record', query, success, error);
+                socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecord', query, success, error);
                 function success(data) {
                     console.log("searchLive800Record", data);
                     vm.displayData = [];
-                    let preData = [];
                     vm.postData = [];
                     vm.rawMysqlData=[];
-                    // handle the data obtained from mysql
-                    if (data.data[0]){
-                        data.data[0].forEach(conv => {
-                            let counter_cs=0;
-                            let counter_cus=0;
-                            let startTime=0;
-                            let start =true;
-                            let duration=0;
-                            let timeoutRate=0; // for overtimeSetting
-                            let mark=0;
-                            for (let i=0; i< conv.conversation.length;i++){
-                               // roles: 1- cs; 2-player; 3-system
-                                if (start){
-                                    if (conv.conversation[i].roles ==1 || conv.conversation[i].roles ==2){
-                                        startTime=conv.conversation[i].time;
-                                        start =false;
-                                    }
+
+
+                    if (data.data[0] && data.data[1] && data.data[2]) {
+
+
+                        if (data.data[0].length > 0) {
+                            vm.mysqlData = $.extend(true, [], data.data[0]);
+
+                            // handle total number of effective conversation, non-effective conversation and total conversation
+                            let preData = [];
+                            preData = data.data[0].map(item => {
+                                //preData =  data.data[0].map(item => {
+                                let itemObj = {};
+
+                                let platformIndex = vm.platformCompanyID.findIndex(p => p.companyId.includes(item.companyId.toString()));
+                                if (platformIndex != -1) {
+                                    itemObj.productName = vm.platformCompanyID[platformIndex].productName;
+
                                 }
-                                if (conv.conversation[i].roles ==1){
-                                    counter_cs+=1;
+                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
+                                if (index != -1) {
+                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                 }
-                                if(conv.conversation[i].roles == 2){
-                                    counter_cus+=1;
+                                itemObj.count_0 = item.totalNonEffectiveCount;
+                                itemObj.count_1 = item.totalEffectiveCount;
+                                itemObj.totalCount = item.totalCount;
+
+                                return itemObj;
+
+                            });
+
+                            var holder = {};
+
+                            preData.forEach(d => {
+
+                                if (holder.hasOwnProperty(d.adminName)) {
+                                    holder[d.adminName] = [holder[d.adminName][0] + d.count_0, holder[d.adminName][1] + d.count_1, holder[d.adminName][2] + d.totalCount];
+                                } else {
+                                    holder[d.adminName] = [d.count_0, d.count_1, d.totalCount];
                                 }
-                                if (conv.conversation[i].inspectionRate !=0){
-                                    mark=mark+ conv.conversation[i].inspectionRate;
+                            });
+
+                            for (var prop in holder) {
+                                let index = preData.findIndex(p => p.adminName == prop);
+                                if (index != -1) {
+                                    vm.postData.push({
+                                        productName: preData[index].productName,
+                                        adminName: prop,
+                                        count_0: holder[prop][0],
+                                        count_1: holder[prop][1],
+                                        totalCount: holder[prop][2],
+                                    })
                                 }
-                                if (conv.conversation[i].timeoutRate !=0){
-                                    timeoutRate=timeoutRate+ conv.conversation[i].timeoutRate;
-                                }
-                            }
-                            if (startTime){
-                                duration = conv.conversation[conv.conversation.length-1].time - startTime;
                             }
 
-                            if (counter_cus>=vm.conversationDefinition.askingSentence && counter_cs >=vm.conversationDefinition.replyingSentence && duration >= vm.conversationDefinition.totalSec){
-                                vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 1, inspectionMark: mark, timeoutRate: timeoutRate})
-                            }else{
-                                vm.rawMysqlData.push({companyId: conv.companyId, fpmsAcc: conv.fpmsAcc, operatorId: conv.live800Acc.id, effective: 0, inspectionMark: 0, timeoutRate:0}) //not effective should not be rated
-                            }
-                        });
-
-                        vm.variety=[];
-                        vm.rawMysqlData.forEach(data=>{
-                            let count1=0;
-                            let count0=0;
-                            let mark =0;
-                            let timeoutRate=0;
-                            let index= vm.variety.findIndex(p => p.companyId == data.companyId && p.operatorId == data.operatorId);
-                            if (index == -1) {
-                                for (let i = 0; i < vm.rawMysqlData.length; i++) {
-
-                                    if (data.companyId == vm.rawMysqlData[i].companyId && data.operatorId == vm.rawMysqlData[i].operatorId) {
-                                        if (vm.rawMysqlData[i].effective == 1){
-                                            count1 += 1;
-                                            mark = mark + vm.rawMysqlData[i].inspectionMark;
-                                            timeoutRate = timeoutRate + vm.rawMysqlData[i].timeoutRate;
-                                        }else{
-                                            count0 +=1;
-                                        }
-                                    }
-                                }
-                                vm.variety.push({
-                                    companyId: data.companyId,
-                                    fpmsAcc: data.fpmsAcc,
-                                    operatorId: data.operatorId,
-                                    count_1: count1, // effective count
-                                    count_0: count0, // not effective count
-                                    totalInspectionMark: mark,
-                                    totalTimeoutRate: timeoutRate
-                                });
-
-                            }
-                        });
-
-                        vm.mysqlData = $.extend(true, [], vm.variety); // used for inner table: data has been arranged based on operatorID
-
-                        preData = vm.variety.map(item => {
-                            let itemObj = {};
-
-                            let platformIndex = vm.platformCompanyID.findIndex(p => p.companyId.includes(item.companyId.toString()));
-                            if (platformIndex != -1) {
-                                itemObj.productName = vm.platformCompanyID[platformIndex].productName;
-
-                            }
-                            let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc==item.operatorId)
-                            if (index != -1) {
-                                itemObj.adminName = vm.selectedLive800Acc[index].adminName;
-                            }
-                            itemObj.count_0 = item.count_0;
-                            itemObj.count_1 = item.count_1;
-                            itemObj.totalInspectionMark = item.totalInspectionMark;
-                            itemObj.totalTimeoutRate = item.totalTimeoutRate;
-
-                            return itemObj;
-
-                        });
-
-                        var holder = {};
-
-                        preData.forEach(d => {
-
-                            if (holder.hasOwnProperty(d.adminName)) {
-                                holder[d.adminName] = [holder[d.adminName][0]+ d.count_0 ,holder[d.adminName][1]+ d.count_0,holder[d.adminName][2]+ d.totalInspectionMark,holder[d.adminName][3]+ d.totalTimeoutRate];
-                            } else {
-                                holder[d.adminName]= [d.count_0, d.count_1,d.totalInspectionMark, d.totalTimeoutRate];
-                            }
-                        });
-
-                        for (var prop in holder) {
-                            let index = preData.findIndex(p => p.adminName == prop);
-                            if (index != -1) {
-                                vm.postData.push({
-                                    productName: preData[index].productName,
-                                    adminName: prop,
-                                    count_0: holder[prop][0],
-                                    count_1: holder[prop][1],
-                                    totalCount: holder[prop][0]+holder[prop][1],
-                                    totalInspectionMark: holder[prop][2],
-                                    totalTimeoutRate: holder[prop][3]
-                                })
-                            }
                         }
-                    }
 
-                    if (data.data[1] && data.data[1].length > 0) {
-                        let preData =[];
+                        if (data.data[1].length > 0) {
+                            // handle the status of the conversation record group by operatorId based on status
+                            let preData = [];
 
-                        preData = data.data[1].map(item => {
-                            let itemObj = {};
-                            let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc==item.operatorId)
-                            if (index != -1) {
-                                itemObj.adminName = vm.selectedLive800Acc[index].adminName;
-                            }
-                            itemObj.status = item.status;
-                            itemObj.count = item.count;
-
-                            return itemObj;
-                        });
-
-                        preData.forEach(data => {
-                            let index = vm.postData.findIndex(p => p.adminName == data.adminName);
-                            if (index != -1) {
-                                if (vm.postData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])){
-                                    vm.postData[index][vm.constQualityInspectionStatus[data.status]] = vm.postData[index][vm.constQualityInspectionStatus[data.status]] + data.count;
-                                }else{
-                                    vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                            preData = data.data[1].map(item => {
+                                let itemObj = {};
+                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
+                                if (index != -1) {
+                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                 }
-                            }
-                        });
+                                itemObj.status = item.status;
+                                itemObj.count = item.count;
 
-                        vm.postData.forEach(data=>{
-                            for (let i=1; i<Object.keys(vm.constQualityInspectionStatus).length +1; i++){
-                                if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])){
-                                    data[vm.constQualityInspectionStatus[i]] = 0;
+                                return itemObj;
+                            });
+
+                            preData.forEach(data => {
+                                let index = vm.postData.findIndex(p => p.adminName == data.adminName);
+                                if (index != -1) {
+                                    if (vm.postData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
+                                        vm.postData[index][vm.constQualityInspectionStatus[data.status]] = vm.postData[index][vm.constQualityInspectionStatus[data.status]] + data.count;
+                                    } else {
+                                        vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                    }
                                 }
-                            }
-                        });
+                            });
 
-                        vm.postData.forEach(data=>{
-                            data.pendingCount = data.count_1-data.COMPLETED_UNREAD-data.COMPLETED_READ-data.COMPLETED-data.APPEALING-data.APPEAL_COMPLETED
-                            data.avgMark= ((data.totalTimeoutRate+ data.totalInspectionMark)/(data.COMPLETED_UNREAD+ data.COMPLETED_READ+data.COMPLETED+data.APPEALING+data.APPEAL_COMPLETED)).toFixed(2);
-                            // check NaN
-                            if (data.pendingCount == "NaN"){
-                                data.pendingCount=Number(0).toFixed(2);
-                            }
-                            if (data.avgMark == "NaN"){
-                                data.avgMark=Number(0).toFixed(2);
-                            }
-                        })
+                            vm.postData.forEach(data => {
+                                for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                    if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                        data[vm.constQualityInspectionStatus[i]] = 0;
+                                    }
+                                }
+                            });
+                        }
+
+                        if (data.data[2].length > 0) {
+                            // handle the total timeout rate and total inspesction per operatorId
+                            let preData = [];
+
+                            preData = data.data[2].map(item => {
+                                let itemObj = {};
+                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
+                                if (index != -1) {
+                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
+                                }
+                                itemObj.totalOvertimeRate = item.totalOvertimeRate;
+                                itemObj.totalInspectionRate = item.totalInspectionRate;
+
+                                return itemObj;
+                            });
+
+                            preData.forEach(data => {
+                                let index = vm.postData.findIndex(p => p.adminName == data.adminName);
+                                if (index != -1) {
+                                    if (vm.postData[index].hasOwnProperty("totalOvertimeRate")) {
+                                        vm.postData[index]["totalOvertimeRate"] = vm.postData[index]["totalOvertimeRate"] + data.totalOvertimeRate;
+                                    } else {
+                                        vm.postData[index]["totalOvertimeRate"] = data.totalOvertimeRate;
+                                    }
+
+                                    if (vm.postData[index].hasOwnProperty("totalInspectionRate")) {
+                                        vm.postData[index]["totalInspectionRate"] = vm.postData[index]["totalInspectionRate"] + data.totalInspectionRate;
+                                    } else {
+                                        vm.postData[index]["totalInspectionRate"] = data.totalInspectionRate;
+                                    }
+                                }
+                            });
+
+                            vm.postData.forEach(data => {
+                                data.pendingCount = data.count_1 - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED
+                                data.avgMark = ((data.totalOvertimeRate + data.totalInspectionRate) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+                                // check NaN
+                                if (data.pendingCount == "NaN") {
+                                    data.pendingCount = Number(0).toFixed(2);
+                                }
+                                if (data.avgMark == "NaN") {
+                                    data.avgMark = Number(0).toFixed(2);
+                                }
+                            })
+                        }
                     }
 
                     $('#QIReportTableSpin').hide();
@@ -2034,10 +1999,10 @@ define(['js/app'], function (myApp) {
                             title: $translate('APPEAL_COMPLETED_QUANTITY'), data: "APPEAL_COMPLETED",
                         },
                         {
-                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalTimeoutRate",
+                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalOvertimeRate",
                         },
                         {
-                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionMark",
+                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionRate",
                         },
                         {
                             title: $translate('AVG_DEDUCTION_MARK') , data: "avgMark",
@@ -2089,7 +2054,7 @@ define(['js/app'], function (myApp) {
                                 selectedLiveAcc = data.data[0].live800Acc;
 
                                 vm.mysqlData.forEach( item => {
-                                    if (item.fpmsAcc == data.data[0].adminName){
+                                    if (item.operatorName == data.data[0].adminName){
                                         selectedCompanyId.push(item.companyId.toString());
                                     }
                                 });
@@ -2109,16 +2074,22 @@ define(['js/app'], function (myApp) {
                                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
                                 };
 
-                                socketService.$socket($scope.AppSocket, 'getProgressReportByOperator', params, success, error);
+                                socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecord', params, success, error);
 
                                 function success(data) {
-                                    console.log("getProgressReportByOperator", data.data);
-                                    vm.allData = $.extend(true, [], data.data);
-                                    if (data.data && data.data.length > 0) {
-                                        data.data.forEach(data => {
+
+                                    if (data.data[0] && data.data[1] && data.data[2]) {
+
+                                        vm.displayDetailData = $.extend(true, [], data.data[0]);
+
+                                        data.data[1].forEach(data => {
                                             let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
                                             if (index != -1) {
-                                                vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                                if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
+                                                    vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = vm.v[index][vm.constQualityInspectionStatus[data.status]] + data.count;
+                                                } else {
+                                                    vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                                }
                                             }
                                         });
 
@@ -2129,19 +2100,23 @@ define(['js/app'], function (myApp) {
                                                 }
                                             }
                                         });
-                                    }
-                                    vm.displayDetailData.forEach(data => {
-                                        data.totalCount = data.count_0 + data.count_1;
-                                        if (vm.allData && vm.allData.length == 0){
-                                            data.pendingCount = data.count_1;
-                                        }else {
-                                            data.pendingCount = data.count_1 - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
-                                            data.avgMark = ((data.totalTimeoutRate + data.totalInspectionMark) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
-                                        }
-                                    });
-                                    $scope.safeApply();
-                                    vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
 
+                                        data.data[2].forEach(data => {
+                                            let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
+                                            if (index != -1) {
+                                                vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
+                                                vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
+                                            }
+                                        });
+
+                                        vm.displayDetailData.forEach(data => {
+                                                data.pendingCount = data.totalEffectiveCount - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
+                                                data.avgMark = ((data.totalOvertimeRate + data.totalInspectionRate) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+                                        });
+
+                                        $scope.safeApply();
+                                        vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                                    }
                                 }
 
                                 function error(error) {
@@ -2178,11 +2153,11 @@ define(['js/app'], function (myApp) {
 
                         },
                         {
-                            title: $translate('NOT_EVALUATED_QUANTITY'), data: "count_0",
+                            title: $translate('NOT_EVALUATED_QUANTITY'), data: "totalNonEffectiveCount",
 
                         },
                         {
-                            title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "count_1",
+                            title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "totalEffectiveCount",
 
                         },
                         {
@@ -2210,11 +2185,11 @@ define(['js/app'], function (myApp) {
 
                         },
                         {
-                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalTimeoutRate",
+                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalOvertimeRate",
 
                         },
                         {
-                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionMark",
+                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionRate",
 
                         },
                         {
@@ -2304,6 +2279,23 @@ define(['js/app'], function (myApp) {
                     vm[objKey].index = (curP - 1) * pageSize;
                 }
                 if (isChange) return serchFunc.call(this);
+            }
+
+            vm.summarizeLive800Record = function(){
+                vm.loadingSummarizeLive800Record = true;
+                var startTime = $('#live800SummarizeStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#live800SummarizeEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                vm.loadingSummarizeLive800Record = true;
+                socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
+                    vm.loadingSummarizeLive800Record = false;
+                    $scope.safeApply();
+                });
             }
 
             //****** CS Report Tab ******* ENDd //
