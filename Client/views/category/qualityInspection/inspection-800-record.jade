@@ -32,7 +32,7 @@
             .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'queryByQualityAssessor')")
                 label {{"QUALITY_ASSESSOR" | translate}}
                 select.form-control(ng-model='vm.inspection800.qiUser')
-                    option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v.name}}') {{v.name | translate}}
+                    option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v._id}}') {{v.name | translate}}
                     option(value='all') {{'NONE' | translate}}
             .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'Read')")
                 button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
@@ -65,8 +65,7 @@ div(style='height:50px')
         div.col-md-1(style="height:50px;background-color:red")
             div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 申诉内容
 
-.row
-    conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
+conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
 div.row
     div.col-md-12
         div.col-md-10
@@ -95,9 +94,9 @@ div.row(ng-show='vm.conversationForm.length > 0', style='margin-top:20px;')
 div(style='display:none')
     div#conversationForm(style='height:60px')
         div.row(style='border:2px solid #CECECE')
-            div.col-md-1(style="height:60px")
+            div.col-md-1(style="padding-top:10px;")
                 input.form-control.batchEdit(type="checkbox", value="{{cform.messageId}}",ng-click="storebatch(cform)")
-            div.col-md-1(style="height:60px")
+            div.col-md-1(style="text-align:center;padding-top:10px;")
                 div(ng-click="rateIt(cform)", style="cursor:pointer"){{cform.statusName}}
                 div(ng-if='cform.editable', style='margin-top:30px;')
                     div.btn.btn-primary(ng-click="confirmrate(cform)", style="cursor:pointer") Confirm
@@ -131,4 +130,5 @@ div(style='display:none')
             div.col-md-1
                 div.text-center  {{cform.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
             div.col-md-1
-                input.form-control(type="textarea", value="{{cform.appealReason}}", DISABLED)
+                div.form-group
+                    textarea.form-control(value="{{cform.appealReason}}", readonly="readonly", rows="3")
