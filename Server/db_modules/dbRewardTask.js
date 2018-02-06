@@ -235,7 +235,7 @@ const dbRewardTask = {
                     }
 
                     if (rewardData.useConsumption) {
-                        if(rewardType == constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+                        if(rewardType == constRewardType.PLAYER_TOP_UP_RETURN_GROUP && proposalData.data.isDynamicRewardAmount) {
                             updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                             updObj.$inc.targetConsumption = -rewardData.applyAmount;
                         } else {
