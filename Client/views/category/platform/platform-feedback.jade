@@ -119,6 +119,54 @@
                     input.form-control(type="number" ng-model="vm.playerFeedbackQuery.playerValueFormal" style="width:80px;display:inline-block")
                     div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.playerValueOperator === 'range'") -
                     input.form-control(type="number" ng-model="vm.playerFeedbackQuery.playerValueLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.playerValueOperator === 'range'")
+            .inlineBlk
+                label {{"TOTAL_CONSUMPTION_TIMES"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.consumptionTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.consumptionTimesFormal" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.consumptionTimesOperator === 'range'") -
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.consumptionTimesLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.consumptionTimesOperator === 'range'")
+            .inlineBlk
+                label {{"PLAYER_PROFIT_AMOUNT"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.bonusAmountOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.bonusAmountFormal" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.bonusAmountOperator === 'range'") -
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.bonusAmountLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.bonusAmountOperator === 'range'")
+            .inlineBlk
+                label {{"BonusTime"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.withdrawTimesOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.withdrawTimesFormal" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.withdrawTimesOperator === 'range'") -
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.withdrawTimesLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.withdrawTimesOperator === 'range'")
+            .inlineBlk
+                label {{"TOTAL_TOP_UP"|translate}}
+                div
+                    select.form-control(ng-model="vm.playerFeedbackQuery.topUpSumOperator" style="width:75px;display:inline-block")
+                        option(value='>=') {{'>='}}
+                        option(value='=') {{'='}}
+                        option(value='<=') {{'<='}}
+                        option(value='range') {{'range'|translate}}
+                    div(style="width:8px;display:inline-block")
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.topUpSumFormal" style="width:80px;display:inline-block")
+                    div.text-center(style="width:15px;display:inline-block" ng-if="vm.playerFeedbackQuery.topUpSumOperator === 'range'") -
+                    input.form-control(type="number" ng-model="vm.playerFeedbackQuery.topUpSumLatter" style="width:80px;display:inline-block" ng-if="vm.playerFeedbackQuery.topUpSumOperator === 'range'")
             .inlineBlk(style="width:200px;")
                 label {{"GAME_LOBBY"|translate}}
                 select.form-control#selectGameProvider(multiple="multiple", style='min-width:100px;height:34px;', ng-options='provider._id as provider.name for provider in vm.allGameProviders', ng-model='vm.playerFeedbackQuery.gameProviderId')
