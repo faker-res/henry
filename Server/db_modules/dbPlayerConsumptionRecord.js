@@ -2100,27 +2100,30 @@ function updateRTG (oldData, newData) {
 
         return dbGameProvider.getProviderGroupByProviderId(oldData.platformId, oldData.providerId).then(
             providerGroupObj => {
-                // Find available RTG to update
-                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-                    platformId: oldData.platformId,
-                    playerId: oldData.playerId,
-                    providerGroup: providerGroupObj._id,
-                    status: constRewardTaskStatus.STARTED,
-                    createTime: {$lt: oldData.createTime}
-                }, {
-                    $inc: {
-                        currentAmt: incBonusAmt,
-                        curConsumption: incValidAmt
-                    }
-                }, {
-                    new: true
-                });
+                if (providerGroupObj) {
+                    // Find available RTG to update
+                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                        platformId: oldData.platformId,
+                        playerId: oldData.playerId,
+                        providerGroup: providerGroupObj._id,
+                        status: constRewardTaskStatus.STARTED,
+                        createTime: {$lt: oldData.createTime}
+                    }, {
+                        $inc: {
+                            currentAmt: incBonusAmt,
+                            curConsumption: incValidAmt
+                        }
+                    }, {
+                        new: true
+                    });
+                }
             }
         ).then(
             updatedRTG => {
-                // Alter consumption summary in 2 scenario:
+                // Alter consumption summary in 3 scenario:
                 // 1. There is no RTG to update, updating record will reflect on summary directly
                 // 2. There is RTG, and the consumption is over forbidXIMAAmt after update.
+                // 3. No provider group setting
                 if (!updatedRTG || (updatedRTG && updatedRTG.curConsumption > updatedRTG.forbidXIMAAmt)) {
                     // Update consumption summary upon updating consumption record
                     return updateConsumptionSumamry(oldData, incValidAmt);
