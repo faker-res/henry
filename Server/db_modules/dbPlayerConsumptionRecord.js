@@ -850,7 +850,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
 
-                    updateRTG(oldData, recordData).catch(errorUtils.reportError);
+                    updateRTG(oldData, recordData);
 
                     delete recordData.name;
                     return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({

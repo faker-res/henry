@@ -3965,7 +3965,7 @@ let dbPlayerReward = {
                 case "2":
                     let allRewardQuery = {
                         "data.platformId": playerData.platform._id,
-                        "data.playerObjId": playerData._id,
+                        "data.playerObjId": {$in: [ObjectId(playerData._id),playerData._id.toString()]},
                         mainType: "Reward",
                         status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                         settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}

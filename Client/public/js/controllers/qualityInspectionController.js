@@ -353,7 +353,7 @@ define(['js/app'], function (myApp) {
                 vm.searchLive800();
             },
             vm.searchLive800 = function(){
-                $('#searchingQualityInspection').show();
+                $('.searchingQualityInspection').show();
                 let fpmsId = [];
                 if(vm.fpmsACCList.length > 0){
                   vm.fpmsACCList.map(item=>{
@@ -414,7 +414,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     });
                     vm.conversationForm = data.data;
-                    $('#searchingQualityInspection').hide();
+                    $('.searchingQualityInspection').hide();
                     $scope.safeApply();
                 }
 
@@ -423,6 +423,9 @@ define(['js/app'], function (myApp) {
                     if(data.data){
                         vm.pgn.totalPage = data.data / vm.pgn.limit;
                         vm.pgn.count = data.data;
+                    }else{
+                        vm.pgn.totalPage = 1;
+                        vm.pgn.count = 0;
                     }
                     vm.pgnPages = [];
                     for(let a = 0; a < vm.pgn.totalPage;a++){
