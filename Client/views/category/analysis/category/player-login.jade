@@ -37,6 +37,22 @@
                         #line-loginPlayer.lineChart.graphDiv
             .col-md-6
                 .graph
-                    table#loginPlayerAnalysisTable.display.tableDiv(style='min-width:100%')
+                    //table#loginPlayerAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "date" ? "-date":"date"') {{ vm.platformLoginPlayerDataPeriodText | translate}}
+                                th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "number" ? "-number":"number"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformLoginPlayerAnalysisData | orderBy: vm.platformLoginPlayerAnalysisSort.loginPlayerSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.number }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformLoginPlayerAverage }}
 
 p(ng-init="vm.loadPageFunc('LOGIN_PLAYER')")

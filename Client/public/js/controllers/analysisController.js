@@ -80,6 +80,7 @@ define(['js/app'], function (myApp) {
                         vm.plotNewPlayerLine();
                         break;
                     case "LOGIN_PLAYER":
+                        vm.platformLoginPlayerAnalysisSort = {};
                         vm.initSearchParameter('loginPlayer', 'day', 3);
                         vm.plotLoginPlayerLine();
                         break;
@@ -669,32 +670,32 @@ define(['js/app'], function (myApp) {
                 // a.columns.adjust().draw();
 
 
-                let calculatedNewPlayerData = vm.calculateNewPlayerLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'players', 'New Players');
+                let calculatedNewPlayerData = vm.calculateLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'players', 'New Players');
                 vm.platformNewPlayerAverage = calculatedNewPlayerData.average;
                 vm.plotLineByElementId("#line-newPlayer", calculatedNewPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
 
-                let calculatedNewPlayerTopupData = vm.calculateNewPlayerLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'topupPlayer', 'Player with Top-ups');
+                let calculatedNewPlayerTopupData = vm.calculateLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'topupPlayer', 'Player with Top-ups');
                 vm.platformNewPlayerTopupAverage = calculatedNewPlayerTopupData.average;
                 vm.plotLineByElementId("#line-newPlayerTopup", calculatedNewPlayerTopupData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
 
-                let calculatedNewPlayerMultiTopupData = vm.calculateNewPlayerLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'multiTopupPlayer', 'Player with Top-ups Multiple Times');
+                let calculatedNewPlayerMultiTopupData = vm.calculateLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'multiTopupPlayer', 'Player with Top-ups Multiple Times');
                 vm.platformNewPlayerMultiTopupAverage = calculatedNewPlayerMultiTopupData.average;
                 vm.plotLineByElementId("#line-newPlayerMultiTopup", calculatedNewPlayerMultiTopupData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
 
-                let calculatedNewPlayeValidPlayerData = vm.calculateNewPlayerLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'validPlayer', 'Valid Player');
-                vm.platformNewPlayerValidPlayerAverage = calculatedNewPlayeValidPlayerData.average;
-                vm.plotLineByElementId("#line-newPlayerValidPlayer", calculatedNewPlayeValidPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
+                let calculatedNewPlayerValidPlayerData = vm.calculateLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'validPlayer', 'Valid Player');
+                vm.platformNewPlayerValidPlayerAverage = calculatedNewPlayerValidPlayerData.average;
+                vm.plotLineByElementId("#line-newPlayerValidPlayer", calculatedNewPlayerValidPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
 
                 $scope.safeApply();
             });
 
         }
-        vm.calculateNewPlayerLineDataAndAverage = (data, key, label) => {
+        vm.calculateLineDataAndAverage = (data, key, label) => {
             var graphData = [];
             let averageData = [];
-            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + item[key].length, 0) / data.length) : 0;
+            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + Number.isInteger(item[key]) ? item[key] : item[key].length, 0) / data.length) : 0;
             data.map(item => {
-                graphData.push([new Date(item.date), item[key].length]);
+                graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key].length]);
                 averageData.push([new Date(item.date), average]);
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
@@ -840,14 +841,15 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'countLoginPlayerbyPlatform', sendData, function success(data1) {
 
 
-                var graphData = [];
-                let averageData = [];
-                let average = data1.data.length !== 0? Math.floor(data1.data.reduce((a, item) => a + item.number, 0) / data1.data.length) : 0;
-                data1.data.map(item => {
-                    var localTime = new Date(item._id.date);
-                    graphData.push([localTime, item.number]);
-                    averageData.push([localTime, average]);
-                })
+                // var graphData = [];
+                // let averageData = [];
+                // let average = data1.data.length !== 0? Math.floor(data1.data.reduce((a, item) => a + item.number, 0) / data1.data.length) : 0;
+                // data1.data.map(item => {
+                //     var localTime = new Date(item._id.date);
+                //     graphData.push([localTime, item.number]);
+                //     averageData.push([localTime, average]);
+                // })
+
                 // var loginPlayerData = data1.data;
                 // var loginPlayerObjData = {};
                 // for (var i = 0; i < loginPlayerData.length; i++) {
@@ -864,116 +866,125 @@ define(['js/app'], function (myApp) {
                 //     }
                 // }
                 // var graphData = [];
-                var newOptions = {};
-                // var nowDate = new Date(sendData.startDate);
-                var xText = '';
-                switch (vm.queryPara.loginPlayer.periodText) {
-                    case 'day':
-                        //         do {
-                        //             var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                        //             graphData.push([nowDate.getTime(), (loginPlayerObjData[dateText] || 0)]);
-                        //             nowDate.setDate(nowDate.getDate() + 1);
-                        //         } while (nowDate <= sendData.endDate);
-                        xText = 'DAY';
-                        newOptions = {
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [1, "day"],
-                            }
-                        };
-                        break;
-                    case 'week':
-                        //         var k = 0;
-                        //         do {
-                        //             graphData.push([nowDate.getTime(), (loginPlayerObjData[k] || 0)]);
-                        //             nowDate.setDate(nowDate.getDate() + 7);
-                        //             k++;
-                        //         } while (nowDate <= sendData.endDate);
-                        xText = 'WEEK';
-                        newOptions = {
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [6, "day"],
-                            }
-                        };
-                        break;
-                    case 'month' :
-                        //         nowDate.setDate(1);
-                        //         do {
-                        //             var nowYear = nowDate.getFullYear();
-                        //             var nowMonth = nowDate.getMonth() + 1;
-                        //             console.log('nowMonth', nowYear + '' + nowMonth);
-                        //             graphData.push([nowDate.getTime(), (loginPlayerObjData[nowYear + '' + nowMonth] || 0)]);
-                        //             nowDate.setMonth(nowDate.getMonth() + 1);
-                        //
-                        //         } while (nowDate <= sendData.endDate);
-                        xText = 'MONTH';
-                        newOptions = {
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [1, "month"],
-                            }
-                        };
-                        break;
-                }
-                newOptions.yaxes = [{
-                    position: 'left',
-                    axisLabel: $translate('AMOUNT'),
-                }];
-                newOptions.xaxes = [{
-                    position: 'bottom',
-                    axisLabel: $translate('PERIOD') + ' : ' + $translate(xText),
-                }];
-                socketService.$plotLine(placeholder, [{
-                    label: $translate('Login Player'),
-                    data: graphData
-                },{label: $translate('average line'), data: averageData}], newOptions);
-                $(placeholder).bind("plothover", function (event, pos, obj) {
-                    var previousPoint;
-                    if (!obj) {
-                        $("#tooltip").hide();
-                        previousPoint = null;
-                        return;
-                    } else {
-                        if (previousPoint != obj.dataIndex) {
-                            previousPoint = obj.dataIndex;
-
-                            var x = obj.datapoint[0],
-                                y = obj.datapoint[1].toFixed(0);
-
-                            var date = new Date(x);
-                            var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                            // console.log('date', x, date);
-                            $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.loginPlayer.periodText) + " : " + dateString)
-                                .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                                .fadeIn(200);
-                        }
-                    }
-                });
+                // var newOptions = {};
+                // // var nowDate = new Date(sendData.startDate);
+                // var xText = '';
+                // switch (vm.queryPara.loginPlayer.periodText) {
+                //     case 'day':
+                //         //         do {
+                //         //             var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
+                //         //             graphData.push([nowDate.getTime(), (loginPlayerObjData[dateText] || 0)]);
+                //         //             nowDate.setDate(nowDate.getDate() + 1);
+                //         //         } while (nowDate <= sendData.endDate);
+                //         xText = 'DAY';
+                //         newOptions = {
+                //             xaxis: {
+                //                 tickLength: 0,
+                //                 mode: "time",
+                //                 minTickSize: [1, "day"],
+                //             }
+                //         };
+                //         break;
+                //     case 'week':
+                //         //         var k = 0;
+                //         //         do {
+                //         //             graphData.push([nowDate.getTime(), (loginPlayerObjData[k] || 0)]);
+                //         //             nowDate.setDate(nowDate.getDate() + 7);
+                //         //             k++;
+                //         //         } while (nowDate <= sendData.endDate);
+                //         xText = 'WEEK';
+                //         newOptions = {
+                //             xaxis: {
+                //                 tickLength: 0,
+                //                 mode: "time",
+                //                 minTickSize: [6, "day"],
+                //             }
+                //         };
+                //         break;
+                //     case 'month' :
+                //         //         nowDate.setDate(1);
+                //         //         do {
+                //         //             var nowYear = nowDate.getFullYear();
+                //         //             var nowMonth = nowDate.getMonth() + 1;
+                //         //             console.log('nowMonth', nowYear + '' + nowMonth);
+                //         //             graphData.push([nowDate.getTime(), (loginPlayerObjData[nowYear + '' + nowMonth] || 0)]);
+                //         //             nowDate.setMonth(nowDate.getMonth() + 1);
+                //         //
+                //         //         } while (nowDate <= sendData.endDate);
+                //         xText = 'MONTH';
+                //         newOptions = {
+                //             xaxis: {
+                //                 tickLength: 0,
+                //                 mode: "time",
+                //                 minTickSize: [1, "month"],
+                //             }
+                //         };
+                //         break;
+                // }
+                // newOptions.yaxes = [{
+                //     position: 'left',
+                //     axisLabel: $translate('AMOUNT'),
+                // }];
+                // newOptions.xaxes = [{
+                //     position: 'bottom',
+                //     axisLabel: $translate('PERIOD') + ' : ' + $translate(xText),
+                // }];
+                // socketService.$plotLine(placeholder, [{
+                //     label: $translate('Login Player'),
+                //     data: graphData
+                // },{label: $translate('average line'), data: averageData}], newOptions);
+                // $(placeholder).bind("plothover", function (event, pos, obj) {
+                //     var previousPoint;
+                //     if (!obj) {
+                //         $("#tooltip").hide();
+                //         previousPoint = null;
+                //         return;
+                //     } else {
+                //         if (previousPoint != obj.dataIndex) {
+                //             previousPoint = obj.dataIndex;
+                //
+                //             var x = obj.datapoint[0],
+                //                 y = obj.datapoint[1].toFixed(0);
+                //
+                //             var date = new Date(x);
+                //             var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+                //             // console.log('date', x, date);
+                //             $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.loginPlayer.periodText) + " : " + dateString)
+                //                 .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                //                 .fadeIn(200);
+                //         }
+                //     }
+                // });
                 // $(".flot-x-axis .flot-tick-label.tickLabel").addClass("rotate330");
                 //draw table
 
-                var tableData = [];
-                for (var i in graphData) {
-                    var obj = {};
-                    obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
-                    obj.amount = graphData[i][1] || 0;
-                    tableData.push(obj);
-                }
-                var dataOptions = {
-                    data: tableData,
-                    columns: [
-                        {title: $translate(vm.queryPara.loginPlayer.periodText), data: "date"},
-                        {title: $translate('amount'), data: "amount"}
-                    ],
-                    "paging": false,
-                };
-                dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-                var a = $('#loginPlayerAnalysisTable').DataTable(dataOptions);
-                a.columns.adjust().draw();
+                // var tableData = [];
+                // for (var i in graphData) {
+                //     var obj = {};
+                //     obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
+                //     obj.amount = graphData[i][1] || 0;
+                //     tableData.push(obj);
+                // }
+                // var dataOptions = {
+                //     data: tableData,
+                //     columns: [
+                //         {title: $translate(vm.queryPara.loginPlayer.periodText), data: "date"},
+                //         {title: $translate('amount'), data: "amount"}
+                //     ],
+                //     "paging": false,
+                // };
+                // dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+                // var a = $('#loginPlayerAnalysisTable').DataTable(dataOptions);
+                // a.columns.adjust().draw();
+                vm.platformLoginPlayerDataPeriodText = vm.queryPara.loginPlayer.periodText;
+                vm.platformLoginPlayerAnalysisData = data1.data.map(item => {
+                    item.date = item._id.date;
+                    return item;
+                });
+                let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerAnalysisData, 'number', 'Valid Player');
+                vm.platformLoginPlayerAverage = calculatedLoginPlayerData.average;
+                vm.plotLineByElementId("#line-loginPlayer", calculatedLoginPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
+                $scope.safeApply();
             });
         };
         // login Player end= =========================================
