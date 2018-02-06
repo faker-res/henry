@@ -2136,11 +2136,11 @@ function updateRTG (oldData, newData) {
                         summAdjustXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
                         summAdjustNonXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
                     } else if (offsetDiff > 0 && curConsumptionBeforeUpdate < updatedRTG.forbidXIMAAmt) {
-                        // Scenario 2: curConsumption is less than forbidXIMAAmt before update, but is more than after update
+                        // Scenario 3: curConsumption is less than forbidXIMAAmt before update, but is more than after update
                         summAdjustNonXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
                         summAdjustXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
                     } else {
-                        // Scenario 3: curConsumption is more than forbidXIMAAmt before and after update
+                        // Scenario 4: curConsumption is more than forbidXIMAAmt before and after update
                         summAdjustXIMAAmt = incValidAmt;
                     }
                 } else {
