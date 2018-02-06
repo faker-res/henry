@@ -12784,6 +12784,110 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            if (vm.playerFeedbackQuery.consumptionTimesOperator && vm.playerFeedbackQuery.consumptionTimesFormal != null) {
+                switch (vm.playerFeedbackQuery.consumptionTimesOperator) {
+                    case ">=":
+                        sendQuery.consumptionTimes = {
+                            $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.consumptionTimes = vm.playerFeedbackQuery.consumptionTimesFormal;
+                        break;
+                    case "<=":
+                        sendQuery.consumptionTimes = {
+                            $lte: vm.playerFeedbackQuery.consumptionTimesFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.consumptionTimesLatter != null) {
+                            sendQuery.consumptionTimes = {
+                                $lte: vm.playerFeedbackQuery.consumptionTimesLatter,
+                                $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.bonusAmountOperator && vm.playerFeedbackQuery.bonusAmountFormal != null) {
+                switch (vm.playerFeedbackQuery.bonusAmountOperator) {
+                    case ">=":
+                        sendQuery.bonusAmountSum = {
+                            $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.bonusAmountSum = vm.playerFeedbackQuery.bonusAmountFormal;
+                        break;
+                    case "<=":
+                        sendQuery.bonusAmountSum = {
+                            $lte: vm.playerFeedbackQuery.bonusAmountFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.bonusAmountLatter != null) {
+                            sendQuery.bonusAmountSum = {
+                                $lte: vm.playerFeedbackQuery.bonusAmountLatter,
+                                $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.withdrawTimesOperator && vm.playerFeedbackQuery.withdrawTimesFormal != null) {
+                switch (vm.playerFeedbackQuery.withdrawTimesOperator) {
+                    case ">=":
+                        sendQuery.withdrawTimes = {
+                            $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.withdrawTimes = vm.playerFeedbackQuery.withdrawTimesFormal;
+                        break;
+                    case "<=":
+                        sendQuery.withdrawTimes = {
+                            $lte: vm.playerFeedbackQuery.withdrawTimesFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.withdrawTimesLatter != null) {
+                            sendQuery.withdrawTimes = {
+                                $lte: vm.playerFeedbackQuery.withdrawTimesLatter,
+                                $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.topUpSumOperator && vm.playerFeedbackQuery.topUpSumFormal != null) {
+                switch (vm.playerFeedbackQuery.topUpSumOperator) {
+                    case ">=":
+                        sendQuery.topUpSum = {
+                            $gte: vm.playerFeedbackQuery.topUpSumFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.topUpSum = vm.playerFeedbackQuery.topUpSumFormal;
+                        break;
+                    case "<=":
+                        sendQuery.topUpSum = {
+                            $lte: vm.playerFeedbackQuery.topUpSumFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.topUpSumLatter != null) {
+                            sendQuery.topUpSum = {
+                                $lte: vm.playerFeedbackQuery.topUpSumLatter,
+                                $gte: vm.playerFeedbackQuery.topUpSumFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
             if (vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
                 sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
             }
