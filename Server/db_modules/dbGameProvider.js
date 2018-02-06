@@ -263,10 +263,12 @@ var dbGameProvider = {
     getGameProvidersByPlayerAPI: function (query, bDetail) {
         var deferred = Q.defer();
         var providerList = [];
+        let player;
 
         dbconfig.collection_players.findOne(query).then(
             function (data) {
                 var platformObjId = data.platform;
+                player = data;
                 return dbconfig.collection_platform.findOne({_id: platformObjId})
                     .populate({path: "gameProviders", model: dbconfig.collection_gameProvider});
             },
@@ -297,13 +299,31 @@ var dbGameProvider = {
                     }
                     else {
                         var providers = data.gameProviders.map(
-                            (gameProvider) => ({
-                                providerId: gameProvider.providerId,
-                                name: gameProvider.name,
-                                nickName: gameProvider.nickName,
-                                prefix: gameProvider.prefix,
-                                status: gameProvider.status
-                            })
+                            (gameProvider) => {
+                                let gameProviderStatus = gameProvider.status;
+                                if (player && player.permission &&  player.permission.forbidPlayerFromEnteringGame) {
+                                    gameProviderStatus = 2;
+                                }
+
+                                if (player && player.forbidProviders && player.forbidProviders.length > 0) {
+                                    let forbidProviders = player.forbidProviders;
+                                    for (let i = 0; i < forbidProviders.length; i++) {
+                                        let forbiddenProvider = forbidProviders[i];
+                                        if (String(gameProvider._id) === String(forbiddenProvider)) {
+                                            gameProviderStatus = 2;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return {
+                                    providerId: gameProvider.providerId,
+                                    name: gameProvider.name,
+                                    nickName: gameProvider.nickName,
+                                    prefix: gameProvider.prefix,
+                                    status: gameProviderStatus
+                                };
+                            }
                         );
                         deferred.resolve(providers);
                     }

@@ -53,6 +53,9 @@ link(rel='stylesheet', href='https://www.amcharts.com/lib/3/ammap.css', type='te
                                         a(ng-click='vm.locationCountryClicked(v._id.country)',ng-mouseover="vm.locationCountryHover(v._id.country, 'in')" ng-mouseleave="vm.locationCountryHover(v._id.country,'out')")
                                             text {{vm.getCountryTitle(v._id.country) || 'Unknown' | translate}}
                                     td {{v.amount}}
+                                tr(ng-show='vm.playerLocationCountries.length > 0')
+                                    td {{'All Pages' | translate}}
+                                    td {{vm.totalPlayerLocationCountries}}
                 div(ng-show='!vm.showCountryTable && vm.showPageName=="PLAYER_IP_LOCATION"')
                     .breadcrumb.margin-top-bottom-small
                         a(ng-click='vm.goWorld()') {{'WORLD' | translate}}
@@ -104,4 +107,7 @@ link(rel='stylesheet', href='https://www.amcharts.com/lib/3/ammap.css', type='te
             .graph
                 .panel.panel-default
                     #locationMap(style='width:100%;height:100%')
+    .row
+        .col-md-12
+            #playerLocationCountriesPie(ng-show='vm.playerLocationCountries.length > 0', style="height:480px;width:100%")
 p(ng-init="vm.loadPageFunc('PLAYER_IP_LOCATION')")
