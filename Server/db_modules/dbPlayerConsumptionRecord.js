@@ -2126,11 +2126,35 @@ function updateRTG (oldData, newData) {
                 if (!updatedRTG || (updatedRTG && updatedRTG.curConsumption > updatedRTG.forbidXIMAAmt)) {
                     // Update consumption summary upon updating consumption record
                     updateConsumptionSumamry(oldData, incValidAmt).catch(errorUtils.reportError);
-                    // Check whether RTG status changed
-                    if (updatedRTG.status == constRewardTaskStatus.ACHIEVED || updatedRTG.status == constRewardTaskStatus.NO_CREDIT) {
-                        dbRewardTask.completeRewardTaskGroup(updatedRTG, updatedRTG.status).catch(errorUtils.reportError);
-                    }
                 }
+
+                dbconfig.collection_platform.findOne({platformId: oldData.platformId}).then(
+                    platform => {
+                        // Check whether RTG status changed
+                        let statusUpdObj = {
+                            unlockTime: new Date()
+                        };
+
+                        // Check whether player has lost all credit
+                        if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
+                            statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
+                        }
+
+                        if (updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                            statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
+                        }
+
+                        if (statusUpdObj.status) {
+                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                {
+                                    _id: updatedRTG._id
+                                },
+                                statusUpdObj,
+                                {new: true}
+                            )
+                        }
+                    }
+                ).catch(errorUtils.reportError);
             }
         )
     }
