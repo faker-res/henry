@@ -1504,6 +1504,7 @@ var proposalExecutor = {
                             bonusData => {
                                 if (bonusData) {
                                     sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                    increasePlayerWithdrawalTimes(player._id, player.platform._id).catch(errorUtils.reportError);
                                     return bonusData;
                                 }
                                 else {
@@ -3456,6 +3457,10 @@ function isTransferIdRepaired(transferId) {
             return Boolean(log && log[0]);
         }
     );
+}
+
+function increasePlayerWithdrawalTimes(playerObjId, platformObjId) {
+    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId, platform: platformObjId}, {$inc: {withdrawTimes: 1}}).lean().exec();
 }
 
 /**
