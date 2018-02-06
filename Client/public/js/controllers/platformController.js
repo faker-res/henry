@@ -17843,6 +17843,21 @@ define(['js/app'], function (myApp) {
                     result = $translate(val);
                 } else if (fieldName === 'applyForDate') {
                     result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+                } else if (fieldName === 'returnDetail') {
+                    // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
+                    let newReturnDetail = {};
+                    Object.keys(val).forEach(
+                        key => {
+                            if (key && key.indexOf(':') != -1) {
+                                let splitGameTypeIdArr = key.split(':');
+                                let gameTypeId = splitGameTypeIdArr[1];
+                                newReturnDetail[splitGameTypeIdArr[0]+':'+vm.allGameTypes[gameTypeId]] = val[key];
+                            }
+                        });
+                    result = JSON.stringify(newReturnDetail || val)
+                        .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                        .replace(new RegExp('ratio','gm'), $translate('RATIO'))
+                        .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
                 } else if (typeof(val) == 'object') {
                     result = JSON.stringify(val);
                 } else if (fieldName === "upOrDown") {
