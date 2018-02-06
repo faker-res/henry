@@ -2059,23 +2059,27 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
 
                 let currentConsumption = rewardTaskGroup.curConsumption + consumptionRecord.validAmount + consumptionOffset;
                 let targetConsumption = rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt;
+                let currentDifference = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rewardTaskGroup.curConsumption;
 
                 // Check if consumption has reached
-                if (currentConsumption >= targetConsumption) {
+                if (currentConsumption > targetConsumption) {
                     // Consumption reached
                     // Case 1: 50 + 45 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 45 - 50 = -5, 5 will be deducted from free amount consumption
                     //     to compensate an early achieved RTG
                     // Case 2: 50 + 50 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 50 - 50 = 0
                     // Case 3: 50 + 55 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 55 - 50 = 5, 5 will be increased to free amount consumption
-                    consumptionAmt = targetConsumption - currentConsumption;
-                    remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
+
+                    if (currentDifference < consumptionRecord.validAmount) {
+                        consumptionAmt = currentDifference;
+                        remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
+                    }
                 }
 
                 // Check returnable amount
                 if (rewardTaskGroup.forbidXIMAAmt && rewardTaskGroup.curConsumption < rewardTaskGroup.forbidXIMAAmt) {
-                    if (rewardTaskGroup.curConsumption + consumptionAmt >= rewardTaskGroup.forbidXIMAAmt) {
+                    if (rewardTaskGroup.curConsumption + consumptionRecord.validAmount > rewardTaskGroup.forbidXIMAAmt) {
                         // Example: 20 - (2640 - 2635) = 15, 15 is available for XIMA
-                        XIMAAmt = consumptionAmt - (rewardTaskGroup.forbidXIMAAmt - rewardTaskGroup.curConsumption);
+                        XIMAAmt = consumptionRecord.validAmount - (rewardTaskGroup.forbidXIMAAmt - rewardTaskGroup.curConsumption);
                     } else {
                         // Still in the range of forbidXIMAAmt
                     }
@@ -2122,7 +2126,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
                             }
 
-                            if (updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                            if (updatedRTG.curConsumption == updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
                                 statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
                             }
 
