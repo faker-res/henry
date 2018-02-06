@@ -3206,6 +3206,16 @@ define(['js/app'], function (myApp) {
                 if(!vm.newPlayer.phoneNumber){
                     return
                 }
+
+                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
+                    // $scope.$evalAsync(() => {
+                    //     vm.existPhone = false;
+                    // });
+                    vm.existPhone = false;
+                    $scope.safeApply();
+                    return;
+                }
+
                 //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
                 var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
                 var sendData = {
@@ -12774,6 +12784,110 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            if (vm.playerFeedbackQuery.consumptionTimesOperator && vm.playerFeedbackQuery.consumptionTimesFormal != null) {
+                switch (vm.playerFeedbackQuery.consumptionTimesOperator) {
+                    case ">=":
+                        sendQuery.consumptionTimes = {
+                            $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.consumptionTimes = vm.playerFeedbackQuery.consumptionTimesFormal;
+                        break;
+                    case "<=":
+                        sendQuery.consumptionTimes = {
+                            $lte: vm.playerFeedbackQuery.consumptionTimesFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.consumptionTimesLatter != null) {
+                            sendQuery.consumptionTimes = {
+                                $lte: vm.playerFeedbackQuery.consumptionTimesLatter,
+                                $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.bonusAmountOperator && vm.playerFeedbackQuery.bonusAmountFormal != null) {
+                switch (vm.playerFeedbackQuery.bonusAmountOperator) {
+                    case ">=":
+                        sendQuery.bonusAmountSum = {
+                            $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.bonusAmountSum = vm.playerFeedbackQuery.bonusAmountFormal;
+                        break;
+                    case "<=":
+                        sendQuery.bonusAmountSum = {
+                            $lte: vm.playerFeedbackQuery.bonusAmountFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.bonusAmountLatter != null) {
+                            sendQuery.bonusAmountSum = {
+                                $lte: vm.playerFeedbackQuery.bonusAmountLatter,
+                                $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.withdrawTimesOperator && vm.playerFeedbackQuery.withdrawTimesFormal != null) {
+                switch (vm.playerFeedbackQuery.withdrawTimesOperator) {
+                    case ">=":
+                        sendQuery.withdrawTimes = {
+                            $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.withdrawTimes = vm.playerFeedbackQuery.withdrawTimesFormal;
+                        break;
+                    case "<=":
+                        sendQuery.withdrawTimes = {
+                            $lte: vm.playerFeedbackQuery.withdrawTimesFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.withdrawTimesLatter != null) {
+                            sendQuery.withdrawTimes = {
+                                $lte: vm.playerFeedbackQuery.withdrawTimesLatter,
+                                $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.topUpSumOperator && vm.playerFeedbackQuery.topUpSumFormal != null) {
+                switch (vm.playerFeedbackQuery.topUpSumOperator) {
+                    case ">=":
+                        sendQuery.topUpSum = {
+                            $gte: vm.playerFeedbackQuery.topUpSumFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.topUpSum = vm.playerFeedbackQuery.topUpSumFormal;
+                        break;
+                    case "<=":
+                        sendQuery.topUpSum = {
+                            $lte: vm.playerFeedbackQuery.topUpSumFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.topUpSumLatter != null) {
+                            sendQuery.topUpSum = {
+                                $lte: vm.playerFeedbackQuery.topUpSumLatter,
+                                $gte: vm.playerFeedbackQuery.topUpSumFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
             if (vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
                 sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
             }
@@ -17833,6 +17947,21 @@ define(['js/app'], function (myApp) {
                     result = $translate(val);
                 } else if (fieldName === 'applyForDate') {
                     result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+                } else if (fieldName === 'returnDetail') {
+                    // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
+                    let newReturnDetail = {};
+                    Object.keys(val).forEach(
+                        key => {
+                            if (key && key.indexOf(':') != -1) {
+                                let splitGameTypeIdArr = key.split(':');
+                                let gameTypeId = splitGameTypeIdArr[1];
+                                newReturnDetail[splitGameTypeIdArr[0]+':'+vm.allGameTypes[gameTypeId]] = val[key];
+                            }
+                        });
+                    result = JSON.stringify(newReturnDetail || val)
+                        .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                        .replace(new RegExp('ratio','gm'), $translate('RATIO'))
+                        .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
                 } else if (typeof(val) == 'object') {
                     result = JSON.stringify(val);
                 } else if (fieldName === "upOrDown") {

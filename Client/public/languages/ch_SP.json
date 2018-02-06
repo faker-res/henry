@@ -2416,6 +2416,9 @@
   "getBonusRequestList": "获取申请提款列表",
   "cancelBonusRequest": "取消申请提款",
   "getBonusList": "获取奖品列表",
+  "nonXIMADetail": "非洗码详情",
+  "totalNonXIMAAmt": "非洗码金额",
+  "bConsumptionReturnRequest": "是否为玩家提交提前洗码",
   "getOnlineTopupType": "获取在线充值类型",
   "createOnlineTopupProposal": "在线充值",
   "requestManualTopup": "手工充值",
@@ -3222,6 +3225,7 @@
   "consumeValidAmount": "有效流水",
   "average line": "平均线",
   "average value": "平均值",
-  "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话"
+  "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
+  "LoginPlayer": "登入玩家"
 
 }

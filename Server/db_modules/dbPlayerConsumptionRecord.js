@@ -465,6 +465,7 @@ var dbPlayerConsumptionRecord = {
                                 weeklyConsumptionSum: record.validAmount,
                                 pastMonthConsumptionSum: record.validAmount,
                                 consumptionTimes: 1,
+                                bonusAmountSum: record.bonusAmount,
                                 creditBalance: -record.validAmount
                             }
                         }
@@ -546,30 +547,10 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             returnableAmt => {
-                if (returnableAmt && returnableAmt > 0) {
-                    // Update consumption summary record (XIMA purpose)
-                    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
-                    let summaryDay = recordDateNoon;
-                    let consumptionAmount = returnableAmt;
+                let readyXIMAAmt = returnableAmt ? returnableAmt : 0;
+                let nonXIMAAmt = record.validAmount - readyXIMAAmt;
 
-                    if (record.createTime.getTime() < recordDateNoon.getTime()) {
-                        summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
-                    }
-
-                    let query = {
-                        playerId: record.playerId,
-                        platformId: record.platformId,
-                        gameType: record.gameType,
-                        summaryDay: summaryDay,
-                        bDirty: false
-                    };
-
-                    let updateData = {
-                        $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
-                    };
-
-                    return dbPlayerConsumptionRecord.upsert(query, updateData);
-                }
+                return updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt);
             },
             error => {
                 return Promise.reject({name: "DBError", message: "Error checking player reward task group", error: error});
@@ -585,6 +566,7 @@ var dbPlayerConsumptionRecord = {
                             dailyConsumptionSum: isSameDay ? record.validAmount : 0,
                             weeklyConsumptionSum: record.validAmount,
                             pastMonthConsumptionSum: record.validAmount,
+                            bonusAmountSum: record.bonusAmount,
                             consumptionTimes: 1
                         }
                     }
@@ -871,7 +853,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
 
-                    updateRTG(oldData, recordData).catch(errorUtils.reportError);
+                    updateRTG(oldData, recordData);
 
                     delete recordData.name;
                     return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
@@ -2121,22 +2103,109 @@ function updateRTG (oldData, newData) {
 
         return dbGameProvider.getProviderGroupByProviderId(oldData.platformId, oldData.providerId).then(
             providerGroupObj => {
-                // Find available RTG to update
-                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-                    platformId: oldData.platformId,
-                    playerId: oldData.playerId,
-                    providerGroup: providerGroupObj._id,
-                    status: constRewardTaskStatus.STARTED,
-                    createTime: {$lt: oldData.createTime}
-                }, {
-                    $inc: {
-                        currentAmt: incBonusAmt,
-                        curConsumption: incValidAmt
+                if (providerGroupObj) {
+                    // Find available RTG to update
+                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                        platformId: oldData.platformId,
+                        playerId: oldData.playerId,
+                        providerGroup: providerGroupObj._id,
+                        status: constRewardTaskStatus.STARTED
+                    }, {
+                        $inc: {
+                            currentAmt: incBonusAmt,
+                            curConsumption: incValidAmt
+                        }
+                    }, {
+                        new: true
+                    });
+                }
+            }
+        ).then(
+            updatedRTG => {
+                let summAdjustXIMAAmt = 0, summAdjustNonXIMAAmt = 0;
+
+                if (updatedRTG && updatedRTG.forbidXIMAAmt > 0) {
+                    let offsetDiff = updatedRTG.curConsumption - updatedRTG.forbidXIMAAmt;
+                    let curConsumptionBeforeUpdate = updatedRTG.curConsumption - incValidAmt;
+
+                    if (offsetDiff <= 0 && curConsumptionBeforeUpdate <= updatedRTG.forbidXIMAAmt) {
+                        // Scenario 1: curConsumption is less than forbidXIMAAmt before and after update
+                        summAdjustNonXIMAAmt = incValidAmt;
+                    } else if (offsetDiff <= 0 && curConsumptionBeforeUpdate > updatedRTG.forbidXIMAAmt) {
+                        // Scenario 2: curConsumption is more than forbidXIMAAmt before update, but is less than after update
+                        summAdjustXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
+                        summAdjustNonXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
+                    } else if (offsetDiff > 0 && curConsumptionBeforeUpdate < updatedRTG.forbidXIMAAmt) {
+                        // Scenario 2: curConsumption is less than forbidXIMAAmt before update, but is more than after update
+                        summAdjustNonXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
+                        summAdjustXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
+                    } else {
+                        // Scenario 3: curConsumption is more than forbidXIMAAmt before and after update
+                        summAdjustXIMAAmt = incValidAmt;
                     }
-                });
+                } else {
+                    // All credit reflect on summary valid credit
+                    summAdjustNonXIMAAmt = incValidAmt;
+                }
+
+                // Update consumption summary upon updating consumption record
+                updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
+
+                dbconfig.collection_platform.findOne({platformId: oldData.platformId}).then(
+                    platform => {
+                        // Check whether RTG status changed
+                        let statusUpdObj = {
+                            unlockTime: new Date()
+                        };
+
+                        // Check whether player has lost all credit
+                        if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
+                            statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
+                        }
+
+                        if (updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                            statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
+                        }
+
+                        if (statusUpdObj.status) {
+                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                {
+                                    _id: updatedRTG._id
+                                },
+                                statusUpdObj,
+                                {new: true}
+                            )
+                        }
+                    }
+                ).catch(errorUtils.reportError);
             }
         )
     }
+}
+
+function updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt) {
+    // Update consumption summary record (XIMA purpose)
+    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
+    let summaryDay = recordDateNoon;
+    let consumptionAmount = readyXIMAAmt;
+
+    if (record.createTime.getTime() < recordDateNoon.getTime()) {
+        summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
+    }
+
+    let query = {
+        playerId: record.playerId,
+        platformId: record.platformId,
+        gameType: record.gameType,
+        summaryDay: summaryDay,
+        bDirty: false
+    };
+
+    let updateData = {
+        $inc: {amount: consumptionAmount, validAmount: consumptionAmount, nonXIMAAmt: nonXIMAAmt}
+    };
+
+    return dbPlayerConsumptionRecord.upsert(query, updateData);
 }
 
 // module.exports = dbPlayerConsumptionRecord;

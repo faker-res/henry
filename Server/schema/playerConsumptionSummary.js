@@ -21,7 +21,9 @@ var playerConsumptionSummarySchema = new Schema({
     // when this record was made dirty
     dirtyDate: {type: Date, default: null},
     // list of ids of consumption records which correspond to this summary (for verification purposes)
-    consumptionRecords: [{type: Schema.Types.ObjectId}]
+    consumptionRecords: [{type: Schema.Types.ObjectId}],
+    // Accummulation of non XIMA amount
+    nonXIMAAmt: {type: Number, default: 0}
 });
 
 // the unique key here is defined in shard key config, the index here is for non-shard config

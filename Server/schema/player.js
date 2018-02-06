@@ -185,6 +185,10 @@ var playerSchema = new Schema({
     topUpSum: {type: Number, min: 0, default: 0},
     //top up times
     topUpTimes: {type: Number, min: 0, default: 0, index: true},
+    // withdrawal times
+    withdrawTimes: {type: Number, min: 0, default: 0, index: true},
+    // total profit / losses of player
+    bonusAmountSum: {type: Number, min: 0, default: 0, index: true},
     //daily consumption sum for level up check
     dailyConsumptionSum: {type: Number, min: 0, default: 0},
     //weekly consumption sum for level up check
