@@ -8578,7 +8578,7 @@ let dbPlayerInfo = {
             if (transferAmount && gameData && gameData.provider) {
                 //transfer in to current provider
                 if (bTransferIn) {
-                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1);
+                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).catch();
                 }
                 else {
                     //allow player to login if player doesn't have enough credit
@@ -8749,7 +8749,8 @@ let dbPlayerInfo = {
                                                     && playerData.lastPlayedProvider.status == constGameStatus.ENABLE
                                                     && playerData.lastPlayedProvider.providerId != gameData.provider.providerId)
                                                 {
-                                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                                                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
+                                                      playerData.lastPlayedProvider.providerId, -1, null, true);
                                                 }
 
                                                 return retData;
