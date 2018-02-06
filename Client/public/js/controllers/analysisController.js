@@ -1344,8 +1344,6 @@ define(['js/app'], function (myApp) {
             if (mapObj) {
                 vm.map.clickMapObject(mapObj);
             }
-
-
         }
         vm.locationCountryHover = function (id, type) {
             if (!id) {
@@ -2333,6 +2331,7 @@ define(['js/app'], function (myApp) {
             });
             socketService.$plotPie(elementId, pieData, {});
         };
+
         vm.drawLocationCountryGraphByElementId = function (elementId, data) {
             let pieData = data.map(item => {
                 let data = {
@@ -2342,7 +2341,6 @@ define(['js/app'], function (myApp) {
             });
             socketService.$plotPie(elementId, pieData, {});
         };
-
 
     };
     analysisController.$inject = injectParams;
