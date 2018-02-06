@@ -2106,8 +2106,7 @@ function updateRTG (oldData, newData) {
                         platformId: oldData.platformId,
                         playerId: oldData.playerId,
                         providerGroup: providerGroupObj._id,
-                        status: constRewardTaskStatus.STARTED,
-                        createTime: {$lt: oldData.createTime}
+                        status: constRewardTaskStatus.STARTED
                     }, {
                         $inc: {
                             currentAmt: incBonusAmt,
@@ -2126,7 +2125,11 @@ function updateRTG (oldData, newData) {
                 // 3. No provider group setting
                 if (!updatedRTG || (updatedRTG && updatedRTG.curConsumption > updatedRTG.forbidXIMAAmt)) {
                     // Update consumption summary upon updating consumption record
-                    return updateConsumptionSumamry(oldData, incValidAmt);
+                    updateConsumptionSumamry(oldData, incValidAmt).catch(errorUtils.reportError);
+                    // Check whether RTG status changed
+                    if (updatedRTG.status == constRewardTaskStatus.ACHIEVED || updatedRTG.status == constRewardTaskStatus.NO_CREDIT) {
+                        dbRewardTask.completeRewardTaskGroup(updatedRTG, updatedRTG.status).catch(errorUtils.reportError);
+                    }
                 }
             }
         )
