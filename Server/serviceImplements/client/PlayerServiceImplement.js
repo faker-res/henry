@@ -21,6 +21,7 @@ const constMessageType = require('./../../const/constMessageType');
 const dbLogger = require('./../../modules/dbLogger');
 const dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
+const errorUtils = require("./../../modules/errorUtils");
 
 let PlayerServiceImplement = function () {
     PlayerService.call(this);
@@ -106,7 +107,13 @@ let PlayerServiceImplement = function () {
                     if(data && data.realName && data.realName != "" && data.partnerName && data.partnerName != ""){
                         dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
                     }else{
-                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                            isUpdateData=> {
+                                if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY).catch(errorUtils.reportError);
+                                }
+                            }
+                        );
                     }
 
                     //dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();

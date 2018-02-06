@@ -1480,6 +1480,7 @@
   "createPlatform": "创建平台",
   "createGameAndAddToProvider": "创建提供商游戏",
   "addGameType": "添加游戏类型",
+  "NoVerify": "免验",
   "startProviderDailySettlement": "开始提供商每日结算",
   "startPlatformDailySettlement": "开始平台每日结算",
   "startPlatformWeeklySettlement": "开始平台每周结算",

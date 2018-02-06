@@ -36,7 +36,8 @@ define(['js/app'], function (myApp) {
                 CANCEL: "Cancel",
                 EXPIRED: "Expired",
                 UNDETERMINED: "Undetermined",
-                CSPENDING: "CsPending"
+                CSPENDING: "CsPending",
+                NOVERIFY: "NoVerify"
             };
             vm.allProposalStatus = [
                 "PrePending",
@@ -51,7 +52,8 @@ define(['js/app'], function (myApp) {
                 "Expired",
                 "Undetermined",
                 "Recover",
-                "CsPending"
+                "CsPending",
+                "NoVerify"
             ];
 
             // vm.allProposalType = [
@@ -264,7 +266,8 @@ define(['js/app'], function (myApp) {
             vm.newPlayerListStatus = {
                 SUCCESS: "SUCCESS",
                 ATTEMPT: "ATTEMPT",
-                MANUAL: "MANUAL"
+                MANUAL: "MANUAL",
+                NOVERIFY: "NoVerify"
             };
 
             vm.soundChoice = {
@@ -313,7 +316,8 @@ define(['js/app'], function (myApp) {
                 EXPIRED: "Expired",
                 UNDETERMINED: "Undetermined",
                 RECOVER: "Recover",
-                MANUAL: "Manual"
+                MANUAL: "Manual",
+                NOVERIFY: "NoVerify"
             };
 
             vm.constRegistrationIntentRecordStatus = {
@@ -3409,7 +3413,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 else {
-                    selectedStatus = [vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS, vm.constProposalStatus.PENDING];
+                    selectedStatus = [vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS, vm.constProposalStatus.PENDING, vm.constProposalStatus.NOVERIFY];
                 }
 
                 var sendData = {
@@ -3431,7 +3435,7 @@ define(['js/app'], function (myApp) {
                 if (selectedStatus && selectedStatus != "") {
                     sendData.status = selectedStatus
                 } else {
-                    sendData.status = [vm.constProposalStatus.MANUAL,vm.constProposalStatus.SUCCESS ,vm.constProposalStatus.PENDING];
+                    sendData.status = [vm.constProposalStatus.MANUAL,vm.constProposalStatus.SUCCESS ,vm.constProposalStatus.PENDING, vm.constProposalStatus.NOVERIFY];
                 }
 
                 vm.newPlayerRecords.loading = true;
@@ -3462,7 +3466,11 @@ define(['js/app'], function (myApp) {
                                 else if (record.status == vm.constProposalStatus.MANUAL) {
                                     //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                     record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                } else {
+                                }
+                                else if (record.status == vm.constProposalStatus.NOVERIFY) {
+                                    record.statusName = record.status ? $translate("NoVerify") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else {
                                     record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
                             }

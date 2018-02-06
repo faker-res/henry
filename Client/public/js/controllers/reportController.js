@@ -40,7 +40,8 @@ define(['js/app'], function (myApp) {
             CANCEL: "Cancel",
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
-            CSPENDING: "CsPending"
+            CSPENDING: "CsPending",
+            NOVERIFY: "NoVerify"
         };
         vm.topUpTypeList = {
             TOPUPMANUAL: 1,
