@@ -3206,6 +3206,16 @@ define(['js/app'], function (myApp) {
                 if(!vm.newPlayer.phoneNumber){
                     return
                 }
+
+                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
+                    // $scope.$evalAsync(() => {
+                    //     vm.existPhone = false;
+                    // });
+                    vm.existPhone = false;
+                    $scope.safeApply();
+                    return;
+                }
+
                 //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
                 var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
                 var sendData = {

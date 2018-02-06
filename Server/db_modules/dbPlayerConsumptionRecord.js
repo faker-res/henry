@@ -547,28 +547,7 @@ var dbPlayerConsumptionRecord = {
         ).then(
             returnableAmt => {
                 if (returnableAmt && returnableAmt > 0) {
-                    // Update consumption summary record (XIMA purpose)
-                    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
-                    let summaryDay = recordDateNoon;
-                    let consumptionAmount = returnableAmt;
-
-                    if (record.createTime.getTime() < recordDateNoon.getTime()) {
-                        summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
-                    }
-
-                    let query = {
-                        playerId: record.playerId,
-                        platformId: record.platformId,
-                        gameType: record.gameType,
-                        summaryDay: summaryDay,
-                        bDirty: false
-                    };
-
-                    let updateData = {
-                        $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
-                    };
-
-                    return dbPlayerConsumptionRecord.upsert(query, updateData);
+                    return updateConsumptionSumamry(record, returnableAmt);
                 }
             },
             error => {
@@ -2133,10 +2112,47 @@ function updateRTG (oldData, newData) {
                         currentAmt: incBonusAmt,
                         curConsumption: incValidAmt
                     }
+                }, {
+                    new: true
                 });
+            }
+        ).then(
+            updatedRTG => {
+                // Alter consumption summary in 2 scenario:
+                // 1. There is no RTG to update, updating record will reflect on summary directly
+                // 2. There is RTG, and the consumption is over forbidXIMAAmt after update.
+                if (!updatedRTG || (updatedRTG && updatedRTG.curConsumption > updatedRTG.forbidXIMAAmt)) {
+                    // Update consumption summary upon updating consumption record
+                    return updateConsumptionSumamry(oldData, incValidAmt);
+                }
             }
         )
     }
+}
+
+function updateConsumptionSumamry(record, returnableAmt) {
+    // Update consumption summary record (XIMA purpose)
+    let recordDateNoon = new Date(moment(record.createTime).tz('Asia/Singapore').startOf('day').toDate().getTime() + 12 * 60 * 60 * 1000);
+    let summaryDay = recordDateNoon;
+    let consumptionAmount = returnableAmt;
+
+    if (record.createTime.getTime() < recordDateNoon.getTime()) {
+        summaryDay = new Date(recordDateNoon.getTime() - 24 * 60 * 60 * 1000);
+    }
+
+    let query = {
+        playerId: record.playerId,
+        platformId: record.platformId,
+        gameType: record.gameType,
+        summaryDay: summaryDay,
+        bDirty: false
+    };
+
+    let updateData = {
+        $inc: {amount: consumptionAmount, validAmount: consumptionAmount}
+    };
+
+    return dbPlayerConsumptionRecord.upsert(query, updateData);
 }
 
 // module.exports = dbPlayerConsumptionRecord;
