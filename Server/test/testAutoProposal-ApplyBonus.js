@@ -21,6 +21,7 @@ let commonTestFunc = require('../test_modules/commonTestFunc');
  *  4:  First time withdrawal
  *  5:  Situation A: topup > bonus
  *  6:  Situation B: Consumption amount < required consumption for reward
+ *  7:  Situation C: Profit Times exceeded 10
  */
 describe("Test Auto Proposal - Apply Bonus", function () {
 
@@ -43,7 +44,8 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             autoApproveWhenSingleBonusApplyLessThan: 300,
             autoApproveWhenSingleDayTotalBonusApplyLessThan: 500,
             autoApproveRepeatCount: 3,
-            samePhoneNumberRegisterCount: 10
+            samePhoneNumberRegisterCount: 10,
+            autoApproveProfitTimesMinAmount: 100,
         };
 
         commonTestFunc.createTestPlatform(platformData).then(
@@ -87,7 +89,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 // Create bonus proposal
                 let proposalData = {
                     type: playerBonusProposalTypeObjId,
-                    status: constProposalStatus.PENDING,
+                    status: constProposalStatus.AUTOAUDIT,
                     data: {
                         platformId: testPlatformObj._id,
                         platform: testPlatformObj.platformId,
@@ -146,7 +148,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
 
                 let proposalData2 = {
                     type: playerBonusProposalTypeObjId,
-                    status: constProposalStatus.PENDING,
+                    status: constProposalStatus.AUTOAUDIT,
                     data: {
                         platformId: testPlatformObj._id,
                         platform: testPlatformObj.platformId,
@@ -207,7 +209,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 // Create top up proposal
                 let proposalData1 = {
                     type: proposalTypeObjId,
-                    status: constProposalStatus.PENDING,
+                    status: constProposalStatus.AUTOAUDIT,
                     data: {
                         platformId: testPlatformObj._id,
                         platform: testPlatformObj.platformId,
@@ -252,7 +254,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 // Create bonus proposal
                 let proposalData = {
                     type: playerBonusProposalTypeObjId,
-                    status: constProposalStatus.PENDING,
+                    status: constProposalStatus.AUTOAUDIT,
                     data: {
                         platformId: testPlatformObj._id,
                         platform: testPlatformObj.platformId,
@@ -564,6 +566,161 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                             done(err)
                         }
                     );
+                }, 200);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).catch(
+            error => {
+                done(error);
+            }
+        );
+    });
+
+    it('Case 7: Profit Times exceeded 10', function (done) {
+        commonTestFunc.createTestPlayer(testPlatformObj._id).then(
+            data => {
+                testPlayerObj = data;
+
+                // Create top up proposal
+                let proposalData = {
+                    mainType: "TopUp",
+                    type: playerTopUpProposalTypeObjId,
+                    status: constProposalStatus.SUCCESS,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 400,
+                        playerStatus: constPlayerStatus.NORMAL
+                    },
+                    createTime: new Date()
+                };
+
+                return commonTestFunc.createTestProposal(proposalData);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            () => {
+                // Create Consumption Record
+                let consumptionRecordData = {
+                    "playerId" : testPlayerObj._id,
+                    "platformId" : testPlatformObj._id,
+                    "gameId": testGame._id,
+                    "insertTime": new Date(),
+                    "gameType": testGame.type,
+                    "amount": 450,
+                    "validAmount": 450,
+                    "bonusAmount": 5000,
+                    "createTime": new Date(),
+                    "orderNo": Math.random()
+                };
+
+                return dbPlayerConsumptionRecord.createPlayerConsumptionRecord(consumptionRecordData);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            () => {
+                let yesterday = new Date();
+                yesterday.setDate(yesterday.getDate()-1);
+
+                // Create first succeeded bonus proposal (bFirstWithdraw)
+                let proposalData = {
+                    type: playerBonusProposalTypeObjId,
+                    status: constProposalStatus.SUCCESS,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 50,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    },
+                    createTime: yesterday
+                };
+
+                return commonTestFunc.createTestProposal(proposalData);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            () => {
+
+                // Create bonus proposal
+                let proposalData = {
+                    type: playerBonusProposalTypeObjId,
+                    status: constProposalStatus.AUTOAUDIT,
+                    data: {
+                        platformId: testPlatformObj._id,
+                        platform: testPlatformObj.platformId,
+                        playerName: testPlayerObj.name,
+                        playerId: testPlayerObj.playerId,
+                        playerObjId: testPlayerObj._id,
+                        amount: 170,
+                        playerStatus: constPlayerStatus.NORMAL,
+                        bonusId: 123,
+                    },
+                    createTime: new Date()
+                };
+
+                return commonTestFunc.createTestProposal(proposalData);
+            },
+            error => {
+                if(error instanceof Error) {
+                    throw error;
+                } else {
+                    throw new Error(JSON.stringify(error, null, 2));
+                }
+            }
+        ).then(
+            () => dbAutoProposal.applyBonus(testPlatformObj._id)
+        ).then(
+            () => {
+                // top up 400
+                // win bonus 5000
+                // first withdraw bonus 50
+                // second withdraw bonus 170
+                // profit times = 5000 / 400 = 12.5
+
+                setTimeout(() => {
+                    return dbConfig.collection_proposal.findOne({
+                        'data.platformId': testPlatformObj._id,
+                        type: playerBonusProposalTypeObjId,
+                        'data.playerObjId': testPlayerObj._id,
+                        status: {$ne: constProposalStatus.SUCCESS}
+                    }).then(
+                        proposal => {
+                            // proposal status should change from AutoAudit to Pending
+                            proposal.status.should.equal("Pending");
+                            done();
+                        }
+                    )
                 }, 200);
             },
             error => {
