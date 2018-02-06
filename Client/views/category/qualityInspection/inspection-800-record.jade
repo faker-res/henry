@@ -40,7 +40,7 @@
                     i.fa.fa-spinner.fa-spin
                 span.margin-left-5
             .inlineBlk
-                i#searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
+                i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
 
 div
     label 总共：{{vm.pgn.count}} 笔（有效+无效）对话
@@ -83,13 +83,15 @@ div.row(ng-show='vm.conversationForm.length > 0', style='margin-top:20px;')
             //ul.pagination(ng-repeat="i in vm.pgnPages")
                 li(ng-click="vm.gotoPG(i, $event)")
                     a {{$index+1}}
-        div.col-md-2
+        div.col-md-3
             div(style='display:inline-block')
                 span(style="width:50px;display:inline-block;") 跳到
                 input.form-control(style='max-width:80px;display:inline-block;',type="number",ng-model="vm.pgn.currentPage",ng-init=1 ,ng-blur="vm.gotoPG((vm.pgn.currentPage),null)")
                 span(style="display:inline-block;") 页
             div(style='display:inline-block')
                 .btn.btn-primary(ng-click="vm.nextPG()") 下一页
+            div(style='display:inline-block')
+                i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
 
 div(style='display:none')
     div#conversationForm(style='height:60px')
@@ -125,10 +127,10 @@ div(style='display:none')
                                 div(style='text-align:center') {{convert.review}}
                 .row
                     div(style="text-align:center;color:red") 結束對話:访客关闭对话 ({{cform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
-            div.col-md-1
+            div.col-md-1(style="padding-top:10px;")
                 div.text-center  {{cform.qualityAssessor.adminName}}
-            div.col-md-1
+            div.col-md-1(style="padding-top:10px;")
                 div.text-center  {{cform.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
-            div.col-md-1
+            div.col-md-1(style="padding-top:10px;")
                 div.form-group
                     textarea.form-control(value="{{cform.appealReason}}", readonly="readonly", rows="3")
