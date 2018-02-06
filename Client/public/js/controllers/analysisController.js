@@ -1110,11 +1110,13 @@ define(['js/app'], function (myApp) {
                     });
                 } else if (vm.showPageName == 'PLAYER_IP_LOCATION') {
                     vm.playerLocationCountries = data.data;
+                    vm.totalPlayerLocationCountries = vm.playerLocationCountries.map(item => {return item.amount}).reduce((a, b) => {return a + b},0);
                     vm.setAreaData('country', vm.playerLocationCountries, function () {
                         vm.mapName = "worldHigh";
                         vm.drawMap();
                         $scope.safeApply();
                     });
+                    vm.drawLocationCountryGraphByElementId("#playerLocationCountriesPie", vm.playerLocationCountries);
                 } else if (vm.showPageName == 'PLAYER_PHONE_LOCATION') {
                     vm.playerPhoneProvince = data.data;
                     $scope.safeApply();
@@ -1294,6 +1296,7 @@ define(['js/app'], function (myApp) {
                                 map.zoomToObject(mapObject);
                             }
                         });
+                        vm.drawLocationCityGraphByElementId('#playerLocationCountriesPie', vm.playerLocationCities);
                     });
                 });
             }
@@ -1309,6 +1312,7 @@ define(['js/app'], function (myApp) {
                 vm.mapName = 'worldHigh';
                 vm.drawMap();
             });
+            vm.drawLocationCountryGraphByElementId("#playerLocationCountriesPie", vm.playerLocationCountries);
         }
         vm.getCountryTitle = function (AA) {
             if (!AA) return '';
@@ -1324,6 +1328,8 @@ define(['js/app'], function (myApp) {
             if (mapObj) {
                 vm.map.clickMapObject(mapObj);
             }
+
+
         }
         vm.locationCountryHover = function (id, type) {
             if (!id) {
@@ -2301,6 +2307,27 @@ define(['js/app'], function (myApp) {
             );
 
         });
+
+        vm.drawLocationCityGraphByElementId = function (elementId, data) {
+            let pieData = data.map(item => {
+                let data = {
+                    label: vm.getCountryTitle(item._id.city) || $translate('Unknown'), data: item.amount
+                };
+                return data;
+            });
+            socketService.$plotPie(elementId, pieData, {});
+        };
+        vm.drawLocationCountryGraphByElementId = function (elementId, data) {
+            let pieData = data.map(item => {
+                let data = {
+                    label: vm.getCountryTitle(item._id.country) || $translate('Unknown'), data: item.amount
+                };
+                return data;
+            });
+            socketService.$plotPie(elementId, pieData, {});
+        };
+
+
     };
     analysisController.$inject = injectParams;
     myApp.register.controller('analysisCtrl', analysisController);
