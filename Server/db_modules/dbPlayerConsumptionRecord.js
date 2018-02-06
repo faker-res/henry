@@ -465,6 +465,7 @@ var dbPlayerConsumptionRecord = {
                                 weeklyConsumptionSum: record.validAmount,
                                 pastMonthConsumptionSum: record.validAmount,
                                 consumptionTimes: 1,
+                                bonusAmountSum: record.bonusAmount,
                                 creditBalance: -record.validAmount
                             }
                         }
@@ -565,6 +566,7 @@ var dbPlayerConsumptionRecord = {
                             dailyConsumptionSum: isSameDay ? record.validAmount : 0,
                             weeklyConsumptionSum: record.validAmount,
                             pastMonthConsumptionSum: record.validAmount,
+                            bonusAmountSum: record.bonusAmount,
                             consumptionTimes: 1
                         }
                     }
