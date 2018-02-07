@@ -1465,7 +1465,7 @@ var proposalExecutor = {
                                 }
                             ).then(deferred.resolve, deferred.reject);
                         }
-                    );
+                    ).catch(errorUtils.reportError);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player consumption return proposal data"});
