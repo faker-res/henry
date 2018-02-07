@@ -4159,7 +4159,10 @@ function insertPlayerRepeatCount(proposals, platformId) {
                         if(futureManualCount){
                             proposal.$playerAllCount = proposal.$playerAllCount - futureManualCount;
                         }
-                    } else if(status == constProposalStatus.MANUAL) {
+                    }else if(status == constProposalStatus.MANUAL) {
+                        proposal.$playerAllCount = 1;
+                        proposal.$playerCurrentCount = 1;
+                    }else if(status == constProposalStatus.NOVERIFY) {
                         proposal.$playerAllCount = 1;
                         proposal.$playerCurrentCount = 1;
                     } else {
