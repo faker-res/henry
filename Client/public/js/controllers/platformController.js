@@ -406,8 +406,19 @@ define(['js/app'], function (myApp) {
             vm.proposalTemplate = {
                 1: '#modalProposal',
                 2: '#newPlayerModal'
-            }
-            /////////////Victor::Platform functions
+            };
+
+            vm.getPlatformProvider = function (id) {
+                if (!id) return;
+                socketService.$socket($scope.AppSocket, 'getPlatform', {_id: id}, function (data) {
+                    vm.allProviders = data.data.gameProviders;
+                    console.log('vm.allProviders', vm.allProviders);
+                    $scope.safeApply();
+                }, function (data) {
+                    console.log("create not", data);
+                });
+            };
+
             vm.toggleShowPlatformDropDownList = function () {
                 vm.showPlatformDropDownList = !vm.showPlatformDropDownList;
 
@@ -849,6 +860,7 @@ define(['js/app'], function (myApp) {
                 vm.getAllAlipaysByAlipayGroup();
                 vm.getAllWechatpaysByWechatpayGroup();
                 vm.getAllBankCard();
+                vm.getPlatformProvider(vm.selectedPlatform.id);
                 // check settlement buttons
                 var nowDate = new Date().toLocaleDateString();
                 var dailyDate = new Date(vm.selectedPlatform.data.lastDailySettlementTime).toLocaleDateString();
@@ -12923,8 +12935,72 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     console.log('_getSinglePlayerFeedbackQuery', data);
                     let playerList = [];
-                    playerList.push(data.data.data);
+                    vm.playerFeedbackResult = data.data.data;
+                    playerList.push(vm.playerFeedbackResult);
                     setTableData(vm.playerFeedbackTable, playerList);
+
+                    //process data for extended table
+                    vm.playerFeedbackResultExtended = vm.playerFeedbackResult.consumptionDetail;
+                    vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.topUpAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
+                    vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionBonusAmount).toFixed(2);
+
+                    vm.playerFeedbackResultExtended.playerLevel$ = "";
+                    if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
+                        vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
+                    }
+                    else {
+                        vm.playerFeedbackResultExtended.playerLevel$ = "";
+                    }
+
+                    vm.playerFeedbackResultExtended.credibility$ = "";
+                    if (vm.playerFeedbackResultExtended.credibilityRemarks) {
+                        for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
+                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                if (vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                    vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                }
+                            }
+                        }
+                    }
+
+                    vm.playerFeedbackResultExtended.providerArr = [];
+                    for (var key in vm.playerFeedbackResultExtended.providerDetail) {
+                        if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
+                            vm.playerFeedbackResultExtended.providerDetail[key].providerId = key;
+                            vm.playerFeedbackResultExtended.providerArr.push(vm.playerFeedbackResultExtended.providerDetail[key]);
+                        }
+                    }
+
+                    vm.playerFeedbackResultExtended.provider$ = "";
+                    if (vm.playerFeedbackResultExtended.providerDetail) {
+                        for (let i = 0; i < vm.playerFeedbackResultExtended.providerArr.length; i++) {
+                            vm.playerFeedbackResultExtended.providerArr[i].amount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].amount).toFixed(2);
+                            vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                            for (let j = 0; j < vm.allProviders.length; j++) {
+                                if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                    vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
+                                    vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                }
+                            }
+                        }
+                    }
+
+                    vm.playerFeedbackResultExtended.profit$ = 0;
+                    if (vm.playerFeedbackResultExtended.consumptionBonusAmount != 0 && vm.playerFeedbackResultExtended.validConsumptionAmount != 0) {
+                        vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
+                    }
+                    //end processing for extended table
 
                     vm.curFeedbackPlayer = data.data.data;
                     vm.feedbackPlayersPara.total = data.data.total || 0;
