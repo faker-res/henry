@@ -39,6 +39,17 @@ describe("Test Auto Proposal - Apply Bonus", function () {
     let proposalTypeObjId;
     let playerBonusProposalTypeObjId, playerTopUpProposalTypeObjId;
 
+    let testGame, curBonusProposal;
+
+    let threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate()-3);
+    let twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate()-2);
+    let yesterday = new Date();
+    yesterday.setDate(yesterday.getDate()-1);
+    let oneWeekLater = new Date();
+    oneWeekLater.setDate(oneWeekLater.getDate()+7);
+
     it('Should create test API platform', function (done) {
         let platformData = {
             autoApproveWhenSingleBonusApplyLessThan: 300,
@@ -129,7 +140,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             data => {
                 testPlayerObj = data;
 
-                // Create top up proposal
+                // Create bonus proposal
                 let proposalData1 = {
                     type: playerBonusProposalTypeObjId,
                     status: constProposalStatus.SUCCESS,
@@ -194,7 +205,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 testPlayerObj = data;
 
                 return dbPlayerInfo.updatePlayerStatus(testPlayerObj._id, constPlayerStatus.FORBID, 'testing purpose', null, 'admin').then(
-                    data => {
+                    () => {
                         return dbConfig.collection_proposalType.findOne({
                             platformId: testPlatformObj._id,
                             name: constProposalType.PLAYER_BONUS
@@ -272,7 +283,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         ).then(
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
         ).then(
-            (data) => {
+            () => {
                 setTimeout(() => {
                     return dbConfig.collection_proposal.findOne({
                         'data.platformId': testPlatformObj._id,
@@ -335,9 +346,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 return commonTestFunc.createTestProposal(proposalData);
             }
         ).then(
-            (data) => {
-                console.log('Topup proposal createtime', data.createTime);
-
+            () => {
                 // Create bonus proposal
                 let proposalData = {
                     type: playerBonusProposalTypeObjId,
@@ -360,7 +369,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         ).then(
             () => dbAutoProposal.applyBonus(testPlatformObj._id)
         ).then(
-            (data) => {
+            () => {
                 setTimeout(() => {
                     return dbConfig.collection_proposal.findOne({
                         'data.platformId': testPlatformObj._id,
@@ -369,7 +378,6 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                         status: {$ne: constProposalStatus.SUCCESS}
                     }).then(
                         proposal => {
-                            console.log('proposal', proposal);
                             proposal.status.should.equal("Processing");
                             // proposal.data.autoApproveRepeatCount.should.equal(2);
                             done();
@@ -380,15 +388,11 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         );
     });
 
-    let testGame, curBonusProposal;
     it("Case 6: Situation B: Consumption amount < required consumption for reward", function (done) {
         // Create test player
         commonTestFunc.createTestPlayer(testPlatformObj._id).then(
             data => {
                 testPlayerObj = data;
-
-                let threeDaysAgo = new Date();
-                threeDaysAgo.setDate(threeDaysAgo.getDate()-3);
 
                 // Create succeeded bonus proposal
                 let proposalData = {
@@ -418,11 +422,6 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             }
         ).then(
             () => {
-                let twoDaysAgo = new Date();
-                twoDaysAgo.setDate(twoDaysAgo.getDate()-2);
-                let oneWeekLater = new Date();
-                oneWeekLater.setDate(oneWeekLater.getDate()+7);
-
                 // Create Reward Proposal
                 let proposalData = {
                     "mainType" : "Reward",
@@ -469,7 +468,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             }
         ).then(
             () => {
-                // Create Consumption Record
+                // Create Game
                 return commonTestFunc.createGame();
             },
             error => {
@@ -482,9 +481,6 @@ describe("Test Auto Proposal - Apply Bonus", function () {
         ).then(
             game => {
                 testGame = game;
-
-                let yesterday = new Date();
-                yesterday.setDate(yesterday.getDate()-1);
 
                 // Create Consumption Record
                 let consumptionRecordData = {
@@ -509,7 +505,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
                 }
             }
         ).then(
-            data => {
+            () => {
                 // Create bonus proposal
                 let proposalData = {
                     type: playerBonusProposalTypeObjId,
@@ -640,9 +636,6 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             }
         ).then(
             () => {
-                let yesterday = new Date();
-                yesterday.setDate(yesterday.getDate()-1);
-
                 // Create first succeeded bonus proposal (bFirstWithdraw)
                 let proposalData = {
                     type: playerBonusProposalTypeObjId,
@@ -671,8 +664,7 @@ describe("Test Auto Proposal - Apply Bonus", function () {
             }
         ).then(
             () => {
-
-                // Create bonus proposal
+                // Create bonus proposal (withdraw)
                 let proposalData = {
                     type: playerBonusProposalTypeObjId,
                     status: constProposalStatus.AUTOAUDIT,
