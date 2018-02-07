@@ -2352,7 +2352,6 @@ define(['js/app'], function (myApp) {
             let pieData=[];
             if (tag == "IPLocation"){
                 pieData = data.map(item => {
-
                     let data = {
                         label: vm.getCountryTitle(item._id.country) || $translate('Unknown'), data: item.amount
                     };
@@ -2361,7 +2360,6 @@ define(['js/app'], function (myApp) {
             }
             if (tag == "phoneLocation"){
                 pieData = data.map(item => {
-
                     let data = {
                         label: item._id.phoneProvince || $translate('Unknown'), data: item.amount
                     };
