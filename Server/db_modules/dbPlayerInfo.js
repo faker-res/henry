@@ -1621,7 +1621,50 @@ let dbPlayerInfo = {
             }
         );
     },
-
+    updateBatchPlayerPermission: function(query, admin, permission, remark){
+        console.log('aaaaa');
+        // var updateObj = {};
+        // for (var key in permission) {
+        //     updateObj["permission." + key] = permission[key];
+        // }
+        // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+        //     function (suc) {
+        //         var oldData = {};
+        //         for (var i in permission) {
+        //             if (suc.permission[i] != permission[i]) {
+        //                 oldData[i] = suc.permission[i];
+        //             } else {
+        //                 delete permission[i];
+        //             }
+        //         }
+        //         // if (Object.keys(oldData).length !== 0) {
+        //         var newLog = new dbconfig.collection_playerPermissionLog({
+        //             admin: admin,
+        //             platform: query.platform,
+        //             player: query._id,
+        //             remark: remark,
+        //             oldData: oldData,
+        //             newData: permission,
+        //         });
+        //         return newLog.save();
+        //         // } else return true;
+        //     },
+        //     function (error) {
+        //         return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+        //     }
+        // ).then(
+        //     function (suc) {
+        //         return true;
+        //     },
+        //     function (error) {
+        //         return Q.reject({
+        //             name: "DBError",
+        //             message: "Player permission updated. Error occurred when creating log.",
+        //             error: error
+        //         });
+        //     }
+        // );
+    },
     /**
      * Reset player password
      * @param {String}  playerId - The query string
@@ -2061,6 +2104,14 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
 
+    updateBatchPlayerForbidProviders: function (playerObjId, forbidProviders) {
+        let updateData = {};
+        if (forbidProviders) {
+            updateData.forbidProviders = forbidProviders;
+        }
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+    
     updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
         let updateData = {};
         if (forbidRewardEvents) {
@@ -2069,6 +2120,33 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
 
+    updateBatchPlayerForbidRewardEvents: function (playerNames, forbidRewardEvents) {
+        console.log(playerNames);
+        console.log(forbidRewardEvents);
+        let query = {
+            'name': { $in : playerNames }
+        };
+        let updateData = {};
+        if (forbidRewardEvents) {
+            updateData.forbidRewardEvents = forbidRewardEvents;
+        }
+        return dbconfig.collection_players.find(query).then(data=>{
+            console.log(data);
+            let ids = [];
+            if(data.length > 0){
+                 data.forEach(item=>{
+                    ids.push(item._id);
+
+                })
+            }
+            return ids;
+        }).then(playerObjIds=>{
+            console.log(playerObjIds);
+            // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: {$in: playerObjIds }, updateData, constShardKeys.collection_players);
+        })
+
+    },
+    
     updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
         let updateData = {};
         if (forbidRewardPointsEvent) {

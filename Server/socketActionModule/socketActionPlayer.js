@@ -194,7 +194,11 @@ function socketActionPlayer(socketIO, socket) {
             }
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerInfo, [data.query, data.updateData], actionName, isValidData);
         },
-
+        updateBatchPlayerPermission: function updateBatchPlayerPermission(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.query.platform && data.query._ids && data.admin && data.permission && data.remark);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerPermission, [data.query, data.admin, data.permission, data.remark], actionName, isValidData);
+        },
         updatePlayerPermission: function updatePlayerPermission(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.query.platform && data.query._id && data.admin && data.permission && data.remark);
@@ -209,6 +213,12 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPayment, [userAgent, data.query, {forbidTopUpType: data.updateData.forbidTopUpType}, true], actionName, isValidData);
+        },
+
+        updateBatchPlayerForbidPaymentType: function updateBatchPlayerForbidPaymentType(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidPaymentType, [data.query, data.updateData.forbidTopUpType], actionName, isValidData);
         },
 
         updatePlayerForbidPaymentType: function updatePlayerForbidPaymentType(data) {
@@ -241,6 +251,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.forbidRewardEvents);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents], actionName, isValidData);
+        },
+
+        updateBatchPlayerForbidRewardEvents: function updateBatchPlayerForbidRewardEvents(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerNames && data.forbidRewardEvents);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.playerNames, data.forbidRewardEvents], actionName, isValidData);
         },
 
         updatePlayerForbidRewardPointsEvent: function updatePlayerForbidRewardPointsEvent(data) {

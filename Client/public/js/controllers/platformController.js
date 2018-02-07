@@ -10128,6 +10128,25 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            vm.confirmBatchUpdatePlayerTopupTypes = function (sendData) {
+                sendData = sendData || {
+                    query: {_id: vm.isOneSelectedPlayer()._id},
+                    updateData: {forbidTopUpType: vm.showForbidTopupTypes || []}
+                };
+    
+                console.log('sendData', sendData)
+                socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidPaymentType', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                    let forbidTopUpNames = [];
+                    for (let i = 0; i < data.data.forbidTopUpType.length; i++) {
+                        forbidTopUpNames[i] = vm.merchantTopupTypeJson[data.data.forbidTopUpType[i]];
+                    }
+                    vm.updateForbidTopUpLog(data.data._id, forbidTopUpNames);
+                    $scope.safeApply();
+                });
+            }
+            
             vm.selectedDepositMethod = function(depositMethod) {
               if(depositMethod == "1" || depositMethod == "3" || depositMethod == "4") {
                   vm.playerManualTopUp.realName = vm.selectedSinglePlayer.realName;
@@ -11929,6 +11948,14 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.updateBatchPlayerForbidProviders = function (sendData) {
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidProviders', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                    vm.updateForbidGameLog(data.data._id, vm.findForbidCheckedName(data.data.forbidProviders, vm.allGameProvider));
+                });
+            };
+            
             vm.updatePlayerForbidRewardPointsEvent = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardPointsEvent', sendData, function (data) {
@@ -11944,7 +11971,13 @@ define(['js/app'], function (myApp) {
                     vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
                 });
             };
-
+            vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
+                });
+            };
             vm.getPlayerStatusChangeLog = function (rowData) {
                 var deferred = Q.defer();
                 console.log(rowData);
@@ -22637,6 +22670,771 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
 
+
+
+            //
+            vm.initBatchPermit = function () {
+                vm.drawBatchPermitTable();
+            };
+            vm.localRemarkUpdate = function () {
+                let selectedRemarks = [];
+                for (let i = 0; i < vm.credibilityRemarks.length; i++) {
+                    if (vm.credibilityRemarks[i].selected === true) {
+                        selectedRemarks.push(vm.credibilityRemarks[i]._id);
+                    }
+                }
+                vm.batchEditData.credibilityRemarks = selectedRemarks;
+                // let sendQuery = {
+                //     admin: authService.adminName,
+                //     platformObjId: vm.selectedSinglePlayer.platform,
+                //     playerObjId: vm.selectedSinglePlayer._id,
+                //     remarks: selectedRemarks,
+                //     comment: vm.credibilityRemarkComment
+                // };
+                console.log(vm.batchEditData.credibilityRemarks);
+                vm.drawBatchPermitTable();
+            };
+            vm.batchUpdatePlayer = function () {
+                console.log(vm.batchEditData);
+            };
+            vm.batchEditData = {
+                "_id": "583d1fbe16782962721afeae",
+                "permission": {
+                    "alipayTransaction": true,
+                    "topupManual": true,
+                    "topupOnline": true,
+                    "transactionReward": true,
+                    "advanceConsumptionReward": true,
+                    "applyBonus": true
+                },
+                "forbidProviders": [],
+                "smsSetting": {
+                    "updatePassword": false,
+                    "updatePaymentInfo": false,
+                    "consumptionReturn": false,
+                    "applyReward": false,
+                    "cancelBonus": false,
+                    "applyBonus": false,
+                    "manualTopup": false
+                },
+            };
+            vm.drawBatchPermitTable = function () {
+
+                vm.selectedPlayers = {};
+                vm.selectedPlayersCount = 0;
+
+                var tableOptions = {
+                    data: [vm.batchEditData],
+                    columnDefs: [
+                        {targets: '_all', defaultContent: ' '}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                let result = '<textarea rows="8" ng-model="vm.multiUsersList">'
+                                return result;
+                            }
+                        },
+                        {
+                            // this object is use for column show
+                            // credibility remark advsearch column's object will appear later in the code
+                            title: $translate("CREDIBILITY_REMARK"),
+                            data: "credibilityRemarks",
+                            advSearch: false,
+                            orderable: false,
+                            sClass: "remarkCol",
+                            render: (data, type, row) => {
+                                console.log(data);
+                                let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
+                                if (!data || data.length === 0) {
+                                    return emptyOutput;
+                                }
+                                let initOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'>";
+                                let output = initOutput;
+                                let remarkMatches = false;
+                                data.map(function (remarkId) {
+                                    for (let i = 0; i < vm.credibilityRemarks.length; i++) {
+                                        if (vm.credibilityRemarks[i]._id === remarkId) {
+                                            if (output && output !== initOutput) {
+                                                output += "<br>";
+                                            }
+                                            output += vm.credibilityRemarks[i].name;
+                                            remarkMatches = true;
+                                        }
+                                    }
+                                });
+                                output += "</a>";
+
+                                if (remarkMatches) {
+                                    return output;
+                                } else {
+                                    return emptyOutput;
+                                }
+                            }
+                        },
+                        {
+                            title: $translate('MAIN') + $translate('PERMISSION'), //data: 'phoneNumber',
+                            orderable: false,
+                            render: function (data, type, row) {
+                                data = data || {permission: {}};
+
+                                var link = $('<a>', {
+                                    'class': 'playerPermissionPopover',
+                                    'ng-click': "vm.permissionPlayer = " + JSON.stringify(row)
+                                    + "; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;"
+                                    + "; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;"
+                                    + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
+                                    + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;",
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    'data-trigger': 'focus',
+                                    'data-placement': 'left',
+                                    'data-container': 'body',
+                                });
+
+                                let perm = (row && row.permission) ? row.permission : {};
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
+                                    height: "13px",
+                                    width: "15px",
+                                }));
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.topupManual === true ? "manualTopUpBlue.png" : "manualTopUpRed.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5',
+                                    'src': "images/icon/" + (perm.alipayTransaction === true ? "aliPayBlue.png" : "aliPayRed.png"),
+                                    height: "15px",
+                                    width: "15px",
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.topUpCard === false ? "cardTopUpRed.png" : "cardTopUpBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa margin-right-5 ' + (perm.forbidPlayerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<br>'));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5 ' + (perm.phoneCallFeedback === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-comment margin-right-5 ' + (perm.SMSFeedBack === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
+                                }));
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.levelChange === false ? "levelRed.png" : "levelBlue.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
+                                return link.prop('outerHTML') + "&nbsp;";
+                            },
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            title: $translate('SECONDARY') + $translate('PERMISSION'),
+                            orderable: false,
+                            render: function (data, type, row) {
+                                // data = data || {permission: {}};
+
+                                var link = $('<div>', {});
+                                var playerObjId = row._id ? row._id : "";
+
+                                link.append($('<a>', {
+                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    // 'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    'style': "z-index: auto; min-width:23px",
+                                    'data-container': "body",
+                                    'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
+                                }));
+
+
+                                link.append($('<a>', {
+                                    'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0 ? " text-danger" : ""),
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    // 'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    'style': "z-index: auto; min-width:23px",
+                                    'data-container': "body",
+                                    'html': (row.forbidProviders && row.forbidProviders.length > 0 ? '<sup>' + row.forbidProviders.length + '</sup>' : ''),
+                                }));
+
+
+                                link.append($('<a>', {
+                                    'class': 'forbidTopUpPopover margin-right-5' + (row.forbidTopUpTypes && row.forbidTopUpTypes.length > 0 ? " text-danger" : ""),
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    // 'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    // 'style': "z-index: auto; min-width:23px",
+                                    'data-container': "body",
+                                    'html': '<img width="15px" height="12px" src="images/icon/' + (row.forbidTopUpTypes && row.forbidTopUpTypes.length > 0 ? "onlineTopUpRed.png" : "onlineTopUpBlue.png") + '"></img>'
+                                    + (row.forbidTopUpTypes && row.forbidTopUpTypes.length > 0 ? '<sup>' + row.forbidTopUpTypes.length + '</sup>' : ''),
+                                    'style': "z-index: auto; width:23px; display:inline-block;",
+                                }));
+
+                                link.append($('<a>', {
+                                    'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    'data-placement': 'left',
+                                    'data-trigger': 'focus',
+                                    'type': 'button',
+                                    'data-html': true,
+                                    'href': '#',
+                                    'data-container': "body",
+                                    'html': '<img width="14px" height="14px" src="images/icon/' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? "rewardPointsRed.png" : "rewardPointsBlue.png") + '"></img>'
+                                    + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? '<sup>' + row.forbidRewardPointsEvent.length + '</sup>' : ''),
+                                    'style': "z-index: auto; width:23px; display: inline-block;",
+                                }));
+
+                                return link.prop('outerHTML');
+                            },
+                            "sClass": "alignLeft"
+                        }
+                    ],
+                    //"autoWidth": false,
+                    "scrollX": true,
+                    "deferRender": true,
+                    "bDeferRender": true,
+                    "bProcessing": true,
+                    // "scrollY": "384px",
+                    // "scrollCollapse": false,
+                    "destroy": true,
+                    "paging": false,
+                    //"dom": '<"top">rt<"bottom"il><"clear">',
+                    "language": {
+                        "info": $translate("Display _MAX_ players"),
+                        "emptyTable": $translate("No data available in table"),
+                    },
+                    dom: "Z<'row'<'col-sm-12'tr>>",
+                    fnRowCallback: vm.playerTableRowClick,
+                    fnDrawCallback: function (oSettings) {
+                        var container = oSettings.nTable;
+
+                        $(container).find('[title]').tooltip();
+
+                        let uData = vm.batchEditData;
+
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.playerPermissionPopover',
+                            onClickAsync: function (showPopover) {
+                                var that = this;
+                                // var row = JSON.parse(this.dataset.row);
+                                var row = uData;
+                                vm.playerPermissionTypes = {
+                                    applyBonus: {
+                                        imgType: 'img',
+                                        src: "images/icon/withdrawBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                    // transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
+                                    topupOnline: {
+                                        imgType: 'img',
+                                        src: "images/icon/onlineTopUpBlue.png",
+                                        width: "26px",
+                                        height: '20px'
+                                    },
+                                    topupManual: {
+                                        imgType: 'img',
+                                        src: "images/icon/manualTopUpBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                    alipayTransaction: {
+                                        imgType: 'img',
+                                        src: "images/icon/aliPayBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                    disableWechatPay: {imgType: 'i', iconClass: "fa fa-comments"},
+                                    topUpCard: {
+                                        imgType: 'img',
+                                        src: "images/icon/cardTopUpBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                    forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
+                                    forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
+                                    phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone"},
+                                    SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment"},
+                                    banReward: {imgType: 'i', iconClass: "fa fa-gift"},
+                                    rewardPointsTask: {
+                                        imgType: 'img',
+                                        src: "images/icon/rewardPointsBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                    levelChange: {
+                                        imgType: 'img',
+                                        src: "images/icon/levelBlue.png",
+                                        width: "26px",
+                                        height: '26px'
+                                    },
+                                };
+                                $("#playerPermissionTable td").removeClass('hide');
+
+                                vm.popOverPlayerPermission = row;
+
+                                // Invert second render
+                                // row.permission.banReward = !row.permission.banReward;
+                                // row.permission.disableWechatPay = !row.permission.disableWechatPay;
+                                // row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
+                                // row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
+                                // row.permission.forbidPlayerFromLogin = !row.permission.forbidPlayerFromLogin;
+                                // row.permission.forbidPlayerFromEnteringGame = !row.permission.forbidPlayerFromEnteringGame;
+
+                                $.each(vm.playerPermissionTypes, function (key, v) {
+                                    if (row.permission && row.permission[key] === false) {
+                                        $("#playerPermissionTable .permitOn." + key).addClass('hide');
+                                    } else {
+                                        $("#playerPermissionTable .permitOff." + key).addClass('hide');
+                                    }
+                                });
+                                $scope.safeApply();
+                                showPopover(that, '#playerPermissionPopover', row);
+                            },
+                            callback: function () {
+                                var changeObj = {}
+                                var thisPopover = utilService.$getPopoverID(this);
+                                var $remark = $(thisPopover + ' .permissionRemark');
+                                var $submit = $(thisPopover + ' .submit');
+                                $submit.prop('disabled', true);
+                                $(thisPopover + " .togglePlayer").on('click', function () {
+                                    var key = $(this).data("which");
+                                    var select = $(this).data("on");
+                                    changeObj[key] = !select;
+                                    $(thisPopover + ' .' + key).toggleClass('hide');
+                                    $submit.prop('disabled', $remark.val() == '');
+                                })
+
+                                $remark.on('input selectionchange propertychange', function () {
+                                    $submit.prop('disabled', this.value.length === 0 || changeObj == {})
+                                })
+                                $submit.on('click', function () {
+                                    $submit.off('click');
+                                    $(thisPopover + " .togglePlayer").off('click');
+                                    $remark.off('input selectionchange propertychange');
+
+                                    // Invert faked permission display
+                                    if (changeObj.hasOwnProperty('banReward')) {
+                                        changeObj.banReward = !changeObj.banReward;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('disableWechatPay')) {
+                                        changeObj.disableWechatPay = !changeObj.disableWechatPay;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('forbidPlayerConsumptionReturn')) {
+                                        changeObj.forbidPlayerConsumptionReturn = !changeObj.forbidPlayerConsumptionReturn;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('forbidPlayerConsumptionIncentive')) {
+                                        changeObj.forbidPlayerConsumptionIncentive = !changeObj.forbidPlayerConsumptionIncentive;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('forbidPlayerFromLogin')) {
+                                        changeObj.forbidPlayerFromLogin = !changeObj.forbidPlayerFromLogin;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('forbidPlayerFromEnteringGame')) {
+                                        changeObj.forbidPlayerFromEnteringGame = !changeObj.forbidPlayerFromEnteringGame;
+                                    }
+                                    console.log(changeObj);
+                                    console.log(vm.batchEditData);
+                                    Object.keys(vm.batchEditData.permission).map(item => {
+
+                                        Object.keys(changeObj).forEach((fieldName, index) => {
+                                            // console.log(fieldName);
+                                            // console.log(item);
+                                            //main 1
+                                            if (fieldName == item) {
+                                                console.log(item + '=' + fieldName + changeObj[fieldName]);
+                                                console.log('hiha');
+                                                vm.batchEditData.permission[item] = changeObj[fieldName];
+                                            }
+                                            console.log('-------------------');
+                                        })
+
+                                    });
+                                    vm.drawBatchPermitTable();
+                                    vm.batchUpdatePlayer();
+
+                                    // socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
+                                    //     query: {
+                                    //         platform: vm.permissionPlayer.platform,
+                                    //         _ids: vm.permissionPlayer._id
+                                    //     },
+                                    //     admin: authService.adminId,
+                                    //     permission: changeObj,
+                                    //     remark: $remark.val()
+                                    // }, function (data) {
+                                    //     vm.getPlatformPlayersData();
+                                    // }, null, true);
+                                    $(thisPopover).popover('hide');
+                                })
+
+                            }
+                        });
+
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.forbidRewardEventPopover',
+                            content: function () {
+                                // var data = JSON.parse(this.dataset.row);
+                                var data = uData;
+                                vm.forbidRewardEventPopover = data;
+                                vm.forbidRewardEvents = [];
+                                vm.forbidRewardDisable = true;
+                                $scope.safeApply();
+                                return $compile($('#forbidRewardEventPopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                // let rowData = JSON.parse(this.dataset.row);
+                                let rowData = uData;
+                                $scope.safeApply();
+
+                                $("input.playerRewardEventForbid").on('click', function () {
+                                    let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
+                                    let forbidRewardEvents = [];
+                                    $.each(forbidRewardEventList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidRewardEvents.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                    $scope.safeApply();
+                                });
+
+                                $("button.forbidRewardEventCancel").on('click', function () {
+                                    $(".forbidRewardEventPopover").popover('hide');
+                                });
+
+                                $("button.showForbidreward").on('click', function () {
+                                    $(".forbidRewardEventPopover").popover('hide');
+                                });
+
+                                $("button.forbidRewardEventConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
+                                    let forbidRewardEvents = [];
+                                    $.each(forbidRewardEventList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidRewardEvents.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    console.log(forbidRewardEvents);
+                                    let playerNames = [];
+                                    let multiUsersArr = vm.multiUsersList.split('\n')
+                                    multiUsersArr.forEach(item => {
+                                        playerNames.push(item);
+                                    });
+                                    let sendData = {
+                                        playerNames: playerNames,
+                                        forbidRewardEvents: forbidRewardEvents,
+                                        adminName: authService.adminName
+                                    };
+                                    vm.updateBatchPlayerForbidRewardEvents(sendData);
+                                    vm.batchEditData.forbidRewardEvents = forbidRewardEvents;
+                                    vm.drawBatchPermitTable();
+                                    vm.batchUpdatePlayer();
+                                    console.log(vm.batchEditData);
+                                    // sub 1
+                                    $(".forbidRewardEventPopover").popover('hide');
+                                });
+                            }
+                        });
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.prohibitGamePopover',
+                            content: function () {
+                                // var data = JSON.parse(this.dataset.row);
+                                var data = uData;
+                                vm.prohibitGamePopover = data;
+                                vm.forbidGameDisable = true;
+                                vm.forbidGameRemark = '';
+                                $scope.safeApply();
+                                return $compile($('#prohibitGamePopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                //let rowData = JSON.parse(this.dataset.row);
+                                let rowData = uData;
+                                $scope.safeApply();
+
+                                $("button.forbidGameCancel").on('click', function () {
+                                    $(".prohibitGamePopover").popover('hide');
+                                });
+
+                                $("button.showForbidGame").on('click', function () {
+                                    $(".prohibitGamePopover").popover('hide');
+                                });
+
+                                $("input.playerStatusProviderForbid").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
+                                    let forbidProviders = [];
+                                    $.each(forbidProviderList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidProviders.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    vm.forbidGameDisable = vm.isForbidChanged(forbidProviders, vm.prohibitGamePopover.forbidProviders);
+                                    $scope.safeApply();
+                                });
+
+                                $("button.forbidGameConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
+                                    let forbidProviders = [];
+                                    $.each(forbidProviderList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidProviders.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    // let sendData = {
+                                    //     _id: rowData._id,
+                                    //     forbidProviders: forbidProviders,
+                                    //     adminName: authService.adminName
+                                    // };
+                                    // vm.updateBatchPlayerForbidProviders(sendData);
+                                    // sub 2
+                                    console.log(forbidProviders);
+                                    vm.batchEditData.forbidProviders = forbidProviders;
+                                    vm.drawBatchPermitTable();
+                                    vm.batchUpdatePlayer();
+                                    console.log(vm.batchEditData);
+                                    $(".prohibitGamePopover").popover('hide');
+                                });
+                            }
+                        });
+
+
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.forbidTopUpPopover',
+                            content: function () {
+                                // var data = JSON.parse(this.dataset.row);
+                                var data = uData;
+                                vm.forbidTopUpPopover = data;
+                                vm.forbidTopUpDisable = true;
+                                vm.forbidTopUpRemark = '';
+                                $scope.safeApply();
+                                return $compile($('#forbidTopUpPopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                // let rowData = JSON.parse(this.dataset.row);
+                                let rowData = uData;
+                                $scope.safeApply();
+
+                                $("button.forbidTopUpCancel").on('click', function () {
+                                    $(".forbidTopUpPopover").popover('hide');
+                                });
+
+                                $("button.showForbidTopUp").on('click', function () {
+                                    $(".forbidTopUpPopover").popover('hide');
+                                });
+
+                                $("input.playerTopUpTypeForbid").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidTopUpList = $(thisPopover).find('.playerTopUpTypeForbid');
+                                    let forbidTopUpTypes = [];
+                                    $.each(forbidTopUpList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidTopUpTypes.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    vm.forbidTopUpDisable = vm.isForbidChanged(forbidTopUpTypes, vm.forbidTopUpPopover.forbidTopUpType);
+                                    $scope.safeApply();
+                                });
+
+                                $("button.forbidTopUpConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidTopUpList = $(thisPopover).find('.playerTopUpTypeForbid');
+                                    let forbidTopUpTypes = [];
+                                    $.each(forbidTopUpList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidTopUpTypes.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    console.log(forbidTopUpTypes);
+                                    // let sendData = {
+                                    //     query: {_id: rowData._id},
+                                    //     updateData: {forbidTopUpType: forbidTopUpTypes},
+                                    //     adminName: authService.adminName
+                                    // };
+                                    // vm.confirmUpdatePlayerTopupTypes(sendData);
+                                    vm.batchEditData.forbidTopUpTypes = forbidTopUpTypes;
+                                    vm.drawBatchPermitTable();
+                                    vm.batchUpdatePlayer();
+
+                                    //sub 3
+                                    console.log(vm.batchEditData);
+                                    $(".forbidTopUpPopover").popover('hide');
+                                });
+                            }
+                        });
+                        utilService.setupPopover({
+                            context: container,
+                            elem: '.forbidRewardPointsEventPopover',
+                            content: function () {
+                                // var data = JSON.parse(this.dataset.row);
+                                var data = uData;
+                                vm.forbidRewardPointsEventPopover = data;
+                                vm.forbidRewardPointsEventDisable = true;
+                                vm.forbidRewardPointsEventRemark = '';
+                                $scope.safeApply();
+                                return $compile($('#forbidRewardPointsEventPopover').html())($scope);
+                            },
+                            callback: function () {
+                                let thisPopover = utilService.$getPopoverID(this);
+                                // let rowData = JSON.parse(this.dataset.row);
+                                let rowData = uData;
+                                $scope.safeApply();
+
+                                $("button.forbidRewardPointsEventCancel").on('click', function () {
+                                    $(".forbidRewardPointsEventPopover").popover('hide');
+                                });
+
+                                $("button.showForbidRewardPointsEvent").on('click', function () {
+                                    $(".forbidRewardPointsEventPopover").popover('hide');
+                                });
+
+                                $("input.playerRewardPointsEventForbid").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidRewardPointsEventList = $(thisPopover).find('.playerRewardPointsEventForbid');
+                                    let forbidRewardPointsEvent = [];
+                                    $.each(forbidRewardPointsEventList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidRewardPointsEvent.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    vm.forbidRewardPointsEventDisable = vm.isForbidChanged(forbidRewardPointsEvent, vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent);
+                                    $scope.safeApply();
+                                });
+
+                                $("button.forbidRewardPointsEventConfirm").on('click', function () {
+                                    if ($(this).hasClass('disabled')) {
+                                        return;
+                                    }
+                                    let forbidRewardPointsEventList = $(thisPopover).find('.playerRewardPointsEventForbid');
+                                    let forbidRewardPointsEvent = [];
+                                    $.each(forbidRewardPointsEventList, function (i, v) {
+                                        if ($(v).prop('checked')) {
+                                            forbidRewardPointsEvent.push($(v).attr('data-provider'));
+                                        }
+                                    });
+                                    console.log(forbidRewardPointsEvent);
+                                    // let sendData = {
+                                    //     _id: rowData._id,
+                                    //     forbidRewardPointsEvent: forbidRewardPointsEvent,
+                                    //     adminName: authService.adminName
+                                    // };
+                                    // vm.updatePlayerForbidRewardPointsEvent(sendData);
+                                    vm.batchEditData.forbidRewardPointsEvent = forbidRewardPointsEvent;
+                                    vm.drawBatchPermitTable();
+                                    vm.batchUpdatePlayer();
+                                    $(".forbidRewardPointsEventPopover").popover('hide');
+                                });
+                            }
+                        });
+
+
+                    }
+                }
+                vm.batchPlayerTable = $('#batchPlayerDataTable').DataTable(tableOptions);
+                // vm.playerFeedbackTable = $('#playerFeedbackDataTable').DataTable(tableOptions);
+                //
+                // utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
+                // utilService.setDataTablePageInput('playerFeedbackDataTable', vm.playerFeedbackTable, $translate);
+                //
+                // if (!vm.playersQueryCreated) {
+                //     createPlayerAdvancedSearchFilters({
+                //         tableOptions: tableOptions,
+                //         filtersElement: '#playerTable-search-filters',
+                //         queryFunction: vm.getPlayersByAdvanceQueryDebounced
+                //     });
+                // }
+
+                $scope.safeApply();
+            }
+            
+            ///
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function() {
                 if(!vm.duplicatePartnerOrderNo && !vm.duplicatePartnerAdCode) {

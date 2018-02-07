@@ -427,7 +427,8 @@
                 .panel.panel-primary
                     .panel-body
                         button.btn.btn-danger.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName =='batchPermit' ", ng-click="vm.localRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
                         button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
                         span {{vm.credibilityRemarkUpdateMessage | translate}}
                         div.row
