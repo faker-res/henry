@@ -2813,6 +2813,7 @@
   "resetPassword": "重置密码",
   "try": "尝试",
   "PLAYER_LEVEL_UP_PERIOD": "玩家升级周期设置",
+  "PLAYER_LEVEL_UP_MAX_PERIOD": "玩家升级最大周期设置",
   "PLAYER_LEVEL_DOWN_PERIOD": "玩家降级周期设置",
   "attempt number list": "尝试次数分布",
   "last_access_time": "上次登录时间",
@@ -3223,6 +3224,7 @@
   "average line": "平均线",
   "average value": "平均值",
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
-  "LoginPlayer": "登入玩家"
+  "LoginPlayer": "登入玩家",
+  "OR": "或"
 
 }
