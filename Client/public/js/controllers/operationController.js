@@ -6,6 +6,7 @@ define(['js/app'], function (myApp) {
 
     var operationController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, $translate, CONFIG, $cookies) {
         var $translate = $filter('translate');
+        let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         var vm = this;
 
         // For debugging:
@@ -42,13 +43,13 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             AUTOAUDIT: "AutoAudit",
             RECOVER: "Recover",
-            MANUAL: "Manual"
+            MANUAL: "Manual",
+            CSPENDING: "CsPending",
+            NOVERIFY: "NoVerify"
         };
-        vm.depositMethodList = {
-            Online: 1,
-            ATM: 2,
-            Counter: 3
-        };
+
+        vm.depositMethodList = $scope.depositMethodList;
+
         vm.getDepositMethodbyId = {
             1: 'Online',
             2: 'ATM',
@@ -126,6 +127,7 @@ define(['js/app'], function (myApp) {
                 vm.renderMultipleSelectDropDownList('select#selectProposalAuditType');
             });
             vm.getPlatformProviderGroup();
+            vm.getAllGameTypes();
             $scope.safeApply();
         };
 
@@ -428,17 +430,22 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
-
             let startTime = $('#datetimepicker').data('datetimepicker').getLocalDate();
             let endTime = $('#datetimepicker2').data('datetimepicker').getLocalDate();
+
+            let searchInterval = Math.abs(new Date(endTime).getTime() - new Date(startTime).getTime());
+            if (searchInterval > $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME) {
+                socketService.showErrorMessage($translate("Exceed proposal search max time frame"));
+                return;
+            }
+
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
                 inputDevice: vm.proposalInputDevice,
                 //eventName: rewardNames,
                 eventName: rewardEventName,
-                promoTypeName: promoType,
+                promoTypeName: [],
                 //type: vm.proposalTypeSelected,
                 type: proposalTypeNames,
                 startDate: startTime,
@@ -448,6 +455,16 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : (vm.queryProposal.index || 0),
                 sortCol: vm.queryProposal.sortCol
             };
+
+            let promoType = $('select#selectPromoType').multipleSelect("getSelects");
+
+            if (vm.promoTypeList.length != promoType.length) {
+                vm.promoTypeList.filter(item => {
+                    if (promoType.indexOf(item.name) > -1) {
+                        sendData.promoTypeName.push(item.name);
+                    }
+                });
+            }
 
             if (vm.queryProposalRelatedUser) {
                 sendData.relateUser = vm.queryProposalRelatedUser.toLowerCase();
@@ -470,7 +487,6 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
                 console.log('proposal allData', data);
                 vm.proposals = data.data.data;
-
                 $('.proposalMessage > a > .fa').removeClass('fa-spin');
                 $('.proposalMessage').next().show();
 
@@ -501,6 +517,12 @@ define(['js/app'], function (myApp) {
             var endTime = $('#datetimepickerAudit2').data('datetimepicker');
             var newEndTime = endTime.getLocalDate();
 
+            let searchInterval = Math.abs(new Date(endTime.getLocalDate()).getTime() - new Date(startTime.getLocalDate()).getTime());
+            if (searchInterval > $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME) {
+                socketService.showErrorMessage($translate("Exceed proposal search max time frame"));
+                return;
+            }
+
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
@@ -510,7 +532,7 @@ define(['js/app'], function (myApp) {
                 entryType: vm.queryProposalEntryType,
                 size: vm.queryAuditProposal.limit || 10,
                 index: newSearch ? 0 : (vm.queryAuditProposal.index || 0),
-                sortCol: vm.queryAuditProposal.sortCol
+                sortCol: vm.queryAuditProposal.sortCol || {expirationTime: 1}
             };
 
             if (vm.queryProposalRelatedUser) {
@@ -661,7 +683,8 @@ define(['js/app'], function (myApp) {
                     $('#ProposalDetail .delayTopupExpireDate').on('click', function () {
                         var $tr = $(this).closest('tr');
                         vm.delayTopupExpirDate(obj, function (newData) {
-                            $tr.find('td:nth-child(2)').first().text(utilService.getFormatTime(newData.newValidTime));
+                            obj.validTime = newData.newValidTime;
+                            obj.status = "Pending";
                             vm.needRefreshTable = true;
                             $scope.safeApply();
                         });
@@ -675,6 +698,8 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
+            } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
             } else if (fieldName == 'bankAccountType') {
                 switch (parseInt(val)) {
                     case 1:
@@ -751,6 +776,35 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'applyForDate') {
                 result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+            } else if (fieldName === 'returnDetail') {
+                // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
+
+                let newReturnDetail = {};
+                Object.keys(val).forEach(
+                    key => {
+                        if (key && key.indexOf(':') != -1) {
+                            let splitGameTypeIdArr = key.split(':');
+                            let gameTypeId = splitGameTypeIdArr[1];
+                            newReturnDetail[splitGameTypeIdArr[0]+':'+vm.allGameTypes[gameTypeId]] = val[key];
+                        }
+                });
+                result = JSON.stringify(newReturnDetail || val)
+                    .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                    .replace(new RegExp('ratio','gm'), $translate('RATIO'))
+                    .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
+            } else if (fieldName === 'nonXIMADetail') {
+                let newNonXIMADetail = {};
+                Object.keys(val).forEach(
+                    key => {
+                        if (key && key.indexOf(':') != -1) {
+                            let splitGameTypeIdArr = key.split(':');
+                            let gameTypeId = splitGameTypeIdArr[1];
+                            newNonXIMADetail[splitGameTypeIdArr[0]+':'+ vm.allGameTypes[gameTypeId]] = val[key];
+                        }
+                    });
+                result = JSON.stringify(newNonXIMADetail || val)
+                    .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                    .replace(new RegExp('nonXIMAAmt',"gm"), $translate('totalNonXIMAAmt'));
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
@@ -831,6 +885,8 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'delayManualTopupRequest', sendData, function (data) {
                 console.log("update data", data);
                 vm.selectedProposal.status = 'Pending';
+                vm.selectedProposal.data.validTime = data.data.newValidTime;
+                vm.selectedProposalDetailForDisplay.validTime = data.data.newValidTime;
                 $scope.safeApply();
                 if (callback) {
                     callback(data.data);
@@ -838,18 +894,44 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getAllGameTypes = function () {
+            return $scope.$socketPromise('getGameTypeList', {})
+                .then(function (data) {
+                    var gameTypes = data.data;
+                    vm.allGameTypesList = gameTypes;
+                    var allGameTypes = {};
+                    gameTypes.forEach(function (gameType) {
+                        var GAMETYPE = gameType.gameTypeId;
+                        allGameTypes[GAMETYPE] = gameType.name;
+                    });
+                    vm.allGameTypes = allGameTypes;
+                }, function (err) {
+                    console.log('err', err);
+                });
+        };
+
         vm.getRewardList = function (callback) {
             vm.rewardList = [];
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: {$in: vm.allPlatformId}}, function (data) {
                 vm.rewardList = data.data;
                 //For limitedOffer intention
+
                 vm.rewardList.forEach(
                     reward => {
                         if (reward.type && reward.type.name == "PlayerLimitedOfferReward") {
-                            vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
+                            let isNameExist = false;
+                            vm.rewardList.forEach(
+                                reward2 => {
+                                    if(reward2.name == reward.name +" " + $translate('Intention'))
+                                        isNameExist = true;
+                                }
+                            );
+                            if(!isNameExist)
+                                vm.rewardList.push({name:reward.name +" " + $translate('Intention')});
                         }
                     }
                 );
+
                 console.log('vm.rewardList', vm.rewardList);
                 $scope.safeApply();
                 if (callback) {
@@ -959,6 +1041,17 @@ define(['js/app'], function (myApp) {
                         : v.data.alipayAccount != null
                         ? v.data.alipayAccount
                         : null;
+                    // remove the time from the ISO date for display purpose
+                    if (v.data.DOB) {
+                        v.data.DOB = v.data.DOB.slice(0, 10);
+                    }
+                    // convert the status of gender from Boolean to string for display purpose
+                    if (v.data.gender == true) {
+                        v.data.gender = "男";
+                    }
+                    if (v.data.gender == false) {
+                        v.data.gender = "女";
+                    }
                     tableData.push(v);
                 }
             });
@@ -1058,7 +1151,7 @@ define(['js/app'], function (myApp) {
 
                             let textClass = '';
                             let fontStyle = {};
-                            if (row.status === 'Pending') {
+                            if (row.status === 'Pending' || row.status === 'CsPending') {
                                 textClass = "text-danger";
                                 fontStyle = {'font-weight': 'bold'};
                             }
@@ -1326,7 +1419,8 @@ define(['js/app'], function (myApp) {
                     v.entryType$ = $translate(vm.proposalEntryTypeList[v.entryType]);
                     v.userType$ = $translate(v.userType ? vm.proposalUserTypeList[v.userType] : "");
                     v.createTime$ = utilService.getFormatTime(v.createTime).substring(5);
-                    v.expirationTime$ = v.createTime == v.expirationTime ? 0 : new Date(v.expirationTime) - Date.now();
+                    v.expirationTime$ = v.createTime == v.expirationTime || new Date(v.expirationTime).getTime() == $scope.constMaxDateTime.getTime()
+                        ? 0 : new Date(v.expirationTime) - Date.now();
                     v.lockUser$ = $translate(v.isLocked);
                     v.creditAmount$ = (v.data.amount != null)
                         ? parseFloat(v.data.amount).toFixed(2)
@@ -1390,11 +1484,13 @@ define(['js/app'], function (myApp) {
                 "bProcessing": true,
                 bDeferRender: true,
                 // filterProposalType: true,
-                "aaSorting": vm.queryProposal.aaSorting || [],
+                "aaSorting": vm.queryAuditProposal.aaSorting || [[20, 'asc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'relatedAmount', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'priority', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [18]},
+                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [20]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1449,8 +1545,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             let text = ($translate($scope.merchantTopupTypeJson[data])) ? $translate($scope.merchantTopupTypeJson[data]) : ""
                             return "<div>" + text + "</div>";
-                        },
-                        bSortable: true
+                        }
                     },
                     {
                         "title": $translate('PRIORITY'),
@@ -1566,8 +1661,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('CREATION_TIME'),
-                        "data": 'createTime$',
-                        bSortable: true
+                        "data": 'createTime$'
                     },
                     {
                         "title": $translate('REMARK'),
@@ -1577,21 +1671,21 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('EXPIRY_DATE'),
-                        "data": 'expirationTime$',
-                        type: 'signed-num',
+                        "data": 'expirationTime',
+                        // type: 'signed-num',
                         render: function (data, type, row) {
                             if (type === 'sort' || type === 'type') {
                                 return data;
                             }
                             else {
-                                if (data > 0) {
+                                if (row.expirationTime$ > 0) {
                                     // Not expired
-                                    let expireTime = Math.floor((data / 1000) / 60);
+                                    let expireTime = Math.floor((row.expirationTime$ / 1000) / 60);
                                     return "<div>" + $translate("Left") + " " + expireTime + " " + $translate("mins") + "</div>";
                                 }
-                                else if (data < 0) {
+                                else if (row.expirationTime$ < 0) {
                                     // Expired
-                                    let expireTime = Math.ceil((data / 1000) / 60);
+                                    let expireTime = Math.ceil((row.expirationTime$ / 1000) / 60);
                                     return "<div>" + $translate("Expired") + " " + -expireTime + " " + $translate("mins") + "</div>";
                                 }
                                 else {
@@ -1689,7 +1783,7 @@ define(['js/app'], function (myApp) {
             $('#proposalAuditDataTable tbody').on('click', 'tr', tableRowClicked);
             $('#proposalAuditDataTable').off('order.dt');
             $('#proposalAuditDataTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
+                vm.commonSortChangeHandler(a, 'queryAuditProposal', vm.loadProposalAuditQueryData);
             });
             $scope.safeApply();
         };
@@ -1891,7 +1985,8 @@ define(['js/app'], function (myApp) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
                 var creatorId = (proposal && proposal.creator) ? proposal.creator.id : '';
                 var proposalStatus = proposal.status || proposal.process.status;
-                return (creatorId == authService.adminId) && (proposalStatus == "Pending" || proposalStatus === "AutoAudit");
+                return ((creatorId == authService.adminId) && (proposalStatus == "Pending" || proposalStatus === "AutoAudit"))
+                    || (proposal.type.name === "PlayerBonus" && (proposalStatus === "Pending" || proposalStatus === "AutoAudit" || proposalStatus === "CsPending"));
             }
 
             vm.selectedProposal.showCancel = canCancelProposal(vm.selectedProposal);
@@ -1997,6 +2092,18 @@ define(['js/app'], function (myApp) {
                 console.error(error);
                 vm.changeStatusToPendingFromAutoAuditMessage = $translate("FAIL") + " - " + error.error.message;
                 $scope.safeApply();
+            })
+        };
+
+        vm.approveCsPendingAndChangeStatus = function () {
+            socketService.$socket($scope.AppSocket, 'approveCsPendingAndChangeStatus', {
+                proposalObjId: vm.selectedProposal._id,
+                createTime: vm.selectedProposal.createTime,
+                adminName: authService.adminName
+            }, function (data) {
+                vm.loadProposalQueryData(true);
+            }, function (error) {
+                console.log('error', error);
             })
         };
 
@@ -2547,6 +2654,9 @@ define(['js/app'], function (myApp) {
         }
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
             var isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
             if (pageSize != vm[objKey].limit) {
                 isChange = true;
                 vm[objKey].limit = pageSize;
@@ -2625,22 +2735,37 @@ define(['js/app'], function (myApp) {
                 });
             });
 
-            setTimeout(function () {
+            $scope.$evalAsync(() => {
                 utilService.actionAfterLoaded("#proposalDataTablePage", function () {
                     vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
                     });
                 });
-            }, 0);
+            });
+            // setTimeout(function () {
+            //     utilService.actionAfterLoaded("#proposalDataTablePage", function () {
+            //         vm.queryProposal.pageObj = utilService.createPageForPagingTable("#proposalDataTablePage", {}, $translate, function (curP, pageSize) {
+            //             vm.commonPageChangeHandler(curP, pageSize, "queryProposal", vm.loadProposalQueryData)
+            //         });
+            //     });
+            // }, 0);
 
-            // for some reason, the pagination wont translate when it does not put inside setTimeout
-            setTimeout(function() {
+            $scope.$evalAsync(() => {
                 utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
                     vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
                     });
                 });
-            }, 0);
+            })
+
+            // // for some reason, the pagination wont translate when it does not put inside setTimeout
+            // setTimeout(function() {
+            //     utilService.actionAfterLoaded("#proposalAuditDataTablePage", function () {
+            //         vm.queryAuditProposal.pageObj = utilService.createPageForPagingTable("#proposalAuditDataTablePage", {}, $translate, function (curP, pageSize) {
+            //             vm.commonPageChangeHandler(curP, pageSize, "queryAuditProposal", vm.loadProposalAuditQueryData)
+            //         });
+            //     });
+            // }, 0);
 
 
             // Q.all([vm.getAllPlatforms(), vm.getProposalEntryTypeList(), vm.getProposalPriorityList(),

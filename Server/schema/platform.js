@@ -77,12 +77,16 @@ var platformSchema = new Schema({
     allowSameRealNameToRegister: {type: Boolean, default: true},
     // Platform-wide SMS Verification Setting, for create players and create partners
     requireSMSVerification: {type: Boolean, default: false},
+    // SMS Verification Setting For create demo player
+    requireSMSVerificationForDemoPlayer: {type: Boolean, default: false},
     // SMS Verification Setting For Password Update
     requireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
     // SMS Verification Setting For Payment Update
     requireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
     // SMS Verification Expired Time (in Minute)
     smsVerificationExpireTime: {type: Number, default: 5},
+    // demo player Expired Time (day)
+    demoPlayerValidDays: {type: Number, default: 7},
     // allow same phone number to register
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // same phone number to register count
@@ -109,6 +113,8 @@ var platformSchema = new Schema({
     autoApproveProfitTimesMinAmount: {type: Number, default: 2000},
     // Auto approve abnormal bonus check offset
     autoApproveBonusProfitOffset: {type: Number, default: 2000},
+    // Player forbid apply bonus, apply bonus proposal need cs approval
+    playerForbidApplyBonusNeedCsApproval: {type: Boolean, default: false},
     //can apply multiple reward
     canMultiReward: {type: Boolean, default: false},
     // Auto check player level up
@@ -184,7 +190,41 @@ var platformSchema = new Schema({
     }],
     jiguangAppKey: {type: String},
     jiguangMasterKey: {type: String},
-    bonusSetting: {type: JSON,default:{}}
+    bonusSetting: {type: JSON,default:{}},
+    // promocode last config setting set isActive time
+    promoCodeStartTime: {type: Date},
+    promoCodeEndTime: {type: Date},
+    // promocode last config setting
+    promoCodeIsActive: {type: Boolean, default: false},
+    //the definition for effective conversation
+    conversationDefinition: {
+        // sec used for an conversation
+        totalSec: {type: Number, min: 0, default: 40},
+        // the number of sentences that the player asks
+        askingSentence: {type: Number, min: 0, default: 2},
+        // the number of sentences that the admin replies
+        replyingSentence: {type: Number, min: 0, default: 2},
+    },
+    //the setting for overtime conversation
+    overtimeSetting: [{
+        conversationInterval: {type: Number, min: 0, default: 0},
+        presetMark: {type: Number},
+        color: {type: String}
+    }],
+    // set this live800companyId to binding with live800 system
+    live800CompanyId: [{type: String}],
+    // get the CS Department for display livechat related conversation
+    csDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
+    // get the QI Department for display livechat related conversation
+    qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
+    // Demo Player Prefix Code
+    demoPlayerPrefix: {type:String},
+    // manual audit for player first time withdrawal
+    manualAuditFirstWithdrawal: {type: Boolean, default: true},
+    // manual audit once after player change bank detail
+    manualAuditAfterBankChanged: {type: Boolean, default: true},
+    // manual audit if player's applyBonus permission banned
+    manualAuditBanWithdrawal: {type: Boolean, default: true},
 });
 
 //add platform id before save

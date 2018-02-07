@@ -57,6 +57,9 @@ const dbPlayerMail = {
             if (results) {
                 let notifyProm = [];
                 results.forEach((result) => {
+                    // from mongoose object to js object
+                    result = result.toObject();
+                    delete result.senderName;
                     notifyProm.push(notifyPlayerOfNewMessage(result));
                 });
                 return Q.all(notifyProm);
@@ -141,7 +144,27 @@ const dbPlayerMail = {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             function (data) {
                 if (data) {
-                    return dbconfig.collection_playerMail.find({recipientId: data._id, bDelete: false});
+                    return dbconfig.collection_playerMail.find({recipientId: data._id, bDelete: false}).lean().then(
+                        playerMailData => {
+                            if(playerMailData && playerMailData.length > 0){
+                                playerMailData.map(playerMail => {
+                                    if(playerMail){
+                                        if(playerMail.senderType){
+                                            delete playerMail.senderType;
+                                        }
+
+                                        if(playerMail.senderName){
+                                            delete playerMail.senderName;
+                                        }
+
+                                        return playerMail;
+                                    }
+                                })
+
+                                return playerMailData;
+                            }
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Player is not found"});
@@ -172,7 +195,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVertificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName) {
+    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -331,8 +354,10 @@ const dbPlayerMail = {
                         return Q.reject({message: 'Template not set for current platform'});
                     }
 
-                    template.content = template.content.replace('smsCode', code);
 
+                    template.content = template.content.replace('{{smsCode}}', code);
+                    template.content = template.content.replace('smsCode', code); // for backward compatibility
+                    template.content = template.content.replace('{{sendTime}}', new Date());
                     if (channel === null || platformId === null) {
                         return Q.reject({message: "cannot find platform or sms channel."});
                     }
@@ -364,7 +389,7 @@ const dbPlayerMail = {
                     };
                     // Log the verification SMS before send
                     new dbconfig.collection_smsVerificationLog(saveObj).save().catch(errorUtils.reportError);
-                    return dbPlayerMail.sendVertificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
+                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
                 }
             }
         ).then(
@@ -423,7 +448,8 @@ const dbPlayerMail = {
                                     data: inputData,
                                     entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                     userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                                    inputDevice: inputDevice ? inputDevice : 0
+                                    inputDevice: inputDevice ? inputDevice : 0,
+                                    status: constProposalStatus.PENDING
                                 };
 
                                 dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);

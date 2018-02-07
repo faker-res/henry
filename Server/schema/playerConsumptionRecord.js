@@ -19,7 +19,7 @@ var playerConsumptionRecordSchema = new Schema({
     // gameRound
     roundNo: {type: String},
     // gameRound
-    playerNo: {type: String},
+    playNo: {type: String},
     // payment time
     createTime: {type: Date, default: Date.now, index: true},
     //total amount for statistics
@@ -29,7 +29,7 @@ var playerConsumptionRecordSchema = new Schema({
     //order time
     orderTime: {type: Date},
     //order id
-    orderNo: {type: String, index: true},
+    orderNo: {type: String, index: true, unique: true},
     //bonus amount
     bonusAmount: {type: Number, default: 0},
     //commissionable amount

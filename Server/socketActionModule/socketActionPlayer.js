@@ -83,15 +83,6 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
-         * Create a new reward points record based on player data
-         */
-        createPlayerRewardPointsRecord: function createPlayerRewardPointsRecord(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.createPlayerRewardPointsRecord, [data.platformId, data.playerId], actionName, isValidData);
-        },
-
-        /**
          * Remove a new reward points record based on player data
          */
         removePlayerRewardPointsRecord: function removePlayerRewardPointsRecord(data) {
@@ -129,13 +120,23 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
-         * Create a test player for platform
+         * Create a test player for platform (to be deprecated)
          * @param {json} data - It has to contain platform id
          */
         createTestPlayerForPlatform: function createTestPlayerForPlatform(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlayerInfo.createTestPlayerForPlatform, [data.platformId], actionName, isValidData);
+        },
+        /**
+         * Create a test player for platform
+         * @param {json} data - It has to contain platform id (not object id)
+         */
+        createDemoPlayer: function createDemoPlayer(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            let isBackStageGenerated = true;
+            socketUtil.emitter(self.socket, dbPlayerInfo.createDemoPlayer, [data.platformId, null, null, null, isBackStageGenerated], actionName, isValidData);
         },
 
         /**
@@ -208,6 +209,12 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPayment, [userAgent, data.query, {forbidTopUpType: data.updateData.forbidTopUpType}, true], actionName, isValidData);
+        },
+
+        updatePlayerForbidPaymentType: function updatePlayerForbidPaymentType(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidPaymentType, [data.query, data.updateData.forbidTopUpType], actionName, isValidData);
         },
 
         /**
@@ -376,7 +383,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let newPassword = (data && data.newPassword) ? data.newPassword : chance.hash({length: constSystemParam.PASSWORD_LENGTH});
             let isValidData = Boolean(data && data.playerId && newPassword && newPassword.length >= 6);
-            socketUtil.emitter(self.socket, dbPlayerInfo.resetPlayerPassword, [data.playerId, newPassword, data.platform, data.resetPartnerPassword], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.resetPlayerPassword, [data.playerId, newPassword, data.platform, data.resetPartnerPassword, null, data.creator], actionName, isValidData);
         },
 
         // /**
@@ -641,8 +648,8 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerPhoneLocation: function getPlayerPhoneLocation(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date);
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
+            var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+            var endTime = data.endTime ? new Date(data.endTime) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPhoneLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date], actionName, isValidData);
         },
 
@@ -653,8 +660,8 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerPhoneLocationInProvince: function getPlayerPhoneLocationInProvince(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date && data.phoneProvince);
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
+            var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+            var endTime = data.endTime ? new Date(data.endTime) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPhoneLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date, data.phoneProvince], actionName, isValidData);
         },
         /**
@@ -707,7 +714,7 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId, data.createTime], actionName, isValidData);
         },
 
         searchMailLog: function searchMailLog(data) {
@@ -796,7 +803,8 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.alipayName && data.alipayAccount);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [userAgent, data.playerId, data.amount, data.alipayName, data.alipayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [userAgent, data.playerId, data.amount, data.alipayName, data.alipayAccount, data.bonusCode, 'ADMIN',
+                getAdminId(), getAdminName(), data.remark, data.createTime, data.realName], actionName, isValidData);
         },
 
         cancelAlipayTopup: function cancelAlipayTopup(data) {
@@ -816,7 +824,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.wechatPayAccount);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
         },
 
         cancelWechatPayTopup: function cancelWechatPayTopup(data) {
@@ -1036,6 +1044,12 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && typeof(data.filterAllPlatform) === "boolean" && data.platformObjId && data.arrayPhoneXLS);
             socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS], actionName, isValidData);
+        },
+
+        downloadTranslationCSV: function downloadTranslationCSV(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlayerInfo.downloadTranslationCSV, [data.platformId], actionName, isValidData);
         },
 
         convertRewardPointsToCredit: function convertRewardPointsToCredit(data) {

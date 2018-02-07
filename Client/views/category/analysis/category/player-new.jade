@@ -39,5 +39,111 @@
                         #line-newPlayer.lineChart.graphDiv
             .col-md-6
                 .graph
-                    table#newPlayerAnalysisTable.display.tableDiv(style='width:100%')
+                    //table#newPlayerAnalysisTable.display.tableDiv(style='width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformNewPlayerAnalysisSort.newPlayerSort = vm.platformNewPlayerAnalysisSort.newPlayerSort == "date" ? "-date":"date"') {{ vm.platformNewPlayerDataPeriodText | translate}}
+                                th(ng-click='vm.platformNewPlayerAnalysisSort.newPlayerSort = vm.platformNewPlayerAnalysisSort.newPlayerSort == "players.length" ? "-players.length":"players.length"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformNewPlayerAnalysisData | orderBy: vm.platformNewPlayerAnalysisSort.newPlayerSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.players.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformNewPlayerAverage }}
+.section
+    .row
+        .titlePic
+            .title
+                text {{"Player with Top-ups" | translate}}
+    div(style='width:100%')
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-newPlayerTopup.lineChart.graphDiv(style='height:600px')
+            .col-md-6
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformNewPlayerAnalysisSort.newPlayerTopupSort = vm.platformNewPlayerAnalysisSort.newPlayerTopupSort == "date" ? "-date":"date"') {{ vm.platformNewPlayerDataPeriodText | translate}}
+                                th(ng-click='vm.platformNewPlayerAnalysisSort.newPlayerTopupSort = vm.platformNewPlayerAnalysisSort.newPlayerTopupSort == "topupPlayer.length" ? "-topupPlayer.length":"topupPlayer.length"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformNewPlayerAnalysisData | orderBy: vm.platformNewPlayerAnalysisSort.newPlayerTopupSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.topupPlayer.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformNewPlayerTopupAverage }}
+
+.section
+    .row
+        .titlePic
+            .title
+                text {{"Player with Top-ups Multiple Times" | translate}}
+    div(style='width:100%')
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-newPlayerMultiTopup.lineChart.graphDiv(style='height:600px')
+            .col-md-6
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformNewPlayerAnalysisSort.newPlayerMultiTopupSort = vm.platformNewPlayerAnalysisSort.newPlayerMultiTopupSort == "date" ? "-date":"date"') {{ vm.platformNewPlayerDataPeriodText | translate}}
+                                th(ng-click='vm.platformNewPlayerAnalysisSort.newPlayerMultiTopupSort = vm.platformNewPlayerAnalysisSort.newPlayerMultiTopupSort == "multiTopupPlayer.length" ? "-multiTopupPlayer.length":"multiTopupPlayer.length"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformNewPlayerAnalysisData | orderBy: vm.platformNewPlayerAnalysisSort.newPlayerMultiTopupSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.multiTopupPlayer.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformNewPlayerMultiTopupAverage }}
+
+.section
+    .row
+        .titlePic
+            .title
+                text {{"Valid Player" | translate}}
+    div(style='width:100%')
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-newPlayerValidPlayer.lineChart.graphDiv(style='height:600px')
+            .col-md-6
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformNewPlayerAnalysisSort.newPlayerValidPlayerSort = vm.platformNewPlayerAnalysisSort.newPlayerValidPlayerSort == "date" ? "-date":"date"') {{ vm.platformNewPlayerDataPeriodText | translate}}
+                                th(ng-click='vm.platformNewPlayerAnalysisSort.newPlayerValidPlayerSort = vm.platformNewPlayerAnalysisSort.newPlayerValidPlayerSort == "validPlayer.length" ? "-validPlayer.length":"validPlayer.length"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformNewPlayerAnalysisData | orderBy: vm.platformNewPlayerAnalysisSort.newPlayerValidPlayerSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.validPlayer.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformNewPlayerValidPlayerAverage }}
+
 p(ng-init="vm.loadPageFunc('NEW_PLAYER')")

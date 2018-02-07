@@ -106,6 +106,16 @@ var dbUtility = {
         };
     },
 
+    getNextDaySGTime: function (time) {
+        var startTime = moment(time).tz('Asia/Singapore').startOf('day').add(1, 'days').toDate();
+        var endTime = moment(startTime).add(1, 'days').toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getSGTimeOf: function (time) {
         return time ? moment(time).tz('Asia/Singapore').toDate() : null;
     },
@@ -135,6 +145,30 @@ var dbUtility = {
 
     getLastWeekSGTime: function () {
         var endTime = dbUtility.getPreviousSGMonday();
+        var startTime = moment(endTime).subtract(1, 'week').toDate();
+
+        //console.log("Last week startTime:", startTime);
+        //console.log("Last week endTime:  ", endTime);
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getNextSGMonday: function (time) {
+
+        var mondayNextWeek = moment(time).tz('Asia/Singapore').startOf('day').day("Monday");
+
+        if (mondayNextWeek.toDate().getTime() <= new Date(time).getTime()) {
+            mondayNextWeek.add(7, 'days');
+        }
+
+        return mondayNextWeek.toDate();
+    },
+
+    getNextWeekSGTime: function (time) {
+        var endTime = dbUtility.getNextSGMonday(time);
         var startTime = moment(endTime).subtract(1, 'week').toDate();
 
         //console.log("Last week startTime:", startTime);
@@ -243,10 +277,44 @@ var dbUtility = {
         };
     },
 
+    getNextMonthSGTime: function (time) {
+        var startTime = moment(time).tz('Asia/Singapore').add(1, 'months').startOf('month').toDate();
+        let endTime = moment(startTime).add(1, 'months').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getLastWeekConsumptionReturnSGTime: function () {
-        var endTime = dbUtility.getPreviousSGMonday();
+        let timeNow = moment().tz('Asia/Singapore').toDate();
+
+        let endTime = dbUtility.getLastWeekSGTime().endTime;
         endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
         let startTime = moment(endTime).subtract(1, 'week').toDate();
+
+        if (timeNow < endTime) {
+            endTime = moment(endTime).subtract(1, 'week').toDate();
+            startTime = moment(endTime).subtract(1, 'week').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentWeekConsumptionReturnSGTime: function () {
+        let timeNow = moment().tz('Asia/Singapore').toDate();
+
+        let startTime = dbUtility.getCurrentWeekSGTime().startTime;
+        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
+        let endTime = moment(startTime).add(1, 'week').toDate();
+
+        if (timeNow < startTime) {
+            startTime = moment(startTime).subtract(1, 'week').toDate();
+            endTime = moment(startTime).add(1, 'week').toDate();
+        }
 
         return {
             startTime: startTime,
@@ -287,6 +355,10 @@ var dbUtility = {
     getDayEndTime: function (date) {
         return date ? moment(date).tz('Asia/Singapore').startOf('day').add(1, 'days').toDate() : null;
     },
+    getISODayEndTime: function (date) {
+        return date ? moment(date).startOf('day').add(1, 'days').toDate() : null;
+    },
+
 
     getPreviousSGDayOfDate: function (date) {
         return date ? {
@@ -382,9 +454,16 @@ var dbUtility = {
     },
 
     getYesterdayConsumptionReturnSGTime: function () {
-        var endTime = moment().tz('Asia/Singapore').startOf('day').toDate();
+        let timeNow = moment().tz('Asia/Singapore').toDate();
+
+        let endTime = moment().tz('Asia/Singapore').startOf('day').toDate();
         endTime = new Date(endTime.getTime() + 12*60*60*1000);
-        var startTime = moment(endTime).subtract(1, 'days').toDate();
+        let startTime = moment(endTime).subtract(1, 'days').toDate();
+
+        if (timeNow < endTime) {
+            endTime = new Date(endTime.getTime() - 24*60*60*1000);
+            startTime = moment(endTime).subtract(1, 'days').toDate();
+        }
 
         return {
             startTime: startTime,
@@ -393,9 +472,16 @@ var dbUtility = {
     },
 
     getTodayConsumptionReturnSGTime: function () {
-        var startTime = moment().tz('Asia/Singapore').startOf('day').toDate();
+        let timeNow = moment().tz('Asia/Singapore').toDate();
+
+        let startTime = moment().tz('Asia/Singapore').startOf('day').toDate();
         startTime = new Date(startTime.getTime() + 12*60*60*1000);
-        var endTime = moment(startTime).add(1, 'days').toDate();
+        let endTime = moment(startTime).add(1, 'days').toDate();
+
+        if (timeNow < startTime) {
+            startTime = new Date(startTime.getTime() - 24*60*60*1000);
+            endTime = moment(startTime).add(1, 'days').toDate();
+        }
 
         return {
             startTime: startTime,
@@ -444,6 +530,9 @@ var dbUtility = {
      * Get week time frame based on input date
      */
     getWeekTime: function (inputDate) {
+        // because start of week is monday instead of sunday, -1 day to get the actual 'start of week' (when inputDate land on monday)
+        inputDate = new Date(inputDate);
+        inputDate.setDate(inputDate.getDate() -1);
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf("week").add(1, 'day').toDate();
         var endTime = moment(inputDate).tz('Asia/Singapore').add(1, 'day').add(1, 'week').toDate();
         return {

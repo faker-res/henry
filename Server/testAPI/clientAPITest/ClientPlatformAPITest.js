@@ -62,7 +62,38 @@
         });
     };
 
+    proto.getLiveStream = function (callback, requestData) {
 
+        this._service.getLiveStream.request(requestData);
+        this._service.getLiveStream.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+
+    };
+
+    proto.playerPhoneChat = function (callback, requestData) {
+
+        this._service.playerPhoneChat.request(requestData);
+        this._service.playerPhoneChat.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+
+    };
+
+    proto.searchConsumptionRecord = function (callback, requestData) {
+
+        this._service.searchConsumptionRecord.request(requestData);
+        this._service.searchConsumptionRecord.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+
+    };
 
     if (isNode) {
         module.exports = ClientPlatformAPITest;

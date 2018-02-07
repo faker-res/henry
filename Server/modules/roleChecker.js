@@ -250,7 +250,7 @@ var roleChecker = {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
                     'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog', 'getPlayerTopUpGroupLog',
-                    'getProviderLatestTimeRecord'],
+                    'getProviderLatestTimeRecord', 'checkTransferInSequence'],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
@@ -385,7 +385,9 @@ var roleChecker = {
                 Monitor: [],
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
                 Credibility: ['updateCredibilityRemarksInBulk'],
-                providerGroup: ['deletePlatformProviderGroup']
+                providerGroup: ['deletePlatformProviderGroup'],
+                smsGroup: [],
+                DownloadTranslationCSV: ['downloadTranslationCSV']
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -530,7 +532,8 @@ var roleChecker = {
                 queryByProposalCredit: [],
                 queryByProposalPlayer: [],
                 queryByProposalDate: [],
-                updatePlayerBonusStatus: ['setBonusProposalStatus']
+                updatePlayerBonusStatus: ['setBonusProposalStatus'],
+                CsApproveProposal:["approveCsPendingAndChangeStatus"]
             },
             Player: {
                 Read: ['getCurrentActivePlayersCount', 'getActivePlayers'],
@@ -554,6 +557,7 @@ var roleChecker = {
                 ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
                 ConsumptionInterval: ['getConsumptionIntervalData'],
                 ClientSource: [],
+                LoginPlayer: [],
 
             }
         },
@@ -600,6 +604,44 @@ var roleChecker = {
         Monitor: {
             Payment:{
                 Read: ['getPaymentMonitorResult']
+            }
+        },
+        QualityInspection: {
+            QualityInsectionSetting: {
+                Read: [],
+                Edit: ['updatePlatform','summarizeLive800Record'],
+                queryByQualityInspectionDate: []
+            },
+            Live800Record: {
+                Read: ['searchLive800'],
+                Edit: ['rateCSConversation','rateBatchConversation'],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: [],
+                queryByEvaluationStatus: [],
+                queryByQualityAssessor: []
+            },
+            QualityInsectionEvaluation: {
+                Read: ['getUnreadEvaluationRecord','getReadEvaluationRecord','getAppealEvaluationRecordByConversationDate','getAppealEvaluationRecordByAppealDate'],
+                Edit: ['markEvaluationRecordAsRead','appealEvaluation'],
+                queryByQualityAssessor: [],
+                queryByQualityInspectionDate: [],
+                queryByAppealDate: [],
+                queryByAppealStatus: []
+            },
+            QualityInsectionCSReport: {
+                Read: ['searchLive800Record'],
+                queryByProduct: [],
+                queryByCSAccount: [],
+                queryByLive800Account: [],
+                queryByLive800Date: []
+            },
+            QualityInsectionReport: {
+                Read: ['getWorkloadReport','getEvaluationProgressRecord'],
+                queryByQualityAssessor: [],
+                queryByQualityInspectionDate: [],
+                queryByProduct: []
             }
         }
     },

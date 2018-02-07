@@ -18,6 +18,7 @@ const dbRewardTask = require('./../../db_modules/dbRewardTask');
 const dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 const dbPlayerMail = require("./../../db_modules/dbPlayerMail");
 const dbPlayerRewardPoints = require('./../../db_modules/dbPlayerRewardPoints');
+const dbRewardTaskGroup = require('./../../db_modules/dbRewardTaskGroup');
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -221,13 +222,13 @@ var SettlementServiceImplement = function () {
 
     this.processAutoProposals.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data && data.proposals && data.platformObj);
-        let args = [data.proposals, data.platformObj];
+        let args = [data.proposals, data.platformObj, data.useProviderGroup];
         WebSocketUtil.performAction(conn, wsFunc, data, dbAutoProposal.processAutoProposals, args, isValidData);
     };
 
     this.performPlatformPlayerLevelSettlement.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerObjIds && data.levels);
-        let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown];
+        let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown, data.platformPeriod];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerLevel.performPlatformPlayerLevelSettlement, args, isValidData);
     };
     this.sendPlayerMailFromAdminToPlayer.onRequest = function (wsFunc, conn, data) {
@@ -259,6 +260,12 @@ var SettlementServiceImplement = function () {
         data.credit = -1;
         isValidData = data.credit == 0 ? false : isValidData;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditFromProvider, [data.playerId, data.platformObjId, data.providerId, data.credit, data.adminName, null, null, null, data.isBatch], isValidData);
+    };
+
+    this.performUnlockPlatformProviderGroup.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.rewardTaskGroup);
+        let args = [data.rewardTaskGroup];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardTaskGroup.performUnlockPlatformProviderGroup, args, isValidData);
     };
 };
 

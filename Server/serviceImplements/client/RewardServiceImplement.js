@@ -30,7 +30,7 @@ let RewardServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardsForPlayer, [conn.playerId, data.rewardType, data.startTime, data.endTime, data.startIndex, data.requestCount], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getRewardsForPlayer, [conn.playerId, data.rewardType, data.startTime, data.endTime, data.startIndex, data.requestCount, data.eventCode, conn.platformId], isValidData);
     };
 
     this.getRewardTask.expectsData = 'playerId: String';
@@ -41,14 +41,17 @@ let RewardServiceImplement = function () {
 
     this.requestConsumeRebate.expectsData = '';
     this.requestConsumeRebate.onRequest = function (wsFunc, conn, data) {
+        data = data || {};
         var isValidData = Boolean(data && conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn, [conn.playerId, true], isValidData);
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.startCalculatePlayerConsumptionReturn, [conn.playerId, true, false, data.eventCode, userAgent], isValidData);
     };
 
     this.getConsumeRebateAmount.expectsData = '';
     this.getConsumeRebateAmount.onRequest = function (wsFunc, conn, data) {
+        data = data || {};
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [conn.playerId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn, [conn.playerId, data.eventCode], isValidData);
     };
 
     this.isValidForFirstTopUpReward.expectsData = 'playerId: String';
@@ -123,6 +126,12 @@ let RewardServiceImplement = function () {
     this.getSlotInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = true;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getSlotInfo, [conn.playerId, data.code, data.platformId], isValidData, false, false, Boolean(data.platformId));
+    };
+
+    this.getRandBonusInfo.expectsData = '';
+    this.getRandBonusInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getRandBonusInfo, [conn.playerId, data.rewardCode, conn.platformId], isValidData);
     };
 
     this.getTopUpPromoList.expectsData = 'clientType: Number';

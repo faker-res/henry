@@ -286,7 +286,7 @@ var encrypt = {
             }
         }
         return true;
-    }
+    },
 
 };
 // https://gist.github.com/soplakanets/980737 --> see for hashing

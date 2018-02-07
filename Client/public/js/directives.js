@@ -89,6 +89,32 @@ angular.module('myApp.directives', [])
     };
   }])
 
+    .directive("consumptionreturnpercentage", ['$filter', function($filter){
+        //console.log("consumptionReturnPercentage");
+        return {
+            require: 'ngModel',
+            link: function(scope, ele, attr, ctrl){
+                //console.log("consumptionReturnPercentage2");
+                ctrl.$parsers.unshift(function(viewValue){
+                   // console.log("percent directive viewValue=%s", viewValue);
+                    let returnedValue= parseFloat(parseFloat(viewValue)/100).toFixed(5);
+                    return Number(returnedValue);
+                });
+                ctrl.$formatters.unshift(function(modelValue){
+                   // console.log("percent directive modelValue=%s", modelValue);
+                    var scaledVal = parseFloat((parseFloat(modelValue) * 100).toFixed(3));
+                    if (ele[0].tagName === 'INPUT') {
+                        // If the value is for an <input>, we should return it raw.
+                        return scaledVal;
+                    } else {
+                        // But for plain visual display, we may want to prettify with ','s
+                        return Number(scaledVal);
+                    }
+                });
+            }
+        };
+    }])
+
   /**
    * An easy way to make list items or table rows or cells selectable.
    *
@@ -303,7 +329,49 @@ angular.module('myApp.directives', [])
             }
         };
     })
+    .directive('conversationform', function(){
+        return {
+            retrict: 'EA',
+            replace: true,
+            controllerAs:'vm',
+            translude: true,
+            scope: {
+                cform:'=',
+                rateconversation:"&",
+                confirmrate:"&",
+                storebatch:"&"
+            },
+            template: $('#conversationForm').html(),
+            link:function(scope, element, attr){
 
+                scope.rateIt = function(conversation){
+                    // if the complain is closed(6) , or this conversation no need to rate(7)
+                    if(conversation.status!=6 && conversation.status!=7){
+                        conversation.editable = true;
+                    }
+
+                }
+                scope.cancelrate = function(conversation){
+                    conversation.editable = false;
+                }
+            }
+        };
+    })
+    .directive('qaform', function(){
+        return {
+            retrict: 'EA',
+            replace: true,
+            controllerAs:'vm',
+            transclude: true,
+            scope: {
+                qform:'='
+            },
+            template: $('#QAForm').html(),
+            link:function(scope, element, attr){
+                console.log(attr);
+           }
+        };
+    })
     // sheetjs.com js-xlsx - spreadsheet parser and writer
     .directive('fileread', [function () {
         return {
@@ -332,4 +400,17 @@ angular.module('myApp.directives', [])
             }
         }
     }])
+
+    //focus-me - focus input element by value(true / false)
+    .directive('focusMe', function () {
+        return {
+            link: function(scope, element, attrs) {
+                scope.$watch(attrs.focusMe, function(value) {
+                    if(value === true) {
+                        element[0].focus();
+                    }
+                });
+            }
+        };
+    });
 ;

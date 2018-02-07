@@ -213,16 +213,15 @@ describe("Test random reward group reward", function () {
 
         Q.all([typeProm, typeProcessProm]).then(
             function (data) {
-                if (data && data[0] && data[1]) {
-                    data[0].name.should.equal(typeName);
-                    data[1].name.should.equal(typeName);
-                    proposalTypeId = data[0]._id;
-                    proposalTypeProcessId = data[1]._id;
-                    done();
-                }
-                else {
-                    done('proposal type id and proposal type process no found');
-                }
+                should.exist(data);
+                should.exist(data[0]);
+                should.exist(data[1]);
+
+                data[0].name.should.equal(typeName);
+                data[1].name.should.equal(typeName);
+                proposalTypeId = data[0]._id;
+                proposalTypeProcessId = data[1]._id;
+                done();
             }
         ).catch(
             function (error) {
@@ -235,12 +234,9 @@ describe("Test random reward group reward", function () {
     it('Should find random reward type on platform', function (done) {
         dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_RANDOM_REWARD_GROUP}).lean().then(
             (rewardType) => {
-                if (rewardType) {
-                    randomRewardType = rewardType;
-                    done();
-                } else {
-                    done('Random Reward Group rewardType no found');
-                }
+                should.exist(rewardType);
+                randomRewardType = rewardType;
+                done();
             },
             (error) => {
                 done(error);
@@ -252,12 +248,9 @@ describe("Test random reward group reward", function () {
     it('Should find player level on platform', function (done) {
         dbConfig.collection_playerLevel.findOne({platform: testPlatformObjId, value: 0}).lean().then(
             (playerLevel) => {
-                if (playerLevel) {
-                    testPlatformPlayerLevelId = playerLevel._id;
-                    done();
-                } else {
-                    done('Platform player level no found');
-                }
+                should.exist(playerLevel);
+                testPlatformPlayerLevelId = playerLevel._id;
+                done();
             },
             (error) => {
                 done(error);
@@ -288,12 +281,9 @@ describe("Test random reward group reward", function () {
     it('Should find random reward event', function (done) {
         dbRewardEvent.getRewardEvent({platform: testPlatformObjId, type: randomRewardType._id}).then(
             (rewardEvent) => {
-                if (rewardEvent) {
-                    randomRewardEvent = rewardEvent;
-                    done();
-                } else {
-                    done('Random reward event no found');
-                }
+                should.exist(rewardEvent);
+                randomRewardEvent = rewardEvent;
+                done();
             },
             (error) => {
                 done(error);
@@ -324,7 +314,7 @@ describe("Test random reward group reward", function () {
     /* Test 9 - apply random reward event*/
     it('Should apply random reward event', function (done) {
         let proms = [];
-        for (let a = 0; a < 5; a++) {
+        for (let a = 0; a < 1; a++) {
             proms.push(dbPlayerInfo.applyRewardEvent("", testPlayer.playerId, createRandomRewardEventData.code, "").then(
                 data => {
                     return true;
@@ -352,16 +342,10 @@ describe("Test random reward group reward", function () {
     it('Should check is add reward event proposal data', function (done) {
         dbProposal.getProposal({"data.platformId": testPlatformObjId, "data.playerObjId": testPlayerObjId}).then(
             (proposal) => {
-                if (proposal) {
-                    randomRewardProposal = proposal;
-                    if (randomRewardProposal.data.spendingAmount === randomRewardProposal.data.rewardAmount * rewardEventSpendingTimesOnReward) {
-                        done();
-                    } else {
-                        done('Random reward event proposal data spending amount no match');
-                    }
-                } else {
-                    done('Reward event proposal no found');
-                }
+                should.exist(proposal);
+                randomRewardProposal = proposal;
+                randomRewardProposal.data.should.have.property('spendingAmount', randomRewardProposal.data.rewardAmount * rewardEventSpendingTimesOnReward);
+                done();
             },
             (error) => {
                 done(error);
@@ -384,17 +368,15 @@ describe("Test random reward group reward", function () {
 
         getTaskProm.then(
             (rewardTask) => {
-                if (rewardTask) {
-                    randomRewardRewardTask = rewardTask;
-                    if (!rewardEventUseProviderGroup && randomRewardProposal.data.spendingAmount === randomRewardRewardTask.requiredUnlockAmount) {
-                        done();
-                    } else if (rewardEventUseProviderGroup && randomRewardProposal.data.spendingAmount === randomRewardRewardTask.targetConsumption) {
-                        done();
-                    } else {
-                        done('Random reward event proposal data and reward task no match');
-                    }
+                should.exist(rewardTask);
+
+                randomRewardRewardTask = rewardTask;
+                if (!rewardEventUseProviderGroup && randomRewardProposal.data.spendingAmount === randomRewardRewardTask.requiredUnlockAmount) {
+                    done();
+                } else if (rewardEventUseProviderGroup && randomRewardProposal.data.spendingAmount === randomRewardRewardTask.targetConsumption) {
+                    done();
                 } else {
-                    done('Random reward event reward task no found');
+                    done(new Error('Random reward event proposal data and reward task no match'));
                 }
             },
             (error) => {
@@ -413,7 +395,7 @@ describe("Test random reward group reward", function () {
                 } else if (rewardEventUseProviderGroup && player.validCredit === testPlayer.validCredit) {
                     done();
                 } else {
-                    done('Player validCredit no match');
+                    done(new Error('Player validCredit no match'));
                 }
             },
             (error) => {
@@ -461,7 +443,7 @@ describe("Test random reward group reward", function () {
                 if (rewardTask.status === constRewardTaskStatus.COMPLETED || rewardTask.status === constRewardTaskStatus.ACHIEVED) {
                     done();
                 } else {
-                    done('Reward task should unlock but no unlock');
+                    done(new Error('Reward task should unlock but no unlock'));
                 }
             },
             (error) => {

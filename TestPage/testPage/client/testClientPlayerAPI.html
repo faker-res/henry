@@ -57,6 +57,21 @@
         </label>
     </div>
     <div>
+        <label id="playerQQ">QQ
+            <input type=text name="qq">
+        </label>
+    </div>
+    <div>
+        <label> Gender
+            <input type=text name="gender" placeholder="1-Male, 0-Female">
+        </label>
+    </div>
+    <div>
+        <label> Birthday
+            <input type=date name="DOB">
+        </label>
+    </div>
+    <div>
         <label id="code">Sms Code
             <input type=text name="smsCode">
         </label>
@@ -64,6 +79,15 @@
     <div>
         <label id="code">Purpose
             <input type=text name="purpose">
+        </label>
+    </div>
+    <div>
+        <label>isAutoCreate
+            <select name="isAutoCreate">
+                <option value="" selected>False</option>
+                <option value="true">True</option>
+            </select>
+
         </label>
     </div>
     <div>
@@ -678,6 +702,37 @@
     </div>
 </div>
 
+<h3>GET PLAYER SMS STATUS (获取玩家短信状态)</h3>
+
+<div class="test-container">
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="getSmsStatus" data-api-name="getSmsStatus">get Player Sms Status</button>
+        <div>
+            <textarea id="GetSmsStatusOutput"></textarea>
+        </div>
+    </div>
+</div>
+
+<h3>SET PLAYER SMS STATUS (设置玩家短信状态)</h3>
+
+<div class="test-container">
+    <div>
+        <label id="status"  name="status">SMS Status
+            <input name="status" type=text>
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="setSmsStatus" data-api-name="setSmsStatus">set Player Sms Status</button>
+        <div>
+            <textarea id="SetSmsStatusOutput"></textarea>
+        </div>
+    </div>
+</div>
+
 
 <h3>TEST VALID USERNAME (用户是否有效)</h3>
 <div class="test-container">
@@ -1022,13 +1077,28 @@
 
 <div class="test-container">
     <div>
-        <label id="playerId" name="playerId">Player Id
-            <input id="playerIDInput" name="playerId" type=text>
+        <label name="playerId">Player Id (ID)
+            <input name="playerId" type=text>
         </label>
     </div>
     <div>
-        <label id="nickName">Nick Name
+        <label id="nickName">Nick Name (昵称)
             <input id="nickNameInput" type=text name="nickName">
+        </label>
+    </div>
+    <div>
+        <label> Real Name (真实姓名)
+            <input id="realNameInput" type=text name="realName">
+        </label>
+    </div>
+    <div>
+        <label> Gender (性别)
+            <input name="gender" type=text placeholder="1-Male, 0-Female">
+        </label>
+    </div>
+    <div>
+        <label> Birthday (生日)
+            <input type=date name="DOB">
         </label>
     </div>
     <p></p>
@@ -1383,6 +1453,93 @@
         <button id="getCreditDetail" data-api-name="getCreditDetail">Credit Detail</button>
     </div>
 </div>
+
+<h3>Update Player QQ (编辑玩家QQ)</h3>
+
+<div class="test-container">
+    <div>
+        <label>QQ
+            <input id="qq" type=text name="qq">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePlayerQQ" data-api-name="updatePlayerQQ">Update</button>
+    </div>
+</div>
+
+<h3>Update Player WeChat (编辑玩家微信)</h3>
+
+<div class="test-container">
+    <div>
+        <label>WeChat
+            <input id="wechat" type=text name="wechat">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePlayerWeChat" data-api-name="updatePlayerWeChat">Update</button>
+    </div>
+</div>
+
+<h3>Update Player Email (编辑玩家邮箱)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Email
+            <input id="email" type=text name="email">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePlayerEmail" data-api-name="updatePlayerEmail">Update</button>
+    </div>
+</div>
+
+<h3>Login JBL Show (登入金百利直播间)</h3>
+<div class="test-container">
+    <div>
+
+    </div>
+    <p></p>
+    <button data-api-name="loginJblShow">Get platform configuration</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Create Demo Player (生成试玩账号)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+
+    </div>
+    <div>
+        <label>Telephone
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Sms Code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <div>
+        <input type="text" name="purpose" hidden value="demoPlayer" />
+        <button id="getSmsCode" data-api-name="getSMSCode">Get SMS Code</button>
+    </div>
+    <p></p>
+    <button data-api-name="createDemoPlayer">Create</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

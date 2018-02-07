@@ -8,6 +8,8 @@ let promoCodeTypeSchema = new Schema({
     name: {type: String, required: true},
     // promo code type
     type: {type: Number, required: true},
+    // sms title
+    smsTitle: {type: String},
     // sms content
     smsContent: {type: String},
     // is deleted or not the the

@@ -23,6 +23,10 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label {{"PLATFORM_PARTNER_PREFIX" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_PARTNER_PREFIX' | translate}}", ng-model="vm.showPlatform.partnerPrefix")
                 div.form-group.col-md-6
+                    label.control-label {{"DemoPlayerPrefix" | translate}}
+                    div
+                    select.demoPlayerPrefixSelection(ng-model='vm.showPlatform.demoPlayerPrefix', style='height:30px')
+                div.form-group.col-md-6
                     label.control-label {{"PLATFORM_ICON" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM ICON URL' | translate}}", ng-model="vm.showPlatform.icon", style='width:calc(100% - 50px);display:inline-block')
                     img.margin-left-5(ng-if='vm.showPlatform.icon', src="{{vm.showPlatform.icon}}", style='width:40px;height:40px;top: 20px;position: absolute;')
@@ -35,16 +39,30 @@ form(name="form_new_platform" ,novalidate)
                 div.form-group.col-md-6
                     label.control-label {{"CUSTOMER_SERVICE_EMAIL_AUTOMATED" | translate}} {{"used when sending automated messages" | translate}}
                     input.form-control(type="text", placeholder="{{'EMAIL' | translate}}", ng-model="vm.showPlatform.csEmail")
+                div.form-group.col-md-6
+                    label.control-label {{"LIVE800 COMPANYID" | translate}}
+                    input.form-control(type="text", placeholder="{{'live800CompanyId' | translate}}",ng-blur="vm.isValidCompanyId(vm.showPlatform.live800CompanyIdTXT)", ng-model= "vm.showPlatform.live800CompanyIdTXT")
+                    div(ng-if="vm.live800CompanyIdError", style='color:red') {{vm.live800CompanyIdError}}
+                div.form-group.col-md-6
+                    label.control-label {{"CS Department" | translate}}
+                    input.form-control(type="text", ng-model="vm.showPlatform.csDepartmentTXT", ng-blur="vm.isValidCSDepartment(vm.showPlatform.csDepartmentTXT)")
+                    div(ng-if="vm.csDepartmentError", style='color:red') {{vm.csDepartmentError}}
+                div.form-group.col-md-6
+                    label.control-label {{"QI Department" | translate}}
+                    input.form-control(type="text", ng-model="vm.showPlatform.qiDepartmentTXT", ng-blur="vm.isValidQIDepartment(vm.showPlatform.qiDepartmentTXT)")
+                    div(ng-if="vm.qiDepartmentError", style='color:red') {{vm.qiDepartmentError}}
 
-            div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
+
+
+        div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
                     .pull-left.padding-all-5
-                    li.active(id = 'customerServeiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                    li.active(id = 'customerServiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
                         a.common-tab(data-toggle="tab", ng-click='vm.playerDisplayDataTab = \'customerServicePanel\'')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"CUSTOMER_SERVICE" | translate}}
                     li(id = 'advertisementTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
-                        a.common-tab(data-toggle="tab",ng-click='vm.playerDisplayDataTab = \'advertisementPanel\'; vm.playerAdvertisementList();vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;vm.addNewPlayerAdvertisement=false;')
+                        a.common-tab(data-toggle="tab",ng-click='vm.playerDisplayDataTab = \'advertisementPanel\';vm.playerAdvertisementWebDevice=true;vm.playerAdvertisementH5Device=false; vm.playerAdvertisementList();vm.editAdvertisementRecord=false; vm.showAdvertisementRecord=true;vm.addNewPlayerAdvertisement=false;')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"ADVERTISEMENT" | translate}}
 
@@ -314,12 +332,12 @@ form(name="form_new_platform" ,novalidate)
             div(name="partner-display-data", ng-show="vm.selectedPlatformDetailTab == 'partner-display-data'")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
                     .pull-left.padding-all-5
-                    li.active(id = 'partnerServeiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                    li.active(id = 'partnerServiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
                         a.common-tab(data-toggle="tab", ng-click='vm.partnerDisplayDataTab = \'partnerPanel\'')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"PARTNER" | translate}}
                     li(id = 'partnerAdvertisementTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
-                        a.common-tab(data-toggle="tab",ng-click='vm.partnerDisplayDataTab = \'partnerAdvertisementPanel\'; vm.partnerAdvertisementList();vm.editpartnerAdvertisementRecord=false; vm.showpartnerAdvertisementRecord=true;vm.addNewPartnerAdvertisement=false;')
+                        a.common-tab(data-toggle="tab",ng-click='vm.partnerDisplayDataTab = \'partnerAdvertisementPanel\';vm.partnerAdvertisementWebDevice=true;vm.partnerAdvertisementH5Device=false; vm.partnerAdvertisementList();vm.editpartnerAdvertisementRecord=false; vm.showpartnerAdvertisementRecord=true;vm.addNewPartnerAdvertisement=false;')
                             .fa.fa-file-text.margin-right-5
                             text.span {{"ADVERTISEMENT" | translate}}
 
@@ -742,5 +760,3 @@ div(name="system-settlement", ng-show="vm.selectedPlatformDetailTab == 'system-s
             p
             div(ng-repeat='n in vm.listArray track by $index')
                 a.badge(ng-click='vm.showPlatform.weeklySettlementMinute=$index;vm.pickWeek=null;') {{vm.getMinName($index) | translate}}
-
-

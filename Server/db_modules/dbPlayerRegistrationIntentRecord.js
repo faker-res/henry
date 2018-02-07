@@ -9,12 +9,14 @@ let constProposalEntryType = require('../const/constProposalEntryType');
 let constProposalUserType = require('../const/constProposalUserType');
 let constProposalMainType = require('../const/constProposalMainType');
 let constProposalStatus = require('../const/constProposalStatus');
+let constMessageType = require('../const/constMessageType');
 let queryPhoneLocation = require('query-mobile-phone-area');
 let constRegistrationIntentRecordStatus = require("../const/constRegistrationIntentRecordStatus.js");
 const request = require('request');
 var geoip = require('geoip-lite');
 let Q = require("q");
 
+let SMSSender = require('../modules/SMSSender');
 let ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerRegistrationIntentRecord = {
@@ -84,6 +86,7 @@ var dbPlayerRegistrationIntentRecord = {
                 data: data,
                 entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                 userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                status: status
             };
 
             //data.ipArea = geoip('210.21.84.23');
@@ -154,7 +157,12 @@ var dbPlayerRegistrationIntentRecord = {
                                     createTime: newProposal.createTime
                                 }, {status: status}).then(
                                     function (data) {
-                                        deferred.resolve(data);
+                                        if(status === constProposalStatus.APPROVED ||status === constProposalStatus.MANUAL ) {
+                                            SMSSender.sendByPlayerObjId(data.data.playerObjId, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, data);
+                                            // if require on outside, messageDispatcher will be empty object, probably because of circular dependency, so require inside function
+                                            require("./../modules/messageDispatcher").dispatchMessagesForPlayerProposal(data, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, {}).catch(err=>{console.error(err)});
+                                        }
+                                       deferred.resolve(data);
                                     },
                                     function (error) {
                                         deferred.reject({name: "DBError", message: "Error finding matching proposal", error: error});
@@ -204,30 +212,71 @@ var dbPlayerRegistrationIntentRecord = {
 
         queryObj['data.phoneNumber'] = query.phoneNumber ? query.phoneNumber : "";
         queryObj['data.smsCode'] = query.smsCode ? parseInt(query.smsCode) : "";
+        queryObj.status = {$nin: [constProposalStatus.NOVERIFY]};
 
-        if (query && query._id && query.createTime) {
-            proposalProm = dbconfig.collection_proposal.findOneAndUpdate(queryObj, updateQuery, {new: true});
-            if(updateData && updateData != "Fail"){
-                intentUpdateData.status = constRegistrationIntentRecordStatus[intentUpdateData.toString().toUpperCase()];
-            }
-            registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(queryObj, intentUpdateData, {new: true});
-        } else {
-            proposalProm = dbUtil.findOneAndUpdateForShard(
-                dbconfig.collection_proposal,
-                queryObj, updateQuery,
-                constShardKeys.collection_proposal
-            );
-            if(updateData && updateData != "Fail"){
-                intentUpdateData.status = constRegistrationIntentRecordStatus[updateData.toString().toUpperCase()];
-            }
-            registrationIntentProm = dbUtil.findOneAndUpdateForShard(
-                    dbconfig.collection_playerRegistrationIntentRecord,
-                queryObj, intentUpdateData,
-                    constShardKeys.collection_playerRegistrationIntentRecord
-            );
-        }
 
-        return Promise.all([proposalProm,registrationIntentProm]);
+        return dbconfig.collection_players.findOne({playerId:query.playerId,platform:query.platform})
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).then(
+                (playerData) => {
+                    updateQuery.data.playerLevelName = playerData.playerLevel.name;
+                    if (query && query._id && query.createTime) {
+                        proposalProm = dbconfig.collection_proposal.findOneAndUpdate(queryObj, updateQuery, {new: true});
+                        if(updateData && updateData != "Fail"){
+                            intentUpdateData.status = constRegistrationIntentRecordStatus[intentUpdateData.toString().toUpperCase()];
+                        }
+                        registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(queryObj, intentUpdateData, {new: true});
+                    } else {
+                        proposalProm = dbconfig.collection_proposal.findOne(queryObj).lean().then(
+                            proposalData => {
+                                if (proposalData && proposalData._id && proposalData.createTime) {
+                                    return dbUtil.findOneAndUpdateForShard(
+                                        dbconfig.collection_proposal,
+                                        {
+                                            _id: proposalData._id,
+                                            createTime: proposalData.createTime
+                                        }, updateQuery,
+                                        constShardKeys.collection_proposal
+                                    );
+                                }
+                            }
+                        )
+                        if(updateData && updateData != "Fail"){
+                            intentUpdateData.status = constRegistrationIntentRecordStatus[updateData.toString().toUpperCase()];
+                        }
+                        if (intentUpdateData) {
+                            registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOne(queryObj).lean().then(
+                                recordData => {
+                                    if (recordData && recordData._id && recordData.createTime) {
+                                        return dbUtil.findOneAndUpdateForShard(
+                                            dbconfig.collection_playerRegistrationIntentRecord,
+                                            {
+                                                _id: recordData._id,
+                                                createTime: recordData.createTime
+                                            }, intentUpdateData,
+                                            constShardKeys.collection_playerRegistrationIntentRecord
+                                        );
+                                    }
+                                }
+                            );
+                        }
+
+                    }
+                    return Promise.all([proposalProm,registrationIntentProm]).then(
+                        (data) =>{
+                            if(data && data[0] && updateData && updateData != "Fail"){
+                                let proposalData = data[0];
+                                proposalData.data.playerName = playerData.name;
+                                proposalData.data.playerObjId = playerData._id;
+                                proposalData.data.platformId = playerData.platform;
+                                SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, proposalData);
+                                // if require on outside, messageDispatcher will be empty object, probably because of circular dependency, so require inside function
+                                require("./../modules/messageDispatcher").dispatchMessagesForPlayerProposal(proposalData, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, {}).catch(err=>{console.error(err)});
+                            }
+                            return data
+                        }
+                    );
+                }
+            );
     },
 
     /**

@@ -8,8 +8,10 @@ const dbMessageTemplate = require("../db_modules/dbMessageTemplate.js");
 const emailer = require("../modules/emailer");
 const serverInstance = require("./serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
+const constPromoCodeLegend = require("../const/constPromoCodeLegend.js");
+const constMessageType = require("../const/constMessageType.js");
 const assert = require('assert');
-
+const moment = require('moment-timezone');
 const messageDispatcher = {
 
     /**
@@ -30,7 +32,8 @@ const messageDispatcher = {
                 metaData.senderType = 'System';
                 metaData.platformId = proposalData.data.platformId;
                 //const platformId = metaData.proposalData.data.platformId;
-                const platformId = metaData.player.platform;
+                // const platformId = metaData.platformId;
+                const platformId = player.platform;
                 return messageDispatcher.dispatchMessagesOfType(platformId, messageType, metaData);
             }
         )
@@ -48,6 +51,123 @@ const messageDispatcher = {
         );
     },
 
+    dispatchMessagesForPromoCode: function (platformObjId, metaData, adminName) {
+        let providerNameList = [];
+        const playerId = metaData.playerObjId;
+        // Fetch any data which might be used in the template
+        return dbPlayerInfo.getPlayerInfo({_id: playerId}).then(
+            function (player) {
+                //metaData.proposalData = proposalData;
+                metaData.player = player;
+                metaData.recipientId = player._id;
+                metaData.recipientType = 'player';
+                metaData.senderType = 'admin';
+                metaData.senderName = adminName ? adminName: "";
+                metaData.platformId = platformObjId;
+                const platformId = platformObjId;
+
+                let proms = [];
+                let providerProm = [];
+                let gameProviderProm;
+                if(metaData && metaData.allowedProviders){
+                    if(metaData.isProviderGroup){
+                        return Promise.all([messageDispatcher.getProviderNameByProviderGroupId(metaData.allowedProviders)]);
+                    }else{
+                        return Promise.all([messageDispatcher.getProviderNameByProviderId(metaData.allowedProviders)]);
+                    }
+                }
+            }
+        ).then(
+            data => {
+                if(data){
+                    if(metaData.isProviderGroup) {
+                        if(data.length > 0 && data[0].name){
+                            metaData.allowedProviders = data[0].name;
+                        }
+                    }else{
+                        if(data[0] && data[0].length > 0){
+                            metaData.allowedProviders = data[0]
+                        }
+                    }
+                }
+
+                let messageContent = messageDispatcher.contentModifier(metaData.promoCodeType.smsContent,metaData);
+
+                let messageTemplate = {
+                    format: 'internal',
+                    subject: metaData.promoCodeType.smsTitle,
+                    content: messageContent
+                }
+
+                messageDispatcher.renderTemplateAndSendMessage(messageTemplate, metaData);
+            }
+        );
+    },
+
+    getProviderNameByProviderGroupId: function(providerGroupId){
+        return dbconfig.collection_gameProviderGroup.findOne({_id: providerGroupId},{name: 1});
+    },
+
+    getProviderNameByProviderId(providerIdArr){
+        let gameProviderProm = [];
+        let gameProviderNameArr = [];
+
+        providerIdArr.forEach(providerId => {
+            gameProviderProm.push(dbconfig.collection_gameProvider.findOne({_id: providerId}));
+        })
+
+        return Promise.all(gameProviderProm).then(
+            gameProviderData => {
+            if(gameProviderData && gameProviderData.length > 0){
+                gameProviderData.forEach(gameProvider => {
+                    gameProviderNameArr.push(gameProvider.name);
+                })
+            }
+
+            return gameProviderNameArr;
+        })
+    },
+
+    contentModifier: function(messageContent, metaData){
+        Object.keys(constPromoCodeLegend).forEach(e => {
+            let indexCode = constPromoCodeLegend[e];
+            let codePositionIndex = messageContent.indexOf("(" + indexCode + ")");
+            let contentToReplace = "";
+
+            switch (indexCode) {
+                case "X":
+                    contentToReplace = metaData.amount;
+                    break;
+                case "D":
+                    contentToReplace = metaData.minTopUpAmount;
+                    break;
+                case "Y":
+                    contentToReplace = metaData.requiredConsumption;
+                    break;
+                case "Z":
+                    contentToReplace = metaData.expirationTime;
+                    break;
+                case "P":
+                    contentToReplace = metaData.allowedProviders;
+                    break;
+                case "Q":
+                    contentToReplace = metaData.code;
+                    break;
+                case "M":
+                    contentToReplace = metaData.maxRewardAmount;
+                    break;
+                default:
+                    break;
+            }
+
+            if (codePositionIndex > -1) {
+                messageContent = messageContent.substr(0, codePositionIndex) + contentToReplace + messageContent.substr(codePositionIndex + 3);
+            }
+        });
+
+        return messageContent;
+    },
+
     /**
      * @param messageTemplate - The parameters in the messageTemplate should match the metaData for the given situation.
      *
@@ -62,6 +182,21 @@ const messageDispatcher = {
     renderTemplateAndSendMessage: function (messageTemplate, metaData) {
         const renderedSubject = typeof messageTemplate.subject === 'string' && renderTemplate(messageTemplate.subject, metaData);
         const contentIsHTML = isHTML(messageTemplate.content);
+        if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
+            messageTemplate.content = messageTemplate.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
+        if (metaData.proposalData) {
+            if(metaData.proposalData.createTime)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.createTime}}', moment(metaData.proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
+            if(metaData.proposalData.settleTime)
+                //use current Date for settleTime, because settleTime only update after proposalExecutor ,
+                //and sendMessageToPlayer will call before settleTime update
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.settleTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
+            if(metaData.proposalData.data.rewardAmount)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardAmount}}', metaData.proposalData.data.rewardAmount.toFixed(2));
+            if(metaData.proposalData.data.amount)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.amount}}', metaData.proposalData.data.amount.toFixed(2));
+        }
+        
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },
@@ -90,7 +225,7 @@ const messageDispatcher = {
                 platformId: metaData.platformId,
                 senderType: metaData.senderType,
                 senderId: metaData.senderId,
-                senderName: metaData.senderName,
+                //senderName: metaData.senderName,
                 recipientType: metaData.recipientType,
                 recipientId: metaData.recipientId,
                 // playerId: metaData.player._id,
@@ -109,7 +244,7 @@ const messageDispatcher = {
         }
         // @todo SMS format
         else {
-            return Q.reject("I do not know how to dispatch a message with format '" + format + "'.");
+            // return Q.reject("I do not know how to dispatch a message with format '" + format + "'.");
         }
     }
 

@@ -118,7 +118,7 @@
 <h3>GET PLAYER REWARD LIST (获取玩家奖励活动申请列表)</h3>
 <div class="test-container">
     <div>
-        <label>Reward Type
+        <label>Reward Type (DEPRECATED)
             <input name="rewardType">
         </label>
     </div>
@@ -143,13 +143,14 @@
         </label>
     </div>
     <div>
+        <label>Event Code
+            <input name="eventCode">
+        </label>
+    </div>
+    <div>
         <label>
-            Available types:</p>
-            全勤: "FullAttendance",</p>
-            玩家消费返点: "PlayerConsumptionReturn",</p>
-            玩家首冲: "FirstTopUp",</p>
-            游戏提供商奖励: "GameProviderReward",</p>
-            转账奖励: "PlatformTransactionReward"</p>
+            Special code:</p>
+            优惠代码: "YHDM",</p>
         </label>
     </div>
     <p></p>
@@ -195,6 +196,11 @@
     <div>
         <label>(reward) code
             <input name="code">
+        </label>
+    </div>
+    <div>
+        <label>smsCode
+            <input name="smsCode">
         </label>
     </div>
     <div>
@@ -425,6 +431,21 @@
 
     <div>
         <button id="getSlotInfo" data-api-name="getSlotInfo">Get Slot Info</button>
+    </div>
+</div>
+
+<h3>GET RANDOM BONUS INFO (获取随机抽奖信息)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Reward Code
+            <input type=text name="rewardCode">
+        </label>
+    </div>
+    <p></p>
+
+    <div>
+        <button id="getRandBonusInfo" data-api-name="getRandBonusInfo">Get Random Bonus Info</button>
     </div>
 </div>
 

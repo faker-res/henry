@@ -233,7 +233,7 @@
 
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='create'", ng-click="vm.createNewPlatform();vm.setPlatformFooter(null)", ng-disabled="form_new_platform.$invalid") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='delete'", ng-click="vm.deletePlatform();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='edit'", ng-click="vm.updatePlatformAction();vm.setPlatformFooter(null)") {{"EDIT" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="vm.csDepartmentError || vm.qiDepartmentError", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='edit'", ng-click="vm.updatePlatformAction();vm.setPlatformFooter(null)") {{"EDIT" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction", ng-click="vm.setPlatformFooter(null)") {{"CANCEL" | translate}}
 
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerConsecutiveConsumptionSettlement($event);vm.setPlatformFooter(null)")
@@ -398,10 +398,10 @@
                         th
                         th {{"Name" | translate}}
                         th {{"Settlement Period" | translate}}
-                    tbody(ng-repeat='event in vm.allRewardEvent | filter: {type:{name:"PlayerConsumptionReturn"}}')
+                    tbody(ng-repeat='(i, event) in vm.allRewardEvent | filter: {type:{name:"PlayerConsumptionReturn"}}')
                         tr
                             td
-                                input(type="checkbox" ng-value="event")
+                                input(type="checkbox" ng-value="i")
                             td {{event.name}}
                             td {{event.settlementStartTime}} -> {{event.settlementEndTime}}
             .modal-footer

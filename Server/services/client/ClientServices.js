@@ -59,6 +59,8 @@
                 "updatePassword",
                 "updatePasswordPlayerPartner",
                 "updateSMSSetting",
+                "getSmsStatus",
+                "setSmsStatus",
                 "isValidUsername",
                 "isValidRealName",
                 "authenticate",
@@ -83,7 +85,12 @@
                 "manualPlayerLevelUp",
                 "getWithdrawalInfo",
                 "getCardTypeList",
-                "getCreditDetail"
+                "getCreditDetail",
+                "updatePlayerQQ",
+                "updatePlayerWeChat",
+                "updatePlayerEmail",
+                "loginJblShow",
+                "createDemoPlayer",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -102,7 +109,10 @@
             var functionNames = [
                 "getPlatformDetails",
                 "getPlatformAnnouncements",
-                "getConfig"
+                "getConfig",
+                "getLiveStream",
+                "playerPhoneChat",
+                "searchConsumptionRecord"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -272,6 +282,7 @@
                 "getSignInfo",
                 "getSignBonus",
                 "getSlotInfo",
+                "getRandBonusInfo",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

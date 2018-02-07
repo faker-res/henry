@@ -315,7 +315,9 @@ define(['js/app'], function (myApp) {
             if (vm.bankCardFilterOptions && !vm.bankCardFilterOptions.status) {
                 vm.bankCardFilterOptions.status = {
                     "NORMAL": true,
-                    "LOCK": true
+                    "LOCK": true,
+                    "DISABLED": true,
+                    "CLOSE": true
                 }
             }
 
@@ -1105,8 +1107,9 @@ define(['js/app'], function (myApp) {
 
             if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
                 vm.merchantFilterOptions.status = {
+                    "ENABLED": true,
                     "DISABLED": true,
-                    "ENABLED": true
+                    "CLOSE": true
                 }
             }
 
@@ -1451,7 +1454,7 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 alipayGroup: alipayGroup._id
             }
-            vm.alipayStatusFilterOptions = {"NORMAL": true, "CLOSE": true, "LOCK": true};
+            vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true};
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
@@ -1962,7 +1965,7 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 wechatGroup: wechatPayGroup._id
             };
-            vm.wechatStatusFilterOptions = {"NORMAL": true, "DISABLED": true, "LOCK": true};
+            vm.wechatStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true};
             socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
@@ -2223,6 +2226,9 @@ define(['js/app'], function (myApp) {
         };
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
             var isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
             if (pageSize != vm[objKey].limit) {
                 isChange = true;
                 vm[objKey].limit = pageSize;

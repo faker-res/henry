@@ -27,11 +27,14 @@ var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
+var errorUtils = require("../modules/errorUtils.js");
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
 const constServerCode = require("../const/constServerCode.js");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
+const constMaxDateTime = require("../const/constMaxDateTime");
+const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTransferStatus");
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -121,14 +124,67 @@ var proposal = {
                     return dbPartner.tryToDeductCreditFromPartner(proposalData.data.partnerObjId, platformId, -proposalData.data.updateAmount, "editPartnerCredit:Deduction", proposalData.data);
                 }
                 else if (proposalData && proposalData.data && proposalData.data.updateAmount < 0) {
-                    return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, "editPlayerCredit:Deduction", proposalData.data);
+                    return dbPlayerInfo.tryToDeductCreditFromPlayer(proposalData.data.playerObjId, platformId, -proposalData.data.updateAmount, /*"editPlayerCredit:Deduction"*/ "UpdatePlayerCredit", proposalData.data);
                 }
                 return true;
             }
         ).then(
             () => {
                 return proposal.createProposalWithTypeNameWithProcessInfo(platformId, typeName, proposalData)
-            })
+            }
+        ).then(
+            proposalData => {
+                if (proposalData && proposalData.data && proposalData.data.updateAmount < 0 && !proposalData.isPartner) {
+                    dbconfig.collection_creditChangeLog.findOne({
+                        playerId: proposalData.data.playerObjId,
+                        operationType: /*"editPlayerCredit:Deduction"*/"UpdatePlayerCredit",
+                        operationTime: {$gte: new Date(new Date().setSeconds(new Date().getSeconds()-15))}
+                    }).lean().then(
+                        creditChangeLog => {
+                            if(!creditChangeLog) {
+                                return Promise.resolve();
+                            }
+
+                            return dbconfig.collection_creditChangeLog.findOneAndUpdate({
+                                _id: creditChangeLog._id,
+                                operationTime: creditChangeLog.operationTime
+                            }, {
+                                "data.proposalId": proposalData.proposalId
+                            }).lean();
+                        }
+                    ).catch(errorUtils.reportError);
+                }
+
+                return proposalData;
+            }
+        );
+    },
+
+    applyRepairCreditTransfer: function (platformId, proposalData) {
+        function isRepairableTransfer(transferId) {
+            return dbconfig.collection_playerCreditTransferLog.find({
+                transferId,
+                isRepaired: {$ne: true},
+                status: {$in: [constPlayerCreditTransferStatus.FAIL, constPlayerCreditTransferStatus.TIMEOUT]}
+            }, {_id: 1}).limit(1).lean().then(
+                log => {
+                    return Boolean(log && log[0]);
+                }
+            );
+        }
+
+        return isRepairableTransfer(proposalData.data.transferId).then(
+            isRepairable => {
+                if (!isRepairable) {
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "This transfer is not repairable."
+                    });
+                }
+
+                return proposal.createProposalWithTypeNameWithProcessInfo(platformId, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, proposalData);
+            }
+        );
     },
 
     createProposalWithTypeNameWithProcessInfo: function (platformId, typeName, proposalData, smsLogInfo) {
@@ -244,7 +300,7 @@ var proposal = {
                     let queryObj = {
                         type: proposalData.type,
                         "data.platformId": data[0].platformId,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
+                        status: {$in: [constProposalStatus.CSPENDING, constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
                     };
                     let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
@@ -270,13 +326,11 @@ var proposal = {
                     if (data[2]) {
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
-                            proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPartnerLevel = data[2].level.name;
                             proposalData.data.proposalPartnerLevelValue = data[2].level.value;
                         }
                         else {
                             proposalData.data.playerName = data[2].name;
-                            proposalData.data.playerStatus = data[2].status;
                             proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
                             proposalData.data.playerLevelName = data[2].playerLevel.name;
                             proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
@@ -286,6 +340,11 @@ var proposal = {
                     // SCHEDULED AUTO APPROVAL
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.isAutoApproval) {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
+                    }
+
+                    if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.needCsApproved) {
+                        bExecute = false;
+                        proposalData.status = constProposalStatus.CSPENDING;
                     }
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
@@ -332,7 +391,7 @@ var proposal = {
                     }
 
                     if (data[2] == 0) {
-                        expiredDate = data[0].createTime;
+                        expiredDate = constMaxDateTime;
                     }
                     else {
                         expiredDate = moment(data[0].createTime).add('minutes', data[2]).format('YYYY-MM-DD HH:mm:ss.sss');
@@ -414,6 +473,10 @@ var proposal = {
             )
     },
 
+    getProposalByPlayerIdAndType: function (query) {
+        return dbconfig.collection_proposal.find({type: ObjectId(query.type), "data._id": {$in: [query.playerObjId, ObjectId(query.playerObjId)]}}).exec();
+    },
+
     /**
      * Get multiple proposal by ids
      * @param {json} ids - Array of proposal ids
@@ -430,12 +493,30 @@ var proposal = {
     updateProposal: function (query, updateData) {
         return dbconfig.collection_proposal.findOneAndUpdate(query, updateData, {new: true}).exec();
     },
+    updateProposalRemarks: function (query, updateData) {
+        return proposal.getProposal(query).then(
+            proposalData => {
+                if (proposalData && proposalData.proposalId && proposalData.createTime) {
+                    let updateQuery = {
+                        _id: proposalData._id,
+                        createTime: proposalData.createTime
+                    }
+                    return proposal.updateProposal(updateQuery,updateData);
+                } else {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PROPOSAL,
+                        name: "DataError",
+                        message: "Cannot find proposal",
+                    });
+                }
+        });
+    },
     updatePlayerIntentionRemarks: function (id, remarks) {
         let updateData = {};
         updateData['data.remarks'] = remarks;
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
-    updateTopupProposal: function (proposalId, status, requestId, orderStatus) {
+    updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark) {
         var proposalObj = null;
         var type = constPlayerTopUpType.ONLINE;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
@@ -452,7 +533,8 @@ var proposal = {
                 }
                 if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING ||
                         proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
-                        || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data &&
+                        || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER
+                        || proposalData.status == constProposalStatus.CANCEL) && proposalData.data &&
                     (proposalData.data.requestId == requestId || !proposalData.data.requestId)) {
                     return proposalData;
                 }
@@ -483,9 +565,9 @@ var proposal = {
         ).then(
             data => {
                 if (status == constProposalStatus.SUCCESS) {
-                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true);
+                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark);
                 } else if (status == constProposalStatus.FAIL) {
-                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false);
+                    return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark);
                 }
                 else {
                     //update proposal for experiation
@@ -526,7 +608,8 @@ var proposal = {
     updateBonusProposal: function (proposalId, status, bonusId, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
-                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
+                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.CSPENDING
+                    || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
                         || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
                     return proposalData;
                 }
@@ -547,7 +630,6 @@ var proposal = {
                         message: errorMessage,
                         proposalId: proposalId
                     });
-
                 }
             }
         ).then(
@@ -757,14 +839,12 @@ var proposal = {
             .then(
                 function (proposalData) {
                     if (proposalData) {
-                        var reject = true;
                         var proposalStatus = proposalData.status || proposalData.process.status;
-                        if (proposalData.creator.name.toString() != adminId.toString()) {
-                            reject = false;
-                        } else if (proposalStatus != constProposalStatus.PENDING && proposalStatus !== constProposalStatus.AUTOAUDIT) {
-                            reject = false;
-                        }
-                        if (reject) {
+
+                        if (((proposalData.type.name === constProposalType.PLAYER_BONUS
+                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
+                                || (proposalData.creator.name.toString() == adminId.toString())
+                                && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
@@ -788,6 +868,39 @@ var proposal = {
                     }
                 }
             );
+    },
+
+    autoCancelProposal: function (proposalData) {
+        if (proposalData) {
+            var reject = true;
+            var proposalStatus = proposalData.status || proposalData.process.status;
+
+            if (proposalStatus != constProposalStatus.PENDING) {
+                reject = false;
+            }
+
+            if (reject) {
+                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
+                    .then(successData => {
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {
+                                noSteps: true,
+                                process: null,
+                                status: constProposalStatus.CANCEL,
+                                "data.cancelBy": "秒杀礼包已过期"
+                            },
+                            {new: true}
+                        );
+                    })
+            }
+            else {
+                return Q.reject({message: "incorrect proposal status or authentication."});
+            }
+        }
+        else {
+            return Q.reject({message: "incorrect proposal data!"});
+        }
     },
 
     getAllPlatformAvailableProposalsForAdminId: function (adminId, platform) {
@@ -1090,6 +1203,15 @@ var proposal = {
         var finalSummary = [];
         size = Math.min(size, constSystemParam.REPORT_MAX_RECORD_NUM);
 
+        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+        let searchInterval = Math.abs(new Date(startTime).getTime() - new Date(endTime).getTime());
+        if (searchInterval > maxDiffTime) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Exceed proposal search max time frame"
+            });
+        }
+
         var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).exec();
         var prom2 = dbconfig.collection_admin.findOne({_id: adminId}).exec();
         return Q.all([prom1, prom2]).then(
@@ -1269,67 +1391,47 @@ var proposal = {
     getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
-        let platformIds = platformId.map(p => {
-            if(p && typeof p != "object"){
-                return ObjectId(p);
-            }
-        })
-
-        //check proposal without process
-        var prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-
-        //check proposal with process
-        // var prom2 = dbconfig.collection_proposalTypeProcess.find({platformId: platformId}).lean().then(
-        //     types => {
-        //         if (types && types.length > 0) {
-        //             var proposalProcessTypesId = [];
-        //             for (var i = 0; i < types.length; i++) {
-        //                 if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-        //                     proposalProcessTypesId.push(types[i]._id);
-        //                 }
-        //             }
-        //             return dbconfig.collection_proposalProcess.find({
-        //                 type: {$in: proposalProcessTypesId},
-        //                 status: {$in: statusArr}
-        //             }).lean();
-        //         }
-        //         else {
-        //             return Q.reject({name: "DataError", message: "Can not find platform proposal process types"});
-        //         }
-        //     }
-        // );
-        return Q.all([prom1]).then(//removed , prom2
+        return dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean().then(//removed , prom2
             data => {
-                if (data && data[0]) { // removed  && data[1]
-                    var types = data[0];
-                    // var processes = data[1];
-                    if (types && types.length > 0) {
-                        var proposalTypesId = [];
+                if (data) {
+                    let types = data;
 
-                        for (var i = 0; i < types.length; i++) {
+                    if (types && types.length > 0) {
+                        let proposalTypesId = [];
+
+                        // can directly pass object id into this
+                        for (let i = 0; i < types.length; i++) {
                             if ((!typeArr || (typeArr && typeArr.length == 0)) || typeArr.indexOf(types[i].name) != -1) {
                                 proposalTypesId.push(types[i]._id);
                             }
                         }
 
-                        // var processIds = [];
-                        // for (var j = 0; j < processes.length; j++) {
-                        //     processIds.push(processes[j]._id);
-                        // }
-                        var queryObj = {
+                        let queryObj = {
                             type: {$in: proposalTypesId},
                             createTime: {
                                 $gte: new Date(startTime),
                                 $lt: new Date(endTime)
-                            },
-                            status: {$in: statusArr}
+                            }
                         };
+
+                        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+                        let searchInterval = Math.abs(queryObj.createTime.$gte.getTime() - queryObj.createTime.$lt.getTime());
+                        if (searchInterval > maxDiffTime) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Exceed proposal search max time frame"
+                            });
+                        }
+
+                        if (statusArr) {
+                            queryObj.status = {$in: statusArr}
+                        }
 
                         if (userName) {
                             queryObj['data.name'] = userName;
                         }
+
                         if (relateUser) {
-                            // queryObj["data.playerName"] = relateUser;
                             queryObj["$and"] = [];
                             queryObj["$and"].push({
                                 $or: [
@@ -1366,11 +1468,7 @@ var proposal = {
                         }
 
                         if (promoTypeName && promoTypeName.length > 0) {
-                            queryObj["$and"] = queryObj["$and"] || [];
-                            let dataCheck = {"data.PROMO_CODE_TYPE": {$in: promoTypeName}};
-                            let existCheck = {"data.PROMO_CODE_TYPE": {$exists: false}};
-                            let orQuery = [dataCheck, existCheck];
-                            queryObj["$and"].push({$or: orQuery});
+                            queryObj["data.PROMO_CODE_TYPE"] = {$in: promoTypeName};
                         }
 
                         if (credit) {
@@ -1389,7 +1487,7 @@ var proposal = {
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
-                            dbconfig.collection_proposal.find(queryObj)
+                            dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred")
                                 .populate({path: 'type', model: dbconfig.collection_proposalType})
                                 .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
@@ -1449,7 +1547,7 @@ var proposal = {
                                         docId: "$_id",
                                         relatedAmount: {$sum: ["$data.amount", "$data.rewardAmount", "$data.topUpAmount", "$data.updateAmount", "$data.negativeProfitAmount", "$data.commissionAmount"]}
                                     }
-                                }, {$sort: sortCol}, {$skip: index}, {$limit: size}).then(
+                                }, {$sort: sortCol}, {$skip: index}, {$limit: size}).read("secondaryPreferred").then(
                                 aggr => {
                                     var retData = [];
 
@@ -1478,7 +1576,7 @@ var proposal = {
                                     }
                                     return Q.all(retData);
                                 });
-                        var b = dbconfig.collection_proposal.find(queryObj).count();
+                        var b = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").count();
                         var c = dbconfig.collection_proposal.aggregate(
                             {
                                 $match: queryObj
@@ -1501,7 +1599,7 @@ var proposal = {
                                     totalCommissionAmount: {$sum: "$data.commissionAmount"}
                                 }
                             }
-                        );
+                        ).read("secondaryPreferred");
                         return Q.all([a, b, c])
                     }
                     else {
@@ -1870,7 +1968,6 @@ var proposal = {
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
         let prom1 = dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean();
-
         let playerProm = [];
         return Q.all([prom1]).then(//removed , prom2
             data => {
@@ -1881,7 +1978,9 @@ var proposal = {
                         var proposalTypesId = [];
                         for (var i = 0; i < types.length; i++) {
                             if (!typeArr || typeArr.indexOf(types[i].name) != -1) {
-                                proposalTypesId.push(types[i]._id);
+                                if (types[i]._id) {
+                                    proposalTypesId.push(types[i]._id);
+                                }
                             }
                         }
 
@@ -1935,7 +2034,6 @@ var proposal = {
                             })
                             .then(proposals => {
                                 proposals = insertPlayerRepeatCount(proposals, platformId[0]);
-
                                 return proposals
                             });
 
@@ -1957,7 +2055,7 @@ var proposal = {
                     if (d && d.playerId) {
                         for (var i = 0; i < returnData[0].length; i++) {
 
-                            if (d && d.playerId && d.playerId == returnData[0][i].data.playerId) {
+                            if (d && d.playerId && returnData[0][i].data.playerId && d.playerId == returnData[0][i].data.playerId) {
                                 if (d.csOfficer) {
                                     returnData[0][i].data.csOfficer = d.csOfficer.adminName;
                                 }
@@ -2562,7 +2660,15 @@ var proposal = {
                 {
                     $group: {
                         _id: null,
-                        totalAmount: {$sum: "$data.amount"},
+                        totalAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.amount", NaN]},
+                                    0,
+                                    "$data.amount"
+                                ]
+                            }
+                        },
                         totalRewardAmount: {
                             $sum: {
                                 $cond: [
@@ -2572,10 +2678,42 @@ var proposal = {
                                 ]
                             }
                         },
-                        totalTopUpAmount: {$sum: "$data.topUpAmount"},
-                        totalUpdateAmount: {$sum: "$data.updateAmount"},
-                        totalNegativeProfitAmount: {$sum: "$data.negativeProfitAmount"},
-                        totalCommissionAmount: {$sum: "$data.commissionAmount"}
+                        totalTopUpAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.topUpAmount", NaN]},
+                                    0,
+                                    "$data.topUpAmount"
+                                ]
+                            }
+                        },
+                        totalUpdateAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.updateAmount", NaN]},
+                                    0,
+                                    "$data.updateAmount"
+                                ]
+                            }
+                        },
+                        totalNegativeProfitAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.negativeProfitAmount", NaN]},
+                                    0,
+                                    "$data.negativeProfitAmount"
+                                ]
+                            }
+                        },
+                        totalCommissionAmount: {
+                            $sum: {
+                                $cond: [
+                                    {$eq: ["$data.commissionAmount", NaN]},
+                                    0,
+                                    "$data.commissionAmount"
+                                ]
+                            }
+                        },
                     }
                 }
             ]);
@@ -2959,34 +3097,25 @@ var proposal = {
     },
 
     getPlatformRewardProposal: function (platform) {
-        let proposal = {};
-        let proposalTypeArr = [];
-
         return dbconfig.collection_proposalType.find(
             {
                 platformId: platform,
             }
-        ).then(
-            data => {
-                data.map(item => {
-                    proposal[item._id] = {_id: item._id, name: item.name};
+        ).lean().then(
+            proposalTypes => {
+                let result = {};
+                if (!proposalTypes) {
+                    return [];
+                }
+
+                let rewardProposalTypes = proposalTypes.filter(type => constProposalMainType[type.name] === constProposalMainType.FirstTopUp); // main type is reward
+                rewardProposalTypes.map(type => {
+                    result[type._id] = type.name;
                 });
-                var proposalTypeArr = data.map(type => {
-                    return type._id;
-                });
-                return dbconfig.collection_proposal.distinct('type', {
-                    mainType: constProposalMainType.FirstTopUp,
-                    type: {$in: proposalTypeArr}
-                });
-            }
-        ).then(
-            data => {
-                var result = {};
-                data.map(item => {
-                    result[item] = proposal[item].name;
-                });
+
                 return result;
-            })
+            }
+        );
     },
 
     getAllRewardProposal: function (platform) {
@@ -3138,6 +3267,30 @@ var proposal = {
             },
             {multi: true}
         );
+    },
+
+    checkLimitedOfferTopUpExpiration: function () {
+        return dbconfig.collection_proposal.find({
+            status: constProposalStatus.PENDING,
+            mainType: {$in: [constProposalMainType.PlayerWechatTopUp, constProposalMainType.ManualPlayerTopUp, constProposalMainType.PlayerAlipayTopUp]},
+            "data.expirationTime": {$lt: new Date()},
+            "data.limitedOfferObjId": {$exists: true}
+        })
+            .populate({path: "process", model: dbconfig.collection_proposalProcess})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean()
+            .then(
+                proposalData => {
+                    if (proposalData && proposalData.length > 0) {
+                        let proms = [];
+                        proposalData.forEach(proposal => {
+                           proms.push(this.autoCancelProposal(proposal));
+                        });
+                        return Promise.all(proms).catch(errorUtils.reportError);
+                    }
+
+                }
+            )
+
     },
 
     checkProposalExpiration: function () {
@@ -3313,6 +3466,15 @@ var proposal = {
         query["createTime"] = {};
         query["createTime"]["$gte"] = data.startTime ? new Date(data.startTime) : null;
         query["createTime"]["$lt"] = data.endTime ? new Date(data.endTime) : null;
+        let maxDiffTime = constSystemParam.PROPOSAL_SEARCH_MAX_TIME_FRAME;
+        let searchInterval = Math.abs(query.createTime.$gte.getTime() - query.createTime.$lt.getTime());
+        if (searchInterval > maxDiffTime) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Exceed proposal search max time frame"
+            });
+        }
+
 
         if (data.merchantNo && data.merchantNo.length > 0 && (!data.merchantGroup || data.merchantGroup.length == 0)) {
             query['$or'] = [
@@ -3331,7 +3493,7 @@ var proposal = {
                 item.forEach(sItem => {
                     mGroupList.push(sItem)
                 })
-            })
+            });
             query['data.merchantNo'] = {$in: convertStringNumber(mGroupList)};
         }
 
@@ -3439,6 +3601,39 @@ var proposal = {
                 return {size: proposalCount, data: proposals}
             }
         );
+    },
+
+    approveCsPendingAndChangeStatus: (proposalObjId, createTime, adminName) => {
+        return dbconfig.collection_proposal.findOne({_id: proposalObjId})
+            .populate({path: "type", model: dbconfig.collection_proposalType}).lean().then(
+            proposal => {
+                if(!proposal) Q.reject({name: 'DataError', message: 'Can not find proposal'});
+
+                // auto approval or audit process step
+                if(proposal.data.isAutoApproval ||　proposal.process){
+                    return dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        status: constProposalStatus.CSPENDING,
+                        createTime: createTime
+                    }, {
+                        status: proposal.data.isAutoApproval ? constProposalStatus.AUTOAUDIT : constProposalStatus.PENDING,
+                        'data.approvedByCs':adminName
+                    });
+                } else {
+                    // approved
+                    return dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        status: constProposalStatus.CSPENDING,
+                        createTime: createTime
+                    }, {
+                        'data.approvedByCs':adminName,
+                        status: constProposalStatus.APPROVED,
+                    }).then(
+                        () =>  proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, true, proposal)
+                    );
+                }
+            }
+        )
     }
 };
 
@@ -3843,7 +4038,7 @@ function insertPlayerRepeatCount(proposals, platformId) {
         );
 
         function handlePlayer(proposal) {
-            let phoneNumber = proposal.data ? proposal.data.phoneNumber : "";
+            let phoneNumber = proposal.data && proposal.data.phoneNumber? proposal.data.phoneNumber : "";
             let status = proposal.status ? proposal.status : "";
             let allCountQuery = {};
             let currentCountQuery = {};
@@ -3942,8 +4137,8 @@ function insertPlayerRepeatCount(proposals, platformId) {
 
             return Promise.all([allCountProm, currentCountProm, previousCountProm, futureAllCountProm, futureAfterSuccessCountProm, futureManualAllCountProm]).then(
                 countData => {
-                    let allCount = countData[0];
-                    let currentCount = countData[1];
+                    let allCount = countData[0]? countData[0]: 0;
+                    let currentCount = countData[1]? countData[1]: 0;
                     let previousCount = countData[2] ? countData[2] : 0;
                     let futureSuccessCount = countData[3] ? countData[3] : 0;
                     let futureFailCount = countData[4] ? countData[4] : 0;
@@ -3964,7 +4159,10 @@ function insertPlayerRepeatCount(proposals, platformId) {
                         if(futureManualCount){
                             proposal.$playerAllCount = proposal.$playerAllCount - futureManualCount;
                         }
-                    } else if(status == constProposalStatus.MANUAL) {
+                    }else if(status == constProposalStatus.MANUAL) {
+                        proposal.$playerAllCount = 1;
+                        proposal.$playerCurrentCount = 1;
+                    }else if(status == constProposalStatus.NOVERIFY) {
                         proposal.$playerAllCount = 1;
                         proposal.$playerCurrentCount = 1;
                     } else {

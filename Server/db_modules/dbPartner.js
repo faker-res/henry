@@ -511,6 +511,14 @@ let dbPartner = {
     },
 
     /**
+     * Get the information of the partner by query
+     * @param {String} query - Query string
+     */
+    getPartnerByQuery: function (query) {
+        return dbconfig.collection_partner.find(query);
+    },
+
+    /**
      * Get the information of the partner by partnerName or _id
      * @param {String} query - Query string
      */
@@ -4152,7 +4160,7 @@ let dbPartner = {
     },
 
     isPartnerNameValidToRegister: function (query) {
-        return dbconfig.collection_partner.findOne({$or:[{partnerName:query.partnerName},{realName:query.realName}]},{platform: query.platform}).then(
+        return dbconfig.collection_partner.findOne({$or:[{partnerName:query.partnerName},{realName:query.realName}], platform: query.platform}).then(
             partnerData => {
                 if (partnerData) {
                     return {isPartnerNameValid: false};

@@ -214,6 +214,16 @@ define([], function () {
                 .replace(',', ' ');
         }
 
+        this.getFormatDate = function (data) {
+            var option = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            };
+            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+                .replace(',', ' ');
+        }
+
         this.getLocalTime = function (date) {
             if (!date) return null;
             return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);
@@ -228,6 +238,12 @@ define([], function () {
             if (!date) return null;
             date.setHours(23, 59, 59, 999);
             return new Date(date.getTime() + 1 - new Date().getTimezoneOffset() * 60 * 1000);
+        }
+        this.setLastYearLocalDay = function (date) {
+            if (!date) return null;
+            date.setHours(0, 0, 0, 0);
+            date.setFullYear(date.getFullYear() - 1)
+            return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);
         }
         this.setThisDayStartTime = function (date) {
             if (!date) return null;
@@ -248,6 +264,10 @@ define([], function () {
         this.getNdayagoStartTime = function (n) {
             var n = $.isNumeric(n) ? parseInt(n) : 0;
             return new Date(util.getTodayStartTime().getTime() - 24 * 60 * 60 * 1000 * n);
+        }
+        this.getNdaylaterStartTime = function (n) {
+            var n = $.isNumeric(n) ? parseInt(n) : 0;
+            return new Date(util.getTodayStartTime().getTime() + 24 * 60 * 60 * 1000 * n);
         }
         this.actionAfterLoaded = function (id, func) {
             if ($(id) && $(id)[0] && func) {

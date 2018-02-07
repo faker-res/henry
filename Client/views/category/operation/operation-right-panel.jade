@@ -171,10 +171,10 @@
                             #proposalAuditDataTablePage
                 .row
                     .col-md-12(ng-if='vm.multiProposalSelected.length>0 && vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
-                        button.btn.btn-success.common-button(ng-show="checkViewPermission('Operation', 'Proposal','ApproveProposal')", ng-click="vm.updateMultiProposal(true)") {{"APPROVE" | translate}}
+                        button.btn.btn-success.common-button(ng-show="checkViewPermission('Operation', 'Proposal','ApproveProposal')", ng-click="vm.updateMultiProposal(true);vm.searchProposalByQuery(true)") {{"APPROVE" | translate}}
                             text(ng-show='!vm.showProposalIndicator.approve') ({{vm.multiProposalSelected.length}})
                             i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.approve')
-                        button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click="vm.updateMultiProposal()") {{"REJECT" | translate}}
+                        button.btn.btn-danger.common-button(ng-show="checkViewPermission('Operation', 'Proposal','RejectProposal')", ng-click="vm.updateMultiProposal();vm.searchProposalByQuery(true)") {{"REJECT" | translate}}
                             text(ng-show='!vm.showProposalIndicator.reject') ({{vm.multiProposalSelected.length}})
                             i.fa.fa-spin.fa-spinner(ng-show='vm.showProposalIndicator.reject')
                 //#topupMonitorTableDiv.tab-pane.fade
@@ -245,6 +245,7 @@
                     i.fa.fa-spin.fa-2x.fa-spinner
                 label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal' ng-if='vm.selectedProposal.status==="CsPending" && checkViewPermission("Operation", "Proposal","CsApproveProposal")' ng-click='vm.approveCsPendingAndChangeStatus()') {{"cs approve proposal" | translate}}
                 button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
                 .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')

@@ -10,6 +10,12 @@
 //.full-width-input-block
 //    label {{vm.showRewardTypeData.params.params.numOfDays.des | translate}}
 //    input.form-control(type='number', ng-model='vm.rewardParams.numOfDays', disabled='vm.platformRewardShowEdit()')
+.full-width-input-block
+    label {{"early xima minimum amount" | translate}}
+    input.form-control(type='number', ng-model='vm.rewardParams.earlyXimaMinAmount', ng-disabled='vm.platformRewardShowEdit()', required)
+.full-width-input-block
+    label {{"xima required N time withdraw" | translate}}
+    input.form-control(type='number', ng-model='vm.rewardParams.consumptionTimesRequired', ng-disabled='vm.platformRewardShowEdit()', required)
 .well
     label {{vm.showRewardTypeData.params.params.ratio.des | translate}}
     div(style='width:100%;overflow-x:scroll')
@@ -22,4 +28,4 @@
                         div
                             text {{coldata | translate}}
                             .percentage
-                                input.form-control(type="Number", min='0', percentage, style='display:inline-block', ng-model="vm.rewardParams.ratio[rowdata.value][col]", ng-disabled='vm.platformRewardShowEdit()')
+                                input.form-control(type="Number", min='0', consumptionreturnpercentage, style='display:inline-block; min-width:65px;', ng-model="vm.rewardParams.ratio[rowdata.value][col]", ng-disabled='vm.platformRewardShowEdit()')

@@ -13,6 +13,7 @@ var constProposalUserType = require('./../const/constProposalUserType');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var rsaCrypto = require('../modules/rsaCrypto');
 const constSMSPurpose = require('../const/constSMSPurpose');
+const constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 
 var dbLogger = {
 
@@ -66,19 +67,72 @@ var dbLogger = {
         if (curAmount < 0) {
             curAmount = 0;
         }
-        var logData = {
-            playerId: playerId,
+        
+        dbconfig.collection_rewardTaskGroup.find({
             platformId: platformId,
-            amount: amount,
-            operationType: type,
-            curAmount: curAmount ? curAmount : null,
-            operatorId: operatorId ? operatorId : null,
-            lockedAmount: lockedAmount,
-            changedLockedAmount: changedLockedAmount,
-            data: data ? data : null
-        };
-        var record = new dbconfig.collection_creditChangeLog(logData);
-        record.save().then().catch(err => errorSavingLog(err, logData));
+            playerId: playerId,
+            status: constRewardTaskStatus.STARTED
+        }).populate({
+            path: "providerGroup",
+            model: dbconfig.collection_gameProviderGroup
+        }).lean().then(
+            rewardTaskData => {
+                let lockedCreditPlayer = 0;
+                if (rewardTaskData && rewardTaskData.length > 0) {
+                    for (let i = 0; i < rewardTaskData.length; i++) {
+                        if (rewardTaskData[i].rewardAmt)
+                            lockedCreditPlayer += rewardTaskData[i].rewardAmt;
+                    }
+                }
+                lockedAmount = lockedCreditPlayer ? lockedCreditPlayer : 0;
+
+                if (!amount && !curAmount) {
+                    dbconfig.collection_players.findOne({_id: playerId}).lean().then(
+                        playerData => {
+                            if (playerData.validCredit) {
+                                curAmount = playerData.validCredit;
+                            }
+                            var logData = {
+                                playerId: playerId,
+                                platformId: platformId,
+                                amount: amount,
+                                operationType: type,
+                                curAmount: curAmount ? curAmount : null,
+                                operatorId: operatorId ? operatorId : null,
+                                lockedAmount: lockedAmount,
+                                changedLockedAmount: changedLockedAmount,
+                                data: data ? data : null
+                            };
+
+                            if (data.transferId) {
+                                logData.transferId = data.transferId;
+                            }
+
+                            var record = new dbconfig.collection_creditChangeLog(logData);
+                            record.save().then().catch(err => errorSavingLog(err, logData));
+                        });
+                } else {
+                    var logData = {
+                        playerId: playerId,
+                        platformId: platformId,
+                        amount: amount,
+                        operationType: type,
+                        curAmount: curAmount ? curAmount : null,
+                        operatorId: operatorId ? operatorId : null,
+                        lockedAmount: lockedAmount,
+                        changedLockedAmount: changedLockedAmount,
+                        data: data ? data : null
+                    };
+
+                    if (data.transferId) {
+                        logData.transferId = data.transferId;
+                    }
+
+                    var record = new dbconfig.collection_creditChangeLog(logData);
+                    record.save().then().catch(err => errorSavingLog(err, logData));
+                }
+            });
+
     },
 
 

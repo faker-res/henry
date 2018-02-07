@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', 'CONFIG', "$cookies", "$state"];
     let monitorProposalAndPaymentController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, CONFIG, $cookies, $state) {
         let $translate = $filter('translate');
+        let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let vm = this;
 
         window.mPVM = vm;
@@ -563,6 +564,9 @@ define(['js/app'], function (myApp) {
 
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
             var isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
             if (pageSize != vm[objKey].limit) {
                 isChange = true;
                 vm[objKey].limit = pageSize;
@@ -611,6 +615,8 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
+            } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
             } else if (fieldName === 'bankAccountType') {
                 switch (parseInt(val)) {
                     case 1:

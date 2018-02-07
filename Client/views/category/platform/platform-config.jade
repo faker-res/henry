@@ -36,6 +36,8 @@
                         span {{"Player Credibility" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "providerGroup"}', ng-click='vm.configTabClicked("providerGroup")')
                         span {{"Lock Lobby Group" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "smsGroup"}', ng-click='vm.configTabClicked("smsGroup")')
+                        span {{"sms group setting" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -66,10 +68,10 @@
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.manualPlayerLevelUp', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'PLAYER_LEVEL_UP_PERIOD' | translate}}
+                                td {{'PLAYER_LEVEL_UP_MAX_PERIOD' | translate}}
                                 td(style='width:25%')
                                     text(ng-if='!vm.configTableEdit') {{ vm.playerLevelPeriod.levelUpPeriodName | translate }}
-                                    select.form-control(style='width:30%;margin:auto' ng-change='vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod); vm.changeLevelPeriodAllField()'
+                                    select.form-control(style='width:30%;margin:auto' ng-change='vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod); vm.initPlayerLevelPeriod(); vm.changeLevelPeriodAllField();'
                                     ng-if='vm.configTableEdit', ng-model='vm.playerLevelPeriod.playerLevelUpPeriod', ng-options='v as i | translate for (i,v) in vm.allPlayerLevelUpPeriod',required)
                             tr
                                 td {{'PLAYER_LEVEL_DOWN_PERIOD' | translate}}
@@ -155,20 +157,22 @@
                                     tr(ng-repeat='(j,oneConfig) in level.levelUpConfig')
                                         td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelUpConfig.length}}')
                                             a.fa.fa-plus-circle(ng-click='level.levelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
+                                            br
+                                            label(ng-if='level.levelUpConfig.length > 1') {{"OR" | translate}}
                                         td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.topupLimit | number : 2}}
                                         td
-                                            text {{"LEVEL"+oneConfig.topupPeriod | translate}}
-                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required)
-                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.topupPeriod | translate}}
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required, style='text-align-last: center;')
+                                                option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionLimit | number : 2}}
                                         td
-                                            text {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
-                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required)
-                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required, style='text-align-last: center;')
+                                                option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
                                         td(ng-if='vm.configTableEdit')
@@ -280,7 +284,7 @@
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI();')
                             text {{'ADD_LEVEL' | translate}}
                             img.img-create
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player")')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod()')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player")')
@@ -375,6 +379,7 @@
                                         th {{'TOP_UP_TIMES' | translate}}
                                         th {{'TOP_UP_AMOUNT' | translate}}
                                         th {{'CONSUMPTION' | translate}}
+                                        th {{'Player Value' | translate}}
                                 tbody
                                     tr
                                         td {{'ACTIVE_PLAYER' | translate}}
@@ -387,6 +392,79 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerValue')
+                                    tr
+                                        td {{'DAILY_ACTIVE_PLAYER' | translate}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.dailyActivePlayerTopUpTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.dailyActivePlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.dailyActivePlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.dailyActivePlayerTopUpAmount')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.dailyActivePlayerConsumptionTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.dailyActivePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.dailyActivePlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.dailyActivePlayerValue')
+                                    tr
+                                        td {{'WEEKLY_ACTIVE_PLAYER' | translate}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.weeklyActivePlayerTopUpTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.weeklyActivePlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.weeklyActivePlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.weeklyActivePlayerTopUpAmount')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.weeklyActivePlayerConsumptionTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.weeklyActivePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.weeklyActivePlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.weeklyActivePlayerValue')
+                                    tr
+                                        td {{'HALFMONTH_ACTIVE_PLAYER' | translate}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.halfMonthActivePlayerTopUpTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.halfMonthActivePlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.halfMonthActivePlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.halfMonthActivePlayerTopUpAmount')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.halfMonthActivePlayerConsumptionTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.halfMonthActivePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.halfMonthActivePlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.halfMonthActivePlayerValue')
+                                    tr
+                                        td {{'MONTHLY_ACTIVE_PLAYER' | translate}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.monthlyActivePlayerTopUpTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.monthlyActivePlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.monthlyActivePlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.monthlyActivePlayerTopUpAmount')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.monthlyActivePlayerConsumptionTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.monthlyActivePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.monthlyActivePlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.monthlyActivePlayerValue')
+                                    tr
+                                        td {{'SEASON_ACTIVE_PLAYER' | translate}}
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.seasonActivePlayerTopUpTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.seasonActivePlayerTopUpTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.seasonActivePlayerTopUpAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.seasonActivePlayerTopUpAmount')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.seasonActivePlayerConsumptionTimes}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.seasonActivePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.seasonActivePlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.seasonActivePlayerValue')
                                     tr
                                         td {{'VALID_PLAYER' | translate}}
                                         td
@@ -398,6 +476,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerValue}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerValue')
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.partnerLevelConfigEdit=vm.partnerLevelConfig')
                             text {{'EDIT' | translate}}
@@ -573,6 +654,11 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.showAllowSamePhoneNumberToRegister', ng-disabled='!vm.configTableEdit')
                             tr
+                                td {{'DEMO_PLAYER_VALID_DAYS' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.demoPlayerValidDays}}
+                                    input(type='number', ng-show='vm.configTableEdit', ng-model='vm.platformBasic.demoPlayerValidDays')
+                            tr
                                 td {{'samePhoneNumberRegisterCount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
@@ -585,6 +671,10 @@
                                 td {{'PLAYER_MULTIPLE_REWARD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.requireSMSVerificationForDemoPlayer', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'SMS_VERIFICATION' | translate}}
                                 td
@@ -614,14 +704,14 @@
                                 td {{'ONLY_NEW_USER_CAN_LOGIN' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.onlyNewCanLogin', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'USE_LOCK_CREDIT' | translate}}
-                                td
-                                    input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
+                            //tr
+                            //    td {{'USE_LOCK_CREDIT' | translate}}
+                            //    td
+                            //        input(type='checkbox', ng-model='vm.platformBasic.useLockedCredit', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'Use Provider Group' | translate}}
                                 td
-                                    input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.platformBasic.useProviderGroup', ng-disabled='!vm.configTableEdit', ng-change='vm.showUnlockProviderModal()')
                             tr
                                 td {{'Use Point System' | translate}}
                                 td
@@ -630,7 +720,10 @@
                                 td {{'Use Phone Number Two Steps Verification' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.usePhoneNumberTwoStepsVerification', ng-disabled='!vm.configTableEdit')
-
+                            tr
+                                td {{'Player forbid apply bonus, apply bonus proposal need cs approval' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.playerForbidApplyBonusNeedCsApproval', ng-disabled='!vm.configTableEdit')
                             br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
@@ -776,16 +869,6 @@
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.enableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'Single Withdrawal Limit' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
-                            tr
-                                td {{'Single Day Withdrawal Limit' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
-                            tr
                                 td {{'Auto Approval Retry Count' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatCount}}
@@ -795,6 +878,16 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveRepeatDelay}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveRepeatDelay')
+                            tr
+                                td {{'Single Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
+                            tr
+                                td {{'Single Day Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
                             tr
                                 td {{'Lost Threshold' | translate}}
                                 td
@@ -820,6 +913,18 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.bonusProfitOffset}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.bonusProfitOffset')
+                            tr
+                                td {{'FIRST_WITHDRAWAL_MANUAL_AUDIT' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditFirstWithdrawal', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'MANUAL_AUDIT_AFTER_BANK_CHANGED' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditAfterBankChanged', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'MANUAL_AUDIT_BAN_WITHDRAWAL' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditBanWithdrawal', ng-disabled='!vm.configTableEdit')
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
@@ -1086,19 +1191,24 @@
                     table#providerGroupTable.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
+                                th {{"Provider Group ID" | translate}}
                                 th {{"Provider Group Name" | translate}}
                                 th(width="600px") {{"Provider" | translate}}
-                                th(ng-if='vm.configTableEdit') {{"ACTION" | translate}}
+                                th(ng-if='vm.configTableEdit') {{"add to group" | translate}}
                         tbody
                             tr(ng-repeat='group in vm.gameProviderGroup')
+                                td
+                                    input.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.providerGroupId')
                                 td
                                     input.form-control(disabled, ng-model='group.name')
                                 td
                                     select.spicker.form-control(disabled, ng-model='group.providers', multiple data-width="600px")
                                         option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-init="$last && vm.endLoadWeekDay()" ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td(ng-if='vm.configTableEdit')
-                                    button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup(group)') {{"Delete" | translate}}
+                                    button.btn.btn-danger.common-button(ng-click='vm.deleteProviderGroup($index,group)') {{"Delete" | translate}}
                             tr(ng-if='vm.configTableEdit')
+                                td
+                                    input.form-control(ng-model='vm.newProviderGroup.providerGroupId')
                                 td
                                     input.form-control(ng-model='vm.newProviderGroup.name')
                                 td
@@ -1112,6 +1222,50 @@
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("providerGroup")') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("providerGroup")') {{"CONFIRM" | translate}}
                         label(ng-if="vm.providerGroupConfig.showWarning") {{"There are unallocated providers" | translate}}
+                div(ng-if='vm.selectedConfigTab=="smsGroup"')
+                    .col-md-4
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"no group sms setting" | translate}}
+                                    th {{"add to group" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.noGroupSmsSetting')
+                                    td
+                                        span {{v.name | translate}}
+                                    td
+                                        select.form-control(ng-disabled='!vm.configTableEdit' ng-model='v.group' style='width:80%;display:inline-block')
+                                            option(ng-repeat="(k, t) in vm.smsGroups | filter: {smsParentSmsId: -1}", value="{{t.smsId}}") {{t.smsName | translate}}
+                                        i.fa.fa-plus.fa-lg(ng-if='vm.configTableEdit' ng-click='vm.addSmsSettingToGroup(v,i);')
+                    .col-md-8
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"sms group" | translate}}
+                                    th {{"sms group settings" | translate}}
+                                    th {{"Function" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
+                                    td
+                                        input.form-control(type='text' ng-if='vm.configTableEdit' ng-model='v.smsName')
+                                        span(ng-if='!vm.configTableEdit') {{v.smsName}}
+                                    td
+                                        div(ng-repeat='(ii, vv) in vm.smsGroups | filter: vm.filterSmsSettingGroup(v.smsId)')
+                                            span {{ vv.smsName | translate}}
+                                            i.fa.fa-minus.fa-lg(ng-if='vm.configTableEdit' ng-click='vm.removeSmsSettingFromGroup(vv);')
+                                    td
+                                        button.btn.common-btn.btn-primary(ng-if='vm.configTableEdit' data-toggle="modal", data-target='#modalDeleteSmsGroup' ng-click="vm.deletingSmsGroup=v") {{'DELETE' | translate}}
+                        br
+                        button.btn.btn-primary.common-button.pull-right(ng-if='vm.configTableEdit' ng-click='vm.addNewSmsGroup()')
+                            text {{"ADD GROUP" | translate}}
+                            img.img-edit
+
+                    button.btn.btn-primary.common-button.pull-right(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'smsGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("smsGroup")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("smsGroup")') {{"CONFIRM" | translate}}
+
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")
@@ -1170,3 +1324,52 @@
                     label {{"PREVIEW" | translate}}
                     .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
                         .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+#modalUnlockProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"turn off Use Provider Group" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"all provider group will force unlock"|translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal' ng-click='vm.platformBasic.useProviderGroup = vm.selectedPlatform.data.useProviderGroup') {{"CANCEL" | translate}}
+
+#modalDeleteSmsGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_SMS_GROUP" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete sms setting group"|translate}}
+                                    strong.text-danger &nbsp;{{vm.deletingSmsGroup.smsName}}
+                                    label ?
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteSmsGroup(vm.deletingSmsGroup)') {{"DELETE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+.row(ng-if="vm.selectedConfigTab=='platformBasic' && checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
+    .col-md-3
+    .col-md-9(style="padding-left:0;padding-right:15px")
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"CHINESE_TRANSLATION_CSV" | translate}}
+            .panel-body
+                button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
+                    i.fa.fa-cog
+                    text {{"PREPARE_CSV" | translate}}
+                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-click='vm.prepareTranslationCSV=!vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='{{vm.fileNameCSV}}.csv')
+                    i.fa.fa-download
+                    text {{"DOWNLOAD_CSV" | translate}}

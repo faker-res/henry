@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let injectParams = ['$sce', '$scope', '$filter', '$compile', '$location', '$log', 'socketService', 'authService', 'utilService', 'CONFIG', "$cookies"];
     let monitorPaymentController = function ($sce, $scope, $filter, $compile, $location, $log, socketService, authService, utilService, CONFIG, $cookies) {
         let $translate = $filter('translate');
+        let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let vm = this;
 
         window.VM = vm;
@@ -468,6 +469,15 @@ define(['js/app'], function (myApp) {
 
         }
         vm.getPaymentMonitorRecord = function (isNewSearch) {
+            let queryStartTime = vm.paymentMonitorQuery.startTime.data('datetimepicker').getLocalDate();
+            let queryEndTime = vm.paymentMonitorQuery.endTime.data('datetimepicker').getLocalDate();
+
+            let searchInterval = Math.abs(new Date(queryEndTime).getTime() - new Date(queryStartTime).getTime());
+            if (searchInterval > $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME) {
+                socketService.showErrorMessage($translate("Exceed proposal search max time frame"));
+                return;
+            }
+
             if (isNewSearch) {
                 $('#autoRefreshProposalFlag').attr('checked', false);
             }
@@ -968,6 +978,9 @@ define(['js/app'], function (myApp) {
 
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
             var isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
             if (pageSize != vm[objKey].limit) {
                 isChange = true;
                 vm[objKey].limit = pageSize;
@@ -1016,6 +1029,8 @@ define(['js/app'], function (myApp) {
                 result = result.join(',');
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
+            } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
+                result = Number.isFinite(parseFloat(val)) ? $noRoundTwoDecimalPlaces(parseFloat(val)).toString() : val;
             } else if (fieldName === 'bankAccountType') {
                 switch (parseInt(val)) {
                     case 1:

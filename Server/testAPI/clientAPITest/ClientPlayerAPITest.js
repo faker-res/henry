@@ -343,6 +343,24 @@
         this.playerService.update.once(callback);
     };
 
+    proto.updatePlayerQQ = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePlayerQQ.request(data);
+        this.playerService.updatePlayerQQ.once(callback);
+    };
+
+    proto.updatePlayerWeChat = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePlayerWeChat.request(data);
+        this.playerService.updatePlayerWeChat.once(callback);
+    };
+
+    proto.updatePlayerEmail = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.updatePlayerEmail.request(data);
+        this.playerService.updatePlayerEmail.once(callback);
+    };
+
     proto.updatePhoneNumberWithSMS = function (callback, requestData) {
         let data = requestData || {};
         this.playerService.updatePhoneNumberWithSMS.request(data);
@@ -362,9 +380,22 @@
                 playerId: testPlayerId,
                 smsSetting : "mobilePhone"
             };
-
         this.playerService.updateSmsSetting.request(data);
         this.playerService.updateSmsSetting.once(callback);
+    };
+
+    proto.getSmsStatus = function(callback, requestData) {
+
+        let data = requestData || {playerId: testPlayerId};
+        this.playerService.getSmsStatus.request(data);
+        this.playerService.getSmsStatus.once(callback);
+    };
+
+    proto.setSmsStatus = function(callback, requestData) {
+
+        let data = requestData || {playerId: testPlayerId, status:''};
+        this.playerService.setSmsStatus.request(data);
+        this.playerService.setSmsStatus.once(callback);
     };
 
     proto.updatePaymentInfo = function (callback, requestData) {
@@ -577,8 +608,28 @@
                 callback(data);
             }
         });
+    };
 
+    proto.loginJblShow = function (callback, requestData) {
+        let data = requestData || {};
 
+        this.playerService.loginJblShow.request(data);
+        this.playerService.loginJblShow.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.createDemoPlayer = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.createDemoPlayer.request(data);
+        this.playerService.createDemoPlayer.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
     };
 
     if (isNode) {

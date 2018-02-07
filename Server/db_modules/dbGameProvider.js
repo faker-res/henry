@@ -1,5 +1,9 @@
 "use strict";
 
+var dbGameProviderFunc = function () {
+};
+module.exports = new dbGameProviderFunc();
+
 var dbconfig = require('./../modules/dbproperties');
 var constServerCode = require('./../const/constServerCode');
 var dbGame = require('./../db_modules/dbGame');
@@ -9,6 +13,8 @@ var Q = require("q");
 let mongoose = require('mongoose');
 let ObjectId = mongoose.Types.ObjectId;
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
+
+const constPlayerCreditChangeType = require('../const/constPlayerCreditChangeType');
 
 var dbGameProvider = {
 
@@ -257,10 +263,12 @@ var dbGameProvider = {
     getGameProvidersByPlayerAPI: function (query, bDetail) {
         var deferred = Q.defer();
         var providerList = [];
+        let player;
 
         dbconfig.collection_players.findOne(query).then(
             function (data) {
                 var platformObjId = data.platform;
+                player = data;
                 return dbconfig.collection_platform.findOne({_id: platformObjId})
                     .populate({path: "gameProviders", model: dbconfig.collection_gameProvider});
             },
@@ -291,13 +299,31 @@ var dbGameProvider = {
                     }
                     else {
                         var providers = data.gameProviders.map(
-                            (gameProvider) => ({
-                                providerId: gameProvider.providerId,
-                                name: gameProvider.name,
-                                nickName: gameProvider.nickName,
-                                prefix: gameProvider.prefix,
-                                status: gameProvider.status
-                            })
+                            (gameProvider) => {
+                                let gameProviderStatus = gameProvider.status;
+                                if (player && player.permission &&  player.permission.forbidPlayerFromEnteringGame) {
+                                    gameProviderStatus = 2;
+                                }
+
+                                if (player && player.forbidProviders && player.forbidProviders.length > 0) {
+                                    let forbidProviders = player.forbidProviders;
+                                    for (let i = 0; i < forbidProviders.length; i++) {
+                                        let forbiddenProvider = forbidProviders[i];
+                                        if (String(gameProvider._id) === String(forbiddenProvider)) {
+                                            gameProviderStatus = 2;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                return {
+                                    providerId: gameProvider.providerId,
+                                    name: gameProvider.name,
+                                    nickName: gameProvider.nickName,
+                                    prefix: gameProvider.prefix,
+                                    status: gameProviderStatus
+                                };
+                            }
                         );
                         deferred.resolve(providers);
                     }
@@ -362,6 +388,13 @@ var dbGameProvider = {
     getPlatformProviderGroup: (platformObjId) => {
         return dbconfig.collection_gameProviderGroup.find({
             platform: platformObjId
+        }).lean();
+    },
+
+    getProviderGroupByProviderId: (platformObjId, providerId) => {
+        return dbconfig.collection_gameProviderGroup.findOne({
+            platform: platformObjId,
+            providers: providerId
         }).lean();
     },
 
@@ -455,6 +488,37 @@ var dbGameProvider = {
             }
         );
     },
+
+    checkTransferInSequence: (platformObjId, playerObjId, providerIdArr) => {
+        let promArr = [];
+        let retData = [];
+
+        providerIdArr.map(providerId => {
+            promArr.push(
+                dbconfig.collection_creditChangeLog.find({
+                    platformId: platformObjId,
+                    playerId: playerObjId,
+                    operationType: constPlayerCreditChangeType.TRANSFER_IN,
+                    'data.providerId': providerId
+                }).sort({operationTime: -1}).limit(1).lean().then(
+                    changeLog => {
+                        if (changeLog && changeLog[0]) {
+                            retData.push({
+                                providerId: providerId,
+                                operationTime: changeLog[0].operationTime
+                            });
+                        }
+                    }
+                )
+            )
+        });
+
+        return Promise.all(promArr).then(() => retData);
+    }
 };
 
+var proto = dbGameProviderFunc.prototype;
+proto = Object.assign(proto, dbGameProvider);
+
+// This make WebStorm navigation work
 module.exports = dbGameProvider;

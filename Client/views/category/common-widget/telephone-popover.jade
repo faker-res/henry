@@ -46,14 +46,14 @@ ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' 
                     thead
                         tr
                             th {{"date" | translate}}
-                            th {{"Sender Type" | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterMessageLogSenderType", style="cursor: pointer") {{"Sender Type" | translate}}
                             th {{"Sender Name" | translate}}
                             th {{"CONTENT" | translate}}
                     tbody
                         tr(ng-repeat='(i,mailLog) in vm.mailLog.receivedMails')
                             td {{mailLog.createTime | date:'medium'}}
                             td {{mailLog.senderType}}
-                            td {{mailLog.senderName}}
+                            td {{mailLog.senderName | translate}}
                             td {{mailLog.content}}
 
     ez-modal-footer(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
@@ -131,7 +131,8 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                     thead
                         tr
                             th {{"date" | translate}}
-                            th {{"Admin" | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterSmsLogSenderType", style="cursor: pointer") {{"senderType" | translate}}
+                            th {{"senderName" | translate}}
                             th {{"Recipient" | translate}}
                             th {{"Channel" | translate}}
                             th {{"CONTENT" | translate}}
@@ -139,6 +140,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                     tbody
                         tr(ng-repeat='(i,smsLog) in vm.smsLog.searchResults')
                             td {{smsLog.createTime$}}
+                            td {{smsLog.adminName ? 'admin':'system'}}
                             td {{smsLog.adminName}}
                             td {{smsLog.recipientName}}
                             td {{smsLog.channel}}
@@ -152,22 +154,44 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
         #smsSettingPanel.panel-body(ng-if="vm.smsModalTab === 'smsSettingPanel'")
             .row.margin-left-5.margin-right-5
                 .form-group.col-md-12
-                    label.control-label {{"RECEIVE_SMS" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.receiveSMS")
-                    label.control-label.margin-right-5 {{"MANUAL_TOP_UP" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.manualTopup")
-                    label.control-label.margin-right-5 {{"APPLY_BONUS" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.applyBonus")
-                    label.control-label.margin-right-5 {{"CANCEL_BONUS" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.cancelBonus")
-                    label.control-label.margin-right-5 {{"APPLY_REWARD" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.applyReward")
-                    label.control-label.margin-right-5 {{"CONSUMPTION_RETURN" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.consumptionReturn")
-                    label.control-label.margin-right-5 {{"UPDATE_PAYMENT_INFO" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.updatePaymentInfo")
-                    label.control-label.margin-right-5 {{"UPDATE_PASSWORD" | translate}}
-                        input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting.updatePassword")
+                    .col-md-12.col-lg-4
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"receive status" | translate}}
+                                    th {{"no group sms setting" | translate}}
+
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.noGroupSmsSetting')
+                                    td
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[v.name]")
+                                    td
+                                        span {{v.name | translate}}
+
+                    .col-sm-12.col-sm-offset-0.col-md-offset-1.col-lg-7.col-md-12.pull-right
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"receive status/sms group" | translate}}
+                                    th {{"sms group settings" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
+                                    td
+                                        input.margin-right-5(type="checkbox" ng-model='vm.playerSmsSetting.smsGroup[v.smsId]' ng-init='vm.isAllSmsInGroupChecked(v)' ng-change='vm.smsGroupCheckChange(v)')
+                                        span(ng-if='!vm.configTableEdit') {{v.smsName}}
+                                    td
+                                        div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')
+                                            span {{ vv.smsName | translate}}
+                                            input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[vv.smsName]" ng-change='vm.isAllSmsInGroupChecked(v)')
+
+                    //label.control-label(style="width:auto;") {{"RECEIVE_SMS" | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.receiveSMS")
+                    //label.control-label(style="width:auto;") {{"Select All" | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSettingSelectAll", ng-change="vm.smsSettingToggleSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
+                    //label.control-label.margin-right-5(style="width:100%;", ng-repeat="(k, t) in vm.allMessageTypes", ng-if="t.name!='smsVerificationCode'") {{t.name | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[t.name]", ng-change="vm.smsSettingSetSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
+
+
 
     ez-modal-footer
         #smsToPlayerFooter(ng-if="vm.smsModalTab === 'smsToPlayerPanel'")
@@ -220,3 +244,39 @@ ez-modal(modal-id="phoneCallModal", modal-title="{{'PHONE' | translate}}")
                 //text.margin-left-5.text-danger(ng-if='phoneCall.err') {{phoneCall.err}}
                 text.margin-left-5.blink(ng-if='phoneCall.loadingNumber') {{"Retrieving phone number from server..." | translate}}
     ez-modal-footer
+
+#modalFilterSmsLogSenderType.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"senderType" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-3
+                            input(type="checkbox" ng-model="vm.smsLog.query.isAdmin")
+                            span Admin
+                        .col-md-3
+                            input(type="checkbox" ng-model="vm.smsLog.query.isSystem")
+                            span System
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}
+
+#modalFilterMessageLogSenderType.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"senderType" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .col-md-3
+                            input(type="checkbox" ng-model="vm.mailLog.isAdmin")
+                            span Admin
+                        .col-md-3
+                            input(type="checkbox" ng-model="vm.mailLog.isSystem")
+                            span System
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}

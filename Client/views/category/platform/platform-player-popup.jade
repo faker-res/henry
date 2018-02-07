@@ -54,6 +54,13 @@
                                                         label {{"partner" | translate}}
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"GENDER" | translate}}
+                                                    .col-sm-8
+                                                        text {{vm.getGenderFromBool(vm.selectedSinglePlayer.gender) || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
@@ -67,6 +74,12 @@
                                                         label {{"REFERRAL" | translate}}
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"DOB" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
@@ -505,7 +518,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")')
-                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | number : 3}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.selectedSinglePlayer.lockedCredit || 0 | number : 3}} )
+                h4.modal-title {{'PLAYER' | translate}} : {{vm.gameProviderCreditPlayerName}} ({{"LOCAL_CREDIT"|translate}} : {{vm.creditTransfer.showValidCredit || 0 | noRoundTwoDecimalPlaces}} ) ({{"REWARDAMOUNT"|translate}} : {{vm.creditTransfer.showRewardAmount || 0 | noRoundTwoDecimalPlaces}} )
             .modal-body
                 //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
                 //button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.fixPlayerRewardAmount.rewardInfo.length > 0 || vm.fixPlayerRewardAmount.isProcessing', ng-click='vm.sendFixPlayerRewardAmount()') {{'Fix Player RewardAmount' | translate}}
@@ -606,12 +619,12 @@
                                     label {{'GAME_PROVIDER' | translate}}
                                     select.form-control(ng-model='vm.queryPara.playerExpense.providerId', ng-options='a._id as a.name for (i,a) in vm.platformProviderList')
                                         option(value='') {{'any' | translate}}
-                                .inlineBlk
-                                    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
-                                    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
-                                        option(value='') {{'any' | translate}}
-                                        option(value='N') {{'ABLE' | translate}}
-                                        option(value='Y') {{'UNABLE' | translate}}
+                                //.inlineBlk
+                                //    label {{'CONSUMPTION_RETURN_ABILITY' | translate}}
+                                //    select.form-control.limit(ng-model='vm.queryPara.playerExpense.dirty', required)
+                                //        option(value='') {{'any' | translate}}
+                                //        option(value='N') {{'ABLE' | translate}}
+                                //        option(value='Y') {{'UNABLE' | translate}}
                                 .inlineBlk
                                     button.btn.btn-primary(ng-click='vm.getPlayerExpenseByFilter(true)') {{'SEARCH' | translate}}
                             .well
@@ -707,7 +720,7 @@
                                         label.control-label {{'REMARKS' | translate}}
                                     .col-md-12.textareaDetail
                                         textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
-                                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+                                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status != 2 && vm.linkedPlayerTransfer.status != 5)', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
 
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log'")
                             #playerCreditLogQuery.well
@@ -874,12 +887,12 @@
                         .well.margin-bottom-5(ng-if='vm.existingManualTopup')
                             .lineThrough(ng-if='vm.existingManualTopup.isCanceled')
                                 button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingManualTopup.data.amount}}
                             div(ng-if='!vm.existingManualTopup.isCanceled')
                                 i.fa.fa-exclamation-triangle.text-danger.margin-right-5
                                 label.margin-right-5 {{"Player has pending manual topup request already." | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingManualTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerManualTop()') {{'CANCEL' | translate}}
                     .col-md-12(ng-show='vm.existingManualTopup===false || vm.existingManualTopup.isCanceled')
@@ -892,11 +905,14 @@
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.bankCards', value='{{v}}') <b>{{v.name}} ({{v.accountNumber}})</b>
+                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{v.status | translate}}</b>
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
-                                select.form-control(ng-model='vm.playerManualTopUp.depositMethod')
+                                select.form-control(ng-model='vm.playerManualTopUp.depositMethod', ng-change='vm.selectedDepositMethod(vm.playerManualTopUp.depositMethod)')
                                     option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
+                            .form-group-col-md-6
+                                label.control-label(ng-hide='!vm.playerManualTopUp.depositMethod || vm.playerManualTopUp.depositMethod === "2"') {{'ACCNAME' | translate}}
+                                input.form-control(ng-model='vm.playerManualTopUp.realName',ng-hide='!vm.playerManualTopUp.depositMethod || vm.playerManualTopUp.depositMethod === "2"')
                             .form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', required)
@@ -913,7 +929,8 @@
                                 label {{'promoCode' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerManualTopUp.bonusCode')
                             .form-group-col-md-6
-                                label {{'remark' | translate}}
+                                label(ng-hide='vm.playerManualTopUp.depositMethod === "3"') {{'remark' | translate}}
+                                label(ng-show='vm.playerManualTopUp.depositMethod === "3"') {{'counterRemark' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerManualTopUp.remark')
                             .form-group-col-md-6
                                 label {{'DEPOSIT_TIME' | translate}}
@@ -926,12 +943,12 @@
                         .well.margin-bottom-5(ng-if='vm.existingAlipayTopup')
                             .lineThrough(ng-if='vm.existingAlipayTopup.isCanceled')
                                 button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
                             div(ng-if='!vm.existingAlipayTopup.isCanceled')
                                 i.fa.fa-exclamation-triangle.text-danger.margin-right-5
                                 label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAlipayTopUp()') {{'CANCEL' | translate}}
                     .col-md-12(ng-show='vm.existingAlipayTopup===false || vm.existingAlipayTopup.isCanceled')
@@ -946,7 +963,7 @@
                                 label {{'Alipay' | translate}}
                                 select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc', value='{{v}}') {{v.accountNumber}} {{v.name}}({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc | orderBy : "accountNumber"', value='{{v}}') {{v.accountNumber}} {{v.name}}({{v.state | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'alipayName' | translate}}
@@ -957,6 +974,10 @@
                                 .control-label
                                 label {{'alipayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'realName' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.realName')
                             .form-group.col-md-12
                                 .control-label
                                 label {{'promoCode' | translate}}
@@ -978,12 +999,12 @@
                         .well.margin-bottom-5(ng-if='vm.existingWechatPayTopup')
                             .lineThrough(ng-if='vm.existingWechatPayTopup.isCanceled')
                                 button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
                             div(ng-if='!vm.existingWechatPayTopup.isCanceled')
                                 i.fa.fa-exclamation-triangle.text-danger.margin-right-5
                                 label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
-                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.createTime)}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerWechatPayTopUp()') {{'CANCEL' | translate}}
                     .col-md-12(ng-show='vm.existingWechatPayTopup===false || vm.existingWechatPayTopup.isCanceled')
@@ -998,13 +1019,17 @@
                                 label {{'WechatPay' | translate}}
                                 select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc | orderBy : "nickName"', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{v.state | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayName' | translate}}
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
                             .form-group.col-md-6
                                 .control-label
+                                label {{'QRMode' | translate}}
+                                select.form-control(ng-model='vm.playerWechatPayTopUp.notUseQR')
+                                    option(value="") {{'Settlement_QR' | translate}}
+                                    option(value=true) {{'CS_QR' | translate}}
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayAccount' | translate}}
@@ -1016,7 +1041,7 @@
                             .form-group.col-md-12
                                 .control-label
                                 label {{'REMARK' | translate}}
-                                input.form-control(ng-model='vm.playerWechatPayTopUp.remark', required)
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.remark' ng-required="!vm.playerWechatPayTopUp.notUseQR")
                             .form-group.col-md-12
                                 .inlineBlk
                                 label {{'DEPOSIT_TIME' | translate}}
@@ -1149,10 +1174,15 @@
 
                         //#modalPlayerAddRewardTask
                         form(name='form_add_reward_task', ng-show="vm.selectedRewardSettingsTab == 'manual-reward'").well
-                            .form-group
+                            .form-group(ng-if='vm.selectedPlatform.data.useProviderGroup')
+                                label.control-label {{'Provider group' | translate}}
+                                select.form-control(ng-model='vm.playerAddRewardTask.providerGroup')
+                                    option(value='') {{'LOCAL_CREDIT' | translate}}
+                                    option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
+                            .form-group(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'REWARD_NAME' | translate}}
                                 input.form-control(ng-model='vm.playerAddRewardTask.type', required)
-                            .form-group
+                            .form-group(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                 label.control-label {{'Provider' | translate}}
                                 div
                                     .inlinkBlk(ng-repeat='(i,v) in vm.platformProviderList')
@@ -1215,7 +1245,10 @@
                                 label.text-success {{'SUCCESS' | translate}}
                             .well(ng-show='vm.playerApplyEventResult && !vm.playerApplyEventResult.success')
                                 label.text-danger {{'FAIL' | translate}}
-                                label.form-control {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
+                                label.form-control(ng-if='!vm.playerApplyRewardShow.showConsumptionReturn') {{(vm.playerApplyEventResult.error.message || vm.playerApplyEventResult.error.errorMessage) | translate}}
+                                label.form-control(style='width:80%;display:inline-block;' ng-if='vm.playerApplyRewardShow.showConsumptionReturn') {{ vm.playerApplyEventResult.error.message | translate}}
+                                button.btn.btn-primary.common-button(ng-if='vm.playerApplyRewardShow.showConsumptionReturn && (vm.playerApplyEventResult.error.message.indexOf("您的洗码额度不足") !== -1 || vm.playerApplyEventResult.error.errorMessage.indexOf("您的洗码额度不足") !== -1 )'
+                                ng-click='vm.applyPlayerReward(true)' style='vertical-align: bottom;margin-left: 10px;') {{"force submit" | translate}}
 
                         //#modalManualUnlockRewardTask
                         table.simple-table(ng-show="vm.selectedRewardSettingsTab == 'unlock-reward'")
@@ -1385,7 +1418,7 @@
 
             .modal-footer
                 div(ng-show="vm.selectedReapplyLostOrderTab == 'credit'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status != 2 && vm.linkedPlayerTransfer.status != 5)', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                 div(ng-show="vm.selectedReapplyLostOrderTab == 'payment'")
                     button.common-button.margin-right-5.btn.btn-success(ng-if="vm.repairProposalId && vm.submitRepairePayementStep!=2" ng-click='vm.submitRepairPayment()')

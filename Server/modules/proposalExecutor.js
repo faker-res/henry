@@ -40,6 +40,9 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
+
+let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
+
 const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -246,6 +249,8 @@ var proposalExecutor = {
                         throw Error("No platformObjId, needed for refund");
                     }
 
+                    proposalData.data.proposalId = proposalData.proposalId;
+
                     return dbPlayerInfo.refundPlayerCredit(playerObjId, platformObjId, refundAmount, reason, proposalData.data)
                 }
             );
@@ -397,8 +402,10 @@ var proposalExecutor = {
 
                             proposalData.data.proposalId = proposalData.proposalId;
 
-                            dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
-                                changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            if (proposalData.data.updateAmount > 0) {
+                                dbLogger.createCreditChangeLogWithLockedCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount,
+                                    changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
+                            }
                             deferred.resolve(player);
                         },
                         error => {
@@ -415,7 +422,32 @@ var proposalExecutor = {
              * execution function for fix player credit transfer
              */
             executeFixPlayerCreditTransfer: function (proposalData, deferred) {
-                proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                isTransferIdRepaired(proposalData.data.transferId).then(
+                    isRepaired => {
+                        if (!isRepaired) {
+                            setTransferIdAsRepaired(proposalData.data.transferId).catch(errorUtils.reportError);
+
+                            return dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean();
+                        }
+                        else {
+                            deferred.reject({name: "DataError", message: "This transfer has been repaired."});
+                        }
+                    },
+                    err => {
+                        deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error(err)});
+                    }
+                ).then(
+                    platform => {
+                        if (platform && platform.useProviderGroup) {
+                            proposalData.data.proposalId = proposalData.proposalId;
+                            fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
+                                deferred.resolve, deferred.reject);
+                        }
+                        else {
+                            proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                        }
+                    }
+                );
             },
 
             /**
@@ -426,7 +458,7 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.updateAmount > 0) {
                     changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.updateAmount, constProposalType.PLAYER_CONSUMPTION_RETURN_FIX, proposalData.data).then(
                         res => {
-                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.CONSUMPTION_RETURN);
+                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constMessageType.PLAYER_CONSUMPTION_RETURN_SUCCESS);
                         }
                     ).then(deferred.resolve, deferred.reject);
                 }
@@ -522,6 +554,8 @@ var proposalExecutor = {
                         proposalData.data.updateData.phoneCity = queryRes.city;
                         proposalData.data.updateData.phoneType = queryRes.type;
                     }
+                    // for send message to player before encrypt phone number
+                    let phoneNumberLast4Digit = proposalData.data.updateData.phoneNumber.substr(proposalData.data.updateData.phoneNumber.length - 4);
                     proposalData.data.updateData.phoneNumber = rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber);
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_players,
@@ -530,6 +564,10 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
+                            // reference constMessageTypeParam
+                            // take last 4 phonenumber send message to player
+                            proposalData.data.phoneNumber = phoneNumberLast4Digit;
+                            sendMessageToPlayer (proposalData,constMessageType.UPDATE_PHONE_INFO_SUCCESS,{});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -567,6 +605,8 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate._id;
                                 delete playerUpdate.name;
+                                if(playerUpdate.updateGamePassword || playerUpdate.updatePassword)
+                                    delete playerUpdate.remark;
 
                                 proms.push(
                                     dbconfig.collection_players.findOneAndUpdate(
@@ -665,7 +705,13 @@ var proposalExecutor = {
                             }
                             dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                             dbLogger.createBankInfoLog(loggerInfo);
-                            SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                            //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                            //bankcardLast4Number(new) send message to player
+                            if (proposalData.data.bankAccount) {
+                                proposalData.data.bankAccount = proposalData.data.bankAccount.substr(proposalData.data.bankAccount.length - 4);
+                                proposalData.data.playerObjId = proposalData.data._id;
+                                sendMessageToPlayer(proposalData, constMessageType.UPDATE_BANK_INFO_SUCCESS, {});
+                            }
                             deferred.resolve(data);
                         },
                         function (error) {
@@ -911,6 +957,7 @@ var proposalExecutor = {
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
                             data => {
+                                sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
                             },
                             error => {
@@ -952,6 +999,7 @@ var proposalExecutor = {
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
                             data => {
+                                sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
                             },
                             error => {
@@ -1020,6 +1068,7 @@ var proposalExecutor = {
                         }
                         Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
                             data => {
+                                sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
                             },
                             error => {
@@ -1042,19 +1091,21 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
                     dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
                         function (data) {
-                            SMSSender.sendByPlayerId(proposalData.data.playerId, constPlayerSMSSetting.MANUAL_TOPUP);
-                            var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                            if (wsMessageClient) {
-                                wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
-                                    {
-                                        proposalId: proposalData.proposalId,
-                                        amount: proposalData.data.amount,
-                                        handleTime: new Date(),
-                                        status: proposalData.status,
-                                        playerId: proposalData.data.playerId
-                                    }
-                                );
-                            }
+
+                            sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
+                            // SMSSender.sendByPlayerId(proposalData.data.playerId, constMessageType.MANUAL_TOPUP_SUCCESS);
+                            // var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                            // if (wsMessageClient) {
+                            //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
+                            //         {
+                            //             proposalId: proposalData.proposalId,
+                            //             amount: proposalData.data.amount,
+                            //             handleTime: new Date(),
+                            //             status: proposalData.status,
+                            //             playerId: proposalData.data.playerId
+                            //         }
+                            //     );
+                            // }
                             // DEBUG: Reward sometime not applied issue
                             console.log('applyForPlatformTransactionReward - Start', proposalData.proposalId);
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL);
@@ -1309,12 +1360,12 @@ var proposalExecutor = {
                             {new: true}
                         ).lean().then(
                             function (data) {
-                                dbLogger.createCreditChangeLog(
+                                dbLogger.createCreditChangeLogWithLockedCredit(
                                     data._id, data.platform,
                                     proposalData.data.rewardAmount,
                                     proposalData.type.name,
                                     data.validCredit,
-                                    null, proposalData);
+                                    0, 0, null, proposalData);
                                 deferred.resolve(data);
                             },
                             function (err) {
@@ -1383,9 +1434,13 @@ var proposalExecutor = {
                     changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data).then(
                         () => {
                             //remove all consumption summaries
+                            if (!Number(proposalData.data.spendingAmount)) {
+                                dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.rewardAmount).catch(errorUtils.reportError);
+                            }
+                            sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
                             return dbconfig.collection_playerConsumptionSummary.remove(
                                 {_id: {$in: proposalData.data.summaryIds}}
-                            );
+                            ).catch(errorUtils.reportError);
                         }
                     ).then(deferred.resolve, deferred.reject);
                 }
@@ -1448,6 +1503,8 @@ var proposalExecutor = {
                         return pmsAPI.bonus_applyBonus(message).then(
                             bonusData => {
                                 if (bonusData) {
+                                    sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                    increasePlayerWithdrawalTimes(player._id, player.platform._id).catch(errorUtils.reportError);
                                     return bonusData;
                                 }
                                 else {
@@ -1836,12 +1893,12 @@ var proposalExecutor = {
                         platform: proposalData.data.platformId
                     }, updatePlayer, {new: true}).lean().then(
                         function (data) {
-                            dbLogger.createCreditChangeLog(
+                            dbLogger.createCreditChangeLogWithLockedCredit(
                                 data._id, data.platform,
                                 proposalData.data.rewardAmount,
                                 proposalData.type.name,
                                 data.validCredit,
-                                null, proposalData);
+                                0, 0, null, proposalData);
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -1914,6 +1971,31 @@ var proposalExecutor = {
              * execution function for player intention proposal
              */
             executePlayerRegistrationIntention: function (proposalData, deferred) {
+                // for message template
+                if(proposalData.data && proposalData.data.realName && proposalData.status === constProposalStatus.APPROVED) {
+                    let platformObjId =proposalData.data.platform?proposalData.data.platform:proposalData.data.platformId;
+                    // this proposal data's player name no include platform prefix;
+                    dbconfig.collection_platform.findOne({_id:platformObjId}).then(
+                        (platform) => {
+                            let playerName = platform.prefix + proposalData.data.name;
+                            return dbconfig.collection_players.findOne({name:playerName,platform:platform._id})
+                                .populate({path: "playerLevel", model: dbconfig.collection_playerLevel});
+                        }
+                    ).then(
+                        (player) => {
+                            if(player) {
+                                dbconfig.collection_proposal.update({
+                                    _id: proposalData._id,
+                                }, {"data.playerLevelName": player.playerLevel.name}).exec();
+                                proposalData.data.playerName = proposalData.data.name;
+                                proposalData.data.playerObjId = player._id;
+                                proposalData.data.platformId = proposalData.data.platform;
+                                sendMessageToPlayer(proposalData,constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS,{});
+                            }
+
+                        }
+                    );
+                }
                 deferred.resolve(proposalData);
             },
 
@@ -1964,7 +2046,8 @@ var proposalExecutor = {
                         initAmount: proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId,
                         useLockedCredit: proposalData.data.useLockedCredit,
-                        useConsumption: Boolean(proposalData.data.useConsumption)
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        applyAmount: proposalData.data.applyAmount
                     };
 
                     // Target providers or providerGroup
@@ -1995,6 +2078,10 @@ var proposalExecutor = {
                         );
                     } else {
                         prom = Promise.resolve();
+                    }
+
+                    if (proposalData.data.disableWithdraw) {
+                        disablePlayerWithdrawal(proposalData.data.playerObjId, proposalData.data.platformId).catch(errorUtils.reportError);
                     }
 
                     prom.then(
@@ -2105,6 +2192,7 @@ var proposalExecutor = {
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: 0,
+                        rewardAppearPeriod: proposalData.data.rewardAppearPeriod,
                         providerGroup: proposalData.data.providerGroup
                     };
                     let deferred1 = Q.defer();
@@ -2734,11 +2822,20 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.amount) {
                     //todo::add more reasons here, ex:cancel request
 
+                    if (proposalData.data.ximaWithdrawUsed) {
+                        dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.ximaWithdrawUsed).catch(errorUtils.reportError);
+                    }
+
                     // return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount * proposalData.data.bonusCredit, "rejectPlayerBonus")
                     proposalData.data.creditCharge = proposalData.data.creditCharge || 0;
                     return proposalExecutor.refundPlayer(proposalData, proposalData.data.amount + proposalData.data.creditCharge, constPlayerCreditChangeType.REJECT_PLAYER_BONUS)
                         .then(
-                            res => deferred.resolve("Proposal is rejected"),
+
+                            res => {
+                                proposalData.cancelTime = moment(new Date()).format("YYYY/MM/DD HH:mm:ss");
+                                sendMessageToPlayer (proposalData,constMessageType.WITHDRAW_CANCEL,{});
+                                return deferred.resolve("Proposal is rejected");
+                            },
                             error => deferred.reject(error)
                         );
                 }
@@ -2990,16 +3087,21 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             // Create different process flow for lock provider group reward
             if (platform.useProviderGroup) {
                 if (proposalData.data.providerGroup && gameProviderGroup) {
-                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).catch(
+                    dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData).then(() =>{
+                        dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                    }).catch(
                         error => Q.reject({
                             name: "DBError",
                             message: "Error creating reward task with provider group",
                             error: error
                         })
                     );
-
-                    if (proposalData.data.isDynamicRewardAmount) {
-                        dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).catch(
+                    sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
+                    if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
+                    || proposalData.data.limitedOfferObjId) {
+                        dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData).then(() =>{
+                            dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                        }).catch(
                             error => Q.reject({
                                 name: "DBError",
                                 message: "Error deduct target consumption from free amount provider group",
@@ -3011,10 +3113,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                     dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
                         data => {
                             rewardTask = data;
-                            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
-                            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
-                                rewardTask: taskData
-                            });
+                            dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                            return sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                         }
                     ).catch(
                         error => errorUtils.reportError(error)
@@ -3067,17 +3167,11 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                 ).then(
                     //() => createRewardLogForProposal(taskData.rewardType, proposalData)
                     () => {
-                        SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, constPlayerSMSSetting.APPLY_REWARD);
-                        // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
-                        // Changing into async function
-                        //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
-                        //send message if there is any template created for this reward
-                        return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, rewardType, {
-                            rewardTask: taskData
-                        });
+                        sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                     }
                 ).then(
                     function () {
+                        dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         deferred.resolve(resolveValue || rewardTask);
                     },
                     function (error) {
@@ -3091,6 +3185,36 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     );
 }
 
+function disablePlayerWithdrawal(playerObjId, platformObjId) {
+    return dbconfig.collection_players.findOneAndUpdate({
+        _id: playerObjId,
+        platform: platformObjId
+    }, {
+        $set: {"permission.applyBonus": false}
+    }).lean().exec();
+}
+
+function sendMessageToPlayer (proposalData,type,metaDataObj) {
+    //type that need to add 'Success' status
+    let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
+        constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
+    ];
+
+    // type reference to constMessageType or constMessageTypeParam.name
+    let messageType = type;
+    if(needSendMessageRewardTypes.indexOf(type)!==-1){
+         messageType = type + 'Success';
+    }
+    
+    SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
+    // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
+    // Changing into async function
+    //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
+    //send message if there is any template created for this reward
+    return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj).catch(err=>{console.error(err)});
+
+}
 function createRewardLogForProposal(rewardTypeName, proposalData) {
     rewardTypeName = proposalData.type.name;
 
@@ -3182,6 +3306,161 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
             }
         }
     );
+}
+
+function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalData) {
+    let transferLog, providerGroup, player, provider, creditChangeLog;
+    let changedValidCredit = 0, changedLockedCredit = 0;
+    return dbconfig.collection_playerCreditTransferLog.findOne({transferId}).lean().then(
+        transferLogData => {
+            if (!transferLogData) {
+                return;
+            }
+
+            transferLog = transferLogData;
+
+            return dbconfig.collection_gameProvider.findOne({providerId: transferLog.providerId}).lean();
+        }
+    ).then(
+        providerData => {
+            if (!providerData) {
+                return;
+            }
+
+            provider = providerData;
+
+            let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({
+                platform: transferLog.platformObjId,
+                providers: provider._id,
+            }).lean();
+
+            let playerProm = dbconfig.collection_players.findOne({_id: transferLog.playerObjId}).lean();
+
+            let creditChangeLogProm = dbconfig.collection_creditChangeLog.findOne({
+                platformId: transferLog.platformObjId,
+                transferId: transferId
+            }).lean();
+
+            return Promise.all([gameProviderGroupProm, playerProm, creditChangeLogProm]);
+        }
+    ).then(
+        data => {
+            if (!data || !data[0] || !data[1]) {
+                return;
+            }
+            providerGroup = data[0];
+            player = data[1];
+            creditChangeLog = data[2];
+
+            return dbconfig.collection_rewardTaskGroup.findOne({
+                platformId: transferLog.platformObjId,
+                playerId: transferLog.playerObjId,
+                providerGroup: providerGroup._id,
+                status: constRewardTaskStatus.STARTED
+            }).lean();
+        }
+    ).then(
+        rewardTaskGroup => {
+            console.log("DEBUG LOG :: Getting reward task group for repair transfer ID: " + transferId + " as", rewardTaskGroup);
+            if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
+                let inputFreeAmt = rewardTaskGroup._inputFreeAmt;
+                let inputRewardAmt = rewardTaskGroup._inputRewardAmt;
+
+                if (creditChangeLog) {
+                    inputFreeAmt = -creditChangeLog.amount;
+                    inputRewardAmt = -creditChangeLog.changedLockedAmount;
+                }
+
+                changedValidCredit = inputFreeAmt;
+                changedLockedCredit = inputRewardAmt;
+                let lockedAmount = inputRewardAmt;
+                let validCredit = inputFreeAmt;
+
+                let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
+                    _id: rewardTaskGroup._id,
+                    platformId: rewardTaskGroup.platformId
+                }, {
+                    // rewardAmt: lockedAmount,
+                    $inc: {
+                        rewardAmt: lockedAmount,
+                    },
+                    // _inputRewardAmt: 0,
+                    // _inputFreeAmt: 0,
+                    // inProvider: false
+                }, {
+                    new: true
+                }).lean();
+
+                let updateValidCredit = dbconfig.collection_players.findOneAndUpdate({
+                    _id: player._id,
+                    platform: player.platform
+                }, {
+                    $inc: {
+                        validCredit: validCredit > 0 ? validCredit : 0
+                    }
+                }, {
+                    new: true
+                });
+
+                return Promise.all([updateValidCredit, updateRewardTaskGroupProm]);
+            }
+            else {
+                changedValidCredit = creditAmount;
+
+                let updateValidCredit = dbconfig.collection_players.findOneAndUpdate({
+                    _id: player._id,
+                    platform: player.platform
+                }, {
+                    $inc: {
+                        validCredit: creditAmount > 0 ? creditAmount : 0
+                    }
+                }, {
+                    new: true
+                });
+
+                return Promise.all([updateValidCredit]);
+            }
+        }
+    ).then(
+        updatedData => {
+            if (!updatedData || !updatedData[0]) {
+                return;
+            }
+
+            let updatedPlayer = updatedData[0];
+            if (updatedPlayer.validCredit < 0) {
+                updatedPlayer.validCredit = 0;
+            }
+            if (updatedPlayer.lockedCredit < 0) {
+                updatedPlayer.lockedCredit = 0;
+            }
+            return updatedPlayer.save();
+        },
+        error => {
+            return Promise.reject({name: "DBError", message: "Error updating player.", error: error});
+        }
+    ).then(
+        updatedPlayer => {
+            dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform, changedValidCredit, constProposalType.FIX_PLAYER_CREDIT_TRANSFER, updatedPlayer.validCredit, null, changedLockedCredit, null, proposalData);
+            return updatedPlayer;
+        }
+    );
+}
+
+function setTransferIdAsRepaired(transferId) {
+    return dbconfig.collection_playerCreditTransferLog.update({transferId}, {isRepaired: true}, {multi: true});
+}
+
+function isTransferIdRepaired(transferId) {
+    return dbconfig.collection_playerCreditTransferLog.find({transferId, isRepaired: true}, {_id: 1}).limit(1).lean().then(
+        log => {
+            return Boolean(log && log[0]);
+        }
+    );
+}
+
+function increasePlayerWithdrawalTimes(playerObjId, platformObjId) {
+    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId, platform: platformObjId}, {$inc: {withdrawTimes: 1}}).lean().exec();
 }
 
 /**

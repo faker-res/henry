@@ -1,0 +1,136 @@
+.row
+    .col-md-12
+        .well.feedbackQueryDiv
+            .inlineBlk(style='max-width:155px' ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'queryByProduct')")
+                label {{"PRODUCT" |translate}}
+                select.form-control(style='max-width:155px',ng-change='vm.filterPlatform()',ng-model='vm.inspection800.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true')
+            .inlineBlk(style='max-width:155px' ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'queryByCSAccount')")
+                label FPMS {{"CS Account" | translate}}
+                select.form-control(style='max-width:155px', ng-model='vm.inspection800.fpms', ng-change='vm.loadLive800Acc()', ng-options='product._id as product.name for product in vm.fpmsACCList', multiple, bsp, data-actions-box='true')
+
+            .inlineBlk(style='max-width:155px' ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'queryByLive800Account')")
+                label Live800{{"Account" | translate}}
+                select.form-control(style='max-width:155px', ng-model='vm.inspection800.live800Accs', ng-options='v as v | translate for (i,v) in vm.live800Accs', multiple, bsp, data-actions-box='true')
+            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'queryByLive800Date')")
+                label.control-label {{'Start date' | translate}}
+                #live800StartDatetimePicker.input-append.form-control
+                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                    span.add-on
+                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'queryByLive800Date')")
+                label.control-label {{'End date' | translate}}
+                #live800endDatetimePicker.input-append.form-control
+                    input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                    span.add-on
+                        i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'queryByEvaluationStatus')")
+                label {{"EVALUATION_STATUS" | translate}}
+                select.form-control(ng-model='vm.inspection800.status')
+                    option(ng-repeat='(i,v) in vm.constQualityInspectionStatus', value='{{i}}') {{v | translate}}
+                    option(value='all') {{'ALL' | translate}}
+
+            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'queryByQualityAssessor')")
+                label {{"QUALITY_ASSESSOR" | translate}}
+                select.form-control(ng-model='vm.inspection800.qiUser')
+                    option(ng-repeat='(i,v) in vm.qiDepartments', value='{{v._id}}') {{v.name | translate}}
+                    option(value='all') {{'NONE' | translate}}
+            .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'Read')")
+                button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0') {{"SEARCH" | translate}}
+                span.collapse
+                    i.fa.fa-spinner.fa-spin
+                span.margin-left-5
+            .inlineBlk
+                i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
+
+div
+    label 总共：{{vm.pgn.count}} 笔（有效+无效）对话
+div(style='height:50px')
+    .row(style='background-color:#337ab7;')
+        div.col-md-1(style="height:50px")
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold;') 选取
+        div.col-md-1(style="height:50px")
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 评估状态
+        div.col-md-7(style="height:50px")
+            div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold;") Live800{{"Account" | translate}}
+            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 类型
+            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 时间
+            div.col-md-4.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 对话内容
+            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 超时评分（+/-)
+            div.col-md-1.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 质简评分（+/-)
+            div.col-md-2.text-center(style="position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold") 质检评语
+        div.col-md-1(style="height:50px")
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 质检评估员
+        div.col-md-1(style="height:50px")
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 评估时间
+        div.col-md-1(style="height:50px;background-color:red")
+            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 申诉内容
+
+conversationform(ng-repeat='conversationform in vm.conversationForm',  cform = 'conversationform', rateconversation = 'vm.rateconversation(conversationform)', confirmrate='vm.confirmRate(conversationform)', storebatch='vm.storeBatchId(conversationform,$event)')
+div.row
+    div.col-md-12
+        div.col-md-10
+            div
+        div.col-md-2
+            .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
+
+div.row(ng-show='vm.conversationForm.length > 0', style='margin-top:20px;')
+    div.col-md-12
+        div.col-md-2
+            span(style="display:inline-block;") 每页显示
+            input.form-control(style='max-width:70px;display:inline-block;',type="number",ng-model="vm.pgn.limit",ng-init=5 ,ng-blur="vm.searchLive800()")
+            span(style="display:inline-block;") 笔
+        div.col-md-7
+            //ul.pagination(ng-repeat="i in vm.pgnPages")
+                li(ng-click="vm.gotoPG(i, $event)")
+                    a {{$index+1}}
+        div.col-md-3
+            div(style='display:inline-block')
+                span(style="width:50px;display:inline-block;") 跳到
+                input.form-control(style='max-width:80px;display:inline-block;',type="number",ng-model="vm.pgn.currentPage",ng-init=1 ,ng-blur="vm.gotoPG((vm.pgn.currentPage),null)")
+                span(style="display:inline-block;") 页
+            div(style='display:inline-block')
+                .btn.btn-primary(ng-click="vm.nextPG()") 下一页
+            div(style='display:inline-block')
+                i.searchingQualityInspection.fa.fa-spin.fa-spinner(style="display:none")
+
+div(style='display:none')
+    div#conversationForm(style='height:60px')
+        div.row(style='border:2px solid #CECECE')
+            div.col-md-1(style="padding-top:10px;")
+                input.form-control.batchEdit(type="checkbox", value="{{cform.messageId}}",ng-click="storebatch(cform)")
+            div.col-md-1(style="text-align:center;padding-top:10px;")
+                div(ng-click="rateIt(cform)", style="cursor:pointer"){{cform.statusName}}
+                div(ng-if='cform.editable', style='margin-top:30px;')
+                    div.btn.btn-primary(ng-click="confirmrate(cform)", style="cursor:pointer") Confirm
+                    div.btn.btn-primary.red(ng-click="cancelrate(cform)", style="cursor:pointer;margin-top:2px;") Cancel
+            div.col-md-7(style='border-left:1px solid black;border-right:1px solid black')
+                .row
+                    div(style="text-align:center;color:red;padding-top:10px;") **** 新的对话开始 ****
+                .row(ng-repeat='convert in cform.conversation', style="background-color:{{convert.colors}};border-top:1px solid black")
+                    div(style='min-height:80px;padding:4px;',ng-show="convert.roles")
+                        div.col-md-2.text-center(style="padding:10px;") {{cform.fpmsAcc.adminName}} ({{cform.live800Acc.id}})
+                        div.col-md-1.text-center(style="padding:10px;") {{convert.roleName}}
+                        div.col-md-1.text-center(style="padding:10px;") {{convert.displayTime}}
+                        div.col-md-4.text-center(style="padding:10px;") {{convert.content}}
+                        div.col-md-1.text-center
+                            input(style="width:45px;",type="number",value="{{convert.timeoutRate}}",readonly="readonly", ng-show="convert.roles==1")
+                        div.col-md-1.text-center(ng-show="convert.roles==1")
+                            div(ng-if='cform.editable')
+                                input(style="width:45px;",type="number",ng-model="convert.inspectionRate")
+                            div(ng-if='!cform.editable')
+                                div(style='text-align:center') {{convert.inspectionRate}}
+                        div.col-md-2.text-center
+                            div(ng-if='cform.editable', style="position:relative; bottom:0px;")
+                                div.form-group(ng-show="convert.roles==1")
+                                    textarea.form-control(ng-model="convert.review", rows="3")
+                            div(ng-if='!cform.editable')
+                                div(style='text-align:center') {{convert.review}}
+                .row
+                    div(style="text-align:center;color:red") 結束對話:访客关闭对话 ({{cform.createTime | date:"yyyy-MM-dd hh:mm:ss"}})
+            div.col-md-1(style="padding-top:10px;")
+                div.text-center  {{cform.qualityAssessor.adminName}}
+            div.col-md-1(style="padding-top:10px;")
+                div.text-center  {{cform.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
+            div.col-md-1(style="padding-top:10px;")
+                div.form-group
+                    textarea.form-control(value="{{cform.appealReason}}", readonly="readonly", rows="3")

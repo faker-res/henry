@@ -39,6 +39,9 @@ const constRewardTaskStatus = require('../const/constRewardTaskStatus');
 const constServerCode = require('../const/constServerCode');
 const constSettlementPeriod = require("../const/constSettlementPeriod");
 const constSystemParam = require('../const/constSystemParam');
+const errorUtils = require('../modules/errorUtils');
+const request = require('request');
+const constSMSPurpose = require("../const/constSMSPurpose");
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -57,10 +60,10 @@ var dbPlatform = {
         // We give platforms a random ObjectID, so that if 5 platforms are created in quick succession, they and their
         // associated data will not all get stored on the same shard.
 
-        if(platformData){
+        if (platformData) {
             platformData._id = randomObjectId();
 
-            if(platformData.platformId){
+            if (platformData.platformId) {
                 delete platformData.platformId;
             }
         }
@@ -135,12 +138,12 @@ var dbPlatform = {
                     // Every platform should have a partnerLevelConfig
                     // We create a partnerLevelConfig with dummy data here, which the user can update later
                     partnerLevelConfigData = partnerLevelConfigData || {
-                            //todo::update the default value here
-                            validPlayerTopUpTimes: 5,
-                            validPlayerConsumptionTimes: 10,
-                            activePlayerTopUpTimes: 1,
-                            activePlayerConsumptionTimes: 1
-                        };
+                        //todo::update the default value here
+                        validPlayerTopUpTimes: 5,
+                        validPlayerConsumptionTimes: 10,
+                        activePlayerTopUpTimes: 1,
+                        activePlayerConsumptionTimes: 1
+                    };
                     partnerLevelConfigData.platform = data._id;
                     var partnerLevelConfig = new dbconfig.collection_partnerLevelConfig(partnerLevelConfigData);
                     proms.push(partnerLevelConfig.save());
@@ -246,6 +249,9 @@ var dbPlatform = {
             updateData.weeklySettlementMinute = weeklyTime.getUTCMinutes();
             updateData.weeklySettlementDay = weeklyTime.getUTCDay();
         }
+        if (updateData.usePointSystem) {
+            dbPlayerInfo.createPlayerRewardPointsRecord(query, "", true);
+        }
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 console.log("updatePlatform", data, query, updateData);
@@ -261,6 +267,9 @@ var dbPlatform = {
                 return data;
             }
         );
+    },
+    getPlatformSetting: function (query) {
+        return dbconfig.collection_platform.find(query);
     },
 
     /**
@@ -511,19 +520,21 @@ var dbPlatform = {
                     return Q.all([providerProm, gameProm]);
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Cannot find provider or platform"});
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Cannot find provider or platform. ProviderId:" + providerId + " PlatformId: " + platformId
+                    });
                 }
             }
         );
     },
 
     addOrRenameProviderInPlatformById: function (platformObjId, providerObjId, localProviderNickName, localProviderPrefix) {
-        var nickNameUpdatePath = "gameProviderInfo." + providerObjId;
-        var nickNameUpdate = {};
-        nickNameUpdate[nickNameUpdatePath] = {
-            localNickName: localProviderNickName,
-            localPrefix: localProviderPrefix
-        };
+        let nickNameUpdatePath = "gameProviderInfo." + providerObjId + ".localNickName";
+        let prefixUpdatePath = "gameProviderInfo." + providerObjId + ".localPrefix";
+        let nickNameUpdate = {};
+        nickNameUpdate[nickNameUpdatePath] = localProviderNickName;
+        nickNameUpdate[prefixUpdatePath] = localProviderPrefix;
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
@@ -537,11 +548,9 @@ var dbPlatform = {
     },
 
     updateProviderFromPlatformById: function (platformObjId, providerObjId, isEnable) {
-        let statusUpdatePath = "gameProviderInfo." + providerObjId;
+        let statusUpdatePath = "gameProviderInfo." + providerObjId + ".isEnable";
         let statusUpdate = {};
-        statusUpdate[statusUpdatePath] = {
-            isEnable: isEnable
-        };
+        statusUpdate[statusUpdatePath] = isEnable;
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
@@ -712,21 +721,24 @@ var dbPlatform = {
         var deferred = Q.defer();
         //find admin department platforms data
         dbconfig.collection_admin.findOne({_id: adminId})
-            .populate({path: "departments", model: dbconfig.collection_department}).then(
+            .populate({path: "departments", model: dbconfig.collection_department})
+            .then(
             function (data) {
                 if (data && data.departments && data.departments.length > 0) {
                     //if root department, show all the platforms
                     //else only show department platform
                     if (data.departments[0].parent) {
                         if (data.departments[0].platforms && data.departments[0].platforms.length > 0) {
-                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}}).exec();
+                            return dbconfig.collection_platform.find({_id: {$in: data.departments[0].platforms}})
+                                .populate({path: "csDepartment", model: dbconfig.collection_department})
+                                .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
                         }
                         else {
                             deferred.reject({name: "DataError", message: "No platform available."});
                         }
                     }
                     else {
-                        return dbconfig.collection_platform.find().exec();
+                        return dbconfig.collection_platform.find().populate({path: "csDepartment", model: dbconfig.collection_department}).populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
                     }
                 }
             },
@@ -1307,7 +1319,7 @@ var dbPlatform = {
         return Q.all([playersProm, levelsProm]).spread(
             function (players, playerLevels) {
                 const proms = players.map(
-                    player => dbPlayerInfo.checkPlayerLevelDownWithLevels(player, playerLevels, checkPeriod)
+                    player => dbPlayerInfo.checkPlayerLevelDownWithLevels(player, playerLevels, checkPeriod).catch(errorUtils.reportError)
                 );
                 return Q.all(proms);
             }
@@ -1450,6 +1462,12 @@ var dbPlatform = {
             partnerId: data.partnerId || undefined,
             type: {$nin: ["registration"]}
         };
+        if (data.isAdmin && !data.isSystem) {
+            query.adminName = {$exists: true, $ne: null};
+        } else if (data.isSystem && !data.isAdmin) {
+            query.adminName = {$eq: null};
+        }
+
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
@@ -1484,6 +1502,7 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
+        data.accountStatus ? query.accountStatus = data.accountStatus : "";
         data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
@@ -1506,8 +1525,12 @@ var dbPlatform = {
             smsLogsWithCount => {
                 if (smsLogsWithCount.length > 0) {
                     smsLogsWithCount.map(function (sms) {
-                        if (sms.tel) {
-                            sms.tel = dbUtility.encodePhoneNum(sms.tel);
+                        if (sms.purpose && sms.purpose == constSMSPurpose.DEMO_PLAYER && !(sms.data && sms.data.isRegistered)) {
+
+                        } else {
+                            if (sms.tel) {
+                                sms.tel = dbUtility.encodePhoneNum(sms.tel);
+                            }
                         }
                         return sms
                     })
@@ -1649,22 +1672,25 @@ var dbPlatform = {
     updateAutoApprovalConfig: function (query, updateData) {
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true});
     },
-    generateObjectId: function(){
+    generateObjectId: function () {
         return new ObjectId();
     },
 
     //Player Advertisement
-    getPlayerAdvertisementList: function(platformId, inputDevice){
+    getPlayerAdvertisementList: function (platformId, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
-            platformObj =>{
-                if(platformObj){
-                    if(inputDevice){
-                        return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
+            platformObj => {
+                if (platformObj) {
+                    if (inputDevice) {
+                        return dbconfig.collection_playerPageAdvertisementInfo.find({
+                            platformId: platformObj._id,
+                            inputDevice: inputDevice
+                        }).lean();
                     }
-                    else{
+                    else {
                         return Q.reject({name: "DBError", message: "Invalid input device"});
                     }
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
@@ -1672,15 +1698,22 @@ var dbPlatform = {
 
     },
 
-    getSelectedAdvList: function(platformId,id,subject){
+    getSelectedAdvList: function (platformId, id, subject) {
         if (id) {
             if (subject == 'player') {
-                return dbconfig.collection_playerPageAdvertisementInfo.findOne({platformId: platformId,_id: id}).lean();
+                return dbconfig.collection_playerPageAdvertisementInfo.findOne({
+                    platformId: platformId,
+                    _id: id
+                }).lean();
             }
-            else if (subject == 'partner'){
-                return dbconfig.collection_partnerPageAdvertisementInfo.findOne({platformId: platformId,_id: id}).lean();
+            else if (subject == 'partner') {
+                return dbconfig.collection_partnerPageAdvertisementInfo.findOne({
+                    platformId: platformId,
+                    _id: id
+                }).lean();
             }
-            else {}
+            else {
+            }
         }
         else {
             return Q.reject(Error("Id is NULL"));
@@ -1688,25 +1721,28 @@ var dbPlatform = {
 
     },
 
-    createNewPlayerAdvertisementRecord: function(platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+    createNewPlayerAdvertisementRecord: function (platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
-            platformObj =>{
-                if(platformObj){
-                    if(advertisementCode){
-                        return dbconfig.collection_playerPageAdvertisementInfo.findOne({platformId: platformId, advertisementCode: advertisementCode})
-                    }else{
+            platformObj => {
+                if (platformObj) {
+                    if (advertisementCode) {
+                        return dbconfig.collection_playerPageAdvertisementInfo.findOne({
+                            platformId: platformId,
+                            advertisementCode: advertisementCode
+                        })
+                    } else {
                         return Q.reject({name: "DBError", message: "Advertisement code not valid"});
                     }
 
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         ).then(
             existingAdvertisementCodeData => {
-                if(existingAdvertisementCodeData){
+                if (existingAdvertisementCodeData) {
                     return Q.reject({name: "DBError", message: "Advertisement code already exists."});
-                }else{
+                } else {
                     let newRecordData = {
                         platformId: platformId,
                         orderNo: orderNo,
@@ -1724,11 +1760,11 @@ var dbPlatform = {
         );
     },
 
-    deleteAdvertisementRecord: function(platformId, advertisementId){
+    deleteAdvertisementRecord: function (platformId, advertisementId) {
         return dbconfig.collection_playerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
     },
 
-    savePlayerAdvertisementRecordChanges: function(platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+    savePlayerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice) {
 
         let query = {
             platformId: platformId,
@@ -1743,16 +1779,16 @@ var dbPlatform = {
             imageButton: imageButton,
             inputDevice: inputDevice
         }
-        return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,updateData).then(
-            platformObj =>{
-                if(platformObj){
+        return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query, updateData).then(
+            platformObj => {
+                if (platformObj) {
                     return platformObj;
                 }
             }
         );
     },
 
-    updateAdvertisementRecord: function(platformId, advertisementId, imageButton, subject){
+    updateAdvertisementRecord: function (platformId, advertisementId, imageButton, subject) {
 
         let query = {
             platformId: platformId,
@@ -1764,35 +1800,36 @@ var dbPlatform = {
         };
 
         if (subject == 'player') {
-            return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,updateData);
+            return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query, updateData);
         }
-        else if (subject == 'partner'){
-            return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,updateData);
+        else if (subject == 'partner') {
+            return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query, updateData);
         }
-        else {}
+        else {
+        }
     },
 
-    changeAdvertisementStatus: function(platformId, advertisementId, status){
+    changeAdvertisementStatus: function (platformId, advertisementId, status) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         _id: advertisementId,
                         status: status ? status : 0
                     }
-                    return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query,{status: !status});
-                }else{
+                    return dbconfig.collection_playerPageAdvertisementInfo.findOneAndUpdate(query, {status: !status});
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         )
     },
 
-    checkDuplicateOrderNoWithId: function(platformId, orderNo, inputDevice, advertisementId){
+    checkDuplicateOrderNoWithId: function (platformId, orderNo, inputDevice, advertisementId) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         orderNo: orderNo,
@@ -1801,9 +1838,9 @@ var dbPlatform = {
                     }
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).then(
                         data => {
-                            if(data){
+                            if (data) {
                                 return null;
-                            }else{
+                            } else {
                                 let queryWithoutId = {
                                     platformId: platformId,
                                     orderNo: orderNo,
@@ -1814,17 +1851,17 @@ var dbPlatform = {
 
                         }
                     );
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    checkDuplicateAdCodeWithId: function(platformId, advertisementCode, inputDevice, advertisementId){
+    checkDuplicateAdCodeWithId: function (platformId, advertisementCode, inputDevice, advertisementId) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         advertisementCode: advertisementCode,
@@ -1833,9 +1870,9 @@ var dbPlatform = {
                     }
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).then(
                         data => {
-                            if(data){
+                            if (data) {
                                 return null;
-                            }else{
+                            } else {
                                 let queryWithoutId = {
                                     platformId: platformId,
                                     advertisementCode: advertisementCode,
@@ -1846,17 +1883,17 @@ var dbPlatform = {
 
                         }
                     );
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    checkDuplicateOrderNo: function(platformId, orderNo, inputDevice){
+    checkDuplicateOrderNo: function (platformId, orderNo, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         orderNo: orderNo,
@@ -1864,24 +1901,24 @@ var dbPlatform = {
                     };
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
 
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    checkDuplicateAdCode: function(platformId, advertisementCode, inputDevice){
+    checkDuplicateAdCode: function (platformId, advertisementCode, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         advertisementCode: advertisementCode,
                         inputDevice: inputDevice
                     };
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
@@ -1889,32 +1926,32 @@ var dbPlatform = {
     },
 
 
-    getAdvertisementRecordById: function(platformId, advertisementId){
+    getAdvertisementRecordById: function (platformId, advertisementId) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         _id: advertisementId
                     }
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query);
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    getNextOrderNo: function(platformId, inputDevice){
+    getNextOrderNo: function (platformId, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         inputDevice: inputDevice
                     }
                     return dbconfig.collection_playerPageAdvertisementInfo.findOne(query).sort({orderNo: -1}).limit(1);
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
@@ -1922,27 +1959,30 @@ var dbPlatform = {
     },
 
     //Partner Advertisement
-    getPartnerAdvertisementList: function(platformId, inputDevice){
+    getPartnerAdvertisementList: function (platformId, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
-            platformObj =>{
-                if(platformObj){
-                    if(inputDevice){
-                        return dbconfig.collection_partnerPageAdvertisementInfo.find({platformId: platformObj._id, inputDevice: inputDevice}).lean();
+            platformObj => {
+                if (platformObj) {
+                    if (inputDevice) {
+                        return dbconfig.collection_partnerPageAdvertisementInfo.find({
+                            platformId: platformObj._id,
+                            inputDevice: inputDevice
+                        }).lean();
                     }
-                    else{
+                    else {
                         return Q.reject(Error("Invalid input device"));
                     }
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
 
     },
-    createNewPartnerAdvertisementRecord: function(platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+    createNewPartnerAdvertisementRecord: function (platformId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
-            platformObj =>{
-                if(platformObj){
+            platformObj => {
+                if (platformObj) {
                     let newRecordData = {
                         platformId: platformId,
                         orderNo: orderNo,
@@ -1954,19 +1994,20 @@ var dbPlatform = {
                         status: 1
                     }
                     let advertistmentRecord = new dbconfig.collection_partnerPageAdvertisementInfo(newRecordData);
-                    return advertistmentRecord.save();0
-                }else{
+                    return advertistmentRecord.save();
+                    0
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    deletePartnerAdvertisementRecord: function(platformId, advertisementId){
+    deletePartnerAdvertisementRecord: function (platformId, advertisementId) {
         return dbconfig.collection_partnerPageAdvertisementInfo.remove({_id: advertisementId, platformId: platformId});
     },
 
-    savePartnerAdvertisementRecordChanges: function(platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice){
+    savePartnerAdvertisementRecordChanges: function (platformId, advertisementId, orderNo, advertisementCode, title, backgroundBannerImage, imageButton, inputDevice) {
 
         let query = {
             platformId: platformId,
@@ -1981,8 +2022,8 @@ var dbPlatform = {
             imageButton: imageButton,
             inputDevice: inputDevice
         }
-        return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,updateData).then(
-            platformObj =>{
+        return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query, updateData).then(
+            platformObj => {
 
                 return platformObj;
 
@@ -1990,27 +2031,27 @@ var dbPlatform = {
         );
     },
 
-    changePartnerAdvertisementStatus: function(platformId, advertisementId, status){
+    changePartnerAdvertisementStatus: function (platformId, advertisementId, status) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         _id: advertisementId,
                         status: status ? status : 0
                     }
-                    return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query,{status: !status});
-                }else{
+                    return dbconfig.collection_partnerPageAdvertisementInfo.findOneAndUpdate(query, {status: !status});
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         )
     },
 
-    checkPartnerDuplicateOrderNoWithId: function(platformId, orderNo, inputDevice, advertisementId){
+    checkPartnerDuplicateOrderNoWithId: function (platformId, orderNo, inputDevice, advertisementId) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         orderNo: orderNo,
@@ -2019,9 +2060,9 @@ var dbPlatform = {
                     }
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).then(
                         data => {
-                            if(data){
+                            if (data) {
                                 return null;
-                            }else{
+                            } else {
                                 let queryWithoutId = {
                                     platformId: platformId,
                                     orderNo: orderNo,
@@ -2032,17 +2073,17 @@ var dbPlatform = {
 
                         }
                     );
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    checkPartnerDuplicateAdCodeWithId: function(platformId, advertisementCode, inputDevice, advertisementId){
+    checkPartnerDuplicateAdCodeWithId: function (platformId, advertisementCode, inputDevice, advertisementId) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         advertisementCode: advertisementCode,
@@ -2051,9 +2092,9 @@ var dbPlatform = {
                     }
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).then(
                         data => {
-                            if(data){
+                            if (data) {
                                 return null;
-                            }else{
+                            } else {
                                 let queryWithoutId = {
                                     platformId: platformId,
                                     advertisementCode: advertisementCode,
@@ -2064,17 +2105,17 @@ var dbPlatform = {
 
                         }
                     );
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    checkPartnerDuplicateOrderNo: function(platformId, orderNo, inputDevice){
+    checkPartnerDuplicateOrderNo: function (platformId, orderNo, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         orderNo: orderNo,
@@ -2082,24 +2123,24 @@ var dbPlatform = {
                     };
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
 
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    checkPartnerDuplicateAdCode: function(platformId, advertisementCode, inputDevice){
+    checkPartnerDuplicateAdCode: function (platformId, advertisementCode, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         advertisementCode: advertisementCode,
                         inputDevice: inputDevice
                     };
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
@@ -2107,40 +2148,40 @@ var dbPlatform = {
     },
 
 
-    getPartnerAdvertisementRecordById: function(platformId, advertisementId){
+    getPartnerAdvertisementRecordById: function (platformId, advertisementId) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         _id: advertisementId
                     }
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query);
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    getPartnerNextOrderNo: function(platformId, inputDevice){
+    getPartnerNextOrderNo: function (platformId, inputDevice) {
         return dbconfig.collection_platform.findOne({_id: platformId}).then(
             platformObj => {
-                if(platformObj){
+                if (platformObj) {
                     let query = {
                         platformId: platformId,
                         inputDevice: inputDevice
                     }
                     return dbconfig.collection_partnerPageAdvertisementInfo.findOne(query).sort({orderNo: -1}).limit(1);
-                }else{
+                } else {
                     return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                 }
             }
         );
     },
 
-    getConfig: function (platformId) {
-        if(platformId){
+    getConfig: function (platformId, inputDevice) {
+        if (platformId) {
             let returnedObj = {
                 wechatList: [],
                 qqList: [],
@@ -2150,88 +2191,176 @@ var dbPlatform = {
             };
             return dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 data => {
-                    if(data){
-                        if(data.csWeixin){
+                    if (data) {
+                        if (data.csWeixin) {
                             returnedObj.wechatList.push({
                                 isImg: 0,
                                 value: data.csWeixin
-                            },{
+                            }, {
                                 isImg: 1,
-                                value:  data.weixinPhotoUrl ? data.weixinPhotoUrl : ""
+                                value: data.weixinPhotoUrl ? data.weixinPhotoUrl : ""
                             });
                         }
 
-                        if(data.csQQ){
+                        if (data.csQQ) {
                             returnedObj.qqList.push({
                                 isImg: 0,
                                 value: data.csQQ
                             });
                         }
 
-                        if(data.csPhone){
+                        if (data.csPhone) {
                             returnedObj.telList.push({
                                 isImg: 0,
                                 value: data.csPhone
                             });
                         }
 
-                        if(data.csUrl){
+                        if (data.csUrl) {
                             returnedObj.live800 = data.csUrl;
                         }
-                        if(data.platformId){
-                            return dbconfig.collection_playerPageAdvertisementInfo.find({platformId: data._id}).sort({orderNo: 1});
-                        };
-                    }else{
+                        if (data.platformId) {
+                            return dbconfig.collection_playerPageAdvertisementInfo.find({
+                                platformId: data._id,
+                                inputDevice: inputDevice
+                            }).sort({orderNo: 1}).lean();
+                        }
+                    } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                     }
                 }
             ).then(
                 advertisementInfo => {
-                    if(advertisementInfo){
+                    if (advertisementInfo) {
                         advertisementInfo.map(info => {
-                            let activityListObj = {};
-                            if(info.advertisementCode){
-                                activityListObj.code = info.advertisementCode;
-                            }
-
-                            if(info.title && info.title.length > 0){
-                                activityListObj.title = info.title;
-                            }
-
-                            if(info.backgroundBannerImage && info.backgroundBannerImage.hyperLink){
-                                activityListObj.bannerImg= 'getHashFile("' + info.backgroundBannerImage.hyperLink + '")';
-                            }
-
-                            if(info.imageButton && info.imageButton.length > 0){
-                                let buttonList = [];
-                                info.imageButton.forEach(b => {
-                                    let buttonObj = {};
-                                    if(b.buttonName){
-                                        buttonObj.btn = b.buttonName;
-
-                                    }
-                                    if(b.css){
-                                        buttonObj.extString = "style(\"" + b.css + "\") my_href=\"" + b.hyperLink + "\"";
-                                    }
-                                    buttonList.push(buttonObj);
-
-                                })
-                                activityListObj.btnList = buttonList;
-                            }else{
-                                if(info.backgroundBannerImage && info.backgroundBannerImage.hyperLink){
-                                    activityListObj.extString= "my_href_w='" + info.backgroundBannerImage.hyperLink + "'";
+                            if(info){
+                                let activityListObj = {};
+                                if (info.advertisementCode) {
+                                    activityListObj.code = info.advertisementCode;
                                 }
-                            }
 
-                            returnedObj.activityList.push(activityListObj);
+                                if (info.title && info.title.length > 0) {
+                                    activityListObj.title = info.title;
+                                }
+
+                                if (info.hasOwnProperty('status')) {
+                                    activityListObj.status = info.status;
+                                }
+
+                                if (info.backgroundBannerImage && info.backgroundBannerImage.url) {
+                                    activityListObj.bannerImg = info.backgroundBannerImage.url;
+                                }
+
+                                if (info.imageButton && info.imageButton.length > 0) {
+                                    let buttonList = [];
+                                    info.imageButton.forEach(b => {
+                                        if(b){
+                                            let buttonObj = {};
+                                            if (b.buttonName) {
+                                                buttonObj.btn = b.buttonName;
+                                            }
+                                            if(b.url){
+                                                buttonObj.btnImg = b.url;
+                                            }
+                                            if (b.hyperLink) {
+                                                buttonObj.extString = b.hyperLink;
+                                            }
+                                            buttonList.push(buttonObj);
+                                        }
+                                    })
+                                    activityListObj.btnList = buttonList;
+                                } else {
+                                    if (info.backgroundBannerImage && info.backgroundBannerImage.hyperLink) {
+                                        activityListObj.extString = info.backgroundBannerImage.hyperLink;
+                                    }
+                                }
+
+                                returnedObj.activityList.push(activityListObj);
+                            }
                         })
                         return returnedObj;
                     }
                 }
             );
-        }else{
+        } else {
             return Q.reject({name: "DBError", message: "Invalid platformId: " + platformId});
         }
+    },
+
+    getLiveStream: function (playerObjId) {
+        let url = 'https://www.jblshow.com/livestream/liveurl';
+        var deferred = Q.defer();
+        request.get(url, {strictSSL: false}, (err, res, body) => {
+            if (err) {
+                deferred.reject(`Get JBL livestream url failed  ${err}`);
+            } else {
+                let streamInfo = JSON.parse(res.body);
+                let streamResult = {};
+                if (streamInfo.content) {
+                    streamResult = streamInfo.content;
+                }
+                if (streamInfo.code) {
+                    streamResult.code = streamInfo.code;
+                }
+                deferred.resolve(streamResult);
+            }
+        });
+
+        let streamInfoProm = deferred.promise;
+        // return deferred.promise;
+
+        let urlTokenProm = playerObjId ? dbPlayerInfo.loginJblShow(playerObjId) : Promise.resolve();
+
+        return Promise.all([streamInfoProm, urlTokenProm]).then(
+            data => {
+                if (!data) {
+                    return;
+                }
+                let streamResult = data[0] || {};
+                let urlDetail = data[1];
+
+                if (urlDetail) {
+                    let endString = "?username=" + urlDetail.playerName + "&token=" + urlDetail.token;
+                    streamResult.url = urlDetail.url + endString;
+                }
+
+                return streamResult;
+            }
+        );
+    },
+
+    playerPhoneChat: function (platform, phone, captcha, random) {
+        let url = 'https://www.phoneapichat.com/servlet/TelephoneApplication?phone=' + phone + '&captcha=' + captcha + '&platform=' + platform + '&random=' + random;
+        var deferred = Q.defer();
+        request.get(url, {credentials: true}, (err, res, body) => {
+            if (err) {
+                deferred.reject(`phoneapichat request failed  ${err}`);
+            } else {
+                let streamInfo = JSON.parse(res.body);
+                let streamResult = {};
+                if (streamInfo.content) {
+                    streamResult = streamInfo.content;
+                }
+                if (streamInfo.code) {
+                    streamResult.code = streamInfo.code;
+                }
+                deferred.resolve(streamResult);
+            }
+        });
+
+        return deferred.promise;
+    },
+
+    /**
+     * Update the promoCode setting in Platform
+     */
+    updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime, promoCodeIsActive) {
+        return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
+            {
+                promoCodeStartTime: promoCodeStartTime,
+                promoCodeEndTime: promoCodeEndTime,
+                promoCodeIsActive: promoCodeIsActive
+            }, {new: true});
     },
 };
 

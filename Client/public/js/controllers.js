@@ -23,6 +23,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //    }, 500 + 1500 * Math.random());
     //};
 
+    $scope.constMaxDateTime = new Date('9999-12-31T23:59:59Z');
     function forceRelogin() {
         socketService.showErrorMessage("Your session has expired.  Redirecting you to login page...");
 
@@ -66,9 +67,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             query: 'token=' + token,
             //todo::add secure flag for https
             //secure: true
-            //set connection timeout to 10 seconds
+            //set connection timeout to 30 seconds
             timeout: 10000,
-            reconnectionDelay: 1000,
+            reconnectionDelay: 30000,
             reconnection: true,
             "transports": ["websocket"]
         });
@@ -150,7 +151,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     //$scope.safeApply();
 
                     setTimeout(() => {
-                        resolve(serverPing.disconnect());
+                        serverPing.disconnect();
+                        resolve(serverPing.close());
                     }, 1000);
                 });
 
@@ -295,13 +297,21 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $('#cssmenu .navbar-brand  a[name*="mainPage"]').parent().removeClass('clickedBackstagePrivilege');
     };
 
-    $scope.curPlatformText = "XBet";
+    $scope.curPlatformText = $cookies.get(authService.cookiePlatformKey) || "XBet";
     $scope.showPlatformDropDownList = false;
 
-    $scope.switchPlatform = () => {
+    $scope.switchPlatform = ($event) => {
+        $event.stopPropagation();
         $scope.showPlatformDropDownList = !$scope.showPlatformDropDownList;
     };
 
+    $(document).on('click','body',function () {
+        // only when the dialog is open , then render it again.
+        if($scope.showPlatformDropDownList){
+            $scope.showPlatformDropDownList = false;
+            $scope.safeApply();
+        }
+    })
     //get all platform data from server
     $scope.loadPlatformData = option => {
         if ($('#platformRefresh').hasClass('fa-spin')) {
@@ -323,7 +333,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             }, 1000);
 
             //select platform from cookies data
-            let storedPlatform = $cookies.get("platform");
+            // let storedPlatform = $cookies.get("platform");
+            let storedPlatform = $cookies.get(authService.cookiePlatformKey);
             if (storedPlatform) {
                 $scope.searchAndSelectPlatform(storedPlatform, option);
             }
@@ -385,7 +396,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.selectPlatformNode = function (node, option) {
         $scope.selectedPlatform = node;
         $scope.curPlatformText = node.text;
-        console.log("$scope.selectedPlatform", $scope.selectedPlatform);
+        authService.updatePlatform($cookies, node.text)
+        console.log("$scope.selectedPlatform", node.text);
         $cookies.put("platform", node.text);
         if (option && !option.loadAll) {
             $scope.safeApply();
@@ -483,6 +495,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "网银跨行(InterBank Transfer)",
         5: "支付宝(AliPay)"
     };
+
+    $scope.depositMethodList = {
+        Online: 1,
+        ATM: 2,
+        Counter: 3,
+        AliPayTransfer: 4
+    };
+
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
         '2': 'clientType_H5',
@@ -651,6 +671,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         ALLOWED_PROVIDER: "P",
         PROMO_CODE: "Q",
         PROMO_maxTopUpAmount: "M"
+    };
+
+    $scope.constPlayerCreditTransferStatus = {
+        1: "SUCCESS",
+        2: "FAIL",
+        3: "REQUEST",
+        4: "SEND",
+        5: "TIMEOUT"
     };
 
     // $scope.consumptionRecordProviderName = {
@@ -1348,4 +1376,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         });
 
     };
+
+    $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))
+  
 });

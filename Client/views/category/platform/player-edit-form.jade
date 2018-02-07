@@ -1,8 +1,8 @@
-form(name="form_edit_player", novalidate)
+form(name="form_editing_player", novalidate)
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"PLAYER_NAME" | translate}}
-            input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="playerBeingEdited.name", ng-change='checkPlayerNameValidity(playerBeingEdited.name,form_edit_player,"edit")', required, disabled)
+            input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="playerBeingEdited.name", ng-change='checkPlayerNameValidity(playerBeingEdited.name,form_editing_player,"edit")', required, disabled)
             span.help-block(style='color: #b94a48', ng-show='duplicateNameFound()') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
         //.form-group.col-md-6
         //   label.control-label {{"EMAIL" | translate}}
@@ -11,6 +11,19 @@ form(name="form_edit_player", novalidate)
         .form-group.col-md-6
             label.control-label {{"REAL_NAME" | translate}}
             input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="playerBeingEdited.realName")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"GENDER" | translate}}
+            div
+                label.radio-inline {{"Male" | translate}}
+                    input.pull-left.relative(style="margin-right:8px;" type="radio", name="gender",ng-value="true", ng-model="playerBeingEdited.gender")
+                label.radio-inline {{"Female" | translate}}
+                    input.pull-left.relative(style="margin-right:8px;" type="radio", name="gender",ng-value="false", ng-model="playerBeingEdited.gender")
+
+        .form-group.col-md-6
+            label.control-label {{"DOB" | translate}}
+            input.form-control(style='width:calc(100% - 20px);display: inline-block', type="date",name="DOBInput", ng-model="playerBeingEdited.DOB", max="{{today}}")
+            i.margin-left-5.fa.fa-times.text-danger(style='width:10px;', ng-show="form_editing_player.DOBInput.$invalid")
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label {{"PLAYER_LEVEL" | translate}}

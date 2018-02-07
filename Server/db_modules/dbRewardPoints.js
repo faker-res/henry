@@ -477,7 +477,7 @@ let dbRewardPoints = {
                     rewardTitle: pointEvent.rewardTitle,
                     rewardContent: pointEvent.rewardContent,
                     rewardPeriod: pointEvent.rewardPeriod,
-                    userAgent: inputDevice,
+                    userAgent: inputDevice?inputDevice:0,
                     status: constRewardPointsLogStatus.PROCESSED,
                     playerName: rewardPoints.playerName,
                     oldPoints: preUpdatePoint,
@@ -935,7 +935,7 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice) {
         eventTargetDestination = event.target.targetDestination;
     }
 
-    return provider ? eventTargetDestination.indexOf(provider.toString()) !== -1 : eventTargetDestination.length === 0;
+    return provider ? eventTargetDestination.indexOf(provider.toString()) !== -1 || eventTargetDestination.includes('') : eventTargetDestination.length === 0 || eventTargetDestination.includes('');
 }
 
 function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
@@ -948,7 +948,7 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
     if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date())
         return false;
     // check userAgent
-    if (event.userAgent && Number(event.userAgent) !== Number(topupProposalData.data.userAgent))
+    if (event.userAgent && topupProposalData.data.userAgent && Number(event.userAgent) !== Number(topupProposalData.data.userAgent))
         return false;
     // check merchantTopupMainType
     if (event.target && event.target.merchantTopupMainType &&
@@ -979,7 +979,7 @@ function isRelevantGameEvent(event, consumptionRecord) {
     }
 
     if (!event.status) {
-        return false
+        return false;
     }
 
     // customPeriodEndTime check
@@ -991,23 +991,20 @@ function isRelevantGameEvent(event, consumptionRecord) {
         return false;
     }
 
-    // temp ignore interface/UA check, todo :: add when data is available
+    if (event.target && event.target.targetDestination && event.target.targetDestination.toString() !== consumptionRecord.providerId.toString()) {
+        return false;
+    }
 
-    if (event.target && event.target.targetDestination && event.target.targetDestination.length > 0) {
-        let eventTargetDestination = event.target.targetDestination;
-        if (!consumptionRecord.providerId || eventTargetDestination.indexOf(consumptionRecord.providerId.toString()) < 0) {
+    if (event.target && event.target.gameType && event.target.gameType.toString() !== consumptionRecord.cpGameType.toString()) {
+        return false;
+    }
+
+    if (event.target && event.target.betType && event.target.betType.length > 0) {
+        let relevantBetType = event.target.betType;
+        if (!consumptionRecord.betType || relevantBetType.indexOf(consumptionRecord.betType.toString()) < 0) {
             return false;
         }
     }
-
-    if (event.target && event.target.gameType && event.target.gameType.length > 0) {
-        let relevantGameTypes = event.target.gameType;
-        if (!consumptionRecord.gameType || relevantGameTypes.indexOf(consumptionRecord.gameType.toString()) < 0) {
-            return false;
-        }
-    }
-
-    // temp ignore bet type check, todo :: add when data is available
 
     return true;
 }
@@ -1246,9 +1243,11 @@ function buildTodayTopupAmountQuery(event, topupProposalData) {
     let relevantTopupMatchQuery = {
         playerId: topupProposalData.data.playerObjId,
         platformId: topupProposalData.data.platformId,
-        userAgent: event.userAgent.toString(),
         createTime: {$gte: today.startTime, $lte: today.endTime}
     };
+
+    if(event.userAgent)
+        relevantTopupMatchQuery.userAgent = event.userAgent.toString();
 
     if (event.target && event.target.merchantTopupMainType) {
         relevantTopupMatchQuery.topUpType = event.target.merchantTopupMainType.toString();

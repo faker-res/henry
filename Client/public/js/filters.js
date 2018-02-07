@@ -68,4 +68,9 @@ angular.module('myApp.filters', []).
             }
             return items;
         };
+    }).
+    filter('noRoundTwoDecimalPlaces', function (){
+        return function (value) {
+            return Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value;
+        }
     });

@@ -10,7 +10,6 @@ const dbconfig = require('./../modules/dbproperties');
 const dataUtility = require('./../modules/encrypt');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbProposal = require('./../db_modules/dbProposal');
-const dbProposalType = require('./../db_modules/dbProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
 const constSystemParam = require('./../const/constSystemParam');
 const constProposalType = require('./../const/constProposalType');
@@ -30,6 +29,8 @@ const moment = require('moment-timezone');
 const serverInstance = require("../modules/serverInstance");
 const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 const dbPromoCode = require("../db_modules/dbPromoCode");
+
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
 var dbPlayerTopUpRecord = {
     /**
@@ -573,7 +574,7 @@ var dbPlayerTopUpRecord = {
      * @param {Boolean} [bSinceLastConsumption] - Only returns records after the player's last consumption
      * @returns {Promise.<{stats, records}>}
      */
-    getPlayerTopUpList: function (playerId, topUpType, startTime, endTime, index, count, sort, bDirty, bSinceLastConsumption) {
+    getPlayerTopUpList: function (playerId, topUpType, startTime, endTime, index, count, sort, bDirty, bSinceLastConsumption, bSinceLastPlayerWidthDraw) {
         "use strict";
         var seq = sort ? -1 : 1;
         return dbconfig.collection_players.findOne({playerId: playerId}).exec().then(
@@ -624,7 +625,7 @@ var dbPlayerTopUpRecord = {
                     if (bSinceLastConsumption && (latestConsumptionRecord && latestConsumptionRecord.createTime || lastPlayerWidthDraw && lastPlayerWidthDraw.createTime)) {
                         queryStartTime = latestConsumptionRecord && latestConsumptionRecord.createTime ? latestConsumptionRecord.createTime.getTime() : 0;
                     }
-                    if (lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime) {
+                    if (bSinceLastPlayerWidthDraw && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime && lastPlayerWidthDraw && lastPlayerWidthDraw.createTime.getTime() > queryStartTime) {
                         queryStartTime = lastPlayerWidthDraw.createTime.getTime()
                     }
                     if (startTime && new Date(startTime).getTime() > queryStartTime) {
@@ -636,12 +637,7 @@ var dbPlayerTopUpRecord = {
                         playerId: player._id
                     };
                     if (topUpType) {
-                        if (topUpType == 2) {
-                            queryObj.topUpType = parseInt(topUpType);
-                        }
-                        else {
-                            queryObj.topUpType = {$ne: 2};
-                        }
+                        queryObj.topUpType = parseInt(topUpType);
                     }
                     if (queryStartTime || queryEndTime) {
                         queryObj.createTime = {};
@@ -726,7 +722,7 @@ var dbPlayerTopUpRecord = {
                     player = playerData;
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount);
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (topupRequest.bonusCode) {
@@ -810,6 +806,8 @@ var dbPlayerTopUpRecord = {
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    if(topupRequest.limitedOfferObjId)
+                        proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                 }
 
                 let newProposal = {
@@ -967,7 +965,8 @@ var dbPlayerTopUpRecord = {
                     player = playerData;
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount);
+
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount,inputData.limitedOfferObjId);
                     let proms = [firstTopUpProm, limitedOfferProm];
 
                     if (inputData.bonusCode) {
@@ -1059,10 +1058,12 @@ var dbPlayerTopUpRecord = {
                     name: player.name,
                     id: playerId
                 };
-
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
+                    if(inputData.limitedOfferObjId)
+                        proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                 }
 
                 var newProposal = {
@@ -1728,7 +1729,7 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -1743,7 +1744,7 @@ var dbPlayerTopUpRecord = {
                         player = playerData;
 
                         let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-                        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                         let proms = [firstTopUpProm, limitedOfferProm];
 
                         if (bonusCode) {
@@ -1796,7 +1797,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.playerLevel = player.playerLevel;
                     proposalData.platform = player.platform.platformId;
                     proposalData.playerName = player.name;
-                    proposalData.realName = player.realName;
+                    proposalData.realName = realName || player.realName;
                     proposalData.amount = Number(amount);
                     proposalData.alipayName = alipayName;
                     proposalData.alipayAccount = alipayAccount;
@@ -1830,6 +1831,9 @@ var dbPlayerTopUpRecord = {
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
+                        if(limitedOfferObjId)
+                            proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                     }
 
                     let newProposal = {
@@ -1971,19 +1975,25 @@ var dbPlayerTopUpRecord = {
                         }).then(
                             wechats => {
                                 let bValid = false;
+                                let maxDeposit = 0;
                                 if (wechats.data && wechats.data.length > 0) {
                                     wechats.data.forEach(
                                         wechat => {
                                             playerData.wechatPayGroup.wechats.forEach(
                                                 pWechat => {
                                                     if (pWechat == wechat.accountNumber && wechat.state == "NORMAL") {
-                                                        bValid = true;
+                                                        if(!playerData.permission.disableWechatPay){
+                                                            bValid = true;
+                                                        }
+                                                        maxDeposit = wechat.singleLimit > maxDeposit? wechat.singleLimit: maxDeposit;
                                                     }
                                                 }
                                             );
                                         }
                                     );
                                 }
+                                if (bValid || maxDeposit > 0)
+                                    bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
                         );
@@ -2007,19 +2017,25 @@ var dbPlayerTopUpRecord = {
                         }).then(
                             alipays => {
                                 let bValid = false;
+                                let maxDeposit = 0;
                                 if (alipays.data && alipays.data.length > 0) {
                                     alipays.data.forEach(
                                         alipay => {
                                             playerData.alipayGroup.alipays.forEach(
                                                 pAlipay => {
                                                     if (pAlipay == alipay.accountNumber && alipay.state == "NORMAL") {
-                                                        bValid = true;
+                                                        if(playerData.permission.alipayTransaction) {
+                                                            bValid = true;
+                                                        }
+                                                        maxDeposit = alipay.singleLimit > maxDeposit? alipay.singleLimit: maxDeposit;
                                                     }
                                                 }
                                             );
                                         }
                                     );
                                 }
+                                if (bValid || maxDeposit > 0)
+                                    bValid = {valid:bValid, maxDepositAmount:maxDeposit};
                                 return bValid;
                             }
                         );
@@ -2033,21 +2049,28 @@ var dbPlayerTopUpRecord = {
 
     /**
      * add wechat topup records of the player
+     * @param useQR
+     * @param userAgent
      * @param playerId
      * @param amount
-     * @param alipayName
-     * @param alipayAccount
+     * @param wechatName
+     * @param wechatAccount
+     * @param bonusCode
      * @param entryType
      * @param adminId
      * @param adminName
+     * @param remark
+     * @param createTime
+     * @param limitedOfferObjId
      */
 
-    requestWechatTopup: function (userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
         let request = null;
         let pmsData = null;
+
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}
@@ -2056,7 +2079,15 @@ var dbPlayerTopUpRecord = {
                     if (playerData) {
                         player = playerData;
 
-                        let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount);
+                        return dbPlayerUtil.setPlayerState(player._id, "WechatTopUp");
+                    } else {
+                        return Promise.reject({name: "DataError", errorMessage: "Invalid player data"});
+                    }
+                }
+            ).then(
+                playerState => {
+                    if (playerState) {
+                        let checkLimitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                         let proms = [checkLimitedOfferProm];
 
                         if (bonusCode) {
@@ -2066,7 +2097,7 @@ var dbPlayerTopUpRecord = {
 
                         return Promise.all(proms);
                     } else {
-                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                        return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
                     }
                 }
             ).then(
@@ -2134,6 +2165,9 @@ var dbPlayerTopUpRecord = {
                         // Check Limited Offer Intention
                         if (limitedOfferTopUp) {
                             proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                            proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
+                            if(limitedOfferObjId)
+                                proposalData.remark = '优惠名称: '+limitedOfferTopUp.data.limitedOfferName + ' ('+limitedOfferTopUp.proposalId+')';
                         }
 
                         let newProposal = {
@@ -2175,7 +2209,12 @@ var dbPlayerTopUpRecord = {
                             requestData.groupWechatList = [wechatAccount];
                         }
                         //console.log("requestData", requestData);
-                        return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                        if( useQR ){
+                            return pmsAPI.payment_requestWeChatQRAccount(requestData);
+                        }
+                        else{
+                            return pmsAPI.payment_requestWeChatAccount(requestData);
+                        }
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Cannot create wechat top up proposal"});
@@ -2232,6 +2271,8 @@ var dbPlayerTopUpRecord = {
                         updateData.data.proposalId = proposal.proposalId;
                         updateData.data.weChatAccount = pmsData.result.weChatAccount;
                         updateData.data.weChatQRCode = pmsData.result.weChatQRCode;
+                        updateData.data.name = pmsData.result.name;
+                        updateData.data.nickname = pmsData.result.nickname;
                         if (pmsData.result.validTime) {
                             updateData.data.validTime = new Date(pmsData.result.validTime);
                         }
@@ -2341,6 +2382,7 @@ var dbPlayerTopUpRecord = {
                     // Check Limited Offer Intention
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                        proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
                     }
 
                     let newProposal = {
@@ -2498,7 +2540,7 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 4: //wechat
                             proposalType = constProposalType.PLAYER_WECHAT_TOP_UP;
-                            return dbPlayerTopUpRecord.requestWechatTopup(null, playerData.playerId, amount, "test", "test", requestData.bonusCode, "CLIENT");
+                            return dbPlayerTopUpRecord.requestWechatTopup(!Boolean(requestData.useQR), null, playerData.playerId, amount, "test", "test", requestData.bonusCode, "CLIENT");
                             break;
                     }
                 }
@@ -2581,20 +2623,26 @@ var dbPlayerTopUpRecord = {
 
 };
 
-function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount) {
+function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount, limitedOfferObjId) {
+    if(!limitedOfferObjId) return false;
+
     return dbconfig.collection_proposalType.findOne({
         platformId: platformObjId,
         name: constProposalType.PLAYER_LIMITED_OFFER_INTENTION
     }).lean().then(
         proposalTypeData => {
             if (proposalTypeData) {
-                return dbconfig.collection_proposal.findOne({
+                let query = {
                     'data.platformObjId': platformObjId,
                     'data.playerObjId': playerObjId,
                     'data.applyAmount': topUpAmount,
                     'data.topUpProposalObjId': {$exists: false},
                     type: proposalTypeData._id
-                }).sort({createTime: -1}).lean();
+                };
+                if(limitedOfferObjId){
+                    query['data.limitedOfferObjId'] =limitedOfferObjId;
+                }
+                return dbconfig.collection_proposal.findOne(query).sort({createTime: -1}).lean();
             }
         }
     ).then(

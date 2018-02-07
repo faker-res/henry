@@ -125,7 +125,7 @@
                             tr.thPadding5
                                 th
                                     .bg-primary(style='border-radius: 5px') {{'GAME_STATUS' | translate}}
-                                th
+                                //th
                                     .bg-primary(style='border-radius: 5px') {{'PROPERTY' | translate}}
                                 th
                                     .bg-primary(style='border-radius: 5px') {{'platform' | translate}}
@@ -135,13 +135,13 @@
                                         button.btn.btn-success.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'EnableGame') && vm.gameStatus[vm.curGame._id]!=vm.allGameStatusString.ENABLE", ng-click="vm.updateGameStat(vm.allGameStatusString.ENABLE)", ng-disabled='vm.curGame.status!=vm.allGameStatusString.ENABLE')
                                             i.fa.fa-check
                                             text {{vm.allGameStatusKeys[0] | translate}}
-                                        button.btn.btn-danger.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'DisableGame') && vm.gameStatus[vm.curGame._id]!=vm.allGameStatusString.DISABLE", ng-click="vm.updateGameStat(vm.allGameStatusString.DISABLE)")
+                                        //button.btn.btn-danger.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'DisableGame') && vm.gameStatus[vm.curGame._id]!=vm.allGameStatusString.DISABLE", ng-click="vm.updateGameStat(vm.allGameStatusString.DISABLE)")
                                             i.fa.fa-times
                                             text {{vm.allGameStatusKeys[1] | translate}}
                                         button.btn.btn-warning.common-button-sm(ng-if="checkViewPermission('Platform', 'Game', 'MaintainGame') && vm.gameStatus[vm.curGame._id]!=vm.allGameStatusString.MAINTENANCE", ng-click="vm.updateGameStat(vm.allGameStatusString.MAINTENANCE)")
                                             i.fa.fa-wrench
-                                            text {{vm.allGameStatusKeys[2]| translate}}
-                                td
+                                            text {{vm.allGameStatusKeys[1]| translate}}
+                                //td
                                     table(style='width:100%')
                                         tr
                                             td

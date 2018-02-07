@@ -394,7 +394,7 @@ var generalCond = {
     // Is player manually applicable
     canApplyFromClient: {index: 3, type: "checkbox", des: "Is player manually applicable", detail: "REWARD_CLIENT_APPLY_DETAIL"},
     // Is ignore audit
-    isIgnoreAudit: {index: 4, type: "checkbox", des: "Is ignore audit", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
+    isIgnoreAudit: {index: 4, type: "number", des: "below X amount auto execute reward", detail: "REWARD_IGNORE_AUDIT_DETAIL"},
     // Reward start time
     validStartTime: {index: 5, type: "date", des: "Reward start time"},
     // Reward end time
@@ -645,7 +645,7 @@ db.rewardParam.update({
                     minDeposit: {type: "number", des: "Minimum Deposit Period"},
                     minLoseAmount: {type: "number", des: "Minimum Lose Period"},
                     rewardAmount: {type: "number", des: "Reward amount"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "number",
@@ -661,7 +661,7 @@ db.rewardParam.update({
                     minLoseAmount: {type: "number", des: "Minimum Lose Period"},
                     rewardPercent: {type: "number", des: "PROMO_REWARD_%"},
                     maxReward: {type: "number", des: "Maximum Reward"},
-                    spendingTimes: {type: "number", des: "Spending times"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
                     forbidWithdrawIfBalanceAfterUnlock: {
                         type: "number",

@@ -1,13 +1,12 @@
-let should = require('should');
-let dbConfig = require('./../modules/dbproperties');
-let socketConnection = require('../test_modules/socketConnection');
-let commonTestFunc = require('../test_modules/commonTestFunc');
-
+const should = require('should');
+const dbConfig = require('./../modules/dbproperties');
+const socketConnection = require('../test_modules/socketConnection');
+const commonTestFunc = require('../test_modules/commonTestFunc');
+const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
 describe("Test player reward points", function () {
-
     let testPlayer = null;
     let testPlayerName = null;
     let testPlayerObjId = null;
@@ -16,9 +15,10 @@ describe("Test player reward points", function () {
     let testPlatformObjId = null;
     let testPlatformId = null;
 
-    let testUpdateAmount = 500;
-    let testRemark = "this is test remark";
     let testRewardPointsObjId = null;
+
+    const testUpdateAmount = 500;
+    const testRemark = "this is test remark";
 
     /* Test 1 - create a new platform before the creation of a new player */
     it('Should create test API platform', function (done) {
@@ -38,9 +38,8 @@ describe("Test player reward points", function () {
 
     /* Test 2 - is disable to use reward points system by default for new platform */
     it('Check is disable to use reward points system by default for new platform', function (done) {
-        if (testPlatform.usePointSystem === false) {
-            done();
-        }
+        testPlatform.should.have.property('usePointSystem', false);
+        done();
     });
 
     /* Test 3 - enable reward points system for unit test purpose */
@@ -87,25 +86,24 @@ describe("Test player reward points", function () {
             socket.once('_createPlayer', function (data) {
                 testPlayer = data.data;
                 socket.close();
-                if (data.success && data.data && data.data.rewardPointsObjId) {
-                    done();
-                }
+                should.exist(data.success);
+                should.exist(data.data);
+                should.exist(data.data.rewardPointsObjId);
+                done();
             });
         });
     });
 
     /* Test 5 - create a reward points that is zero by default */
     it('Check is create a reward points that is zero by default', function (done) {
-        if (testPlayer.rewardPointsObjId.points === 0) {
-            done();
-        }
+        testPlayer.rewardPointsObjId.should.have.property('points', 0);
+        done();
     });
 
     /* Test 6 - create a reward points task that is true by default */
     it('Check is create a reward points task that is true by default', function (done) {
-        if (testPlayer.permission.rewardPointsTask === true) {
-            done();
-        }
+        testPlayer.permission.should.have.property('rewardPointsTask', true);
+        done()
     });
 
     /* Test 7 - remove a reward points record for existing player */
@@ -121,32 +119,24 @@ describe("Test player reward points", function () {
             socket.emit('removePlayerRewardPointsRecord', removeData);
             socket.once('_removePlayerRewardPointsRecord', function (data) {
                 socket.close();
-                if (data.success && data.data) {
-                    done();
-                }
+                should.exist(data.success);
+                should.exist(data.data);
+                done();
             });
         });
     });
 
     /* Test 8 - create a reward points record for existing player */
     it('Should create a reward points record for existing player', function (done) {
-        socketConnection.createConnection().then(function (socket) {
-            socket.connected.should.equal(true);
-            let createRewardPointsData = {
-                playerId: testPlayer._id,
-                platformId: testPlayer.platform
-            };
-
-            socket.emit('createPlayerRewardPointsRecord', createRewardPointsData);
-            socket.once('_createPlayerRewardPointsRecord', function (data) {
-                testPlayer = data.data;
-                testPlayerObjId = data.data._id;
-                socket.close();
-                if (data.success && data.data && data.data.rewardPointsObjId) {
-                    done();
-                }
-            });
-        });
+        dbPlayerInfo.createPlayerRewardPointsRecord(testPlayer.platform, testPlayer._id, false).then(
+            (data) => {
+                testPlayer = data;
+                testPlayerObjId = data._id;
+                should.exist(data);
+                should.exist(data.rewardPointsObjId);
+                done();
+            }
+        )
     });
 
     /* Test 9 - update player reward points record and create reward points log*/
@@ -163,29 +153,31 @@ describe("Test player reward points", function () {
             socket.emit('updatePlayerRewardPointsRecord', updateData);
             socket.once('_updatePlayerRewardPointsRecord', function (data) {
                 socket.close();
-                if (data.success && data.data) {
-                    testRewardPointsObjId = data.data._id;
-                    done();
-                }
+                should.exist(data.success);
+                should.exist(data.data);
+                testRewardPointsObjId = data.data._id;
+                done();
             });
         });
     });
 
     /* Test 10 - check is log match when add reward points to player*/
     it('Should create log when add reward points to player', function (done) {
-        dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testRewardPointsObjId})
-            .sort({'createTime':-1}).lean().then(
-            (data) => {
-                if (data && data.amount === testUpdateAmount) {
-                    done();
-                } else {
-                    done('Log no match');
+        setTimeout(function () {
+            dbConfig.collection_rewardPointsLog.findOne({rewardPointsObjId: testRewardPointsObjId})
+                .sort({'createTime':-1}).lean().then(
+                (data) => {
+                    if (data && data.amount === testUpdateAmount) {
+                        done();
+                    } else {
+                        done('Log no match');
+                    }
+                },
+                (error) => {
+                    done(error);
                 }
-            },
-            (error) => {
-                done(error);
-            }
-        );
+            );
+        }, 1000); // set 1s delay for test 9 to run completely
     });
 
     /* Test 100 - remove all test Data */
