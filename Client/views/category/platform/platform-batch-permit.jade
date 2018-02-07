@@ -1,0 +1,75 @@
+style.
+    .bg-secondary {
+        background-color: #868E96;
+    }
+.row
+    .col-md-12
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"Batch Permit" | translate}}
+            .panel-body.common-right-sub-panel-body
+                table#batchPlayerDataTable(style="width:100%")
+                    //thead
+                    //    th 会员
+                    //    th 帐号信用
+                    //    th 评价
+                    //    th 主权限
+                    //    th 次权限
+                    //tbody
+                    //    td
+                    //        div.form-group
+                    //            textarea.form-control(value="{{vm.batchUsers}}", rows="8")
+                    //    td
+                    //        a(data-toggle="modal",data-target="#modalPlayerCredibilityRemarks") -
+                    //    td
+                    //        a.playerPermissionPopover(data-toggle="popover", data-trigger='focus', data-placement: 'left', data-container: 'body') -
+                    //            img.class.margin-right-5(style='height:14px;width:14px;', src='images/icon/withdrawBlue.png')
+                    //    td
+                    //    td
+
+
+
+//#modalDeleteRewardPointsRandom.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//    .modal-dialog(style='width:80%;')
+//        .modal-content
+//            .modal-header
+//                a.fa.fa-times.close(type='button', data-dismiss='modal')
+//                h4.modal-title {{"DELETE_REWARD_POINTS" | translate}}  {{vm.selectedRandomRanking.playerName}}
+//            .modal-body
+//                .panel.panel-primary
+//                    .panel-body
+//                        .row
+//                            .col-md-12
+//                                .well
+//                                    label {{"Are you sure you want to delete reward points event"|translate}}
+//                                    strong.text-danger &nbsp;{{vm.deletingRewardPointsEvent.rewardTitle}}
+//                                    label ?
+//            .modal-footer
+//                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteRandomRanking()') {{"DELETE" | translate}}
+//                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+//
+//#modalEditRewardPointsRandom.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+//    .modal-dialog(style='width:80%;')
+//        .modal-content
+//            .modal-header
+//                a.fa.fa-times.close(type='button', data-dismiss='modal')
+//                h4.modal-title {{"EDIT_REWARD_POINTS_RANKING" | translate}}  {{vm.selectedRandomRanking.playerName}}
+//            .modal-body
+//                .panel.panel-primary
+//                    .panel-body
+//                        .row
+//                            .col-md-12
+//                                .form-group.col-md-6
+//                                    label.control-label {{"PLAYERNAME" | translate}}
+//                                    input.form-control(type="text", ng-model="vm.selectedRandomRanking.playerName")
+//                                .form-group.col-md-6
+//                                    label.control-label {{"PLAYER_LEVEL" | translate}}
+//                                    select.form-control(ng-model='vm.selectedRandomRanking.playerLevel._id', ng-options='v._id as v.name for (i,v) in vm.allPlayerLvl' )
+//                            .col-md-12
+//                                .form-group.col-md-6
+//                                    label.control-label {{"REWARD_POINTS_CURRENT" | translate}}
+//                                    input.form-control(type="Number", ng-model="vm.selectedRandomRanking.points")
+//            .modal-footer
+//                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.editRandomRanking()') {{"UPDATE" | translate}}
+//                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+//
