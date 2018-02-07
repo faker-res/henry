@@ -72,6 +72,7 @@ var simplifiedChinese = {
     "Password do not match": "密码不匹配",
     "Player is not valid for first top up reward": "玩家不符合申请首冲奖励条件",
     "Invalid proposal Id": "提案ID无效",
+    "Invalid bank account type": "账号类型无效",
 
     "Cannot find player for online top up proposal": "无法找到玩家",
     "player level down already in period": "玩家周期内已降级",
