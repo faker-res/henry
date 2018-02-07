@@ -8003,7 +8003,7 @@ define(['js/app'], function (myApp) {
                         {
                             'title': $translate('AMOUNT_CHANGE'),
                             data: 'totalChangedAmount$',
-                            sClass: "tbodyNoWrap",
+                            sClass: "sumFloat textRight",
                             render: function (data, type, row) {
                                 var link = $('<span>', {
                                     'class': ((Number(row.amount) + Number(row.changedLockedAmount)) < 0? "text-danger" : "")
@@ -8012,7 +8012,7 @@ define(['js/app'], function (myApp) {
 
                             }
                         },
-                        {'title': $translate('LOCAL_TOTAL_AMOUNT_AFTER'), data: 'totalAmountAfter$', sClass: "sumText wordWrap"},
+                        {'title': $translate('LOCAL_TOTAL_AMOUNT_AFTER'), data: 'totalAmountAfter$', sClass: "wordWrap"},
                         {
                             'title': $translate('View Details'),
                             data: 'details$',
@@ -8063,7 +8063,9 @@ define(['js/app'], function (myApp) {
                         $compile(nRow)($scope);
                     }
                 });
-                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {3: totalChangedAmount});
+                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {
+                    3: totalChangedAmount
+                });
                 vm.playerCreditChangeLog.pageObj.init({maxCount: size}, newSearch);
 
                 $('#playerCreditChangeLogTable').off('order.dt');
