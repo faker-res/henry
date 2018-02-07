@@ -44,8 +44,8 @@ function socketActionPartner(socketIO, socket) {
         getPlayerLoginLocationInCountry: function getPlayerLoginLocationInCountry(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.country && data.startTime && data.endTime && data.player && data.date);
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
+            var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+            var endTime = data.endTime ? new Date(data.endTime) : new Date();
             socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerLoginLocationInCountry, [ObjectId(data.platform), data.country, startTime, endTime, data.player, data.date], actionName, isValidData);
         },
 
