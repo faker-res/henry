@@ -1929,6 +1929,18 @@ let dbPlayerInfo = {
                         });
                     }
 
+                    if( updateData.bankAccountType ){
+                        let tempBankAccountType = updateData.bankAccountType;
+                        let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                        if (!isValidBankType) {
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "Invalid bank account type"
+                            });
+                        }
+                    }
+
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     })
