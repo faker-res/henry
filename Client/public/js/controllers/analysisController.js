@@ -1608,8 +1608,8 @@ define(['js/app'], function (myApp) {
                 type: vm.queryPara.playerDevice.type,
                 // startDate: vm.queryPara.playerDevice.startTime,
                 // endDate: vm.queryPara.playerDevice.endTime
-                startTime: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
+                startDate: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDeviceAnalysisData', sendData, function (data) {
@@ -1630,6 +1630,19 @@ define(['js/app'], function (myApp) {
             })
             socketService.$plotPie(placeholder, pieData, {}, 'newPlayerPieClickData');
             var placeholderBar = "#bar-all-playerDevice";
+
+            if(vm.newOptions && vm.newOptions.xaxes){
+                if(vm.newOptions.xaxes.length > 0){
+                    let axisLabel = "";
+
+                    if(vm.queryPara && vm.queryPara.playerDevice && vm.queryPara.playerDevice.type){
+                        axisLabel = vm.queryPara.playerDevice.type[0].toUpperCase() + vm.queryPara.playerDevice.type.slice(1);
+                    }
+
+                    vm.newOptions.xaxes[0].axisLabel = $translate(axisLabel);
+                }
+            }
+
             socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
         }
         //player device analysis clicked end ================================================
