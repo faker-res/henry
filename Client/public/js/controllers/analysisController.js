@@ -1122,6 +1122,7 @@ define(['js/app'], function (myApp) {
                             //this function is to zoom to province immediately after clicking
                             vm.map.clickMapObject(vm.map.getObjectById(vm.allProvinceId[vm.currentProvince]));
                         });
+                        vm.drawLocationCityGraphByElementId("#playerLocationPie", vm.playerPhoneInProvince, "phoneLocation");
                         $scope.safeApply();
                     });
                 } else if (vm.showPageName == 'PLAYER_IP_LOCATION') {
@@ -1132,9 +1133,10 @@ define(['js/app'], function (myApp) {
                         vm.drawMap();
                         $scope.safeApply();
                     });
-                    vm.drawLocationCountryGraphByElementId("#playerLocationCountriesPie", vm.playerLocationCountries);
+                    vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerLocationCountries, "IPLocation");
                 } else if (vm.showPageName == 'PLAYER_PHONE_LOCATION') {
                     vm.playerPhoneProvince = data.data;
+                    vm.totalPlayerPhoneProvince = vm.playerPhoneProvince.map(item => {return item.amount}).reduce((a, b) => {return a + b},0);
                     $scope.safeApply();
                     vm.setProvinceData('phoneProvince', vm.playerPhoneProvince, function () {
                         vm.mapName = "chinaHigh";
@@ -1146,6 +1148,7 @@ define(['js/app'], function (myApp) {
                                 return item;
                             })
                         });
+                        vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerPhoneProvince, "phoneLocation");
                         $scope.safeApply();
                     });
                 }
@@ -1312,7 +1315,7 @@ define(['js/app'], function (myApp) {
                                 map.zoomToObject(mapObject);
                             }
                         });
-                        vm.drawLocationCityGraphByElementId('#playerLocationCountriesPie', vm.playerLocationCities);
+                        vm.drawLocationCityGraphByElementId('#playerLocationPie', vm.playerLocationCities, 'IPLocation');
                     });
                 });
             }
@@ -1328,7 +1331,7 @@ define(['js/app'], function (myApp) {
                 vm.mapName = 'worldHigh';
                 vm.drawMap();
             });
-            vm.drawLocationCountryGraphByElementId("#playerLocationCountriesPie", vm.playerLocationCountries);
+            vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerLocationCountries, "IPLocation");
         }
         vm.getCountryTitle = function (AA) {
             if (!AA) return '';
@@ -2322,23 +2325,48 @@ define(['js/app'], function (myApp) {
 
         });
 
-        vm.drawLocationCityGraphByElementId = function (elementId, data) {
-            let pieData = data.map(item => {
-                let data = {
-                    label: vm.getCountryTitle(item._id.city) || $translate('Unknown'), data: item.amount
-                };
-                return data;
-            });
+        vm.drawLocationCityGraphByElementId = function (elementId, data, tag) {
+            let pieData=[];
+            if (tag == "IPLocation") {
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.city || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+            if (tag == "phoneLocation") {
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.phoneCity || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+
             socketService.$plotPie(elementId, pieData, {});
         };
 
-        vm.drawLocationCountryGraphByElementId = function (elementId, data) {
-            let pieData = data.map(item => {
-                let data = {
-                    label: vm.getCountryTitle(item._id.country) || $translate('Unknown'), data: item.amount
-                };
-                return data;
-            });
+
+        vm.drawLocationCountryGraphByElementId = function (elementId, data, tag) {
+            let pieData=[];
+            if (tag == "IPLocation"){
+                pieData = data.map(item => {
+                    let data = {
+                        label: vm.getCountryTitle(item._id.country) || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+            if (tag == "phoneLocation"){
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.phoneProvince || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+
             socketService.$plotPie(elementId, pieData, {});
         };
 
