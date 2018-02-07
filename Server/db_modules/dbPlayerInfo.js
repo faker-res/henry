@@ -9025,10 +9025,11 @@ let dbPlayerInfo = {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
                                                 if (status == 1 && paymentData.merchants[i].status == "ENABLED" && paymentData.merchants[i].targetDevices == clientType) {
-                                                    type.status = status;
-                                                    if (type.maxDepositAmount < paymentData.merchants[i].permerchantLimits){
+                                                    if (type.status == 2 || type.maxDepositAmount < paymentData.merchants[i].permerchantLimits) {
                                                         type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
                                                     }
+
+                                                    type.status = status;
                                                 }
                                             }
                                         });
