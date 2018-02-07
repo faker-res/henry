@@ -235,7 +235,12 @@ const dbRewardTask = {
                     }
 
                     if (rewardData.useConsumption) {
-                        updObj.$inc.forbidXIMAAmt = consumptionAmt;
+                        if(rewardType == constRewardType.PLAYER_TOP_UP_RETURN_GROUP && proposalData.data.isDynamicRewardAmount) {
+                            updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                            updObj.$inc.targetConsumption = -rewardData.applyAmount;
+                        } else {
+                            updObj.$inc.forbidXIMAAmt = consumptionAmt;
+                        }
                     } else {
                         updObj.$inc.targetConsumption = consumptionAmt;
                     }
@@ -2099,6 +2104,21 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                         updatedRTG => {
                             // RTG updated successfully
                             if (updatedRTG) {
+                                // Check boundary case - RTG still overflow, try again
+                                if (updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                        {
+                                            _id: updatedRTG._id
+                                        },
+                                        {
+                                            $inc: {
+                                                currentAmt: -consumptionRecord.bonusAmount,
+                                                curConsumption: -consumptionAmt
+                                            }
+                                        }
+                                    ).then(() => Promise.resolve(false));
+                                }
+
                                 let statusUpdObj = {
                                     unlockTime: createTime
                                 };
