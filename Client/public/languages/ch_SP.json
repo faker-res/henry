@@ -3230,6 +3230,7 @@
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
   "LoginPlayer": "登入玩家",
   "OR": "或",
-  "Os": "操作系统"
+  "Os": "操作系统",
+  "LOGIN_DOMAIN": "登入域名"
 
 }
