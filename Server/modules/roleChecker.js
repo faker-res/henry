@@ -557,6 +557,7 @@ var roleChecker = {
                 ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
                 ConsumptionInterval: ['getConsumptionIntervalData'],
                 ClientSource: [],
+                LoginPlayer: [],
 
             }
         },
@@ -608,7 +609,8 @@ var roleChecker = {
         QualityInspection: {
             QualityInsectionSetting: {
                 Read: [],
-                Edit: ['updatePlatform']
+                Edit: ['updatePlatform','summarizeLive800Record'],
+                queryByQualityInspectionDate: []
             },
             Live800Record: {
                 Read: ['searchLive800'],

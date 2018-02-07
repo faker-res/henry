@@ -608,7 +608,8 @@ var proposal = {
     updateBonusProposal: function (proposalId, status, bonusId, remark) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
-                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
+                if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.CSPENDING
+                    || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
                         || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data && proposalData.data.bonusId == bonusId) {
                     return proposalData;
                 }
@@ -629,7 +630,6 @@ var proposal = {
                         message: errorMessage,
                         proposalId: proposalId
                     });
-
                 }
             }
         ).then(
@@ -4159,7 +4159,10 @@ function insertPlayerRepeatCount(proposals, platformId) {
                         if(futureManualCount){
                             proposal.$playerAllCount = proposal.$playerAllCount - futureManualCount;
                         }
-                    } else if(status == constProposalStatus.MANUAL) {
+                    }else if(status == constProposalStatus.MANUAL) {
+                        proposal.$playerAllCount = 1;
+                        proposal.$playerCurrentCount = 1;
+                    }else if(status == constProposalStatus.NOVERIFY) {
                         proposal.$playerAllCount = 1;
                         proposal.$playerCurrentCount = 1;
                     } else {

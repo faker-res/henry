@@ -212,6 +212,8 @@ var dbPlayerRegistrationIntentRecord = {
 
         queryObj['data.phoneNumber'] = query.phoneNumber ? query.phoneNumber : "";
         queryObj['data.smsCode'] = query.smsCode ? parseInt(query.smsCode) : "";
+        queryObj.status = {$nin: [constProposalStatus.NOVERIFY]};
+
 
         return dbconfig.collection_players.findOne({playerId:query.playerId,platform:query.platform})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).then(
@@ -224,19 +226,40 @@ var dbPlayerRegistrationIntentRecord = {
                         }
                         registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(queryObj, intentUpdateData, {new: true});
                     } else {
-                        proposalProm = dbUtil.findOneAndUpdateForShard(
-                            dbconfig.collection_proposal,
-                            queryObj, updateQuery,
-                            constShardKeys.collection_proposal
-                        );
+                        proposalProm = dbconfig.collection_proposal.findOne(queryObj).lean().then(
+                            proposalData => {
+                                if (proposalData && proposalData._id && proposalData.createTime) {
+                                    return dbUtil.findOneAndUpdateForShard(
+                                        dbconfig.collection_proposal,
+                                        {
+                                            _id: proposalData._id,
+                                            createTime: proposalData.createTime
+                                        }, updateQuery,
+                                        constShardKeys.collection_proposal
+                                    );
+                                }
+                            }
+                        )
                         if(updateData && updateData != "Fail"){
                             intentUpdateData.status = constRegistrationIntentRecordStatus[updateData.toString().toUpperCase()];
                         }
-                        registrationIntentProm = dbUtil.findOneAndUpdateForShard(
-                            dbconfig.collection_playerRegistrationIntentRecord,
-                            queryObj, intentUpdateData,
-                            constShardKeys.collection_playerRegistrationIntentRecord
-                        );
+                        if (intentUpdateData) {
+                            registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOne(queryObj).lean().then(
+                                recordData => {
+                                    if (recordData && recordData._id && recordData.createTime) {
+                                        return dbUtil.findOneAndUpdateForShard(
+                                            dbconfig.collection_playerRegistrationIntentRecord,
+                                            {
+                                                _id: recordData._id,
+                                                createTime: recordData.createTime
+                                            }, intentUpdateData,
+                                            constShardKeys.collection_playerRegistrationIntentRecord
+                                        );
+                                    }
+                                }
+                            );
+                        }
+
                     }
                     return Promise.all([proposalProm,registrationIntentProm]).then(
                         (data) =>{

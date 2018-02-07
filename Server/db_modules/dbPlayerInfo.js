@@ -1929,6 +1929,18 @@ let dbPlayerInfo = {
                         });
                     }
 
+                    if( updateData.bankAccountType ){
+                        let tempBankAccountType = updateData.bankAccountType;
+                        let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                        if (!isValidBankType) {
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "Invalid bank account type"
+                            });
+                        }
+                    }
+
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     })
@@ -7396,47 +7408,55 @@ let dbPlayerInfo = {
         //     {
         //         $group: {_id: options, number: {$sum: 1}}
         //     }).exec();
-        var proms = [];
-        var dayStartTime = startDate;
-        var getNextDate;
-        switch (period) {
-            case 'day':
-                getNextDate = function (date) {
-                    var newDate = new Date(date);
-                    return new Date(newDate.setDate(newDate.getDate() + 1));
-                }
-                break;
-            case 'week':
-                getNextDate = function (date) {
-                    var newDate = new Date(date);
-                    return new Date(newDate.setDate(newDate.getDate() + 7));
-                };
-                break;
-            case 'month':
-            default:
-                getNextDate = function (date) {
-                    var newDate = new Date(date);
-                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
-                }
+
+
+        // var proms = [];
+        // var dayStartTime = startDate;
+        // var getNextDate;
+        // switch (period) {
+        //     case 'day':
+        //         getNextDate = function (date) {
+        //             var newDate = new Date(date);
+        //             return new Date(newDate.setDate(newDate.getDate() + 1));
+        //         }
+        //         break;
+        //     case 'week':
+        //         getNextDate = function (date) {
+        //             var newDate = new Date(date);
+        //             return new Date(newDate.setDate(newDate.getDate() + 7));
+        //         };
+        //         break;
+        //     case 'month':
+        //     default:
+        //         getNextDate = function (date) {
+        //             var newDate = new Date(date);
+        //             return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+        //         }
+        // }
+        // while (dayStartTime.getTime() < endDate.getTime()) {
+        //     var dayEndTime = getNextDate.call(this, dayStartTime);
+        //     var matchObj = {registrationTime: {$gte: dayStartTime, $lt: dayEndTime}};
+        //     if (platformId != 'all') {
+        //         matchObj.platform = platformId;
+        //     }
+        //     proms.push(dbconfig.collection_players.find(matchObj).count());
+        //     dayStartTime = dayEndTime;
+        // }
+        //
+        // return Q.all(proms).then(data => {
+        //     var tempDate = startDate;
+        //     var res = data.map(dayData => {
+        //         var obj = {_id: {date: tempDate}, number: dayData}
+        //         tempDate = getNextDate(tempDate);
+        //         return obj;
+        //     });
+
+        let query = {registrationTime: {$gte: startDate, $lt: endDate}};
+        if (platformId != 'all') {
+            query.platform = platformId;
         }
-        while (dayStartTime.getTime() < endDate.getTime()) {
-            var dayEndTime = getNextDate.call(this, dayStartTime);
-            var matchObj = {registrationTime: {$gte: dayStartTime, $lt: dayEndTime}};
-            if (platformId != 'all') {
-                matchObj.platform = platformId;
-            }
-            proms.push(dbconfig.collection_players.find(matchObj).count());
-            dayStartTime = dayEndTime;
-        }
-        return Q.all(proms).then(data => {
-            var tempDate = startDate;
-            var res = data.map(dayData => {
-                var obj = {_id: {date: tempDate}, number: dayData}
-                tempDate = getNextDate(tempDate);
-                return obj;
-            });
-            return res;
-        });
+        return dbconfig.collection_players.find(query);
+        //});
 
     },
 

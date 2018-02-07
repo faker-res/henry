@@ -2104,6 +2104,21 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform) {
                         updatedRTG => {
                             // RTG updated successfully
                             if (updatedRTG) {
+                                // Check boundary case - RTG still overflow, try again
+                                if (updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                                    return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                        {
+                                            _id: updatedRTG._id
+                                        },
+                                        {
+                                            $inc: {
+                                                currentAmt: -consumptionRecord.bonusAmount,
+                                                curConsumption: -consumptionAmt
+                                            }
+                                        }
+                                    ).then(() => Promise.resolve(false));
+                                }
+
                                 let statusUpdObj = {
                                     unlockTime: createTime
                                 };

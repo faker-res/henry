@@ -1,0 +1,58 @@
+
+.section
+    .row
+        .titlePic
+            .title
+                text {{"LOGIN_PLAYER" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#loginPlayerAnalysis .block-query","loginPlayer")')
+                        text.pull-left.margin-right-5 {{vm.optionText.loginPlayer | translate}}
+    #loginPlayerAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.loginPlayer.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            //div
+            //    label {{"Start date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.loginPlayer.startTime')
+            //div
+            //    label {{"End date"|translate}}
+            //    input.form-control(type='date', ng-model='vm.queryPara.loginPlayer.endTime')
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.plotLoginPlayerLine()') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-loginPlayer.lineChart.graphDiv
+            .col-md-6
+                .graph
+                    //table#loginPlayerAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "date" ? "-date":"date"') {{ vm.platformLoginPlayerDataPeriodText | translate}}
+                                th(ng-click='vm.platformLoginPlayerAnalysisSort.loginPlayerSort = vm.platformLoginPlayerAnalysisSort.loginPlayerSort == "number" ? "-number":"number"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformLoginPlayerAnalysisData | orderBy: vm.platformLoginPlayerAnalysisSort.loginPlayerSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.number }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformLoginPlayerAverage }}
+
+p(ng-init="vm.loadPageFunc('LOGIN_PLAYER')")

@@ -107,6 +107,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbQualityInspection.getEvaluationProgressRecord, [data.platformObjId, data.startDate, data.endDate], actionName, isDataValid);
         },
+        summarizeLive800Record: function summarizeLive800Record(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.summarizeLive800Record, [data.startTime,data.endTime], actionName, isDataValid);
+        },
         searchLive800SettlementRecord: function searchLive800SettlementRecord(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);

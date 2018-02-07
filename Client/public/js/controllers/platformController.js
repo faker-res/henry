@@ -36,7 +36,8 @@ define(['js/app'], function (myApp) {
                 CANCEL: "Cancel",
                 EXPIRED: "Expired",
                 UNDETERMINED: "Undetermined",
-                CSPENDING: "CsPending"
+                CSPENDING: "CsPending",
+                NOVERIFY: "NoVerify"
             };
             vm.allProposalStatus = [
                 "PrePending",
@@ -51,7 +52,8 @@ define(['js/app'], function (myApp) {
                 "Expired",
                 "Undetermined",
                 "Recover",
-                "CsPending"
+                "CsPending",
+                "NoVerify"
             ];
 
             // vm.allProposalType = [
@@ -264,7 +266,8 @@ define(['js/app'], function (myApp) {
             vm.newPlayerListStatus = {
                 SUCCESS: "SUCCESS",
                 ATTEMPT: "ATTEMPT",
-                MANUAL: "MANUAL"
+                MANUAL: "MANUAL",
+                NOVERIFY: "NoVerify"
             };
 
             vm.soundChoice = {
@@ -313,7 +316,8 @@ define(['js/app'], function (myApp) {
                 EXPIRED: "Expired",
                 UNDETERMINED: "Undetermined",
                 RECOVER: "Recover",
-                MANUAL: "Manual"
+                MANUAL: "Manual",
+                NOVERIFY: "NoVerify"
             };
 
             vm.constRegistrationIntentRecordStatus = {
@@ -3206,6 +3210,16 @@ define(['js/app'], function (myApp) {
                 if(!vm.newPlayer.phoneNumber){
                     return
                 }
+
+                if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
+                    // $scope.$evalAsync(() => {
+                    //     vm.existPhone = false;
+                    // });
+                    vm.existPhone = false;
+                    $scope.safeApply();
+                    return;
+                }
+
                 //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
                 var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
                 var sendData = {
@@ -3399,7 +3413,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 else {
-                    selectedStatus = [vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS, vm.constProposalStatus.PENDING];
+                    selectedStatus = [vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS, vm.constProposalStatus.PENDING, vm.constProposalStatus.NOVERIFY];
                 }
 
                 var sendData = {
@@ -3421,7 +3435,7 @@ define(['js/app'], function (myApp) {
                 if (selectedStatus && selectedStatus != "") {
                     sendData.status = selectedStatus
                 } else {
-                    sendData.status = [vm.constProposalStatus.MANUAL,vm.constProposalStatus.SUCCESS ,vm.constProposalStatus.PENDING];
+                    sendData.status = [vm.constProposalStatus.MANUAL,vm.constProposalStatus.SUCCESS ,vm.constProposalStatus.PENDING, vm.constProposalStatus.NOVERIFY];
                 }
 
                 vm.newPlayerRecords.loading = true;
@@ -3452,7 +3466,11 @@ define(['js/app'], function (myApp) {
                                 else if (record.status == vm.constProposalStatus.MANUAL) {
                                     //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                     record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                } else {
+                                }
+                                else if (record.status == vm.constProposalStatus.NOVERIFY) {
+                                    record.statusName = record.status ? $translate("NoVerify") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else {
                                     record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
                             }
@@ -12774,6 +12792,110 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            if (vm.playerFeedbackQuery.consumptionTimesOperator && vm.playerFeedbackQuery.consumptionTimesFormal != null) {
+                switch (vm.playerFeedbackQuery.consumptionTimesOperator) {
+                    case ">=":
+                        sendQuery.consumptionTimes = {
+                            $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.consumptionTimes = vm.playerFeedbackQuery.consumptionTimesFormal;
+                        break;
+                    case "<=":
+                        sendQuery.consumptionTimes = {
+                            $lte: vm.playerFeedbackQuery.consumptionTimesFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.consumptionTimesLatter != null) {
+                            sendQuery.consumptionTimes = {
+                                $lte: vm.playerFeedbackQuery.consumptionTimesLatter,
+                                $gte: vm.playerFeedbackQuery.consumptionTimesFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.bonusAmountOperator && vm.playerFeedbackQuery.bonusAmountFormal != null) {
+                switch (vm.playerFeedbackQuery.bonusAmountOperator) {
+                    case ">=":
+                        sendQuery.bonusAmountSum = {
+                            $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.bonusAmountSum = vm.playerFeedbackQuery.bonusAmountFormal;
+                        break;
+                    case "<=":
+                        sendQuery.bonusAmountSum = {
+                            $lte: vm.playerFeedbackQuery.bonusAmountFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.bonusAmountLatter != null) {
+                            sendQuery.bonusAmountSum = {
+                                $lte: vm.playerFeedbackQuery.bonusAmountLatter,
+                                $gte: vm.playerFeedbackQuery.bonusAmountFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.withdrawTimesOperator && vm.playerFeedbackQuery.withdrawTimesFormal != null) {
+                switch (vm.playerFeedbackQuery.withdrawTimesOperator) {
+                    case ">=":
+                        sendQuery.withdrawTimes = {
+                            $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.withdrawTimes = vm.playerFeedbackQuery.withdrawTimesFormal;
+                        break;
+                    case "<=":
+                        sendQuery.withdrawTimes = {
+                            $lte: vm.playerFeedbackQuery.withdrawTimesFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.withdrawTimesLatter != null) {
+                            sendQuery.withdrawTimes = {
+                                $lte: vm.playerFeedbackQuery.withdrawTimesLatter,
+                                $gte: vm.playerFeedbackQuery.withdrawTimesFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (vm.playerFeedbackQuery.topUpSumOperator && vm.playerFeedbackQuery.topUpSumFormal != null) {
+                switch (vm.playerFeedbackQuery.topUpSumOperator) {
+                    case ">=":
+                        sendQuery.topUpSum = {
+                            $gte: vm.playerFeedbackQuery.topUpSumFormal
+                        };
+                        break;
+                    case "=":
+                        sendQuery.topUpSum = vm.playerFeedbackQuery.topUpSumFormal;
+                        break;
+                    case "<=":
+                        sendQuery.topUpSum = {
+                            $lte: vm.playerFeedbackQuery.topUpSumFormal
+                        };
+                        break;
+                    case "range":
+                        if (vm.playerFeedbackQuery.topUpSumLatter != null) {
+                            sendQuery.topUpSum = {
+                                $lte: vm.playerFeedbackQuery.topUpSumLatter,
+                                $gte: vm.playerFeedbackQuery.topUpSumFormal
+                            };
+                        }
+                        break;
+                }
+            }
+
             if (vm.playerFeedbackQuery.gameProviderId && vm.playerFeedbackQuery.gameProviderId.length > 0) {
                 sendQuery.gameProviderPlayed = {$in: vm.playerFeedbackQuery.gameProviderId};
             }
@@ -17833,6 +17955,21 @@ define(['js/app'], function (myApp) {
                     result = $translate(val);
                 } else if (fieldName === 'applyForDate') {
                     result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+                } else if (fieldName === 'returnDetail') {
+                    // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
+                    let newReturnDetail = {};
+                    Object.keys(val).forEach(
+                        key => {
+                            if (key && key.indexOf(':') != -1) {
+                                let splitGameTypeIdArr = key.split(':');
+                                let gameTypeId = splitGameTypeIdArr[1];
+                                newReturnDetail[splitGameTypeIdArr[0]+':'+vm.allGameTypes[gameTypeId]] = val[key];
+                            }
+                        });
+                    result = JSON.stringify(newReturnDetail || val)
+                        .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                        .replace(new RegExp('ratio','gm'), $translate('RATIO'))
+                        .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
                 } else if (typeof(val) == 'object') {
                     result = JSON.stringify(val);
                 } else if (fieldName === "upOrDown") {
@@ -18502,7 +18639,7 @@ define(['js/app'], function (myApp) {
                         }
                         vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
                         vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
-                        vm.changeLevelPeriodAllField();
+                        vm.initiateLevelDownPeriodAllField();
                         $scope.safeApply();
                     });
             };
@@ -18532,6 +18669,15 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            //initiate level down period field
+            vm.initiateLevelDownPeriodAllField = function () {
+                for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                    for (let j = 0; j < vm.allPlayerLvl[i].levelDownConfig.length; j++) {
+                        vm.allPlayerLvl[i].levelDownConfig[j].consumptionPeriod = vm.playerLevelPeriod.levelDownPeriodName;
+                        vm.allPlayerLvl[i].levelDownConfig[j].topupPeriod = vm.playerLevelPeriod.levelDownPeriodName;
+                    }
+                }
+            }
 
             vm.sortPlayerLevels = function () {
                 vm.allPlayerLvl.sort((a, b) => a.value - b.value);
@@ -18635,6 +18781,28 @@ define(['js/app'], function (myApp) {
                 setTimeout(function () {
                     $('#newPlayerLevelFirstInput').focus();
                 }, 1);
+            };
+
+            vm.initPlayerLevelPeriod = function () {
+                if(vm.playerLevelPeriod && vm.playerLevelPeriod.playerLevelUpPeriod){
+                    vm.playerLevelByMaxPeriod = {};
+
+                    switch (vm.playerLevelPeriod.playerLevelUpPeriod){
+                        case 1:
+                            vm.playerLevelByMaxPeriod.DAY = "DAY";
+                            break;
+                        case 2:
+                            vm.playerLevelByMaxPeriod.DAY = "DAY";
+                            vm.playerLevelByMaxPeriod.WEEK = "WEEK";
+                            break;
+                        case 3:
+                            vm.playerLevelByMaxPeriod.DAY = "DAY";
+                            vm.playerLevelByMaxPeriod.WEEK = "WEEK";
+                            vm.playerLevelByMaxPeriod.MONTH = "MONTH";
+                            break;
+                    }
+
+                }
             };
             // player level codes==============end===============================
 
