@@ -7611,6 +7611,64 @@ let dbPlayerInfo = {
         });
 
     },
+    countTopUpORConsumptionCountByPlatform: function (platformId, startDate, endDate, period, type) {
+        var proms = [];
+        var calculation = null;
+        switch (type) {
+            case 'topup' :
+                calculation = {$sum: "$topUpAmount"};
+                break;
+            case 'consumption' :
+                calculation = {$sum: "$consumptionAmount"}
+        }
+        var dayStartTime = startDate;
+        var getNextDate;
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {date: {$gte: dayStartTime, $lt: dayEndTime}};
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_platformDaySummary.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: null,
+                        "count": {"$sum": 1},
+                    }
+                }))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                var obj = {_id: {date: tempDate}, number: item[0] ? item[0].count : 0}
+                tempDate = getNextDate(tempDate);
+                return obj;
+            });
+            return res;
+        });
+
+    },
 
     /* 
      * Get active player count 
