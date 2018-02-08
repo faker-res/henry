@@ -18,6 +18,8 @@ div(ng-if="checkViewPermission('Analysis')")
             ul.dropdown-menu(role='menu', ng-if='vm.showPageName!=="PLATFORM_OVERVIEW"')
                 li(ng-if="checkViewPermission('Analysis','Analysis','NewPlayer')", ng-click='vm.loadPage("NEW_PLAYER")')
                     a  {{'NEW_PLAYER' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','ValidActivePlayer')", ng-click='vm.loadPage("VALID_ACTIVE_PLAYER")')
+                    a  {{'VALID_ACTIVE_PLAYER' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ActivePlayer')", ng-click='vm.loadPage("ACTIVE_PLAYER")')
                     a  {{'ACTIVE_PLAYER' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','LoginPlayer')", ng-click='vm.loadPage("LOGIN_PLAYER")')
@@ -65,6 +67,8 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/player-login
             div(ng-if='vm.showPageName=="ACTIVE_PLAYER"')
                 include category/player-active
+            div(ng-if='vm.showPageName=="VALID_ACTIVE_PLAYER"')
+                include category/player-valid-active
             div(ng-if='vm.showPageName=="PEAK_HOUR"')
                 include category/peak-hour
             div(ng-if='vm.showPageName=="PLAYER_IP_LOCATION"')

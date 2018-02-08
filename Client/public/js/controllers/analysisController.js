@@ -92,6 +92,11 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('activePlayer', 'day', 3);
                         vm.plotActivePlayerLine();
                         break;
+                    case "VALID_ACTIVE_PLAYER":
+                        vm.platformValidActivePlayerAnalysisSort = {};
+                        vm.initSearchParameter('validActivePlayer', 'day', 3);
+                        vm.plotValidActivePlayerLine();
+                        break;
                     case "PEAK_HOUR":
                         vm.plotPeakhourOnlinePlayerLine();
                         vm.plotPeakhourCreditspendLine();
@@ -847,11 +852,39 @@ define(['js/app'], function (myApp) {
                 console.log('vm.platformActivePlayerAnalysisData', vm.platformActivePlayerAnalysisData);
                 let calculatedActivePlayerData = vm.calculateLineDataAndAverage(vm.platformActivePlayerAnalysisData, 'number', 'Active Player');
                 vm.platformActivePlayerAverage = calculatedActivePlayerData.average;
-                vm.plotLineByElementId("#line-activePlayer", calculatedActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
+                vm.plotLineByElementId("#line-activePlayer", calculatedActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.activePlayer.periodText.toUpperCase()));
                 $scope.safeApply();
             });
         }
         // active Player end= =========================================
+
+        // valid active Player start==========================================
+        vm.plotValidActivePlayerLine = function () {
+            let startDate = vm.queryPara.validActivePlayer.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.validActivePlayer.endTime.data('datetimepicker').getLocalDate();
+            //var placeholder = "#line-activePlayer";
+            // var periodText = $('#analysisActivePlayer select').val();
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.validActivePlayer.periodText,
+                startDate: startDate,
+                endDate: endDate,
+            };
+            socketService.$socket($scope.AppSocket, 'countValidActivePlayerbyPlatform', sendData, function success(data1) {
+
+                vm.platformValidActivePlayerDataPeriodText = vm.queryPara.validActivePlayer.periodText;
+                vm.platformValidActivePlayerAnalysisData = [];
+                Object.keys(data1.data).forEach(function(key) {
+                    vm.platformValidActivePlayerAnalysisData.push({date: new Date(key), number: data1.data[key]});
+                });
+                console.log('vm.platformValidActivePlayerAnalysisData', vm.platformValidActivePlayerAnalysisData);
+                let calculatedValidActivePlayerData = vm.calculateLineDataAndAverage(vm.platformValidActivePlayerAnalysisData, 'number', 'ValidActivePlayer');
+                vm.platformValidActivePlayerAverage = calculatedValidActivePlayerData.average;
+                vm.plotLineByElementId("#line-validActivePlayer", calculatedValidActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
+                $scope.safeApply();
+            });
+        }
+        // valid active Player end==========================================
 
         // login Player start= =========================================
         vm.plotLoginPlayerLine = function () {
