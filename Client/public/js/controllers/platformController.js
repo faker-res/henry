@@ -36,7 +36,8 @@ define(['js/app'], function (myApp) {
                 CANCEL: "Cancel",
                 EXPIRED: "Expired",
                 UNDETERMINED: "Undetermined",
-                CSPENDING: "CsPending"
+                CSPENDING: "CsPending",
+                NOVERIFY: "NoVerify"
             };
             vm.allProposalStatus = [
                 "PrePending",
@@ -51,7 +52,8 @@ define(['js/app'], function (myApp) {
                 "Expired",
                 "Undetermined",
                 "Recover",
-                "CsPending"
+                "CsPending",
+                "NoVerify"
             ];
 
             // vm.allProposalType = [
@@ -264,7 +266,8 @@ define(['js/app'], function (myApp) {
             vm.newPlayerListStatus = {
                 SUCCESS: "SUCCESS",
                 ATTEMPT: "ATTEMPT",
-                MANUAL: "MANUAL"
+                MANUAL: "MANUAL",
+                NOVERIFY: "NoVerify"
             };
 
             vm.soundChoice = {
@@ -313,7 +316,8 @@ define(['js/app'], function (myApp) {
                 EXPIRED: "Expired",
                 UNDETERMINED: "Undetermined",
                 RECOVER: "Recover",
-                MANUAL: "Manual"
+                MANUAL: "Manual",
+                NOVERIFY: "NoVerify"
             };
 
             vm.constRegistrationIntentRecordStatus = {
@@ -3409,7 +3413,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 else {
-                    selectedStatus = [vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS, vm.constProposalStatus.PENDING];
+                    selectedStatus = [vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS, vm.constProposalStatus.PENDING, vm.constProposalStatus.NOVERIFY];
                 }
 
                 var sendData = {
@@ -3431,7 +3435,7 @@ define(['js/app'], function (myApp) {
                 if (selectedStatus && selectedStatus != "") {
                     sendData.status = selectedStatus
                 } else {
-                    sendData.status = [vm.constProposalStatus.MANUAL,vm.constProposalStatus.SUCCESS ,vm.constProposalStatus.PENDING];
+                    sendData.status = [vm.constProposalStatus.MANUAL,vm.constProposalStatus.SUCCESS ,vm.constProposalStatus.PENDING, vm.constProposalStatus.NOVERIFY];
                 }
 
                 vm.newPlayerRecords.loading = true;
@@ -3462,7 +3466,11 @@ define(['js/app'], function (myApp) {
                                 else if (record.status == vm.constProposalStatus.MANUAL) {
                                     //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                     record.statusName = record.status ? $translate("MANUAL") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
-                                } else {
+                                }
+                                else if (record.status == vm.constProposalStatus.NOVERIFY) {
+                                    record.statusName = record.status ? $translate("NoVerify") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
+                                }
+                                else {
                                     record.statusName = record.status ? $translate("Attempt") + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                                 }
                             }
@@ -7995,7 +8003,7 @@ define(['js/app'], function (myApp) {
                         {
                             'title': $translate('AMOUNT_CHANGE'),
                             data: 'totalChangedAmount$',
-                            sClass: "tbodyNoWrap",
+                            sClass: "sumFloat textRight",
                             render: function (data, type, row) {
                                 var link = $('<span>', {
                                     'class': ((Number(row.amount) + Number(row.changedLockedAmount)) < 0? "text-danger" : "")
@@ -8004,7 +8012,7 @@ define(['js/app'], function (myApp) {
 
                             }
                         },
-                        {'title': $translate('LOCAL_TOTAL_AMOUNT_AFTER'), data: 'totalAmountAfter$', sClass: "sumText wordWrap"},
+                        {'title': $translate('LOCAL_TOTAL_AMOUNT_AFTER'), data: 'totalAmountAfter$', sClass: "wordWrap"},
                         {
                             'title': $translate('View Details'),
                             data: 'details$',
@@ -8055,7 +8063,9 @@ define(['js/app'], function (myApp) {
                         $compile(nRow)($scope);
                     }
                 });
-                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {3: totalChangedAmount});
+                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {
+                    3: totalChangedAmount
+                });
                 vm.playerCreditChangeLog.pageObj.init({maxCount: size}, newSearch);
 
                 $('#playerCreditChangeLogTable').off('order.dt');
@@ -17962,6 +17972,19 @@ define(['js/app'], function (myApp) {
                         .replace(new RegExp('GameType',"gm"), $translate('GameType'))
                         .replace(new RegExp('ratio','gm'), $translate('RATIO'))
                         .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
+                } else if (fieldName === 'nonXIMADetail') {
+                    let newNonXIMADetail = {};
+                    Object.keys(val).forEach(
+                        key => {
+                            if (key && key.indexOf(':') != -1) {
+                                let splitGameTypeIdArr = key.split(':');
+                                let gameTypeId = splitGameTypeIdArr[1];
+                                newNonXIMADetail[splitGameTypeIdArr[0]+':'+ vm.allGameTypes[gameTypeId]] = val[key];
+                            }
+                        });
+                    result = JSON.stringify(newNonXIMADetail || val)
+                        .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                        .replace(new RegExp('nonXIMAAmt',"gm"), $translate('totalNonXIMAAmt'));
                 } else if (typeof(val) == 'object') {
                     result = JSON.stringify(val);
                 } else if (fieldName === "upOrDown") {
@@ -18631,7 +18654,7 @@ define(['js/app'], function (myApp) {
                         }
                         vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod);
                         vm.playerLevelPeriod.levelDownPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelDownPeriod);
-                        vm.changeLevelPeriodAllField();
+                        vm.initiateLevelDownPeriodAllField();
                         $scope.safeApply();
                     });
             };
@@ -18661,6 +18684,15 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            //initiate level down period field
+            vm.initiateLevelDownPeriodAllField = function () {
+                for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                    for (let j = 0; j < vm.allPlayerLvl[i].levelDownConfig.length; j++) {
+                        vm.allPlayerLvl[i].levelDownConfig[j].consumptionPeriod = vm.playerLevelPeriod.levelDownPeriodName;
+                        vm.allPlayerLvl[i].levelDownConfig[j].topupPeriod = vm.playerLevelPeriod.levelDownPeriodName;
+                    }
+                }
+            }
 
             vm.sortPlayerLevels = function () {
                 vm.allPlayerLvl.sort((a, b) => a.value - b.value);
@@ -18764,6 +18796,28 @@ define(['js/app'], function (myApp) {
                 setTimeout(function () {
                     $('#newPlayerLevelFirstInput').focus();
                 }, 1);
+            };
+
+            vm.initPlayerLevelPeriod = function () {
+                if(vm.playerLevelPeriod && vm.playerLevelPeriod.playerLevelUpPeriod){
+                    vm.playerLevelByMaxPeriod = {};
+
+                    switch (vm.playerLevelPeriod.playerLevelUpPeriod){
+                        case 1:
+                            vm.playerLevelByMaxPeriod.DAY = "DAY";
+                            break;
+                        case 2:
+                            vm.playerLevelByMaxPeriod.DAY = "DAY";
+                            vm.playerLevelByMaxPeriod.WEEK = "WEEK";
+                            break;
+                        case 3:
+                            vm.playerLevelByMaxPeriod.DAY = "DAY";
+                            vm.playerLevelByMaxPeriod.WEEK = "WEEK";
+                            vm.playerLevelByMaxPeriod.MONTH = "MONTH";
+                            break;
+                    }
+
+                }
             };
             // player level codes==============end===============================
 

@@ -648,8 +648,8 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerPhoneLocation: function getPlayerPhoneLocation(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date);
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
+            var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+            var endTime = data.endTime ? new Date(data.endTime) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPhoneLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date], actionName, isValidData);
         },
 
@@ -660,8 +660,8 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerPhoneLocationInProvince: function getPlayerPhoneLocationInProvince(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date && data.phoneProvince);
-            var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            var endTime = data.endTime ? dbUtil.getDayEndTime(data.endTime) : new Date();
+            var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
+            var endTime = data.endTime ? new Date(data.endTime) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPhoneLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date, data.phoneProvince], actionName, isValidData);
         },
         /**
@@ -670,8 +670,8 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerDeviceAnalysisData: function getPlayerDeviceAnalysisData(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.type);
-            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
-            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime], actionName, isValidData);
         },
         /**

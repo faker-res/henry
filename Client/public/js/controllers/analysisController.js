@@ -1122,6 +1122,7 @@ define(['js/app'], function (myApp) {
                             //this function is to zoom to province immediately after clicking
                             vm.map.clickMapObject(vm.map.getObjectById(vm.allProvinceId[vm.currentProvince]));
                         });
+                        vm.drawLocationCityGraphByElementId("#playerLocationPie", vm.playerPhoneInProvince, "phoneLocation");
                         $scope.safeApply();
                     });
                 } else if (vm.showPageName == 'PLAYER_IP_LOCATION') {
@@ -1132,9 +1133,10 @@ define(['js/app'], function (myApp) {
                         vm.drawMap();
                         $scope.safeApply();
                     });
-                    vm.drawLocationCountryGraphByElementId("#playerLocationCountriesPie", vm.playerLocationCountries);
+                    vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerLocationCountries, "IPLocation");
                 } else if (vm.showPageName == 'PLAYER_PHONE_LOCATION') {
                     vm.playerPhoneProvince = data.data;
+                    vm.totalPlayerPhoneProvince = vm.playerPhoneProvince.map(item => {return item.amount}).reduce((a, b) => {return a + b},0);
                     $scope.safeApply();
                     vm.setProvinceData('phoneProvince', vm.playerPhoneProvince, function () {
                         vm.mapName = "chinaHigh";
@@ -1146,6 +1148,7 @@ define(['js/app'], function (myApp) {
                                 return item;
                             })
                         });
+                        vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerPhoneProvince, "phoneLocation");
                         $scope.safeApply();
                     });
                 }
@@ -1312,7 +1315,7 @@ define(['js/app'], function (myApp) {
                                 map.zoomToObject(mapObject);
                             }
                         });
-                        vm.drawLocationCityGraphByElementId('#playerLocationCountriesPie', vm.playerLocationCities);
+                        vm.drawLocationCityGraphByElementId('#playerLocationPie', vm.playerLocationCities, 'IPLocation');
                     });
                 });
             }
@@ -1328,7 +1331,7 @@ define(['js/app'], function (myApp) {
                 vm.mapName = 'worldHigh';
                 vm.drawMap();
             });
-            vm.drawLocationCountryGraphByElementId("#playerLocationCountriesPie", vm.playerLocationCountries);
+            vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerLocationCountries, "IPLocation");
         }
         vm.getCountryTitle = function (AA) {
             if (!AA) return '';
@@ -1608,8 +1611,8 @@ define(['js/app'], function (myApp) {
                 type: vm.queryPara.playerDevice.type,
                 // startDate: vm.queryPara.playerDevice.startTime,
                 // endDate: vm.queryPara.playerDevice.endTime
-                startTime: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
+                startDate: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDeviceAnalysisData', sendData, function (data) {
@@ -1630,6 +1633,19 @@ define(['js/app'], function (myApp) {
             })
             socketService.$plotPie(placeholder, pieData, {}, 'newPlayerPieClickData');
             var placeholderBar = "#bar-all-playerDevice";
+
+            if(vm.newOptions && vm.newOptions.xaxes){
+                if(vm.newOptions.xaxes.length > 0){
+                    let axisLabel = "";
+
+                    if(vm.queryPara && vm.queryPara.playerDevice && vm.queryPara.playerDevice.type){
+                        axisLabel = vm.queryPara.playerDevice.type[0].toUpperCase() + vm.queryPara.playerDevice.type.slice(1);
+                    }
+
+                    vm.newOptions.xaxes[0].axisLabel = $translate(axisLabel);
+                }
+            }
+
             socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
         }
         //player device analysis clicked end ================================================
@@ -1643,10 +1659,11 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDomainAnalysisData', sendData, function (data) {
-                vm.playerDomainList = data.data;
-                console.log('domain data', vm.playerDomainList);
-                $scope.safeApply();
-                vm.plotPlayerDomain();
+                $scope.$evalAsync(() => {
+                    vm.playerDomainList = data.data;
+                    console.log('domain data', vm.playerDomainList);
+                    vm.plotPlayerDomain();
+                })
             });
         }
         vm.plotPlayerDomain = function (data) {
@@ -1654,13 +1671,25 @@ define(['js/app'], function (myApp) {
             var pieData = vm.playerDomainList.filter(function (obj) {
                 return (obj._id);
             }).map(function (obj) {
-                return {label: vm.setGraphName(obj._id), data: obj.number};
+                return {label: vm.setGraphNameWithoutCutString(obj._id), data: obj.number};
             }).sort(function (a, b) {
                 return b.data - a.data;
             })
+
+            vm.totalPlayerDomainRecord = pieData.reduce((a,b) => a + b.data,0);
+
+            pieData.map(p => {
+                if(p && p.data && vm.totalPlayerDomainRecord){
+                    p.percentage = (p.data / vm.totalPlayerDomainRecord * 100).toFixed(2);
+                }
+                return;
+            });
+
+            vm.playerDomainPieData = pieData;
+
             socketService.$plotPie(placeholder, pieData, {}, 'playerDomainPieClickData');
-            var placeholderBar = "#bar-all-playerDomain";
-            socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
+            //var placeholderBar = "#bar-all-playerDomain";
+            //socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
         }
         //player domain analysis clicked end ================================================
 
@@ -2279,6 +2308,18 @@ define(['js/app'], function (myApp) {
             }
         }
 
+        vm.setGraphNameWithoutCutString = function (data, ltr, num) {
+            //data=src string, ltr=bool (from left to right?) , digits= number of character
+            if (!data) return $translate("Unknown");
+            if (data.length == 0) {
+                return $translate('Unknown');
+            }
+            ltr = Boolean(ltr || true);
+            num = num || 6;
+
+            return data;
+        }
+
         //common functions======================================================
 
 ////////////////Mark::$viewContentLoaded function//////////////////
@@ -2322,23 +2363,48 @@ define(['js/app'], function (myApp) {
 
         });
 
-        vm.drawLocationCityGraphByElementId = function (elementId, data) {
-            let pieData = data.map(item => {
-                let data = {
-                    label: vm.getCountryTitle(item._id.city) || $translate('Unknown'), data: item.amount
-                };
-                return data;
-            });
+        vm.drawLocationCityGraphByElementId = function (elementId, data, tag) {
+            let pieData=[];
+            if (tag == "IPLocation") {
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.city || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+            if (tag == "phoneLocation") {
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.phoneCity || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+
             socketService.$plotPie(elementId, pieData, {});
         };
 
-        vm.drawLocationCountryGraphByElementId = function (elementId, data) {
-            let pieData = data.map(item => {
-                let data = {
-                    label: vm.getCountryTitle(item._id.country) || $translate('Unknown'), data: item.amount
-                };
-                return data;
-            });
+
+        vm.drawLocationCountryGraphByElementId = function (elementId, data, tag) {
+            let pieData=[];
+            if (tag == "IPLocation"){
+                pieData = data.map(item => {
+                    let data = {
+                        label: vm.getCountryTitle(item._id.country) || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+            if (tag == "phoneLocation"){
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.phoneProvince || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+
             socketService.$plotPie(elementId, pieData, {});
         };
 
