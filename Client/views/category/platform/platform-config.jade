@@ -778,7 +778,7 @@
                                 td(colspan="2")
                                     i.fa.fa-plus(ng-click='vm.durationGroupConfig.push(vm.newDelayDurationGroup); vm.newDelayDurationGroup={};')
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.delayDurationGroupEdit", ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit')
+                        button.btn.btn-primary.common-button(ng-if="!vm.delayDurationGroupEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;') {{"CANCEL" | translate}}
