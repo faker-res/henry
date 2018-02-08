@@ -21,7 +21,7 @@ playerCursor.eachAsync(
                     _id: null,
                     bonusAmount: {$sum: "$bonusAmount"}
                 }
-            }]);
+            }]).read("secondaryPreferred");
             proms.push(bonusAmountSumProm);
         }
 
