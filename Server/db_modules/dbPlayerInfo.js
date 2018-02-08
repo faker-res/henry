@@ -8793,7 +8793,10 @@ let dbPlayerInfo = {
             if (transferAmount && gameData && gameData.provider) {
                 //transfer in to current provider
                 if (bTransferIn) {
-                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).catch();
+                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).then(
+                        data => data,
+                        error => false
+                    );
                 }
                 else {
                     //allow player to login if player doesn't have enough credit
