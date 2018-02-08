@@ -237,9 +237,9 @@ var dbGameProviderPlayerDaySummary = {
             },
             platformId: platformId,
         };
-        if (proId) {
-            queryObj.providerId = proId;
-        }
+        // if (proId) {
+        //     queryObj.providerId = proId;
+        // }
         dbconfig.collection_providerPlayerDaySummary.distinct('playerId', queryObj)
             .then(
                 function (data) {
