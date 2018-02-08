@@ -65,7 +65,7 @@ var GameServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameGroup.getGameGroupTree, [data.code, data.platformId, data.containGames, conn.playerId, data.startIndex, data.requestCount], isValidData, false, false, true);
     };
 
-    this.getGameGroupList.expectsData = ''
+    this.getGameGroupList.expectsData = '';
     this.getGameGroupList.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId);
         data = data || {};
@@ -74,10 +74,10 @@ var GameServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameGroup.getGameGroupList, [data.platformId, data.startIndex, data.requestCount], isValidData, false, false, true);
     };
 
-    this.getProviderList.expectsData = 'playerId: String';
+    this.getProviderList.expectsData = '';
     this.getProviderList.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbGameProvider.getGameProvidersByPlayerAPI, [{playerId: data.playerId}], isValidData);
+        let isValidData = Boolean(data && (data.platformId || (data.playerId && (data.playerId == conn.playerId))));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGameProvider.getGameProvidersByPlayerAPI, [{playerId: data.playerId}, false, data.platformId], isValidData, false, false, true);
     };
 
     this.getProviderDetailList.expectsData = 'playerId: String';
