@@ -1672,8 +1672,8 @@ define(['js/app'], function (myApp) {
                 type: vm.queryPara.playerDevice.type,
                 // startDate: vm.queryPara.playerDevice.startTime,
                 // endDate: vm.queryPara.playerDevice.endTime
-                startTime: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
+                startDate: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDeviceAnalysisData', sendData, function (data) {
@@ -1694,6 +1694,19 @@ define(['js/app'], function (myApp) {
             })
             socketService.$plotPie(placeholder, pieData, {}, 'newPlayerPieClickData');
             var placeholderBar = "#bar-all-playerDevice";
+
+            if(vm.newOptions && vm.newOptions.xaxes){
+                if(vm.newOptions.xaxes.length > 0){
+                    let axisLabel = "";
+
+                    if(vm.queryPara && vm.queryPara.playerDevice && vm.queryPara.playerDevice.type){
+                        axisLabel = vm.queryPara.playerDevice.type[0].toUpperCase() + vm.queryPara.playerDevice.type.slice(1);
+                    }
+
+                    vm.newOptions.xaxes[0].axisLabel = $translate(axisLabel);
+                }
+            }
+
             socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
         }
         //player device analysis clicked end ================================================
@@ -1707,10 +1720,11 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDomainAnalysisData', sendData, function (data) {
-                vm.playerDomainList = data.data;
-                console.log('domain data', vm.playerDomainList);
-                $scope.safeApply();
-                vm.plotPlayerDomain();
+                $scope.$evalAsync(() => {
+                    vm.playerDomainList = data.data;
+                    console.log('domain data', vm.playerDomainList);
+                    vm.plotPlayerDomain();
+                })
             });
         }
         vm.plotPlayerDomain = function (data) {
@@ -1718,13 +1732,25 @@ define(['js/app'], function (myApp) {
             var pieData = vm.playerDomainList.filter(function (obj) {
                 return (obj._id);
             }).map(function (obj) {
-                return {label: vm.setGraphName(obj._id), data: obj.number};
+                return {label: vm.setGraphNameWithoutCutString(obj._id), data: obj.number};
             }).sort(function (a, b) {
                 return b.data - a.data;
             })
+
+            vm.totalPlayerDomainRecord = pieData.reduce((a,b) => a + b.data,0);
+
+            pieData.map(p => {
+                if(p && p.data && vm.totalPlayerDomainRecord){
+                    p.percentage = (p.data / vm.totalPlayerDomainRecord * 100).toFixed(2);
+                }
+                return;
+            });
+
+            vm.playerDomainPieData = pieData;
+
             socketService.$plotPie(placeholder, pieData, {}, 'playerDomainPieClickData');
-            var placeholderBar = "#bar-all-playerDomain";
-            socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
+            //var placeholderBar = "#bar-all-playerDomain";
+            //socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
         }
         //player domain analysis clicked end ================================================
 
@@ -2341,6 +2367,18 @@ define(['js/app'], function (myApp) {
             } else {
                 return ltr ? data.substring(0, num).concat('...') : data.substr(data.length - num).concat('...');
             }
+        }
+
+        vm.setGraphNameWithoutCutString = function (data, ltr, num) {
+            //data=src string, ltr=bool (from left to right?) , digits= number of character
+            if (!data) return $translate("Unknown");
+            if (data.length == 0) {
+                return $translate('Unknown');
+            }
+            ltr = Boolean(ltr || true);
+            num = num || 6;
+
+            return data;
         }
 
         //common functions======================================================

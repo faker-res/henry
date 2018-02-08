@@ -1929,6 +1929,18 @@ let dbPlayerInfo = {
                         });
                     }
 
+                    if( updateData.bankAccountType ){
+                        let tempBankAccountType = updateData.bankAccountType;
+                        let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                        if (!isValidBankType) {
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "Invalid bank account type"
+                            });
+                        }
+                    }
+
                     return dbconfig.collection_platform.findOne({
                         _id: playerData.platform
                     })
@@ -9013,10 +9025,11 @@ let dbPlayerInfo = {
                                             if (type.type == paymentData.merchants[i].topupType) {
                                                 bValidType = false;
                                                 if (status == 1 && paymentData.merchants[i].status == "ENABLED" && paymentData.merchants[i].targetDevices == clientType) {
-                                                    type.status = status;
-                                                    if (type.maxDepositAmount < paymentData.merchants[i].permerchantLimits){
+                                                    if (type.status == 2 || type.maxDepositAmount < paymentData.merchants[i].permerchantLimits) {
                                                         type.maxDepositAmount = paymentData.merchants[i].permerchantLimits;
                                                     }
+
+                                                    type.status = status;
                                                 }
                                             }
                                         });
