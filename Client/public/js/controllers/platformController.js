@@ -8081,7 +8081,7 @@ define(['js/app'], function (myApp) {
                         {
                             'title': $translate('AMOUNT_CHANGE'),
                             data: 'totalChangedAmount$',
-                            sClass: "tbodyNoWrap",
+                            sClass: "sumFloat textRight",
                             render: function (data, type, row) {
                                 var link = $('<span>', {
                                     'class': ((Number(row.amount) + Number(row.changedLockedAmount)) < 0? "text-danger" : "")
@@ -8090,7 +8090,7 @@ define(['js/app'], function (myApp) {
 
                             }
                         },
-                        {'title': $translate('LOCAL_TOTAL_AMOUNT_AFTER'), data: 'totalAmountAfter$', sClass: "sumText wordWrap"},
+                        {'title': $translate('LOCAL_TOTAL_AMOUNT_AFTER'), data: 'totalAmountAfter$', sClass: "wordWrap"},
                         {
                             'title': $translate('View Details'),
                             data: 'details$',
@@ -8141,7 +8141,9 @@ define(['js/app'], function (myApp) {
                         $compile(nRow)($scope);
                     }
                 });
-                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {3: totalChangedAmount});
+                var a = utilService.createDatatableWithFooter('#playerCreditChangeLogTable', option, {
+                    3: totalChangedAmount
+                });
                 vm.playerCreditChangeLog.pageObj.init({maxCount: size}, newSearch);
 
                 $('#playerCreditChangeLogTable').off('order.dt');
@@ -18324,6 +18326,19 @@ define(['js/app'], function (myApp) {
                         .replace(new RegExp('GameType',"gm"), $translate('GameType'))
                         .replace(new RegExp('ratio','gm'), $translate('RATIO'))
                         .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
+                } else if (fieldName === 'nonXIMADetail') {
+                    let newNonXIMADetail = {};
+                    Object.keys(val).forEach(
+                        key => {
+                            if (key && key.indexOf(':') != -1) {
+                                let splitGameTypeIdArr = key.split(':');
+                                let gameTypeId = splitGameTypeIdArr[1];
+                                newNonXIMADetail[splitGameTypeIdArr[0]+':'+ vm.allGameTypes[gameTypeId]] = val[key];
+                            }
+                        });
+                    result = JSON.stringify(newNonXIMADetail || val)
+                        .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                        .replace(new RegExp('nonXIMAAmt',"gm"), $translate('totalNonXIMAAmt'));
                 } else if (typeof(val) == 'object') {
                     result = JSON.stringify(val);
                 } else if (fieldName === "upOrDown") {
