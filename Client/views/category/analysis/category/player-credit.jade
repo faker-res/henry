@@ -31,7 +31,7 @@
             //    input.form-control(type='date', ng-model='vm.queryPara.playerCredit.endTime')
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.drawPlayerCreditLine(vm.showPageName)') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.drawPlayerCreditLine(vm.showPageName); vm.drawPlayerCreditCountLine(vm.showPageName);') {{'SEARCH' | translate}}
         .row
             .col-md-6
                 .graph
@@ -40,5 +40,15 @@
             .col-md-6
                 .graph
                     table#playerCreditAnalysisTable.display.tableDiv(style='min-width:100%')
+
+    #playerCreditCountAnalysis
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-playerCreditCount.lineChart.graphDiv(style='height: 600px;')
+            .col-md-6
+                .graph
+                    table#playerCreditCountAnalysisTable.display.tableDiv(style='min-width:100%')
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")

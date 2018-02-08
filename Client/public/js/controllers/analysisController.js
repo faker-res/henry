@@ -187,6 +187,7 @@ define(['js/app'], function (myApp) {
                     case "PLAYER_TOPUP":
                         vm.initSearchParameter('playerCredit', 'day', 3, function () {
                             vm.drawPlayerCreditLine('PLAYER_TOPUP');
+                            vm.drawPlayerCreditCountLine('PLAYER_TOPUP');
                         });
                         break;
                     case "BONUS_AMOUNT":
@@ -1862,16 +1863,18 @@ define(['js/app'], function (myApp) {
                 // endDate: vm.queryPara.playerCredit.endTime
             }
             socketService.$socket($scope.AppSocket, 'countTopUpORConsumptionbyPlatform', sendData, function (data) {
+                let averageNumber = 0;
                 vm.playerCreditData = data.data;
                 console.log('vm.playerCreditData', vm.playerCreditData);
+                averageNumber = ((data.data.reduce((a,b) => a + b.number,0)) / data.data.length).toFixed(2);
                 // $scope.safeApply();
-                return vm.drawPlayerCreditGraph(vm.playerCreditData, sendData);
+                return vm.drawPlayerCreditGraph(vm.playerCreditData, sendData, averageNumber);
             }, function (data) {
                 console.log("player credit data not", data);
             });
         }
 
-        vm.drawPlayerCreditGraph = function (srcData, sendData) {
+        vm.drawPlayerCreditGraph = function (srcData, sendData, averageNumber) {
             var placeholder = '#line-playerCredit';
             var playerCreditObjData = {};
             // for (var i = 0; i < srcData.length; i++) {
@@ -1888,8 +1891,10 @@ define(['js/app'], function (myApp) {
             //     }
             // }
             var graphData = [];
+            var averageData = [];
             srcData.map(item => {
                 graphData.push([new Date(item._id.date), item.number])
+                averageData.push([new Date(item._id.date), averageNumber])
             })
             var newOptions = {};
             // var nowDate = new Date(sendData.startDate);
@@ -1955,7 +1960,9 @@ define(['js/app'], function (myApp) {
                 axisLabel: $translate('PERIOD') + ' : ' + $translate(xText)
             }]
 
-            socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData}], newOptions);
+            newOptions.colors = ["#00afff", "#FF0000"];
+
+            socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData},{label: $translate('average line'), data: averageData}], newOptions);
 
             vm.bindHover(placeholder, function (obj) {
                 var x = obj.datapoint[0],
@@ -1981,6 +1988,7 @@ define(['js/app'], function (myApp) {
                 obj.amount = amount.toFixed(2);
                 tableData.push(obj);
             }
+            tableData.push({date: $translate('average value'), amount: averageNumber});
             var dataOptions = {
                 data: tableData,
                 columns: [
@@ -1991,6 +1999,129 @@ define(['js/app'], function (myApp) {
             };
             dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
             var a = $('#playerCreditAnalysisTable').DataTable(dataOptions);
+            a.columns.adjust().draw();
+        }
+
+        vm.drawPlayerCreditCountLine = function (type) {
+            var opt = '';
+            if (type == 'PLAYER_EXPENSES') {
+                opt = 'consumption';
+            } else if (type == 'PLAYER_TOPUP') {
+                opt = 'topup';
+            }
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.playerCredit.periodText,
+                type: opt,
+                startDate: vm.queryPara.playerCredit.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.playerCredit.endTime.data('datetimepicker').getLocalDate(),
+            }
+            socketService.$socket($scope.AppSocket, 'countTopUpORConsumptionCountByPlatform', sendData, function (data) {
+                let averageNumber = 0;
+                vm.playerCreditData = data.data;
+                console.log('vm.playerCreditData', vm.playerCreditData);
+                averageNumber = ((data.data.reduce((a,b) => a + b.number,0)) / data.data.length).toFixed(2);
+
+                // $scope.safeApply();
+                return vm.drawPlayerCreditCountGraph(vm.playerCreditData, sendData, averageNumber);
+            }, function (data) {
+                console.log("player credit data not", data);
+            });
+        }
+
+        vm.drawPlayerCreditCountGraph = function (srcData, sendData, averageNumber) {
+            var placeholder = '#line-playerCreditCount';
+            var playerCreditObjData = {};
+
+            var graphData = [];
+            var averageData = [];
+            srcData.map(item => {
+                graphData.push([new Date(item._id.date), item.number])
+                averageData.push([new Date(item._id.date), averageNumber])
+            })
+            var newOptions = {};
+            // var nowDate = new Date(sendData.startDate);
+            var xText = '';
+            switch (vm.queryPara.playerCredit.periodText) {
+                case 'day':
+                    xText = 'DAY';
+                    newOptions = {
+                        xaxis: {
+                            tickLength: 0,
+                            mode: "time",
+                            minTickSize: [1, "day"],
+                        }
+                    };
+                    break;
+                case 'week':
+                    xText = 'WEEK';
+                    newOptions = {
+                        xaxis: {
+                            tickLength: 0,
+                            mode: "time",
+                            minTickSize: [6, "day"],
+                        }
+                    };
+                    break;
+                case 'month' :
+                    xText = 'MONTH';
+                    newOptions = {
+                        xaxis: {
+                            tickLength: 0,
+                            mode: "time",
+                            minTickSize: [1, "month"],
+                        }
+                    };
+                    break;
+            }
+            newOptions.yaxes = [{
+                position: 'left',
+                axisLabel: $translate('COUNT'),
+            }]
+            newOptions.xaxes = [{
+                position: 'bottom',
+                axisLabel: $translate('PERIOD') + ' : ' + $translate(xText)
+            }]
+
+            newOptions.colors = ["#00afff", "#FF0000"];
+
+            socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData},{label: $translate('average line'), data: averageData}], newOptions);
+
+            vm.bindHover(placeholder, function (obj) {
+                var x = obj.datapoint[0],
+                    y = obj.datapoint[1].toFixed(0);
+
+                var date = new Date(x);
+                var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+
+                var yText = $translate('COUNT');
+                var fre = $translate(vm.queryPara.playerCredit.periodText.toUpperCase());
+                $("#tooltip").html(yText + " : " + y + '<br>' + fre + " : " + dateString)
+                    .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                    .fadeIn(200);
+            })
+
+            //draw table
+
+            var tableData = [];
+            for (var i in graphData) {
+                var obj = {};
+                obj.date = String(utilService.$getTimeFromStdTimeFormat(new Date(graphData[i][0]))).substring(0, 10);
+                let count = graphData[i][1] || 0;
+                obj.count = count.toFixed(0);
+                tableData.push(obj);
+            }
+            tableData.push({date: $translate('average value'), count: averageNumber});
+            var dataOptions = {
+                data: tableData,
+                columns: [
+                    {title: $translate(vm.queryPara.playerCredit.periodText), data: "date"},
+                    {title: $translate('COUNT'), data: "count"}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            var a = $('#playerCreditCountAnalysisTable').DataTable(dataOptions);
             a.columns.adjust().draw();
         }
         //player credit end =======================================================

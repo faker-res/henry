@@ -550,6 +550,14 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.countTopUpORConsumptionByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.type], actionName, isValidData);
         },
 
+        countTopUpORConsumptionCountByPlatform: function countTopUpORConsumptionCountByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && data.type);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.countTopUpORConsumptionCountByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.type], actionName, isValidData);
+        },
+
         countTopUpORConsumptionAllPlatform: function countTopUpORConsumptionAllPlatform(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.startDate && data.endDate && data.type);
