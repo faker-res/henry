@@ -210,59 +210,7 @@
         #playerFeedbackTablePage(ng-show='vm.playerFeedbackSearchType=="many"')
 .row.margin-top-bottom-small(ng-show='vm.selectedPlatform && vm.playerFeedbackSearchType=="one"')
     .col-md-12
-        table.simple-table#playerFeedbackDataTableExtended(style="min-width:100%;")
-            thead
-                tr
-                    th {{"LOBBY" | translate}}
-                    th {{"TOPUPMANUAL" | translate}}
-                    th {{"TOPUP_WECHAT" | translate}}
-                    th {{"PlayerAlipayTopUp" | translate}}
-                    th {{"TOPUPONLINE" | translate}}
-                    th {{"DEPOSIT_COUNT" | translate}}
-                    th {{"TOTAL_DEPOSIT" | translate}}
-                    th {{"WITHDRAW_COUNT" | translate}}
-                    th {{"WITHDRAW_AMOUNT" | translate}}
-                    th {{"PROMOTION" | translate}}
-                    th {{"CONSUMPTION_RETURN_AMOUNT" | translate}}
-                    th {{"TIMES_CONSUMED" | translate}}
-                    th {{"VALID_CONSUMPTION" | translate}}
-                    th {{"PLAYER_PROFIT_AMOUNT" | translate}}
-                    th {{"COMPANY_PROFIT" | translate}}
-                    th {{"TOTAL_CONSUMPTION" | translate}}
-            tbody
-                tr
-                    td
-                        a {{vm.playerFeedbackResultExtended.provider$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.manualTopUpAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.weChatTopUpAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.aliPayTopUpAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.onlineTopUpAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.topUpTimes}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.topUpAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.bonusTimes}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.bonusAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.rewardAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.consumptionReturnAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.consumptionTimes}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.validConsumptionAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.consumptionBonusAmount$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.profit$}}
-                    td
-                        text {{vm.playerFeedbackResultExtended.consumptionAmount$}}
+        table.common-table#playerFeedbackDataTableExtended.display(style="min-width:100%;")
 
     .col-md-6
         .panel.panel-primary.margin-top-bottom-small(ng-if="checkViewPermission('Platform','Feedback','Create')",style='background-color: #e4e4e4')

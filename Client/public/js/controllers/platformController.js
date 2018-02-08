@@ -384,6 +384,20 @@ define(['js/app'], function (myApp) {
                     hoverCss: ":hover{filter: contrast(200%);}"
                 }
             ];
+            vm.commonTableOption = {
+                dom: 'Zrtlp',
+                "autoWidth": true,
+                "scrollX": true,
+                // "scrollY": "455px",
+                columnDefs: [{targets: '_all', defaultContent: ' '}],
+                "scrollCollapse": true,
+                "destroy": true,
+                "paging": false,
+                //"dom": '<"top">rt<"bottom"ilp><"clear">Zlfrtip',
+                "language": {
+                    "emptyTable": $translate("No data available in table"),
+                },
+            }
 
             vm.prepareToBeDeletedProviderGroupId = [];
 
@@ -406,6 +420,58 @@ define(['js/app'], function (myApp) {
             vm.proposalTemplate = {
                 1: '#modalProposal',
                 2: '#newPlayerModal'
+            };
+
+            vm.createInnerTable = function (id) {
+                var content = $('<div>', {
+                    style: "display:inline-block"
+                });
+                var div1 = $('<div>', {
+                    class: 'divTableIndentWrap',
+                    style: 'width:' + vm.tableIndentWidth + 'px;'
+                });
+                var label = $('<label>', {
+                    class: "margin-left-5",
+                    id: id + 'label',
+                    style: 'width:100%;display: block'
+                });
+
+                div1.append($('<div>', {
+                    class: 'tableWrapRight',
+                    style: 'margin-left:' + vm.tableIndentWidth / 3 + 'px;width:' + vm.tableIndentWidth / 3 + 'px;'
+                }))
+                var div2 = $('<div>', {
+                    style: 'display: inline-block;width:calc(100% - ' + vm.tableIndentWidth + 'px',
+                });
+                div2.append(label);
+                div2.append($('<table>', {
+                    id: id,
+                    "data-curPage": 1,
+                    "data-limit": 10,
+                    class: 'display',
+                    style: 'width:100%'
+                }));
+                div2.append($('<div>', {
+                    id: id + 'Page',
+                    style: 'width:100%'
+                }));
+                content.append(div1, div2);
+                return content.html();
+            };
+            vm.getGameByIds = function (id) {
+                if (!id) return;
+                return new Promise(function (resolve, reject) {
+                    socketService.$socket($scope.AppSocket, 'getGames', {_ids: id}, function (data) {
+                        vm.allGame = data.data;
+                        console.log('selected game', vm.allGame);
+                        $scope.safeApply();
+                        resolve();
+                    }, function (data) {
+                        console.log("cannot get game name", data);
+                        reject(new Error());
+                    });
+                });
+
             };
 
             vm.getPlatformProvider = function (id) {
@@ -12934,77 +13000,83 @@ define(['js/app'], function (myApp) {
                     index: vm.feedbackPlayersPara.index - 1
                 }, function (data) {
                     console.log('_getSinglePlayerFeedbackQuery', data);
-                    let playerList = [];
-                    vm.playerFeedbackResult = data.data.data;
-                    playerList.push(vm.playerFeedbackResult);
-                    setTableData(vm.playerFeedbackTable, playerList);
-
-                    //process data for extended table
-                    vm.playerFeedbackResultExtended = vm.playerFeedbackResult.consumptionDetail;
-                    vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.topUpAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
-                    vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionBonusAmount).toFixed(2);
-
-                    vm.playerFeedbackResultExtended.playerLevel$ = "";
-                    if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
-                        vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
-                    }
-                    else {
-                        vm.playerFeedbackResultExtended.playerLevel$ = "";
-                    }
-
-                    vm.playerFeedbackResultExtended.credibility$ = "";
-                    if (vm.playerFeedbackResultExtended.credibilityRemarks) {
-                        for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
-                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                if (vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                    vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
-                                }
-                            }
-                        }
-                    }
-
-                    vm.playerFeedbackResultExtended.providerArr = [];
-                    for (var key in vm.playerFeedbackResultExtended.providerDetail) {
-                        if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
-                            vm.playerFeedbackResultExtended.providerDetail[key].providerId = key;
-                            vm.playerFeedbackResultExtended.providerArr.push(vm.playerFeedbackResultExtended.providerDetail[key]);
-                        }
-                    }
-
-                    vm.playerFeedbackResultExtended.provider$ = "";
-                    if (vm.playerFeedbackResultExtended.providerDetail) {
-                        for (let i = 0; i < vm.playerFeedbackResultExtended.providerArr.length; i++) {
-                            vm.playerFeedbackResultExtended.providerArr[i].amount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].amount).toFixed(2);
-                            vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
-                            vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
-                            vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                            for (let j = 0; j < vm.allProviders.length; j++) {
-                                if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                    vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
-                                    vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
-                                }
-                            }
-                        }
-                    }
-
-                    vm.playerFeedbackResultExtended.profit$ = 0;
-                    if (vm.playerFeedbackResultExtended.consumptionBonusAmount != 0 && vm.playerFeedbackResultExtended.validConsumptionAmount != 0) {
-                        vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
-                    }
-                    //end processing for extended table
-
+                    let playerList = [], extendedResult = [];
                     vm.curFeedbackPlayer = data.data.data;
                     vm.feedbackPlayersPara.total = data.data.total || 0;
                     vm.feedbackPlayersPara.index = data.data.index + 1;
+
+                    if(vm.curFeedbackPlayer && !$.isEmptyObject(vm.curFeedbackPlayer)) {
+                        playerList.push(vm.curFeedbackPlayer);
+                        //process data for extended table
+                        if (vm.curFeedbackPlayer.consumptionDetail && !$.isEmptyObject(vm.curFeedbackPlayer.consumptionDetail)) {
+                            vm.playerFeedbackResultExtended = vm.curFeedbackPlayer.consumptionDetail;
+                            vm.playerFeedbackResultExtended.manualTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.manualTopUpAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.topUpAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionBonusAmount).toFixed(2);
+
+                            vm.playerFeedbackResultExtended.playerLevel$ = "";
+                            if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
+                                vm.playerFeedbackResultExtended.playerLevel$ = vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel].name;
+                            }
+                            else {
+                                vm.playerFeedbackResultExtended.playerLevel$ = "";
+                            }
+
+                            vm.playerFeedbackResultExtended.credibility$ = "";
+                            if (vm.playerFeedbackResultExtended.credibilityRemarks) {
+                                for (let i = 0; i < vm.playerFeedbackResultExtended.credibilityRemarks.length; i++) {
+                                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                        if (vm.playerFeedbackResultExtended.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                            vm.playerFeedbackResultExtended.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                        }
+                                    }
+                                }
+                            }
+
+                            vm.playerFeedbackResultExtended.providerArr = [];
+                            for (var key in vm.playerFeedbackResultExtended.providerDetail) {
+                                if (vm.playerFeedbackResultExtended.providerDetail.hasOwnProperty(key)) {
+                                    vm.playerFeedbackResultExtended.providerDetail[key].providerId = key;
+                                    vm.playerFeedbackResultExtended.providerArr.push(vm.playerFeedbackResultExtended.providerDetail[key]);
+                                }
+                            }
+
+                            vm.playerFeedbackResultExtended.provider$ = "";
+                            if (vm.playerFeedbackResultExtended.providerDetail) {
+                                for (let i = 0; i < vm.playerFeedbackResultExtended.providerArr.length; i++) {
+                                    vm.playerFeedbackResultExtended.providerArr[i].amount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].amount).toFixed(2);
+                                    vm.playerFeedbackResultExtended.providerArr[i].bonusAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount).toFixed(2);
+                                    vm.playerFeedbackResultExtended.providerArr[i].validAmount = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].validAmount).toFixed(2);
+                                    vm.playerFeedbackResultExtended.providerArr[i].profit = parseFloat(vm.playerFeedbackResultExtended.providerArr[i].bonusAmount / vm.playerFeedbackResultExtended.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (vm.playerFeedbackResultExtended.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            vm.playerFeedbackResultExtended.providerArr[i].name = vm.allProviders[j].name;
+                                            vm.playerFeedbackResultExtended.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
+                                    }
+                                }
+                            }
+
+                            vm.playerFeedbackResultExtended.profit$ = 0;
+                            if (vm.playerFeedbackResultExtended.consumptionBonusAmount != 0 && vm.playerFeedbackResultExtended.validConsumptionAmount != 0) {
+                                vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
+                            }
+
+                            extendedResult.push(vm.playerFeedbackResultExtended);
+                        } //end processing for extended table
+                    }
+
+                    setTableData(vm.playerFeedbackTable, playerList);
+                    vm.drawExtendedFeedbackTable(extendedResult);
+
                     $('#platformFeedbackSpin').hide();
                     if (!vm.curFeedbackPlayer) {
                         $scope.safeApply();
@@ -13056,6 +13128,212 @@ define(['js/app'], function (myApp) {
             vm.playerCredibilityComment = [];
             $scope.safeApply();
         };
+        vm.drawExtendedFeedbackTable = function (data) {
+            var tableOptions = {
+                data: data,
+                "ordering": false,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        title: $translate('LOBBY'), data: "provider$", sClass: "expandLobby sumText",
+                        render: function (data) {
+                            return "<a>" + data + "</a>";
+                        }
+                    },
+                    {title: $translate('TOPUPMANUAL'), data: "manualTopUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('TOPUP_WECHAT'), data: "weChatTopUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('PlayerAlipayTopUp'), data: "aliPayTopUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('TOPUPONLINE'), data: "onlineTopUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes", sClass: 'sumInt alignRight'},
+                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes", sClass: 'sumInt alignRight'},
+                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('PROMOTION'), data: "rewardAmount$", sClass: 'sumFloat alignRight'},
+                    {
+                        title: $translate('CONSUMPTION_RETURN_AMOUNT'),
+                        data: "consumptionReturnAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt alignRight'},
+                    {
+                        title: $translate('VALID_CONSUMPTION'),
+                        data: "validConsumptionAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'),
+                        data: "consumptionBonusAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                    {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'playerReportProfit alignRight'},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'}
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            if (playerTbl) {
+                playerTbl.clear();
+            }
+            var playerTbl = $('#playerFeedbackDataTableExtended').DataTable(tableOptions);
+
+            $('#playerFeedbackDataTableExtended').resize();
+            $('#playerFeedbackDataTableExtended tbody').off('click', 'td.expandLobby');
+            $('#playerFeedbackDataTableExtended tbody').on('click', 'td.expandLobby', function () {
+                var tr = $(this).closest('tr');
+                var row = playerTbl.row(tr);
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    var data = row.data();
+                    console.log('content', data);
+                    var id = 'playertable' + data._id;
+                    row.child(vm.createInnerTable(id)).show();
+                    vm[id] = {};
+                    vm.allGame = [];
+                    var gameId = [];
+                    if (data.gameDetail) {
+                        for (let n = 0; n < data.gameDetail.length; n++) {
+                            gameId[n] = data.gameDetail[n].gameId;
+                        }
+
+                        vm.getGameByIds(gameId).then(
+                            function () {
+                                for (let i = 0; i < data.gameDetail.length; i++) {
+                                    data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allGame.length; j++) {
+                                        if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()) {
+                                            data.gameDetail[i].name = vm.allGame[j].name;
+                                        }
+                                    }
+                                }
+                                vm.drawPlatformTable(data, id, data.providerArr.length);
+                            }
+                        )
+                    }
+
+                    tr.addClass('shown');
+                }
+            });
+
+            vm.playerPlatformReport = {};
+            vm.playerGameReport = {};
+            vm.gameTable = {};
+        };
+        ///////draw Platform table inside player start///////
+        vm.drawPlatformTable = function (data, id, size) {
+            let holder = data;
+            let tableOptions = {
+                data: data.providerArr,
+                "ordering": false,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        title: $translate('*'),
+                        data: null,
+                        "className": 'expandLobbyRecord expand',
+                        "orderable": false
+                    },
+                    {title: $translate('LOBBY_NAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('TIMES_CONSUMED'), data: "count"},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "amount"},
+                    {title: $translate('VALID_CONSUMPTION'), data: "validAmount"},
+                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit"}
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if (vm.playerPlatformReport[id]) {
+                vm.playerPlatformReport[id].clear();
+            }
+            $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
+            vm.playerPlatformReport[id] = utilService.createDatatableWithFooter('#' + id, tableOptions, {});
+            utilService.setDataTablePageInput('playerFeedbackDataTableExtended', vm.gameTable[id], $translate);
+
+            $('#' + id).resize();
+            $('#' + id).off('click', 'td.expandLobbyRecord');
+            $('#' + id).on('click', 'td.expandLobbyRecord', function () {
+                var tr = $(this).closest('tr');
+                var table = $(this).parent().closest('table');
+                var providerId = table.attr('id').substring(11);
+                var row = vm.playerPlatformReport[table.attr('id')].row(tr);
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                }
+                else {
+                    // Open this row
+                    var data = row.data();
+                    var id = providerId + 'playerplatformtable' + data.providerId;
+                    row.child(vm.createInnerTable(id)).show();
+                    vm[id] = {};
+                    // implement filter
+                    var gameDetail = [];
+                    if (holder.gameDetail) {
+                        for (let i = 0; i < holder.gameDetail.length; i++) {
+                            if (holder.gameDetail[i].providerId.toString() == data.providerId.toString()) {
+                                gameDetail.push(holder.gameDetail[i]);
+                            }
+                        }
+                    }
+
+                    vm.drawPlatformGameTable(gameDetail, id, gameDetail.length);
+                    tr.addClass('shown');
+                }
+            });
+
+        };
+        ///////draw Platform table inside player start///////
+        vm.drawPlatformGameTable = function (data, id, size) {
+            let tableOptions = {
+                data: data,
+                "ordering": false,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('GAME_NAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('TIMES_CONSUMED'), data: "count"},
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "amount"},
+                    {title: $translate('VALID_CONSUMPTION'), data: "validAmount"},
+                    {title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount"},
+                    {title: $translate('COMPANY_PROFIT'), data: "profit"}
+                ],
+                "paging": false,
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            if (vm.playerGameReport[id]) {
+                vm.playerGameReport[id].clear();
+            }
+            $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
+            vm.playerPlatformReport[id] = utilService.createDatatableWithFooter('#' + id, tableOptions, {});
+            utilService.setDataTablePageInput('playerFeedbackDataTableExtended', vm.gameTable[id], $translate);
+        };
+
             vm.getFeedbackPlayer = function (inc) {
                 if (inc == '+') {
                     vm.feedbackPlayersPara.index += 1;
