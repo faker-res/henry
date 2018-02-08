@@ -1480,6 +1480,7 @@
   "createPlatform": "创建平台",
   "createGameAndAddToProvider": "创建提供商游戏",
   "addGameType": "添加游戏类型",
+  "NoVerify": "免验",
   "startProviderDailySettlement": "开始提供商每日结算",
   "startPlatformDailySettlement": "开始平台每日结算",
   "startPlatformWeeklySettlement": "开始平台每周结算",
@@ -2416,6 +2417,9 @@
   "getBonusRequestList": "获取申请提款列表",
   "cancelBonusRequest": "取消申请提款",
   "getBonusList": "获取奖品列表",
+  "nonXIMADetail": "非洗码详情",
+  "totalNonXIMAAmt": "非洗码金额",
+  "bConsumptionReturnRequest": "是否为玩家提交提前洗码",
   "getOnlineTopupType": "获取在线充值类型",
   "createOnlineTopupProposal": "在线充值",
   "requestManualTopup": "手工充值",
@@ -2813,6 +2817,7 @@
   "resetPassword": "重置密码",
   "try": "尝试",
   "PLAYER_LEVEL_UP_PERIOD": "玩家升级周期设置",
+  "PLAYER_LEVEL_UP_MAX_PERIOD": "玩家升级最大周期设置",
   "PLAYER_LEVEL_DOWN_PERIOD": "玩家降级周期设置",
   "attempt number list": "尝试次数分布",
   "last_access_time": "上次登录时间",
@@ -3224,6 +3229,9 @@
   "average value": "平均值",
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
   "LoginPlayer": "登入玩家",
-  "season": "季"
+  "season": "季",
+  "OR": "或",
+  "Os": "操作系统",
+  "LOGIN_DOMAIN": "登入域名"
 
 }

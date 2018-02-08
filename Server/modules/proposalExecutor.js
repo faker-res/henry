@@ -1429,20 +1429,43 @@ var proposalExecutor = {
             executePlayerConsumptionReturn: function (proposalData, deferred) {
                 //create reward task for related player
                 //verify data
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount >= 0) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount >= 0 && proposalData.data.platformId) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_CONSUMPTION_RETURN,
+                        rewardType: constRewardType.PLAYER_CONSUMPTION_RETURN,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount? proposalData.data.spendingAmount: 0,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
+                        // useConsumption: Boolean(proposalData.data.useConsumption),
+                        // eventId: proposalData.data.eventId,
+                        applyAmount: 0,
+                        // providerGroup: proposalData.data.providerGroup
+                    };
                     proposalData.data.proposalId = proposalData.proposalId;
-                    changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data).then(
-                        () => {
-                            //remove all consumption summaries
-                            if (!Number(proposalData.data.spendingAmount)) {
-                                dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.rewardAmount).catch(errorUtils.reportError);
+                    dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
+                        platformData => {
+                            let promiseUse;
+                            if (platformData && platformData.useProviderGroup) {
+                                promiseUse = dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, constRewardType.PLAYER_CONSUMPTION_RETURN);
+                            } else {
+                                promiseUse = changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data);
                             }
-                            sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
-                            return dbconfig.collection_playerConsumptionSummary.remove(
-                                {_id: {$in: proposalData.data.summaryIds}}
-                            ).catch(errorUtils.reportError);
+                            promiseUse.then(
+                                () => {
+                                    //remove all consumption summaries
+                                    if (!Number(proposalData.data.spendingAmount)) {
+                                        dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.rewardAmount).catch(errorUtils.reportError);
+                                    }
+                                    sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
+                                    return dbconfig.collection_playerConsumptionSummary.remove(
+                                        {_id: {$in: proposalData.data.summaryIds}}
+                                    ).catch(errorUtils.reportError);
+                                }
+                            ).then(deferred.resolve, deferred.reject);
                         }
-                    ).then(deferred.resolve, deferred.reject);
+                    ).catch(errorUtils.reportError);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player consumption return proposal data"});
@@ -1504,6 +1527,7 @@ var proposalExecutor = {
                             bonusData => {
                                 if (bonusData) {
                                     sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
+                                    increasePlayerWithdrawalTimes(player._id, player.platform._id).catch(errorUtils.reportError);
                                     return bonusData;
                                 }
                                 else {
@@ -3456,6 +3480,10 @@ function isTransferIdRepaired(transferId) {
             return Boolean(log && log[0]);
         }
     );
+}
+
+function increasePlayerWithdrawalTimes(playerObjId, platformObjId) {
+    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId, platform: platformObjId}, {$inc: {withdrawTimes: 1}}).lean().exec();
 }
 
 /**
