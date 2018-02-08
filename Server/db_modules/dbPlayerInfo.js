@@ -7615,7 +7615,7 @@ let dbPlayerInfo = {
     /* 
      * Get active player count 
      */
-    countActivePlayerbyPlatform: function (platformId, startDate, endDate) {
+    countActivePlayerbyPlatform: function (platformId, startDate, endDate, period) {
         // var options = {};
         // options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
         //
@@ -7630,12 +7630,142 @@ let dbPlayerInfo = {
         //         $group: {_id: options, number: {$sum: "$activePlayers"}}
         //     }
         // ).exec();
-        return dbconfig.collection_platformDaySummary.find(
-            {
-                platformId: platformId,
-                date: {$gte: startDate, $lt: endDate}
+
+        // return dbconfig.collection_platformDaySummary.find(
+        //     {
+        //         platformId: platformId,
+        //         date: {$gte: startDate, $lt: endDate}
+        //     }
+        // ).exec();
+        let result = {};
+        return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).then(
+            (partnerLevelConfig) => {
+                if (!partnerLevelConfig) Q.reject({name: "DataError", errorMessage: "partnerLevelConfig no found"});
+
+                let dayStartTime = startDate;
+                let activePlayerTopUpTimes;
+                let activePlayerTopUpAmount;
+                let activePlayerConsumptionTimes;
+                let activePlayerValue;
+                let topupCollectionName = 'collection_playerTopUpWeekSummary';
+                let consumptionCollectionName = 'collection_playerConsumptionWeekSummary';
+                switch (period) {
+                    case 'day':
+                        topupCollectionName = 'collection_playerTopUpDaySummary';
+                        consumptionCollectionName = 'collection_playerConsumptionDaySummary';
+                        activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
+                        activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
+                        break;
+                    case 'week':
+                        activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
+                        activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
+                        break;
+                    case 'biweekly':
+                        activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
+                        activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
+                        break;
+                    case 'month':
+                        activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
+                        activePlayerValue = partnerLevelConfig.monthlyActivePlayerValue;
+                        break;
+                    case 'season':
+                    default:
+                        activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
+                        activePlayerValue = partnerLevelConfig.seasonActivePlayerValue;
+                }
+
+                let chain = Promise.resolve();
+
+                    let start = dayStartTime;
+                    let end = endDate;
+                    while (start.getTime() <= end.getTime()) {
+                        let dayStartTime = start;
+                        let dayEndTime = getNextDateByPeriodAndDate(period, dayStartTime);
+                        result[dayStartTime] = 0;
+                        chain = chain.then(
+                            () => {
+                                let stream = dbconfig[topupCollectionName].aggregate([
+                                    {
+                                        $match: {
+                                            date: {$gte: dayStartTime, $lt: dayEndTime},
+                                            platformId: platformId,
+                                        }
+                                    },
+                                    {
+                                        $group: {
+                                            _id: "$playerId",
+                                            "amount": {"$sum": '$amount'},
+                                            "times": {"$sum": '$times'}
+                                        }
+                                    }
+                                ]).read("secondaryPreferred").cursor({batchSize: constSystemParam.BATCH_SIZE}).allowDiskUse(true).exec();
+                                let balancer = new SettlementBalancer();
+                                return balancer.initConns().then(function () {
+                                    return balancer.processStream(
+                                        {
+                                            stream: stream,
+                                            batchSize: constSystemParam.BATCH_SIZE,
+                                            makeRequest: function (playerObjs, request) {
+                                                request("player", "getConsumptionActivePlayerAfterTopupQueryMatch", {
+                                                    platformId: platformId,
+                                                    dayStartTime: dayStartTime,
+                                                    dayEndTime: dayEndTime,
+                                                    activePlayerConsumptionTimes: activePlayerConsumptionTimes,
+                                                    activePlayerValue: activePlayerValue,
+                                                    consumptionCollectionName: consumptionCollectionName,
+                                                    playerObjs: playerObjs
+                                                        .filter(player => player.amount >= activePlayerTopUpAmount && player.times >= activePlayerTopUpTimes)
+                                                });
+                                            },
+                                            processResponse: function (response) {
+                                                result[dayStartTime] = result[dayStartTime] ? result[dayStartTime] + response.data : response.data;
+                                            }
+                                        }
+                                    );
+                                });
+                        });
+                        start = dayEndTime;
+                    }
+                    return chain;
+
             }
-        ).exec();
+        ).then(
+            () => {
+                return result;
+            }
+        );
+    },
+
+    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerValue, consumptionCollectionName, playerObjs) {
+        let matchObj = {
+            playerId:{$in: playerObjs.map(player => ObjectId(player._id))},
+            platformId: ObjectId(platformId),
+            date: {$gte: new Date(dayStartTime), $lt: new Date(dayEndTime)}
+        };
+        return dbconfig[consumptionCollectionName].aggregate([
+            {$match: matchObj},
+            {$group: {_id: "$playerId", "amount": {"$sum": '$amount'}, "times": {"$sum": '$times'}}}
+        ]).read("secondaryPreferred").then(
+            records => {
+                records = records.filter(records => records.times >= activePlayerConsumptionTimes);
+                return dbconfig.collection_players.populate(records, {path: '_id', model: dbconfig.collection_players}).then(
+                    (records) => {
+                        return records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue).length;
+                    }
+                )
+
+            }
+        );
     },
 
     /*
@@ -13425,6 +13555,28 @@ function isDemoPlayerExpire(player, expireDays) {
         return true;
     }
     return false;
+}
+
+function getNextDateByPeriodAndDate (period, startDate) {
+    let date = new Date(startDate);
+    switch (period) {
+        case 'day':
+            date = new Date(date.setDate(date.getDate() + 1));
+            break;
+        case 'week':
+            date = new Date(date.setDate(date.getDate() + 7));
+            break;
+        case 'biweekly':
+            date = new Date(date.setDate(date.getDate() + 15));
+            break;
+        case 'month':
+            date = new Date(new Date(date.setMonth(date.getMonth() + 1)).setDate(1));
+            break
+        case 'season':
+            date = new Date(new Date(date.setMonth(date.getMonth() + 3)).setDate(1));
+            break
+    }
+    return date;
 }
 
 

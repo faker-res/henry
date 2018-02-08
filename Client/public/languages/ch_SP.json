@@ -3229,8 +3229,10 @@
   "average value": "平均值",
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
   "LoginPlayer": "登入玩家",
+  "season": "季",
   "OR": "或",
   "Os": "操作系统",
-  "LOGIN_DOMAIN": "登入域名"
+  "LOGIN_DOMAIN": "登入域名",
+  "biweekly": "半月"
 
 }
