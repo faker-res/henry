@@ -558,6 +558,7 @@ var roleChecker = {
                 ConsumptionInterval: ['getConsumptionIntervalData'],
                 ClientSource: [],
                 LoginPlayer: [],
+                ValidActivePlayer: [],
 
             }
         },

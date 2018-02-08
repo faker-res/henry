@@ -3230,11 +3230,15 @@
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
   "LoginPlayer": "登入玩家",
   "season": "季",
+  "SEASON": "季",
   "OR": "或",
   "Os": "操作系统",
   "LOGIN_DOMAIN": "登入域名",
-  "COUNT": "笔数",
-  "biweekly": "半月"
+  "biweekly": "半月",
+  "VALID_ACTIVE_PLAYER": "有效活跃玩家",
+  "ValidActivePlayer": "有效活跃玩家",
+  "COUNT": "笔数"
+
 
 
 }
