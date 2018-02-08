@@ -845,6 +845,7 @@ let dbPlayerReward = {
         let consecutiveNumber = 1;
         let requiredBet = 0;
         let requireBoth = false;
+        let isSharedWithXIMA = false;
 
         function insertOutputList(status, step, bonus, requestedTimes, targetDate, forbidWithdrawAfterApply, remark, isSharedWithXIMA, meetRequirement, requiredConsumptionMet, requiredTopUpMet, usedTopUpRecord) {
             let listItem = {
@@ -891,6 +892,9 @@ let dbPlayerReward = {
             }
         }).then(eventData => {
             event = eventData;
+
+            isSharedWithXIMA = Boolean(event && event.condition && event.condition.isSharedWithXIMA);
+
             // let currentTime = new Date();
             // check if reward valid for targetDate
             if (event.validStartTime && event.validStartTime > currentTime || event.validEndTime && event.validEndTime < currentTime) {
@@ -983,7 +987,7 @@ let dbPlayerReward = {
                         let requestedTimes = selectedParam.spendingTimes || 1;
 
                         insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
-                            selectedParam.forbidWithdrawAfterApply, selectedParam.remark, selectedParam.isSharedWithXIMA,
+                            selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
                             result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                     }
                 } else if (checkResults.length > 1) {
@@ -1021,7 +1025,7 @@ let dbPlayerReward = {
                             let requestedTimes = currentParam.spendingTimes || 1;
 
                             insertOutputList(1, step, bonus, requestedTimes, targetDate,
-                                currentParam.forbidWithdrawAfterApply, currentParam.remark, currentParam.isSharedWithXIMA,
+                                currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
                                 result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                         }
                     } else if (event.condition.requireNonBreakingCombo) {
@@ -1047,7 +1051,7 @@ let dbPlayerReward = {
                             let bonus = selectedParam.rewardAmount;
 
                             insertOutputList(1, consecutiveNumber, bonus, requestedTimes, targetDate,
-                                selectedParam.forbidWithdrawAfterApply, selectedParam.remark, selectedParam.isSharedWithXIMA,
+                                selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
                                 result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                         }
                     } else if (event.condition.allowReclaimMissedRewardDay) {
@@ -1063,7 +1067,7 @@ let dbPlayerReward = {
                                 let requestedTimes = currentParam.spendingTimes || 1;
 
                                 insertOutputList(1, currentStreak + 1, bonus, requestedTimes, result.targetDate,
-                                    currentParam.forbidWithdrawAfterApply, currentParam.remark, currentParam.isSharedWithXIMA,
+                                    currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
                                     result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                                 currentStreak++;
                             }
@@ -1076,7 +1080,7 @@ let dbPlayerReward = {
                             let requestedTimes = selectedParam.spendingTimes || 1;
 
                             insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
-                                selectedParam.forbidWithdrawAfterApply, selectedParam.remark, selectedParam.isSharedWithXIMA,
+                                selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
                                 result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
                         }
                     }
@@ -1928,7 +1932,7 @@ let dbPlayerReward = {
     },
 
     getTopUpPromoList: (playerId, clientType) => {
-        let topUpTypeData, aliPayLimitData, weChatPayAvailability;
+        let topUpTypeData, aliPayLimitData, weChatPayDetail;
 
         return new Promise(function (resolve, reject) {
             let topUpTypeDataProm = dbPlayerInfo.getOnlineTopupType(playerId, 1, clientType);
@@ -1940,7 +1944,7 @@ let dbPlayerReward = {
                 data => {
                     topUpTypeData = data[0];
                     aliPayLimitData = data[1];
-                    weChatPayAvailability = data[2];
+                    weChatPayDetail = data[2];
                     let playerData = data[3];
                     let rewardTypeData = data[4];
 
@@ -1961,7 +1965,8 @@ let dbPlayerReward = {
 
                     let weChatPayData = {
                         type: 98,
-                        status: weChatPayAvailability ? 1 : 2
+                        status: weChatPayDetail && weChatPayDetail.valid ? 1 : 2,
+                        maxDepositAmount: weChatPayDetail && weChatPayDetail.maxDepositAmount ? weChatPayDetail.maxDepositAmount : 0
                     };
                     topUpTypeData.push(weChatPayData);
 

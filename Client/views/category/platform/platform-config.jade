@@ -68,10 +68,10 @@
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.manualPlayerLevelUp', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'PLAYER_LEVEL_UP_PERIOD' | translate}}
+                                td {{'PLAYER_LEVEL_UP_MAX_PERIOD' | translate}}
                                 td(style='width:25%')
                                     text(ng-if='!vm.configTableEdit') {{ vm.playerLevelPeriod.levelUpPeriodName | translate }}
-                                    select.form-control(style='width:30%;margin:auto' ng-change='vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod); vm.changeLevelPeriodAllField()'
+                                    select.form-control(style='width:30%;margin:auto' ng-change='vm.playerLevelPeriod.levelUpPeriodName = vm.getPlayerLevelUpPeriodName(vm.playerLevelPeriod.playerLevelUpPeriod); vm.initPlayerLevelPeriod(); vm.changeLevelPeriodAllField();'
                                     ng-if='vm.configTableEdit', ng-model='vm.playerLevelPeriod.playerLevelUpPeriod', ng-options='v as i | translate for (i,v) in vm.allPlayerLevelUpPeriod',required)
                             tr
                                 td {{'PLAYER_LEVEL_DOWN_PERIOD' | translate}}
@@ -157,20 +157,22 @@
                                     tr(ng-repeat='(j,oneConfig) in level.levelUpConfig')
                                         td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelUpConfig.length}}')
                                             a.fa.fa-plus-circle(ng-click='level.levelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
+                                            br
+                                            label(ng-if='level.levelUpConfig.length > 1') {{"OR" | translate}}
                                         td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.topupLimit | number : 2}}
                                         td
-                                            text {{"LEVEL"+oneConfig.topupPeriod | translate}}
-                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required)
-                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.topupPeriod | translate}}
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required, style='text-align-last: center;')
+                                                option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionLimit | number : 2}}
                                         td
-                                            text {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
-                                            //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required)
-                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required, style='text-align-last: center;')
+                                                option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
                                         td(ng-if='vm.configTableEdit')
@@ -282,7 +284,7 @@
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI();')
                             text {{'ADD_LEVEL' | translate}}
                             img.img-create
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player")')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod()')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player")')

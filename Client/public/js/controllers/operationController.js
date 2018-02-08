@@ -44,7 +44,8 @@ define(['js/app'], function (myApp) {
             AUTOAUDIT: "AutoAudit",
             RECOVER: "Recover",
             MANUAL: "Manual",
-            CSPENDING: "CsPending"
+            CSPENDING: "CsPending",
+            NOVERIFY: "NoVerify"
         };
 
         vm.depositMethodList = $scope.depositMethodList;
