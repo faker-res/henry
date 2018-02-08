@@ -1191,7 +1191,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 let promArr = [];
-                
+
                 if (!platformData) {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
@@ -1622,48 +1622,99 @@ let dbPlayerInfo = {
         );
     },
     updateBatchPlayerPermission: function(query, admin, permission, remark){
-        console.log('aaaaa');
-        // var updateObj = {};
-        // for (var key in permission) {
-        //     updateObj["permission." + key] = permission[key];
-        // }
-        // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
-        //     function (suc) {
-        //         var oldData = {};
-        //         for (var i in permission) {
-        //             if (suc.permission[i] != permission[i]) {
-        //                 oldData[i] = suc.permission[i];
-        //             } else {
-        //                 delete permission[i];
-        //             }
-        //         }
-        //         // if (Object.keys(oldData).length !== 0) {
-        //         var newLog = new dbconfig.collection_playerPermissionLog({
-        //             admin: admin,
-        //             platform: query.platform,
-        //             player: query._id,
-        //             remark: remark,
-        //             oldData: oldData,
-        //             newData: permission,
-        //         });
-        //         return newLog.save();
-        //         // } else return true;
-        //     },
-        //     function (error) {
-        //         return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
-        //     }
-        // ).then(
-        //     function (suc) {
-        //         return true;
-        //     },
-        //     function (error) {
-        //         return Q.reject({
-        //             name: "DBError",
-        //             message: "Player permission updated. Error occurred when creating log.",
-        //             error: error
-        //         });
-        //     }
-        // );
+        let deferred = Q.defer();
+        var updateObj = {};
+        for (var key in permission) {
+            updateObj["permission." + key] = permission[key];
+        }
+
+        let queryObj = {
+            'name': {$in: query.playerNames}
+        };
+        return dbconfig.collection_players.find(queryObj).then(data => {
+            let players = [];
+            if (data.length > 0) {
+                data.forEach(item => {
+                    let player = {'_id':item._id, 'platform':item.platform }
+                    players.push(player);
+                });
+            }
+            return players;
+        }).then(players => {
+            let proms = [];
+            players.forEach(item => {
+                let playerQuery = {'_id' : item._id, 'platform': item.platform};
+                let prom =  dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
+                    function (suc) {
+                        var oldData = {};
+                        for (var i in permission) {
+                            if (suc.permission[i] != permission[i]) {
+                                oldData[i] = suc.permission[i];
+                            } else {
+                                delete permission[i];
+                            }
+                        }
+                        // if (Object.keys(oldData).length !== 0) {
+                        var newLog = new dbconfig.collection_playerPermissionLog({
+                            admin: admin,
+                            platform: playerQuery.platform,
+                            player: playerQuery._id,
+                            remark: remark,
+                            oldData: oldData,
+                            newData: permission,
+                        });
+                        return newLog.save();
+                        // } else return true;
+                    },
+                    function (error) {
+                        return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+                    }
+                )
+                proms.push(proms)
+            })
+            Q.all(proms).then(data => {
+                console.log(data);
+            })
+        });
+        /** ------ **/
+        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+            function (suc) {
+                var oldData = {};
+                for (var i in permission) {
+                    if (suc.permission[i] != permission[i]) {
+                        oldData[i] = suc.permission[i];
+                    } else {
+                        delete permission[i];
+                    }
+                }
+                // if (Object.keys(oldData).length !== 0) {
+                var newLog = new dbconfig.collection_playerPermissionLog({
+                    admin: admin,
+                    platform: query.platform,
+                    player: query._id,
+                    remark: remark,
+                    oldData: oldData,
+                    newData: permission,
+                });
+                return newLog.save();
+                // } else return true;
+            },
+            function (error) {
+                return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+            }
+        ).then(
+            function (suc) {
+                return true;
+            },
+            function (error) {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Player permission updated. Error occurred when creating log.",
+                    error: error
+                });
+            }
+        );
+        return deferred.promise;
     },
     /**
      * Reset player password
@@ -2073,6 +2124,38 @@ let dbPlayerInfo = {
         });
     },
 
+    updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
+        let deferred = Q.defer();
+        let sendQuery = { 'name': {$in : query.playerNames }}
+        return dbconfig.collection_players.find(sendQuery).then(data => {
+            console.log(data);
+            let players = [];
+            if (data.length > 0) {
+                data.forEach(item => {
+                    let player = {'_id':item._id, 'platform':item.platform }
+                    players.push(player);
+                })
+            }
+            return players;
+        }).then(playersData => {
+
+            let proms = [];
+            playersData.forEach(item => {
+                let prom = dbconfig.collection_players.findOneAndUpdate(
+                    {_id: item._id, platform: item.platform},
+                    {forbidTopUpType: forbidTopUpTypes},
+                    {new: true}
+                ).lean();
+                proms.push(prom)
+            });
+            Q.all(proms).then(data => {
+                console.log(data);
+                deferred.resolve(data);
+            });
+        });
+        return deferred.promise;
+    },
+
     /**
      * Update player status info and record change rason
      * @param {objectId}  playerObjId
@@ -2104,14 +2187,40 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
 
-    updateBatchPlayerForbidProviders: function (playerObjId, forbidProviders) {
+    updateBatchPlayerForbidProviders: function (playerNames, forbidProviders) {
+        let deferred = Q.defer();
+        let query = {
+            'name': {$in: playerNames}
+        };
         let updateData = {};
         if (forbidProviders) {
             updateData.forbidProviders = forbidProviders;
         }
-        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+        return dbconfig.collection_players.find(query).then(data => {
+
+            let ids = [];
+            if (data.length > 0) {
+                data.forEach(item => {
+                    ids.push(ObjectId(item._id));
+                })
+            }
+            return ids;
+        }).then(playerObjIds => {
+            let proms = [];
+
+            playerObjIds.forEach(item => {
+                let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: item}, updateData, constShardKeys.collection_players);
+                proms.push(proms)
+            });
+            Q.all(proms).then(data => {
+                console.log(data);
+                deferred.resolve(data);
+            });
+        });
+        return deferred.promise;
+
     },
-    
+
     updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
         let updateData = {};
         if (forbidRewardEvents) {
@@ -2121,32 +2230,37 @@ let dbPlayerInfo = {
     },
 
     updateBatchPlayerForbidRewardEvents: function (playerNames, forbidRewardEvents) {
-        console.log(playerNames);
-        console.log(forbidRewardEvents);
+        let deferred = Q.defer();
         let query = {
-            'name': { $in : playerNames }
+            'name': {$in: playerNames}
         };
         let updateData = {};
         if (forbidRewardEvents) {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
-        return dbconfig.collection_players.find(query).then(data=>{
-            console.log(data);
-            let ids = [];
-            if(data.length > 0){
-                 data.forEach(item=>{
-                    ids.push(item._id);
+        return dbconfig.collection_players.find(query).then(data => {
 
+            let ids = [];
+            if (data.length > 0) {
+                data.forEach(item => {
+                    ids.push(ObjectId(item._id));
                 })
             }
             return ids;
-        }).then(playerObjIds=>{
-            console.log(playerObjIds);
-            // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: {$in: playerObjIds }, updateData, constShardKeys.collection_players);
-        })
+        }).then(playerObjIds => {
 
+            let proms = [];
+            playerObjIds.forEach(item => {
+                let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'_id': item}, updateData, constShardKeys.collection_players);
+                proms.push(proms)
+            })
+            Q.all(proms).then(data => {
+                console.log(data);
+            })
+        });
+        return deferred.promise;
     },
-    
+
     updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
         let updateData = {};
         if (forbidRewardPointsEvent) {
@@ -11529,6 +11643,38 @@ let dbPlayerInfo = {
                 return playerData;
             }
         );
+    },
+
+    updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
+
+        let deferred = Q.defer();
+        let proms = [];
+        playerNames.forEach(item=>{
+            console.log(item);
+            let prom = dbconfig.collection_players.findOneAndUpdate(
+                {
+                    name: item,
+                    platform: platformObjId
+                },
+                {
+                    credibilityRemarks: remarks
+                }
+            ).lean().then(
+                playerData => {
+                    let playerObjId = playerData._id;
+                    console.log(playerData);
+                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+                    // dbPlayerCredibility.calculatePlayerValue(playerData._id);
+                    return playerData;
+                }
+            );
+            proms.push(prom);
+        })
+        Q.all(proms).then(data=>{
+            console.log(data);
+            deferred.solve(data);
+        })
+        return deferred.promise;
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {

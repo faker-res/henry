@@ -10130,11 +10130,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.confirmBatchUpdatePlayerTopupTypes = function (sendData) {
-                sendData = sendData || {
-                    query: {_id: vm.isOneSelectedPlayer()._id},
-                    updateData: {forbidTopUpType: vm.showForbidTopupTypes || []}
-                };
-    
+
                 console.log('sendData', sendData)
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidPaymentType', sendData, function (data) {
                     vm.getPlatformPlayersData();
@@ -10146,7 +10142,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
-            
+
             vm.selectedDepositMethod = function(depositMethod) {
               if(depositMethod == "1" || depositMethod == "3" || depositMethod == "4") {
                   vm.playerManualTopUp.realName = vm.selectedSinglePlayer.realName;
@@ -11955,7 +11951,7 @@ define(['js/app'], function (myApp) {
                     vm.updateForbidGameLog(data.data._id, vm.findForbidCheckedName(data.data.forbidProviders, vm.allGameProvider));
                 });
             };
-            
+
             vm.updatePlayerForbidRewardPointsEvent = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardPointsEvent', sendData, function (data) {
@@ -22674,6 +22670,7 @@ define(['js/app'], function (myApp) {
 
             //
             vm.initBatchPermit = function () {
+                vm.prepareCredibilityConfig();
                 vm.drawBatchPermitTable();
             };
             vm.localRemarkUpdate = function () {
@@ -22684,14 +22681,27 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 vm.batchEditData.credibilityRemarks = selectedRemarks;
-                // let sendQuery = {
-                //     admin: authService.adminName,
-                //     platformObjId: vm.selectedSinglePlayer.platform,
-                //     playerObjId: vm.selectedSinglePlayer._id,
-                //     remarks: selectedRemarks,
-                //     comment: vm.credibilityRemarkComment
-                // };
+                let playerNames = vm.splitBatchPermit();
+                let sendQuery = {
+                    admin: authService.adminName,
+                    platformObjId: vm.selectedPlatform.id,
+                    playerNames: playerNames,
+                    remarks: selectedRemarks,
+                    comment: vm.credibilityRemarkComment
+                };
+                console.log(sendQuery);
                 console.log(vm.batchEditData.credibilityRemarks);
+
+                socketService.$socket($scope.AppSocket, "updateBatchPlayerCredibilityRemark", sendQuery, function (data) {
+                    vm.playerCredibilityRemarksUpdated = true;
+                    vm.credibilityRemarkUpdateMessage = "SUCCESS";
+                    vm.getPlatformPlayersData();
+                    $scope.safeApply();
+                }, function (error) {
+                    vm.playerCredibilityRemarksUpdated = true;
+                    vm.credibilityRemarkUpdateMessage = error.error.message;
+                    $scope.safeApply();
+                });
                 vm.drawBatchPermitTable();
             };
             vm.batchUpdatePlayer = function () {
@@ -23106,8 +23116,6 @@ define(['js/app'], function (myApp) {
                                     Object.keys(vm.batchEditData.permission).map(item => {
 
                                         Object.keys(changeObj).forEach((fieldName, index) => {
-                                            // console.log(fieldName);
-                                            // console.log(item);
                                             //main 1
                                             if (fieldName == item) {
                                                 console.log(item + '=' + fieldName + changeObj[fieldName]);
@@ -23118,9 +23126,21 @@ define(['js/app'], function (myApp) {
                                         })
 
                                     });
+                                    let playerNames = vm.splitBatchPermit();
+                                    socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
+                                        query: {
+                                            // platform: vm.permissionPlayer.platform,
+                                            // _ids: vm.permissionPlayer._id
+                                            playerNames: playerNames
+                                        },
+                                        admin: authService.adminId,
+                                        permission: changeObj,
+                                        remark: $remark.val()
+                                    }, function (data) {
+                                        vm.getPlatformPlayersData();
+                                    }, null, true);
                                     vm.drawBatchPermitTable();
                                     vm.batchUpdatePlayer();
-
                                     // socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
                                     //     query: {
                                     //         platform: vm.permissionPlayer.platform,
@@ -23132,6 +23152,7 @@ define(['js/app'], function (myApp) {
                                     // }, function (data) {
                                     //     vm.getPlatformPlayersData();
                                     // }, null, true);
+
                                     $(thisPopover).popover('hide');
                                 })
 
@@ -23176,7 +23197,7 @@ define(['js/app'], function (myApp) {
                                     $(".forbidRewardEventPopover").popover('hide');
                                 });
 
-                                $("button.forbidRewardEventConfirm").on('click', function () {
+                                $("button.forbidBatchRewardEventConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
@@ -23187,12 +23208,7 @@ define(['js/app'], function (myApp) {
                                             forbidRewardEvents.push($(v).attr('data-provider'));
                                         }
                                     });
-                                    console.log(forbidRewardEvents);
-                                    let playerNames = [];
-                                    let multiUsersArr = vm.multiUsersList.split('\n')
-                                    multiUsersArr.forEach(item => {
-                                        playerNames.push(item);
-                                    });
+                                    let playerNames = vm.splitBatchPermit();
                                     let sendData = {
                                         playerNames: playerNames,
                                         forbidRewardEvents: forbidRewardEvents,
@@ -23249,7 +23265,7 @@ define(['js/app'], function (myApp) {
                                     $scope.safeApply();
                                 });
 
-                                $("button.forbidGameConfirm").on('click', function () {
+                                $("button.forbidBatchGameConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
@@ -23260,12 +23276,13 @@ define(['js/app'], function (myApp) {
                                             forbidProviders.push($(v).attr('data-provider'));
                                         }
                                     });
-                                    // let sendData = {
-                                    //     _id: rowData._id,
-                                    //     forbidProviders: forbidProviders,
-                                    //     adminName: authService.adminName
-                                    // };
-                                    // vm.updateBatchPlayerForbidProviders(sendData);
+                                    let playerNames = vm.splitBatchPermit();
+                                    let sendData = {
+                                        playerNames: playerNames,
+                                        forbidProviders: forbidProviders,
+                                        adminName: authService.adminName
+                                    };
+                                    vm.updateBatchPlayerForbidProviders(sendData);
                                     // sub 2
                                     console.log(forbidProviders);
                                     vm.batchEditData.forbidProviders = forbidProviders;
@@ -23319,7 +23336,7 @@ define(['js/app'], function (myApp) {
                                     $scope.safeApply();
                                 });
 
-                                $("button.forbidTopUpConfirm").on('click', function () {
+                                $("button.forbidBatchTopUpConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
@@ -23331,13 +23348,15 @@ define(['js/app'], function (myApp) {
                                         }
                                     });
                                     console.log(forbidTopUpTypes);
-                                    // let sendData = {
-                                    //     query: {_id: rowData._id},
-                                    //     updateData: {forbidTopUpType: forbidTopUpTypes},
-                                    //     adminName: authService.adminName
-                                    // };
-                                    // vm.confirmUpdatePlayerTopupTypes(sendData);
+                                    let playerNames = vm.splitBatchPermit();
+                                    let sendData = {
+                                        query: {playerNames: playerNames},
+                                        updateData: {forbidTopUpType: forbidTopUpTypes},
+                                        adminName: authService.adminName
+                                    };
                                     vm.batchEditData.forbidTopUpTypes = forbidTopUpTypes;
+                                    vm.confirmBatchUpdatePlayerTopupTypes(sendData);
+
                                     vm.drawBatchPermitTable();
                                     vm.batchUpdatePlayer();
 
@@ -23433,7 +23452,15 @@ define(['js/app'], function (myApp) {
 
                 $scope.safeApply();
             }
-            
+            vm.splitBatchPermit = function(){
+
+                let playerNames = [];
+                let multiUsersArr = vm.multiUsersList.split('\n');
+                multiUsersArr.forEach(item => {
+                    playerNames.push(item);
+                });
+                return playerNames;
+            }
             ///
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function() {

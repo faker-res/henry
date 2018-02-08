@@ -196,7 +196,7 @@ function socketActionPlayer(socketIO, socket) {
         },
         updateBatchPlayerPermission: function updateBatchPlayerPermission(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.query && data.query.platform && data.query._ids && data.admin && data.permission && data.remark);
+            var isValidData = Boolean(data && data.query && data.query.playerNames && data.admin && data.permission && data.remark);
             socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerPermission, [data.query, data.admin, data.permission, data.remark], actionName, isValidData);
         },
         updatePlayerPermission: function updatePlayerPermission(data) {
@@ -245,6 +245,13 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.forbidProviders);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidProviders, [data._id, data.forbidProviders], actionName, isValidData);
+        },
+
+        updateBatchPlayerForbidProviders: function updateBatchPlayerForbidProviders(data) {
+            console.log(data);
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerNames && data.forbidProviders);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidProviders, [data.playerNames, data.forbidProviders], actionName, isValidData);
         },
 
         updatePlayerForbidRewardEvents: function updatePlayerForbidRewardEvents(data) {
@@ -967,7 +974,11 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerObjId && data.remarks);
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
         },
-
+        updateBatchPlayerCredibilityRemark: function updateBatchPlayerCredibilityRemark(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.remarks);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerNames, data.remarks, data.comment], actionName, isValidData);
+        },
         createUpdateTopUpGroupLog: function createUpdateTopUpGroupLog(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.adminId);
