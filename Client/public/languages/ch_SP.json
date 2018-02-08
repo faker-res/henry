@@ -2572,7 +2572,7 @@
   "Use consumptions only from these provider": "（领优惠前）检查投注额来源游戏厅",
   "SMS validation code invalidated. Please get another one.": "短信验证码已失效，请重新获取",
   "There is no valid SMS Code. Please get another one.": "无可用短信验证码，请重新获取",
-  "Invalid top up": "无法找到此提款记录，详情请联系客服",
+  "Invalid top up": "无法找到此存款记录，详情请联系客服",
   "Incorrect player top up return group proposal data": "提案资料错误，详情请联系客服",
   "This top up did not happen within reward interval time": "此存款记录并不在奖励周期内",
   "Top up agent": "存款装置",
