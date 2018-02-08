@@ -90,9 +90,6 @@ let dbConsumptionReturnWithdraw = require('../db_modules/dbConsumptionReturnWith
 let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
-let dbPlayerTopUpDaySummary = require('../db_modules/dbPlayerTopUpDaySummary');
-let dbPlayerConsumptionDaySummary = require('../db_modules/dbPlayerConsumptionDaySummary');
-let dbPlayerTopUpWeekSummary = require('../db_modules/dbPlayerTopUpWeekSummary');
 
 let dbPlayerInfo = {
 
@@ -7622,10 +7619,6 @@ let dbPlayerInfo = {
         //     }
         // ).exec();
 
-        // dbPlayerConsumptionDaySummary.calculatePlayersDaySummaryForTimeFrameUngrouped(startDate, endDate, [ObjectId('5a123bd8e137794ae578b60e')], platformId);
-        // dbPlayerTopUpDaySummary.playerTopUpDaySummary_calculatePlatformDaySummaryForPlayers(startDate, endDate, platformId, [ObjectId('5a123bd8e137794ae578b60e')]);
-        // dbPlayerConsumptionWeekSummary.playerConsumption_calculatePlatformWeekSummaryForPlayers(startDate, endDate, platformId, [ObjectId('5a123bd8e137794ae578b60e')]);
-        // dbPlayerTopUpWeekSummary.playerTopUpWeekSummary_calculatePlatformWeekSummaryForPlayers(startDate, endDate, platformId, [ObjectId('5a123bd8e137794ae578b60e')]);
         // return dbconfig.collection_platformDaySummary.find(
         //     {
         //         platformId: platformId,
