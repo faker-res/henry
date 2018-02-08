@@ -9667,7 +9667,7 @@ let dbPlayerInfo = {
                 let withdrawalQ = {
                     'data.platformId': player.platform._id,
                     'data.playerObjId': player._id,
-                    settleTime: {$gt: record.settlementTime},
+                    createTime: {$gt: record.createTime},
                     status: {$nin: [constProposalStatus.CANCEL, constProposalStatus.REJECTED, constProposalStatus.FAIL]}
                 };
 
