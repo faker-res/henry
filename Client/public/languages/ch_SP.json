@@ -3236,6 +3236,9 @@
   "LOGIN_DOMAIN": "登入域名",
   "biweekly": "半月",
   "VALID_ACTIVE_PLAYER": "有效活跃玩家",
-  "ValidActivePlayer": "有效活跃玩家"
+  "ValidActivePlayer": "有效活跃玩家",
+  "COUNT": "笔数"
+
+
 
 }

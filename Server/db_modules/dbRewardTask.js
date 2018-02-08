@@ -1723,72 +1723,87 @@ const dbRewardTask = {
         //                 }
         //             ).exec()
         //     })
-        var proms = [];
-        var dayStartTime = startDate;
-        var getNextDate;
-        switch (period) {
-            case 'day':
-                getNextDate = function (date) {
-                    var newDate = new Date(date);
-                    return new Date(newDate.setDate(newDate.getDate() + 1));
-                }
-                break;
-            case 'week':
-                getNextDate = function (date) {
-                    var newDate = new Date(date);
-                    return new Date(newDate.setDate(newDate.getDate() + 7));
-                }
-                break;
-            case 'month':
-            default:
-                getNextDate = function (date) {
-                    var newDate = new Date(date);
-                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
-                }
-        }
+        // var proms = [];
+        // var dayStartTime = startDate;
+        // var getNextDate;
+        // switch (period) {
+        //     case 'day':
+        //         getNextDate = function (date) {
+        //             var newDate = new Date(date);
+        //             return new Date(newDate.setDate(newDate.getDate() + 1));
+        //         }
+        //         break;
+        //     case 'week':
+        //         getNextDate = function (date) {
+        //             var newDate = new Date(date);
+        //             return new Date(newDate.setDate(newDate.getDate() + 7));
+        //         }
+        //         break;
+        //     case 'month':
+        //     default:
+        //         getNextDate = function (date) {
+        //             var newDate = new Date(date);
+        //             return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+        //         }
+        // }
+        // return dbconfig.collection_proposalType.findOne({
+        //     platformId: platformId,
+        //     name: type
+        // }).then(function (data) {
+        //     var typeId = data._id;
+        //     while (dayStartTime.getTime() < endDate.getTime()) {
+        //         var dayEndTime = getNextDate.call(this, dayStartTime);
+        //         var matchObj = {
+        //             platformId: platformId,
+        //             loginTime: {$gte: dayStartTime, $lt: dayEndTime},
+        //             type: typeId
+        //         };
+        //         proms.push(dbconfig.collection_proposal
+        //             .aggregate(
+        //                 {
+        //                     $match: {
+        //                         'data.platformId': platformId,
+        //                         createTime: {$gte: dayStartTime, $lt: dayEndTime},
+        //                         type: typeId
+        //                     }
+        //                 },
+        //                 {
+        //                     $group: {_id: null, number: {$sum: 1}, amount: {$sum: '$data.rewardAmount'}}
+        //                 }
+        //             ))
+        //         dayStartTime = dayEndTime;
+        //     }
+        //     return Q.all(proms)
+        // }).then(data => {
+        //     var i = 0;
+        //     var tempDate = startDate;
+        //     var res = data.map(item => {
+        //         var date = tempDate;
+        //         var obj = {
+        //             _id: {date: date},
+        //             number: item[0] ? item[0].number : 0,
+        //             amount: item[0] ? item[0].amount : 0
+        //         }
+        //         tempDate = getNextDate(tempDate);
+        //         return obj;
+        //     });
+        //     return res;
+        // });
+
         return dbconfig.collection_proposalType.findOne({
             platformId: platformId,
             name: type
-        }).then(function (data) {
-            var typeId = data._id;
-            while (dayStartTime.getTime() < endDate.getTime()) {
-                var dayEndTime = getNextDate.call(this, dayStartTime);
-                var matchObj = {
-                    platformId: platformId,
-                    loginTime: {$gte: dayStartTime, $lt: dayEndTime},
-                    type: typeId
-                };
-                proms.push(dbconfig.collection_proposal
-                    .aggregate(
-                        {
-                            $match: {
-                                'data.platformId': platformId,
-                                createTime: {$gte: dayStartTime, $lt: dayEndTime},
-                                type: typeId
-                            }
-                        },
-                        {
-                            $group: {_id: null, number: {$sum: 1}, amount: {$sum: '$data.rewardAmount'}}
-                        }
-                    ))
-                dayStartTime = dayEndTime;
-            }
-            return Q.all(proms)
+
         }).then(data => {
-            var i = 0;
-            var tempDate = startDate;
-            var res = data.map(item => {
-                var date = tempDate;
-                var obj = {
-                    _id: {date: date},
-                    number: item[0] ? item[0].number : 0,
-                    amount: item[0] ? item[0].amount : 0
-                }
-                tempDate = getNextDate(tempDate);
-                return obj;
-            });
-            return res;
-        });
+            let query = {
+                'data.platformId': platformId,
+                type: data._id,
+                createTime: {$gte: startDate, $lt: endDate}
+            };
+
+            return dbconfig.collection_proposal.find(query);
+
+        })
 
     },
 
