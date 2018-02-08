@@ -131,9 +131,10 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case "REWARD_ANALYSIS":
+                        vm.platformRewardAnalysisSort = {};
                         vm.selectReward = {};
                         vm.initSearchParameter('reward', 'day', 3);
-                        vm.rewardAnalysisInit(vm.plotRewardAmountLine);
+                        vm.rewardAnalysisInit(vm.plotRewardLine);
                         break;
                     case "PLAYER_DEVICE_ANALYSIS":
                         vm.newOptions = {
@@ -693,13 +694,14 @@ define(['js/app'], function (myApp) {
         vm.calculateLineDataAndAverage = (data, key, label) => {
             var graphData = [];
             let averageData = [];
-            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + Number.isInteger(item[key]) ? item[key] : item[key].length, 0) / data.length) : 0;
+            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + (Number.isInteger(item[key]) ? item[key] : item[key].length), 0) / data.length) : 0;
             data.map(item => {
                 graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key].length]);
                 averageData.push([new Date(item.date), average]);
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
         };
+    
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.selectedPlatform._id})
                 .then(function (data) {
@@ -1391,217 +1393,276 @@ define(['js/app'], function (myApp) {
             vm.selectReward = v;
             console.log('v', v);
             $scope.safeApply();
-            vm.plotRewardAmountLine();
-            vm.plotRewardNumberLine();
+            vm.plotRewardLine();
         }
-        vm.plotRewardAmountLine = function () {
+        vm.plotRewardLine = function () {
             if (!vm.selectReward.type) return;
-            var placeholder1 = "#line-reward-amount";
-            var placeholder2 = "#line-reward-number";
-            // var periodText = $('#analysisReward select').val();
+
             console.log('vm.selectReward', vm.selectReward);
+
+            let startDate = vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate();
+            let endDate =  vm.queryPara.reward.endTime.data('datetimepicker').getLocalDate();
             var sendData = {
                 platformId: vm.selectReward.platform,
                 period: vm.queryPara.reward.periodText,
-                // startTime: vm.queryPara.reward.startTime,
-                // endTime: vm.queryPara.reward.endTime,
-                startTime: vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.queryPara.reward.endTime.data('datetimepicker').getLocalDate(),
+                startTime: startDate,
+                endTime: endDate,
                 type: vm.selectReward.type.name
             };
+
             socketService.$socket($scope.AppSocket, 'getPlatformRewardAnalysis', sendData, function success(data1) {
-                console.log('data1', data1);
-                var rewardGraphData = data1.data || [];
-                var rewardNumberData = {}, rewardAmountData = {};
-                // for (var i = 0; i < rewardGraphData.length; i++) {
-                //     switch (vm.queryPara.reward.periodText) {
-                //         case 'day':
-                //             rewardAmountData[rewardGraphData[i]._id.date] = rewardGraphData[i].amount;
-                //             rewardNumberData[rewardGraphData[i]._id.date] = rewardGraphData[i].number;
-                //             break;
-                //         case 'week':
-                //             rewardAmountData[rewardGraphData[i]._id.week] = rewardGraphData[i].amount;
-                //             rewardNumberData[rewardGraphData[i]._id.week] = rewardGraphData[i].number;
-                //             break;
-                //         case 'month':
-                //             rewardAmountData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].amount;
-                //             rewardNumberData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].number;
-                //             break;
-                //     }
-                // }
-                var graphData1 = [], graphData2 = [];
-                rewardGraphData.map(item => {
-                    graphData1.push([new Date(item._id.date), item.amount]);
-                    graphData2.push([new Date(item._id.date), item.number]);
-                })
-                var newOptions = {};
-                // var nowDate = new Date(sendData.startTime);
-                switch (vm.queryPara.reward.periodText) {
-                    case 'day':
-                        // do {
-                        //     var dateText = utilService.$getTimeFromStdTimeFormat(nowDate).substring(0, 10);
-                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[dateText] || 0)]);
-                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[dateText] || 0)]);
-                        //     nowDate.setDate(nowDate.getDate() + 1);
-                        // } while (nowDate <= sendData.endTime);
-                        newOptions = {
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [1, "day"],
-                            }
-                        };
-                        break;
-                    case 'week':
-                        // var k = 0;
-                        // do {
-                        //     // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[k] || 0)]);
-                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[k] || 0)]);
-                        //     nowDate.setDate(nowDate.getDate() + 7);
-                        //     k++;
-                        // } while (nowDate <= sendData.endTime);
-                        newOptions = {
-                            xaxes: [{
-                                position: 'bottom',
-                                axisLabel: $translate('WEEK'),
-                            }],
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [6, "day"],
-                            }
-                        };
-                        break;
-                    case 'month' :
-                        // nowDate.setDate(1);
-                        // do {
-                        //     var nowYear = nowDate.getFullYear();
-                        //     var nowMonth = nowDate.getMonth() + 1;
-                        //     console.log('nowMonth', nowYear + '' + nowMonth);
-                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[nowYear + '' + nowMonth] || 0)]);
-                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[nowYear + '' + nowMonth] || 0)]);
-                        //     nowDate.setMonth(nowDate.getMonth() + 1);
-                        //
-                        // } while (nowDate <= sendData.endTime);
-                        newOptions = {
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [1, "month"],
-                            }
-                        };
-                        break;
-                }
-                // console.log('graph', graphData);
-                newOptions.yaxes = [{
-                    position: 'left',
-                    axisLabel: $translate('Reward amount'),
-                }];
-                socketService.$plotLine(placeholder1, [{
-                    label: $translate('Reward amount'),
-                    data: graphData1
-                }], newOptions);
-                newOptions.yaxes = [{
-                    position: 'left',
-                    axisLabel: $translate('Reward number'),
-                }]
-                //draw table
 
-                var tableData = [];
-                for (var i in graphData1) {
-                    var obj = {};
-                    obj.date = utilService.$getTimeFromStdTimeFormat(graphData1[i][0]).substring(0, 10);
-                    obj.amount = graphData1[i][1] || 0;
-                    tableData.push(obj);
-                }
-                var dataOptions = {
-                    data: tableData,
-                    columns: [
-                        {title: $translate(vm.queryPara.reward.periodText), data: "date"},
-                        {title: $translate('Reward amount'), data: "amount"}
-                    ],
-                    "paging": false,
-                };
-                dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-                var a = $('#rewardAmountAnalysisTable').DataTable(dataOptions);
-                a.columns.adjust().draw();
-
-                socketService.$plotLine(placeholder2, [{
-                    label: $translate('Reward number'),
-                    data: graphData2
-                }], newOptions);
-                //draw table
-
-                var tableData2 = [];
-                for (var i in graphData2) {
-                    var obj = {};
-                    obj.date = utilService.$getTimeFromStdTimeFormat(graphData2[i][0]).substring(0, 10);
-                    obj.amount = graphData2[i][1] || 0;
-                    tableData2.push(obj);
-                }
-                var dataOptions2 = {
-                    data: tableData2,
-                    columns: [
-                        {title: $translate(vm.queryPara.reward.periodText), data: "date"},
-                        {title: $translate('Reward number'), data: "amount"}
-                    ],
-                    "paging": false,
-                };
-                dataOptions2 = $.extend({}, $scope.getGeneralDataTableOption, dataOptions2);
-                var b = $('#rewardNumberAnalysisTable').DataTable(dataOptions2);
-                b.columns.adjust().draw();
-
-                $(placeholder1).bind("plothover", function (event, pos, obj) {
-                    var previousPoint;
-                    // console.log('event, pos, obj', pos, obj);
-                    if (!obj) {
-                        $("#tooltip").hide();
-                        previousPoint = null;
-                        return;
-                    } else {
-                        if (previousPoint != obj.dataIndex) {
-                            previousPoint = obj.dataIndex;
-
-                            var x = obj.datapoint[0],
-                                y = obj.datapoint[1].toFixed(0);
-
-                            var date = new Date(x);
-                            var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                            // console.log('date', x, date);
-                            $("#tooltip").html("Amount : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
-                                .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                                .fadeIn(200);
-                        }
+                $scope.$evalAsync(() => {
+                    let periodDateData = [];
+                    while (startDate.getTime() <= endDate.getTime()) {
+                        let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, startDate);
+                        periodDateData.push(startDate);
+                        startDate = dayEndTime;
                     }
-                });
-                $(placeholder2).bind("plothover", function (event, pos, obj) {
-                    var previousPoint;
-                    // console.log('event, pos, obj', pos, obj);
-                    if (!obj) {
-                        $("#tooltip").hide();
-                        previousPoint = null;
-                        return;
-                    } else {
-                        if (previousPoint != obj.dataIndex) {
-                            previousPoint = obj.dataIndex;
 
-                            var x = obj.datapoint[0],
-                                y = obj.datapoint[1].toFixed(0);
-
-                            var date = new Date(x);
-                            var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                            // console.log('date', x, date);
-                            $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
-                                .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                                .fadeIn(200);
-                        }
+                    vm.platformRewardData = data1.data;
+                    vm.platformRewardAnalysisData = [];
+                    for(let i = 0; i<periodDateData.length; i++){
+                        let rewardWithinPeriod = vm.platformRewardData.filter(reward => new Date(reward.createTime).getTime() > periodDateData[i].getTime() && new Date(reward.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, periodDateData[i]));
+                        vm.platformRewardAnalysisData.push({
+                            date: periodDateData[i],
+                            rewards: rewardWithinPeriod,
+                        });
                     }
+                    vm.platformRewardDataPeriodText = vm.queryPara.reward.periodText;
+                    console.log('vm.platformRewardAnalysisData', vm.platformRewardAnalysisData);
+
+                    // redefine the amount for line graph
+                    vm.platformRewardAnalysisAmount=[];
+                    vm.platformRewardAnalysisData.forEach(item => {
+
+                        let totalRewardAmount = item.rewards.reduce((a, b) => a + (b.data.rewardAmount ? b.data.rewardAmount : 0), 0);
+
+                        vm.platformRewardAnalysisAmount.push({
+                            date: item.date,
+                            rewards: totalRewardAmount
+                        });
+
+                    });
+
+                    let calculatedRewardData = vm.calculateLineDataAndAverage(vm.platformRewardAnalysisAmount, 'rewards', 'Reward amount');
+                    vm.platformRewardAmountAverage = calculatedRewardData.average;
+                    vm.plotLineByElementId("#line-reward-amount", calculatedRewardData.lineData, $translate('Reward amount'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.reward.periodText.toUpperCase()));
+
+                    let calculatedRewardNumber = vm.calculateLineDataAndAverage(vm.platformRewardAnalysisData, 'rewards', 'Reward number');
+                    vm.platformRewardNumberAverage = calculatedRewardNumber.average;
+                    vm.plotLineByElementId("#line-reward-number", calculatedRewardNumber.lineData, $translate('Reward number'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.reward.periodText.toUpperCase()));
+
                 });
-            });
+            })
+
+
+            // var placeholder1 = "#line-reward-amount";
+            // var placeholder2 = "#line-reward-number";
+            // // var periodText = $('#analysisReward select').val();
+            // console.log('vm.selectReward', vm.selectReward);
+            // var sendData = {
+            //     platformId: vm.selectReward.platform,
+            //     period: vm.queryPara.reward.periodText,
+            //     // startTime: vm.queryPara.reward.startTime,
+            //     // endTime: vm.queryPara.reward.endTime,
+            //     startTime: vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate(),
+            //     endTime: vm.queryPara.reward.endTime.data('datetimepicker').getLocalDate(),
+            //     type: vm.selectReward.type.name
+            // };
+            // socketService.$socket($scope.AppSocket, 'getPlatformRewardAnalysis', sendData, function success(data1) {
+            //     console.log('data1', data1);
+            //     var rewardGraphData = data1.data || [];
+            //     var rewardNumberData = {}, rewardAmountData = {};
+            //     // for (var i = 0; i < rewardGraphData.length; i++) {
+            //     //     switch (vm.queryPara.reward.periodText) {
+            //     //         case 'day':
+            //     //             rewardAmountData[rewardGraphData[i]._id.date] = rewardGraphData[i].amount;
+            //     //             rewardNumberData[rewardGraphData[i]._id.date] = rewardGraphData[i].number;
+            //     //             break;
+            //     //         case 'week':
+            //     //             rewardAmountData[rewardGraphData[i]._id.week] = rewardGraphData[i].amount;
+            //     //             rewardNumberData[rewardGraphData[i]._id.week] = rewardGraphData[i].number;
+            //     //             break;
+            //     //         case 'month':
+            //     //             rewardAmountData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].amount;
+            //     //             rewardNumberData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].number;
+            //     //             break;
+            //     //     }
+            //     // }
+            //     var graphData1 = [], graphData2 = [];
+            //     rewardGraphData.map(item => {
+            //         graphData1.push([new Date(item._id.date), item.amount]);
+            //         graphData2.push([new Date(item._id.date), item.number]);
+            //     })
+            //     var newOptions = {};
+            //     // var nowDate = new Date(sendData.startTime);
+            //     switch (vm.queryPara.reward.periodText) {
+            //         case 'day':
+            //             // do {
+            //             //     var dateText = utilService.$getTimeFromStdTimeFormat(nowDate).substring(0, 10);
+            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[dateText] || 0)]);
+            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[dateText] || 0)]);
+            //             //     nowDate.setDate(nowDate.getDate() + 1);
+            //             // } while (nowDate <= sendData.endTime);
+            //             newOptions = {
+            //                 xaxis: {
+            //                     tickLength: 0,
+            //                     mode: "time",
+            //                     minTickSize: [1, "day"],
+            //                 }
+            //             };
+            //             break;
+            //         case 'week':
+            //             // var k = 0;
+            //             // do {
+            //             //     // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
+            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[k] || 0)]);
+            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[k] || 0)]);
+            //             //     nowDate.setDate(nowDate.getDate() + 7);
+            //             //     k++;
+            //             // } while (nowDate <= sendData.endTime);
+            //             newOptions = {
+            //                 xaxes: [{
+            //                     position: 'bottom',
+            //                     axisLabel: $translate('WEEK'),
+            //                 }],
+            //                 xaxis: {
+            //                     tickLength: 0,
+            //                     mode: "time",
+            //                     minTickSize: [6, "day"],
+            //                 }
+            //             };
+            //             break;
+            //         case 'month' :
+            //             // nowDate.setDate(1);
+            //             // do {
+            //             //     var nowYear = nowDate.getFullYear();
+            //             //     var nowMonth = nowDate.getMonth() + 1;
+            //             //     console.log('nowMonth', nowYear + '' + nowMonth);
+            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[nowYear + '' + nowMonth] || 0)]);
+            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[nowYear + '' + nowMonth] || 0)]);
+            //             //     nowDate.setMonth(nowDate.getMonth() + 1);
+            //             //
+            //             // } while (nowDate <= sendData.endTime);
+            //             newOptions = {
+            //                 xaxis: {
+            //                     tickLength: 0,
+            //                     mode: "time",
+            //                     minTickSize: [1, "month"],
+            //                 }
+            //             };
+            //             break;
+            //     }
+            //     // console.log('graph', graphData);
+            //     newOptions.yaxes = [{
+            //         position: 'left',
+            //         axisLabel: $translate('Reward amount'),
+            //     }];
+            //     socketService.$plotLine(placeholder1, [{
+            //         label: $translate('Reward amount'),
+            //         data: graphData1
+            //     }], newOptions);
+            //     newOptions.yaxes = [{
+            //         position: 'left',
+            //         axisLabel: $translate('Reward number'),
+            //     }]
+            //     //draw table
+            //
+            //     var tableData = [];
+            //     for (var i in graphData1) {
+            //         var obj = {};
+            //         obj.date = utilService.$getTimeFromStdTimeFormat(graphData1[i][0]).substring(0, 10);
+            //         obj.amount = graphData1[i][1] || 0;
+            //         tableData.push(obj);
+            //     }
+            //     var dataOptions = {
+            //         data: tableData,
+            //         columns: [
+            //             {title: $translate(vm.queryPara.reward.periodText), data: "date"},
+            //             {title: $translate('Reward amount'), data: "amount"}
+            //         ],
+            //         "paging": false,
+            //     };
+            //     dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            //     var a = $('#rewardAmountAnalysisTable').DataTable(dataOptions);
+            //     a.columns.adjust().draw();
+            //
+            //     socketService.$plotLine(placeholder2, [{
+            //         label: $translate('Reward number'),
+            //         data: graphData2
+            //     }], newOptions);
+            //     //draw table
+            //
+            //     var tableData2 = [];
+            //     for (var i in graphData2) {
+            //         var obj = {};
+            //         obj.date = utilService.$getTimeFromStdTimeFormat(graphData2[i][0]).substring(0, 10);
+            //         obj.amount = graphData2[i][1] || 0;
+            //         tableData2.push(obj);
+            //     }
+            //     var dataOptions2 = {
+            //         data: tableData2,
+            //         columns: [
+            //             {title: $translate(vm.queryPara.reward.periodText), data: "date"},
+            //             {title: $translate('Reward number'), data: "amount"}
+            //         ],
+            //         "paging": false,
+            //     };
+            //     dataOptions2 = $.extend({}, $scope.getGeneralDataTableOption, dataOptions2);
+            //     var b = $('#rewardNumberAnalysisTable').DataTable(dataOptions2);
+            //     b.columns.adjust().draw();
+            //
+            //     $(placeholder1).bind("plothover", function (event, pos, obj) {
+            //         var previousPoint;
+            //         // console.log('event, pos, obj', pos, obj);
+            //         if (!obj) {
+            //             $("#tooltip").hide();
+            //             previousPoint = null;
+            //             return;
+            //         } else {
+            //             if (previousPoint != obj.dataIndex) {
+            //                 previousPoint = obj.dataIndex;
+            //
+            //                 var x = obj.datapoint[0],
+            //                     y = obj.datapoint[1].toFixed(0);
+            //
+            //                 var date = new Date(x);
+            //                 var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+            //                 // console.log('date', x, date);
+            //                 $("#tooltip").html("Amount : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
+            //                     .css({top: obj.pageY + 5, left: obj.pageX + 5})
+            //                     .fadeIn(200);
+            //             }
+            //         }
+            //     });
+            //     $(placeholder2).bind("plothover", function (event, pos, obj) {
+            //         var previousPoint;
+            //         // console.log('event, pos, obj', pos, obj);
+            //         if (!obj) {
+            //             $("#tooltip").hide();
+            //             previousPoint = null;
+            //             return;
+            //         } else {
+            //             if (previousPoint != obj.dataIndex) {
+            //                 previousPoint = obj.dataIndex;
+            //
+            //                 var x = obj.datapoint[0],
+            //                     y = obj.datapoint[1].toFixed(0);
+            //
+            //                 var date = new Date(x);
+            //                 var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+            //                 // console.log('date', x, date);
+            //                 $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
+            //                     .css({top: obj.pageY + 5, left: obj.pageX + 5})
+            //                     .fadeIn(200);
+            //             }
+            //         }
+            //     });
+            // });
         };
-        vm.plotRewardNumberLine = function () {
-        };
+        // vm.plotRewardNumberLine = function () {
+        // };
         //reward analysis clicked end ================================================
 
         //player device analysis clicked ================================================
