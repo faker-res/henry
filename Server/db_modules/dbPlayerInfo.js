@@ -9440,7 +9440,10 @@ let dbPlayerInfo = {
             }
         ).then(
             withdrawData => {
-                if (!withdrawData) {
+                let checkInputDevice = dbUtility.getInputDevice(userAgent,false);
+
+                // checkInputDevice 0 is BACKSTAGE, CS can still apply top up return from backstage
+                if (!withdrawData || checkInputDevice === 0) {
                     if (eventData.validStartTime && eventData.validEndTime) {
                         // TODO Temoporary hardcoding: Only can apply 1 time within period
                         return dbconfig.collection_proposalType.findOne({
