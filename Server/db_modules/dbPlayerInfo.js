@@ -11651,15 +11651,19 @@ let dbPlayerInfo = {
         let proms = [];
         playerNames.forEach(item=>{
             console.log(item);
-            let prom = dbconfig.collection_players.findOneAndUpdate(
+            // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
+
+            let prom = dbUtility.findOneAndUpdateForShard(
+                dbconfig.collection_players,
                 {
                     name: item,
                     platform: platformObjId
                 },
                 {
                     credibilityRemarks: remarks
-                }
-            ).lean().then(
+                },
+                 constShardKeys.collection_players
+            ).then(
                 playerData => {
                     let playerObjId = playerData._id;
                     console.log(playerData);
@@ -11672,7 +11676,7 @@ let dbPlayerInfo = {
         })
         Q.all(proms).then(data=>{
             console.log(data);
-            deferred.solve(data);
+            deferred.resolve(data);
         })
         return deferred.promise;
     },
