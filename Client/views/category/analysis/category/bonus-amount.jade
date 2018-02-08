@@ -30,11 +30,55 @@
                 button.btn.btn-primary.common-button(ng-click='vm.drawPlayerBonusAmount(vm.showPageName)') {{'SEARCH' | translate}}
         .row
             .col-md-6
+                label.text-primary {{"BONUS_AMOUNT" | translate}} VS {{vm.platformBonusDataPeriodText | translate}}
                 .graph
                     .panel.panel-default
                         #line-bonusAmount.lineChart.graphDiv
             .col-md-6
+                label &nbsp;
                 .graph
-                    table#bonusAmountAnalysisTable.display.tableDiv(style='min-width:100%')
+                    //table#bonusAmountAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformBonusAnalysisSort.bonusAmountSort = vm.platformBonusAnalysisSort.bonusAmountSort == "date" ? "-date":"date"') {{ vm.platformBonusDataPeriodText | translate}}
+                                th(ng-click='vm.platformBonusAnalysisSort.bonusAmountSort = vm.platformBonusAnalysisSort.bonusAmountSort == "bonus" ? "-bonus":"bonus"') {{ "BONUS_AMOUNT" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformBonusAnalysisAmount | orderBy: vm.platformBonusAnalysisSort.bonusAmountSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.bonus }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformBonusAmountAverage }}
+        .row
+            .col-md-6
+                label.text-primary {{"WITHDRAW_COUNT" | translate}} VS {{vm.platformBonusDataPeriodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-bonusCount.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                .graph
+                    //table#rewardNumberAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformBonusAnalysisSort.bonusNumberSort = vm.platformBonusAnalysisSort.bonusNumberSort == "date" ? "-date":"date"') {{ vm.platformBonusDataPeriodText | translate}}
+                                th(ng-click='vm.platformBonusAnalysisSort.bonusNumberSort = vm.platformBonusAnalysisSort.bonusNumberSort == "bonus.length" ? "-bonus.length":"bonus.length"') {{ "WITHDRAW_COUNT" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformBonusAnalysisData | orderBy: vm.platformBonusAnalysisSort.bonusNumberSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.bonus.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformBonusNumberAverage }}
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")
