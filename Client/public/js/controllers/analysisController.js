@@ -1433,7 +1433,7 @@ define(['js/app'], function (myApp) {
                     console.log('vm.platformRewardAnalysisData', vm.platformRewardAnalysisData);
 
                     // redefine the amount for line graph
-                    vm.platformRewardAnalysisAmount=[];
+                    vm.platformRewardAnalysisAmount = [];
                     vm.platformRewardAnalysisData.forEach(item => {
 
                         let totalRewardAmount = item.rewards.reduce((a, b) => a + (b.data.rewardAmount ? b.data.rewardAmount : 0), 0);
