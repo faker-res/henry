@@ -538,6 +538,19 @@ function socketActionPlayer(socketIO, socket) {
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.countActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
         },
+
+        /**
+         * Get valid active player count
+         * @param {json} data - data contains _id
+         */
+        countValidActivePlayerbyPlatform: function countValidActivePlayerbyPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.countValidActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+        },
+
         /**
          * Get total count of consumptionAmount or topUpAmount by a platform
          * @param {json} data - data contains platformId

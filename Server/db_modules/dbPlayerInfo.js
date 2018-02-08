@@ -7615,7 +7615,7 @@ let dbPlayerInfo = {
     /* 
      * Get active player count 
      */
-    countActivePlayerbyPlatform: function (platformId, startDate, endDate, period) {
+    countActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isFilterValidPlayer) {
         // var options = {};
         // options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
         //
@@ -7638,7 +7638,7 @@ let dbPlayerInfo = {
         //     }
         // ).exec();
         let result = {};
-        return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).then(
+        return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).lean().then(
             (partnerLevelConfig) => {
                 if (!partnerLevelConfig) Q.reject({name: "DataError", errorMessage: "partnerLevelConfig no found"});
 
@@ -7685,59 +7685,60 @@ let dbPlayerInfo = {
                 }
 
                 let chain = Promise.resolve();
-
-                    let start = dayStartTime;
-                    let end = endDate;
-                    while (start.getTime() <= end.getTime()) {
-                        let dayStartTime = start;
-                        let dayEndTime = getNextDateByPeriodAndDate(period, dayStartTime);
-                        result[dayStartTime] = 0;
-                        chain = chain.then(
-                            () => {
-                                let stream = dbconfig[topupCollectionName].aggregate([
+                let start = dayStartTime;
+                let end = endDate;
+                while (start.getTime() <= end.getTime()) {
+                    let dayStartTime = start;
+                    let dayEndTime = getNextDateByPeriodAndDate(period, dayStartTime);
+                    result[dayStartTime] = 0;
+                    chain = chain.then(
+                        () => {
+                            let stream = dbconfig[topupCollectionName].aggregate([
+                                {
+                                    $match: {
+                                        date: {$gte: dayStartTime, $lt: dayEndTime},
+                                        platformId: platformId,
+                                    }
+                                },
+                                {
+                                    $group: {
+                                        _id: "$playerId",
+                                        "amount": {"$sum": '$amount'},
+                                        "times": {"$sum": '$times'}
+                                    }
+                                }
+                            ]).read("secondaryPreferred").cursor({batchSize: constSystemParam.BATCH_SIZE}).allowDiskUse(true).exec();
+                            let balancer = new SettlementBalancer();
+                            return balancer.initConns().then(function () {
+                                return balancer.processStream(
                                     {
-                                        $match: {
-                                            date: {$gte: dayStartTime, $lt: dayEndTime},
-                                            platformId: platformId,
-                                        }
-                                    },
-                                    {
-                                        $group: {
-                                            _id: "$playerId",
-                                            "amount": {"$sum": '$amount'},
-                                            "times": {"$sum": '$times'}
+                                        stream: stream,
+                                        batchSize: constSystemParam.BATCH_SIZE,
+                                        makeRequest: function (playerObjs, request) {
+                                            request("player", "getConsumptionActivePlayerAfterTopupQueryMatch", {
+                                                platformId: platformId,
+                                                dayStartTime: dayStartTime,
+                                                dayEndTime: dayEndTime,
+                                                activePlayerConsumptionTimes: activePlayerConsumptionTimes,
+                                                activePlayerValue: activePlayerValue,
+                                                partnerLevelConfig: partnerLevelConfig,
+                                                consumptionCollectionName: consumptionCollectionName,
+                                                isFilterValidPlayer: isFilterValidPlayer,
+                                                playerObjs: playerObjs
+                                                    .filter(player => player.amount >= activePlayerTopUpAmount && player.times >= activePlayerTopUpTimes)
+                                            });
+                                        },
+                                        processResponse: function (response) {
+                                            result[dayStartTime] = result[dayStartTime] ? result[dayStartTime] + response.data : response.data;
                                         }
                                     }
-                                ]).read("secondaryPreferred").cursor({batchSize: constSystemParam.BATCH_SIZE}).allowDiskUse(true).exec();
-                                let balancer = new SettlementBalancer();
-                                return balancer.initConns().then(function () {
-                                    return balancer.processStream(
-                                        {
-                                            stream: stream,
-                                            batchSize: constSystemParam.BATCH_SIZE,
-                                            makeRequest: function (playerObjs, request) {
-                                                request("player", "getConsumptionActivePlayerAfterTopupQueryMatch", {
-                                                    platformId: platformId,
-                                                    dayStartTime: dayStartTime,
-                                                    dayEndTime: dayEndTime,
-                                                    activePlayerConsumptionTimes: activePlayerConsumptionTimes,
-                                                    activePlayerValue: activePlayerValue,
-                                                    consumptionCollectionName: consumptionCollectionName,
-                                                    playerObjs: playerObjs
-                                                        .filter(player => player.amount >= activePlayerTopUpAmount && player.times >= activePlayerTopUpTimes)
-                                                });
-                                            },
-                                            processResponse: function (response) {
-                                                result[dayStartTime] = result[dayStartTime] ? result[dayStartTime] + response.data : response.data;
-                                            }
-                                        }
-                                    );
-                                });
-                        });
-                        start = dayEndTime;
-                    }
-                    return chain;
-
+                                );
+                            });
+                        }
+                    );
+                    start = dayEndTime;
+                }
+                return chain;
             }
         ).then(
             () => {
@@ -7746,7 +7747,11 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerValue, consumptionCollectionName, playerObjs) {
+    countValidActivePlayerbyPlatform: function (platformId, startDate, endDate, period) {
+        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true);
+    },
+
+    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs) {
         let matchObj = {
             playerId:{$in: playerObjs.map(player => ObjectId(player._id))},
             platformId: ObjectId(platformId),
@@ -7760,10 +7765,20 @@ let dbPlayerInfo = {
                 records = records.filter(records => records.times >= activePlayerConsumptionTimes);
                 return dbconfig.collection_players.populate(records, {path: '_id', model: dbconfig.collection_players}).then(
                     (records) => {
-                        return records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue).length;
+                        if(isFilterValidPlayer)
+                            return records.filter(records =>
+                                records._id &&
+                                records._id.valueScore !== undefined &&
+                                records._id.valueScore >= activePlayerValue &&
+                                records._id.valueScore >= partnerLevelConfig.validPlayerValue &&
+                                records._id.topUpTimes >= partnerLevelConfig.validPlayerTopUpTimes &&
+                                records._id.topUpSum >= partnerLevelConfig.validPlayerTopUpAmount &&
+                                records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes
+                            ).length;
+                        else
+                            return records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue).length;
                     }
                 )
-
             }
         );
     },
@@ -13571,7 +13586,7 @@ function getNextDateByPeriodAndDate (period, startDate) {
             break;
         case 'month':
             date = new Date(new Date(date.setMonth(date.getMonth() + 1)).setDate(1));
-            break
+            break;
         case 'season':
             date = new Date(new Date(date.setMonth(date.getMonth() + 3)).setDate(1));
             break
