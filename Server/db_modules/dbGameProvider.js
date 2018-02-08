@@ -260,19 +260,26 @@ var dbGameProvider = {
      get the list of game providers from the platform of a player
      @param {JSON} can be , _id or playerId
      */
-    getGameProvidersByPlayerAPI: function (query, bDetail) {
+    getGameProvidersByPlayerAPI: function (query, bDetail, platformId) {
         var deferred = Q.defer();
-        var providerList = [];
         let player;
 
-        dbconfig.collection_players.findOne(query).then(
-            function (data) {
-                var platformObjId = data.platform;
-                player = data;
-                return dbconfig.collection_platform.findOne({_id: platformObjId})
-                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider});
+        dbconfig.collection_players.findOne(query).lean().then(
+            playerData => {
+                let platformQ = {};
+
+                if (playerData) {
+                    player = playerData;
+                    platformQ["_id"] = playerData.platform;
+                } else {
+                    platformQ["platformId"] = platformId;
+                }
+
+                return dbconfig.collection_platform.findOne(platformQ)
+                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider})
+                    .lean();
             },
-            function (error) {
+            error => {
                 deferred.reject({
                     name: "DBError",
                     message: "Error in getting players. " + error.message,
@@ -280,25 +287,29 @@ var dbGameProvider = {
                     status: constServerCode.DB_ERROR
                 });
             }
-        ).then(function (data) {
+        ).then(
+            data => {
                 if (data) {
                     //update nick name and prefix for this platform
-                    for (var i = 0; i < data.gameProviders.length; i++) {
-                        var thisProvider = data.gameProviders[i];
-                        var thisProviderId = thisProvider._id;
-                        var gameProviderNickNameData = data.gameProviderInfo && data.gameProviderInfo[thisProviderId] || {};
+                    for (let i = 0; i < data.gameProviders.length; i++) {
+                        let thisProvider = data.gameProviders[i];
+                        let thisProviderId = thisProvider._id;
+                        let gameProviderNickNameData = data.gameProviderInfo && data.gameProviderInfo[thisProviderId] || {};
+
                         if (gameProviderNickNameData.localNickName) {
                             thisProvider.nickName = gameProviderNickNameData.localNickName;
                         }
+
                         if (gameProviderNickNameData.localPrefix) {
                             thisProvider.prefix = gameProviderNickNameData.localPrefix;
                         }
                     }
+
                     if (bDetail) {
                         deferred.resolve(data.gameProviders);
                     }
                     else {
-                        var providers = data.gameProviders.map(
+                        let providers = data.gameProviders.map(
                             (gameProvider) => {
                                 let gameProviderStatus = gameProvider.status;
                                 if (player && player.permission &&  player.permission.forbidPlayerFromEnteringGame) {
