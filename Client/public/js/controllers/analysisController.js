@@ -1762,7 +1762,7 @@ define(['js/app'], function (myApp) {
                 return b.data - a.data;
             })
 
-            vm.totalPlayerDomainRecord = pieData.reduce((a,b) => a + b.data,0);
+            vm.totalPlayerDomainRecord = pieData.reduce((a,b) => a + (b.data ? b.data : 0),0);
 
             pieData.map(p => {
                 if(p && p.data && vm.totalPlayerDomainRecord){
@@ -1951,7 +1951,7 @@ define(['js/app'], function (myApp) {
                 let averageNumber = 0;
                 vm.playerCreditData = data.data;
                 console.log('vm.playerCreditData', vm.playerCreditData);
-                averageNumber = ((data.data.reduce((a,b) => a + b.number,0)) / data.data.length).toFixed(2);
+                averageNumber = ((data.data.reduce((a,b) => a + (b.number ? b.number : 0),0)) / data.data.length).toFixed(2);
                 // $scope.safeApply();
                 return vm.drawPlayerCreditGraph(vm.playerCreditData, sendData, averageNumber);
             }, function (data) {
@@ -2105,7 +2105,7 @@ define(['js/app'], function (myApp) {
                 let averageNumber = 0;
                 vm.playerCreditData = data.data;
                 console.log('vm.playerCreditData', vm.playerCreditData);
-                averageNumber = ((data.data.reduce((a,b) => a + b.number,0)) / data.data.length).toFixed(2);
+                averageNumber = ((data.data.reduce((a,b) => a + (b.number ? b.number : 0),0)) / data.data.length).toFixed(2);
 
                 // $scope.safeApply();
                 return vm.drawPlayerCreditCountGraph(vm.playerCreditData, sendData, averageNumber);
@@ -2340,13 +2340,15 @@ define(['js/app'], function (myApp) {
         vm.getClientSourceData = function () {
             var sendObj = {};
             sendObj.accessType = vm.queryPara.clientSource.accessType;
-            sendObj.clientType = vm.queryPara.clientSource.clientType;
+            //sendObj.clientType = vm.queryPara.clientSource.clientType;
             sendObj.platformId = vm.selectedPlatform.platformId;
             sendObj.startDate = vm.queryPara.clientSource.startTime.data('datetimepicker').getLocalDate();
             sendObj.endDate = vm.queryPara.clientSource.endTime.data('datetimepicker').getLocalDate();
             socketService.$socket($scope.AppSocket, 'getClientSourceQuery', sendObj, function (data) {
                 console.log('data', data);
                 vm.clientSourceTblData = data.data || [];
+                vm.clientSourceTotalCount = data.data.reduce((a,b) => a + (b.count ? b.count : 0),0);
+                vm.clientSourceTblData.push({_id: $translate("Total"), count: vm.clientSourceTotalCount, ratio: "100%"})
                 vm.drawClientSourceTable(vm.clientSourceTblData);
                 vm.drawClientSourcePie(vm.clientSourceTblData);
             });
@@ -2356,7 +2358,7 @@ define(['js/app'], function (myApp) {
             var pieData = srcData.filter(function (obj) {
                 return (obj._id);
             }).map(function (obj) {
-                return {label: vm.setGraphName(obj._id), data: obj.count};
+                return {label: vm.setGraphNameWithoutCutString(obj._id), data: obj.count};
             }).sort(function (a, b) {
                 return b.data - a.data;
             })
@@ -2367,7 +2369,8 @@ define(['js/app'], function (myApp) {
                 data: tblData,
                 columns: [
                     {title: $translate("Domain Name"), data: "_id"},
-                    {title: $translate('amount'), data: "count"}
+                    {title: $translate('amount'), data: "count"},
+                    {title: $translate('ratio'), data: "ratio"}
                 ],
                 "paging": false
             });
