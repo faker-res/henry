@@ -8,6 +8,9 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
 
+        // For debugging:
+        window.VM = vm;
+
         vm.selectPlatform = function (id) {
             vm.operSelPlatform = false;
             vm.platformOverviewClass = 'btn-primary';
@@ -85,6 +88,7 @@ define(['js/app'], function (myApp) {
                         vm.plotLoginPlayerLine();
                         break;
                     case "ACTIVE_PLAYER":
+                        vm.platformActivePlayerAnalysisSort = {};
                         vm.initSearchParameter('activePlayer', 'day', 3);
                         vm.plotActivePlayerLine();
                         break;
@@ -493,9 +497,15 @@ define(['js/app'], function (myApp) {
                 case 'week':
                     date = new Date(date.setDate(date.getDate() + 7));
                     break;
+                case 'biweekly':
+                    date = new Date(date.setDate(date.getDate() + 15));
+                    break;
                 case 'month':
                     date = new Date(new Date(date.setMonth(date.getMonth() + 1)).setDate(1));
-
+                    break
+                case 'season':
+                    date = new Date(new Date(date.setMonth(date.getMonth() + 3)).setDate(1));
+                    break
             }
             return date;
         };
@@ -693,7 +703,7 @@ define(['js/app'], function (myApp) {
         vm.calculateLineDataAndAverage = (data, key, label) => {
             var graphData = [];
             let averageData = [];
-            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + Number.isInteger(item[key]) ? item[key] : item[key].length, 0) / data.length) : 0;
+            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + (Number.isInteger(item[key]) ? item[key] : item[key].length), 0) / data.length) : 0;
             data.map(item => {
                 graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key].length]);
                 averageData.push([new Date(item.date), average]);
@@ -754,74 +764,88 @@ define(['js/app'], function (myApp) {
 
         // active Player start= =========================================
         vm.plotActivePlayerLine = function () {
-            var placeholder = "#line-activePlayer";
+            let startDate = vm.queryPara.activePlayer.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.activePlayer.endTime.data('datetimepicker').getLocalDate();
+            //var placeholder = "#line-activePlayer";
             // var periodText = $('#analysisActivePlayer select').val();
             var sendData = {
                 platformId: vm.selectedPlatform._id,
-                startDate: vm.queryPara.activePlayer.startTime.data('datetimepicker').getLocalDate(),
-                endDate: vm.queryPara.activePlayer.endTime.data('datetimepicker').getLocalDate(),
+                period: vm.queryPara.activePlayer.periodText,
+                startDate: startDate,
+                endDate: endDate,
             };
             socketService.$socket($scope.AppSocket, 'countActivePlayerbyPlatform', sendData, function success(data1) {
-                console.log('received data', data1);
-                var activePlayerData = data1 ? data1.data : [];
-                var graphData = [];
-                activePlayerData.forEach(item => {
-                    graphData.push([new Date(item.date).getTime(), item.activePlayers]);
-                })
 
-                //draw graph
-                socketService.$plotLine(placeholder, [{
-                    label: $translate('Active Player'),
-                    data: graphData
-                }], {
-                    xaxis: {
-                        tickLength: 0,
-                        mode: "time",
-                        minTickSize: [1, "day"],
-                    }
+                // console.log('received data', data1);
+                // var activePlayerData = data1 ? data1.data : [];
+                // var graphData = [];
+                // activePlayerData.forEach(item => {
+                //     graphData.push([new Date(item.date).getTime(), item.activePlayers]);
+                // })
+                //
+                // //draw graph
+                // socketService.$plotLine(placeholder, [{
+                //     label: $translate('Active Player'),
+                //     data: graphData
+                // }], {
+                //     xaxis: {
+                //         tickLength: 0,
+                //         mode: "time",
+                //         minTickSize: [1, "day"],
+                //     }
+                // });
+                // $(placeholder).bind("plothover", function (event, pos, obj) {
+                //     var previousPoint;
+                //     if (!obj) {
+                //         $("#tooltip").hide();
+                //         previousPoint = null;
+                //         return;
+                //     } else {
+                //         if (previousPoint != obj.dataIndex) {
+                //             previousPoint = obj.dataIndex;
+                //
+                //             var x = obj.datapoint[0],
+                //                 y = obj.datapoint[1].toFixed(0);
+                //
+                //             var date = new Date(x);
+                //             var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+                //             // console.log('date', x, date);
+                //             $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')("Day") + " : " + dateString)
+                //                 .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                //                 .fadeIn(200);
+                //         }
+                //     }
+                // });
+                // //draw table
+                //
+                // var tableData = [];
+                // for (var i in graphData) {
+                //     var obj = {};
+                //     obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
+                //     obj.amount = graphData[i][1] || 0;
+                //     tableData.push(obj);
+                // }
+                // var dataOptions = {
+                //     data: tableData,
+                //     columns: [
+                //         {title: $translate(vm.queryPara.activePlayer.periodText), data: "date"},
+                //         {title: $translate('amount'), data: "amount"}
+                //     ],
+                //     "paging": false,
+                // };
+                // dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+                // var a = $('#activePlayerAnalysisTable').DataTable(dataOptions);
+                // a.columns.adjust().draw();
+                vm.platformActivePlayerDataPeriodText = vm.queryPara.activePlayer.periodText;
+                vm.platformActivePlayerAnalysisData = [];
+                Object.keys(data1.data).forEach(function(key) {
+                    vm.platformActivePlayerAnalysisData.push({date: new Date(key), number: data1.data[key]});
                 });
-                $(placeholder).bind("plothover", function (event, pos, obj) {
-                    var previousPoint;
-                    if (!obj) {
-                        $("#tooltip").hide();
-                        previousPoint = null;
-                        return;
-                    } else {
-                        if (previousPoint != obj.dataIndex) {
-                            previousPoint = obj.dataIndex;
-
-                            var x = obj.datapoint[0],
-                                y = obj.datapoint[1].toFixed(0);
-
-                            var date = new Date(x);
-                            var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                            // console.log('date', x, date);
-                            $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')("Day") + " : " + dateString)
-                                .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                                .fadeIn(200);
-                        }
-                    }
-                });
-                //draw table
-
-                var tableData = [];
-                for (var i in graphData) {
-                    var obj = {};
-                    obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
-                    obj.amount = graphData[i][1] || 0;
-                    tableData.push(obj);
-                }
-                var dataOptions = {
-                    data: tableData,
-                    columns: [
-                        {title: $translate(vm.queryPara.activePlayer.periodText), data: "date"},
-                        {title: $translate('amount'), data: "amount"}
-                    ],
-                    "paging": false,
-                };
-                dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-                var a = $('#activePlayerAnalysisTable').DataTable(dataOptions);
-                a.columns.adjust().draw();
+                console.log('vm.platformActivePlayerAnalysisData', vm.platformActivePlayerAnalysisData);
+                let calculatedActivePlayerData = vm.calculateLineDataAndAverage(vm.platformActivePlayerAnalysisData, 'number', 'Active Player');
+                vm.platformActivePlayerAverage = calculatedActivePlayerData.average;
+                vm.plotLineByElementId("#line-activePlayer", calculatedActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
+                $scope.safeApply();
             });
         }
         // active Player end= =========================================
@@ -981,7 +1005,7 @@ define(['js/app'], function (myApp) {
                     item.date = item._id.date;
                     return item;
                 });
-                let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerAnalysisData, 'number', 'Valid Player');
+                let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerAnalysisData, 'number', 'Login Player');
                 vm.platformLoginPlayerAverage = calculatedLoginPlayerData.average;
                 vm.plotLineByElementId("#line-loginPlayer", calculatedLoginPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
                 $scope.safeApply();

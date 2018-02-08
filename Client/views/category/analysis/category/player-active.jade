@@ -12,6 +12,14 @@
     #activePlayerAnalysis
         .col-md-12.block-query.well(style='margin-bottom:3px;')
             div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.activePlayer.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='biweekly') {{"HALF_MONTH"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+                    option(value='season') {{"season"|translate}}
+            div
                 label {{"Start date"|translate}}
                 .startTime
             div
@@ -33,6 +41,23 @@
                         #line-activePlayer.lineChart.graphDiv
             .col-md-6
                 .graph
-                    table#activePlayerAnalysisTable.display.tableDiv(style='min-width:100%')
+                    //table#activePlayerAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformActivePlayerAnalysisSort.activePlayerSort = vm.platformActivePlayerAnalysisSort.activePlayerSort == "date" ? "-date":"date"') {{ vm.platformLoginPlayerDataPeriodText | translate}}
+                                th(ng-click='vm.platformActivePlayerAnalysisSort.activePlayerSort = vm.platformActivePlayerAnalysisSort.activePlayerSort == "number" ? "-number":"number"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformActivePlayerAnalysisData | orderBy: vm.platformLoginPlayerAnalysisSort.activePlayerSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.number }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformActivePlayerAverage }}
+
 
 p(ng-init="vm.loadPageFunc('ACTIVE_PLAYER')")
