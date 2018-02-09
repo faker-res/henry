@@ -23,6 +23,11 @@
             div
                 label {{"End date"|translate}}
                 .endTime
+            div
+                label {{'Game Type' | translate}}
+                select.form-control(ng-model='vm.queryPara.playerCredit.filterGameProvider')
+                    option(value='all') {{'ALL' | translate}}
+                    option(ng-repeat='(i,v) in vm.allGameProvider', value='{{v._id}}') {{v.name}}
             //div
             //    label {{"Start date"|translate}}
             //    input.form-control(type='date', ng-model='vm.queryPara.playerCredit.startTime')
@@ -31,7 +36,8 @@
             //    input.form-control(type='date', ng-model='vm.queryPara.playerCredit.endTime')
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.drawPlayerCreditLine(vm.showPageName); vm.drawPlayerCreditCountLine(vm.showPageName);') {{'SEARCH' | translate}}
+                //button.btn.btn-primary.common-button(ng-click='vm.drawPlayerCreditLine(vm.showPageName)') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.plotPlayerCreditLine(vm.showPageName)') {{'SEARCH' | translate}}
         .row
             .col-md-6
                 .graph
@@ -39,7 +45,23 @@
                         #line-playerCredit.lineChart.graphDiv
             .col-md-6
                 .graph
-                    table#playerCreditAnalysisTable.display.tableDiv(style='min-width:100%')
+                    //table#playerCreditAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformConsumptionAnalysisSort.consumptionSort = vm.platformConsumptionAnalysisSort.consumptionSort == "date" ? "-date":"date"') {{ vm.platformConsumptionDataPeriodText | translate}}
+                                th(ng-click='vm.platformConsumptionAnalysisSort.consumptionSort = vm.platformConsumptionAnalysisSort.consumptionSort == "consumptions.validAmount" ? "-consumptions.validAmount":"consumptions.validAmount"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformConsumptionAnalysisAmount | orderBy: vm.platformConsumptionAnalysisSort.consumptionSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.consumptions }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformConsumptionAmountAverage }}
 
     #playerCreditCountAnalysis
         .row
