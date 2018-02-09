@@ -50,7 +50,7 @@
                         thead
                             tr
                                 th(ng-click='vm.platformConsumptionAnalysisSort.consumptionSort = vm.platformConsumptionAnalysisSort.consumptionSort == "date" ? "-date":"date"') {{ vm.platformConsumptionDataPeriodText | translate}}
-                                th(ng-click='vm.platformConsumptionAnalysisSort.consumptionSort = vm.platformConsumptionAnalysisSort.consumptionSort == "consumptions.validAmount" ? "-consumptions.validAmount":"consumptions.validAmount"') {{ "amount" | translate}}
+                                th(ng-click='vm.platformConsumptionAnalysisSort.consumptionSort = vm.platformConsumptionAnalysisSort.consumptionSort == "consumptions" ? "-consumptions":"consumptions"') {{ "amount" | translate}}
                         tbody
                             tr(ng-repeat='(i, v) in vm.platformConsumptionAnalysisAmount | orderBy: vm.platformConsumptionAnalysisSort.consumptionSort')
                                 td
