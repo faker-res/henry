@@ -63,7 +63,7 @@
                                 td
                                     span {{ vm.platformConsumptionAmountAverage }}
 
-    #playerCreditCountAnalysis
+    #playerCreditCountAnalysis(ng-if='vm.showPageName == "PLAYER_TOPUP"')
         .row
             .col-md-6
                 .graph
