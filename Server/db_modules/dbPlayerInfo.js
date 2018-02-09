@@ -461,6 +461,15 @@ let dbPlayerInfo = {
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
+
+                            if (filteredDomain.indexOf("?") != -1) {
+                                filteredDomain = filteredDomain.split("?")[0];
+                            }
+
+                            if (filteredDomain.indexOf("#") != -1) {
+                                filteredDomain = filteredDomain.split("#")[0];
+                            }
+
                             inputData.domain = filteredDomain;
 
                             if (!inputData.partnerId) {
@@ -7542,6 +7551,16 @@ let dbPlayerInfo = {
                 })
             }
         )
+    },
+    countConsumptionByPlatform: function (platformId, startDate, endDate, period, type, providerId) {
+        let query = {date: {$gte: new Date(startDate), $lt: new Date(endDate)}};
+        if (platformId != 'all') {
+            query.platformId = platformId;
+        }
+        if (providerId != 'all') {
+            query.providerId = providerId;
+        }
+        return dbconfig.collection_providerDaySummary.find(query);
     },
     countTopUpORConsumptionByPlatform: function (platformId, startDate, endDate, period, type) {
         // var options = {};
