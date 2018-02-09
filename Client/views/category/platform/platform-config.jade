@@ -741,17 +741,17 @@
                             tr
                                 th(width="40%") {{'Provider Delay Duration' | translate}}
                                 th(width="40%") {{'COLOR_CODE' | translate}}
-                                th(width="20%") {{'INLINE_EDIT' | translate}}
+                                th(width="20%" ng-if="checkViewPermission('Platform', 'Config', 'platformBasic')") {{'INLINE_EDIT' | translate}}
                         tbody
                             // before edit enabled
                             tr(ng-repeat='config in vm.durationGroupConfig', ng-if='!vm.delayDurationGroupInlineEdit')
                                 td(style="background-color:{{config.color}}", ng-click="vm.selectedDelayDurationGroup=config;") {{config.duration}}
                                 td(style="background-color:{{config.color}}") {{config.color}}
-                                td(style="background-color:{{config.color}}")
-                                    button.btn.btn-primary.common-button(ng-click="vm.delayDurationGroupInlineEdit=true")
+                                td(style="background-color:{{config.color}}" ng-if="checkViewPermission('Platform', 'Config', 'platformBasic')")
+                                    button.btn.btn-primary.common-button(ng-click="vm.delayDurationGroupInlineEdit=true" ng-if="checkViewPermission('Platform', 'Config', 'platformBasic')")
                                         i.fa.fa-pencil-square-o
                                         text {{'EDIT' | translate}}
-                                    button.btn.btn-danger.common-button(ng-click=" vm.durationGroupConfig.splice($index, 1);vm.saveDelayDurationGroup();")
+                                    button.btn.btn-danger.common-button(ng-click=" vm.durationGroupConfig.splice($index, 1);vm.saveDelayDurationGroup();" ng-if="checkViewPermission('Platform', 'Config', 'platformBasic')")
                                         i.fa.fa-trash
                                         text {{'DELETE' | translate}}
                             // after edit enabled
