@@ -2178,18 +2178,11 @@ define(['js/app'], function (myApp) {
         }
 
         vm.drawPlayerCreditCountLine = function (type) {
-            var opt = '';
-            // if (type == 'PLAYER_EXPENSES') {
-            //     opt = 'consumption';
-            // } else if (type == 'PLAYER_TOPUP') {
-            //     opt = 'topup';
-            // }
             if (type == 'PLAYER_TOPUP') {
-                opt = 'topup';
                 var sendData = {
                     platformId: vm.selectedPlatform._id,
                     period: vm.queryPara.playerCredit.periodText,
-                    type: opt,
+                    type: 'topup',
                     startDate: vm.queryPara.playerCredit.startTime.data('datetimepicker').getLocalDate(),
                     endDate: vm.queryPara.playerCredit.endTime.data('datetimepicker').getLocalDate(),
                 }
