@@ -192,6 +192,7 @@ define(['js/app'], function (myApp) {
                     case "PLAYER_EXPENSES":
                         vm.platformConsumptionAnalysisSort = {};
                         vm.initSearchParameter('playerCredit', 'day', 3, function () {
+                            vm.queryPara.playerCredit.filterGameProvider = 'all';
                             //vm.drawPlayerCreditLine('PLAYER_EXPENSES');
                             vm.plotPlayerCreditLine('PLAYER_EXPENSES');
                         });
@@ -544,7 +545,7 @@ define(['js/app'], function (myApp) {
                 vm.platformNewPlayerData = data1.data;
                 vm.platformNewPlayerAnalysisData = [];
                 for(let i = 0; i<periodDateData.length; i++){
-                    let newPlayerWithinPeriod = vm.platformNewPlayerData.filter(player => new Date(player.registrationTime).getTime() > periodDateData[i].getTime() && new Date(player.registrationTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.newPlayer.periodText, periodDateData[i]));
+                    let newPlayerWithinPeriod = vm.platformNewPlayerData.filter(player => new Date(player.registrationTime).getTime() >= periodDateData[i].getTime() && new Date(player.registrationTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.newPlayer.periodText, periodDateData[i]));
                     vm.platformNewPlayerAnalysisData.push({
                         date: periodDateData[i],
                         players: newPlayerWithinPeriod,
@@ -1969,7 +1970,6 @@ define(['js/app'], function (myApp) {
         //player credit start ====================================================
         vm.plotPlayerCreditLine = function (type) {
             // var placeholder = "#line-playerCredit";
-            vm.queryPara.playerCredit.filterGameProvider = 'all';
             let opt = '';
             if (type == 'PLAYER_EXPENSES') {
                 opt = 'consumption';
@@ -1985,39 +1985,38 @@ define(['js/app'], function (myApp) {
                 endDate: endDate,
             };
             socketService.$socket($scope.AppSocket, 'countConsumptionByPlatform', sendData, function (data) {
-                let periodDateData = [];
-                while (startDate.getTime() <= endDate.getTime()) {
-                    let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.playerCredit.periodText, startDate);
-                    periodDateData.push(startDate);
-                    startDate = dayEndTime;
-                }
-                vm.platformConsumptionData = data.data;
-                vm.platformConsumptionAnalysisData = [];
-                for(let i = 0; i < periodDateData.length; i++){
-                    let consumptionWithinPeriod = vm.platformConsumptionData.filter(consumption =>
-                        new Date(consumption.date).getTime() > periodDateData[i].getTime() && new Date(consumption.date).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.playerCredit.periodText, periodDateData[i]));
-                    vm.platformConsumptionAnalysisData.push({
-                        date: periodDateData[i],
-                        consumptions: consumptionWithinPeriod});
-                }
-                vm.platformConsumptionDataPeriodText = vm.queryPara.playerCredit.periodText;
-                console.log('vm.platformConsumptionAnalysisData', vm.platformConsumptionAnalysisData);
+                $scope.$evalAsync(() => {
+                    let periodDateData = [];
+                    while (startDate.getTime() <= endDate.getTime()) {
+                        let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.playerCredit.periodText, startDate);
+                        periodDateData.push(startDate);
+                        startDate = dayEndTime;
+                    }
+                    vm.platformConsumptionData = data.data;
+                    vm.platformConsumptionAnalysisData = [];
+                    for (let i = 0; i < periodDateData.length; i++) {
+                        let consumptionWithinPeriod = vm.platformConsumptionData.filter(consumption => new Date(consumption.date).getTime() >= periodDateData[i].getTime() && new Date(consumption.date).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.playerCredit.periodText, periodDateData[i]));
+                        vm.platformConsumptionAnalysisData.push({
+                            date: periodDateData[i],
+                            consumptions: consumptionWithinPeriod});
+                    }
+                    vm.platformConsumptionDataPeriodText = vm.queryPara.playerCredit.periodText;
+                    console.log('vm.platformConsumptionAnalysisData', vm.platformConsumptionAnalysisData);
 
-                vm.platformConsumptionAnalysisAmount = [];
-                vm.platformConsumptionAnalysisData.forEach(item => {
-                    console.log('item',item);
-                    let totalConsumptionAmount = item.consumptions.reduce((a, b) => a + (b.validAmount ? b.validAmount : 0), 0);
-                    vm.platformConsumptionAnalysisAmount.push({
-                        date: item.date,
-                        consumptions: totalConsumptionAmount
+                    vm.platformConsumptionAnalysisAmount = [];
+                    vm.platformConsumptionAnalysisData.forEach(item => {
+                        let totalConsumptionAmount = item.consumptions.length > 0 ? item.consumptions.reduce((a, b) => a + (b.validAmount ? b.validAmount : 0), 0) : 0;
+                        vm.platformConsumptionAnalysisAmount.push({
+                            date: item.date,
+                            consumptions: totalConsumptionAmount
+                        });
                     });
+
+                    let calculatedConsumptionData = vm.calculateLineDataAndAverage(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
+                    vm.platformConsumptionAmountAverage = calculatedConsumptionData.average;
+                    vm.plotLineByElementId("#line-playerCredit", calculatedConsumptionData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
+
                 });
-
-                let calculatedConsumptionData = vm.calculateLineDataAndAverage(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
-                vm.platformConsumptionAmountAverage = calculatedConsumptionData.average;
-                vm.plotLineByElementId("#line-playerCredit", calculatedConsumptionData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
-
-                $scope.safeApply();
             });
 
         };
