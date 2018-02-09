@@ -7,6 +7,15 @@ define(['js/app'], function (myApp) {
     var analysisController = function ($scope, $filter, $location, $log, authService, socketService, CONFIG, utilService, $timeout) {
         var $translate = $filter('translate');
         var vm = this;
+        // For debugging:
+        window.VM = vm;
+
+        vm.allNewPlayerType = {
+            1: "allNewRegistrationCount",
+            2: "rechargedPlayer",
+            3: "multipleTopUpPlayer",
+            4: "Valid Player"
+        };
 
         vm.selectPlatform = function (id) {
             vm.operSelPlatform = false;
@@ -169,6 +178,7 @@ define(['js/app'], function (myApp) {
                     case "PLAYER_RETENTION":
                         vm.initSearchParameter('playerRetention', null, 2, function () {
                             vm.queryPara.playerRetention.days = [1, 4, 8, 10, 15, 24, 30];
+                            vm.queryPara.playerRetention.playerType = "1"; //set default value
                             vm.dayListLength = [];
                             for (var i = 1; i < 31; i++) {
                                 vm.dayListLength.push(i);
@@ -1694,9 +1704,12 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 platform: vm.selectedPlatform._id,
                 days: vm.queryPara.playerRetention.days,
-                startTime: vm.queryPara.playerRetention.startTime
+                startTime: vm.queryPara.playerRetention.startTime,
+                playerType: vm.queryPara.playerRetention.playerType
             }
+            console.log("walaosend",sendData)
             socketService.$socket($scope.AppSocket, 'getPlayerRetention', sendData, function (data) {
+                console.log("retention data", data);
                 vm.retentionData = data.data;
                 $scope.safeApply();
                 vm.drawRetentionGraph();

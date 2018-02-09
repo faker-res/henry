@@ -293,7 +293,7 @@
   "REWARD_ANALYSIS": "优惠分析",
   "PLAYER_ANALYSIS": "玩家分析",
   "PLAYER_DEVICE_ANALYSIS": "玩家设备",
-  "PLAYER_RETENTION": "留存率",
+  "PLAYER_RETENTION": "新开户留存率",
   "GAME_ANALYSIS": "游戏分析",
   "UPDATE_PROPOSALTYPE": "更新型的建议",
   "Refresh": "刷新",
@@ -3229,6 +3229,11 @@
   "average value": "平均值",
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
   "LoginPlayer": "登入玩家",
-  "OR": "或"
+  "OR": "或",
+  "multipleTopUpPlayer": "多次充值玩家",
+  "rechargedPlayer": "已充值玩家",
+  "allNewRegistrationCount": "总开户数（全部）",
+  "newRegistrationType": "新开户类型"
+
 
 }

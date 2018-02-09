@@ -255,7 +255,7 @@ var dbPlayerLoginRecord = {
      * getPlayerRetention
      * @param {String}  platform, country
      */
-    getPlayerRetention: function (platform, startTime, days) {
+    getPlayerRetention: function (platform, startTime, days, playerType) {
         var day0PlayerObj = {};
         var dayNPlayerObj = {};
         var day0PlayerArrayProm = [];
@@ -264,66 +264,51 @@ var dbPlayerLoginRecord = {
         time1.setHours(23, 59, 59, 999);
         var lastDay = new Date(time1);
         lastDay.setDate(lastDay.getDate() + 30 + days[days.length - 1]);
+        let playerFilter = {};
+        let validPlayerProm = Promise.resolve(false);
+        if (playerType) {
+            switch(playerType) {
+                case "2":
+                    playerFilter = {topUpTimes: {$gte: 1}};
+                    break;
+                case "3":
+                    playerFilter = {topUpTimes: {$gte: 2}};
+                    break;
+                case "4":
+                    validPlayerProm = dbconfig.collection_partnerLevelConfig.findOne({platform:platform}).lean();
+                    break;
+                default:
+                    break;
+            }
+        }
 
-        for (var day = 0; day < 31; day++) {
-
-            var temp = dbconfig.collection_players.aggregate(
-                [{
-                    $match: {
+        return validPlayerProm.then(
+            validPlayerProm => {
+                if (validPlayerProm && playerType == "4" && validPlayerProm.hasOwnProperty("validPlayerTopUpAmount") &&
+                    validPlayerProm.hasOwnProperty("validPlayerConsumptionTimes") && validPlayerProm.hasOwnProperty("validPlayerTopUpTimes")) {
+                    playerFilter = {
+                        topUpSum: {$gte: validPlayerProm.validPlayerTopUpAmount},
+                        consumptionSum: {$gte: validPlayerProm.validPlayerConsumptionTimes},
+                        topUpTimes: {$gte: validPlayerProm.validPlayerTopUpTimes}
+                    }
+                }
+                for (var day = 0; day < 31; day++) {
+                    let queryObj = {
                         platform: platform,
                         registrationTime: {
                             $gte: new Date(time0),
                             $lt: new Date(time1)
                         }
-                    },
-                }, {
-                    $group: {
-                        _id: {
-                            playerId: "$_id",
-                        }
-                    }
-                }, {
-                    $group: {
-                        _id: time0.toString(),
-                        playerId: {
-                            "$addToSet": "$_id.playerId"
-                        }
-                    }
-                }]
-            ).exec();
-            day0PlayerArrayProm.push(temp);
-            time0.setDate(time0.getDate() + 1);
-            time1.setDate(time1.getDate() + 1);
+                    };
+                    queryObj = Object.assign({}, queryObj, playerFilter);
 
-        }
-        return Q.all(day0PlayerArrayProm).then(
-            data => {
-                //containing new player data on each 'day 0'
-                for (var i in data) {
-                    if (data[i].length > 0) {
-                        day0PlayerObj[data[i][0]._id] = data[i][0].playerId
-                            .map(a => a.toString())
-                            .sort((a, b) => a < b ? -1 : 1);
-                    }
-                }
-                var time0 = new Date(startTime);
-                var time1 = new Date(startTime);
-                time1.setHours(23, 59, 59, 999);
-                var loginDataArrayProm = [];
-                for (var day = 0; day < 31 + days[days.length - 1]; day++) {
-                    var temp = dbconfig.collection_playerLoginRecord.aggregate(
+                    var temp = dbconfig.collection_players.aggregate(
                         [{
-                            $match: {
-                                platform: platform,
-                                loginTime: {
-                                    $gte: new Date(time0),
-                                    $lt: new Date(time1)
-                                }
-                            },
+                            $match: queryObj
                         }, {
                             $group: {
                                 _id: {
-                                    playerId: "$player",
+                                    playerId: "$_id",
                                 }
                             }
                         }, {
@@ -335,59 +320,104 @@ var dbPlayerLoginRecord = {
                             }
                         }]
                     ).exec();
-                    loginDataArrayProm.push(temp);
+                    day0PlayerArrayProm.push(temp);
                     time0.setDate(time0.getDate() + 1);
                     time1.setDate(time1.getDate() + 1);
+
                 }
-                return Q.all(loginDataArrayProm).then(
+                return Q.all(day0PlayerArrayProm).then(
                     data => {
+                        //containing new player data on each 'day 0'
                         for (var i in data) {
                             if (data[i].length > 0) {
-                                dayNPlayerObj[data[i][0]._id] = data[i][0].playerId
+                                day0PlayerObj[data[i][0]._id] = data[i][0].playerId
                                     .map(a => a.toString())
                                     .sort((a, b) => a < b ? -1 : 1);
                             }
                         }
-                        // console.log('dayNPlayerObj', dayNPlayerObj);
-                        //now computing result array
-                        var resultArr = [];
-                        for (var i = 1; i < 31; i++) {
-                            var date = new Date(startTime);
-                            date.setDate(date.getDate() + i - 1);
-                            var showDate = new Date(startTime);
-                            showDate.setDate(showDate.getDate() + i);
-                            var row = {date: showDate};
-                            var baseArr = [];
-
-                            if (day0PlayerObj[date]) {
-                                row.day0 = day0PlayerObj[date].length;
-                                baseArr = day0PlayerObj[date];
-                            } else {
-                                row.day0 = 0;
-                            }
-                            for (var day in days) {
-                                var time = new Date(date);
-                                time.setDate(time.getDate() + days[day]);
-                                var num = dayNPlayerObj[time];
-                                if (!num || (row.day0 == 0)) {
-                                    row[days[day]] = 0;
-                                } else {
-                                    var count = 0;
-                                    for (var e in num) {
-                                        if (baseArr.indexOf(num[e]) != -1) {
-                                            count++;
+                        var time0 = new Date(startTime);
+                        var time1 = new Date(startTime);
+                        time1.setHours(23, 59, 59, 999);
+                        var loginDataArrayProm = [];
+                        for (var day = 0; day < 31 + days[days.length - 1]; day++) {
+                            var temp = dbconfig.collection_playerLoginRecord.aggregate(
+                                [{
+                                    $match: {
+                                        platform: platform,
+                                        loginTime: {
+                                            $gte: new Date(time0),
+                                            $lt: new Date(time1)
+                                        }
+                                    },
+                                }, {
+                                    $group: {
+                                        _id: {
+                                            playerId: "$player",
                                         }
                                     }
-                                    row[days[day]] = count;
-                                }
-                            }
-                            resultArr.push(row);
+                                }, {
+                                    $group: {
+                                        _id: time0.toString(),
+                                        playerId: {
+                                            "$addToSet": "$_id.playerId"
+                                        }
+                                    }
+                                }]
+                            ).exec();
+                            loginDataArrayProm.push(temp);
+                            time0.setDate(time0.getDate() + 1);
+                            time1.setDate(time1.getDate() + 1);
                         }
-                        return resultArr;
+                        return Q.all(loginDataArrayProm).then(
+                            data => {
+                                for (var i in data) {
+                                    if (data[i].length > 0) {
+                                        dayNPlayerObj[data[i][0]._id] = data[i][0].playerId
+                                            .map(a => a.toString())
+                                            .sort((a, b) => a < b ? -1 : 1);
+                                    }
+                                }
+                                // console.log('dayNPlayerObj', dayNPlayerObj);
+                                //now computing result array
+                                var resultArr = [];
+                                for (var i = 1; i < 31; i++) {
+                                    var date = new Date(startTime);
+                                    date.setDate(date.getDate() + i - 1);
+                                    var showDate = new Date(startTime);
+                                    showDate.setDate(showDate.getDate() + i);
+                                    var row = {date: showDate};
+                                    var baseArr = [];
+
+                                    if (day0PlayerObj[date]) {
+                                        row.day0 = day0PlayerObj[date].length;
+                                        baseArr = day0PlayerObj[date];
+                                    } else {
+                                        row.day0 = 0;
+                                    }
+                                    for (var day in days) {
+                                        var time = new Date(date);
+                                        time.setDate(time.getDate() + days[day]);
+                                        var num = dayNPlayerObj[time];
+                                        if (!num || (row.day0 == 0)) {
+                                            row[days[day]] = 0;
+                                        } else {
+                                            var count = 0;
+                                            for (var e in num) {
+                                                if (baseArr.indexOf(num[e]) != -1) {
+                                                    count++;
+                                                }
+                                            }
+                                            row[days[day]] = count;
+                                        }
+                                    }
+                                    resultArr.push(row);
+                                }
+                                return resultArr;
+                            }
+                        );
                     }
-                );
-            }
-        )
+                )
+            });
     },
 
     getClientSourceQuery: function (data) {
