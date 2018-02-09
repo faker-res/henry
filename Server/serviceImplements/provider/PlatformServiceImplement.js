@@ -60,6 +60,11 @@ var PlatformServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.verifyUserPassword, [data.loginname, data.password], isValidData);
     };
 
+    this.verifyUserPasswordWithTransferIn.onRequest = function (wsFunc, conn, data) {
+      let isValidData = Boolean(data && data.loginname && data.password && data.platformId && data.providerId);
+      WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.verifyUserPasswordWithTransferIn, [data.loginname, data.password, data.platformId, data.providerId], isValidData);
+    };
+
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

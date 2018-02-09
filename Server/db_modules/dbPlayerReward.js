@@ -1932,7 +1932,7 @@ let dbPlayerReward = {
     },
 
     getTopUpPromoList: (playerId, clientType) => {
-        let topUpTypeData, aliPayLimitData, weChatPayAvailability;
+        let topUpTypeData, aliPayLimitData, weChatPayDetail;
 
         return new Promise(function (resolve, reject) {
             let topUpTypeDataProm = dbPlayerInfo.getOnlineTopupType(playerId, 1, clientType);
@@ -1944,7 +1944,7 @@ let dbPlayerReward = {
                 data => {
                     topUpTypeData = data[0];
                     aliPayLimitData = data[1];
-                    weChatPayAvailability = data[2];
+                    weChatPayDetail = data[2];
                     let playerData = data[3];
                     let rewardTypeData = data[4];
 
@@ -1965,7 +1965,8 @@ let dbPlayerReward = {
 
                     let weChatPayData = {
                         type: 98,
-                        status: weChatPayAvailability ? 1 : 2
+                        status: weChatPayDetail && weChatPayDetail.valid ? 1 : 2,
+                        maxDepositAmount: weChatPayDetail && weChatPayDetail.maxDepositAmount ? weChatPayDetail.maxDepositAmount : 0
                     };
                     topUpTypeData.push(weChatPayData);
 
@@ -2168,7 +2169,7 @@ let dbPlayerReward = {
                                         "type": Object(proposalType._id),
                                         "status": {$in: ["Success", "Approved"]},
                                         "settleTime": {
-                                            '$gte': moment().subtract(3, 'hours'),
+                                            '$gte': moment().subtract(3, 'days'),
                                             '$lte': new Date()
                                         }
                                     };
@@ -2176,7 +2177,7 @@ let dbPlayerReward = {
                                         {
                                             path: "type",
                                             model: dbConfig.collection_proposalType
-                                        }).sort({"createTime": -1}).limit(10).lean()
+                                        }).sort({"createTime": -1}).limit(20).lean()
 
                                 }
                             )
@@ -2536,7 +2537,7 @@ let dbPlayerReward = {
 
                     if (topUpProp.data.promoCode) {
                         return Q.reject({
-                            status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
                             message: "Topup has been used for other reward"
                         })

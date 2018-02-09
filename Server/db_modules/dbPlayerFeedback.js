@@ -5,6 +5,7 @@ var moment = require('moment-timezone');
 var constSystemParam = require('../const/constSystemParam');
 var mongoose = require('mongoose');
 var constPlayerFeedbackResult = require('./../const/constPlayerFeedbackResult');
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
 
 var dbPlayerFeedback = {
@@ -450,13 +451,33 @@ var dbPlayerFeedback = {
         if ("playerType" in query) {
             delete query.playerType;
         }
+        let playerResult;
         let player = dbconfig.collection_players.find(query).skip(index).limit(1)
             .populate({path: "partner", model: dbconfig.collection_partner})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
-        let count = dbconfig.collection_players.find(query).count();
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
+                player => {
+                    if(player && player.length > 0) {
+                        playerResult = player[0];
+                        return dbPlayerInfo.getConsumptionDetailOfPlayers(player[0].platform, player[0].registrationTime, new Date().toISOString(), {}, [player[0]._id]);
+                    }
+                    else {
+                        return null;
+                    }
+                }
+            ).then(
+                consumptionDetail => {
+                    if(consumptionDetail) {
+                        return Object.assign(playerResult, {consumptionDetail:consumptionDetail[0]});
+                    } else {
+                        return playerResult;
+                    }
+                }
+            );
+        let count = dbconfig.collection_players.count(query);
+
         return Q.all([player, count]).then(data => {
             return {
-                data: data[0] ? data[0][0] : {},
+                data: data[0] ? data[0] : {},
                 index: index,
                 total: data[1]
             }

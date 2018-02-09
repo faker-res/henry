@@ -534,10 +534,35 @@ function socketActionPlayer(socketIO, socket) {
         countActivePlayerbyPlatform: function countActivePlayerbyPlatform(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.countActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+        },
+
+        /**
+         * Get valid active player count
+         * @param {json} data - data contains _id
+         */
+        countValidActivePlayerbyPlatform: function countValidActivePlayerbyPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.countValidActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+        },
+
+        /**
+         * Get total count of consumptionAmount by a platform
+         * @param {json} data - data contains platformId
+         */
+        countConsumptionByPlatform: function countConsumptionByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && data.type && data.providerId);
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.countActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.countConsumptionByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.type, data.providerId == 'all' ? data.providerId : ObjectId(data.providerId)], actionName, isValidData);
         },
+
         /**
          * Get total count of consumptionAmount or topUpAmount by a platform
          * @param {json} data - data contains platformId
@@ -548,6 +573,14 @@ function socketActionPlayer(socketIO, socket) {
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.countTopUpORConsumptionByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.type], actionName, isValidData);
+        },
+
+        countTopUpORConsumptionCountByPlatform: function countTopUpORConsumptionCountByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && data.type);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.countTopUpORConsumptionCountByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.type], actionName, isValidData);
         },
 
         countTopUpORConsumptionAllPlatform: function countTopUpORConsumptionAllPlatform(data) {
@@ -670,8 +703,8 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerDeviceAnalysisData: function getPlayerDeviceAnalysisData(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.type);
-            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
-            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime], actionName, isValidData);
         },
         /**
