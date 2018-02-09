@@ -2145,7 +2145,7 @@ function updateRTG (oldData, newData) {
                     }
                 } else {
                     // All credit reflect on summary valid credit
-                    summAdjustNonXIMAAmt = incValidAmt;
+                    summAdjustXIMAAmt = incValidAmt;
                 }
 
                 // Update consumption summary upon updating consumption record
