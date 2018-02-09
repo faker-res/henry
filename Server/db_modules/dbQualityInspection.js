@@ -1623,6 +1623,47 @@ var dbQualityInspection = {
             return Q.reject({name: "DBError", message: error});
         });
     },
+    getProgressReportStatusByOperator: function (companyId, operatorId, startTime, endTime){
+
+        return dbconfig.collection_qualityInspection.aggregate([
+            {
+                $match: {
+                    companyId: {$in: companyId},
+                    "live800Acc.name": {$in: operatorId},
+                    createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                },
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "companyId": "$companyId",
+                        "operatorId": "$live800Acc.id",
+                        "operatorName": "$live800Acc.name",
+                        "status": "$status"
+                    },
+                    "count": {"$sum": 1},
+                }
+            }
+        ]).read("secondaryPreferred").then(data => {
+            let resultArr = [];
+            if(data && data.length > 0){
+                data.forEach(d => {
+                    if(d){
+                        resultArr.push({
+                            companyId: d._id.companyId,
+                            operatorId: d._id.operatorId,
+                            operatorName: d._id.operatorName,
+                            status: d._id.status,
+                            count: d.count
+                        });
+                    }
+                });
+                return resultArr;
+            }
+        }, error => {
+            return Q.reject({name: "DBError", message: error});
+        })
+    },
     getAllProgressReportStatusByOperator: function (startTime,endTime){
 
         return dbconfig.collection_qualityInspection.aggregate([
