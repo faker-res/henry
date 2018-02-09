@@ -1644,7 +1644,7 @@ var dbQualityInspection = {
                     "count": {"$sum": 1},
                 }
             }
-        ]).then(data => {
+        ]).read("secondaryPreferred").then(data => {
             let resultArr = [];
             if(data && data.length > 0){
                 data.forEach(d => {
