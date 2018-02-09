@@ -2169,7 +2169,7 @@ let dbPlayerReward = {
                                         "type": Object(proposalType._id),
                                         "status": {$in: ["Success", "Approved"]},
                                         "settleTime": {
-                                            '$gte': moment().subtract(3, 'hours'),
+                                            '$gte': moment().subtract(3, 'days'),
                                             '$lte': new Date()
                                         }
                                     };
@@ -2177,7 +2177,7 @@ let dbPlayerReward = {
                                         {
                                             path: "type",
                                             model: dbConfig.collection_proposalType
-                                        }).sort({"createTime": -1}).limit(10).lean()
+                                        }).sort({"createTime": -1}).limit(20).lean()
 
                                 }
                             )
