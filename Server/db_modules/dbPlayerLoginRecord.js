@@ -398,17 +398,47 @@ var dbPlayerLoginRecord = {
             },
             platformId: data.platformId
         };
-        if (data.clientType) {
-            matchObj.clientType = data.clientType
-        }
+        // if (data.clientType) {
+        //     matchObj.clientType = data.clientType
+        // }
         if (data.accessType) {
             matchObj.accessType = data.accessType
         }
-        return dbconfig.collection_playerClientSourceLog.aggregate([
+
+        let count = dbconfig.collection_playerClientSourceLog.aggregate([
+            {$match: matchObj},
+            {$group: {_id: null, count: {$sum: 1}}},
+        ]);
+
+        let playerClientSourceLog = dbconfig.collection_playerClientSourceLog.aggregate([
             {$match: matchObj},
             {$group: {_id: "$domain", count: {$sum: 1}}},
             {$sort: {count: -1}}
         ]);
+
+        return Promise.all([playerClientSourceLog, count]).then(
+            result => {
+                let totalCount = 0;
+                if(result){
+                    totalCount = result[1] && result[1][0] ? result[1][0].count : 0;
+                    data = result[0] ? result[0] : "";
+
+                    if(totalCount != 0){
+                        data.map(d => {
+                            if(d){
+                                if(d.count){
+                                    d.ratio = ((d.count / totalCount) * 100).toFixed(2);
+                                }
+                            }
+
+                            return;
+                        })
+                    }
+
+                    return data;
+                }
+            }
+        )
     },
 
     getPlayerDomainAnalysisData: function (platform, startTime, endTime) {

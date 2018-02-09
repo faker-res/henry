@@ -8821,7 +8821,10 @@ let dbPlayerInfo = {
             if (transferAmount && gameData && gameData.provider) {
                 //transfer in to current provider
                 if (bTransferIn) {
-                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).catch();
+                    return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).then(
+                        data => data,
+                        error => false
+                    );
                 }
                 else {
                     //allow player to login if player doesn't have enough credit
@@ -9664,7 +9667,7 @@ let dbPlayerInfo = {
                 let withdrawalQ = {
                     'data.platformId': player.platform._id,
                     'data.playerObjId': player._id,
-                    settleTime: {$gt: record.settlementTime},
+                    createTime: {$gt: record.createTime},
                     status: {$nin: [constProposalStatus.CANCEL, constProposalStatus.REJECTED, constProposalStatus.FAIL]}
                 };
 
@@ -9672,7 +9675,10 @@ let dbPlayerInfo = {
             }
         ).then(
             withdrawData => {
-                if (!withdrawData) {
+                let checkInputDevice = dbUtility.getInputDevice(userAgent,false);
+
+                // checkInputDevice 0 is BACKSTAGE, CS can still apply top up return from backstage
+                if (!withdrawData || checkInputDevice === 0) {
                     if (eventData.validStartTime && eventData.validEndTime) {
                         // TODO Temoporary hardcoding: Only can apply 1 time within period
                         return dbconfig.collection_proposalType.findOne({
