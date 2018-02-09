@@ -461,6 +461,15 @@ let dbPlayerInfo = {
                             while (filteredDomain.indexOf("/") != -1) {
                                 filteredDomain = filteredDomain.replace("/", "");
                             }
+
+                            if (filteredDomain.indexOf("?") != -1) {
+                                filteredDomain = filteredDomain.split("?")[0];
+                            }
+
+                            if (filteredDomain.indexOf("#") != -1) {
+                                filteredDomain = filteredDomain.split("#")[0];
+                            }
+
                             inputData.domain = filteredDomain;
 
                             if (!inputData.partnerId) {
