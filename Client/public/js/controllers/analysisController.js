@@ -1698,7 +1698,7 @@ define(['js/app'], function (myApp) {
         };
         vm.getPlayerRetention = function () {
             vm.retentionGraphData = [];
-            vm.showRetention = {};
+            vm.showRetention = {0: true};//set default
             vm.retentionCheckAll = false;
             vm.allRetentionLineData = [];
             var sendData = {
@@ -1707,10 +1707,30 @@ define(['js/app'], function (myApp) {
                 startTime: vm.queryPara.playerRetention.startTime,
                 playerType: vm.queryPara.playerRetention.playerType
             }
-            console.log("walaosend",sendData)
             socketService.$socket($scope.AppSocket, 'getPlayerRetention', sendData, function (data) {
                 console.log("retention data", data);
                 vm.retentionData = data.data;
+                let dataLength = vm.retentionData.length;
+                vm.averageRetention = {};
+                vm.retentionData.forEach(retentionData => {
+                    for (let key in retentionData) {
+                        if (retentionData[key] != "date") {
+                            if (vm.averageRetention[key]) {
+                                vm.averageRetention[key] += retentionData[key];
+                            } else {
+                                vm.averageRetention[key] = retentionData[key];
+                            }
+                        }
+                    }
+                });
+                for (let key in vm.averageRetention) {
+                    if (vm.averageRetention.hasOwnProperty(key)){
+                        vm.averageRetention[key] = (vm.averageRetention[key] / dataLength).toFixed(3);
+                    }
+                }
+                vm.averageRetention.date = $translate("average line");
+                vm.retentionData.splice(0,0,vm.averageRetention);
+
                 $scope.safeApply();
                 vm.drawRetentionGraph();
             }, function (data) {
