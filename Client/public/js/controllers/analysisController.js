@@ -2122,29 +2122,32 @@ define(['js/app'], function (myApp) {
 
         vm.drawPlayerCreditCountLine = function (type) {
             var opt = '';
-            if (type == 'PLAYER_EXPENSES') {
-                opt = 'consumption';
-            } else if (type == 'PLAYER_TOPUP') {
+            // if (type == 'PLAYER_EXPENSES') {
+            //     opt = 'consumption';
+            // } else if (type == 'PLAYER_TOPUP') {
+            //     opt = 'topup';
+            // }
+            if (type == 'PLAYER_TOPUP') {
                 opt = 'topup';
-            }
-            var sendData = {
-                platformId: vm.selectedPlatform._id,
-                period: vm.queryPara.playerCredit.periodText,
-                type: opt,
-                startDate: vm.queryPara.playerCredit.startTime.data('datetimepicker').getLocalDate(),
-                endDate: vm.queryPara.playerCredit.endTime.data('datetimepicker').getLocalDate(),
-            }
-            socketService.$socket($scope.AppSocket, 'countTopUpORConsumptionCountByPlatform', sendData, function (data) {
-                let averageNumber = 0;
-                vm.playerCreditData = data.data;
-                console.log('vm.playerCreditData', vm.playerCreditData);
-                averageNumber = ((data.data.reduce((a,b) => a + (b.number ? b.number : 0),0)) / data.data.length).toFixed(2);
+                var sendData = {
+                    platformId: vm.selectedPlatform._id,
+                    period: vm.queryPara.playerCredit.periodText,
+                    type: opt,
+                    startDate: vm.queryPara.playerCredit.startTime.data('datetimepicker').getLocalDate(),
+                    endDate: vm.queryPara.playerCredit.endTime.data('datetimepicker').getLocalDate(),
+                }
+                socketService.$socket($scope.AppSocket, 'countTopUpORConsumptionCountByPlatform', sendData, function (data) {
+                    let averageNumber = 0;
+                    vm.playerCreditData = data.data;
+                    console.log('vm.playerCreditData', vm.playerCreditData);
+                    averageNumber = ((data.data.reduce((a,b) => a + (b.number ? b.number : 0),0)) / data.data.length).toFixed(2);
 
-                // $scope.safeApply();
-                return vm.drawPlayerCreditCountGraph(vm.playerCreditData, sendData, averageNumber);
-            }, function (data) {
-                console.log("player credit data not", data);
-            });
+                    // $scope.safeApply();
+                    return vm.drawPlayerCreditCountGraph(vm.playerCreditData, sendData, averageNumber);
+                }, function (data) {
+                    console.log("player credit data not", data);
+                });
+            }
         }
 
         vm.drawPlayerCreditCountGraph = function (srcData, sendData, averageNumber) {
