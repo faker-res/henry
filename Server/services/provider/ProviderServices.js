@@ -206,7 +206,8 @@
                 "isUserExist",
                 "getConsumptionIncentivePlayer",
                 "getPlayerInfoByName",
-                "verifyUserPassword"
+                "verifyUserPassword",
+                "verifyUserPasswordWithTransferIn"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
