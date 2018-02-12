@@ -843,21 +843,6 @@ define(['js/app'], function (myApp) {
                 vm.platformList = [];
                 for (var i = 0; i < data.length; i++) {
 
-                    // update the unreadMailMaxDuration Setting if it is not found in the DB
-                    let id=data[i]._id;
-                    let query = {_id: data[i]._id, unreadMailMaxDuration: {$exists: true}};
-                    socketService.$socket($scope.AppSocket, 'getPlatformSetting', query, function (data) {
-                        if (data.data.length === 0) {
-                            let sendData = {
-                                query: {_id: id},
-                                updateData: {unreadMailMaxDuration: 1}
-                            };
-                            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                                vm.loadPlatformData({loadAll: false});
-                                $scope.safeApply();
-                            });
-                        }
-                    });
                     vm.platformList.push(vm.createPlatformNode(data[i]));
                 }
                 //var platformsToDisplay = vm.platformList;
