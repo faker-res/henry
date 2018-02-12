@@ -3242,8 +3242,20 @@
   "biweekly": "半月",
   "VALID_ACTIVE_PLAYER": "有效活跃玩家",
   "ValidActivePlayer": "有效活跃玩家",
-  "COUNT": "笔数"
-
+  "COUNT": "笔数",
+  "OnlineTopupSuccessRate": "在线充值（成功率）",
+  "ONLINE_TOPUP_SUCCESS_RATE": "在线充值（成功率）",
+  "onlineTopupTypeWeb": "在线充值类型（WEB）",
+  "onlineTopupTypeH5": "在线充值类型（H5）",
+  "onlineTopupTypeAPP": "在线充值类型（APP）",
+  "successCount": "成功笔数",
+  "totalCount": "总笔数",
+  "successRate": "成功率",
+  "receivedAmount": "收款金额",
+  "amountRatio": "金额占比",
+  "userCount": "使用人数",
+  "userCountRatio": "人数占比",
+  "subtotal": "小计"
 
 
 }

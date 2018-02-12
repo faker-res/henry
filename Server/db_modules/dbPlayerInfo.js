@@ -7857,6 +7857,43 @@ let dbPlayerInfo = {
         );
     },
 
+    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, merchantTopupTypeId) => {
+        return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
+            (onlineTopupType) => {
+                if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+                let proms = [];
+                while (startDate.getTime() <= endDate.getTime()) {
+                    let dayEndTime = getNextDateByPeriodAndDate(period, startDate);
+                    let startTime = startDate;
+                    let queryObj = {
+                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                        type: onlineTopupType._id,
+                        "data.merchantUseType": parseInt(merchantTopupTypeId)
+                    };
+                    proms.push(dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: queryObj
+                        }, {
+                            $group: {
+                                _id: "$data.merchantUseType",
+                                userIds: { $addToSet: "$data.playerObjId" },
+                            }
+                        }
+                    ).read("secondaryPreferred").then(
+                        data => {
+                            return {
+                                date: startTime,
+                                userCount: data && data[0] ? data[0].userIds.length : 0
+                            }
+                        })
+                    );
+                    startDate = dayEndTime;
+                }
+                return Q.all(proms);
+            }
+        )
+    },
+
     countValidActivePlayerbyPlatform: function (platformId, startDate, endDate, period) {
         return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true);
     },
