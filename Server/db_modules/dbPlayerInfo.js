@@ -7875,7 +7875,7 @@ let dbPlayerInfo = {
                             $match: queryObj
                         }, {
                             $group: {
-                                _id: "$data.merchantUseType",
+                                _id: "$data.topupType",
                                 userIds: { $addToSet: "$data.playerObjId" },
                             }
                         }
@@ -12081,7 +12081,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (platformData) {
-                    return dbconfig.collection_players.findOne({name: playerName}, {password: 1}).lean();
+                    return dbconfig.collection_players.findOne({platform: platformData._id, name: playerName}).lean();
                 }
             }
         ).then(
