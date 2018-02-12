@@ -23265,7 +23265,9 @@ define(['js/app'], function (myApp) {
             // Batch Permit Edit
             vm.initBatchPermit = function () {
                 vm.prepareCredibilityConfig();
+                vm.resetBatchEditData();
                 vm.drawBatchPermitTable();
+
                 vm.playerCredibilityRemarksUpdated = false;
             };
             vm.localRemarkUpdate = function () {
@@ -23296,27 +23298,30 @@ define(['js/app'], function (myApp) {
                 });
                 vm.drawBatchPermitTable();
             };
-            vm.batchEditData = {
-                "_id": "583d1fbe16782962721afeae",
-                "permission": {
-                    "alipayTransaction": true,
-                    "topupManual": true,
-                    "topupOnline": true,
-                    "transactionReward": true,
-                    "advanceConsumptionReward": true,
-                    "applyBonus": true
-                },
-                "forbidProviders": [],
-                "smsSetting": {
-                    "updatePassword": false,
-                    "updatePaymentInfo": false,
-                    "consumptionReturn": false,
-                    "applyReward": false,
-                    "cancelBonus": false,
-                    "applyBonus": false,
-                    "manualTopup": false
-                },
-            };
+            vm.resetBatchEditData = function(){
+                vm.batchEditData = {
+                    "_id": "583d1fbe16782962721afeae",
+                    "permission": {
+                        "alipayTransaction": true,
+                        "topupManual": true,
+                        "topupOnline": true,
+                        "transactionReward": true,
+                        "advanceConsumptionReward": true,
+                        "applyBonus": true,
+                        "banReward": false
+                    },
+                    "forbidProviders": [],
+                    "smsSetting": {
+                        "updatePassword": false,
+                        "updatePaymentInfo": false,
+                        "consumptionReturn": false,
+                        "applyReward": false,
+                        "cancelBonus": false,
+                        "applyBonus": false,
+                        "manualTopup": false
+                    },
+                };
+            }
             vm.drawBatchPermitTable = function () {
 
                 vm.selectedPlayers = {};
@@ -23632,6 +23637,7 @@ define(['js/app'], function (myApp) {
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
                                 vm.popOverPlayerPermission = row;
+                                row.permission.banReward = true;
 
                                 $.each(vm.playerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key] === false) {
@@ -23640,8 +23646,9 @@ define(['js/app'], function (myApp) {
                                         $("#playerPermissionTable .permitOff." + key).addClass('hide');
                                     }
                                 });
-                                $scope.safeApply();
                                 showPopover(that, '#playerPermissionPopover', row);
+                                $scope.safeApply();
+
                             },
                             callback: function () {
                                 var changeObj = {}
@@ -23703,7 +23710,6 @@ define(['js/app'], function (myApp) {
                                     }, function (data) {
                                         vm.batchPermitModifySucc = true;
                                         vm.getPlatformPlayersData();
-                                        vm.drawBatchPermitTable();
                                     }, null, true);
 
                                     $(thisPopover).popover('hide');
