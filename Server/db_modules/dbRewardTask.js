@@ -2090,19 +2090,6 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     }
                 }
 
-                // Check returnable amount
-                if (rewardTaskGroup.forbidXIMAAmt && rewardTaskGroup.curConsumption < rewardTaskGroup.forbidXIMAAmt) {
-                    if (rewardTaskGroup.curConsumption + consumptionRecord.validAmount > rewardTaskGroup.forbidXIMAAmt) {
-                        // Example: 20 - (2640 - 2635) = 15, 15 is available for XIMA
-                        XIMAAmt = consumptionRecord.validAmount - (rewardTaskGroup.forbidXIMAAmt - rewardTaskGroup.curConsumption);
-                    } else {
-                        // Still in the range of forbidXIMAAmt
-                    }
-                } else {
-                    // No forbidXIMAAmt or curConsumption already over forbidXIMAAmt
-                    XIMAAmt = consumptionRecord.validAmount;
-                }
-
                 let statusChange = false;
                 let updObj = {
                     $inc: {
@@ -2121,6 +2108,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                         if (updatedRTG) {
                             // Check boundary case - RTG still overflow, try again
                             if (updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                                // Revert this operation and try again
                                 return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                     {_id: updatedRTG._id},
                                     {
@@ -2130,6 +2118,23 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                         }
                                     }
                                 ).then(() => false);
+                            }
+
+                            // Concurrent check passed
+                            // Get the most accurate curConsumption
+                            let beforeConsumption = updatedRTG.curConsumption - consumptionAmt;
+
+                            // Check returnable amount
+                            if (updatedRTG.forbidXIMAAmt && beforeConsumption < updatedRTG.forbidXIMAAmt) {
+                                if (updatedRTG.curConsumption > rewardTaskGroup.forbidXIMAAmt) {
+                                    // Example: 20 - (2640 - 2635) = 15, 15 is available for XIMA
+                                    XIMAAmt = consumptionRecord.validAmount - (updatedRTG.forbidXIMAAmt - beforeConsumption);
+                                } else {
+                                    // Still in the range of forbidXIMAAmt
+                                }
+                            } else {
+                                // No forbidXIMAAmt or curConsumption already over forbidXIMAAmt
+                                XIMAAmt = consumptionRecord.validAmount;
                             }
 
                             let statusUpdObj = {

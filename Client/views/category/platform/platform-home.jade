@@ -431,7 +431,7 @@
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"SMS Log" | translate}} : {{vm.selectedSinglePlayer.name}}
             .modal-body
-                #smsLogQuery.block-query.well
+                #groupSmsLogQuery.block-query.well
                     div
                         label {{"RESULT" | translate}}
                         select.form-control(ng-model='vm.smsLog.query.status')
@@ -469,7 +469,7 @@
                                 td(ng-if='smsLog.status === "failure"')
                                     text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
                     br
-                    #smsLogTablePage
+                    #groupSmsLogTablePage
             .modal-footer
                 button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
 include ../common-widget/telephone-popover

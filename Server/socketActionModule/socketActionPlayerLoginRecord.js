@@ -103,7 +103,7 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.startTime && data.days);
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType], actionName, isValidData);
         }
     };
     socketActionPartner.actions = this.actions;

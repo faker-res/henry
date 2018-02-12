@@ -2384,7 +2384,9 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
-                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                if(newPromoCodeEntry.allowedSendSms) {
+                    SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                }
                 messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
                 return newPromoCode.code;
             }

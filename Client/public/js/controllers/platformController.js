@@ -10763,12 +10763,22 @@ define(['js/app'], function (myApp) {
                 vm.smsLog.query.status = "all";
                 vm.smsLog.query.isAdmin = true;
                 vm.smsLog.query.isSystem = false;
-                utilService.actionAfterLoaded('.modal.in #smsLogPanel #smsLogQuery .endTime', function () {
+                let endTimeElementPath = '.modal.in #smsLogPanel #smsLogQuery .endTime';
+                let tablePageId = "smsLogTablePage";
+                if(type=="multi") {
+                    endTimeElementPath = '#groupSmsLogQuery .endTime';
+                    tablePageId = "groupSmsLogTablePage";
+                }
+                utilService.actionAfterLoaded(endTimeElementPath, function () {
                     vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .startTime');
                     vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .endTime');
+                    if(type=="multi") {
+                        vm.smsLog.query.startTime = utilService.createDatePicker('#groupSmsLogQuery .startTime');
+                        vm.smsLog.query.endTime = utilService.createDatePicker('#groupSmsLogQuery .endTime');
+                    }
                     vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.smsLog.pageObj = utilService.createPageForPagingTable("#smsLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.smsLog.pageObj = utilService.createPageForPagingTable(tablePageId, {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLog)
                     });
                     // Be user friendly: Fetch some results immediately!
@@ -17925,8 +17935,8 @@ define(['js/app'], function (myApp) {
 
             vm.promoCodeNewRow = function (collection, type, data) {
                 let tableId = "#createPromoCodeTable" + type;
-
-                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
+                let date = (data && data.expirationTime$) ? new Date(data.expirationTime$) : utilService.setLocalDayEndTime(new Date());
+                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: false}));
 
                 return p.then(
                     () => {setTimeout( () => {
@@ -17939,7 +17949,7 @@ define(['js/app'], function (myApp) {
                                     format: 'yyyy/MM/dd hh:mm:ss',
                                     startDate: utilService.setLocalDayStartTime(new Date())
                                 });
-                                collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                                collection[index].expirationTime.data('datetimepicker').setDate(date);
                             });
 
                             $scope.safeApply();
@@ -17964,6 +17974,7 @@ define(['js/app'], function (myApp) {
                         let newData = Object.assign({}, sendData);
                         newData.playerName = el;
                         newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
+                        newData.expirationTime$ = data.expirationTime.data('datetimepicker').getDate();
 
                         delete newData.$$hashKey;
 
@@ -18014,13 +18025,13 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.generateAllPromoCode = function (col) {
+            vm.generateAllPromoCode = function (col, type) {
                 let p = Promise.resolve();
 
                 col.forEach((elem, index, arr) => {
                     if (!elem.code) {
                         p = p.then(function () {
-                            return vm.generatePromoCode(col, index, elem);
+                            return vm.generatePromoCode(col, index, elem, type);
                         });
                     }
                 });
