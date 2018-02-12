@@ -34,6 +34,7 @@ define(['js/app'], function (myApp) {
                 }
             });
             vm.showPageName = "NEW_PLAYER";
+            vm.getPlatformProvider(id);
         }
         vm.loadPage = function (choice) {
             socketService.clearValue();
@@ -2167,6 +2168,16 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 //vm.buildProviderList(vm.allGameProvider);
             }, function (data) {
+                console.log("create not", data);
+            });
+        };
+        vm.getPlatformProvider = function (id) {
+            if (!id) return;
+            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: id}, function (data) {
+                vm.allProviders = data.data.gameProviders;
+                console.log('vm.allProviders', vm.allProviders);
+                $scope.safeApply();
+                }, function (data) {
                 console.log("create not", data);
             });
         };
