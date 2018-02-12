@@ -39,17 +39,37 @@ p
             //    input.form-control(type='date', ng-model='vm.queryPara.reward.endTime')
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.plotRewardAmountLine();vm.plotRewardNumberLine()') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.plotRewardLine()') {{'SEARCH' | translate}}
         .row
             .col-md-6
                 label.text-primary {{"Reward amount" | translate}} VS {{vm.queryPara.reward.periodText | translate}}
                 .graph
                     .panel.panel-default
                         #line-reward-amount.lineChart.graphDiv
+            //.col-md-6
+            //    label &nbsp;
+            //    .graph
+            //
             .col-md-6
                 label &nbsp;
                 .graph
-                    table#rewardAmountAnalysisTable.display.tableDiv(style='min-width:100%')
+                    //table#newPlayerAnalysisTable.display.tableDiv(style='width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformRewardAnalysisSort.RewardAmountSort = vm.platformRewardAnalysisSort.RewardAmountSort == "date" ? "-date":"date"') {{ vm.platformRewardDataPeriodText | translate}}
+                                th(ng-click='vm.platformRewardAnalysisSort.RewardAmountSort = vm.platformRewardAnalysisSort.RewardAmountSort == "rewards" ? "-rewards":"rewards"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformRewardAnalysisAmount | orderBy: vm.platformRewardAnalysisSort.RewardAmountSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.rewards }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformRewardAmountAverage }}
         .row
             .col-md-6
                 label.text-primary {{"Reward number" | translate}} VS {{vm.queryPara.reward.periodText | translate}}
@@ -59,6 +79,22 @@ p
             .col-md-6
                 label &nbsp;
                 .graph
-                    table#rewardNumberAnalysisTable.display.tableDiv(style='min-width:100%')
+                    //table#rewardNumberAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformRewardAnalysisSort.RewardNumberSort = vm.platformRewardAnalysisSort.RewardNumberSort == "date" ? "-date":"date"') {{ vm.platformRewardDataPeriodText | translate}}
+                                th(ng-click='vm.platformRewardAnalysisSort.RewardNumberSort = vm.platformRewardAnalysisSort.RewardNumberSort == "rewards.length" ? "-rewards.length":"rewards.length"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformRewardAnalysisData | orderBy: vm.platformRewardAnalysisSort.RewardNumberSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.rewards.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformRewardNumberAverage }}
 
 p(ng-init="vm.loadPageFunc('REWARD_ANALYSIS')")

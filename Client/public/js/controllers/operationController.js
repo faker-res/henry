@@ -44,7 +44,8 @@ define(['js/app'], function (myApp) {
             AUTOAUDIT: "AutoAudit",
             RECOVER: "Recover",
             MANUAL: "Manual",
-            CSPENDING: "CsPending"
+            CSPENDING: "CsPending",
+            NOVERIFY: "NoVerify"
         };
 
         vm.depositMethodList = $scope.depositMethodList;
@@ -791,6 +792,19 @@ define(['js/app'], function (myApp) {
                     .replace(new RegExp('GameType',"gm"), $translate('GameType'))
                     .replace(new RegExp('ratio','gm'), $translate('RATIO'))
                     .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
+            } else if (fieldName === 'nonXIMADetail') {
+                let newNonXIMADetail = {};
+                Object.keys(val).forEach(
+                    key => {
+                        if (key && key.indexOf(':') != -1) {
+                            let splitGameTypeIdArr = key.split(':');
+                            let gameTypeId = splitGameTypeIdArr[1];
+                            newNonXIMADetail[splitGameTypeIdArr[0]+':'+ vm.allGameTypes[gameTypeId]] = val[key];
+                        }
+                    });
+                result = JSON.stringify(newNonXIMADetail || val)
+                    .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                    .replace(new RegExp('nonXIMAAmt',"gm"), $translate('totalNonXIMAAmt'));
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {

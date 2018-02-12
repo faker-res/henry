@@ -158,10 +158,11 @@ let dailyProviderSettlement = {
     manualDailyProviderSettlement: function (providerId, settlementDay, platformId) {
         let startTime = dbutility.getDayStartTime(settlementDay);
         let endTime = dbutility.getDayEndTime(settlementDay);
-
+        let providerObj = null;
         return dbconfig.collection_gameProvider.findOne({_id: providerId}).then(
             providerData => {
                 if (providerData && providerData.settlementStatus == constSettlementStatus.READY) {
+                    providerObj = providerData;
                     return dbGameProvider.updateGameProvider({_id: providerData._id}, {settlementStatus: constSettlementStatus.DAILY_SETTLEMENT});
                 }
                 else {
@@ -170,7 +171,9 @@ let dailyProviderSettlement = {
             }
         ).then(
             data => {
-                return removeDuplicatedConsumptionRecords(startTime, endTime);
+                if( providerObj ){
+                    return removeDuplicatedConsumptionRecords(startTime, endTime, providerObj._id);
+                }
             }
         ).then(
             data => {
@@ -217,7 +220,7 @@ let dailyProviderSettlement = {
         let deferred = Q.defer();
 
         //todo::add more daily settlement calculation here
-        removeDuplicatedConsumptionRecords(settleTime.startTime, settleTime.endTime).then(
+        removeDuplicatedConsumptionRecords(settleTime.startTime, settleTime.endTime, providerId).then(
             () => {
                 return providerSummary.calculateYesterdayProviderPlayerSummary(providerId)
             }
@@ -276,7 +279,7 @@ let dailyProviderSettlement = {
     }
 };
 
-let removeDuplicatedConsumptionRecords = function (startTime, endTime) {
+let removeDuplicatedConsumptionRecords = function (startTime, endTime, providerObjId) {
     
     // Find duplicate consumption records
     let balancer = new SettlementBalancer();
@@ -286,7 +289,8 @@ let removeDuplicatedConsumptionRecords = function (startTime, endTime) {
                 createTime: {
                     $gte: startTime,
                     $lt: endTime
-                }
+                },
+                providerId: providerObjId
             }
         },
         {

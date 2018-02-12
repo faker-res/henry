@@ -241,9 +241,11 @@ var dbPlayerConsumptionWeekSummary = {
                                 var returnAmount = 0;
 
                                 // Check all game types and calculate return amount
-                                var thisPlayersConsumptionSummaries = [];
-                                var returnDetail = {};
-                                var applyAmount = 0;
+                                let thisPlayersConsumptionSummaries = [];
+                                let returnDetail = {}, nonXIMADetail = {};
+                                let applyAmount = 0;
+                                let totalNonXIMAAmt = 0;
+
                                 for (var type in allGameTypes) {
                                     var playerLevel = playerData.playerLevel;
                                     var gameType = allGameTypes[type];
@@ -269,13 +271,18 @@ var dbPlayerConsumptionWeekSummary = {
                                     }
 
                                     if (consumptionSummary && playerLevel && ratio >= 0) {
-                                        var consumeValidAmount = consumptionSummary.validAmount || 0;
+                                        let consumeValidAmount = consumptionSummary.validAmount || 0;
+                                        let nonXIMAAmt = consumptionSummary.nonXIMAAmt || 0;
                                         returnAmount += consumeValidAmount * ratio;
                                         returnDetail["GameType:" + gameType] = {
                                             consumeValidAmount: consumeValidAmount,
                                             ratio: ratio
                                         };
+                                        nonXIMADetail["GameType:" + gameType] = {
+                                            nonXIMAAmt: nonXIMAAmt
+                                        };
                                         applyAmount += consumeValidAmount;
+                                        totalNonXIMAAmt += nonXIMAAmt;
                                     }
 
                                     if (consumptionSummary && ratio > 0) {
@@ -307,9 +314,11 @@ var dbPlayerConsumptionWeekSummary = {
                                             rewardAmount: returnAmount < 0.01 ? 0 : returnAmount,
                                             spendingAmount: spendingAmount,
                                             returnDetail: returnDetail,
+                                            nonXIMADetail: nonXIMADetail,
                                             summaryIds: summaryIds,
                                             bConsumptionReturnRequest: bRequest,
                                             applyAmount: applyAmount,
+                                            totalNonXIMAAmt: totalNonXIMAAmt,
                                             eventDescription: eventData.description,
                                             startTime: startTime,
                                             endTime: endTime,

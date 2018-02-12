@@ -40,7 +40,8 @@ define(['js/app'], function (myApp) {
             CANCEL: "Cancel",
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
-            CSPENDING: "CsPending"
+            CSPENDING: "CsPending",
+            NOVERIFY: "NoVerify"
         };
         vm.topUpTypeList = {
             TOPUPMANUAL: 1,
@@ -97,6 +98,7 @@ define(['js/app'], function (myApp) {
             vm.getRewardList();
             vm.getPromotionTypeList();
             vm.getPlatformProviderGroup();
+            vm.getAllGameTypes();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage(vm.showPageName);
@@ -478,6 +480,34 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'applyForDate') {
                 result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+            } else if (fieldName === 'returnDetail') {
+                // Example data structure : {"GameType:9" : {"ratio" : 0.01, "consumeValidAmount" : 6000}}
+                let newReturnDetail = {};
+                Object.keys(val).forEach(
+                    key => {
+                        if (key && key.indexOf(':') != -1) {
+                            let splitGameTypeIdArr = key.split(':');
+                            let gameTypeId = splitGameTypeIdArr[1];
+                            newReturnDetail[splitGameTypeIdArr[0]+':'+ vm.allGameTypes[gameTypeId]] = val[key];
+                        }
+                    });
+                result = JSON.stringify(newReturnDetail || val)
+                    .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                    .replace(new RegExp('ratio','gm'), $translate('RATIO'))
+                    .replace(new RegExp('consumeValidAmount',"gm"), $translate('consumeValidAmount'));
+            } else if (fieldName === 'nonXIMADetail') {
+                let newNonXIMADetail = {};
+                Object.keys(val).forEach(
+                    key => {
+                        if (key && key.indexOf(':') != -1) {
+                            let splitGameTypeIdArr = key.split(':');
+                            let gameTypeId = splitGameTypeIdArr[1];
+                            newNonXIMADetail[splitGameTypeIdArr[0]+':'+ vm.allGameTypes[gameTypeId]] = val[key];
+                        }
+                    });
+                result = JSON.stringify(newNonXIMADetail || val)
+                    .replace(new RegExp('GameType',"gm"), $translate('GameType'))
+                    .replace(new RegExp('nonXIMAAmt',"gm"), $translate('totalNonXIMAAmt'));
             } else if (typeof(val) == 'object') {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
@@ -486,6 +516,22 @@ define(['js/app'], function (myApp) {
             return $sce.trustAsHtml(result);
         };
         // end iof proposal detail
+
+        vm.getAllGameTypes = function () {
+            return $scope.$socketPromise('getGameTypeList', {})
+                .then(function (data) {
+                    var gameTypes = data.data;
+                    vm.allGameTypesList = gameTypes;
+                    var allGameTypes = {};
+                    gameTypes.forEach(function (gameType) {
+                        var GAMETYPE = gameType.gameTypeId;
+                        allGameTypes[GAMETYPE] = gameType.name;
+                    });
+                    vm.allGameTypes = allGameTypes;
+                }, function (err) {
+                    console.log('err', err);
+                });
+        };
 
         vm.initReportPara = function () {
             var obj = {};

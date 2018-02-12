@@ -73,6 +73,7 @@ var simplifiedChinese = {
     "Password do not match": "密码不匹配",
     "Player is not valid for first top up reward": "玩家不符合申请首冲奖励条件",
     "Invalid proposal Id": "提案ID无效",
+    "Invalid bank account type": "账号类型无效",
 
     "Cannot find player for online top up proposal": "无法找到玩家",
     "player level down already in period": "玩家周期内已降级",
@@ -213,7 +214,7 @@ var simplifiedChinese = {
     "There is no valid SMS Code. Please get another one.": "无可用短信验证码，请重新获取",
     "Reward already hit maximum number of apply. Please contact cs.": "已经达到申请上限次数，详情请联系客服",
     "Provider group is not used.": "没有开启锁大厅（组），暂无提款进度展示",
-    "Invalid top up": "无法找到此提款记录，详情请联系客服",
+    "Invalid top up": "无法找到此存款记录，详情请联系客服",
     "Incorrect player top up return group proposal data": "提案资料错误，详情请联系客服",
     "This top up did not happen within reward interval time": "此提款记录并不在奖励周期内",
     "Player's top up amount does not meet condition in period": "玩家的周期内的累积存款金额不足",

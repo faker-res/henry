@@ -17,6 +17,7 @@ const constProposalStatus = {
     ATTEMPT: "Attempt",
     MANUAL: "Manual",
     CSPENDING: "CsPending",
+    NOVERIFY: "NoVerify",
 };
 
 module.exports = constProposalStatus;

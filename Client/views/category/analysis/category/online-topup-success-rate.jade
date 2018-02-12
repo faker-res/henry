@@ -1,0 +1,247 @@
+//
+   Created by wanglz on 30/5/16.
+
+.section
+    .row
+        .titlePic
+            .title
+                text {{"ONLINE_TOPUP_SUCCESS_RATE" | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#onlineTopupSuccessRateAnalysis .block-query","onlineTopupSuccessRate")')
+                        text.pull-left.margin-right-5 {{vm.optionText.onlineTopupSuccessRate | translate}}
+    #onlineTopupSuccessRateAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.getOnlineToupSuccessRateData()') {{'SEARCH' | translate}}
+        .row
+            .col-md-12
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%;margin-top: 0 !important;margin-bottom: 0 !important;')
+                        thead
+                            tr
+                                th {{ 'onlineTopupTypeWeb' | translate}}
+                                th {{ "successCount" | translate}}
+                                th {{ "totalCount" | translate}}
+                                th {{ "successRate" | translate}}
+                                th {{ "receivedAmount" | translate}}
+                                th {{ "amountRatio" | translate}}
+                                th {{ "userCount" | translate}}
+                                th {{ "userCountRatio" | translate}}
+                        tbody
+                            tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'WEB'}")
+                                td(style='width: 500px;')
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId)') {{ v.name | translate }}
+                                td
+                                    span {{ v.successCount }}
+                                td
+                                    span {{ v.totalCount }}
+                                td
+                                    span {{ v.successRate }} %
+                                td
+                                    span {{ v.receivedAmount }}
+                                td
+                                    span {{ v.amountRatio }} %
+                                td
+                                    span {{ v.userCount }}
+                                td
+                                    span {{ v.userCountRatio }} %
+                            tr
+                                td
+                                    span {{ 'subtotal' | translate }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.successCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.totalCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.successRate }} %
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.receivedAmount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.amountRatio }} %
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.userCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.userCountRatio }} %
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%;margin-top: 0 !important;margin-bottom: 0 !important;')
+                        thead
+                            tr
+                                th {{ 'onlineTopupTypeH5' | translate}}
+                                th {{ "successCount" | translate}}
+                                th {{ "totalCount" | translate}}
+                                th {{ "successRate" | translate}}
+                                th {{ "receivedAmount" | translate}}
+                                th {{ "amountRatio" | translate}}
+                                th {{ "userCount" | translate}}
+                                th {{ "userCountRatio" | translate}}
+                        tbody
+                            tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'H5'}")
+                                td(style='width: 500px;')
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId)') {{ v.name | translate }}
+                                td
+                                    span {{ v.successCount }}
+                                td
+                                    span {{ v.totalCount }}
+                                td
+                                    span {{ v.successRate }} %
+                                td
+                                    span {{ v.receivedAmount }}
+                                td
+                                    span {{ v.amountRatio }} %
+                                td
+                                    span {{ v.userCount }}
+                                td
+                                    span {{ v.userCountRatio }} %
+                            tr
+                                td
+                                    span {{ 'subtotal' | translate }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.successCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.totalCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.successRate }} %
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.receivedAmount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.amountRatio }} %
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.userCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.userCountRatio }} %
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%;margin-top: 0 !important;margin-bottom: 0 !important;')
+                        thead
+                            tr
+                                th {{ 'onlineTopupTypeAPP' | translate}}
+                                th {{ "successCount" | translate}}
+                                th {{ "totalCount" | translate}}
+                                th {{ "successRate" | translate}}
+                                th {{ "receivedAmount" | translate}}
+                                th {{ "amountRatio" | translate}}
+                                th {{ "userCount" | translate}}
+                                th {{ "userCountRatio" | translate}}
+                        tbody
+                            tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'APP'}")
+                                td(style='width: 500px;')
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId)') {{ v.name | translate }}
+                                td
+                                    span {{ v.successCount }}
+                                td
+                                    span {{ v.totalCount }}
+                                td
+                                    span {{ v.successRate }} %
+                                td
+                                    span {{ v.receivedAmount }}
+                                td
+                                    span {{ v.amountRatio }} %
+                                td
+                                    span {{ v.userCount }}
+                                td
+                                    span {{ v.userCountRatio }} %
+                            tr
+                                td
+                                    span {{ 'subtotal' | translate }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.successCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.totalCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.successRate }} %
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.receivedAmount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.amountRatio }} %
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.userCount }}
+                                td
+                                    span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.userCountRatio }} %
+
+                            tr
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ 'Total' | translate }}
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisTotalData.successCount }}
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisTotalData.totalCount }}
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisTotalData.successRate }} %
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisTotalData.receivedAmount }}
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisTotalData.amountRatio }} %
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisTotalData.userCount }}
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisTotalData.userCountRatio }} %
+
+    div(ng-if='vm.platformOnlineTopupAnalysisDetailMerchantId')
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                    select.form-control(ng-model='vm.platformOnlineTopupAnalysisDetailPeriod' ng-change='vm.platformOnlineTopupAnalysisShowDetail(vm.platformOnlineTopupAnalysisDetailMerchantId)')
+                        option(value='day') {{"DAY"|translate}}
+                        option(value='week') {{"WEEK"|translate}}
+                        option(value='month') {{"MONTH"|translate}}
+        .row
+            .col-md-12
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%;margin-top: 0 !important;margin-bottom: 0 !important;')
+                        thead
+                            tr
+                                th {{ merchantTopupTypeJson[vm.platformOnlineTopupAnalysisDetailMerchantId] | translate}} / {{ vm.platformOnlineTopupAnalysisDetailPeriod | translate }}
+                                th {{ "successCount" | translate}}
+                                th {{ "totalCount" | translate}}
+                                th {{ "successRate" | translate}}
+                                th {{ "receivedAmount" | translate}}
+                                th {{ "amountRatio" | translate}}
+                                th {{ "userCount" | translate}}
+                                th {{ "userCountRatio" | translate}}
+                        tbody
+                            tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisDetailData")
+                                td(style='width: 500px;')
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.successCount }}
+                                td
+                                    span {{ v.totalCount }}
+                                td
+                                    span {{ v.successRate }} %
+                                td
+                                    span {{ v.receivedAmount }}
+                                td
+                                    span {{ v.amountRatio }} %
+                                td
+                                    span {{ v.userCount }}
+                                td
+                                    span {{ v.userCountRatio }} %
+                            tr
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ 'Total' | translate }}
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisDetailTotalData.successCount }}
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisDetailTotalData.totalCount }}
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisDetailTotalData.successRate }} %
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisDetailTotalData.receivedAmount }}
+                                td(style='background-color: #ffc1c1;')
+                                    span 100 %
+                                td(style='background-color: #ffc1c1;')
+                                    span {{ vm.platformOnlineTopupAnalysisDetailTotalData.userCount }}
+                                td(style='background-color: #ffc1c1;')
+                                    span 100 %
+
+    .row(ng-if='vm.platformOnlineTopupAnalysisDetailMerchantId')
+        .col-md-12
+            .graph
+                .panel.panel-default
+                    #line-onlineTopupSuccessRate.lineChart.graphDiv(style='height:800px')
+
+p(ng-init="vm.loadPageFunc('ONLINE_TOPUP_SUCCESS_RATE')")
