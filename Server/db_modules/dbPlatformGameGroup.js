@@ -198,7 +198,7 @@ var dbPlatformGameGroup = {
                         if (playerData.permission && playerData.permission.forbidPlayerFromEnteringGame) {
                             gameInfo.forEach(
                                 game => {
-                                    game.game.status =  2;
+                                    game.game.status = 2;
                                 }
                             )
                         }
