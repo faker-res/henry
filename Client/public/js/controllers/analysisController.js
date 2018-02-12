@@ -2041,6 +2041,14 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
+        vm.tableDataReformat = function (data) {
+            if (Number.isInteger(data)) {
+                return data;
+            } else {
+                return data.toFixed(3);
+            }
+        }
+
         vm.getPlayerRetention = function () {
             vm.isShowLoadingSpinner('#analysisPlayerRetention', true);
             vm.retentionGraphData = [];
@@ -2072,7 +2080,7 @@ define(['js/app'], function (myApp) {
                 });
                 for (let key in vm.averageRetention) {
                     if (vm.averageRetention.hasOwnProperty(key)){
-                        vm.averageRetention[key] = (vm.averageRetention[key] / dataLength).toFixed(3);
+                        vm.averageRetention[key] = (vm.averageRetention[key] / dataLength)/*.toFixed(3)*/;
                     }
                 }
                 vm.averageRetention.date = $translate("average line");

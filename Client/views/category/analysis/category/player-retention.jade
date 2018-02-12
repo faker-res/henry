@@ -60,8 +60,8 @@
                             td
                                 input(type='checkbox', ng-model='vm.showRetention[i]', ng-click='vm.drawRetentionGraph()')
                             td {{vm.dateReformat(v.date)}}
-                            td {{v.day0}}
-                            td(ng-repeat='a in vm.queryPara.playerRetention.days') {{v[a]}}
+                            td {{vm.tableDataReformat(v.day0)}}
+                            td(ng-repeat='a in vm.queryPara.playerRetention.days') {{vm.tableDataReformat(v[a])}}
     .col-md-7
         .graph
             .panel.panel-default
