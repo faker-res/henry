@@ -550,7 +550,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.calculateOnlineTopupTypeData = (merchantTopupTypeId) => {
-            let typeData = merchantTopupTypeId ? vm.platformOnlineTopupAnalysisData.filter(proposal => proposal.data.merchantUseType == merchantTopupTypeId) : vm.platformOnlineTopupAnalysisData;
+            let typeData = merchantTopupTypeId ? vm.platformOnlineTopupAnalysisData.filter(proposal => proposal.data.topupType == merchantTopupTypeId) : vm.platformOnlineTopupAnalysisData;
             let typeSuccessData = typeData.filter(proposal => proposal.status === 'Success');
             let receivedAmount = typeSuccessData.reduce((a, proposal) => a + proposal.data.amount ,0);
             let userCount = vm.platformOnlineTopupAnalysisUserCountData.filter(userCount => userCount._id == merchantTopupTypeId);
