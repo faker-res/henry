@@ -560,6 +560,7 @@ var roleChecker = {
                 ClientSource: [],
                 LoginPlayer: [],
                 ValidActivePlayer: [],
+                OnlineTopupSuccessRate: [],
 
             }
         },

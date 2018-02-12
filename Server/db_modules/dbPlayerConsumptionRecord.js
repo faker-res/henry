@@ -2163,7 +2163,7 @@ function updateRTG (oldData, newData) {
                             statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
                         }
 
-                        if (updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                        if (updatedRTG.curConsumption == updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
                             statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
                         }
 
