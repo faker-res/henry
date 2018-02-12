@@ -2109,7 +2109,6 @@ let dbPlayerInfo = {
         });
 
         Q.all(proms).then(data => {
-            console.log(data);
             deferred.resolve(data);
         });
         return deferred.promise;
@@ -2161,7 +2160,6 @@ let dbPlayerInfo = {
         });
 
         Q.all(proms).then(data => {
-            console.log(data);
             deferred.resolve(data);
         });
         return deferred.promise;
@@ -2184,7 +2182,6 @@ let dbPlayerInfo = {
         }
         let proms = [];
         playerNames.forEach(name=>{
-            console.log(name);
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
             proms.push(prom);
         });
@@ -2214,7 +2211,6 @@ let dbPlayerInfo = {
             proms.push(prom);
         })
         Q.all(proms).then(data=>{
-            console.log(data);
             deferred.resolve(data);
         })
         return deferred.promise;
@@ -11901,8 +11897,6 @@ let dbPlayerInfo = {
         let deferred = Q.defer();
         let proms = [];
         playerNames.forEach(playerName=>{
-            console.log(playerName);
-            // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {playerId: playerId}, updateData, constShardKeys.collection_players).then(
 
             let prom = dbUtility.findOneAndUpdateForShard(
                 dbconfig.collection_players,
@@ -11917,16 +11911,13 @@ let dbPlayerInfo = {
             ).then(
                 playerData => {
                     let playerObjId = playerData._id;
-                    console.log(playerData);
                     dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
-                    // dbPlayerCredibility.calculatePlayerValue(playerData._id);
                     return playerData;
                 }
             );
             proms.push(prom);
         })
         Q.all(proms).then(data=>{
-            console.log(data);
             deferred.resolve(data);
         })
         return deferred.promise;

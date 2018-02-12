@@ -23640,13 +23640,6 @@ define(['js/app'], function (myApp) {
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
                                 vm.popOverPlayerPermission = row;
-                                // Invert second render
-                                // row.permission.banReward = !row.permission.banReward;
-                                // row.permission.disableWechatPay = !row.permission.disableWechatPay;
-                                // row.permission.forbidPlayerConsumptionReturn = !row.permission.forbidPlayerConsumptionReturn;
-                                // row.permission.forbidPlayerConsumptionIncentive = !row.permission.forbidPlayerConsumptionIncentive;
-                                // row.permission.forbidPlayerFromLogin = !row.permission.forbidPlayerFromLogin;
-                                // row.permission.forbidPlayerFromEnteringGame = !row.permission.forbidPlayerFromEnteringGame;
 
                                 $.each(vm.playerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key] === false) {
