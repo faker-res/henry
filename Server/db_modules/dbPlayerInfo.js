@@ -12397,7 +12397,7 @@ let dbPlayerInfo = {
                                 relevant = result.consumptionTimes >= query.consumptionTimesValue;
                                 break;
                             case '=':
-                                relevant = result.consumptionTimes = query.consumptionTimesValue;
+                                relevant = result.consumptionTimes == query.consumptionTimesValue;
                                 break;
                             case '<=':
                                 relevant = result.consumptionTimes <= query.consumptionTimesValue;
@@ -12421,7 +12421,7 @@ let dbPlayerInfo = {
                                 relevant = result.consumptionBonusAmount >= query.profitAmountValue;
                                 break;
                             case '=':
-                                relevant = result.consumptionBonusAmount = query.profitAmountValue;
+                                relevant = result.consumptionBonusAmount == query.profitAmountValue;
                                 break;
                             case '<=':
                                 relevant = result.consumptionBonusAmount <= query.profitAmountValue;
@@ -12485,7 +12485,7 @@ let dbPlayerInfo = {
                                 relevant = result.topUpTimes >= query.topUpTimesValue;
                                 break;
                             case '=':
-                                relevant = result.topUpTimes = query.topUpTimesValue;
+                                relevant = result.topUpTimes == query.topUpTimesValue;
                                 break;
                             case '<=':
                                 relevant = result.topUpTimes <= query.topUpTimesValue;
@@ -12509,7 +12509,7 @@ let dbPlayerInfo = {
                                 relevant = result.bonusTimes >= query.bonusTimesValue;
                                 break;
                             case '=':
-                                relevant = result.bonusTimes = query.bonusTimesValue;
+                                relevant = result.bonusTimes == query.bonusTimesValue;
                                 break;
                             case '<=':
                                 relevant = result.bonusTimes <= query.bonusTimesValue;
@@ -12533,7 +12533,7 @@ let dbPlayerInfo = {
                                 relevant = result.topUpAmount >= query.topUpAmountValue;
                                 break;
                             case '=':
-                                relevant = result.topUpAmount = query.topUpAmountValue;
+                                relevant = result.topUpAmount == query.topUpAmountValue;
                                 break;
                             case '<=':
                                 relevant = result.topUpAmount <= query.topUpAmountValue;
