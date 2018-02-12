@@ -18009,13 +18009,13 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.generateAllPromoCode = function (col) {
+            vm.generateAllPromoCode = function (col, type) {
                 let p = Promise.resolve();
 
                 col.forEach((elem, index, arr) => {
                     if (!elem.code) {
                         p = p.then(function () {
-                            return vm.generatePromoCode(col, index, elem);
+                            return vm.generatePromoCode(col, index, elem, type);
                         });
                     }
                 });

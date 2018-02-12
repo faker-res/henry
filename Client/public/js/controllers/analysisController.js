@@ -414,17 +414,20 @@ define(['js/app'], function (myApp) {
                     $(placeholder).text($translate("No consumption records found"));
                 }
                 var placeholderBar = "#bar-all-creditSpend";
-                socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
-                var listen = $scope.$watch(function () {
-                    return socketService.getValue('creditPieClickData');
-                }, function (newV, oldV) {
-                    if (newV !== oldV) {
-                        vm.allPlatformCreditPie = newV.series.label;
-                        console.log('pie clicked', newV);
-                        if (vm.showPageName !== "PLATFORM_OVERVIEW") {
-                            listen();
+
+                utilService.actionAfterLoaded('#bar-all-creditSpend', function () {
+                    socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
+                    var listen = $scope.$watch(function () {
+                        return socketService.getValue('creditPieClickData');
+                    }, function (newV, oldV) {
+                        if (newV !== oldV) {
+                            vm.allPlatformCreditPie = newV.series.label;
+                            console.log('pie clicked', newV);
+                            if (vm.showPageName !== "PLATFORM_OVERVIEW") {
+                                listen();
+                            }
                         }
-                    }
+                    });
                 });
             });
         };
@@ -525,6 +528,7 @@ define(['js/app'], function (myApp) {
                 startDate: startDate,
                 endDate: endDate,
             };
+            vm.isShowLoadingSpinner('#onlineTopupSuccessRateAnalysis', true);
             socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisByPlatform', sendData, data => {
                 console.log('data.data', data.data);
                 vm.platformOnlineTopupAnalysisData = data.data[0];
@@ -546,6 +550,7 @@ define(['js/app'], function (myApp) {
                 // console.log('vm.platformOnlineTopupAnalysisTotalData', vm.platformOnlineTopupAnalysisTotalData);
                 // console.log('vm.platformOnlineTopupAnalysisByType', vm.platformOnlineTopupAnalysisByType);
                 // console.log('vm.platformOnlineTopupAnalysisSubTotalData', vm.platformOnlineTopupAnalysisSubTotalData);
+                vm.isShowLoadingSpinner('#onlineTopupSuccessRateAnalysis', false);
                 $scope.safeApply();
             });
         };
@@ -686,6 +691,17 @@ define(['js/app'], function (myApp) {
             return date;
         };
 
+        vm.isShowLoadingSpinner = (containerId, isShow) => {
+            let loadingSpinner = "<i style='width: auto;' class='fa fa-spin fa-refresh margin-left-5 text-danger collapse'></i>";
+            if (isShow)
+                if ($(containerId).children('.block-query').length !== 0)
+                    $(containerId).children('.block-query').find("button.common-button").parent().append(loadingSpinner);
+                else
+                    $(containerId).find("button.common-button").parent().append(loadingSpinner);
+            else
+                $(containerId + ' .fa.fa-spin.fa-refresh').remove();
+        };
+
         vm.plotNewPlayerLine = function () {
             // var placeholder = "#line-newPlayer";
             // var periodText = $('#analysisNewPlayer select').val();
@@ -697,7 +713,7 @@ define(['js/app'], function (myApp) {
                 startDate: startDate,
                 endDate: endDate,
             };
-
+            vm.isShowLoadingSpinner('#newPlayerAnalysis', true);
             socketService.$socket($scope.AppSocket, 'countNewPlayerbyPlatform', sendData, function success(data1) {
                 //var newPlayerData = data1.data[0];
                 let periodDateData = [];
@@ -871,7 +887,7 @@ define(['js/app'], function (myApp) {
                 let calculatedNewPlayerValidPlayerData = vm.calculateLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'validPlayer', 'Valid Player');
                 vm.platformNewPlayerValidPlayerAverage = calculatedNewPlayerValidPlayerData.average;
                 vm.plotLineByElementId("#line-newPlayerValidPlayer", calculatedNewPlayerValidPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
-
+                vm.isShowLoadingSpinner('#newPlayerAnalysis', false);
                 $scope.safeApply();
             });
 
@@ -879,9 +895,9 @@ define(['js/app'], function (myApp) {
         vm.calculateLineDataAndAverage = (data, key, label) => {
             var graphData = [];
             let averageData = [];
-            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + (Number.isInteger(item[key]) ? item[key] : item[key].length), 0) / data.length) : 0;
+            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + (Number.isFinite(item[key]) ? item[key] : item[key].length), 0) / data.length) : 0;
             data.map(item => {
-                graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key].length]);
+                graphData.push([new Date(item.date), Number.isFinite(item[key]) ? item[key] : item[key].length]);
                 averageData.push([new Date(item.date), average]);
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
@@ -962,6 +978,7 @@ define(['js/app'], function (myApp) {
                 startDate: startDate,
                 endDate: endDate,
             };
+            vm.isShowLoadingSpinner('#activePlayerAnalysis', true);
             socketService.$socket($scope.AppSocket, 'countActivePlayerbyPlatform', sendData, function success(data1) {
 
                 // console.log('received data', data1);
@@ -1033,6 +1050,7 @@ define(['js/app'], function (myApp) {
                 let calculatedActivePlayerData = vm.calculateLineDataAndAverage(vm.platformActivePlayerAnalysisData, 'number', 'Active Player');
                 vm.platformActivePlayerAverage = calculatedActivePlayerData.average;
                 vm.plotLineByElementId("#line-activePlayer", calculatedActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.activePlayer.periodText.toUpperCase()));
+                vm.isShowLoadingSpinner('#activePlayerAnalysis', false);
                 $scope.safeApply();
             });
         }
@@ -1050,6 +1068,7 @@ define(['js/app'], function (myApp) {
                 startDate: startDate,
                 endDate: endDate,
             };
+            vm.isShowLoadingSpinner('#validActivePlayerAnalysis', true);
             socketService.$socket($scope.AppSocket, 'countValidActivePlayerbyPlatform', sendData, function success(data1) {
 
                 vm.platformValidActivePlayerDataPeriodText = vm.queryPara.validActivePlayer.periodText;
@@ -1061,6 +1080,7 @@ define(['js/app'], function (myApp) {
                 let calculatedValidActivePlayerData = vm.calculateLineDataAndAverage(vm.platformValidActivePlayerAnalysisData, 'number', 'ValidActivePlayer');
                 vm.platformValidActivePlayerAverage = calculatedValidActivePlayerData.average;
                 vm.plotLineByElementId("#line-validActivePlayer", calculatedValidActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
+                vm.isShowLoadingSpinner('#validActivePlayerAnalysis', false);
                 $scope.safeApply();
             });
         }
@@ -1069,6 +1089,7 @@ define(['js/app'], function (myApp) {
         // login Player start= =========================================
         vm.plotLoginPlayerLine = function () {
             //todo::add graph code here
+            vm.isShowLoadingSpinner('#loginPlayerAnalysis', true);
             var placeholder = "#line-loginPlayer";
             var sendData = {
                 platformId: vm.selectedPlatform._id,
@@ -1224,6 +1245,7 @@ define(['js/app'], function (myApp) {
                 let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerAnalysisData, 'number', 'Login Player');
                 vm.platformLoginPlayerAverage = calculatedLoginPlayerData.average;
                 vm.plotLineByElementId("#line-loginPlayer", calculatedLoginPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
+                vm.isShowLoadingSpinner('#loginPlayerAnalysis', false);
                 $scope.safeApply();
             });
         };
@@ -1635,7 +1657,7 @@ define(['js/app'], function (myApp) {
         }
         vm.plotRewardLine = function () {
             if (!vm.selectReward.type) return;
-
+            vm.isShowLoadingSpinner('#rewardAnalysis', true);
             console.log('vm.selectReward', vm.selectReward);
 
             let startDate = vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate();
@@ -1690,7 +1712,7 @@ define(['js/app'], function (myApp) {
                     let calculatedRewardNumber = vm.calculateLineDataAndAverage(vm.platformRewardAnalysisData, 'rewards', 'Reward number');
                     vm.platformRewardNumberAverage = calculatedRewardNumber.average;
                     vm.plotLineByElementId("#line-reward-number", calculatedRewardNumber.lineData, $translate('Reward number'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.reward.periodText.toUpperCase()));
-
+                    vm.isShowLoadingSpinner('#rewardAnalysis', false);
                 });
             })
 
@@ -1905,6 +1927,7 @@ define(['js/app'], function (myApp) {
 
         //player device analysis clicked ================================================
         vm.deviceAnalysisInit = function (callback) {
+            vm.isShowLoadingSpinner('#playerDeviceAnalysis', true);
             var sendData = {
                 platformId: vm.selectedPlatform._id,
                 type: vm.queryPara.playerDevice.type,
@@ -1919,6 +1942,7 @@ define(['js/app'], function (myApp) {
                 console.log('device data', vm.playerDeviceList);
                 $scope.safeApply();
                 vm.plotPlayerDevice();
+                vm.isShowLoadingSpinner('#playerDeviceAnalysis', false);
             });
         }
         vm.plotPlayerDevice = function (data) {
@@ -2012,6 +2036,7 @@ define(['js/app'], function (myApp) {
             }
         };
         vm.getPlayerRetention = function () {
+            vm.isShowLoadingSpinner('#analysisPlayerRetention', true);
             vm.retentionGraphData = [];
             vm.showRetention = {0: true};//set default
             vm.retentionCheckAll = false;
@@ -2048,7 +2073,9 @@ define(['js/app'], function (myApp) {
 
                 $scope.safeApply();
                 vm.drawRetentionGraph();
+                vm.isShowLoadingSpinner('#analysisPlayerRetention', false);
             }, function (data) {
+                vm.isShowLoadingSpinner('#analysisPlayerRetention', false);
                 console.log("retention data not", data);
             });
         }
@@ -2184,6 +2211,7 @@ define(['js/app'], function (myApp) {
             if (type == 'PLAYER_EXPENSES') {
                 opt = 'consumption';
             }
+            vm.isShowLoadingSpinner('#playerCreditAnalysis', true);
             let startDate = vm.queryPara.playerCredit.startTime.data('datetimepicker').getLocalDate();
             let endDate = vm.queryPara.playerCredit.endTime.data('datetimepicker').getLocalDate();
             var sendData = {
@@ -2225,7 +2253,7 @@ define(['js/app'], function (myApp) {
                     let calculatedConsumptionData = vm.calculateLineDataAndAverageForDecimalPlaces(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
                     vm.platformConsumptionAmountAverage = calculatedConsumptionData.average;
                     vm.plotLineByElementId("#line-playerCredit", calculatedConsumptionData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
-
+                    vm.isShowLoadingSpinner('#playerCreditAnalysis', false);
                 });
             });
 
@@ -2238,6 +2266,7 @@ define(['js/app'], function (myApp) {
             } else if (type == 'PLAYER_TOPUP') {
                 opt = 'topup';
             }
+            vm.isShowLoadingSpinner('#playerCreditAnalysis', true);
             var sendData = {
                 platformId: vm.selectedPlatform._id,
                 period: vm.queryPara.playerCredit.periodText,
@@ -2253,8 +2282,10 @@ define(['js/app'], function (myApp) {
                 console.log('vm.playerCreditData', vm.playerCreditData);
                 averageNumber = ((data.data.reduce((a,b) => a + (b.number ? b.number : 0),0)) / data.data.length).toFixed(2);
                 // $scope.safeApply();
+                vm.isShowLoadingSpinner('#playerCreditAnalysis', false);
                 return vm.drawPlayerCreditGraph(vm.playerCreditData, sendData, averageNumber);
             }, function (data) {
+                vm.isShowLoadingSpinner('#playerCreditAnalysis', false);
                 console.log("player credit data not", data);
             });
         }
@@ -2515,7 +2546,7 @@ define(['js/app'], function (myApp) {
             } else if (type == 'PLAYER_TOPUP') {
                 opt = 'topup';
             }
-
+            vm.isShowLoadingSpinner('#bonusAmountAnalysis', true);
             let startDate = vm.queryPara.bonusAmount.startTime.data('datetimepicker').getLocalDate();
             let endDate = vm.queryPara.bonusAmount.endTime.data('datetimepicker').getLocalDate();
 
@@ -2569,7 +2600,7 @@ define(['js/app'], function (myApp) {
                     let calculatedBonusNumber = vm.calculateLineDataAndAverage(vm.platformBonusAnalysisData, 'bonus', 'WITHDRAW_COUNT');
                     vm.platformBonusNumberAverage = calculatedBonusNumber.average;
                     vm.plotLineByElementId("#line-bonusCount", calculatedBonusNumber.lineData, $translate('WITHDRAW_COUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.bonusAmount.periodText.toUpperCase()));
-
+                    vm.isShowLoadingSpinner('#bonusAmountAnalysis', false);
                 });
 
             //     vm.playerBonusData = data.data;
@@ -2683,6 +2714,7 @@ define(['js/app'], function (myApp) {
         }
         vm.getClientSourceData = function () {
             var sendObj = {};
+            vm.isShowLoadingSpinner('#clientSourceAnalysis', true);
             sendObj.accessType = vm.queryPara.clientSource.accessType;
             //sendObj.clientType = vm.queryPara.clientSource.clientType;
             sendObj.platformId = vm.selectedPlatform.platformId;
@@ -2695,6 +2727,7 @@ define(['js/app'], function (myApp) {
                 vm.clientSourceTblData.push({_id: $translate("Total"), count: vm.clientSourceTotalCount, ratio: "100%"})
                 vm.drawClientSourceTable(vm.clientSourceTblData);
                 vm.drawClientSourcePie(vm.clientSourceTblData);
+                vm.isShowLoadingSpinner('#clientSourceAnalysis', false);
             });
         }
         vm.drawClientSourcePie = function (srcData) {
