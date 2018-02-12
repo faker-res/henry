@@ -3256,6 +3256,7 @@
   "amountRatio": "金额占比",
   "userCount": "使用人数",
   "userCountRatio": "人数占比",
-  "subtotal": "小计"
+  "subtotal": "小计",
+  "batchPermit":"批量设置"
 
 }
