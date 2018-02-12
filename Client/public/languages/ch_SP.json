@@ -3245,6 +3245,7 @@
   "VALID_ACTIVE_PLAYER": "有效活跃玩家",
   "ValidActivePlayer": "有效活跃玩家",
   "COUNT": "笔数",
+  "unreadMailMaxDuration (month)": "站内信的最长时效（月）",
   "OnlineTopupSuccessRate": "在线充值（成功率）",
   "ONLINE_TOPUP_SUCCESS_RATE": "在线充值（成功率）",
   "onlineTopupTypeWeb": "在线充值类型（WEB）",

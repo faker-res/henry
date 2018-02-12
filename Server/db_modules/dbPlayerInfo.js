@@ -11807,12 +11807,27 @@ let dbPlayerInfo = {
     },
 
     getUnreadMail: (playerId) => {
-        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}).lean().then(
             playerData => {
-                if (playerData) {
+
+                if (playerData && playerData.platform.unreadMailMaxDuration) {
+
+                    let duration = playerData.platform.unreadMailMaxDuration;
+                    let todayDate = new Date();
+                    // get today end time
+                    let todayEndDate = new Date(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0).getTime() + 24 * 3600 * 1000);
+
+                    let endDate = todayEndDate.toISOString();
+                    let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
+
                     return dbconfig.collection_playerMail.find(
-                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
+                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false, createTime: {$gte: startDate, $lt: endDate} }
                     ).lean();
+                }
+                else{
+                    return Q.reject({name: "DBError", message: "Invalid platform data"});
+
                 }
             }
         );
