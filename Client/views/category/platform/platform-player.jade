@@ -713,7 +713,8 @@ include modalGameCreditLog
                         input.playerRewardPointsEventForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v._id}}', ng-checked='vm.forbidRewardPointsEventPopover.forbidRewardPointsEvent.indexOf(v._id)>-1')
                 .textareaDetail.margin-top-bottom-small
                     textarea.forbidRewardPointsEventRemark(ng-model='vm.forbidRewardPointsEventRemark', placeholder='{{"Please add remark." | translate}}')
-                button.common-button.margin-right-5.btn.btn-success.forbidRewardPointsEventConfirm(ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidRewardPointsEventConfirm(ng-show="vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardPointsEventConfirm(ng-show="vm.platformPageName=='batchPermit'",ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidRewardPointsEventCancel {{'CANCEL' | translate}}
                 button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();") {{'CHANGES_RECORD' | translate}}
 

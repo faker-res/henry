@@ -196,7 +196,7 @@ function socketActionPlayer(socketIO, socket) {
         },
         updateBatchPlayerPermission: function updateBatchPlayerPermission(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.query && data.query.playerNames && data.admin && data.permission && data.remark);
+            var isValidData = Boolean(data && data.query && data.query.playerNames && data.query.platformObjId && data.admin && data.permission && data.remark);
             socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerPermission, [data.query, data.admin, data.permission, data.remark], actionName, isValidData);
         },
         updatePlayerPermission: function updatePlayerPermission(data) {
@@ -250,8 +250,8 @@ function socketActionPlayer(socketIO, socket) {
         updateBatchPlayerForbidProviders: function updateBatchPlayerForbidProviders(data) {
             console.log(data);
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.playerNames && data.forbidProviders);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidProviders, [data.playerNames, data.forbidProviders], actionName, isValidData);
+            let isValidData = Boolean(data && data.playerNames && data.platformObjId && data.forbidProviders);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidProviders, [data.platformObjId, data.playerNames, data.forbidProviders], actionName, isValidData);
         },
 
         updatePlayerForbidRewardEvents: function updatePlayerForbidRewardEvents(data) {
@@ -262,8 +262,8 @@ function socketActionPlayer(socketIO, socket) {
 
         updateBatchPlayerForbidRewardEvents: function updateBatchPlayerForbidRewardEvents(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.playerNames && data.forbidRewardEvents);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.playerNames, data.forbidRewardEvents], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.playerNames && data.forbidRewardEvents);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.platformObjId, data.playerNames, data.forbidRewardEvents], actionName, isValidData);
         },
 
         updatePlayerForbidRewardPointsEvent: function updatePlayerForbidRewardPointsEvent(data) {
@@ -272,6 +272,11 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardPointsEvent, [data._id, data.forbidRewardPointsEvent], actionName, isValidData);
         },
 
+        updateBatchPlayerForbidRewardPointsEvent: function updateBatchPlayerForbidRewardPointsEvent(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerNames && data.platformObjId && data.forbidRewardPointsEvent);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardPointsEvent, [data.playerNames, data.platformObjId, data.forbidRewardPointsEvent], actionName, isValidData);
+        },
         /**
          * Delete player infos by _ids
          * @param {json} data - It has to contain _ids(array of player object id)

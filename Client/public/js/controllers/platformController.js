@@ -10134,11 +10134,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData)
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidPaymentType', sendData, function (data) {
                     vm.getPlatformPlayersData();
-                    let forbidTopUpNames = [];
-                    for (let i = 0; i < data.data.forbidTopUpType.length; i++) {
-                        forbidTopUpNames[i] = vm.merchantTopupTypeJson[data.data.forbidTopUpType[i]];
-                    }
-                    vm.updateForbidTopUpLog(data.data._id, forbidTopUpNames);
+                    vm.updateBatchForbidTopUpLog(data);
                     $scope.safeApply();
                 });
             }
@@ -11948,7 +11944,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidProviders', sendData, function (data) {
                     vm.getPlatformPlayersData();
-                    vm.updateForbidGameLog(data.data._id, vm.findForbidCheckedName(data.data.forbidProviders, vm.allGameProvider));
+                    vm.updateBatchForbidGameLog(data);
                 });
             };
 
@@ -11957,6 +11953,14 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardPointsEvent', sendData, function (data) {
                     vm.getPlatformPlayersData();
                     vm.updateForbidRewardPointsEventLog(data.data._id, vm.findForbidCheckedTitle(data.data.forbidRewardPointsEvent, vm.rewardPointsAllEvent));
+                });
+            };
+
+            vm.updateBatchPlayerForbidRewardPointsEvent = function (sendData) {
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardPointsEvent', sendData, function (data) {
+                    vm.getPlatformPlayersData();
+                    vm.updateBatchForbidRewardPointsEventLog(data);
                 });
             };
 
@@ -11971,7 +11975,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
                     vm.getPlatformPlayersData();
-                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
+                    vm.updateBatchForbidRewardLog(data);
                 });
             };
             vm.getPlayerStatusChangeLog = function (rowData) {
@@ -21735,6 +21739,20 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.updateBatchForbidGameLog = function (data) {
+                let deferred = Q.defer();
+
+                let proms = []
+                data.data.forEach(item=>{
+                    let prom = vm.updateForbidGameLog(item._id, vm.findForbidCheckedName(item.forbidProviders, vm.allGameProvider));
+                    proms.push(prom);
+                });
+                Q.all(proms).then(data=>{
+                    vm.batchPermitModifySucc = true;
+                    deferred.resolve(data);
+                });
+                return deferred.promise;
+            }
             /*vm.updateForbidRewardPointsEventLog = function (playerId, forbidRewardPointsEvent) {
                 let queryData = {
                     playerId: playerId,
@@ -21843,6 +21861,25 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.updateBatchForbidTopUpLog = function (data) {
+                let deferred = Q.defer();
+                let proms = [];
+
+                data.data.forEach(item=>{
+                    let forbidTopUpNames = [];
+                    for (let i = 0; i < item.forbidTopUpType.length; i++) {
+                        forbidTopUpNames[i] = vm.merchantTopupTypeJson[item.forbidTopUpType[i]];
+                    }
+                    let prom = vm.updateForbidTopUpLog(item._id, forbidTopUpNames);
+                    proms.push(prom);
+                })
+                Q.all(proms).then(data=>{
+                    vm.batchPermitModifySucc = true;
+                    deferred.resolve(data);
+                })
+                return deferred.promise;
+            }
+
             $("button.forbidTopUpConfirm").on('click', function () {
                 vm.getForbidTopUp();
             });
@@ -21924,17 +21961,33 @@ define(['js/app'], function (myApp) {
 
             //region forbidReward
             vm.updateForbidRewardLog = function (playerId, forbidReward) {
+
                 let queryData = {
                     playerId: playerId,
                     remark: vm.forbidRewardRemark,
                     adminId: authService.adminId,
                     forbidRewardNames: forbidReward
                 };
-
                 socketService.$socket($scope.AppSocket, 'createForbidRewardLog', queryData, function (created) {
                     vm.forbidRewardRemark = '';
                     console.log('Forbid reward log created', created);
                 });
+            }
+
+            vm.updateBatchForbidRewardLog = function (data) {
+                let deferred = Q.defer();
+                let proms = [];
+
+                data.data.forEach(player => {
+                    let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent));
+                    proms.push(prom);
+                });
+
+                Q.all(proms).then(data => {
+                    vm.batchPermitModifySucc = true;
+                    deferred.resolve(data);
+                })
+                return deferred.promise;
             }
 
             $("button.forbidRewardEventConfirm").on('click', function () {
@@ -22029,6 +22082,20 @@ define(['js/app'], function (myApp) {
                     vm.forbidRewardPointsEventRemark = '';
                     console.log('Forbid reward points event log created', created);
                 });
+            }
+            vm.updateBatchForbidRewardPointsEventLog = function (data) {
+                let deferred = Q.defer();
+                let proms = [];
+
+                data.data.forEach(player=>{
+                    let prom = vm.updateForbidRewardPointsEventLog(player._id, vm.findForbidCheckedTitle(player.forbidRewardPointsEvent, vm.rewardPointsAllEvent));
+                    proms.push(prom);
+                });
+                Q.all(proms).then(data=>{
+                    vm.batchPermitModifySucc = true;
+                    deferred.resolve(data);
+                })
+                return deferred.promise;
             }
 
             $("button.forbidRewardPointsEventConfirm").on('click', function () {
@@ -22704,9 +22771,6 @@ define(['js/app'], function (myApp) {
                 });
                 vm.drawBatchPermitTable();
             };
-            vm.batchUpdatePlayer = function () {
-                console.log(vm.batchEditData);
-            };
             vm.batchEditData = {
                 "_id": "583d1fbe16782962721afeae",
                 "permission": {
@@ -22742,7 +22806,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
-                                let result = '<textarea rows="8" ng-model="vm.multiUsersList">'
+                                let result = '<textarea rows="8" ng-model="vm.multiUsersList" style="width:100%">'
                                 return result;
                             }
                         },
@@ -22755,7 +22819,6 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             sClass: "remarkCol",
                             render: (data, type, row) => {
-                                console.log(data);
                                 let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
                                 if (!data || data.length === 0) {
                                     return emptyOutput;
@@ -22990,7 +23053,6 @@ define(['js/app'], function (myApp) {
                             elem: '.playerPermissionPopover',
                             onClickAsync: function (showPopover) {
                                 var that = this;
-                                // var row = JSON.parse(this.dataset.row);
                                 var row = uData;
                                 vm.playerPermissionTypes = {
                                     applyBonus: {
@@ -23044,9 +23106,7 @@ define(['js/app'], function (myApp) {
                                     },
                                 };
                                 $("#playerPermissionTable td").removeClass('hide');
-
                                 vm.popOverPlayerPermission = row;
-
                                 // Invert second render
                                 // row.permission.banReward = !row.permission.banReward;
                                 // row.permission.disableWechatPay = !row.permission.disableWechatPay;
@@ -23111,47 +23171,30 @@ define(['js/app'], function (myApp) {
                                     if (changeObj.hasOwnProperty('forbidPlayerFromEnteringGame')) {
                                         changeObj.forbidPlayerFromEnteringGame = !changeObj.forbidPlayerFromEnteringGame;
                                     }
-                                    console.log(changeObj);
-                                    console.log(vm.batchEditData);
-                                    Object.keys(vm.batchEditData.permission).map(item => {
 
+                                    Object.keys(vm.batchEditData.permission).map(item => {
                                         Object.keys(changeObj).forEach((fieldName, index) => {
-                                            //main 1
+                                            //maincategory
                                             if (fieldName == item) {
-                                                console.log(item + '=' + fieldName + changeObj[fieldName]);
-                                                console.log('hiha');
                                                 vm.batchEditData.permission[item] = changeObj[fieldName];
                                             }
-                                            console.log('-------------------');
                                         })
-
                                     });
                                     let playerNames = vm.splitBatchPermit();
+                                    vm.batchPermitModifySucc = false;
                                     socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
                                         query: {
-                                            // platform: vm.permissionPlayer.platform,
-                                            // _ids: vm.permissionPlayer._id
+                                            platformObjId: vm.selectedPlatform.id,
                                             playerNames: playerNames
                                         },
                                         admin: authService.adminId,
                                         permission: changeObj,
                                         remark: $remark.val()
                                     }, function (data) {
+                                        vm.batchPermitModifySucc = true;
                                         vm.getPlatformPlayersData();
+                                        vm.drawBatchPermitTable();
                                     }, null, true);
-                                    vm.drawBatchPermitTable();
-                                    vm.batchUpdatePlayer();
-                                    // socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
-                                    //     query: {
-                                    //         platform: vm.permissionPlayer.platform,
-                                    //         _ids: vm.permissionPlayer._id
-                                    //     },
-                                    //     admin: authService.adminId,
-                                    //     permission: changeObj,
-                                    //     remark: $remark.val()
-                                    // }, function (data) {
-                                    //     vm.getPlatformPlayersData();
-                                    // }, null, true);
 
                                     $(thisPopover).popover('hide');
                                 })
@@ -23163,7 +23206,6 @@ define(['js/app'], function (myApp) {
                             context: container,
                             elem: '.forbidRewardEventPopover',
                             content: function () {
-                                // var data = JSON.parse(this.dataset.row);
                                 var data = uData;
                                 vm.forbidRewardEventPopover = data;
                                 vm.forbidRewardEvents = [];
@@ -23173,7 +23215,6 @@ define(['js/app'], function (myApp) {
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
-                                // let rowData = JSON.parse(this.dataset.row);
                                 let rowData = uData;
                                 $scope.safeApply();
 
@@ -23210,16 +23251,15 @@ define(['js/app'], function (myApp) {
                                     });
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
+                                        platformObjId: vm.selectedPlatform.id,
                                         playerNames: playerNames,
                                         forbidRewardEvents: forbidRewardEvents,
                                         adminName: authService.adminName
                                     };
+                                    // subcategory 1
+                                    vm.batchPermitModifySucc = false;
                                     vm.updateBatchPlayerForbidRewardEvents(sendData);
-                                    vm.batchEditData.forbidRewardEvents = forbidRewardEvents;
                                     vm.drawBatchPermitTable();
-                                    vm.batchUpdatePlayer();
-                                    console.log(vm.batchEditData);
-                                    // sub 1
                                     $(".forbidRewardEventPopover").popover('hide');
                                 });
                             }
@@ -23238,7 +23278,6 @@ define(['js/app'], function (myApp) {
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
-                                //let rowData = JSON.parse(this.dataset.row);
                                 let rowData = uData;
                                 $scope.safeApply();
 
@@ -23278,17 +23317,15 @@ define(['js/app'], function (myApp) {
                                     });
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
+                                        platformObjId: vm.selectedPlatform.id,
                                         playerNames: playerNames,
                                         forbidProviders: forbidProviders,
                                         adminName: authService.adminName
                                     };
+                                    //subcategory 2
+                                    vm.batchPermitModifySucc = false;
                                     vm.updateBatchPlayerForbidProviders(sendData);
-                                    // sub 2
-                                    console.log(forbidProviders);
-                                    vm.batchEditData.forbidProviders = forbidProviders;
                                     vm.drawBatchPermitTable();
-                                    vm.batchUpdatePlayer();
-                                    console.log(vm.batchEditData);
                                     $(".prohibitGamePopover").popover('hide');
                                 });
                             }
@@ -23309,7 +23346,6 @@ define(['js/app'], function (myApp) {
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
-                                // let rowData = JSON.parse(this.dataset.row);
                                 let rowData = uData;
                                 $scope.safeApply();
 
@@ -23347,21 +23383,20 @@ define(['js/app'], function (myApp) {
                                             forbidTopUpTypes.push($(v).attr('data-provider'));
                                         }
                                     });
-                                    console.log(forbidTopUpTypes);
+
                                     let playerNames = vm.splitBatchPermit();
                                     let sendData = {
-                                        query: {playerNames: playerNames},
+                                        query: {
+                                            playerNames: playerNames,
+                                            platformObjId: vm.selectedPlatform.id
+                                        },
                                         updateData: {forbidTopUpType: forbidTopUpTypes},
                                         adminName: authService.adminName
                                     };
-                                    vm.batchEditData.forbidTopUpTypes = forbidTopUpTypes;
+                                    //subcategory 3
+                                    vm.batchPermitModifySucc = false;
                                     vm.confirmBatchUpdatePlayerTopupTypes(sendData);
-
                                     vm.drawBatchPermitTable();
-                                    vm.batchUpdatePlayer();
-
-                                    //sub 3
-                                    console.log(vm.batchEditData);
                                     $(".forbidTopUpPopover").popover('hide');
                                 });
                             }
@@ -23370,7 +23405,6 @@ define(['js/app'], function (myApp) {
                             context: container,
                             elem: '.forbidRewardPointsEventPopover',
                             content: function () {
-                                // var data = JSON.parse(this.dataset.row);
                                 var data = uData;
                                 vm.forbidRewardPointsEventPopover = data;
                                 vm.forbidRewardPointsEventDisable = true;
@@ -23380,7 +23414,6 @@ define(['js/app'], function (myApp) {
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
-                                // let rowData = JSON.parse(this.dataset.row);
                                 let rowData = uData;
                                 $scope.safeApply();
 
@@ -23407,7 +23440,7 @@ define(['js/app'], function (myApp) {
                                     $scope.safeApply();
                                 });
 
-                                $("button.forbidRewardPointsEventConfirm").on('click', function () {
+                                $("button.forbidBatchRewardPointsEventConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
@@ -23418,38 +23451,24 @@ define(['js/app'], function (myApp) {
                                             forbidRewardPointsEvent.push($(v).attr('data-provider'));
                                         }
                                     });
-                                    console.log(forbidRewardPointsEvent);
-                                    // let sendData = {
-                                    //     _id: rowData._id,
-                                    //     forbidRewardPointsEvent: forbidRewardPointsEvent,
-                                    //     adminName: authService.adminName
-                                    // };
-                                    // vm.updatePlayerForbidRewardPointsEvent(sendData);
-                                    vm.batchEditData.forbidRewardPointsEvent = forbidRewardPointsEvent;
+                                    let playerNames = vm.splitBatchPermit();
+                                    let sendData = {
+                                        playerNames: playerNames,
+                                        platformObjId: vm.selectedPlatform.id,
+                                        forbidRewardPointsEvent: forbidRewardPointsEvent,
+                                        adminName: authService.adminName
+                                    };
+                                    // subcategory 4
+                                    vm.batchPermitModifySucc = false;
+                                    vm.updateBatchPlayerForbidRewardPointsEvent(sendData);
                                     vm.drawBatchPermitTable();
-                                    vm.batchUpdatePlayer();
                                     $(".forbidRewardPointsEventPopover").popover('hide');
                                 });
                             }
                         });
-
-
                     }
                 }
                 vm.batchPlayerTable = $('#batchPlayerDataTable').DataTable(tableOptions);
-                // vm.playerFeedbackTable = $('#playerFeedbackDataTable').DataTable(tableOptions);
-                //
-                // utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
-                // utilService.setDataTablePageInput('playerFeedbackDataTable', vm.playerFeedbackTable, $translate);
-                //
-                // if (!vm.playersQueryCreated) {
-                //     createPlayerAdvancedSearchFilters({
-                //         tableOptions: tableOptions,
-                //         filtersElement: '#playerTable-search-filters',
-                //         queryFunction: vm.getPlayersByAdvanceQueryDebounced
-                //     });
-                // }
-
                 $scope.safeApply();
             }
             vm.splitBatchPermit = function(){
