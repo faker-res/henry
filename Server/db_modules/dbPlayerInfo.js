@@ -7852,6 +7852,7 @@ let dbPlayerInfo = {
                 let activePlayerTopUpTimes;
                 let activePlayerTopUpAmount;
                 let activePlayerConsumptionTimes;
+                let activePlayerConsumptionAmount;
                 let activePlayerValue;
                 let topupCollectionName = 'collection_playerTopUpWeekSummary';
                 let consumptionCollectionName = 'collection_playerConsumptionWeekSummary';
@@ -7862,24 +7863,28 @@ let dbPlayerInfo = {
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.dailyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
                         activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.weeklyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
                         activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.halfMonthActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
                         activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.monthlyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.monthlyActivePlayerValue;
                         break;
                     case 'season':
@@ -7887,6 +7892,7 @@ let dbPlayerInfo = {
                         activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.seasonActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.seasonActivePlayerValue;
                 }
 
@@ -7926,6 +7932,7 @@ let dbPlayerInfo = {
                                                 dayStartTime: dayStartTime,
                                                 dayEndTime: dayEndTime,
                                                 activePlayerConsumptionTimes: activePlayerConsumptionTimes,
+                                                activePlayerConsumptionAmount: activePlayerConsumptionAmount,
                                                 activePlayerValue: activePlayerValue,
                                                 partnerLevelConfig: partnerLevelConfig,
                                                 consumptionCollectionName: consumptionCollectionName,
@@ -7994,7 +8001,7 @@ let dbPlayerInfo = {
         return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true);
     },
 
-    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs) {
+    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerConsumptionAmount, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs) {
         let matchObj = {
             playerId: {$in: playerObjs.map(player => ObjectId(player._id))},
             platformId: ObjectId(platformId),
@@ -8005,7 +8012,7 @@ let dbPlayerInfo = {
             {$group: {_id: "$playerId", "amount": {"$sum": '$amount'}, "times": {"$sum": '$times'}}}
         ]).read("secondaryPreferred").then(
             records => {
-                records = records.filter(records => records.times >= activePlayerConsumptionTimes);
+                records = records.filter(records => records.times >= activePlayerConsumptionTimes && records.amount >= activePlayerConsumptionAmount);
                 return dbconfig.collection_players.populate(records, {
                     path: '_id',
                     model: dbconfig.collection_players
@@ -8019,7 +8026,8 @@ let dbPlayerInfo = {
                                 records._id.valueScore >= partnerLevelConfig.validPlayerValue &&
                                 records._id.topUpTimes >= partnerLevelConfig.validPlayerTopUpTimes &&
                                 records._id.topUpSum >= partnerLevelConfig.validPlayerTopUpAmount &&
-                                records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes
+                                records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes &&
+                                records._id.consumptionSum >= partnerLevelConfig.validPlayerConsumptionAmount
                             ).length;
                         else
                             return records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue).length;

@@ -732,7 +732,7 @@ define(['js/app'], function (myApp) {
                         players: newPlayerWithinPeriod,
                         topupPlayer: newPlayerWithinPeriod.filter(player => player.topUpTimes > 0 ),
                         multiTopupPlayer: newPlayerWithinPeriod.filter(player => player.topUpTimes > 1),
-                        validPlayer: newPlayerWithinPeriod.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue),
+                        validPlayer: newPlayerWithinPeriod.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.valueScore >= vm.partnerLevelConfig.validPlayerValue),
                     });
                 }
                 vm.platformNewPlayerDataPeriodText = vm.queryPara.newPlayer.periodText;
