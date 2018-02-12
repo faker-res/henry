@@ -22737,6 +22737,7 @@ define(['js/app'], function (myApp) {
             vm.initBatchPermit = function () {
                 vm.prepareCredibilityConfig();
                 vm.drawBatchPermitTable();
+                vm.playerCredibilityRemarksUpdated = false;
             };
             vm.localRemarkUpdate = function () {
                 let selectedRemarks = [];
@@ -23253,9 +23254,10 @@ define(['js/app'], function (myApp) {
                                     };
                                     // subcategory 1
                                     vm.batchPermitModifySucc = false;
+                                    $(".forbidRewardEventPopover").popover('hide');
                                     vm.updateBatchPlayerForbidRewardEvents(sendData);
                                     vm.drawBatchPermitTable();
-                                    $(".forbidRewardEventPopover").popover('hide');
+
                                 });
                             }
                         });
@@ -23319,9 +23321,9 @@ define(['js/app'], function (myApp) {
                                     };
                                     //subcategory 2
                                     vm.batchPermitModifySucc = false;
+                                    $(".prohibitGamePopover").popover('hide');
                                     vm.updateBatchPlayerForbidProviders(sendData);
                                     vm.drawBatchPermitTable();
-                                    $(".prohibitGamePopover").popover('hide');
                                 });
                             }
                         });
@@ -23390,9 +23392,9 @@ define(['js/app'], function (myApp) {
                                     };
                                     //subcategory 3
                                     vm.batchPermitModifySucc = false;
+                                    $(".forbidTopUpPopover").popover('hide');
                                     vm.confirmBatchUpdatePlayerTopupTypes(sendData);
                                     vm.drawBatchPermitTable();
-                                    $(".forbidTopUpPopover").popover('hide');
                                 });
                             }
                         });
@@ -23455,9 +23457,9 @@ define(['js/app'], function (myApp) {
                                     };
                                     // subcategory 4
                                     vm.batchPermitModifySucc = false;
+                                    $(".forbidRewardPointsEventPopover").popover('hide');
                                     vm.updateBatchPlayerForbidRewardPointsEvent(sendData);
                                     vm.drawBatchPermitTable();
-                                    $(".forbidRewardPointsEventPopover").popover('hide');
                                 });
                             }
                         });
