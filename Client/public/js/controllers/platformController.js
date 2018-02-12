@@ -10747,12 +10747,22 @@ define(['js/app'], function (myApp) {
                 vm.smsLog.query.status = "all";
                 vm.smsLog.query.isAdmin = true;
                 vm.smsLog.query.isSystem = false;
-                utilService.actionAfterLoaded('.modal.in #smsLogPanel #smsLogQuery .endTime', function () {
+                let endTimeElementPath = '.modal.in #smsLogPanel #smsLogQuery .endTime';
+                let tablePageId = "smsLogTablePage";
+                if(type=="multi") {
+                    endTimeElementPath = '#groupSmsLogQuery .endTime';
+                    tablePageId = "groupSmsLogTablePage";
+                }
+                utilService.actionAfterLoaded(endTimeElementPath, function () {
                     vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .startTime');
                     vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogPanel #smsLogQuery .endTime');
+                    if(type=="multi") {
+                        vm.smsLog.query.startTime = utilService.createDatePicker('#groupSmsLogQuery .startTime');
+                        vm.smsLog.query.endTime = utilService.createDatePicker('#groupSmsLogQuery .endTime');
+                    }
                     vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
                     vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.smsLog.pageObj = utilService.createPageForPagingTable("#smsLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.smsLog.pageObj = utilService.createPageForPagingTable(tablePageId, {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLog)
                     });
                     // Be user friendly: Fetch some results immediately!
