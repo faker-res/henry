@@ -6,6 +6,7 @@ define(['js/app'], function (myApp) {
 
     var analysisController = function ($scope, $filter, $location, $log, authService, socketService, CONFIG, utilService, $timeout) {
         var $translate = $filter('translate');
+        let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         var vm = this;
 
         // For debugging:
@@ -728,6 +729,17 @@ define(['js/app'], function (myApp) {
             let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + (Number.isInteger(item[key]) ? item[key] : item[key].length), 0) / data.length) : 0;
             data.map(item => {
                 graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key].length]);
+                averageData.push([new Date(item.date), average]);
+            })
+            return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
+        };
+
+        vm.calculateLineDataAndAverageForDecimalPlaces = (data, key, label) => {
+            var graphData = [];
+            let averageData = [];
+            let average = data.length !== 0 ? $noRoundTwoDecimalPlaces(data.reduce((a, item) => a + (Number.isInteger(item[key]) ? item[key] : item[key]), 0) / data.length) : 0;
+            data.map(item => {
+                graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key]]);
                 averageData.push([new Date(item.date), average]);
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
@@ -2042,11 +2054,11 @@ define(['js/app'], function (myApp) {
                         let totalConsumptionAmount = item.consumptions.length > 0 ? item.consumptions.reduce((a, b) => a + (b.validAmount ? b.validAmount : 0), 0) : 0;
                         vm.platformConsumptionAnalysisAmount.push({
                             date: item.date,
-                            consumptions: totalConsumptionAmount
+                            consumptions: $noRoundTwoDecimalPlaces(totalConsumptionAmount)
                         });
                     });
 
-                    let calculatedConsumptionData = vm.calculateLineDataAndAverage(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
+                    let calculatedConsumptionData = vm.calculateLineDataAndAverageForDecimalPlaces(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
                     vm.platformConsumptionAmountAverage = calculatedConsumptionData.average;
                     vm.plotLineByElementId("#line-playerCredit", calculatedConsumptionData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
 
