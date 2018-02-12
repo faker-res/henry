@@ -2169,7 +2169,7 @@ let dbPlayerReward = {
                                         "type": Object(proposalType._id),
                                         "status": {$in: ["Success", "Approved"]},
                                         "settleTime": {
-                                            '$gte': moment().subtract(3, 'hours'),
+                                            '$gte': moment().subtract(3, 'days'),
                                             '$lte': new Date()
                                         }
                                     };
@@ -2177,7 +2177,7 @@ let dbPlayerReward = {
                                         {
                                             path: "type",
                                             model: dbConfig.collection_proposalType
-                                        }).sort({"createTime": -1}).limit(10).lean()
+                                        }).sort({"createTime": -1}).limit(20).lean()
 
                                 }
                             )
@@ -2384,7 +2384,9 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
-                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                if(newPromoCodeEntry.allowedSendSms) {
+                    SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                }
                 messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
                 return newPromoCode.code;
             }
@@ -2537,7 +2539,7 @@ let dbPlayerReward = {
 
                     if (topUpProp.data.promoCode) {
                         return Q.reject({
-                            status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
                             name: "ConditionError",
                             message: "Topup has been used for other reward"
                         })

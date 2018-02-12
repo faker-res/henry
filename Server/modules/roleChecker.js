@@ -164,6 +164,7 @@ var roleChecker = {
 
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
+        "countConsumptionByPlatform": true,
         "countTopUpORConsumptionbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
@@ -446,7 +447,10 @@ var roleChecker = {
                 gameRewardPoints: [],
                 rewardPointsRanking: [],
                 rewardPointsLog: []
-
+            },
+            "batchPermit": {
+                Read: [],
+                Update: ['updateBatchPlayerCredibilityRemark', 'updateBatchPlayerPermission', 'updateBatchPlayerForbidRewardEvents', 'updateBatchPlayerForbidProviders', 'updateBatchPlayerForbidPaymentType', 'updateBatchPlayerForbidRewardPointsEvent'],
             }
         },
         Payment: {
@@ -559,6 +563,7 @@ var roleChecker = {
                 ClientSource: [],
                 LoginPlayer: [],
                 ValidActivePlayer: [],
+                OnlineTopupSuccessRate: [],
 
             }
         },

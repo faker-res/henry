@@ -2145,7 +2145,7 @@ function updateRTG (oldData, newData) {
                     }
                 } else {
                     // All credit reflect on summary valid credit
-                    summAdjustNonXIMAAmt = incValidAmt;
+                    summAdjustXIMAAmt = incValidAmt;
                 }
 
                 // Update consumption summary upon updating consumption record
@@ -2163,7 +2163,7 @@ function updateRTG (oldData, newData) {
                             statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
                         }
 
-                        if (updatedRTG.curConsumption + consumptionOffset >= updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                        if (updatedRTG.curConsumption == updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
                             statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
                         }
 

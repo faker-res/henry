@@ -9,7 +9,17 @@
         #analysisPlayerRetention.block-query.well(style='margin-bottom:3px;')
             div
                 label {{"Start date"|translate}}
-                input.form-control(type='date', ng-model='vm.queryPara.playerRetention.startTime')
+                input.form-control(type='date', ng-model='vm.queryPara.playerRetention.startTime', ng-change = 'vm.retentionFilterOnChange()')
+            div
+                label {{"End date"|translate}}
+                input.form-control(type='date', min='{{vm.queryPara.playerRetention.minTime}}',
+                ng-model='vm.queryPara.playerRetention.endTime')
+            div
+                label {{"newRegistrationType"|translate}}
+                //select.form-control(ng-model="vm.queryPara.playerRetention.playerType", ng-options='a | translate for a in vm.allNewPlayerType')
+                select.form-control(ng-model="vm.queryPara.playerRetention.playerType")
+                    option(ng-repeat='(i,v) in vm.allNewPlayerType', value = '{{i}}') {{v | translate}}
+                        //option(value='') {{'all'|translate}}
             div
                 table.simple-table
                     tbody
