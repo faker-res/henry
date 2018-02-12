@@ -1,0 +1,13 @@
+style.
+    .bg-secondary {
+        background-color: #868E96;
+    }
+.row
+    .col-md-12
+        .panel.panel-primary
+            .panel-heading.panel-heading-sm
+                label {{"Batch Setting" | translate}}
+            .panel-body.common-right-sub-panel-body
+                table#batchPlayerDataTable(style="width:100%")
+                .well(ng-show='vm.batchPermitModifySucc')
+                    label.text-success {{'SUCCESS' | translate}}

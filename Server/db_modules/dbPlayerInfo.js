@@ -1630,7 +1630,47 @@ let dbPlayerInfo = {
             }
         );
     },
+    updateBatchPlayerPermission: function(query, admin, permission, remark){
 
+        var updateObj = {};
+
+        for (var key in permission) {
+            updateObj["permission." + key] = permission[key];
+        }
+        let players = query.playerNames;
+        let proms = [];
+        players.forEach(item => {
+            let playerQuery = { 'name' : item, 'platform': query.platformObjId };
+            let prom =  dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
+                function (suc) {
+                    var oldData = {};
+                    for (var i in permission) {
+                        if (suc.permission[i] != permission[i]) {
+                            oldData[i] = suc.permission[i];
+                        } else {
+                            delete permission[i];
+                        }
+                    }
+                    if (Object.keys(oldData).length !== 0) {
+                    var newLog = new dbconfig.collection_playerPermissionLog({
+                        admin: admin,
+                        platform: playerQuery.platform,
+                        player: suc._id,
+                        remark: remark,
+                        oldData: oldData,
+                        newData: permission,
+                    });
+                    return newLog.save();
+                    } else return true;
+                },
+                function (error) {
+                    return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+                }
+            )
+            proms.push(prom)
+        })
+        return Promise.all(proms);
+    },
     /**
      * Reset player password
      * @param {String}  playerId - The query string
@@ -2055,6 +2095,18 @@ let dbPlayerInfo = {
         });
     },
 
+    updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
+        let proms = [];
+        let playerNames = query.playerNames;
+        let updateData = {forbidTopUpType: forbidTopUpTypes}
+        playerNames.forEach(name => {
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform: query.platformObjId }, updateData, constShardKeys.collection_players);
+            proms.push(prom)
+        });
+
+        return Promise.all(proms);
+    },
+
     /**
      * Update player status info and record change rason
      * @param {objectId}  playerObjId
@@ -2086,12 +2138,42 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
 
+    updateBatchPlayerForbidProviders: function (platformObjId, playerNames, forbidProviders) {
+
+        let updateData = {};
+        if (forbidProviders) {
+            updateData.forbidProviders = forbidProviders;
+        }
+        let proms = [];
+
+        playerNames.forEach(player=>{
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
+
     updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
         let updateData = {};
         if (forbidRewardEvents) {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+
+    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
+        let updateData = {};
+        let result = [];
+        if (forbidRewardEvents) {
+            updateData.forbidRewardEvents = forbidRewardEvents;
+        }
+        let proms = [];
+        playerNames.forEach(name=>{
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
+            proms.push(prom);
+        });
+        return Promise.all(proms);
     },
 
     updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
@@ -2101,6 +2183,20 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
+
+    updateBatchPlayerForbidRewardPointsEvent: function (playerNames, platformObjId, forbidRewardPointsEvent) {
+        let proms = [];
+        let updateData = {};
+        if (forbidRewardPointsEvent) {
+            updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
+        }
+        playerNames.forEach(name=>{
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform:platformObjId }, updateData, constShardKeys.collection_players);
+            proms.push(prom);
+        })
+        return Promise.all(proms);
+    },
+
     /**
      * Delete playerInfo by object _id of the playerInfo schema
      * @param {array}  playerObjIds - The object _ids of the players
@@ -11775,6 +11871,33 @@ let dbPlayerInfo = {
                 return playerData;
             }
         );
+    },
+
+    updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
+
+        let proms = [];
+        playerNames.forEach(playerName=>{
+
+            let prom = dbUtility.findOneAndUpdateForShard(
+                dbconfig.collection_players,
+                {
+                    name: playerName,
+                    platform: platformObjId
+                },
+                {
+                    credibilityRemarks: remarks
+                },
+                 constShardKeys.collection_players
+            ).then(
+                playerData => {
+                    let playerObjId = playerData._id;
+                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+                    return playerData;
+                }
+            );
+            proms.push(prom);
+        })
+        return Promise.all(proms);
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
