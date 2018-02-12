@@ -17919,7 +17919,7 @@ define(['js/app'], function (myApp) {
 
             vm.promoCodeNewRow = function (collection, type, data) {
                 let tableId = "#createPromoCodeTable" + type;
-
+                let date = (data && data.expirationTime$) ? new Date(data.expirationTime$) : utilService.setLocalDayEndTime(new Date());
                 let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
 
                 return p.then(
@@ -17933,7 +17933,7 @@ define(['js/app'], function (myApp) {
                                     format: 'yyyy/MM/dd hh:mm:ss',
                                     startDate: utilService.setLocalDayStartTime(new Date())
                                 });
-                                collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                                collection[index].expirationTime.data('datetimepicker').setDate(date);
                             });
 
                             $scope.safeApply();
@@ -17958,6 +17958,7 @@ define(['js/app'], function (myApp) {
                         let newData = Object.assign({}, sendData);
                         newData.playerName = el;
                         newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
+                        newData.expirationTime$ = data.expirationTime.data('datetimepicker').getDate();
 
                         delete newData.$$hashKey;
 

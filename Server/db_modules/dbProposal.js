@@ -3651,7 +3651,7 @@ var proposal = {
                         $match: queryObj
                     }, {
                         $group: {
-                            _id: "$data.merchantUseType",
+                            _id: "$data.topupType",
                             userIds: { $addToSet: "$data.playerObjId" },
                         }
                     }
