@@ -438,13 +438,15 @@ var proposalExecutor = {
                     }
                 ).then(
                     platform => {
-                        if (platform && platform.useProviderGroup) {
-                            proposalData.data.proposalId = proposalData.proposalId;
-                            fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
-                                deferred.resolve, deferred.reject);
-                        }
-                        else {
-                            proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                        if (platform) {
+                            if (platform.useProviderGroup) {
+                                proposalData.data.proposalId = proposalData.proposalId;
+                                fixTransferCreditWithProposalGroup(proposalData.data.transferId, proposalData.data.updateAmount, proposalData.data).then(
+                                    deferred.resolve, deferred.reject);
+                            }
+                            else {
+                                proposalExecutor.executions.executeUpdatePlayerCredit(proposalData, deferred, true);
+                            }
                         }
                     }
                 );

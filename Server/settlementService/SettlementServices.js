@@ -55,7 +55,8 @@
                 "autoConvertPlayerRewardPoints",
                 "bulkPlayerApplyReward",
                 "batchCreditTransferOut",
-                "performUnlockPlatformProviderGroup"
+                "performUnlockPlatformProviderGroup",
+                "getConsumptionActivePlayerAfterTopupQueryMatch"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -8,6 +8,19 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
 
+        // For debugging:
+        // window.VM = vm;
+
+        vm.allNewPlayerType = {
+            1: "allNewRegistrationCount",
+            2: "rechargedPlayer",
+            3: "multipleTopUpPlayer",
+            4: "Valid Player"
+        };
+
+        // For debugging:
+        window.VM = vm;
+
         vm.selectPlatform = function (id) {
             vm.operSelPlatform = false;
             vm.platformOverviewClass = 'btn-primary';
@@ -85,8 +98,14 @@ define(['js/app'], function (myApp) {
                         vm.plotLoginPlayerLine();
                         break;
                     case "ACTIVE_PLAYER":
+                        vm.platformActivePlayerAnalysisSort = {};
                         vm.initSearchParameter('activePlayer', 'day', 3);
                         vm.plotActivePlayerLine();
+                        break;
+                    case "VALID_ACTIVE_PLAYER":
+                        vm.platformValidActivePlayerAnalysisSort = {};
+                        vm.initSearchParameter('validActivePlayer', 'day', 3);
+                        vm.plotValidActivePlayerLine();
                         break;
                     case "PEAK_HOUR":
                         vm.plotPeakhourOnlinePlayerLine();
@@ -131,9 +150,10 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case "REWARD_ANALYSIS":
+                        vm.platformRewardAnalysisSort = {};
                         vm.selectReward = {};
                         vm.initSearchParameter('reward', 'day', 3);
-                        vm.rewardAnalysisInit(vm.plotRewardAmountLine);
+                        vm.rewardAnalysisInit(vm.plotRewardLine);
                         break;
                     case "PLAYER_DEVICE_ANALYSIS":
                         vm.newOptions = {
@@ -169,6 +189,7 @@ define(['js/app'], function (myApp) {
                     case "PLAYER_RETENTION":
                         vm.initSearchParameter('playerRetention', null, 2, function () {
                             vm.queryPara.playerRetention.days = [1, 4, 8, 10, 15, 24, 30];
+                            vm.queryPara.playerRetention.playerType = "1"; //set default value
                             vm.dayListLength = [];
                             for (var i = 1; i < 31; i++) {
                                 vm.dayListLength.push(i);
@@ -180,16 +201,21 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case "PLAYER_EXPENSES":
+                        vm.platformConsumptionAnalysisSort = {};
                         vm.initSearchParameter('playerCredit', 'day', 3, function () {
-                            vm.drawPlayerCreditLine('PLAYER_EXPENSES');
+                            vm.queryPara.playerCredit.filterGameProvider = 'all';
+                            //vm.drawPlayerCreditLine('PLAYER_EXPENSES');
+                            vm.plotPlayerCreditLine('PLAYER_EXPENSES');
                         });
                         break;
                     case "PLAYER_TOPUP":
                         vm.initSearchParameter('playerCredit', 'day', 3, function () {
                             vm.drawPlayerCreditLine('PLAYER_TOPUP');
+                            vm.drawPlayerCreditCountLine('PLAYER_TOPUP');
                         });
                         break;
                     case "BONUS_AMOUNT":
+                        vm.platformBonusAnalysisSort = {};
                         vm.initSearchParameter('bonusAmount', 'day', 3, function () {
                             vm.drawPlayerBonusAmount('BONUS_AMOUNT');
                         });
@@ -207,6 +233,12 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('consumptionInterval', null, 1);
                         vm.consumptionInterval.pastDay = '1';
                         vm.getConsumptionIntervalData();
+                        break;
+                    case "ONLINE_TOPUP_SUCCESS_RATE":
+                        vm.platformOnlineTopupSuccessAnalysisSort = {};
+                        vm.platformOnlineTopupAnalysisDetailPeriod = 'day';
+                        vm.initSearchParameter('onlineTopupSuccessRate', 'day', 1);
+                        vm.getOnlineToupSuccessRateData();
                         break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
@@ -483,6 +515,153 @@ define(['js/app'], function (myApp) {
 
         // platform overview end =================================================
 
+        // online topup success rate start =============================================
+        vm.getOnlineToupSuccessRateData = () => {
+            let startDate = vm.queryPara.onlineTopupSuccessRate.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.onlineTopupSuccessRate.endTime.data('datetimepicker').getLocalDate();
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                startDate: startDate,
+                endDate: endDate,
+            };
+            socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisByPlatform', sendData, data => {
+                console.log('data.data', data.data);
+                vm.platformOnlineTopupAnalysisData = data.data[0];
+                vm.platformOnlineTopupAnalysisUserCountData = data.data[1];
+                vm.platformOnlineTopupAnalysisTotalUserCount = vm.platformOnlineTopupAnalysisUserCountData.reduce((a, countUser) => a + countUser.userIds.length ,0);
+                vm.platformOnlineTopupAnalysisTotalData = vm.calculateOnlineTopupTypeData();
+                vm.platformOnlineTopupAnalysisByType = [];
+                Object.keys($scope.merchantTopupTypeJson).forEach(key => {
+                    vm.platformOnlineTopupAnalysisByType.push(vm.calculateOnlineTopupTypeData(key));
+                });
+                vm.platformOnlineTopupAnalysisSubTotalData = {
+                    WEB: vm.calculateOnlineTopupTypeSubtotalData('WEB'),
+                    APP: vm.calculateOnlineTopupTypeSubtotalData('APP'),
+                    H5: vm.calculateOnlineTopupTypeSubtotalData('H5')
+                };
+
+                vm.platformOnlineTopupAnalysisDetailMerchantId = null;
+                // console.log('vm.platformOnlineTopupAnalysisData', vm.platformOnlineTopupAnalysisData);
+                // console.log('vm.platformOnlineTopupAnalysisTotalData', vm.platformOnlineTopupAnalysisTotalData);
+                // console.log('vm.platformOnlineTopupAnalysisByType', vm.platformOnlineTopupAnalysisByType);
+                // console.log('vm.platformOnlineTopupAnalysisSubTotalData', vm.platformOnlineTopupAnalysisSubTotalData);
+                $scope.safeApply();
+            });
+        };
+
+        vm.calculateOnlineTopupTypeData = (merchantTopupTypeId) => {
+            let typeData = merchantTopupTypeId ? vm.platformOnlineTopupAnalysisData.filter(proposal => proposal.data.merchantUseType == merchantTopupTypeId) : vm.platformOnlineTopupAnalysisData;
+            let typeSuccessData = typeData.filter(proposal => proposal.status === 'Success');
+            let receivedAmount = typeSuccessData.reduce((a, proposal) => a + proposal.data.amount ,0);
+            let userCount = vm.platformOnlineTopupAnalysisUserCountData.filter(userCount => userCount._id == merchantTopupTypeId);
+            userCount = userCount[0] ? userCount[0].userIds.length : 0;
+            let returnObj =  {
+                data: typeData,
+                totalCount: typeData.length,
+                successCount: typeSuccessData.length,
+                successRate: typeData.length === 0 ? 0 : Math.floor((typeSuccessData.length / typeData.length) * 100),
+                receivedAmount: receivedAmount,
+                merchantTopupTypeId: merchantTopupTypeId,
+            };
+
+            if(merchantTopupTypeId) {
+                returnObj.amountRatio =  vm.platformOnlineTopupAnalysisTotalData.receivedAmount === 0 ? 0 : Math.floor((receivedAmount / vm.platformOnlineTopupAnalysisTotalData.receivedAmount) * 100);
+                returnObj.userCount = userCount;
+                returnObj.userCountRatio =  vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : Math.floor((userCount / vm.platformOnlineTopupAnalysisTotalUserCount) * 100);
+                let typeName = $scope.merchantTopupTypeJson[merchantTopupTypeId];
+                returnObj.name = typeName;
+                if(typeName.indexOf('QR') !== -1)
+                    returnObj.type = 'H5';
+                else if(typeName.indexOf('App') !== -1 || typeName.indexOf('WAP') !== -1)
+                    returnObj.type = 'APP';
+                else
+                    returnObj.type = 'WEB';
+            } else {
+                returnObj.amountRatio =  100;
+                returnObj.userCount =  vm.platformOnlineTopupAnalysisTotalUserCount;
+                returnObj.userCountRatio =  100;
+            }
+            return returnObj;
+        };
+        vm.calculateOnlineTopupTypeSubtotalData = (type) => {
+            let typeData =  vm.platformOnlineTopupAnalysisByType.filter(data => data.type === type);
+            return {
+                data: typeData,
+                totalCount: typeData.reduce((a, data) => a + data.totalCount ,0),
+                successCount: typeData.reduce((a, data) => a + data.successCount ,0),
+                successRate: typeData.reduce((a, data) => a + data.successRate ,0),
+                receivedAmount: typeData.reduce((a, data) => a + data.receivedAmount ,0),
+                amountRatio: typeData.reduce((a, data) => a + data.amountRatio ,0),
+                userCount: typeData.reduce((a, data) => a + data.userCount ,0),
+                userCountRatio: typeData.reduce((a, data) => a + data.userCountRatio ,0),
+                name: type
+            };
+        };
+
+        vm.platformOnlineTopupAnalysisShowDetail = (merchantTopupTypeId) => {
+            vm.platformOnlineTopupAnalysisDetailMerchantId = merchantTopupTypeId;
+            let typeName = $scope.merchantTopupTypeJson[merchantTopupTypeId];
+            let startDate = vm.queryPara.onlineTopupSuccessRate.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.onlineTopupSuccessRate.endTime.data('datetimepicker').getLocalDate();
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.platformOnlineTopupAnalysisDetailPeriod,
+                merchantTopupTypeId: merchantTopupTypeId,
+                startDate: startDate,
+                endDate: endDate,
+            };
+            socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisDetailUserCount', sendData, data => {
+                let userCountDataByDate = data.data;
+                let typeData = vm.platformOnlineTopupAnalysisByType.filter(data => data.name == typeName)[0];
+                let periodDateData = [];
+                while (startDate.getTime() <= endDate.getTime()) {
+                    let dayEndTime = vm.getNextDateByPeriodAndDate(vm.platformOnlineTopupAnalysisDetailPeriod, startDate);
+                    periodDateData.push(startDate);
+                    startDate = dayEndTime;
+                }
+                vm.platformOnlineTopupAnalysisDetailData = [];
+                let allSuccessProposal = typeData.data.filter(proposal => proposal.status === 'Success');
+                let totalReceivedAmount = allSuccessProposal.reduce((a, proposal) => a + proposal.data.amount ,0);
+                let totalUserCount = userCountDataByDate.reduce((a, data) => a + data.userCount ,0);
+                for(let i = 0; i<periodDateData.length; i++){
+                    let topupDataWithinPeriod = typeData.data.filter(proposal => new Date(proposal.createTime).getTime() >= periodDateData[i].getTime() && new Date(proposal.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.platformOnlineTopupAnalysisDetailPeriod, periodDateData[i]));
+                    let typeSuccessData = topupDataWithinPeriod.filter(proposal => proposal.status === 'Success');
+                    let receivedAmount = typeSuccessData.reduce((a, proposal) => a + proposal.data.amount ,0);
+                    let userCountData = userCountDataByDate.filter(data => new Date(data.date).getTime() >= periodDateData[i].getTime() && new Date(data.date).getTime() < vm.getNextDateByPeriodAndDate(vm.platformOnlineTopupAnalysisDetailPeriod, periodDateData[i]))[0];
+                    vm.platformOnlineTopupAnalysisDetailData.push({
+                        date: userCountData.date,
+                        totalCount: topupDataWithinPeriod.length,
+                        successCount: typeSuccessData.length,
+                        successRate: topupDataWithinPeriod.length === 0 ? 0 : Math.floor((typeSuccessData.length / topupDataWithinPeriod.length) * 100),
+                        receivedAmount: receivedAmount,
+                        amountRatio: totalReceivedAmount === 0 ? 0 : Math.floor((receivedAmount / totalReceivedAmount) * 100),
+                        userCount: userCountData.userCount,
+                        userCountRatio: totalUserCount === 0 ? 0 : Math.floor((userCountData.userCount / totalUserCount) * 100)
+                    });
+                }
+                vm.platformOnlineTopupAnalysisDetailTotalData = typeData;
+                let successRate = [];
+                let amountRatio = [];
+                let userCountRatio = [];
+                vm.platformOnlineTopupAnalysisDetailData.forEach(
+                    data => {
+                        successRate.push([new Date(data.date), data.successRate]);
+                        amountRatio.push([new Date(data.date), data.amountRatio]);
+                        userCountRatio.push([new Date(data.date), data.userCountRatio]);
+                    }
+                );
+                let lineData = [
+                    {label: $translate('successRate'), data: successRate},
+                    {label: $translate('amountRatio'), data: amountRatio},
+                    {label: $translate('userCountRatio'), data: userCountRatio}
+                ];
+                vm.plotLineByElementId("#line-onlineTopupSuccessRate", lineData, $translate('PERCENTAGE'), $translate('DAY'));
+                console.log('vm.platformOnlineTopupAnalysisDetailData', vm.platformOnlineTopupAnalysisDetailData);
+                $scope.safeApply();
+            });
+        }
+
+        // online topup success rate end =============================================
         // new player start =============================================
         vm.getNextDateByPeriodAndDate = (period, startDate) => {
             let date = new Date(startDate);
@@ -493,9 +672,15 @@ define(['js/app'], function (myApp) {
                 case 'week':
                     date = new Date(date.setDate(date.getDate() + 7));
                     break;
+                case 'biweekly':
+                    date = new Date(date.setDate(date.getDate() + 15));
+                    break;
                 case 'month':
                     date = new Date(new Date(date.setMonth(date.getMonth() + 1)).setDate(1));
-
+                    break
+                case 'season':
+                    date = new Date(new Date(date.setMonth(date.getMonth() + 3)).setDate(1));
+                    break
             }
             return date;
         };
@@ -524,7 +709,7 @@ define(['js/app'], function (myApp) {
                 vm.platformNewPlayerData = data1.data;
                 vm.platformNewPlayerAnalysisData = [];
                 for(let i = 0; i<periodDateData.length; i++){
-                    let newPlayerWithinPeriod = vm.platformNewPlayerData.filter(player => new Date(player.registrationTime).getTime() > periodDateData[i].getTime() && new Date(player.registrationTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.newPlayer.periodText, periodDateData[i]));
+                    let newPlayerWithinPeriod = vm.platformNewPlayerData.filter(player => new Date(player.registrationTime).getTime() >= periodDateData[i].getTime() && new Date(player.registrationTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.newPlayer.periodText, periodDateData[i]));
                     vm.platformNewPlayerAnalysisData.push({
                         date: periodDateData[i],
                         players: newPlayerWithinPeriod,
@@ -693,13 +878,14 @@ define(['js/app'], function (myApp) {
         vm.calculateLineDataAndAverage = (data, key, label) => {
             var graphData = [];
             let averageData = [];
-            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + Number.isInteger(item[key]) ? item[key] : item[key].length, 0) / data.length) : 0;
+            let average = data.length !== 0 ?Math.floor(data.reduce((a, item) => a + (Number.isInteger(item[key]) ? item[key] : item[key].length), 0) / data.length) : 0;
             data.map(item => {
                 graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key].length]);
                 averageData.push([new Date(item.date), average]);
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
         };
+    
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.selectedPlatform._id})
                 .then(function (data) {
@@ -754,77 +940,119 @@ define(['js/app'], function (myApp) {
 
         // active Player start= =========================================
         vm.plotActivePlayerLine = function () {
-            var placeholder = "#line-activePlayer";
+            let startDate = vm.queryPara.activePlayer.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.activePlayer.endTime.data('datetimepicker').getLocalDate();
+            //var placeholder = "#line-activePlayer";
             // var periodText = $('#analysisActivePlayer select').val();
             var sendData = {
                 platformId: vm.selectedPlatform._id,
-                startDate: vm.queryPara.activePlayer.startTime.data('datetimepicker').getLocalDate(),
-                endDate: vm.queryPara.activePlayer.endTime.data('datetimepicker').getLocalDate(),
+                period: vm.queryPara.activePlayer.periodText,
+                startDate: startDate,
+                endDate: endDate,
             };
             socketService.$socket($scope.AppSocket, 'countActivePlayerbyPlatform', sendData, function success(data1) {
-                console.log('received data', data1);
-                var activePlayerData = data1 ? data1.data : [];
-                var graphData = [];
-                activePlayerData.forEach(item => {
-                    graphData.push([new Date(item.date).getTime(), item.activePlayers]);
-                })
 
-                //draw graph
-                socketService.$plotLine(placeholder, [{
-                    label: $translate('Active Player'),
-                    data: graphData
-                }], {
-                    xaxis: {
-                        tickLength: 0,
-                        mode: "time",
-                        minTickSize: [1, "day"],
-                    }
+                // console.log('received data', data1);
+                // var activePlayerData = data1 ? data1.data : [];
+                // var graphData = [];
+                // activePlayerData.forEach(item => {
+                //     graphData.push([new Date(item.date).getTime(), item.activePlayers]);
+                // })
+                //
+                // //draw graph
+                // socketService.$plotLine(placeholder, [{
+                //     label: $translate('Active Player'),
+                //     data: graphData
+                // }], {
+                //     xaxis: {
+                //         tickLength: 0,
+                //         mode: "time",
+                //         minTickSize: [1, "day"],
+                //     }
+                // });
+                // $(placeholder).bind("plothover", function (event, pos, obj) {
+                //     var previousPoint;
+                //     if (!obj) {
+                //         $("#tooltip").hide();
+                //         previousPoint = null;
+                //         return;
+                //     } else {
+                //         if (previousPoint != obj.dataIndex) {
+                //             previousPoint = obj.dataIndex;
+                //
+                //             var x = obj.datapoint[0],
+                //                 y = obj.datapoint[1].toFixed(0);
+                //
+                //             var date = new Date(x);
+                //             var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+                //             // console.log('date', x, date);
+                //             $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')("Day") + " : " + dateString)
+                //                 .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                //                 .fadeIn(200);
+                //         }
+                //     }
+                // });
+                // //draw table
+                //
+                // var tableData = [];
+                // for (var i in graphData) {
+                //     var obj = {};
+                //     obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
+                //     obj.amount = graphData[i][1] || 0;
+                //     tableData.push(obj);
+                // }
+                // var dataOptions = {
+                //     data: tableData,
+                //     columns: [
+                //         {title: $translate(vm.queryPara.activePlayer.periodText), data: "date"},
+                //         {title: $translate('amount'), data: "amount"}
+                //     ],
+                //     "paging": false,
+                // };
+                // dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+                // var a = $('#activePlayerAnalysisTable').DataTable(dataOptions);
+                // a.columns.adjust().draw();
+                vm.platformActivePlayerDataPeriodText = vm.queryPara.activePlayer.periodText;
+                vm.platformActivePlayerAnalysisData = [];
+                Object.keys(data1.data).forEach(function(key) {
+                    vm.platformActivePlayerAnalysisData.push({date: new Date(key), number: data1.data[key]});
                 });
-                $(placeholder).bind("plothover", function (event, pos, obj) {
-                    var previousPoint;
-                    if (!obj) {
-                        $("#tooltip").hide();
-                        previousPoint = null;
-                        return;
-                    } else {
-                        if (previousPoint != obj.dataIndex) {
-                            previousPoint = obj.dataIndex;
-
-                            var x = obj.datapoint[0],
-                                y = obj.datapoint[1].toFixed(0);
-
-                            var date = new Date(x);
-                            var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                            // console.log('date', x, date);
-                            $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')("Day") + " : " + dateString)
-                                .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                                .fadeIn(200);
-                        }
-                    }
-                });
-                //draw table
-
-                var tableData = [];
-                for (var i in graphData) {
-                    var obj = {};
-                    obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
-                    obj.amount = graphData[i][1] || 0;
-                    tableData.push(obj);
-                }
-                var dataOptions = {
-                    data: tableData,
-                    columns: [
-                        {title: $translate(vm.queryPara.activePlayer.periodText), data: "date"},
-                        {title: $translate('amount'), data: "amount"}
-                    ],
-                    "paging": false,
-                };
-                dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-                var a = $('#activePlayerAnalysisTable').DataTable(dataOptions);
-                a.columns.adjust().draw();
+                console.log('vm.platformActivePlayerAnalysisData', vm.platformActivePlayerAnalysisData);
+                let calculatedActivePlayerData = vm.calculateLineDataAndAverage(vm.platformActivePlayerAnalysisData, 'number', 'Active Player');
+                vm.platformActivePlayerAverage = calculatedActivePlayerData.average;
+                vm.plotLineByElementId("#line-activePlayer", calculatedActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.activePlayer.periodText.toUpperCase()));
+                $scope.safeApply();
             });
         }
         // active Player end= =========================================
+
+        // valid active Player start==========================================
+        vm.plotValidActivePlayerLine = function () {
+            let startDate = vm.queryPara.validActivePlayer.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.validActivePlayer.endTime.data('datetimepicker').getLocalDate();
+            //var placeholder = "#line-activePlayer";
+            // var periodText = $('#analysisActivePlayer select').val();
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.validActivePlayer.periodText,
+                startDate: startDate,
+                endDate: endDate,
+            };
+            socketService.$socket($scope.AppSocket, 'countValidActivePlayerbyPlatform', sendData, function success(data1) {
+
+                vm.platformValidActivePlayerDataPeriodText = vm.queryPara.validActivePlayer.periodText;
+                vm.platformValidActivePlayerAnalysisData = [];
+                Object.keys(data1.data).forEach(function(key) {
+                    vm.platformValidActivePlayerAnalysisData.push({date: new Date(key), number: data1.data[key]});
+                });
+                console.log('vm.platformValidActivePlayerAnalysisData', vm.platformValidActivePlayerAnalysisData);
+                let calculatedValidActivePlayerData = vm.calculateLineDataAndAverage(vm.platformValidActivePlayerAnalysisData, 'number', 'ValidActivePlayer');
+                vm.platformValidActivePlayerAverage = calculatedValidActivePlayerData.average;
+                vm.plotLineByElementId("#line-validActivePlayer", calculatedValidActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
+                $scope.safeApply();
+            });
+        }
+        // valid active Player end==========================================
 
         // login Player start= =========================================
         vm.plotLoginPlayerLine = function () {
@@ -981,7 +1209,7 @@ define(['js/app'], function (myApp) {
                     item.date = item._id.date;
                     return item;
                 });
-                let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerAnalysisData, 'number', 'Valid Player');
+                let calculatedLoginPlayerData = vm.calculateLineDataAndAverage(vm.platformLoginPlayerAnalysisData, 'number', 'Login Player');
                 vm.platformLoginPlayerAverage = calculatedLoginPlayerData.average;
                 vm.plotLineByElementId("#line-loginPlayer", calculatedLoginPlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase()));
                 $scope.safeApply();
@@ -1122,6 +1350,7 @@ define(['js/app'], function (myApp) {
                             //this function is to zoom to province immediately after clicking
                             vm.map.clickMapObject(vm.map.getObjectById(vm.allProvinceId[vm.currentProvince]));
                         });
+                        vm.drawLocationCityGraphByElementId("#playerLocationPie", vm.playerPhoneInProvince, "phoneLocation");
                         $scope.safeApply();
                     });
                 } else if (vm.showPageName == 'PLAYER_IP_LOCATION') {
@@ -1132,9 +1361,10 @@ define(['js/app'], function (myApp) {
                         vm.drawMap();
                         $scope.safeApply();
                     });
-                    vm.drawLocationCountryGraphByElementId("#playerLocationCountriesPie", vm.playerLocationCountries);
+                    vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerLocationCountries, "IPLocation");
                 } else if (vm.showPageName == 'PLAYER_PHONE_LOCATION') {
                     vm.playerPhoneProvince = data.data;
+                    vm.totalPlayerPhoneProvince = vm.playerPhoneProvince.map(item => {return item.amount}).reduce((a, b) => {return a + b},0);
                     $scope.safeApply();
                     vm.setProvinceData('phoneProvince', vm.playerPhoneProvince, function () {
                         vm.mapName = "chinaHigh";
@@ -1146,6 +1376,7 @@ define(['js/app'], function (myApp) {
                                 return item;
                             })
                         });
+                        vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerPhoneProvince, "phoneLocation");
                         $scope.safeApply();
                     });
                 }
@@ -1312,7 +1543,7 @@ define(['js/app'], function (myApp) {
                                 map.zoomToObject(mapObject);
                             }
                         });
-                        vm.drawLocationCityGraphByElementId('#playerLocationCountriesPie', vm.playerLocationCities);
+                        vm.drawLocationCityGraphByElementId('#playerLocationPie', vm.playerLocationCities, 'IPLocation');
                     });
                 });
             }
@@ -1328,7 +1559,7 @@ define(['js/app'], function (myApp) {
                 vm.mapName = 'worldHigh';
                 vm.drawMap();
             });
-            vm.drawLocationCountryGraphByElementId("#playerLocationCountriesPie", vm.playerLocationCountries);
+            vm.drawLocationCountryGraphByElementId("#playerLocationPie", vm.playerLocationCountries, "IPLocation");
         }
         vm.getCountryTitle = function (AA) {
             if (!AA) return '';
@@ -1388,217 +1619,276 @@ define(['js/app'], function (myApp) {
             vm.selectReward = v;
             console.log('v', v);
             $scope.safeApply();
-            vm.plotRewardAmountLine();
-            vm.plotRewardNumberLine();
+            vm.plotRewardLine();
         }
-        vm.plotRewardAmountLine = function () {
+        vm.plotRewardLine = function () {
             if (!vm.selectReward.type) return;
-            var placeholder1 = "#line-reward-amount";
-            var placeholder2 = "#line-reward-number";
-            // var periodText = $('#analysisReward select').val();
+
             console.log('vm.selectReward', vm.selectReward);
+
+            let startDate = vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate();
+            let endDate =  vm.queryPara.reward.endTime.data('datetimepicker').getLocalDate();
             var sendData = {
                 platformId: vm.selectReward.platform,
                 period: vm.queryPara.reward.periodText,
-                // startTime: vm.queryPara.reward.startTime,
-                // endTime: vm.queryPara.reward.endTime,
-                startTime: vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.queryPara.reward.endTime.data('datetimepicker').getLocalDate(),
+                startTime: startDate,
+                endTime: endDate,
                 type: vm.selectReward.type.name
             };
+
             socketService.$socket($scope.AppSocket, 'getPlatformRewardAnalysis', sendData, function success(data1) {
-                console.log('data1', data1);
-                var rewardGraphData = data1.data || [];
-                var rewardNumberData = {}, rewardAmountData = {};
-                // for (var i = 0; i < rewardGraphData.length; i++) {
-                //     switch (vm.queryPara.reward.periodText) {
-                //         case 'day':
-                //             rewardAmountData[rewardGraphData[i]._id.date] = rewardGraphData[i].amount;
-                //             rewardNumberData[rewardGraphData[i]._id.date] = rewardGraphData[i].number;
-                //             break;
-                //         case 'week':
-                //             rewardAmountData[rewardGraphData[i]._id.week] = rewardGraphData[i].amount;
-                //             rewardNumberData[rewardGraphData[i]._id.week] = rewardGraphData[i].number;
-                //             break;
-                //         case 'month':
-                //             rewardAmountData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].amount;
-                //             rewardNumberData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].number;
-                //             break;
-                //     }
-                // }
-                var graphData1 = [], graphData2 = [];
-                rewardGraphData.map(item => {
-                    graphData1.push([new Date(item._id.date), item.amount]);
-                    graphData2.push([new Date(item._id.date), item.number]);
-                })
-                var newOptions = {};
-                // var nowDate = new Date(sendData.startTime);
-                switch (vm.queryPara.reward.periodText) {
-                    case 'day':
-                        // do {
-                        //     var dateText = utilService.$getTimeFromStdTimeFormat(nowDate).substring(0, 10);
-                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[dateText] || 0)]);
-                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[dateText] || 0)]);
-                        //     nowDate.setDate(nowDate.getDate() + 1);
-                        // } while (nowDate <= sendData.endTime);
-                        newOptions = {
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [1, "day"],
-                            }
-                        };
-                        break;
-                    case 'week':
-                        // var k = 0;
-                        // do {
-                        //     // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[k] || 0)]);
-                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[k] || 0)]);
-                        //     nowDate.setDate(nowDate.getDate() + 7);
-                        //     k++;
-                        // } while (nowDate <= sendData.endTime);
-                        newOptions = {
-                            xaxes: [{
-                                position: 'bottom',
-                                axisLabel: $translate('WEEK'),
-                            }],
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [6, "day"],
-                            }
-                        };
-                        break;
-                    case 'month' :
-                        // nowDate.setDate(1);
-                        // do {
-                        //     var nowYear = nowDate.getFullYear();
-                        //     var nowMonth = nowDate.getMonth() + 1;
-                        //     console.log('nowMonth', nowYear + '' + nowMonth);
-                        //     graphData1.push([nowDate.getTime(), (rewardAmountData[nowYear + '' + nowMonth] || 0)]);
-                        //     graphData2.push([nowDate.getTime(), (rewardNumberData[nowYear + '' + nowMonth] || 0)]);
-                        //     nowDate.setMonth(nowDate.getMonth() + 1);
-                        //
-                        // } while (nowDate <= sendData.endTime);
-                        newOptions = {
-                            xaxis: {
-                                tickLength: 0,
-                                mode: "time",
-                                minTickSize: [1, "month"],
-                            }
-                        };
-                        break;
-                }
-                // console.log('graph', graphData);
-                newOptions.yaxes = [{
-                    position: 'left',
-                    axisLabel: $translate('Reward amount'),
-                }];
-                socketService.$plotLine(placeholder1, [{
-                    label: $translate('Reward amount'),
-                    data: graphData1
-                }], newOptions);
-                newOptions.yaxes = [{
-                    position: 'left',
-                    axisLabel: $translate('Reward number'),
-                }]
-                //draw table
 
-                var tableData = [];
-                for (var i in graphData1) {
-                    var obj = {};
-                    obj.date = utilService.$getTimeFromStdTimeFormat(graphData1[i][0]).substring(0, 10);
-                    obj.amount = graphData1[i][1] || 0;
-                    tableData.push(obj);
-                }
-                var dataOptions = {
-                    data: tableData,
-                    columns: [
-                        {title: $translate(vm.queryPara.reward.periodText), data: "date"},
-                        {title: $translate('Reward amount'), data: "amount"}
-                    ],
-                    "paging": false,
-                };
-                dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-                var a = $('#rewardAmountAnalysisTable').DataTable(dataOptions);
-                a.columns.adjust().draw();
-
-                socketService.$plotLine(placeholder2, [{
-                    label: $translate('Reward number'),
-                    data: graphData2
-                }], newOptions);
-                //draw table
-
-                var tableData2 = [];
-                for (var i in graphData2) {
-                    var obj = {};
-                    obj.date = utilService.$getTimeFromStdTimeFormat(graphData2[i][0]).substring(0, 10);
-                    obj.amount = graphData2[i][1] || 0;
-                    tableData2.push(obj);
-                }
-                var dataOptions2 = {
-                    data: tableData2,
-                    columns: [
-                        {title: $translate(vm.queryPara.reward.periodText), data: "date"},
-                        {title: $translate('Reward number'), data: "amount"}
-                    ],
-                    "paging": false,
-                };
-                dataOptions2 = $.extend({}, $scope.getGeneralDataTableOption, dataOptions2);
-                var b = $('#rewardNumberAnalysisTable').DataTable(dataOptions2);
-                b.columns.adjust().draw();
-
-                $(placeholder1).bind("plothover", function (event, pos, obj) {
-                    var previousPoint;
-                    // console.log('event, pos, obj', pos, obj);
-                    if (!obj) {
-                        $("#tooltip").hide();
-                        previousPoint = null;
-                        return;
-                    } else {
-                        if (previousPoint != obj.dataIndex) {
-                            previousPoint = obj.dataIndex;
-
-                            var x = obj.datapoint[0],
-                                y = obj.datapoint[1].toFixed(0);
-
-                            var date = new Date(x);
-                            var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                            // console.log('date', x, date);
-                            $("#tooltip").html("Amount : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
-                                .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                                .fadeIn(200);
-                        }
+                $scope.$evalAsync(() => {
+                    let periodDateData = [];
+                    while (startDate.getTime() <= endDate.getTime()) {
+                        let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, startDate);
+                        periodDateData.push(startDate);
+                        startDate = dayEndTime;
                     }
-                });
-                $(placeholder2).bind("plothover", function (event, pos, obj) {
-                    var previousPoint;
-                    // console.log('event, pos, obj', pos, obj);
-                    if (!obj) {
-                        $("#tooltip").hide();
-                        previousPoint = null;
-                        return;
-                    } else {
-                        if (previousPoint != obj.dataIndex) {
-                            previousPoint = obj.dataIndex;
 
-                            var x = obj.datapoint[0],
-                                y = obj.datapoint[1].toFixed(0);
-
-                            var date = new Date(x);
-                            var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                            // console.log('date', x, date);
-                            $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
-                                .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                                .fadeIn(200);
-                        }
+                    vm.platformRewardData = data1.data;
+                    vm.platformRewardAnalysisData = [];
+                    for(let i = 0; i<periodDateData.length; i++){
+                        let rewardWithinPeriod = vm.platformRewardData.filter(reward => new Date(reward.createTime).getTime() > periodDateData[i].getTime() && new Date(reward.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.reward.periodText, periodDateData[i]));
+                        vm.platformRewardAnalysisData.push({
+                            date: periodDateData[i],
+                            rewards: rewardWithinPeriod,
+                        });
                     }
+                    vm.platformRewardDataPeriodText = vm.queryPara.reward.periodText;
+                    console.log('vm.platformRewardAnalysisData', vm.platformRewardAnalysisData);
+
+                    // redefine the amount for line graph
+                    vm.platformRewardAnalysisAmount = [];
+                    vm.platformRewardAnalysisData.forEach(item => {
+
+                        let totalRewardAmount = item.rewards.length > 0 ? item.rewards.reduce((a, b) => a + (b.data.rewardAmount ? b.data.rewardAmount : 0), 0) : 0;
+
+                        vm.platformRewardAnalysisAmount.push({
+                            date: item.date,
+                            rewards: totalRewardAmount
+                        });
+
+                    });
+
+                    let calculatedRewardData = vm.calculateLineDataAndAverage(vm.platformRewardAnalysisAmount, 'rewards', 'Reward amount');
+                    vm.platformRewardAmountAverage = calculatedRewardData.average;
+                    vm.plotLineByElementId("#line-reward-amount", calculatedRewardData.lineData, $translate('Reward amount'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.reward.periodText.toUpperCase()));
+
+                    let calculatedRewardNumber = vm.calculateLineDataAndAverage(vm.platformRewardAnalysisData, 'rewards', 'Reward number');
+                    vm.platformRewardNumberAverage = calculatedRewardNumber.average;
+                    vm.plotLineByElementId("#line-reward-number", calculatedRewardNumber.lineData, $translate('Reward number'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.reward.periodText.toUpperCase()));
+
                 });
-            });
+            })
+
+
+            // var placeholder1 = "#line-reward-amount";
+            // var placeholder2 = "#line-reward-number";
+            // // var periodText = $('#analysisReward select').val();
+            // console.log('vm.selectReward', vm.selectReward);
+            // var sendData = {
+            //     platformId: vm.selectReward.platform,
+            //     period: vm.queryPara.reward.periodText,
+            //     // startTime: vm.queryPara.reward.startTime,
+            //     // endTime: vm.queryPara.reward.endTime,
+            //     startTime: vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate(),
+            //     endTime: vm.queryPara.reward.endTime.data('datetimepicker').getLocalDate(),
+            //     type: vm.selectReward.type.name
+            // };
+            // socketService.$socket($scope.AppSocket, 'getPlatformRewardAnalysis', sendData, function success(data1) {
+            //     console.log('data1', data1);
+            //     var rewardGraphData = data1.data || [];
+            //     var rewardNumberData = {}, rewardAmountData = {};
+            //     // for (var i = 0; i < rewardGraphData.length; i++) {
+            //     //     switch (vm.queryPara.reward.periodText) {
+            //     //         case 'day':
+            //     //             rewardAmountData[rewardGraphData[i]._id.date] = rewardGraphData[i].amount;
+            //     //             rewardNumberData[rewardGraphData[i]._id.date] = rewardGraphData[i].number;
+            //     //             break;
+            //     //         case 'week':
+            //     //             rewardAmountData[rewardGraphData[i]._id.week] = rewardGraphData[i].amount;
+            //     //             rewardNumberData[rewardGraphData[i]._id.week] = rewardGraphData[i].number;
+            //     //             break;
+            //     //         case 'month':
+            //     //             rewardAmountData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].amount;
+            //     //             rewardNumberData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].number;
+            //     //             break;
+            //     //     }
+            //     // }
+            //     var graphData1 = [], graphData2 = [];
+            //     rewardGraphData.map(item => {
+            //         graphData1.push([new Date(item._id.date), item.amount]);
+            //         graphData2.push([new Date(item._id.date), item.number]);
+            //     })
+            //     var newOptions = {};
+            //     // var nowDate = new Date(sendData.startTime);
+            //     switch (vm.queryPara.reward.periodText) {
+            //         case 'day':
+            //             // do {
+            //             //     var dateText = utilService.$getTimeFromStdTimeFormat(nowDate).substring(0, 10);
+            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[dateText] || 0)]);
+            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[dateText] || 0)]);
+            //             //     nowDate.setDate(nowDate.getDate() + 1);
+            //             // } while (nowDate <= sendData.endTime);
+            //             newOptions = {
+            //                 xaxis: {
+            //                     tickLength: 0,
+            //                     mode: "time",
+            //                     minTickSize: [1, "day"],
+            //                 }
+            //             };
+            //             break;
+            //         case 'week':
+            //             // var k = 0;
+            //             // do {
+            //             //     // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
+            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[k] || 0)]);
+            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[k] || 0)]);
+            //             //     nowDate.setDate(nowDate.getDate() + 7);
+            //             //     k++;
+            //             // } while (nowDate <= sendData.endTime);
+            //             newOptions = {
+            //                 xaxes: [{
+            //                     position: 'bottom',
+            //                     axisLabel: $translate('WEEK'),
+            //                 }],
+            //                 xaxis: {
+            //                     tickLength: 0,
+            //                     mode: "time",
+            //                     minTickSize: [6, "day"],
+            //                 }
+            //             };
+            //             break;
+            //         case 'month' :
+            //             // nowDate.setDate(1);
+            //             // do {
+            //             //     var nowYear = nowDate.getFullYear();
+            //             //     var nowMonth = nowDate.getMonth() + 1;
+            //             //     console.log('nowMonth', nowYear + '' + nowMonth);
+            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[nowYear + '' + nowMonth] || 0)]);
+            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[nowYear + '' + nowMonth] || 0)]);
+            //             //     nowDate.setMonth(nowDate.getMonth() + 1);
+            //             //
+            //             // } while (nowDate <= sendData.endTime);
+            //             newOptions = {
+            //                 xaxis: {
+            //                     tickLength: 0,
+            //                     mode: "time",
+            //                     minTickSize: [1, "month"],
+            //                 }
+            //             };
+            //             break;
+            //     }
+            //     // console.log('graph', graphData);
+            //     newOptions.yaxes = [{
+            //         position: 'left',
+            //         axisLabel: $translate('Reward amount'),
+            //     }];
+            //     socketService.$plotLine(placeholder1, [{
+            //         label: $translate('Reward amount'),
+            //         data: graphData1
+            //     }], newOptions);
+            //     newOptions.yaxes = [{
+            //         position: 'left',
+            //         axisLabel: $translate('Reward number'),
+            //     }]
+            //     //draw table
+            //
+            //     var tableData = [];
+            //     for (var i in graphData1) {
+            //         var obj = {};
+            //         obj.date = utilService.$getTimeFromStdTimeFormat(graphData1[i][0]).substring(0, 10);
+            //         obj.amount = graphData1[i][1] || 0;
+            //         tableData.push(obj);
+            //     }
+            //     var dataOptions = {
+            //         data: tableData,
+            //         columns: [
+            //             {title: $translate(vm.queryPara.reward.periodText), data: "date"},
+            //             {title: $translate('Reward amount'), data: "amount"}
+            //         ],
+            //         "paging": false,
+            //     };
+            //     dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            //     var a = $('#rewardAmountAnalysisTable').DataTable(dataOptions);
+            //     a.columns.adjust().draw();
+            //
+            //     socketService.$plotLine(placeholder2, [{
+            //         label: $translate('Reward number'),
+            //         data: graphData2
+            //     }], newOptions);
+            //     //draw table
+            //
+            //     var tableData2 = [];
+            //     for (var i in graphData2) {
+            //         var obj = {};
+            //         obj.date = utilService.$getTimeFromStdTimeFormat(graphData2[i][0]).substring(0, 10);
+            //         obj.amount = graphData2[i][1] || 0;
+            //         tableData2.push(obj);
+            //     }
+            //     var dataOptions2 = {
+            //         data: tableData2,
+            //         columns: [
+            //             {title: $translate(vm.queryPara.reward.periodText), data: "date"},
+            //             {title: $translate('Reward number'), data: "amount"}
+            //         ],
+            //         "paging": false,
+            //     };
+            //     dataOptions2 = $.extend({}, $scope.getGeneralDataTableOption, dataOptions2);
+            //     var b = $('#rewardNumberAnalysisTable').DataTable(dataOptions2);
+            //     b.columns.adjust().draw();
+            //
+            //     $(placeholder1).bind("plothover", function (event, pos, obj) {
+            //         var previousPoint;
+            //         // console.log('event, pos, obj', pos, obj);
+            //         if (!obj) {
+            //             $("#tooltip").hide();
+            //             previousPoint = null;
+            //             return;
+            //         } else {
+            //             if (previousPoint != obj.dataIndex) {
+            //                 previousPoint = obj.dataIndex;
+            //
+            //                 var x = obj.datapoint[0],
+            //                     y = obj.datapoint[1].toFixed(0);
+            //
+            //                 var date = new Date(x);
+            //                 var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+            //                 // console.log('date', x, date);
+            //                 $("#tooltip").html("Amount : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
+            //                     .css({top: obj.pageY + 5, left: obj.pageX + 5})
+            //                     .fadeIn(200);
+            //             }
+            //         }
+            //     });
+            //     $(placeholder2).bind("plothover", function (event, pos, obj) {
+            //         var previousPoint;
+            //         // console.log('event, pos, obj', pos, obj);
+            //         if (!obj) {
+            //             $("#tooltip").hide();
+            //             previousPoint = null;
+            //             return;
+            //         } else {
+            //             if (previousPoint != obj.dataIndex) {
+            //                 previousPoint = obj.dataIndex;
+            //
+            //                 var x = obj.datapoint[0],
+            //                     y = obj.datapoint[1].toFixed(0);
+            //
+            //                 var date = new Date(x);
+            //                 var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+            //                 // console.log('date', x, date);
+            //                 $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
+            //                     .css({top: obj.pageY + 5, left: obj.pageX + 5})
+            //                     .fadeIn(200);
+            //             }
+            //         }
+            //     });
+            // });
         };
-        vm.plotRewardNumberLine = function () {
-        };
+        // vm.plotRewardNumberLine = function () {
+        // };
         //reward analysis clicked end ================================================
 
         //player device analysis clicked ================================================
@@ -1608,8 +1898,8 @@ define(['js/app'], function (myApp) {
                 type: vm.queryPara.playerDevice.type,
                 // startDate: vm.queryPara.playerDevice.startTime,
                 // endDate: vm.queryPara.playerDevice.endTime
-                startTime: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
+                startDate: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDeviceAnalysisData', sendData, function (data) {
@@ -1630,6 +1920,19 @@ define(['js/app'], function (myApp) {
             })
             socketService.$plotPie(placeholder, pieData, {}, 'newPlayerPieClickData');
             var placeholderBar = "#bar-all-playerDevice";
+
+            if(vm.newOptions && vm.newOptions.xaxes){
+                if(vm.newOptions.xaxes.length > 0){
+                    let axisLabel = "";
+
+                    if(vm.queryPara && vm.queryPara.playerDevice && vm.queryPara.playerDevice.type){
+                        axisLabel = vm.queryPara.playerDevice.type[0].toUpperCase() + vm.queryPara.playerDevice.type.slice(1);
+                    }
+
+                    vm.newOptions.xaxes[0].axisLabel = $translate(axisLabel);
+                }
+            }
+
             socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
         }
         //player device analysis clicked end ================================================
@@ -1643,10 +1946,11 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDomainAnalysisData', sendData, function (data) {
-                vm.playerDomainList = data.data;
-                console.log('domain data', vm.playerDomainList);
-                $scope.safeApply();
-                vm.plotPlayerDomain();
+                $scope.$evalAsync(() => {
+                    vm.playerDomainList = data.data;
+                    console.log('domain data', vm.playerDomainList);
+                    vm.plotPlayerDomain();
+                })
             });
         }
         vm.plotPlayerDomain = function (data) {
@@ -1654,13 +1958,25 @@ define(['js/app'], function (myApp) {
             var pieData = vm.playerDomainList.filter(function (obj) {
                 return (obj._id);
             }).map(function (obj) {
-                return {label: vm.setGraphName(obj._id), data: obj.number};
+                return {label: vm.setGraphNameWithoutCutString(obj._id), data: obj.number};
             }).sort(function (a, b) {
                 return b.data - a.data;
             })
+
+            vm.totalPlayerDomainRecord = pieData.reduce((a,b) => a + (b.data ? b.data : 0),0);
+
+            pieData.map(p => {
+                if(p && p.data && vm.totalPlayerDomainRecord){
+                    p.percentage = (p.data / vm.totalPlayerDomainRecord * 100).toFixed(2);
+                }
+                return;
+            });
+
+            vm.playerDomainPieData = pieData;
+
             socketService.$plotPie(placeholder, pieData, {}, 'playerDomainPieClickData');
-            var placeholderBar = "#bar-all-playerDomain";
-            socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
+            //var placeholderBar = "#bar-all-playerDomain";
+            //socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
         }
         //player domain analysis clicked end ================================================
 
@@ -1685,16 +2001,39 @@ define(['js/app'], function (myApp) {
         };
         vm.getPlayerRetention = function () {
             vm.retentionGraphData = [];
-            vm.showRetention = {};
+            vm.showRetention = {0: true};//set default
             vm.retentionCheckAll = false;
             vm.allRetentionLineData = [];
             var sendData = {
                 platform: vm.selectedPlatform._id,
                 days: vm.queryPara.playerRetention.days,
-                startTime: vm.queryPara.playerRetention.startTime
+                startTime: vm.queryPara.playerRetention.startTime,
+                playerType: vm.queryPara.playerRetention.playerType
             }
             socketService.$socket($scope.AppSocket, 'getPlayerRetention', sendData, function (data) {
+                console.log("retention data", data);
                 vm.retentionData = data.data;
+                let dataLength = vm.retentionData.length;
+                vm.averageRetention = {};
+                vm.retentionData.forEach(retentionData => {
+                    for (let key in retentionData) {
+                        if (retentionData[key] != "date") {
+                            if (vm.averageRetention[key]) {
+                                vm.averageRetention[key] += retentionData[key];
+                            } else {
+                                vm.averageRetention[key] = retentionData[key];
+                            }
+                        }
+                    }
+                });
+                for (let key in vm.averageRetention) {
+                    if (vm.averageRetention.hasOwnProperty(key)){
+                        vm.averageRetention[key] = (vm.averageRetention[key] / dataLength).toFixed(3);
+                    }
+                }
+                vm.averageRetention.date = $translate("average line");
+                vm.retentionData.splice(0,0,vm.averageRetention);
+
                 $scope.safeApply();
                 vm.drawRetentionGraph();
             }, function (data) {
@@ -1750,7 +2089,18 @@ define(['js/app'], function (myApp) {
             newOptions.xaxis = {
                 ticks: xLabel,
             };
-            socketService.$plotLine(placeholder, vm.allRetentionLineData, newOptions);
+
+            let retentionGraph = socketService.$plotLine(placeholder, vm.allRetentionLineData, newOptions)
+                $.each(retentionGraph.getData()[0].data, function(i, el){
+                    var o = retentionGraph.pointOffset({x: el[0], y: el[1]});
+                    $('<div class="data-point-label">' + el[1].toFixed(3) + '%</div>').css( {
+                        position: 'absolute',
+                        left: o.left + 4,
+                        top: o.top - 15,
+                        display: 'none'
+                    }).appendTo(retentionGraph.getPlaceholder()).fadeIn('slow');
+                });
+
             vm.bindHover(placeholder, function (obj) {
                 var x = obj.datapoint[0],
                     y = obj.datapoint[1].toFixed(0);
@@ -1816,6 +2166,59 @@ define(['js/app'], function (myApp) {
         //game analysis end  =================================================
 
         //player credit start ====================================================
+        vm.plotPlayerCreditLine = function (type) {
+            // var placeholder = "#line-playerCredit";
+            let opt = '';
+            if (type == 'PLAYER_EXPENSES') {
+                opt = 'consumption';
+            }
+            let startDate = vm.queryPara.playerCredit.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.playerCredit.endTime.data('datetimepicker').getLocalDate();
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.playerCredit.periodText,
+                type: opt,
+                providerId: !vm.queryPara.playerCredit.filterGameProvider ? 'all' : vm.queryPara.playerCredit.filterGameProvider,
+                startDate: startDate,
+                endDate: endDate,
+            };
+            socketService.$socket($scope.AppSocket, 'countConsumptionByPlatform', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    let periodDateData = [];
+                    while (startDate.getTime() <= endDate.getTime()) {
+                        let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.playerCredit.periodText, startDate);
+                        periodDateData.push(startDate);
+                        startDate = dayEndTime;
+                    }
+                    vm.platformConsumptionData = data.data;
+                    vm.platformConsumptionAnalysisData = [];
+                    for (let i = 0; i < periodDateData.length; i++) {
+                        let consumptionWithinPeriod = vm.platformConsumptionData.filter(consumption => new Date(consumption.date).getTime() >= periodDateData[i].getTime() && new Date(consumption.date).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.playerCredit.periodText, periodDateData[i]));
+                        vm.platformConsumptionAnalysisData.push({
+                            date: periodDateData[i],
+                            consumptions: consumptionWithinPeriod});
+                    }
+                    vm.platformConsumptionDataPeriodText = vm.queryPara.playerCredit.periodText;
+                    console.log('vm.platformConsumptionAnalysisData', vm.platformConsumptionAnalysisData);
+
+                    vm.platformConsumptionAnalysisAmount = [];
+                    vm.platformConsumptionAnalysisData.forEach(item => {
+                        let totalConsumptionAmount = item.consumptions.length > 0 ? item.consumptions.reduce((a, b) => a + (b.validAmount ? b.validAmount : 0), 0) : 0;
+                        vm.platformConsumptionAnalysisAmount.push({
+                            date: item.date,
+                            consumptions: totalConsumptionAmount
+                        });
+                    });
+
+                    let calculatedConsumptionData = vm.calculateLineDataAndAverage(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
+                    vm.platformConsumptionAmountAverage = calculatedConsumptionData.average;
+                    vm.plotLineByElementId("#line-playerCredit", calculatedConsumptionData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
+
+                });
+            });
+
+        };
+
         vm.drawPlayerCreditLine = function (type) {
             var opt = '';
             if (type == 'PLAYER_EXPENSES') {
@@ -1833,16 +2236,18 @@ define(['js/app'], function (myApp) {
                 // endDate: vm.queryPara.playerCredit.endTime
             }
             socketService.$socket($scope.AppSocket, 'countTopUpORConsumptionbyPlatform', sendData, function (data) {
+                let averageNumber = 0;
                 vm.playerCreditData = data.data;
                 console.log('vm.playerCreditData', vm.playerCreditData);
+                averageNumber = ((data.data.reduce((a,b) => a + (b.number ? b.number : 0),0)) / data.data.length).toFixed(2);
                 // $scope.safeApply();
-                return vm.drawPlayerCreditGraph(vm.playerCreditData, sendData);
+                return vm.drawPlayerCreditGraph(vm.playerCreditData, sendData, averageNumber);
             }, function (data) {
                 console.log("player credit data not", data);
             });
         }
 
-        vm.drawPlayerCreditGraph = function (srcData, sendData) {
+        vm.drawPlayerCreditGraph = function (srcData, sendData, averageNumber) {
             var placeholder = '#line-playerCredit';
             var playerCreditObjData = {};
             // for (var i = 0; i < srcData.length; i++) {
@@ -1859,8 +2264,10 @@ define(['js/app'], function (myApp) {
             //     }
             // }
             var graphData = [];
+            var averageData = [];
             srcData.map(item => {
                 graphData.push([new Date(item._id.date), item.number])
+                averageData.push([new Date(item._id.date), averageNumber])
             })
             var newOptions = {};
             // var nowDate = new Date(sendData.startDate);
@@ -1926,7 +2333,9 @@ define(['js/app'], function (myApp) {
                 axisLabel: $translate('PERIOD') + ' : ' + $translate(xText)
             }]
 
-            socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData}], newOptions);
+            newOptions.colors = ["#00afff", "#FF0000"];
+
+            socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData},{label: $translate('average line'), data: averageData}], newOptions);
 
             vm.bindHover(placeholder, function (obj) {
                 var x = obj.datapoint[0],
@@ -1952,6 +2361,7 @@ define(['js/app'], function (myApp) {
                 obj.amount = amount.toFixed(2);
                 tableData.push(obj);
             }
+            tableData.push({date: $translate('average value'), amount: averageNumber});
             var dataOptions = {
                 data: tableData,
                 columns: [
@@ -1964,45 +2374,44 @@ define(['js/app'], function (myApp) {
             var a = $('#playerCreditAnalysisTable').DataTable(dataOptions);
             a.columns.adjust().draw();
         }
-        //player credit end =======================================================
 
-        //bonus amount 
-        vm.drawPlayerBonusAmount = function (type) {
-            var opt = '';
-            if (type == 'PLAYER_EXPENSES') {
-                opt = 'consumption';
-            } else if (type == 'PLAYER_TOPUP') {
-                opt = 'topup';
-            }
-            var sendData = {
-                platform: vm.selectedPlatform._id,
-                period: vm.queryPara.bonusAmount.periodText,
-                type: opt,
-                startDate: vm.queryPara.bonusAmount.startTime.data('datetimepicker').getLocalDate(),
-                endDate: vm.queryPara.bonusAmount.endTime.data('datetimepicker').getLocalDate(),
-            }
+        vm.drawPlayerCreditCountLine = function (type) {
+            if (type == 'PLAYER_TOPUP') {
+                var sendData = {
+                    platformId: vm.selectedPlatform._id,
+                    period: vm.queryPara.playerCredit.periodText,
+                    type: 'topup',
+                    startDate: vm.queryPara.playerCredit.startTime.data('datetimepicker').getLocalDate(),
+                    endDate: vm.queryPara.playerCredit.endTime.data('datetimepicker').getLocalDate(),
+                }
+                socketService.$socket($scope.AppSocket, 'countTopUpORConsumptionCountByPlatform', sendData, function (data) {
+                    let averageNumber = 0;
+                    vm.playerCreditData = data.data;
+                    console.log('vm.playerCreditData', vm.playerCreditData);
+                    averageNumber = ((data.data.reduce((a,b) => a + (b.number ? b.number : 0),0)) / data.data.length).toFixed(2);
 
-            socketService.$socket($scope.AppSocket, 'getAnalysisSingleBonusRequestList', sendData, function (data) {
-                vm.playerBonusData = data.data;
-                console.log('vm.playerBonusData', vm.playerBonusData);
-                // $scope.safeApply();
-                return vm.drawPlayerBonusGraph(vm.playerBonusData, sendData);
-            }, function (data) {
-                console.log("player credit data not", data);
-            });
+                    // $scope.safeApply();
+                    return vm.drawPlayerCreditCountGraph(vm.playerCreditData, sendData, averageNumber);
+                }, function (data) {
+                    console.log("player credit data not", data);
+                });
+            }
         }
-        vm.drawPlayerBonusGraph = function (srcData, sendData) {
-            var placeholder = '#line-bonusAmount';
+
+        vm.drawPlayerCreditCountGraph = function (srcData, sendData, averageNumber) {
+            var placeholder = '#line-playerCreditCount';
             var playerCreditObjData = {};
 
             var graphData = [];
+            var averageData = [];
             srcData.map(item => {
-                graphData.push([new Date(item._id), item.number])
+                graphData.push([new Date(item._id.date), item.number])
+                averageData.push([new Date(item._id.date), averageNumber])
             })
             var newOptions = {};
             // var nowDate = new Date(sendData.startDate);
             var xText = '';
-            switch (vm.queryPara.bonusAmount.periodText) {
+            switch (vm.queryPara.playerCredit.periodText) {
                 case 'day':
                     xText = 'DAY';
                     newOptions = {
@@ -2036,14 +2445,16 @@ define(['js/app'], function (myApp) {
             }
             newOptions.yaxes = [{
                 position: 'left',
-                axisLabel: $translate('AMOUNT'),
+                axisLabel: $translate('COUNT'),
             }]
             newOptions.xaxes = [{
                 position: 'bottom',
                 axisLabel: $translate('PERIOD') + ' : ' + $translate(xText)
             }]
 
-            socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData}], newOptions);
+            newOptions.colors = ["#00afff", "#FF0000"];
+
+            socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData},{label: $translate('average line'), data: averageData}], newOptions);
 
             vm.bindHover(placeholder, function (obj) {
                 var x = obj.datapoint[0],
@@ -2052,33 +2463,199 @@ define(['js/app'], function (myApp) {
                 var date = new Date(x);
                 var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
 
-                var yText = $translate('AMOUNT');
-                var fre = $translate(vm.queryPara.bonusAmount.periodText.toUpperCase());
+                var yText = $translate('COUNT');
+                var fre = $translate(vm.queryPara.playerCredit.periodText.toUpperCase());
                 $("#tooltip").html(yText + " : " + y + '<br>' + fre + " : " + dateString)
                     .css({top: obj.pageY + 5, left: obj.pageX + 5})
                     .fadeIn(200);
             })
+
             //draw table
+
             var tableData = [];
             for (var i in graphData) {
                 var obj = {};
                 obj.date = String(utilService.$getTimeFromStdTimeFormat(new Date(graphData[i][0]))).substring(0, 10);
-                let amount = graphData[i][1] || 0;
-                obj.amount = amount.toFixed(2);
+                let count = graphData[i][1] || 0;
+                obj.count = count.toFixed(0);
                 tableData.push(obj);
             }
+            tableData.push({date: $translate('average value'), count: averageNumber});
             var dataOptions = {
                 data: tableData,
                 columns: [
-                    {title: $translate(vm.queryPara.bonusAmount.periodText), data: "date"},
-                    {title: $translate('amount'), data: "amount"}
+                    {title: $translate(vm.queryPara.playerCredit.periodText), data: "date"},
+                    {title: $translate('COUNT'), data: "count"}
                 ],
                 "paging": false,
             };
             dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-            var a = $('#bonusAmountAnalysisTable').DataTable(dataOptions);
+            var a = $('#playerCreditCountAnalysisTable').DataTable(dataOptions);
             a.columns.adjust().draw();
         }
+        //player credit end =======================================================
+
+        //bonus amount 
+        vm.drawPlayerBonusAmount = function (type) {
+            var opt = '';
+            if (type == 'PLAYER_EXPENSES') {
+                opt = 'consumption';
+            } else if (type == 'PLAYER_TOPUP') {
+                opt = 'topup';
+            }
+
+            let startDate = vm.queryPara.bonusAmount.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.bonusAmount.endTime.data('datetimepicker').getLocalDate();
+
+            var sendData = {
+                platform: vm.selectedPlatform._id,
+                period: vm.queryPara.bonusAmount.periodText,
+                type: opt,
+                startDate: startDate,
+                endDate: endDate,
+            };
+
+            socketService.$socket($scope.AppSocket, 'getAnalysisSingleBonusRequestList', sendData, function (data) {
+
+                $scope.$evalAsync(() => {
+                    let periodDateData = [];
+                    while (startDate.getTime() <= endDate.getTime()) {
+                        let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.bonusAmount.periodText, startDate);
+                        periodDateData.push(startDate);
+                        startDate = dayEndTime;
+                    }
+
+                    vm.platformBonusData = data.data;
+                    vm.platformBonusAnalysisData = [];
+
+                    for (let i = 0; i < periodDateData.length; i++) {
+                        let bonusWithinPeriod = vm.platformBonusData.filter(bonus => new Date(bonus.createTime).getTime() > periodDateData[i].getTime() && new Date(bonus.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.bonusAmount.periodText, periodDateData[i]));
+                        vm.platformBonusAnalysisData.push({
+                            date: periodDateData[i],
+                            bonus: bonusWithinPeriod,
+                        });
+                    }
+                    vm.platformBonusDataPeriodText = vm.queryPara.bonusAmount.periodText;
+                    console.log('vm.platformBonusAnalysisData', vm.platformBonusAnalysisData);
+
+                    vm.platformBonusAnalysisAmount = [];
+                    vm.platformBonusAnalysisData.forEach(item => {
+
+                        let totalBonusAmount = item.bonus.length > 0 ? item.bonus.reduce((a, b) => a + (b.data.amount ? b.data.amount : 0), 0) : 0;
+
+                        vm.platformBonusAnalysisAmount.push({
+                            date: item.date,
+                            bonus: totalBonusAmount
+                        });
+
+                    });
+
+                    let calculatedBonusData = vm.calculateLineDataAndAverage(vm.platformBonusAnalysisAmount, 'bonus', 'BONUS_AMOUNT');
+                    vm.platformBonusAmountAverage = calculatedBonusData.average;
+                    vm.plotLineByElementId("#line-bonusAmount", calculatedBonusData.lineData, $translate('BONUS_AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.bonusAmount.periodText.toUpperCase()));
+
+                    let calculatedBonusNumber = vm.calculateLineDataAndAverage(vm.platformBonusAnalysisData, 'bonus', 'WITHDRAW_COUNT');
+                    vm.platformBonusNumberAverage = calculatedBonusNumber.average;
+                    vm.plotLineByElementId("#line-bonusCount", calculatedBonusNumber.lineData, $translate('WITHDRAW_COUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.bonusAmount.periodText.toUpperCase()));
+
+                });
+
+            //     vm.playerBonusData = data.data;
+            //
+            //     // $scope.safeApply();
+            //     return vm.drawPlayerBonusGraph(vm.playerBonusData, sendData);
+            // }, function (data) {
+            //     console.log("player credit data not", data);
+            });
+        }
+        // vm.drawPlayerBonusGraph = function (srcData, sendData) {
+        //     var placeholder = '#line-bonusAmount';
+        //     var playerCreditObjData = {};
+        //
+        //     var graphData = [];
+        //     srcData.map(item => {
+        //         graphData.push([new Date(item._id), item.number])
+        //     })
+        //     var newOptions = {};
+        //     // var nowDate = new Date(sendData.startDate);
+        //     var xText = '';
+        //     switch (vm.queryPara.bonusAmount.periodText) {
+        //         case 'day':
+        //             xText = 'DAY';
+        //             newOptions = {
+        //                 xaxis: {
+        //                     tickLength: 0,
+        //                     mode: "time",
+        //                     minTickSize: [1, "day"],
+        //                 }
+        //             };
+        //             break;
+        //         case 'week':
+        //             xText = 'WEEK';
+        //             newOptions = {
+        //                 xaxis: {
+        //                     tickLength: 0,
+        //                     mode: "time",
+        //                     minTickSize: [6, "day"],
+        //                 }
+        //             };
+        //             break;
+        //         case 'month' :
+        //             xText = 'MONTH';
+        //             newOptions = {
+        //                 xaxis: {
+        //                     tickLength: 0,
+        //                     mode: "time",
+        //                     minTickSize: [1, "month"],
+        //                 }
+        //             };
+        //             break;
+        //     }
+        //     newOptions.yaxes = [{
+        //         position: 'left',
+        //         axisLabel: $translate('AMOUNT'),
+        //     }]
+        //     newOptions.xaxes = [{
+        //         position: 'bottom',
+        //         axisLabel: $translate('PERIOD') + ' : ' + $translate(xText)
+        //     }]
+        //
+        //     socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData}], newOptions);
+        //
+        //     vm.bindHover(placeholder, function (obj) {
+        //         var x = obj.datapoint[0],
+        //             y = obj.datapoint[1].toFixed(0);
+        //
+        //         var date = new Date(x);
+        //         var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
+        //
+        //         var yText = $translate('AMOUNT');
+        //         var fre = $translate(vm.queryPara.bonusAmount.periodText.toUpperCase());
+        //         $("#tooltip").html(yText + " : " + y + '<br>' + fre + " : " + dateString)
+        //             .css({top: obj.pageY + 5, left: obj.pageX + 5})
+        //             .fadeIn(200);
+        //     })
+        //     //draw table
+        //     var tableData = [];
+        //     for (var i in graphData) {
+        //         var obj = {};
+        //         obj.date = String(utilService.$getTimeFromStdTimeFormat(new Date(graphData[i][0]))).substring(0, 10);
+        //         let amount = graphData[i][1] || 0;
+        //         obj.amount = amount.toFixed(2);
+        //         tableData.push(obj);
+        //     }
+        //     var dataOptions = {
+        //         data: tableData,
+        //         columns: [
+        //             {title: $translate(vm.queryPara.bonusAmount.periodText), data: "date"},
+        //             {title: $translate('amount'), data: "amount"}
+        //         ],
+        //         "paging": false,
+        //     };
+        //     dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+        //     var a = $('#bonusAmountAnalysisTable').DataTable(dataOptions);
+        //     a.columns.adjust().draw();
+        // }
         //player bonus end
 
         //client source start =======================================
@@ -2095,13 +2672,15 @@ define(['js/app'], function (myApp) {
         vm.getClientSourceData = function () {
             var sendObj = {};
             sendObj.accessType = vm.queryPara.clientSource.accessType;
-            sendObj.clientType = vm.queryPara.clientSource.clientType;
+            //sendObj.clientType = vm.queryPara.clientSource.clientType;
             sendObj.platformId = vm.selectedPlatform.platformId;
             sendObj.startDate = vm.queryPara.clientSource.startTime.data('datetimepicker').getLocalDate();
             sendObj.endDate = vm.queryPara.clientSource.endTime.data('datetimepicker').getLocalDate();
             socketService.$socket($scope.AppSocket, 'getClientSourceQuery', sendObj, function (data) {
                 console.log('data', data);
                 vm.clientSourceTblData = data.data || [];
+                vm.clientSourceTotalCount = data.data.reduce((a,b) => a + (b.count ? b.count : 0),0);
+                vm.clientSourceTblData.push({_id: $translate("Total"), count: vm.clientSourceTotalCount, ratio: "100%"})
                 vm.drawClientSourceTable(vm.clientSourceTblData);
                 vm.drawClientSourcePie(vm.clientSourceTblData);
             });
@@ -2111,7 +2690,7 @@ define(['js/app'], function (myApp) {
             var pieData = srcData.filter(function (obj) {
                 return (obj._id);
             }).map(function (obj) {
-                return {label: vm.setGraphName(obj._id), data: obj.count};
+                return {label: vm.setGraphNameWithoutCutString(obj._id), data: obj.count};
             }).sort(function (a, b) {
                 return b.data - a.data;
             })
@@ -2122,7 +2701,8 @@ define(['js/app'], function (myApp) {
                 data: tblData,
                 columns: [
                     {title: $translate("Domain Name"), data: "_id"},
-                    {title: $translate('amount'), data: "count"}
+                    {title: $translate('amount'), data: "count"},
+                    {title: $translate('ratio'), data: "ratio"}
                 ],
                 "paging": false
             });
@@ -2279,6 +2859,18 @@ define(['js/app'], function (myApp) {
             }
         }
 
+        vm.setGraphNameWithoutCutString = function (data, ltr, num) {
+            //data=src string, ltr=bool (from left to right?) , digits= number of character
+            if (!data) return $translate("Unknown");
+            if (data.length == 0) {
+                return $translate('Unknown');
+            }
+            ltr = Boolean(ltr || true);
+            num = num || 6;
+
+            return data;
+        }
+
         //common functions======================================================
 
 ////////////////Mark::$viewContentLoaded function//////////////////
@@ -2322,23 +2914,48 @@ define(['js/app'], function (myApp) {
 
         });
 
-        vm.drawLocationCityGraphByElementId = function (elementId, data) {
-            let pieData = data.map(item => {
-                let data = {
-                    label: vm.getCountryTitle(item._id.city) || $translate('Unknown'), data: item.amount
-                };
-                return data;
-            });
+        vm.drawLocationCityGraphByElementId = function (elementId, data, tag) {
+            let pieData=[];
+            if (tag == "IPLocation") {
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.city || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+            if (tag == "phoneLocation") {
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.phoneCity || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+
             socketService.$plotPie(elementId, pieData, {});
         };
 
-        vm.drawLocationCountryGraphByElementId = function (elementId, data) {
-            let pieData = data.map(item => {
-                let data = {
-                    label: vm.getCountryTitle(item._id.country) || $translate('Unknown'), data: item.amount
-                };
-                return data;
-            });
+
+        vm.drawLocationCountryGraphByElementId = function (elementId, data, tag) {
+            let pieData=[];
+            if (tag == "IPLocation"){
+                pieData = data.map(item => {
+                    let data = {
+                        label: vm.getCountryTitle(item._id.country) || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+            if (tag == "phoneLocation"){
+                pieData = data.map(item => {
+                    let data = {
+                        label: item._id.phoneProvince || $translate('Unknown'), data: item.amount
+                    };
+                    return data;
+                });
+            }
+
             socketService.$plotPie(elementId, pieData, {});
         };
 

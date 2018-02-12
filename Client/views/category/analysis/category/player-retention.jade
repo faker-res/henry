@@ -11,6 +11,12 @@
                 label {{"Start date"|translate}}
                 input.form-control(type='date', ng-model='vm.queryPara.playerRetention.startTime')
             div
+                label {{"newRegistrationType"|translate}}
+                //select.form-control(ng-model="vm.queryPara.playerRetention.playerType", ng-options='a | translate for a in vm.allNewPlayerType')
+                select.form-control(ng-model="vm.queryPara.playerRetention.playerType")
+                    option(ng-repeat='(i,v) in vm.allNewPlayerType', value = '{{i}}') {{v | translate}}
+                        //option(value='') {{'all'|translate}}
+            div
                 table.simple-table
                     tbody
                         tr
