@@ -204,7 +204,18 @@ var dbPlatform = {
     getPlatform: function (platformData) {
         return dbconfig.collection_platform.findOne(platformData)
             .populate({path: "paymentChannels", model: dbconfig.collection_paymentChannel})
-            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).exec();
+            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().exec().then(
+                platform => {
+                    // debug use, delete later
+                    if (platform && (platform.platformId == 4 || platform.platformId == 6)) {
+                        console.log("whiteList length: ", platform.whiteListingPhoneNumbers && platform.whiteListingPhoneNumbers.length, 'z|^', platform.platformId)
+                        console.log("gameProviderInfo: ", JSON.stringify(platform.gameProviderInfo), 'k|^', platform.platformId)
+                    }
+
+
+                    return platform;
+                }
+            );
     },
 
     /**
