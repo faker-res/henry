@@ -22733,9 +22733,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
 
-
-
-            //
+            // Batch Permit Edit
             vm.initBatchPermit = function () {
                 vm.prepareCredibilityConfig();
                 vm.drawBatchPermitTable();
@@ -22747,7 +22745,6 @@ define(['js/app'], function (myApp) {
                         selectedRemarks.push(vm.credibilityRemarks[i]._id);
                     }
                 }
-                vm.batchEditData.credibilityRemarks = selectedRemarks;
                 let playerNames = vm.splitBatchPermit();
                 let sendQuery = {
                     admin: authService.adminName,
@@ -22756,8 +22753,6 @@ define(['js/app'], function (myApp) {
                     remarks: selectedRemarks,
                     comment: vm.credibilityRemarkComment
                 };
-                console.log(sendQuery);
-                console.log(vm.batchEditData.credibilityRemarks);
 
                 socketService.$socket($scope.AppSocket, "updateBatchPlayerCredibilityRemark", sendQuery, function (data) {
                     vm.playerCredibilityRemarksUpdated = true;
@@ -23474,10 +23469,13 @@ define(['js/app'], function (myApp) {
             vm.splitBatchPermit = function(){
 
                 let playerNames = [];
-                let multiUsersArr = vm.multiUsersList.split('\n');
-                multiUsersArr.forEach(item => {
-                    playerNames.push(item);
-                });
+                if(vm.multiUsersList){
+                    let multiUsersArr = vm.multiUsersList.split('\n');
+                    multiUsersArr.forEach(item => {
+                        playerNames.push(item);
+                    });
+                }
+
                 return playerNames;
             }
             ///

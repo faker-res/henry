@@ -446,7 +446,10 @@ var roleChecker = {
                 gameRewardPoints: [],
                 rewardPointsRanking: [],
                 rewardPointsLog: []
-
+            },
+            "batchPermit": {
+                Read: [],
+                Update: ['updateBatchPlayerCredibilityRemark', 'updateBatchPlayerPermission', 'updateBatchPlayerForbidRewardEvents', 'updateBatchPlayerForbidProviders', 'updateBatchPlayerForbidPaymentType', 'updateBatchPlayerForbidRewardPointsEvent'],
             }
         },
         Payment: {
