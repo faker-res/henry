@@ -2035,6 +2035,12 @@ define(['js/app'], function (myApp) {
                 callback();
             }
         };
+
+        vm.retentionFilterOnChange = function () {
+            vm.queryPara.playerRetention.minTime = utilService.getFormatDate(vm.queryPara.playerRetention.startTime);
+            $scope.safeApply();
+        }
+
         vm.getPlayerRetention = function () {
             vm.isShowLoadingSpinner('#analysisPlayerRetention', true);
             vm.retentionGraphData = [];
@@ -2045,6 +2051,7 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform._id,
                 days: vm.queryPara.playerRetention.days,
                 startTime: vm.queryPara.playerRetention.startTime,
+                endTime: vm.queryPara.playerRetention.endTime,
                 playerType: vm.queryPara.playerRetention.playerType
             }
             socketService.$socket($scope.AppSocket, 'getPlayerRetention', sendData, function (data) {
@@ -2846,7 +2853,12 @@ define(['js/app'], function (myApp) {
                 })
             } else {
                 vm.queryPara[field].startTime = utilService.setNDaysAgo(new Date(), 1);
-                vm.queryPara[field].endTime = new Date();
+                if (field == 'playerRetention') {
+                    vm.queryPara[field].endTime = utilService.setNDaysAfter(new Date(), 28);
+                    vm.queryPara[field].minTime = utilService.getFormatDate(vm.queryPara[field].startTime);
+                } else {
+                    vm.queryPara[field].endTime = new Date();
+                }
             }
 
             if (period) {
