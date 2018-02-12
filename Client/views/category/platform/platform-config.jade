@@ -378,10 +378,11 @@
                                         th {{'MIN_REQUIREMENT' | translate}}
                                         th {{'TOP_UP_TIMES' | translate}}
                                         th {{'TOP_UP_AMOUNT' | translate}}
-                                        th {{'CONSUMPTION' | translate}}
+                                        th {{'consumptionTimes' | translate}}
+                                        th {{'VALID_CONSUMPTION' | translate}}
                                         th {{'Player Value' | translate}}
                                 tbody
-                                    tr
+                                    //tr
                                         td {{'ACTIVE_PLAYER' | translate}}
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerTopUpTimes}}
@@ -392,6 +393,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerConsumptionAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerConsumptionAmount')
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.activePlayerValue}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.activePlayerValue')
@@ -407,6 +411,9 @@
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.dailyActivePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.dailyActivePlayerConsumptionTimes')
                                         td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.dailyActivePlayerConsumptionAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.dailyActivePlayerConsumptionAmount')
+                                        td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.dailyActivePlayerValue}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.dailyActivePlayerValue')
                                     tr
@@ -420,6 +427,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.weeklyActivePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.weeklyActivePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.weeklyActivePlayerConsumptionAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.weeklyActivePlayerConsumptionAmount')
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.weeklyActivePlayerValue}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.weeklyActivePlayerValue')
@@ -435,6 +445,9 @@
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.halfMonthActivePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.halfMonthActivePlayerConsumptionTimes')
                                         td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.halfMonthActivePlayerConsumptionAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.halfMonthActivePlayerConsumptionAmount')
+                                        td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.halfMonthActivePlayerValue}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.halfMonthActivePlayerValue')
                                     tr
@@ -448,6 +461,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.monthlyActivePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.monthlyActivePlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.monthlyActivePlayerConsumptionAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.monthlyActivePlayerConsumptionAmount')
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.monthlyActivePlayerValue}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.monthlyActivePlayerValue')
@@ -463,6 +479,9 @@
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.seasonActivePlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.seasonActivePlayerConsumptionTimes')
                                         td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.seasonActivePlayerConsumptionAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.seasonActivePlayerConsumptionAmount')
+                                        td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.seasonActivePlayerValue}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.seasonActivePlayerValue')
                                     tr
@@ -476,6 +495,9 @@
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerConsumptionTimes}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerConsumptionTimes')
+                                        td
+                                            text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerConsumptionAmount}}
+                                            input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerConsumptionAmount')
                                         td
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerValue}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerValue')
