@@ -3237,7 +3237,8 @@
   "biweekly": "半月",
   "VALID_ACTIVE_PLAYER": "有效活跃玩家",
   "ValidActivePlayer": "有效活跃玩家",
-  "COUNT": "笔数"
+  "COUNT": "笔数",
+  "unreadMailMaxDuration (month)": "站内信的最长时效（月）"
 
 
 

@@ -842,6 +842,22 @@ define(['js/app'], function (myApp) {
             vm.buildPlatformList = function (data) {
                 vm.platformList = [];
                 for (var i = 0; i < data.length; i++) {
+
+                    // update the unreadMailMaxDuration Setting if it is not found in the DB
+                    let id=data[i]._id;
+                    let query = {_id: data[i]._id, unreadMailMaxDuration: {$exists: true}};
+                    socketService.$socket($scope.AppSocket, 'getPlatformSetting', query, function (data) {
+                        if (data.data.length === 0) {
+                            let sendData = {
+                                query: {_id: id},
+                                updateData: {unreadMailMaxDuration: 1}
+                            };
+                            socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
+                                vm.loadPlatformData({loadAll: false});
+                                $scope.safeApply();
+                            });
+                        }
+                    });
                     vm.platformList.push(vm.createPlatformNode(data[i]));
                 }
                 //var platformsToDisplay = vm.platformList;
@@ -19610,6 +19626,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.usePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.usePhoneNumberTwoStepsVerification;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
+                vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -20106,7 +20123,8 @@ define(['js/app'], function (myApp) {
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
-                        playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval
+                        playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
+                        unreadMailMaxDuration: srcData.unreadMailMaxDuration
                     }
                 };
                 let isProviderGroupOn = false;

@@ -225,6 +225,8 @@ var platformSchema = new Schema({
     manualAuditAfterBankChanged: {type: Boolean, default: true},
     // manual audit if player's applyBonus permission banned
     manualAuditBanWithdrawal: {type: Boolean, default: true},
+    // set the maximum duration for the unread mail to be showing up
+    unreadMailMaxDuration: {type: Number, min: 1, default: 1}
 });
 
 //add platform id before save
