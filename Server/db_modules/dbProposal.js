@@ -3634,7 +3634,34 @@ var proposal = {
                 }
             }
         )
+    },
+
+    getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate) => {
+        return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
+            (onlineTopupType) => {
+                if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+                let queryObj = {
+                    createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                    type: onlineTopupType._id
+                };
+                let proposalProm = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").lean();
+
+                let playerCountTypeProm = dbconfig.collection_proposal.aggregate(
+                    {
+                        $match: queryObj
+                    }, {
+                        $group: {
+                            _id: "$data.merchantUseType",
+                            userIds: { $addToSet: "$data.playerObjId" },
+                        }
+                    }
+                ).read("secondaryPreferred");
+
+                return Q.all([proposalProm, playerCountTypeProm]);
+            }
+        )
     }
+
 };
 
 /*
