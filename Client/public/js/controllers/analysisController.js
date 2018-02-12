@@ -2080,7 +2080,7 @@ define(['js/app'], function (myApp) {
                 });
                 for (let key in vm.averageRetention) {
                     if (vm.averageRetention.hasOwnProperty(key)){
-                        vm.averageRetention[key] = (vm.averageRetention[key] / dataLength)/*.toFixed(3)*/;
+                        vm.averageRetention[key] = (vm.averageRetention[key] / dataLength);
                     }
                 }
                 vm.averageRetention.date = $translate("average line");
