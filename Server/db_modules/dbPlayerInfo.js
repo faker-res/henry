@@ -1669,9 +1669,7 @@ let dbPlayerInfo = {
             )
             proms.push(prom)
         })
-        return Promise.all(proms).then(data => {
-            return data;
-        })
+        return Promise.all(proms);
     },
     /**
      * Reset player password
@@ -2106,10 +2104,7 @@ let dbPlayerInfo = {
             proms.push(prom)
         });
 
-        return Promise.all(proms).then(data => {
-            return data;
-        });
-
+        return Promise.all(proms);
     },
 
     /**
@@ -2156,9 +2151,7 @@ let dbPlayerInfo = {
             proms.push(prom);
         });
 
-        return Promise.all(proms).then(data => {
-            return data;
-        });
+        return Promise.all(proms);
     },
 
     updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
@@ -2180,9 +2173,7 @@ let dbPlayerInfo = {
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
             proms.push(prom);
         });
-        Promise.all(proms).then(data => {
-            return data;
-        });
+        return Promise.all(proms);
     },
 
     updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
@@ -2203,9 +2194,7 @@ let dbPlayerInfo = {
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform:platformObjId }, updateData, constShardKeys.collection_players);
             proms.push(prom);
         })
-        Promise.all(proms).then(data=>{
-            return data;
-        })
+        return Promise.all(proms);
     },
 
     /**
@@ -11908,9 +11897,7 @@ let dbPlayerInfo = {
             );
             proms.push(prom);
         })
-        return Promise.all(proms).then(data=>{
-            return data;
-        })
+        return Promise.all(proms);
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
