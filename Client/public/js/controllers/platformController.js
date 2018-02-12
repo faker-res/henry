@@ -23342,7 +23342,7 @@ define(['js/app'], function (myApp) {
                             data: "credibilityRemarks",
                             advSearch: false,
                             orderable: false,
-                            sClass: "remarkCol",
+                            sClass: "remarkCol text-center",
                             render: (data, type, row) => {
                                 let emptyOutput = "<a data-toggle=\"modal\" data-target='#modalPlayerCredibilityRemarks'> - </a>";
                                 if (!data || data.length === 0) {
@@ -23690,14 +23690,6 @@ define(['js/app'], function (myApp) {
                                         changeObj.forbidPlayerFromEnteringGame = !changeObj.forbidPlayerFromEnteringGame;
                                     }
 
-                                    Object.keys(vm.batchEditData.permission).map(item => {
-                                        Object.keys(changeObj).forEach((fieldName, index) => {
-                                            //maincategory
-                                            if (fieldName == item) {
-                                                vm.batchEditData.permission[item] = changeObj[fieldName];
-                                            }
-                                        })
-                                    });
                                     let playerNames = vm.splitBatchPermit();
                                     vm.batchPermitModifySucc = false;
                                     socketService.$socket($scope.AppSocket, 'updateBatchPlayerPermission', {
