@@ -7,8 +7,9 @@ define(['js/app'], function (myApp) {
     var analysisController = function ($scope, $filter, $location, $log, authService, socketService, CONFIG, utilService, $timeout) {
         var $translate = $filter('translate');
         var vm = this;
+
         // For debugging:
-        window.VM = vm;
+        // window.VM = vm;
 
         vm.allNewPlayerType = {
             1: "allNewRegistrationCount",
