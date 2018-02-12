@@ -22277,18 +22277,16 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updateBatchForbidGameLog = function (data) {
-                let deferred = Q.defer();
 
                 let proms = []
                 data.data.forEach(item=>{
                     let prom = vm.updateForbidGameLog(item._id, vm.findForbidCheckedName(item.forbidProviders, vm.allGameProvider));
                     proms.push(prom);
                 });
-                Q.all(proms).then(data=>{
+                return Promise.all(proms).then(data=>{
                     vm.batchPermitModifySucc = true;
-                    deferred.resolve(data);
+                    return data;
                 });
-                return deferred.promise;
             }
             /*vm.updateForbidRewardPointsEventLog = function (playerId, forbidRewardPointsEvent) {
                 let queryData = {
@@ -22399,7 +22397,6 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updateBatchForbidTopUpLog = function (data) {
-                let deferred = Q.defer();
                 let proms = [];
 
                 data.data.forEach(item=>{
@@ -22410,11 +22407,10 @@ define(['js/app'], function (myApp) {
                     let prom = vm.updateForbidTopUpLog(item._id, forbidTopUpNames);
                     proms.push(prom);
                 })
-                Q.all(proms).then(data=>{
+                return Promise.all(proms).then(data=>{
                     vm.batchPermitModifySucc = true;
-                    deferred.resolve(data);
+                    return data;
                 })
-                return deferred.promise;
             }
 
             $("button.forbidTopUpConfirm").on('click', function () {
@@ -22512,7 +22508,6 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updateBatchForbidRewardLog = function (data) {
-                let deferred = Q.defer();
                 let proms = [];
 
                 data.data.forEach(player => {
@@ -22520,11 +22515,10 @@ define(['js/app'], function (myApp) {
                     proms.push(prom);
                 });
 
-                Q.all(proms).then(data => {
+                return Promise.all(proms).then(data => {
                     vm.batchPermitModifySucc = true;
-                    deferred.resolve(data);
+                    return data;
                 })
-                return deferred.promise;
             }
 
             $("button.forbidRewardEventConfirm").on('click', function () {
@@ -22621,18 +22615,16 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.updateBatchForbidRewardPointsEventLog = function (data) {
-                let deferred = Q.defer();
                 let proms = [];
 
                 data.data.forEach(player=>{
                     let prom = vm.updateForbidRewardPointsEventLog(player._id, vm.findForbidCheckedTitle(player.forbidRewardPointsEvent, vm.rewardPointsAllEvent));
                     proms.push(prom);
                 });
-                Q.all(proms).then(data=>{
+                return Promise.all(proms).then(data=>{
                     vm.batchPermitModifySucc = true;
-                    deferred.resolve(data);
+                    return data;
                 })
-                return deferred.promise;
             }
 
             $("button.forbidRewardPointsEventConfirm").on('click', function () {

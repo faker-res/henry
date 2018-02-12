@@ -1631,7 +1631,7 @@ let dbPlayerInfo = {
         );
     },
     updateBatchPlayerPermission: function(query, admin, permission, remark){
-        let deferred = Q.defer();
+
         var updateObj = {};
 
         for (var key in permission) {
@@ -1669,10 +1669,9 @@ let dbPlayerInfo = {
             )
             proms.push(prom)
         })
-        Q.all(proms).then(data => {
-            deferred.resolve(data);
+        return Promise.all(proms).then(data => {
+            return data;
         })
-        return deferred.promise;
     },
     /**
      * Reset player password
@@ -2099,7 +2098,6 @@ let dbPlayerInfo = {
     },
 
     updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
-        let deferred = Q.defer();
         let proms = [];
         let playerNames = query.playerNames;
         let updateData = {forbidTopUpType: forbidTopUpTypes}
@@ -2108,10 +2106,10 @@ let dbPlayerInfo = {
             proms.push(prom)
         });
 
-        Q.all(proms).then(data => {
-            deferred.resolve(data);
+        return Promise.all(proms).then(data => {
+            return data;
         });
-        return deferred.promise;
+
     },
 
     /**
@@ -2147,7 +2145,6 @@ let dbPlayerInfo = {
 
     updateBatchPlayerForbidProviders: function (platformObjId, playerNames, forbidProviders) {
 
-        let deferred = Q.defer();
         let updateData = {};
         if (forbidProviders) {
             updateData.forbidProviders = forbidProviders;
@@ -2159,10 +2156,9 @@ let dbPlayerInfo = {
             proms.push(prom);
         });
 
-        Q.all(proms).then(data => {
-            deferred.resolve(data);
+        return Promise.all(proms).then(data => {
+            return data;
         });
-        return deferred.promise;
     },
 
     updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
@@ -2174,7 +2170,6 @@ let dbPlayerInfo = {
     },
 
     updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
-        let deferred = Q.defer();
         let updateData = {};
         let result = [];
         if (forbidRewardEvents) {
@@ -2185,10 +2180,9 @@ let dbPlayerInfo = {
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
             proms.push(prom);
         });
-        Q.all(proms).then(data => {
-            deferred.resolve(data);
+        Promise.all(proms).then(data => {
+            return data;
         });
-        return deferred.promise;
     },
 
     updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
@@ -2200,7 +2194,6 @@ let dbPlayerInfo = {
     },
 
     updateBatchPlayerForbidRewardPointsEvent: function (playerNames, platformObjId, forbidRewardPointsEvent) {
-        let deferred = Q.defer();
         let proms = [];
         let updateData = {};
         if (forbidRewardPointsEvent) {
@@ -2210,10 +2203,9 @@ let dbPlayerInfo = {
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform:platformObjId }, updateData, constShardKeys.collection_players);
             proms.push(prom);
         })
-        Q.all(proms).then(data=>{
-            deferred.resolve(data);
+        Promise.all(proms).then(data=>{
+            return data;
         })
-        return deferred.promise;
     },
 
     /**
@@ -11894,7 +11886,6 @@ let dbPlayerInfo = {
 
     updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
 
-        let deferred = Q.defer();
         let proms = [];
         playerNames.forEach(playerName=>{
 
@@ -11917,10 +11908,9 @@ let dbPlayerInfo = {
             );
             proms.push(prom);
         })
-        Q.all(proms).then(data=>{
-            deferred.resolve(data);
+        return Promise.all(proms).then(data=>{
+            return data;
         })
-        return deferred.promise;
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
