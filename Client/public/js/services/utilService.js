@@ -26,6 +26,12 @@ define([], function () {
             return new Date(inputDate.setDate(inputDate.getDate() - n));
         }
 
+        this.setNDaysAfter = function (inputDate, n) {
+            if (!(inputDate instanceof Date) || !Number.isInteger(n)) {
+                return;
+            }
+            return new Date(inputDate.setDate(inputDate.getDate() + n));
+        }
 
         this.$createArray = function (min, max) {
             var newArrayObj = {};
