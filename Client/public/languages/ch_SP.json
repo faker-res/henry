@@ -1310,6 +1310,7 @@
   "SMS_INTERMAIL": "短信/站内信",
   "SMS_CONTENT": "短信内容",
   "smsContentConfig": "短信内容",
+  "ALLOWED_SEND_SMS": "是否发送短信",
   "GENERATE": "生成",
   "GENERATE_ALL": "生成全部",
   "PROMO_CODE_LEGEND": "代码对照表",
