@@ -1936,7 +1936,18 @@ define(['js/app'], function (myApp) {
             newOptions.xaxis = {
                 ticks: xLabel,
             };
-            socketService.$plotLine(placeholder, vm.allRetentionLineData, newOptions);
+
+            let retentionGraph = socketService.$plotLine(placeholder, vm.allRetentionLineData, newOptions)
+                $.each(retentionGraph.getData()[0].data, function(i, el){
+                    var o = retentionGraph.pointOffset({x: el[0], y: el[1]});
+                    $('<div class="data-point-label">' + el[1].toFixed(3) + '%</div>').css( {
+                        position: 'absolute',
+                        left: o.left + 4,
+                        top: o.top - 15,
+                        display: 'none'
+                    }).appendTo(retentionGraph.getPlaceholder()).fadeIn('slow');
+                });
+
             vm.bindHover(placeholder, function (obj) {
                 var x = obj.datapoint[0],
                     y = obj.datapoint[1].toFixed(0);
