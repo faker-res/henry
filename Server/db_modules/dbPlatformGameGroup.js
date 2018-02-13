@@ -195,9 +195,15 @@ var dbPlatformGameGroup = {
                 let gameInfo = gameData;
                 return dbconfig.collection_players.findOne({playerId: playerId, platform: platformObjId}).lean().then(
                     playerData => {
-                        let strProviderObjId = providerObjId.toString();
-                        let strForbidProviders = playerData.forbidProviders.toString();
+                        let strProviderObjId;
+                        let strForbidProviders;
 
+                        if (providerObjId) {
+                            strProviderObjId = providerObjId.toString();
+                        }
+                        if (playerData && playerData.forbidProviders) {
+                            strForbidProviders = playerData.forbidProviders.toString();
+                        }
                         if (playerData && playerData.permission && (playerData.permission.forbidPlayerFromEnteringGame || strForbidProviders.includes(strProviderObjId))) {
                             gameInfo.forEach(
                                 game => {
