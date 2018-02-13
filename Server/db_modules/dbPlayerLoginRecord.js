@@ -288,7 +288,8 @@ var dbPlayerLoginRecord = {
                     validPlayerProm.hasOwnProperty("validPlayerConsumptionTimes") && validPlayerProm.hasOwnProperty("validPlayerTopUpTimes")) {
                     playerFilter = {
                         topUpSum: {$gte: validPlayerProm.validPlayerTopUpAmount},
-                        consumptionSum: {$gte: validPlayerProm.validPlayerConsumptionTimes},
+                        consumptionTimes: {$gte: validPlayerProm.validPlayerConsumptionTimes},
+                        consumptionSum: {$gte: validPlayerProm.validPlayerConsumptionAmount},
                         topUpTimes: {$gte: validPlayerProm.validPlayerTopUpTimes}
                     }
                 }

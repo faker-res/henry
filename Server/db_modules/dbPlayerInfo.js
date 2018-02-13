@@ -11819,19 +11819,26 @@ let dbPlayerInfo = {
             {path: "platform", model: dbconfig.collection_platform}).lean().then(
             playerData => {
 
-                if (playerData && playerData.platform.unreadMailMaxDuration) {
+                if (playerData) {
 
-                    let duration = playerData.platform.unreadMailMaxDuration;
-                    let todayDate = new Date();
-                    // get today end time
-                    let todayEndDate = new Date(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0).getTime() + 24 * 3600 * 1000);
+                    if (playerData.platform.unreadMailMaxDuration && playerData.platform.unreadMailMaxDuration > 0) {
+                        let duration = playerData.platform.unreadMailMaxDuration;
+                        let todayDate = new Date();
+                        // get today end time
+                        let todayEndDate = new Date(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0).getTime() + 24 * 3600 * 1000);
 
-                    let endDate = todayEndDate.toISOString();
-                    let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
+                        let endDate = todayEndDate.toISOString();
+                        let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
 
-                    return dbconfig.collection_playerMail.find(
-                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false, createTime: {$gte: startDate, $lt: endDate} }
-                    ).lean();
+                        return dbconfig.collection_playerMail.find(
+                            {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false, createTime: {$gte: startDate, $lt: endDate} }
+                        ).lean();
+                    }
+                    else {
+                        return dbconfig.collection_playerMail.find(
+                            {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false }
+                        ).lean();
+                    }
                 }
                 else{
                     return Q.reject({name: "DBError", message: "Invalid platform data"});

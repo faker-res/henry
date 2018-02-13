@@ -565,15 +565,15 @@ define(['js/app'], function (myApp) {
                 data: typeData,
                 totalCount: typeData.length,
                 successCount: typeSuccessData.length,
-                successRate: typeData.length === 0 ? 0 : Math.floor((typeSuccessData.length / typeData.length) * 100),
+                successRate: typeData.length === 0 ? 0 : $noRoundTwoDecimalPlaces((typeSuccessData.length / typeData.length) * 100),
                 receivedAmount: receivedAmount,
                 merchantTopupTypeId: merchantTopupTypeId,
             };
 
             if(merchantTopupTypeId) {
-                returnObj.amountRatio =  vm.platformOnlineTopupAnalysisTotalData.receivedAmount === 0 ? 0 : Math.floor((receivedAmount / vm.platformOnlineTopupAnalysisTotalData.receivedAmount) * 100);
+                returnObj.amountRatio =  vm.platformOnlineTopupAnalysisTotalData.receivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((receivedAmount / vm.platformOnlineTopupAnalysisTotalData.receivedAmount) * 100);
                 returnObj.userCount = userCount;
-                returnObj.userCountRatio =  vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : Math.floor((userCount / vm.platformOnlineTopupAnalysisTotalUserCount) * 100);
+                returnObj.userCountRatio =  vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((userCount / vm.platformOnlineTopupAnalysisTotalUserCount) * 100);
                 let typeName = $scope.merchantTopupTypeJson[merchantTopupTypeId];
                 returnObj.name = typeName;
                 if(typeName.indexOf('QR') !== -1)
@@ -638,11 +638,11 @@ define(['js/app'], function (myApp) {
                         date: userCountData.date,
                         totalCount: topupDataWithinPeriod.length,
                         successCount: typeSuccessData.length,
-                        successRate: topupDataWithinPeriod.length === 0 ? 0 : Math.floor((typeSuccessData.length / topupDataWithinPeriod.length) * 100),
+                        successRate: topupDataWithinPeriod.length === 0 ? 0 : $noRoundTwoDecimalPlaces((typeSuccessData.length / topupDataWithinPeriod.length) * 100),
                         receivedAmount: receivedAmount,
-                        amountRatio: totalReceivedAmount === 0 ? 0 : Math.floor((receivedAmount / totalReceivedAmount) * 100),
+                        amountRatio: totalReceivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((receivedAmount / totalReceivedAmount) * 100),
                         userCount: userCountData.userCount,
-                        userCountRatio: totalUserCount === 0 ? 0 : Math.floor((userCountData.userCount / totalUserCount) * 100)
+                        userCountRatio: totalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((userCountData.userCount / totalUserCount) * 100)
                     });
                 }
                 vm.platformOnlineTopupAnalysisDetailTotalData = typeData;

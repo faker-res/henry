@@ -2149,6 +2149,8 @@ var proposalExecutor = {
                         taskData.providerGroup = proposalData.data.providerGroup;
                     }
 
+                    proposalData.data.proposalId = proposalData.proposalId;
+
                     createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_LIMITED_OFFERS_REWARD, proposalData);
                 } else {
                     deferred.reject({
