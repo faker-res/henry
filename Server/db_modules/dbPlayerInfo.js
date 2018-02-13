@@ -7919,7 +7919,7 @@ let dbPlayerInfo = {
                                         "times": {"$sum": '$times'}
                                     }
                                 }
-                            ]).read("secondaryPreferred").cursor({batchSize: constSystemParam.BATCH_SIZE}).allowDiskUse(true).exec();
+                            ]).read("secondaryPreferred").cursor({batchSize: 1000}).allowDiskUse(true).exec();
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
                                 return balancer.processStream(
@@ -7960,7 +7960,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, merchantTopupTypeId) => {
+    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, merchantTopupTypeId, userAgent) => {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
@@ -7972,6 +7972,7 @@ let dbPlayerInfo = {
                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                         type: onlineTopupType._id,
                         "data.topupType": merchantTopupTypeId,
+                        "data.userAgent": parseFloat(userAgent),
                     };
                     proms.push(dbconfig.collection_proposal.aggregate(
                         {
