@@ -4467,7 +4467,7 @@ define(['js/app'], function (myApp) {
 
             vm.prepareRepairTransfer = function () {
                 vm.showPlatformRepair = !vm.showPlatformRepair;
-                if (vm.showPlatformRepair) {
+                if (vm.showPlatformRepair && !vm.creditChange) {
                     vm.creditChange = {
                         finalValidAmount: $translate("Unknown"),
                         finalLockedAmount: $translate("Unknown"),
