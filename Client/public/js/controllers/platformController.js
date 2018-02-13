@@ -17954,7 +17954,7 @@ define(['js/app'], function (myApp) {
             vm.promoCodeNewRow = function (collection, type, data) {
                 let tableId = "#createPromoCodeTable" + type;
                 let date = (data && data.expirationTime$) ? new Date(data.expirationTime$) : utilService.setLocalDayEndTime(new Date());
-                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: false}));
+                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: true}));
 
                 return p.then(
                     () => {setTimeout( () => {
