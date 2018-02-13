@@ -4481,7 +4481,7 @@ define(['js/app'], function (myApp) {
                 let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
 
-                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id, transferId: vm.linkedPlayerTransferId}
+                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id, transferObjId: vm.linkedPlayerTransferId}
                     , function (pData) {
                         let playerTransfer = {};
                         pData.data.forEach(function (playerTransLog) {
@@ -4509,7 +4509,7 @@ define(['js/app'], function (myApp) {
                         if (vm.linkedPlayerTransferId) {
                             sendData.data.transferId = playerTransfer.transferId;
                             //if reward task is still there fix locked amount otherwise fix valid amount
-                            if (vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
+                            if (vm.isOneSelectedPlayer() && vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
                                 sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
                                 sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
                             }
