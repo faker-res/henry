@@ -249,353 +249,352 @@ var dbPlatformGameGroup = {
                         );
                     }
                 );
-            },
-
-            /**
-             * Get game group tree data
-             * @param {String}  code
-             * @param {String}  platformId
-             * @param {Boolean}  containGames
-             */
-            getGameGroupTree
-    :
-
-        function (code, platformId, containGames, playerId, startIndex, count) {
-            var groupProm = null;
-            if (containGames && containGames !== "false") {
-                groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
-                    platformData => {
-                        return dbconfig.collection_platformGameGroup.find({platform: platformData._id}).then(
-                            groups => {
-                                if (groups && groups.length > 0) {
-                                    var proms = groups.map(
-                                        group => dbPlatformGameGroup.getGameGroupGames({
-                                            code: group.code,
-                                            platformId: platformId
-                                        }, null, null, playerId)
-                                    );
-                                    return Q.all(proms);
-                                }
-                                else {
-                                    return Q.reject({name: 'DataError', message: 'Cannot find platform game group'});
-                                }
-                            }
-                        );
-                    }
-                );
             }
-            else {
-                groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
-                    platformData => dbconfig.collection_platformGameGroup.find({platform: platformData._id})
-                );
-            }
-            return groupProm.then(
-                groups => {
-                    if (groups && groups.length > 0) {
-                        var groupMap = {};
-                        groups.forEach(
-                            group => {
-                                if (group) {
-                                    groupMap[group._id] = group;
-                                }
+        )
+    },
+
+    /**
+     * Get game group tree data
+     * @param {String}  code
+     * @param {String}  platformId
+     * @param {Boolean}  containGames
+     */
+    getGameGroupTree: function (code, platformId, containGames, playerId, startIndex, count) {
+        var groupProm = null;
+        if (containGames && containGames !== "false") {
+            groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
+                platformData => {
+                    return dbconfig.collection_platformGameGroup.find({platform: platformData._id}).then(
+                        groups => {
+                            if (groups && groups.length > 0) {
+                                var proms = groups.map(
+                                    group => dbPlatformGameGroup.getGameGroupGames({
+                                        code: group.code,
+                                        platformId: platformId
+                                    }, null, null, playerId)
+                                );
+                                return Q.all(proms);
                             }
-                        );
-                        //process each node to update node's children
-                        groups.forEach(
-                            group => {
-                                if (group && group.children && group.children.length > 0) {
-                                    var children = [];
-                                    for (let i = 0; i < group.children.length; i++) {
-                                        if (groupMap[group.children[i]]) {
-                                            children.push(groupMap[group.children[i]]);
-                                        }
-                                    }
-                                    group.children = children;
-                                    group.children.sort(function (a, b) {
-                                        return a.code - b.code;
-                                    });
-                                }
+                            else {
+                                return Q.reject({name: 'DataError', message: 'Cannot find platform game group'});
                             }
-                        );
-                        if (code) {
-                            var resGroup = groups.find(group => group.code == code);
-                            return {
-                                stats: {
-                                    totalCount: resGroup ? 1 : 0,
-                                    startIndex: startIndex
-                                },
-                                gameGroups: resGroup ? [resGroup] : []
-                            };
-                        }
-                        else {
-                            var resGroups = groups.filter(group => !group.parent);
-                            return {
-                                stats: {
-                                    totalCount: resGroups.length,
-                                    startIndex: startIndex
-                                },
-                                gameGroups: resGroups.slice(startIndex, startIndex + count)
-                            };
-                        }
-                    }
-                    else {
-                        return Q.reject({name: 'DataError', message: 'Cannot find platform game group'});
-                    }
-                }
-            );
-        }
-
-    ,
-
-        /**
-         * Get all the games by  platform and gameGroup
-         * @param {Json}  query - platform , groupId
-         */
-        getGameGroupGamesArr: function (query) {
-            query.status = {$ne: constGameStatus.DELETED};
-            return dbconfig.collection_platformGameGroup.findOne(query)
-                .populate({
-                    path: "games.game",
-                    model: dbconfig.collection_game
-                }).exec();
-        }
-    ,
-
-        /**
-         * Get all the games which are unattached to the gameGroup in the platform
-         * @param {Json}  query - platform , groupId
-         */
-        getGamesNotInGameGroup: function (query) {
-            var gamesId = [];
-            var resultArr = [];
-            return dbconfig.collection_platformGameGroup.findOne(query)
-                .then(
-                    data => {
-                        if (data && data.games) {
-                            gamesId = data.games.map(a => {
-                                if (a.game) {
-                                    return a.game.toString();
-                                }
-                            });
-                            return dbconfig.collection_platformGameStatus.find(
-                                {
-                                    platform: query.platform,
-                                    status: {$ne: constGameStatus.DELETED}
-                                }
-                            ).populate({
-                                path: "game",
-                                model: dbconfig.collection_game
-                            }).exec();
-                        } else
-                            return dbconfig.collection_platformGameStatus.find(
-                                {
-                                    platform: query.platform,
-                                    status: {$ne: constGameStatus.DELETED}
-                                }
-                            ).populate({
-                                path: "game",
-                                model: dbconfig.collection_game
-                            }).exec();
-                    }
-                ).then(
-                    games => {
-                        if (games) {
-                            resultArr = games.filter(game => {
-                                if (game && game.game && game.game._id && game.game.status != constGameStatus.DELETED) {
-                                    return (gamesId.indexOf(game.game._id.toString()) == -1);
-                                } else return false;
-                            })
-                            return resultArr;
-                        } else return [];
-                    }
-                );
-        }
-    ,
-
-        /**
-         * Get all the game groups by platformId
-         * @param {String}  query - platformId
-         */
-        getGameGroupList: function (platformId, startIndex, count) {
-            return dbconfig.collection_platform.findOne({platformId: platformId}).then(
-                data => {
-                    if (data) {
-                        var countProm = dbconfig.collection_platformGameGroup.find({platform: data._id}).count();
-                        var recordProm = dbconfig.collection_platformGameGroup.find({platform: data._id})
-                            .lean().skip(startIndex).limit(count);
-                        return Q.all([countProm, recordProm]);
-                    }
-                    else {
-                        return Q.reject({name: 'DataError', message: 'Cannot find platform'});
-                    }
-                }
-            ).then(
-                function (data) {
-                    var count = data[0] || 0;
-                    var records = data[1] || [];
-                    return {
-                        stats: {
-                            totalCount: count,
-                            startIndex: startIndex
-                        },
-                        records: records
-                    };
-                }
-            );
-        }
-    ,
-
-        /**
-         * Create a new gameGroup with Parent
-         * @param {json} data - The data of the gameGroupData. Refer to platformGameGroup schema.
-         */
-        createGameGroupWithParent: function (gameGroupData) {
-            var deferred = Q.defer();
-            var gameGroup = new dbconfig.collection_platformGameGroup(gameGroupData);
-            gameGroup.save().then(
-                function (newData) {
-                    if (!newData) {
-                        deferred.reject({name: "DBError", message: "Failed to create new game group."});
-                    }
-                    dbconfig.collection_platformGameGroup.update(
-                        {_id: gameGroupData.parent},
-                        {$addToSet: {children: newData._id}}
-                    ).exec().then(
-                        function (data) {
-                            deferred.resolve(newData);
-                        },
-                        function (err) {
-                            deferred.reject({
-                                name: "DBError",
-                                message: "Failed to add new game group as child.",
-                                error: err
-                            });
                         }
                     );
-                },
-                function (err) {
-                    deferred.reject({name: "DBError", message: "Failed to create new game group.", error: err});
-                }
-            );
-            return deferred.promise;
-        }
-    ,
-
-        /**
-         * Update the game group parent (Move the group to different parent)
-         * @param {objectId} groupId - objectId of the group which to be moved
-         * @param {objectId} curParentGroupId - ObjId current parent
-         * @param {objectId} newParentGroupId - ObjId of new parent
-         */
-        updateGameGroupParent: function (groupId, curParentGroupId, newParentGroupId) {
-            var deferred = Q.defer();
-            var parentProm = dbconfig.collection_platformGameGroup.update(
-                {
-                    _id: curParentGroupId
-                },
-                {
-                    $pull: {children: {$in: [groupId]}}
-                }
-            ).exec();
-            var parent1Prom = dbconfig.collection_platformGameGroup.update(
-                {
-                    _id: newParentGroupId
-                },
-                {
-                    $addToSet: {children: groupId}
-                }
-            ).exec();
-            var groupProm = dbconfig.collection_platformGameGroup.update(
-                {
-                    _id: groupId
-                },
-                {
-                    parent: newParentGroupId
-                }
-            ).exec();
-            Q.all([parentProm, parent1Prom, groupProm]).then(
-                function (data) {
-                    deferred.resolve(data);
-                }
-            ).catch(
-                function (error) {
-                    log.conLog.error("update GameGroup Parent error", error);
-                    deferred.reject({message: "Failed to update gameGroup parent!", error: error});
-                });
-
-            return deferred.promise;
-        }
-    ,
-
-        /**
-         * Remove/Delete  a group and its all children
-         * @param {objectId} groupObjId
-         */
-        removeGameGroup: function (groupObjId) {
-            var deferred = Q.defer();
-
-            return dbPlatformGameGroup.getAllSubTreeIdById(groupObjId).then(
-                data => {
-                    if (data) {
-                        var parentProm = dbconfig.collection_platformGameGroup.update(
-                            {},
-                            {$pull: {children: groupObjId}},
-                            {multi: true}).exec();
-
-                        var removeAllSubGroupProm = dbconfig.collection_platformGameGroup.remove({_id: {$in: data}}).exec();
-
-                        return Q.all([parentProm, removeAllSubGroupProm]);
-                    } else {
-
-                        return Q.reject({name: "DataError", message: "Failed to remove gameGroup tree!"});
-                    }
                 }
             );
         }
-    ,
-
-        /**
-         * Get the list of the gameGroup's all children objId
-         * @param {String} groupObjId - gameGroup ObjId
-         */
-
-        getAllSubTreeIdById: function (groupObjId) {
-            var deferred = Q.defer();
-            dbconfig.collection_platformGameGroup.find().then(
-                function (data) {
-                    if (data && data.length > 0) {
-                        var allGroups = {};
-                        //add all groups data to key map
-                        for (var i = 0; i < data.length; i++) {
-                            allGroups[data[i]._id] = data[i];
-                        }
-                        var groupsTree = [];
-                        //Get subtree for groups
-                        for (var j = 0; j < data.length; j++) {
-                            var group = data[j];
-                            var parent = group;
-                            while (parent) {
-                                if (String(parent._id) == groupObjId) {
-                                    groupsTree.push(group._id);
-                                    break;
-                                }
-                                else {
-                                    parent = parent.parent ? allGroups[parent.parent] : null;
-                                }
+        else {
+            groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
+                platformData => dbconfig.collection_platformGameGroup.find({platform: platformData._id})
+            );
+        }
+        return groupProm.then(
+            groups => {
+                if (groups && groups.length > 0) {
+                    var groupMap = {};
+                    groups.forEach(
+                        group => {
+                            if (group) {
+                                groupMap[group._id] = group;
                             }
                         }
-                        deferred.resolve(groupsTree);
+                    );
+                    //process each node to update node's children
+                    groups.forEach(
+                        group => {
+                            if (group && group.children && group.children.length > 0) {
+                                var children = [];
+                                for (let i = 0; i < group.children.length; i++) {
+                                    if (groupMap[group.children[i]]) {
+                                        children.push(groupMap[group.children[i]]);
+                                    }
+                                }
+                                group.children = children;
+                                group.children.sort(function (a, b) {
+                                    return a.code - b.code;
+                                });
+                            }
+                        }
+                    );
+                    if (code) {
+                        var resGroup = groups.find(group => group.code == code);
+                        return {
+                            stats: {
+                                totalCount: resGroup ? 1 : 0,
+                                startIndex: startIndex
+                            },
+                            gameGroups: resGroup ? [resGroup] : []
+                        };
                     }
                     else {
-                        deferred.reject({name: "DataError", message: "Can't find all groups"});
+                        var resGroups = groups.filter(group => !group.parent);
+                        return {
+                            stats: {
+                                totalCount: resGroups.length,
+                                startIndex: startIndex
+                            },
+                            gameGroups: resGroups.slice(startIndex, startIndex + count)
+                        };
                     }
-                },
-                function (error) {
-                    deferred.reject({name: "DBError", message: "Failed to find all groups", error: error});
+                }
+                else {
+                    return Q.reject({name: 'DataError', message: 'Cannot find platform game group'});
+                }
+            }
+        );
+    }
+
+    ,
+
+    /**
+     * Get all the games by  platform and gameGroup
+     * @param {Json}  query - platform , groupId
+     */
+    getGameGroupGamesArr: function (query) {
+        query.status = {$ne: constGameStatus.DELETED};
+        return dbconfig.collection_platformGameGroup.findOne(query)
+            .populate({
+                path: "games.game",
+                model: dbconfig.collection_game
+            }).exec();
+    }
+    ,
+
+    /**
+     * Get all the games which are unattached to the gameGroup in the platform
+     * @param {Json}  query - platform , groupId
+     */
+    getGamesNotInGameGroup: function (query) {
+        var gamesId = [];
+        var resultArr = [];
+        return dbconfig.collection_platformGameGroup.findOne(query)
+            .then(
+                data => {
+                    if (data && data.games) {
+                        gamesId = data.games.map(a => {
+                            if (a.game) {
+                                return a.game.toString();
+                            }
+                        });
+                        return dbconfig.collection_platformGameStatus.find(
+                            {
+                                platform: query.platform,
+                                status: {$ne: constGameStatus.DELETED}
+                            }
+                        ).populate({
+                            path: "game",
+                            model: dbconfig.collection_game
+                        }).exec();
+                    } else
+                        return dbconfig.collection_platformGameStatus.find(
+                            {
+                                platform: query.platform,
+                                status: {$ne: constGameStatus.DELETED}
+                            }
+                        ).populate({
+                            path: "game",
+                            model: dbconfig.collection_game
+                        }).exec();
+                }
+            ).then(
+                games => {
+                    if (games) {
+                        resultArr = games.filter(game => {
+                            if (game && game.game && game.game._id && game.game.status != constGameStatus.DELETED) {
+                                return (gamesId.indexOf(game.game._id.toString()) == -1);
+                            } else return false;
+                        })
+                        return resultArr;
+                    } else return [];
                 }
             );
-            return deferred.promise;
-        }
-    };
+    }
+    ,
+
+    /**
+     * Get all the game groups by platformId
+     * @param {String}  query - platformId
+     */
+    getGameGroupList: function (platformId, startIndex, count) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}).then(
+            data => {
+                if (data) {
+                    var countProm = dbconfig.collection_platformGameGroup.find({platform: data._id}).count();
+                    var recordProm = dbconfig.collection_platformGameGroup.find({platform: data._id})
+                        .lean().skip(startIndex).limit(count);
+                    return Q.all([countProm, recordProm]);
+                }
+                else {
+                    return Q.reject({name: 'DataError', message: 'Cannot find platform'});
+                }
+            }
+        ).then(
+            function (data) {
+                var count = data[0] || 0;
+                var records = data[1] || [];
+                return {
+                    stats: {
+                        totalCount: count,
+                        startIndex: startIndex
+                    },
+                    records: records
+                };
+            }
+        );
+    }
+    ,
+
+    /**
+     * Create a new gameGroup with Parent
+     * @param {json} data - The data of the gameGroupData. Refer to platformGameGroup schema.
+     */
+    createGameGroupWithParent: function (gameGroupData) {
+        var deferred = Q.defer();
+        var gameGroup = new dbconfig.collection_platformGameGroup(gameGroupData);
+        gameGroup.save().then(
+            function (newData) {
+                if (!newData) {
+                    deferred.reject({name: "DBError", message: "Failed to create new game group."});
+                }
+                dbconfig.collection_platformGameGroup.update(
+                    {_id: gameGroupData.parent},
+                    {$addToSet: {children: newData._id}}
+                ).exec().then(
+                    function (data) {
+                        deferred.resolve(newData);
+                    },
+                    function (err) {
+                        deferred.reject({
+                            name: "DBError",
+                            message: "Failed to add new game group as child.",
+                            error: err
+                        });
+                    }
+                );
+            },
+            function (err) {
+                deferred.reject({name: "DBError", message: "Failed to create new game group.", error: err});
+            }
+        );
+        return deferred.promise;
+    }
+    ,
+
+    /**
+     * Update the game group parent (Move the group to different parent)
+     * @param {objectId} groupId - objectId of the group which to be moved
+     * @param {objectId} curParentGroupId - ObjId current parent
+     * @param {objectId} newParentGroupId - ObjId of new parent
+     */
+    updateGameGroupParent: function (groupId, curParentGroupId, newParentGroupId) {
+        var deferred = Q.defer();
+        var parentProm = dbconfig.collection_platformGameGroup.update(
+            {
+                _id: curParentGroupId
+            },
+            {
+                $pull: {children: {$in: [groupId]}}
+            }
+        ).exec();
+        var parent1Prom = dbconfig.collection_platformGameGroup.update(
+            {
+                _id: newParentGroupId
+            },
+            {
+                $addToSet: {children: groupId}
+            }
+        ).exec();
+        var groupProm = dbconfig.collection_platformGameGroup.update(
+            {
+                _id: groupId
+            },
+            {
+                parent: newParentGroupId
+            }
+        ).exec();
+        Q.all([parentProm, parent1Prom, groupProm]).then(
+            function (data) {
+                deferred.resolve(data);
+            }
+        ).catch(
+            function (error) {
+                log.conLog.error("update GameGroup Parent error", error);
+                deferred.reject({message: "Failed to update gameGroup parent!", error: error});
+            });
+
+        return deferred.promise;
+    }
+    ,
+
+    /**
+     * Remove/Delete  a group and its all children
+     * @param {objectId} groupObjId
+     */
+    removeGameGroup: function (groupObjId) {
+        var deferred = Q.defer();
+
+        return dbPlatformGameGroup.getAllSubTreeIdById(groupObjId).then(
+            data => {
+                if (data) {
+                    var parentProm = dbconfig.collection_platformGameGroup.update(
+                        {},
+                        {$pull: {children: groupObjId}},
+                        {multi: true}).exec();
+
+                    var removeAllSubGroupProm = dbconfig.collection_platformGameGroup.remove({_id: {$in: data}}).exec();
+
+                    return Q.all([parentProm, removeAllSubGroupProm]);
+                } else {
+
+                    return Q.reject({name: "DataError", message: "Failed to remove gameGroup tree!"});
+                }
+            }
+        );
+    }
+    ,
+
+    /**
+     * Get the list of the gameGroup's all children objId
+     * @param {String} groupObjId - gameGroup ObjId
+     */
+
+    getAllSubTreeIdById: function (groupObjId) {
+        var deferred = Q.defer();
+        dbconfig.collection_platformGameGroup.find().then(
+            function (data) {
+                if (data && data.length > 0) {
+                    var allGroups = {};
+                    //add all groups data to key map
+                    for (var i = 0; i < data.length; i++) {
+                        allGroups[data[i]._id] = data[i];
+                    }
+                    var groupsTree = [];
+                    //Get subtree for groups
+                    for (var j = 0; j < data.length; j++) {
+                        var group = data[j];
+                        var parent = group;
+                        while (parent) {
+                            if (String(parent._id) == groupObjId) {
+                                groupsTree.push(group._id);
+                                break;
+                            }
+                            else {
+                                parent = parent.parent ? allGroups[parent.parent] : null;
+                            }
+                        }
+                    }
+                    deferred.resolve(groupsTree);
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Can't find all groups"});
+                }
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Failed to find all groups", error: error});
+            }
+        );
+        return deferred.promise;
+    }
+};
 
 module.exports = dbPlatformGameGroup;
