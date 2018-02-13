@@ -2108,7 +2108,9 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                         // RTG updated successfully
                         if (updatedRTG) {
                             // Check boundary case - RTG still overflow, try again
-                            if (updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                            if (updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt
+                            // Status changed before we change them
+                            || updatedRTG.status != constRewardTaskStatus.STARTED) {
                                 // Revert this operation and try again
                                 return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                     {_id: updatedRTG._id},
