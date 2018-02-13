@@ -36,7 +36,7 @@
             //    input.form-control(type='date', ng-model='vm.queryPara.playerCredit.endTime')
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-if='vm.showPageName == "PLAYER_TOPUP"' ng-click='vm.drawPlayerCreditLine(vm.showPageName); vm.drawPlayerCreditCountLine(vm.showPageName);') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.showPageName == "PLAYER_TOPUP"' ng-click='vm.drawPlayerCreditLine(); vm.drawPlayerCreditCountLine();') {{'SEARCH' | translate}}
                 button.btn.btn-primary.common-button(ng-if='vm.showPageName == "PLAYER_EXPENSES"' ng-click='vm.plotPlayerCreditLine(vm.showPageName)') {{'SEARCH' | translate}}
         .row
             .col-md-6

@@ -165,7 +165,8 @@ var roleChecker = {
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
         "countConsumptionByPlatform": true,
-        "countTopUpORConsumptionbyPlatform": true,
+        "countTopUpbyPlatform": true,
+        "countTopUpCountbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
         "getAdminInfo": true,
