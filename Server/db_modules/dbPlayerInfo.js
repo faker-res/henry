@@ -7663,54 +7663,9 @@ let dbPlayerInfo = {
         }
         return dbconfig.collection_providerDaySummary.find(query);
     },
-    countTopUpORConsumptionByPlatform: function (platformId, startDate, endDate, period, type) {
-        // var options = {};
-        // var calculation = null;
-        // switch (period) {
-        //     case 'day':
-        //         options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
-        //         break;
-        //     case 'week':
-        //         options.week = {$floor: {$divide: [{$subtract: ["$date", startDate]}, 604800000]}};
-        //         break;
-        //     case 'month':
-        //     default:
-        //         options.year = {$year: "$date"};
-        //         options.month = {$month: "$date"};
-        // }
-        // switch (type) {
-        //     case 'topup' :
-        //         calculation = {$sum: "$topUpAmount"};
-        //         break;
-        //     case 'consumption' :
-        //         calculation = {$sum: "$consumptionAmount"}
-        // }
-        // var matchOption = {
-        //     date: {$gte: startDate, $lt: endDate}
-        // }
-        // if (platformId != 'all') {
-        //     matchOption.platformId = platformId;
-        // }
-        // return dbconfig.collection_platformDaySummary.aggregate(
-        //     {
-        //         $match: matchOption
-        //     },
-        //     {
-        //         $group: {_id: options, number: calculation}
-        //     }).then(
-        //     data => {
-        //         return data;
-        //     }
-        // );
+    countTopUpByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
-        var calculation = null;
-        switch (type) {
-            case 'topup' :
-                calculation = {$sum: "$topUpAmount"};
-                break;
-            case 'consumption' :
-                calculation = {$sum: "$consumptionAmount"}
-        }
+        var calculation = {$sum: "$amount"};
         var dayStartTime = startDate;
         var getNextDate;
         switch (period) {
@@ -7735,17 +7690,20 @@ let dbPlayerInfo = {
         }
         while (dayStartTime.getTime() < endDate.getTime()) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
-            var matchObj = {date: {$gte: dayStartTime, $lt: dayEndTime}};
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                topUpType: constPlayerTopUpType.ONLINE.toString()
+            };
             if (platformId != 'all') {
                 matchObj.platformId = platformId;
             }
-            proms.push(dbconfig.collection_platformDaySummary.aggregate(
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
                 {$match: matchObj}, {
                     $group: {
                         _id: null,
                         calc: calculation
                     }
-                }))
+                }).read("secondaryPreferred"))
             dayStartTime = dayEndTime;
         }
         return Q.all(proms).then(data => {
@@ -7759,16 +7717,9 @@ let dbPlayerInfo = {
         });
 
     },
-    countTopUpORConsumptionCountByPlatform: function (platformId, startDate, endDate, period, type) {
+    countTopUpCountByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
-        var calculation = null;
-        switch (type) {
-            case 'topup' :
-                calculation = {$sum: "$topUpAmount"};
-                break;
-            case 'consumption' :
-                calculation = {$sum: "$consumptionAmount"}
-        }
+        var calculation = {$sum: "$amount"};
         var dayStartTime = startDate;
         var getNextDate;
         switch (period) {
@@ -7793,17 +7744,20 @@ let dbPlayerInfo = {
         }
         while (dayStartTime.getTime() < endDate.getTime()) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
-            var matchObj = {date: {$gte: dayStartTime, $lt: dayEndTime}};
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                topUpType: constPlayerTopUpType.ONLINE.toString()
+            };
             if (platformId != 'all') {
                 matchObj.platformId = platformId;
             }
-            proms.push(dbconfig.collection_platformDaySummary.aggregate(
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
                 {$match: matchObj}, {
                     $group: {
                         _id: null,
                         "count": {"$sum": 1},
                     }
-                }))
+                }).read("secondaryPreferred"))
             dayStartTime = dayEndTime;
         }
         return Q.all(proms).then(data => {
