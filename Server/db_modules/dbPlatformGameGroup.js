@@ -195,7 +195,7 @@ var dbPlatformGameGroup = {
                 let gameInfo = gameData;
                 return dbconfig.collection_players.findOne({playerId: playerId, platform: platformObjId}).lean().then(
                     playerData => {
-                        if (playerData.permission && playerData.permission.forbidPlayerFromEnteringGame) {
+                        if (playerData && playerData.permission && playerData.permission.forbidPlayerFromEnteringGame) {
                             gameInfo.forEach(
                                 game => {
                                     game.game.status = 2;

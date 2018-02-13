@@ -3224,10 +3224,6 @@ define(['js/app'], function (myApp) {
 
                         let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
                         let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
-                        let createTimeQuery = {
-                            $gte: startTime,
-                            $lte: endTime
-                        };
 
                         var playerTransfer;
                         socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId}, function (reply) {
@@ -3235,7 +3231,7 @@ define(['js/app'], function (myApp) {
                             updateShowPlayerCredit();
                         });
 
-                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId, createTime: createTimeQuery}, function (data) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId, transferId: record.transferId}, function (data) {
                             console.log('getPlayerTransferErrorLogs', data); // todo :: delete log after problem solved
                             data.data.forEach(function (playerTransLog) {
                                 if (playerTransLog._id == record._id) {
@@ -4484,12 +4480,8 @@ define(['js/app'], function (myApp) {
             vm.submitRepairTransfer = function () {
                 let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
-                let createTimeQuery = {
-                    $gte: startTime,
-                    $lte: endTime
-                };
 
-                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id, createTime: createTimeQuery}
+                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id, transferId: vm.linkedPlayerTransferId}
                     , function (pData) {
                         let playerTransfer = {};
                         pData.data.forEach(function (playerTransLog) {
@@ -6528,7 +6520,9 @@ define(['js/app'], function (myApp) {
                     return $('<input type="text">');
                 }
             }
-
+            vm.playerBatchPermitTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                $compile(nRow)($scope);
+            }
             vm.playerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 //MARK!!!
                 $compile(nRow)($scope);
@@ -23303,8 +23297,9 @@ define(['js/app'], function (myApp) {
                 vm.drawBatchPermitTable();
             };
             vm.resetBatchEditData = function(){
+                //generate a sample to render in datatable, only using for edit multi purpose.
                 vm.batchEditData = {
-                    "_id": "583d1fbe16782962721afeae",
+                    "_id": "xxxxxxxxx",
                     "permission": {
                         "alipayTransaction": true,
                         "topupManual": true,
@@ -23574,7 +23569,7 @@ define(['js/app'], function (myApp) {
                         "emptyTable": $translate("No data available in table"),
                     },
                     dom: "Z<'row'<'col-sm-12'tr>>",
-                    fnRowCallback: vm.playerTableRowClick,
+                    fnRowCallback: vm.playerBatchPermitTableRowClick,
                     fnDrawCallback: function (oSettings) {
                         var container = oSettings.nTable;
 
