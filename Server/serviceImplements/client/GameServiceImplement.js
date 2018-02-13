@@ -49,7 +49,7 @@ var GameServiceImplement = function () {
 
     this.getGameGroupInfo.expectsData = 'code: String, platformId: String';
     this.getGameGroupInfo.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.code && data.platformId);
+        let isValidData = Boolean(data && data.code && data.platformId && data.providerId);
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
