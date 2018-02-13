@@ -2560,11 +2560,15 @@ let dbPlayerReward = {
                         promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
-                    return dbConfig.collection_playerConsumptionRecord.findOne({
-                        playerId: {$in: [ObjectId(promoCodeObj.playerObjId), String(promoCodeObj.playerObjId)]},
-                        platformId: {$in: [ObjectId(platformObjId), String(platformObjId)]},
-                        createTime: {$gte: topUpProp.settleTime, $lt: new Date()}
+                    let consumptionRecordProm = dbConfig.collection_playerConsumptionRecord.findOne({
+                        playerId: { $in: [ObjectId(promoCodeObj.playerObjId), String(promoCodeObj.playerObjId)] },
+                        platformId: { $in: [ObjectId(platformObjId), String(platformObjId)] },
+                        createTime: { $gte: topUpProp.settleTime, $lt: new Date() }
                     }).lean();
+
+                    let topUpRecordProm = dbConfig.collection_playerTopUpRecord.findOne({proposalId: topUpProp.proposalId}).lean();
+
+                    return Promise.all([consumptionRecordProm, topUpRecordProm]);
                 } else {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
@@ -2575,7 +2579,24 @@ let dbPlayerReward = {
                 }
             }
         ).then(
-            consumptionRec => {
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.resolve();
+                }
+
+                if (data && data[1]) {
+                    let topUpRecord = data[1];
+                    if (topUpRecord.bDirty || (topUpRecord.usedEvent && topUpRecord.usedEvent.length > 0)) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
+                            name: "ConditionError",
+                            message: "Topup has been used for other reward"
+                        });
+                    }
+                }
+
+                let consumptionRec = data[0];
+
                 if (!consumptionRec || isType2Promo) {
                     // Try deduct player credit first if it is type-C promo code
                     if (promoCodeObj.isProviderGroup && promoCodeObj.allowedProviders.length > 0 && promoCodeObj.promoCodeTypeObjId.type == 3 && topUpProp && topUpProp.data && topUpProp.data.amount) {
