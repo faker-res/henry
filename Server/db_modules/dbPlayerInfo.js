@@ -2161,16 +2161,39 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
-
+    managingDataList: function(dataList, addList, removeList){
+        let result = dataList;
+        addList.forEach(item=>{
+            if(result.indexOf(item)==-1){
+                result.push(item);
+            }
+        })
+        result.filter(item=>{
+            if(removeList.includes(item)==false){
+                return item;
+            };
+        })
+        return result;
+    },
     updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
         let updateData = {};
         let result = [];
-        if (forbidRewardEvents) {
-            updateData.forbidRewardEvents = forbidRewardEvents;
-        }
+        let addList = forbidRewardEvents.addList;
+        let removeList = forbidRewardEvents.removeList;
+        // if (forbidRewardEvents) {
+        //     updateData.forbidRewardEvents = forbidRewardEvents;
+        // }
         let proms = [];
         playerNames.forEach(name=>{
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({'name': name, 'platform':platformObjId})
+            .then(data=>{
+                let playerForbidRewardEvents = data.forbidRewardEvents;
+                if(playerForbidRewardEvents){
+                    updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+                }
+                console.log(updateData);
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
+            })
             proms.push(prom);
         });
         return Promise.all(proms);

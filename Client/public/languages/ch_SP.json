@@ -3257,6 +3257,7 @@
   "userCount": "使用人数",
   "userCountRatio": "人数占比",
   "subtotal": "小计",
-  "batchPermit":"批量设置"
+  "batchPermit":"批量设置",
+  "ModifyIt": "（改）"
 
 }

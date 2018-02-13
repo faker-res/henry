@@ -6172,6 +6172,7 @@ define(['js/app'], function (myApp) {
                                         height: '26px'
                                     },
                                 };
+
                                 $("#playerPermissionTable td").removeClass('hide');
 
                                 vm.popOverPlayerPermission = row;
@@ -23268,6 +23269,19 @@ define(['js/app'], function (myApp) {
             vm.initBatchPermit = function () {
                 vm.prepareCredibilityConfig();
                 vm.resetBatchEditData();
+                // init edit data
+                vm.forbidRewardEventAddList = [];
+                vm.forbidRewardEventRemoveList = [];
+
+                vm.forbidGameAddList = [];
+                vm.forbidGameRemoveList = [];
+
+                vm.forbidTopUpAddList = [];
+                vm.forbidTopUpRemoveList = [];
+
+                vm.forbidRewardPointsAddList = [];
+                vm.forbidRewardPointsRemoveList = [];
+
                 vm.drawBatchPermitTable();
 
                 vm.playerCredibilityRemarksUpdated = false;
@@ -23324,6 +23338,16 @@ define(['js/app'], function (myApp) {
                         "manualTopup": false
                     },
                 };
+            }
+
+            vm.permissionChangeMark = function(){
+                // a object to record which permission is been change;
+                vm.playerPermissionChange = {};
+                console.log(vm.playerPermissionChange);
+                Object.keys(vm.playerPermissionTypes).map(item=>{
+                    vm.playerPermissionChange[item] = false;
+                });
+                console.log(vm.playerPermissionChange);
             }
             vm.drawBatchPermitTable = function () {
 
@@ -23393,7 +23417,9 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
-                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;",
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;"
+                                    + "; vm.permissionChangeMark();",
+
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
@@ -23663,8 +23689,13 @@ define(['js/app'], function (myApp) {
                                     var key = $(this).data("which");
                                     var select = $(this).data("on");
                                     changeObj[key] = !select;
+                                    vm.playerPermissionChange[key] = "(C)";
+
                                     $(thisPopover + ' .' + key).toggleClass('hide');
                                     $submit.prop('disabled', $remark.val() == '');
+                                    $(thisPopover +' #'+key).html($translate('ModifyIt'));
+
+                                    $scope.safeApply();
                                 })
 
                                 $remark.on('input selectionchange propertychange', function () {
@@ -23772,7 +23803,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         playerNames: playerNames,
-                                        forbidRewardEvents: forbidRewardEvents,
+                                        forbidRewardEvents: {
+                                            'addList': vm.forbidRewardEventAddList,
+                                            'removeList': vm.forbidRewardEventRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     // subcategory 1
@@ -23788,6 +23822,7 @@ define(['js/app'], function (myApp) {
                             context: container,
                             elem: '.prohibitGamePopover',
                             content: function () {
+
                                 // var data = JSON.parse(this.dataset.row);
                                 var data = uData;
                                 vm.prohibitGamePopover = data;
@@ -23839,7 +23874,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         playerNames: playerNames,
-                                        forbidProviders: forbidProviders,
+                                        forbidProviders: {
+                                            'addList': vm.forbidGameAddList,
+                                            'removeList': vm.forbidGameRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     //subcategory 2
@@ -23910,7 +23948,10 @@ define(['js/app'], function (myApp) {
                                             playerNames: playerNames,
                                             platformObjId: vm.selectedPlatform.id
                                         },
-                                        updateData: {forbidTopUpType: forbidTopUpTypes},
+                                        updateData: {forbidTopUpType: {
+                                            'addList': vm.forbidTopUpAddList,
+                                            'removeList': vm.forbidTopUpRemoveList
+                                        }},
                                         adminName: authService.adminName
                                     };
                                     //subcategory 3
@@ -23975,7 +24016,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         playerNames: playerNames,
                                         platformObjId: vm.selectedPlatform.id,
-                                        forbidRewardPointsEvent: forbidRewardPointsEvent,
+                                        forbidRewardPointsEvent: {
+                                            'addList':vm.forbidRewardPointsAddList,
+                                            'removeList':vm.forbidRewardPointsRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     // subcategory 4
@@ -24000,9 +24044,32 @@ define(['js/app'], function (myApp) {
                         playerNames.push(item);
                     });
                 }
-
                 return playerNames;
             }
+            vm.forbidModification = function(id, val, addList, removeList){
+                if(val===true){
+                    if(vm[addList].indexOf(id)==-1){
+                        vm[addList].push(id);
+                    }
+                    vm[removeList].filter(item=>{
+                        if(vm[removeList].includes(item)==false){
+                            return item;
+                        }
+                    })
+                }else{
+                    if(vm[removeList].indexOf(id==-1)){
+                        vm[removeList].push(id);
+                    }
+                    vm[addList].filter(item=>{
+                        if(vm[addList].includes(item)==false){
+                            return item;
+                        }
+                    })
+                }
+                console.log(vm[addList]);
+                console.log(vm[removeList]);
+            }
+
             ///
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function() {
