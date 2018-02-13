@@ -603,20 +603,20 @@ function socketActionPlayer(socketIO, socket) {
          * Get total count of consumptionAmount or topUpAmount by a platform
          * @param {json} data - data contains platformId
          */
-        countTopUpORConsumptionbyPlatform: function countTopUpORConsumptionbyPlatform(data) {
+        countTopUpbyPlatform: function countTopUpbyPlatform(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && data.type);
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.countTopUpORConsumptionByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.type], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.countTopUpByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
         },
 
-        countTopUpORConsumptionCountByPlatform: function countTopUpORConsumptionCountByPlatform(data) {
+        countTopUpCountByPlatform: function countTopUpCountByPlatform(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && data.type);
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.countTopUpORConsumptionCountByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.type], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.countTopUpCountByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
         },
 
         countTopUpORConsumptionAllPlatform: function countTopUpORConsumptionAllPlatform(data) {
@@ -783,7 +783,7 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId, data.createTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId, data.transferId], actionName, isValidData);
         },
 
         searchMailLog: function searchMailLog(data) {

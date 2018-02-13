@@ -27,7 +27,7 @@
                 label {{'Game Type' | translate}}
                 select.form-control(ng-model='vm.queryPara.playerCredit.filterGameProvider')
                     option(value='all') {{'ALL' | translate}}
-                    option(ng-repeat='(i,v) in vm.allGameProvider', value='{{v._id}}') {{v.name}}
+                    option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name}}
             //div
             //    label {{"Start date"|translate}}
             //    input.form-control(type='date', ng-model='vm.queryPara.playerCredit.startTime')
@@ -36,7 +36,7 @@
             //    input.form-control(type='date', ng-model='vm.queryPara.playerCredit.endTime')
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-if='vm.showPageName == "PLAYER_TOPUP"' ng-click='vm.drawPlayerCreditLine(vm.showPageName); vm.drawPlayerCreditCountLine(vm.showPageName);') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.showPageName == "PLAYER_TOPUP"' ng-click='vm.drawPlayerCreditLine(); vm.drawPlayerCreditCountLine();') {{'SEARCH' | translate}}
                 button.btn.btn-primary.common-button(ng-if='vm.showPageName == "PLAYER_EXPENSES"' ng-click='vm.plotPlayerCreditLine(vm.showPageName)') {{'SEARCH' | translate}}
         .row
             .col-md-6

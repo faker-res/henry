@@ -5361,7 +5361,8 @@ function addUsedRewardToTopUpRecord(topUpProposalId, rewardEvent) {
                     createTime: topUpRecord.createTime,
                     platformId: topUpRecord.platformId
                 }, {
-                    $push: {usedEvent: rewardEvent}
+                    $push: {usedEvent: rewardEvent},
+                    bDirty: true
                 }).lean().exec();
             }
             return Promise.resolve();
