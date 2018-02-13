@@ -953,7 +953,7 @@ define(['js/app'], function (myApp) {
                         previousPoint = obj.dataIndex;
 
                         var x = obj.datapoint[0],
-                            y = obj.datapoint[1].toFixed(0);
+                            y = $noRoundTwoDecimalPlaces(obj.datapoint[1]);
 
                         var date = new Date(x);
                         var dateString = utilService.getFormatDate(date)
