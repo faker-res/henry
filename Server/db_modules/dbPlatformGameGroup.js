@@ -163,7 +163,7 @@ var dbPlatformGameGroup = {
                         if (game) {
                             for (var j = 0; j < pltGameStatusArr.length; j++) {
                                 if (pltGameStatusArr[j] && game && String(game._id) == String(pltGameStatusArr[j].game)) {
-                                    if (pltGameStatusArr[j].status !== constGameStatus.ENABLE &&  game.status == 1) {
+                                    if (pltGameStatusArr[j].status !== constGameStatus.ENABLE && game.status == 1) {
                                         game.status = pltGameStatusArr[j].status;
                                     }
 
@@ -196,60 +196,61 @@ var dbPlatformGameGroup = {
                 return dbconfig.collection_players.findOne({playerId: playerId, platform: platformObjId}).lean().then(
                     playerData => {
                         if (playerData && playerData.permission && playerData.permission.forbidPlayerFromEnteringGame) {
-                        let strProviderObjId;
-                        let strForbidProviders;
+                            let strProviderObjId;
+                            let strForbidProviders;
 
-                        if (providerObjId) {
-                            strProviderObjId = providerObjId.toString();
-                        }
-                        if (playerData && playerData.forbidProviders) {
-                            strForbidProviders = playerData.forbidProviders.toString();
-                        }
-                        if (playerData && playerData.permission && (playerData.permission.forbidPlayerFromEnteringGame || strForbidProviders.includes(strProviderObjId))) {
-                            gameInfo.forEach(
-                                game => {
-                                    game.game.status = 2;
-                                }
-                            )
-                        }
-                        return gameInfo;
-                    }
-                )
-            }
-        ).then(
-            games => {
-                gameGroup.games = {
-                    stats: gameGroup.stats,
-                    gameList: games
-                };
-                delete gameGroup.stats;
-                //get providerid for games
-                var gameObjIds = gameGroup.games.gameList.map(game => game.game._id);
-                return dbconfig.collection_game.find({_id: {$in: gameObjIds}}).populate({
-                    path: "provider",
-                    model: dbconfig.collection_gameProvider
-                }).lean().then(
-                    gameData => {
-                        if (gameData && gameData.length > 0) {
-                            var gameProviderMap = {};
-                            gameData.forEach(
-                                game => {
-                                    if (game.provider) {
-                                        gameProviderMap[String(game.provider._id)] = game.provider.providerId;
+                            if (providerObjId) {
+                                strProviderObjId = providerObjId.toString();
+                            }
+                            if (playerData && playerData.forbidProviders) {
+                                strForbidProviders = playerData.forbidProviders.toString();
+                            }
+                            if (playerData && playerData.permission && (playerData.permission.forbidPlayerFromEnteringGame || strForbidProviders.includes(strProviderObjId))) {
+                                gameInfo.forEach(
+                                    game => {
+                                        game.game.status = 2;
                                     }
-                                }
-                            );
-                            gameGroup.games.gameList.forEach(
-                                game => {
-                                    game.game.provider = gameProviderMap[String(game.game.provider)] || game.game.provider;
-                                }
-                            )
+                                )
+                            }
+                            return gameInfo;
                         }
-                        return gameGroup;
+                    }
+                ).then(
+                    games => {
+                        gameGroup.games = {
+                            stats: gameGroup.stats,
+                            gameList: games
+                        };
+                        delete gameGroup.stats;
+                        //get providerid for games
+                        var gameObjIds = gameGroup.games.gameList.map(game => game.game._id);
+                        return dbconfig.collection_game.find({_id: {$in: gameObjIds}}).populate({
+                            path: "provider",
+                            model: dbconfig.collection_gameProvider
+                        }).lean().then(
+                            gameData => {
+                                if (gameData && gameData.length > 0) {
+                                    var gameProviderMap = {};
+                                    gameData.forEach(
+                                        game => {
+                                            if (game.provider) {
+                                                gameProviderMap[String(game.provider._id)] = game.provider.providerId;
+                                            }
+                                        }
+                                    );
+                                    gameGroup.games.gameList.forEach(
+                                        game => {
+                                            game.game.provider = gameProviderMap[String(game.game.provider)] || game.game.provider;
+                                        }
+                                    )
+                                }
+                                return gameGroup;
+                            }
+                        );
                     }
                 );
             }
-        );
+        )
     },
 
     /**
@@ -341,7 +342,9 @@ var dbPlatformGameGroup = {
                 }
             }
         );
-    },
+    }
+
+    ,
 
     /**
      * Get all the games by  platform and gameGroup
@@ -354,7 +357,8 @@ var dbPlatformGameGroup = {
                 path: "games.game",
                 model: dbconfig.collection_game
             }).exec();
-    },
+    }
+    ,
 
     /**
      * Get all the games which are unattached to the gameGroup in the platform
@@ -404,7 +408,8 @@ var dbPlatformGameGroup = {
                     } else return [];
                 }
             );
-    },
+    }
+    ,
 
     /**
      * Get all the game groups by platformId
@@ -436,7 +441,8 @@ var dbPlatformGameGroup = {
                 };
             }
         );
-    },
+    }
+    ,
 
     /**
      * Create a new gameGroup with Parent
@@ -471,7 +477,8 @@ var dbPlatformGameGroup = {
             }
         );
         return deferred.promise;
-    },
+    }
+    ,
 
     /**
      * Update the game group parent (Move the group to different parent)
@@ -516,7 +523,8 @@ var dbPlatformGameGroup = {
             });
 
         return deferred.promise;
-    },
+    }
+    ,
 
     /**
      * Remove/Delete  a group and its all children
@@ -542,7 +550,8 @@ var dbPlatformGameGroup = {
                 }
             }
         );
-    },
+    }
+    ,
 
     /**
      * Get the list of the gameGroup's all children objId
