@@ -10838,15 +10838,15 @@ let dbPlayerInfo = {
         )
     },
 
-    getPlayerTransferErrorLog: function (playerObjId, createTime) {
+    getPlayerTransferErrorLog: function (playerObjId, transferId) {
         let query = {
             playerObjId: playerObjId,
             bUsed: {$ne: true},
             // status: constPlayerCreditTransferStatus.FAIL
         };
 
-        if (createTime) {
-            query.createTime = createTime;
+        if (transferId) {
+            query.transferId = transferId;
         }
 
         return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
