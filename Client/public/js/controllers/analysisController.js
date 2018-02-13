@@ -34,6 +34,7 @@ define(['js/app'], function (myApp) {
                 }
             });
             vm.showPageName = "NEW_PLAYER";
+            vm.getPlatformProvider(id);
         }
         vm.loadPage = function (choice) {
             socketService.clearValue();
@@ -2041,6 +2042,14 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
+        vm.tableDataReformat = function (data) {
+            if (Number.isInteger(data)) {
+                return data;
+            } else {
+                return data.toFixed(3);
+            }
+        }
+
         vm.getPlayerRetention = function () {
             vm.isShowLoadingSpinner('#analysisPlayerRetention', true);
             vm.retentionGraphData = [];
@@ -2072,7 +2081,7 @@ define(['js/app'], function (myApp) {
                 });
                 for (let key in vm.averageRetention) {
                     if (vm.averageRetention.hasOwnProperty(key)){
-                        vm.averageRetention[key] = (vm.averageRetention[key] / dataLength).toFixed(3);
+                        vm.averageRetention[key] = (vm.averageRetention[key] / dataLength);
                     }
                 }
                 vm.averageRetention.date = $translate("average line");
@@ -2167,6 +2176,16 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
                 //vm.buildProviderList(vm.allGameProvider);
             }, function (data) {
+                console.log("create not", data);
+            });
+        };
+        vm.getPlatformProvider = function (id) {
+            if (!id) return;
+            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: id}, function (data) {
+                vm.allProviders = data.data.gameProviders;
+                console.log('vm.allProviders', vm.allProviders);
+                $scope.safeApply();
+                }, function (data) {
                 console.log("create not", data);
             });
         };
