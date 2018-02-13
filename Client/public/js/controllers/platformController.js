@@ -6527,7 +6527,9 @@ define(['js/app'], function (myApp) {
                     return $('<input type="text">');
                 }
             }
-
+            vm.playerBatchPermitTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                $compile(nRow)($scope);
+            }
             vm.playerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 //MARK!!!
                 $compile(nRow)($scope);
@@ -23299,8 +23301,9 @@ define(['js/app'], function (myApp) {
                 vm.drawBatchPermitTable();
             };
             vm.resetBatchEditData = function(){
+                //generate a sample to render in datatable, only using for edit multi purpose.
                 vm.batchEditData = {
-                    "_id": "583d1fbe16782962721afeae",
+                    "_id": "xxxxxxxxx",
                     "permission": {
                         "alipayTransaction": true,
                         "topupManual": true,
@@ -23570,7 +23573,7 @@ define(['js/app'], function (myApp) {
                         "emptyTable": $translate("No data available in table"),
                     },
                     dom: "Z<'row'<'col-sm-12'tr>>",
-                    fnRowCallback: vm.playerTableRowClick,
+                    fnRowCallback: vm.playerBatchPermitTableRowClick,
                     fnDrawCallback: function (oSettings) {
                         var container = oSettings.nTable;
 
