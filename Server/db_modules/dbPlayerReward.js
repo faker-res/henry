@@ -2554,7 +2554,7 @@ let dbPlayerReward = {
                         promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
-                    return dbConfig.collection_playerConsumptionRecord.aggregate(
+                    let consumptionSumProm = dbConfig.collection_playerConsumptionRecord.aggregate(
                         {
                             $match: {
                                 playerId: {$in: [ObjectId(promoCodeObj.playerObjId), String(promoCodeObj.playerObjId)]},
@@ -2568,6 +2568,10 @@ let dbPlayerReward = {
                                 amount: {$sum: "$amount"}
                             }
                         });
+
+                    let topUpRecordProm = dbConfig.collection_playerTopUpRecord.findOne({proposalId: topUpProp.proposalId}).lean();
+
+                    return Promise.all([consumptionSumProm, topUpRecordProm]);
                 } else {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
@@ -2578,7 +2582,24 @@ let dbPlayerReward = {
                 }
             }
         ).then(
-            consumptionSumm => {
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.resolve();
+                }
+
+                if (data && data[1]) {
+                    let topUpRecord = data[1];
+                    if (topUpRecord.bDirty || (topUpRecord.usedEvent && topUpRecord.usedEvent.length > 0)) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
+                            name: "ConditionError",
+                            message: "Topup has been used for other reward"
+                        });
+                    }
+                }
+
+                let consumptionSumm = data[0];
+
                 if (isType2Promo || consumptionSumm.length == 0) {
                     // Try deduct player credit first if it is type-C promo code
                     if (promoCodeObj.isProviderGroup && promoCodeObj.allowedProviders.length > 0 && promoCodeObj.promoCodeTypeObjId.type == 3 && topUpProp && topUpProp.data && topUpProp.data.amount) {
