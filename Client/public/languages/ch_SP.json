@@ -1310,6 +1310,7 @@
   "SMS_INTERMAIL": "短信/站内信",
   "SMS_CONTENT": "短信内容",
   "smsContentConfig": "短信内容",
+  "ALLOWED_SEND_SMS": "是否发送短信",
   "GENERATE": "生成",
   "GENERATE_ALL": "生成全部",
   "PROMO_CODE_LEGEND": "代码对照表",
@@ -3229,6 +3230,7 @@
   "average value": "平均值",
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
   "LoginPlayer": "登入玩家",
+  "Batch Setting":"批量设置",
   "OR": "或",
   "multipleTopUpPlayer": "多次充值玩家",
   "rechargedPlayer": "已充值玩家",
@@ -3243,6 +3245,7 @@
   "VALID_ACTIVE_PLAYER": "有效活跃玩家",
   "ValidActivePlayer": "有效活跃玩家",
   "COUNT": "笔数",
+  "unreadMailMaxDuration (month)": "站内信的最长时效（月）",
   "OnlineTopupSuccessRate": "在线充值（成功率）",
   "ONLINE_TOPUP_SUCCESS_RATE": "在线充值（成功率）",
   "onlineTopupTypeWeb": "在线充值类型（WEB）",
@@ -3255,7 +3258,8 @@
   "amountRatio": "金额占比",
   "userCount": "使用人数",
   "userCountRatio": "人数占比",
-  "subtotal": "小计"
-
+  "subtotal": "小计",
+  "consumptionTimes": "投注笔数",
+  "batchPermit":"批量设置"
 
 }

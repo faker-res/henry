@@ -101,9 +101,16 @@ function socketActionPartner(socketIO, socket) {
          */
         getPlayerRetention: function getPlayerRetention(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform && data.startTime && data.days);
+            let diffDays;
+            if (data.startTime && data.endTime) {
+                let timeDiff =  new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
+                if (timeDiff >= 0) {
+                    diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // + 1 to include end day
+                }
+            }
+            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.days && diffDays);
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays], actionName, isValidData);
         }
     };
     socketActionPartner.actions = this.actions;
