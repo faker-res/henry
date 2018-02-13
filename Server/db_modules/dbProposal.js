@@ -165,7 +165,7 @@ var proposal = {
             return dbconfig.collection_playerCreditTransferLog.find({
                 transferId,
                 isRepaired: {$ne: true},
-                status: {$in: [constPlayerCreditTransferStatus.FAIL, constPlayerCreditTransferStatus.TIMEOUT]}
+                status: {$ne: constPlayerCreditTransferStatus.SUCCESS}
             }, {_id: 1}).limit(1).lean().then(
                 log => {
                     return Boolean(log && log[0]);
