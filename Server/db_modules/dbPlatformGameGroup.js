@@ -195,6 +195,7 @@ var dbPlatformGameGroup = {
                 let gameInfo = gameData;
                 return dbconfig.collection_players.findOne({playerId: playerId, platform: platformObjId}).lean().then(
                     playerData => {
+                        if (playerData && playerData.permission && playerData.permission.forbidPlayerFromEnteringGame) {
                         let strProviderObjId;
                         let strForbidProviders;
 
