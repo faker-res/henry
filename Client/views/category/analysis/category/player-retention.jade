@@ -9,7 +9,11 @@
         #analysisPlayerRetention.block-query.well(style='margin-bottom:3px;')
             div
                 label {{"Start date"|translate}}
-                input.form-control(type='date', ng-model='vm.queryPara.playerRetention.startTime')
+                input.form-control(type='date', ng-model='vm.queryPara.playerRetention.startTime', ng-change = 'vm.retentionFilterOnChange()')
+            div
+                label {{"End date"|translate}}
+                input.form-control(type='date', min='{{vm.queryPara.playerRetention.minTime}}',
+                ng-model='vm.queryPara.playerRetention.endTime')
             div
                 label {{"newRegistrationType"|translate}}
                 //select.form-control(ng-model="vm.queryPara.playerRetention.playerType", ng-options='a | translate for a in vm.allNewPlayerType')
@@ -56,8 +60,8 @@
                             td
                                 input(type='checkbox', ng-model='vm.showRetention[i]', ng-click='vm.drawRetentionGraph()')
                             td {{vm.dateReformat(v.date)}}
-                            td {{v.day0}}
-                            td(ng-repeat='a in vm.queryPara.playerRetention.days') {{v[a]}}
+                            td {{vm.tableDataReformat(v.day0)}}
+                            td(ng-repeat='a in vm.queryPara.playerRetention.days') {{vm.tableDataReformat(v[a])}}
     .col-md-7
         .graph
             .panel.panel-default

@@ -191,6 +191,22 @@ var dbPlatformGameGroup = {
                 return dbPlatformGameGroup.checkFavoriteGames(playerId, gameGroup.games);
             }
         ).then(
+            gameData => {
+                let gameInfo = gameData;
+                return dbconfig.collection_players.findOne({playerId: playerId, platform: platformObjId}).lean().then(
+                    playerData => {
+                        if (playerData.permission && playerData.permission.forbidPlayerFromEnteringGame) {
+                            gameInfo.forEach(
+                                game => {
+                                    game.game.status = 2;
+                                }
+                            )
+                        }
+                        return gameInfo;
+                    }
+                )
+            }
+        ).then(
             games => {
                 gameGroup.games = {
                     stats: gameGroup.stats,

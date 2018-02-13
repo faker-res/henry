@@ -2384,7 +2384,9 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
-                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                if(newPromoCodeEntry.allowedSendSms) {
+                    SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                }
                 messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
                 return newPromoCode.code;
             }
@@ -5359,7 +5361,8 @@ function addUsedRewardToTopUpRecord(topUpProposalId, rewardEvent) {
                     createTime: topUpRecord.createTime,
                     platformId: topUpRecord.platformId
                 }, {
-                    $push: {usedEvent: rewardEvent}
+                    $push: {usedEvent: rewardEvent},
+                    bDirty: true
                 }).lean().exec();
             }
             return Promise.resolve();
