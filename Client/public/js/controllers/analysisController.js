@@ -1991,14 +1991,16 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.plotPlayerDomain = function (data) {
-            var placeholder = '#pie-all-playerDomain'
+            var placeholder = '#pie-all-playerDomain';
             var pieData = vm.playerDomainList.filter(function (obj) {
                 return (obj._id);
             }).map(function (obj) {
-                return {label: vm.setGraphNameWithoutCutString(obj._id), data: obj.number};
+                console.log(obj);
+                let label = obj._id.replace(/(^http:\/\/)|(www\.)|(\:\d{1,}$)/mgi,"");
+                return {label: vm.setGraphNameWithoutCutString(label), data: obj.number};
             }).sort(function (a, b) {
                 return b.data - a.data;
-            })
+            });
 
             vm.totalPlayerDomainRecord = pieData.reduce((a,b) => a + (b.data ? b.data : 0),0);
 
@@ -2006,7 +2008,6 @@ define(['js/app'], function (myApp) {
                 if(p && p.data && vm.totalPlayerDomainRecord){
                     p.percentage = (p.data / vm.totalPlayerDomainRecord * 100).toFixed(2);
                 }
-                return;
             });
 
             vm.playerDomainPieData = pieData;
@@ -2014,7 +2015,7 @@ define(['js/app'], function (myApp) {
             socketService.$plotPie(placeholder, pieData, {}, 'playerDomainPieClickData');
             //var placeholderBar = "#bar-all-playerDomain";
             //socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(pieData), vm.newOptions, vm.getXlabelsFromdata(pieData));
-        }
+        };
         //player domain analysis clicked end ================================================
 
         //player retention start ==================================================================
