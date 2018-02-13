@@ -7919,7 +7919,7 @@ let dbPlayerInfo = {
                                         "times": {"$sum": '$times'}
                                     }
                                 }
-                            ]).read("secondaryPreferred").cursor({batchSize: 1000}).allowDiskUse(true).exec();
+                            ]).read("secondaryPreferred").cursor({batchSize: 10000}).allowDiskUse(true).exec();
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
                                 return balancer.processStream(
