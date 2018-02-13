@@ -540,7 +540,7 @@ define(['js/app'], function (myApp) {
                     totalCount: totalCount,
                     successCount: totalSuccessCount,
                     successRate: totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((totalSuccessCount / totalCount) * 100),
-                    receivedAmount: vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data.reduce((b, data1) => b + data1.reduce((c, data2) => c + data2.amount, 0), 0),0),
+                    receivedAmount: vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.amount, 0),0),
                     amountRatio: 100,
                     userCount: vm.platformOnlineTopupAnalysisTotalUserCount,
                     userCountRatio: 100,
