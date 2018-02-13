@@ -212,8 +212,8 @@ var dbPlatformGameGroup = {
                                     }
                                 )
                             }
-                            return gameInfo;
                         }
+                        return gameInfo;
                     }
                 ).then(
                     games => {
