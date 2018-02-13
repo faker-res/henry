@@ -1310,6 +1310,7 @@
   "SMS_INTERMAIL": "短信/站内信",
   "SMS_CONTENT": "短信内容",
   "smsContentConfig": "短信内容",
+  "ALLOWED_SEND_SMS": "是否发送短信",
   "GENERATE": "生成",
   "GENERATE_ALL": "生成全部",
   "PROMO_CODE_LEGEND": "代码对照表",
@@ -2417,8 +2418,8 @@
   "getBonusRequestList": "获取申请提款列表",
   "cancelBonusRequest": "取消申请提款",
   "getBonusList": "获取奖品列表",
-  "nonXIMADetail": "非洗码详情",
-  "totalNonXIMAAmt": "非洗码金额",
+  "nonXIMADetail": "不可洗码详情",
+  "totalNonXIMAAmt": "不可洗码流水",
   "bConsumptionReturnRequest": "是否为玩家提交提前洗码",
   "getOnlineTopupType": "获取在线充值类型",
   "createOnlineTopupProposal": "在线充值",
@@ -2636,7 +2637,7 @@
   "WITHDRAW_AMOUNT":"提款金额",
   "PROMOTION":"促销优惠",
   "CONSUMPTION_RETURN_AMOUNT":"洗码金额",
-  "NON_CONSUMPTION_RETURN_AMOUNT":"非洗码金额",
+  "NON_CONSUMPTION_RETURN_AMOUNT":"不可洗码流水",
   "Wrong promo code has entered": "您输入了错误的优惠代码，请确认您的短信内容。",
   "No available promo code at the moment": "您无可以使用的优惠代码，请多投注后系统将随机赠送。",
   "Topup has been used for other reward": "您的最新存款已经申请其他优惠，请在重新存款后、投注前申请！",
@@ -3229,6 +3230,7 @@
   "average value": "平均值",
   "MANUAL_SUMMARIZE_LIVE800RECORD": "手动收录对话",
   "LoginPlayer": "登入玩家",
+  "Batch Setting":"批量设置",
   "OR": "或",
   "multipleTopUpPlayer": "多次充值玩家",
   "rechargedPlayer": "已充值玩家",
@@ -3243,6 +3245,7 @@
   "VALID_ACTIVE_PLAYER": "有效活跃玩家",
   "ValidActivePlayer": "有效活跃玩家",
   "COUNT": "笔数",
+  "unreadMailMaxDuration (month)": "站内信的最长时效（月）",
   "OnlineTopupSuccessRate": "在线充值（成功率）",
   "ONLINE_TOPUP_SUCCESS_RATE": "在线充值（成功率）",
   "onlineTopupTypeWeb": "在线充值类型（WEB）",
@@ -3255,7 +3258,8 @@
   "amountRatio": "金额占比",
   "userCount": "使用人数",
   "userCountRatio": "人数占比",
-  "subtotal": "小计"
-
+  "subtotal": "小计",
+  "consumptionTimes": "投注笔数",
+  "batchPermit":"批量设置"
 
 }

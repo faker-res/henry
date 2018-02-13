@@ -255,7 +255,7 @@ var dbPlayerLoginRecord = {
      * getPlayerRetention
      * @param {String}  platform, country
      */
-    getPlayerRetention: function (platform, startTime, days, playerType) {
+    getPlayerRetention: function (platform, startTime, days, playerType, dayCount) {
         var day0PlayerObj = {};
         var dayNPlayerObj = {};
         var day0PlayerArrayProm = [];
@@ -288,11 +288,12 @@ var dbPlayerLoginRecord = {
                     validPlayerProm.hasOwnProperty("validPlayerConsumptionTimes") && validPlayerProm.hasOwnProperty("validPlayerTopUpTimes")) {
                     playerFilter = {
                         topUpSum: {$gte: validPlayerProm.validPlayerTopUpAmount},
-                        consumptionSum: {$gte: validPlayerProm.validPlayerConsumptionTimes},
+                        consumptionTimes: {$gte: validPlayerProm.validPlayerConsumptionTimes},
+                        consumptionSum: {$gte: validPlayerProm.validPlayerConsumptionAmount},
                         topUpTimes: {$gte: validPlayerProm.validPlayerTopUpTimes}
                     }
                 }
-                for (var day = 0; day < 31; day++) {
+                for (var day = 0; day <= dayCount; day++) {
                     let queryObj = {
                         platform: platform,
                         registrationTime: {
@@ -339,7 +340,7 @@ var dbPlayerLoginRecord = {
                         var time1 = new Date(startTime);
                         time1.setHours(23, 59, 59, 999);
                         var loginDataArrayProm = [];
-                        for (var day = 0; day < 31 + days[days.length - 1]; day++) {
+                        for (var day = 0; day <= dayCount + days[days.length - 1]; day++) {
                             var temp = dbconfig.collection_playerLoginRecord.aggregate(
                                 [{
                                     $match: {
@@ -380,7 +381,7 @@ var dbPlayerLoginRecord = {
                                 // console.log('dayNPlayerObj', dayNPlayerObj);
                                 //now computing result array
                                 var resultArr = [];
-                                for (var i = 1; i < 31; i++) {
+                                for (var i = 1; i <= dayCount; i++) {
                                     var date = new Date(startTime);
                                     date.setDate(date.getDate() + i - 1);
                                     var showDate = new Date(startTime);
