@@ -3687,7 +3687,7 @@ let dbPlayerInfo = {
      * check the player exists and check password is matched against the password in DB using bcrypt
      *  @param include name and password of the player and some more additional info to log the player's login
      */
-    playerLogin: function (playerData, userAgent, inputDevice) {
+    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect) {
         let deferred = Q.defer();
         let db_password = null;
         let newAgentArray = [];
@@ -3805,7 +3805,7 @@ let dbPlayerInfo = {
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || '',
+                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : '',
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;

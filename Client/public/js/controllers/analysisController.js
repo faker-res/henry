@@ -1929,7 +1929,7 @@ define(['js/app'], function (myApp) {
             var pieData = vm.playerDeviceList.filter(function (obj) {
                 return (obj._id);
             }).map(function (obj) {
-                return {label: vm.setGraphName(obj._id.name), data: obj.number};
+                return {label: vm.setGraphNameWithoutCutString(obj._id.name), data: obj.number};
             }).sort(function (a, b) {
                 return b.data - a.data;
             })
