@@ -7971,7 +7971,7 @@ let dbPlayerInfo = {
                     let queryObj = {
                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                         type: onlineTopupType._id,
-                        "data.merchantUseType": parseInt(merchantTopupTypeId)
+                        "data.topupType": merchantTopupTypeId,
                     };
                     proms.push(dbconfig.collection_proposal.aggregate(
                         {
@@ -7980,13 +7980,20 @@ let dbPlayerInfo = {
                             $group: {
                                 _id: "$data.topupType",
                                 userIds: { $addToSet: "$data.playerObjId" },
+                                receivedAmount: {$sum: {$cond: [{ $eq: [ "$status", 'Success'] }, '$data.amount', 0]}},
+                                successCount: {$sum: {$cond: [{ $eq: [ "$status", 'Success'] }, 1, 0]}},
+                                count: {$sum: 1},
                             }
                         }
                     ).read("secondaryPreferred").then(
                         data => {
                             return {
                                 date: startTime,
-                                userCount: data && data[0] ? data[0].userIds.length : 0
+                                userCount: data && data[0] ? data[0].userIds.length : 0,
+                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                successCount: data && data[0] ? data[0].successCount : 0,
+                                totalCount: data && data[0] ? data[0].count : 0,
+
                             }
                         })
                     );
