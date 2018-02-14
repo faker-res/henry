@@ -19,6 +19,10 @@ define(['js/app'], function (myApp) {
             4: "Valid Player"
         };
 
+        vm.clientSourcePara = {
+            accessType: ["register", "login"]
+        };
+
         // For debugging:
         window.VM = vm;
 
@@ -224,7 +228,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case "CLIENT_SOURCE":
                         vm.initSearchParameter('clientSource', true, 3, function () {
-                            vm.initClientSourcePara(vm.getClientSourceData);
+                            //vm.initClientSourcePara(vm.getClientSourceData);
                         });
                         break;
                     case "GAME_ANALYSIS":
@@ -2821,16 +2825,16 @@ define(['js/app'], function (myApp) {
         // top up manual end
 
         //client source start =======================================
-        vm.initClientSourcePara = function (callback) {
-            vm.clientSourcePara = {loading: true};
-            socketService.$socket($scope.AppSocket, 'getClientSourcePara', {}, function (data) {
-                vm.clientSourcePara = data.data;
-                $scope.safeApply();
-                if (callback) {
-                    callback.apply(this);
-                }
-            });
-        }
+        // vm.initClientSourcePara = function (callback) {
+        //     vm.clientSourcePara = {loading: true};
+        //     socketService.$socket($scope.AppSocket, 'getClientSourcePara', {}, function (data) {
+        //         vm.clientSourcePara = data.data;
+        //         $scope.safeApply();
+        //         if (callback) {
+        //             callback.apply(this);
+        //         }
+        //     });
+        // }
         vm.getClientSourceData = function () {
             var sendObj = {};
             vm.isShowLoadingSpinner('#clientSourceAnalysis', true);
@@ -2843,9 +2847,8 @@ define(['js/app'], function (myApp) {
                 console.log('data', data);
                 vm.clientSourceTblData = data.data || [];
                 vm.clientSourceTotalCount = data.data.reduce((a,b) => a + (b.count ? b.count : 0),0);
-                vm.clientSourceTblData.push({_id: $translate("Total"), count: vm.clientSourceTotalCount, ratio: "100%"})
-                vm.drawClientSourceTable(vm.clientSourceTblData);
                 vm.drawClientSourcePie(vm.clientSourceTblData);
+                vm.drawClientSourceTable(vm.clientSourceTblData,vm.clientSourceTotalCount);
                 vm.isShowLoadingSpinner('#clientSourceAnalysis', false);
             });
         }
@@ -2860,7 +2863,8 @@ define(['js/app'], function (myApp) {
             })
             socketService.$plotPie(placeholder, pieData, {}, 'clientSourceClickData');
         }
-        vm.drawClientSourceTable = function (tblData) {
+        vm.drawClientSourceTable = function (tblData, count) {
+            tblData.push({_id: $translate("Total"), count: count ? count : 0, ratio: "100%"})
             var options = $.extend({}, $scope.getGeneralDataTableOption, {
                 data: tblData,
                 columns: [
