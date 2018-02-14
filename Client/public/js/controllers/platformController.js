@@ -401,6 +401,8 @@ define(['js/app'], function (myApp) {
 
             vm.prepareToBeDeletedProviderGroupId = [];
 
+            vm.longestDelayStatus = "rgb(0,180,0)";
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -612,41 +614,44 @@ define(['js/app'], function (myApp) {
             });
 
             vm.getProviderLatestTimeRecord = function () {
-                vm.providerLatestTime = {};
-                vm.delayStatus = {};
-                vm.longestDelayDate = new Date().toString();
-                vm.longestDelayStatus = "rgb(0,180,0)";
+                let longestDelayDate = new Date().toString();
 
-                let counter = 1;
+                let providerIdArr = [];
 
-                let p = Promise.resolve();
+                vm.platformProviderList.forEach( p => {
+                    if(p && p.providerId){
+                        providerIdArr.push(p.providerId);
+                    }
+                })
 
-                vm.platformProviderList.forEach(providerId => {
-                    p = p.then(() => {
-                        return $scope.$socketPromise('getProviderLatestTimeRecord', {
-                            providerId: providerId.providerId,
-                            platformObjId: vm.selectedPlatform.id
-                        }).then(function (data) {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    providerIdList: providerIdArr
+                }
 
-                            if (data.data) {
-                                if (data.data.createTime < vm.longestDelayDate) {
-                                    vm.longestDelayDate = data.data.createTime
-                                    vm.longestDelayStatus = data.data.delayStatusColor;
+                socketService.$socket($scope.AppSocket, 'getProviderLatestTimeRecord', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log("getProviderLatestTimeRecord", data.data)
+                        if(data && data.data && data.data.length > 0){
+                            data.data.map(d => {
+                                if(d){
+                                    if(d.createTime){
+                                        d.createTime = vm.dateReformat(d.createTime);
+
+                                        if (d.createTime < longestDelayDate) {
+                                            longestDelayDate = d.createTime
+                                            vm.longestDelayStatus = d.delayStatusColor;
+                                        }
+                                    }
                                 }
 
-                                vm.providerLatestTime[counter] = vm.dateReformat(data.data.createTime);
-                                vm.delayStatus[counter] = data.data.delayStatusColor;
-                            }
-                            else {
-                                vm.providerLatestTime[counter] = "";
-                                vm.delayStatus[counter] = "rgb(255,255,255)";
-                            }
-                            counter++;
-                            $scope.safeApply();
-                        })
+                                return;
+                            })
+
+                            vm.providerLatestTimeRecord = data.data;
+                        }
                     })
-                })
-                return p;
+                });
             };
 
             vm.setPlatformFooter = function (platformAction) {
