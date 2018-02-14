@@ -591,9 +591,9 @@ define(['js/app'], function (myApp) {
 
         vm.calculateOnlineTopupTypeData = (merchantTopupTypeId, userAgent) => {
             let typeData = vm.platformOnlineTopupAnalysisData[userAgent].filter(data => data._id == merchantTopupTypeId)[0];
-            typeData = typeData ? typeData : {amount:0, userIds:[], _id: merchantTopupTypeId, count:0, successCount: 0};
+            typeData = typeData ? typeData : {amount:0, userIds:[], successUserIds:[], _id: merchantTopupTypeId, count:0, successCount: 0};
             let totalCount = typeData.count;
-            let userCount = typeData.userIds.length;
+            let userCount = typeData.successUserIds.length;
             let returnObj =  {
                 totalCount: totalCount,
                 successCount: typeData.successCount,
