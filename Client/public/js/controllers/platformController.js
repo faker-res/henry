@@ -9403,6 +9403,8 @@ define(['js/app'], function (myApp) {
                     initAmount: vm.playerAddRewardTask.currentAmount,
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
+                    eventName: "促销优惠",
+                    eventCode: "manualReward"
                 };
 
                 if(!vm.selectedPlatform.data.useProviderGroup){
