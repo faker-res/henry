@@ -7835,12 +7835,12 @@ let dbPlayerInfo = {
                 let activePlayerConsumptionTimes;
                 let activePlayerConsumptionAmount;
                 let activePlayerValue;
-                let topupCollectionName = 'collection_playerTopUpWeekSummary';
-                let consumptionCollectionName = 'collection_playerConsumptionWeekSummary';
+                let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
+                let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
                 switch (period) {
                     case 'day':
-                        topupCollectionName = 'collection_playerTopUpDaySummary';
-                        consumptionCollectionName = 'collection_playerConsumptionDaySummary';
+                        // topupCollectionName = 'collection_playerTopUpDaySummary';
+                        // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
