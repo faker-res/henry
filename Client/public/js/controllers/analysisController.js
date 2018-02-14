@@ -92,27 +92,27 @@ define(['js/app'], function (myApp) {
                         vm.platformNewPlayerAnalysisSort = {};
                         vm.initSearchParameter('newPlayer', 'day', 3);
                         vm.getPartnerLevelConfig();
-                        vm.plotNewPlayerLine();
+                        //vm.plotNewPlayerLine();
                         break;
                     case "LOGIN_PLAYER":
                         vm.platformLoginPlayerAnalysisSort = {};
                         vm.initSearchParameter('loginPlayer', 'day', 3);
-                        vm.plotLoginPlayerLine();
+                        //vm.plotLoginPlayerLine();
                         break;
                     case "ACTIVE_PLAYER":
                         vm.platformActivePlayerAnalysisSort = {};
                         vm.initSearchParameter('activePlayer', 'day', 3);
-                        vm.plotActivePlayerLine();
+                        //vm.plotActivePlayerLine();
                         break;
                     case "VALID_ACTIVE_PLAYER":
                         vm.platformValidActivePlayerAnalysisSort = {};
                         vm.initSearchParameter('validActivePlayer', 'day', 3);
-                        vm.plotValidActivePlayerLine();
+                        //vm.plotValidActivePlayerLine();
                         break;
                     case "PEAK_HOUR":
-                        vm.plotPeakhourOnlinePlayerLine();
-                        vm.plotPeakhourCreditspendLine();
-                        vm.plotPeakhourTopupLine();
+                        // vm.plotPeakhourOnlinePlayerLine();
+                        // vm.plotPeakhourCreditspendLine();
+                        // vm.plotPeakhourTopupLine();
                         break;
                     case "PLAYER_PHONE_LOCATION":
                     case "PLAYER_IP_LOCATION":
@@ -144,7 +144,7 @@ define(['js/app'], function (myApp) {
                                             var setHeight = height - 50;
                                             $(".analysisLocationTable").height(setHeight + "px");
                                             $scope.safeApply();
-                                            vm.playerLocationPage();
+                                            //vm.playerLocationPage();
                                         });
                                     });
                                 });
@@ -170,7 +170,7 @@ define(['js/app'], function (myApp) {
                         };
                         vm.initSearchParameter('playerDevice', true, 2, function () {
                             vm.queryPara.playerDevice.type = 'os';
-                            vm.deviceAnalysisInit();
+                            //vm.deviceAnalysisInit();
                         });
                         break;
                     case "PLAYER_DOMAIN_ANALYSIS":
@@ -185,7 +185,7 @@ define(['js/app'], function (myApp) {
                             }]
                         };
                         vm.initSearchParameter('playerDomain', true, 2, function () {
-                            vm.domainAnalysisInit();
+                            //vm.domainAnalysisInit();
                         });
                         break;
                     case "PLAYER_RETENTION":
@@ -197,7 +197,7 @@ define(['js/app'], function (myApp) {
                                 vm.dayListLength.push(i);
                             }
                             vm.playerRetentionInit(function () {
-                                vm.getPlayerRetention();
+                                //vm.getPlayerRetention();
                             });
                             $scope.safeApply();
                         });
@@ -207,19 +207,19 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('playerCredit', 'day', 3, function () {
                             vm.queryPara.playerCredit.filterGameProvider = 'all';
                             //vm.drawPlayerCreditLine('PLAYER_EXPENSES');
-                            vm.plotPlayerCreditLine('PLAYER_EXPENSES');
+                            //vm.plotPlayerCreditLine('PLAYER_EXPENSES');
                         });
                         break;
                     case "PLAYER_TOPUP":
                         vm.initSearchParameter('playerCredit', 'day', 3, function () {
-                            vm.drawPlayerCreditLine();
-                            vm.drawPlayerCreditCountLine();
+                            // vm.drawPlayerCreditLine();
+                            // vm.drawPlayerCreditCountLine();
                         });
                         break;
                     case "BONUS_AMOUNT":
                         vm.platformBonusAnalysisSort = {};
                         vm.initSearchParameter('bonusAmount', 'day', 3, function () {
-                            vm.drawPlayerBonusAmount('BONUS_AMOUNT');
+                            //vm.drawPlayerBonusAmount('BONUS_AMOUNT');
                         });
                         break;
                     case "CLIENT_SOURCE":
@@ -234,30 +234,30 @@ define(['js/app'], function (myApp) {
                         vm.consumptionInterval = {};
                         vm.initSearchParameter('consumptionInterval', null, 1);
                         vm.consumptionInterval.pastDay = '1';
-                        vm.getConsumptionIntervalData();
+                        //vm.getConsumptionIntervalData();
                         break;
                     case "ONLINE_TOPUP_SUCCESS_RATE":
                         vm.platformOnlineTopupSuccessAnalysisSort = {};
                         vm.platformOnlineTopupAnalysisDetailPeriod = 'day';
                         vm.initSearchParameter('onlineTopupSuccessRate', 'day', 1);
-                        vm.getOnlineToupSuccessRateData();
+                        //vm.getOnlineToupSuccessRateData();
                         break;
                     case "TOPUPMANUAL":
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
-                            vm.drawPlayerTopUp('TOPUPMANUAL');
+                            //vm.drawPlayerTopUp('TOPUPMANUAL');
                         });
                         break;
                     case "TOPUPALIPAY":
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
-                            vm.drawPlayerTopUp('TOPUPALIPAY');
+                            //vm.drawPlayerTopUp('TOPUPALIPAY');
                         });
                         break;
                     case "TOPUPWECHAT":
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
-                            vm.drawPlayerTopUp('TOPUPWECHAT');
+                            //vm.drawPlayerTopUp('TOPUPWECHAT');
                         });
                         break;
                 }
@@ -551,15 +551,15 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisByPlatform', sendData, data => {
                 console.log('data.data', data.data);
                 vm.platformOnlineTopupAnalysisData = data.data;
-                vm.platformOnlineTopupAnalysisTotalUserCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data.reduce((b, data1) => b + data1.reduce((c, data2) => c + data2.userIds.length, 0), 0),0);
-                let totalSuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.count, 0), 0);
-                let totalUnsuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[1].reduce((b, data1) => b + data1.count, 0), 0);
+                vm.platformOnlineTopupAnalysisTotalUserCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data.reduce((b, data1) => b + data1.userIds.length, 0),0);
+                let totalSuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data.reduce((b, data1) => b + data1.successCount, 0), 0);
+                let totalUnsuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data.reduce((b, data1) => b + data1.count, 0), 0) - totalSuccessCount;
                 let totalCount = totalSuccessCount + totalUnsuccessCount;
                 vm.platformOnlineTopupAnalysisTotalData = {
                     totalCount: totalCount,
                     successCount: totalSuccessCount,
                     successRate: totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((totalSuccessCount / totalCount) * 100),
-                    receivedAmount: vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.amount, 0),0),
+                    receivedAmount: vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data.reduce((b, data1) => b + data1.amount, 0),0),
                     amountRatio: 100,
                     userCount: vm.platformOnlineTopupAnalysisTotalUserCount,
                     userCountRatio: 100,
@@ -590,19 +590,17 @@ define(['js/app'], function (myApp) {
         };
 
         vm.calculateOnlineTopupTypeData = (merchantTopupTypeId, userAgent) => {
-            let successData = vm.platformOnlineTopupAnalysisData[userAgent][0].filter(data => data._id == merchantTopupTypeId)[0];
-            let unsuccessData = vm.platformOnlineTopupAnalysisData[userAgent][1].filter(data => data._id == merchantTopupTypeId)[0];
-            successData = successData ? successData : {amount:0, userIds:[], _id: merchantTopupTypeId, count:0};
-            unsuccessData = unsuccessData ? unsuccessData : {amount:0, userIds:[], _id: merchantTopupTypeId, count:0};
-            let totalCount = successData.count + unsuccessData.count;
-            let userCount = successData.userIds.length + unsuccessData.userIds.length;
+            let typeData = vm.platformOnlineTopupAnalysisData[userAgent].filter(data => data._id == merchantTopupTypeId)[0];
+            typeData = typeData ? typeData : {amount:0, userIds:[], _id: merchantTopupTypeId, count:0, successCount: 0};
+            let totalCount = typeData.count;
+            let userCount = typeData.userIds.length;
             let returnObj =  {
                 totalCount: totalCount,
-                successCount: successData.userIds.length,
-                successRate: totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((successData.count / totalCount) * 100),
-                receivedAmount: successData.amount,
+                successCount: typeData.successCount,
+                successRate: totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((typeData.successCount / totalCount) * 100),
+                receivedAmount: typeData.amount,
                 merchantTopupTypeId: merchantTopupTypeId,
-                amountRatio: vm.platformOnlineTopupAnalysisTotalData.receivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((successData.amount / vm.platformOnlineTopupAnalysisTotalData.receivedAmount) * 100),
+                amountRatio: vm.platformOnlineTopupAnalysisTotalData.receivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((typeData.amount / vm.platformOnlineTopupAnalysisTotalData.receivedAmount) * 100),
                 userCount: userCount,
                 userCountRatio: vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((userCount / vm.platformOnlineTopupAnalysisTotalUserCount) * 100),
             };
@@ -1076,7 +1074,7 @@ define(['js/app'], function (myApp) {
                 vm.plotLineByElementId("#line-activePlayer", calculatedActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.activePlayer.periodText.toUpperCase()));
                 vm.isShowLoadingSpinner('#activePlayerAnalysis', false);
                 $scope.safeApply();
-            });
+            },() => {vm.isShowLoadingSpinner('#activePlayerAnalysis', false);});
         }
         // active Player end= =========================================
 
@@ -1106,7 +1104,7 @@ define(['js/app'], function (myApp) {
                 vm.plotLineByElementId("#line-validActivePlayer", calculatedValidActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
                 vm.isShowLoadingSpinner('#validActivePlayerAnalysis', false);
                 $scope.safeApply();
-            });
+            },() => {vm.isShowLoadingSpinner('#activePlayerAnalysis', false);});
         }
         // valid active Player end==========================================
 

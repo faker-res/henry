@@ -3645,16 +3645,17 @@ var proposal = {
                     let groupByObj = {
                         _id: "$data.topupType",
                         userIds: { $addToSet: "$data.playerObjId" },
-                        amount: {$sum: "$data.amount"},
+                        amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},//{$sum: "$data.amount"},
                         count: {$sum: 1},
+                        successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
 
                     };
-                    let successProm = dbconfig.collection_proposal.aggregate(
+                    let prom = dbconfig.collection_proposal.aggregate(
                         {
                             $match: {
                                 createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                                 type: onlineTopupType._id,
-                                status:"Success",
+                                //status:"Success",
                                 "data.userAgent": i
                             }
                         }, {
@@ -3662,20 +3663,7 @@ var proposal = {
                         }
                     );
 
-                    let unsuccessProm = dbconfig.collection_proposal.aggregate(
-                        {
-                            $match: {
-                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                                type: onlineTopupType._id,
-                                status:{$ne: "Success"},
-                                "data.userAgent": i
-                            }
-                        }, {
-                            $group: groupByObj
-                        }
-                    );
-
-                    proms.push(Q.all([successProm, unsuccessProm]));
+                    proms.push(prom);
                 }
                 return Q.all(proms);
             }
