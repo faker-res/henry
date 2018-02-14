@@ -3913,7 +3913,7 @@ let dbPlayerInfo = {
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : '',
+                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
@@ -5896,8 +5896,14 @@ let dbPlayerInfo = {
         if (startTime && endTime) {
             queryObject.createTime = {$gte: new Date(startTime), $lt: new Date(endTime)};
         }
+
         if (status) {
             queryObject.status = status;
+            if (status == constProposalStatus.APPROVED) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            } else if (status == constProposalStatus.SUCCESS) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            }
         }
 
         return dbconfig.collection_players.findOne({playerId: playerId}).catch(
@@ -7968,7 +7974,7 @@ let dbPlayerInfo = {
                                 count: {$sum: 1},
                             }
                         }
-                        ).read("secondaryPreferred").then(
+                        ).then(
                         data => {
                             return {
                                 date: startTime,
