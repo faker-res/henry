@@ -2165,7 +2165,16 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                             return res;
                                         }
 
-                                        return updatedRTG
+                                        // The status change is not updated, try again
+                                        return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                            {_id: updatedRTG._id},
+                                            {
+                                                $inc: {
+                                                    currentAmt: -consumptionRecord.bonusAmount,
+                                                    curConsumption: -consumptionAmt
+                                                }
+                                            }
+                                        ).then(() => false);
                                     }
                                 )
                             }
