@@ -3679,6 +3679,7 @@ var proposal = {
                             ).then(
                                 data1 => {
                                     return data.map(a => {
+                                        a.successUserIds = [];
                                         data1.forEach(
                                             b => {
                                                 if(a._id == b._id)
