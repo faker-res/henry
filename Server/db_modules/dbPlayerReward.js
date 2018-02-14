@@ -2580,10 +2580,6 @@ let dbPlayerReward = {
             }
         ).then(
             data => {
-                if (!data || !data[0]) {
-                    return Promise.resolve();
-                }
-
                 if (data && data[1]) {
                     let topUpRecord = data[1];
                     if (topUpRecord.bDirty || (topUpRecord.usedEvent && topUpRecord.usedEvent.length > 0)) {

@@ -37,7 +37,7 @@
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'WEB'}")
                                 td(style='width: 500px;')
-                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId)') {{ v.name | translate }}
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent)') {{ v.name | translate }} (WEB)
                                 td
                                     span {{ v.successCount }}
                                 td
@@ -83,7 +83,7 @@
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'H5'}")
                                 td(style='width: 500px;')
-                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId)') {{ v.name | translate }}
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent)') {{ v.name | translate }} (H5)
                                 td
                                     span {{ v.successCount }}
                                 td
@@ -129,7 +129,7 @@
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'APP'}")
                                 td(style='width: 500px;')
-                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId)') {{ v.name | translate }}
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent)') {{ v.name | translate }} (APP)
                                 td
                                     span {{ v.successCount }}
                                 td
@@ -184,7 +184,7 @@
         .col-md-12.block-query.well(style='margin-bottom:3px;')
             div
                 label {{'PERIOD' | translate}}
-                    select.form-control(ng-model='vm.platformOnlineTopupAnalysisDetailPeriod' ng-change='vm.platformOnlineTopupAnalysisShowDetail(vm.platformOnlineTopupAnalysisDetailMerchantId)')
+                    select.form-control(ng-model='vm.platformOnlineTopupAnalysisDetailPeriod' ng-change='vm.platformOnlineTopupAnalysisShowDetail(vm.platformOnlineTopupAnalysisDetailMerchantId, vm.platformOnlineTopupAnalysisDetailUserAgent)')
                         option(value='day') {{"DAY"|translate}}
                         option(value='week') {{"WEEK"|translate}}
                         option(value='month') {{"MONTH"|translate}}
@@ -194,7 +194,7 @@
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%;margin-top: 0 !important;margin-bottom: 0 !important;')
                         thead
                             tr
-                                th {{ merchantTopupTypeJson[vm.platformOnlineTopupAnalysisDetailMerchantId] | translate}} / {{ vm.platformOnlineTopupAnalysisDetailPeriod | translate }}
+                                th {{ merchantTopupTypeJson[vm.platformOnlineTopupAnalysisDetailMerchantId] | translate}} ({{ userAgentType[vm.platformOnlineTopupAnalysisDetailUserAgent] }}) / {{ vm.platformOnlineTopupAnalysisDetailPeriod | translate }}
                                 th {{ "successCount" | translate}}
                                 th {{ "totalCount" | translate}}
                                 th {{ "successRate" | translate}}

@@ -163,7 +163,7 @@ var dbPlatformGameGroup = {
                         if (game) {
                             for (var j = 0; j < pltGameStatusArr.length; j++) {
                                 if (pltGameStatusArr[j] && game && String(game._id) == String(pltGameStatusArr[j].game)) {
-                                    if (pltGameStatusArr[j].status !== constGameStatus.ENABLE &&  game.status == 1) {
+                                    if (pltGameStatusArr[j].status !== constGameStatus.ENABLE && game.status == 1) {
                                         game.status = pltGameStatusArr[j].status;
                                     }
 
@@ -195,12 +195,23 @@ var dbPlatformGameGroup = {
                 let gameInfo = gameData;
                 return dbconfig.collection_players.findOne({playerId: playerId, platform: platformObjId}).lean().then(
                     playerData => {
-                        if (playerData && playerData.permission && playerData.permission.forbidPlayerFromEnteringGame) {
-                            gameInfo.forEach(
-                                game => {
-                                    game.game.status = 2;
-                                }
-                            )
+                        if (playerData) {
+                            let strProviderObjId;
+                            let strForbidProviders;
+
+                            if (providerObjId) {
+                                strProviderObjId = providerObjId.toString();
+                            }
+                            if (playerData.forbidProviders) {
+                                strForbidProviders = playerData.forbidProviders.toString();
+                            }
+                            if (playerData.permission && (playerData.permission.forbidPlayerFromEnteringGame || strForbidProviders.includes(strProviderObjId))) {
+                                gameInfo.forEach(
+                                    game => {
+                                        game.game.status = 2;
+                                    }
+                                )
+                            }
                         }
                         return gameInfo;
                     }
@@ -331,7 +342,9 @@ var dbPlatformGameGroup = {
                 }
             }
         );
-    },
+    }
+
+    ,
 
     /**
      * Get all the games by  platform and gameGroup
@@ -344,7 +357,8 @@ var dbPlatformGameGroup = {
                 path: "games.game",
                 model: dbconfig.collection_game
             }).exec();
-    },
+    }
+    ,
 
     /**
      * Get all the games which are unattached to the gameGroup in the platform
@@ -394,7 +408,8 @@ var dbPlatformGameGroup = {
                     } else return [];
                 }
             );
-    },
+    }
+    ,
 
     /**
      * Get all the game groups by platformId
@@ -426,7 +441,8 @@ var dbPlatformGameGroup = {
                 };
             }
         );
-    },
+    }
+    ,
 
     /**
      * Create a new gameGroup with Parent
@@ -461,7 +477,8 @@ var dbPlatformGameGroup = {
             }
         );
         return deferred.promise;
-    },
+    }
+    ,
 
     /**
      * Update the game group parent (Move the group to different parent)
@@ -506,7 +523,8 @@ var dbPlatformGameGroup = {
             });
 
         return deferred.promise;
-    },
+    }
+    ,
 
     /**
      * Remove/Delete  a group and its all children
@@ -532,7 +550,8 @@ var dbPlatformGameGroup = {
                 }
             }
         );
-    },
+    }
+    ,
 
     /**
      * Get the list of the gameGroup's all children objId
