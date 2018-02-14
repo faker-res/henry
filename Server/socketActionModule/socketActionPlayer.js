@@ -572,7 +572,7 @@ function socketActionPlayer(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getOnlineTopupAnalysisDetailUserCount, [ObjectId(data.platformId), startTime, endTime, data.period, data.merchantTopupTypeId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getOnlineTopupAnalysisDetailUserCount, [ObjectId(data.platformId), startTime, endTime, data.period, data.merchantTopupTypeId, data.userAgent], actionName, isValidData);
         },
 
         /**
@@ -783,7 +783,7 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerObjId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId, data.transferId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerTransferErrorLog, [data.playerObjId, data.transferId, data.transferObjId], actionName, isValidData);
         },
 
         searchMailLog: function searchMailLog(data) {
