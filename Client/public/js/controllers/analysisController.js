@@ -1001,6 +1001,7 @@ define(['js/app'], function (myApp) {
                 endDate: endDate,
             };
             vm.isShowLoadingSpinner('#activePlayerAnalysis', true);
+            vm.isLoadingctivePlayer = true;
             socketService.$socket($scope.AppSocket, 'countActivePlayerbyPlatform', sendData, function success(data1) {
 
                 // console.log('received data', data1);
@@ -1073,8 +1074,12 @@ define(['js/app'], function (myApp) {
                 vm.platformActivePlayerAverage = calculatedActivePlayerData.average;
                 vm.plotLineByElementId("#line-activePlayer", calculatedActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.activePlayer.periodText.toUpperCase()));
                 vm.isShowLoadingSpinner('#activePlayerAnalysis', false);
+                vm.isLoadingctivePlayer = false;
                 $scope.safeApply();
-            },() => {vm.isShowLoadingSpinner('#activePlayerAnalysis', false);});
+            },() => {
+                vm.isShowLoadingSpinner('#activePlayerAnalysis', false);
+                vm.isLoadingctivePlayer = false;
+            });
         }
         // active Player end= =========================================
 
@@ -1091,6 +1096,7 @@ define(['js/app'], function (myApp) {
                 endDate: endDate,
             };
             vm.isShowLoadingSpinner('#validActivePlayerAnalysis', true);
+            vm.isLoadingValidActivePlayer = true;
             socketService.$socket($scope.AppSocket, 'countValidActivePlayerbyPlatform', sendData, function success(data1) {
 
                 vm.platformValidActivePlayerDataPeriodText = vm.queryPara.validActivePlayer.periodText;
@@ -1103,8 +1109,12 @@ define(['js/app'], function (myApp) {
                 vm.platformValidActivePlayerAverage = calculatedValidActivePlayerData.average;
                 vm.plotLineByElementId("#line-validActivePlayer", calculatedValidActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
                 vm.isShowLoadingSpinner('#validActivePlayerAnalysis', false);
+                vm.isLoadingValidActivePlayer = false;
                 $scope.safeApply();
-            },() => {vm.isShowLoadingSpinner('#activePlayerAnalysis', false);});
+            },() => {
+                vm.isShowLoadingSpinner('#activePlayerAnalysis', false);
+                vm.isLoadingValidActivePlayer = false;
+            });
         }
         // valid active Player end==========================================
 
