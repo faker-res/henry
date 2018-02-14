@@ -3267,6 +3267,11 @@
   "TOPUPALIPAY_AMOUNT": "支付宝存款数额",
   "TOPUPALIPAY_COUNT": "支付宝存款笔数",
   "TOPUPWECHAT_AMOUNT": "微信存款数额",
-  "TOPUPWECHAT_COUNT": "微信存款笔数"
+  "TOPUPWECHAT_COUNT": "微信存款笔数",
+  "TOPUPALIPAY_AMOUNT": "个人支付宝存款数额",
+  "TOPUPALIPAY_COUNT": "个人支付宝存款笔数",
+  "TOPUPWECHAT_AMOUNT": "个人微信存款数额",
+  "TOPUPWECHAT_COUNT": "个人微信存款笔数",
+  "Credit_Amount": "数额"
 
 }

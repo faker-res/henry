@@ -5896,8 +5896,14 @@ let dbPlayerInfo = {
         if (startTime && endTime) {
             queryObject.createTime = {$gte: new Date(startTime), $lt: new Date(endTime)};
         }
+
         if (status) {
             queryObject.status = status;
+            if (status == constProposalStatus.APPROVED) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            } else if (status == constProposalStatus.SUCCESS) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            }
         }
 
         return dbconfig.collection_players.findOne({playerId: playerId}).catch(
@@ -7968,16 +7974,35 @@ let dbPlayerInfo = {
                                 count: {$sum: 1},
                             }
                         }
-                        ).read("secondaryPreferred").then(
+                        ).then(
                         data => {
-                            return {
-                                date: startTime,
-                                userCount: data && data[0] ? data[0].userIds.length : 0,
-                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
-                                successCount: data && data[0] ? data[0].successCount : 0,
-                                totalCount: data && data[0] ? data[0].count : 0,
-
-                            }
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: {
+                                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                        type: onlineTopupType._id,
+                                        status: "Success",
+                                        "data.topupType": merchantTopupTypeId,
+                                        "data.userAgent": parseFloat(userAgent),
+                                    }
+                                }, {
+                                    $group: {
+                                        _id: "$data.topupType",
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).then(
+                                data1 => {
+                                    return {
+                                        date: startTime,
+                                        userCount: data && data[0] ? data[0].userIds.length : 0,
+                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                        successCount: data && data[0] ? data[0].successCount : 0,
+                                        totalCount: data && data[0] ? data[0].count : 0,
+                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
+                                    }
+                                }
+                            );
                         })
                     );
                     startDate = dayEndTime;
