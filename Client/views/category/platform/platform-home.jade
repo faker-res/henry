@@ -132,6 +132,10 @@
                             a.common-tab(data-toggle="tab", href="#rewardPoint", ng-click="vm.platformPageName='rewardPoint';vm.updatePageTile();")
                                 .fa.fa-file.margin-right-5
                                 text.span {{"rewardPoint" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'batchPermit','Read')")
+                            a.common-tab(data-toggle="tab", href="#batchPermit", ng-click="vm.platformPageName='batchPermit';vm.updatePageTile();vm.initBatchPermit();")
+                                .fa.fa-cogs.margin-right-5
+                                text.span {{"Batch Setting" | translate}}
                         //li
                             a.common-tab(ng-show="checkViewPermission('Platform', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.platformPageName='bankCardGroup';vm.updatePageTile();")
                                 .fa.fa-credit-card.margin-right-5
@@ -186,6 +190,9 @@
                             include ./platform-phone-num-filter
                         #rewardPoint.tab-pane.fade
                             include ./platform-reward-point
+                        #batchPermit.tab-pane.fade
+                            include ./platform-batch-permit
+                            
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
                             include ./platform-bankCardGroup
@@ -431,7 +438,7 @@
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"SMS Log" | translate}} : {{vm.selectedSinglePlayer.name}}
             .modal-body
-                #smsLogQuery.block-query.well
+                #groupSmsLogQuery.block-query.well
                     div
                         label {{"RESULT" | translate}}
                         select.form-control(ng-model='vm.smsLog.query.status')
@@ -469,7 +476,7 @@
                                 td(ng-if='smsLog.status === "failure"')
                                     text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
                     br
-                    #smsLogTablePage
+                    #groupSmsLogTablePage
             .modal-footer
                 button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
 include ../common-widget/telephone-popover

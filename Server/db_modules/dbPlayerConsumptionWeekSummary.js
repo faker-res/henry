@@ -317,7 +317,7 @@ var dbPlayerConsumptionWeekSummary = {
                                             nonXIMADetail: nonXIMADetail,
                                             summaryIds: summaryIds,
                                             bConsumptionReturnRequest: bRequest,
-                                            applyAmount: applyAmount,
+                                            consumeValidAmount: applyAmount,
                                             totalNonXIMAAmt: totalNonXIMAAmt,
                                             eventDescription: eventData.description,
                                             startTime: startTime,

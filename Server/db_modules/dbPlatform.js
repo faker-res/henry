@@ -204,7 +204,18 @@ var dbPlatform = {
     getPlatform: function (platformData) {
         return dbconfig.collection_platform.findOne(platformData)
             .populate({path: "paymentChannels", model: dbconfig.collection_paymentChannel})
-            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).exec();
+            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().exec().then(
+                platform => {
+                    // debug use, delete later
+                    if (platform && (platform.platformId == 4 || platform.platformId == 6)) {
+                        console.log("whiteList length: ", platform.whiteListingPhoneNumbers && platform.whiteListingPhoneNumbers.length, 'z|^', platform.platformId)
+                        console.log("gameProviderInfo: ", JSON.stringify(platform.gameProviderInfo), 'k|^', platform.platformId)
+                    }
+
+
+                    return platform;
+                }
+            );
     },
 
     /**
@@ -252,6 +263,15 @@ var dbPlatform = {
         if (updateData.usePointSystem) {
             dbPlayerInfo.createPlayerRewardPointsRecord(query, "", true);
         }
+
+        if (!updateData.whiteListingPhoneNumbers || (updateData.whiteListingPhoneNumbers instanceof Array && updateData.whiteListingPhoneNumbers.length === 0)) {
+            delete updateData.whiteListingPhoneNumbers;
+        }
+
+        if (!updateData.gameProviderNickNames) {
+            delete updateData.gameProviderNickNames;
+        }
+
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 console.log("updatePlatform", data, query, updateData);

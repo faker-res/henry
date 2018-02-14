@@ -209,6 +209,9 @@
             thead
         #playerFeedbackTablePage(ng-show='vm.playerFeedbackSearchType=="many"')
 .row.margin-top-bottom-small(ng-show='vm.selectedPlatform && vm.playerFeedbackSearchType=="one"')
+    .col-md-12
+        table.common-table#playerFeedbackDataTableExtended.display(style="min-width:100%;")
+
     .col-md-6
         .panel.panel-primary.margin-top-bottom-small(ng-if="checkViewPermission('Platform','Feedback','Create')",style='background-color: #e4e4e4')
             .panel-heading.panel-heading-sm

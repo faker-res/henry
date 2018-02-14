@@ -18,6 +18,8 @@ div(ng-if="checkViewPermission('Analysis')")
             ul.dropdown-menu(role='menu', ng-if='vm.showPageName!=="PLATFORM_OVERVIEW"')
                 li(ng-if="checkViewPermission('Analysis','Analysis','NewPlayer')", ng-click='vm.loadPage("NEW_PLAYER")')
                     a  {{'NEW_PLAYER' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','ValidActivePlayer')", ng-click='vm.loadPage("VALID_ACTIVE_PLAYER")')
+                    a  {{'VALID_ACTIVE_PLAYER' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ActivePlayer')", ng-click='vm.loadPage("ACTIVE_PLAYER")')
                     a  {{'ACTIVE_PLAYER' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','LoginPlayer')", ng-click='vm.loadPage("LOGIN_PLAYER")')
@@ -50,6 +52,16 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'BonusAmount' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ConsumptionInterval')",ng-click='vm.loadPage("CONSUMPTION_INTERVAL")')
                     a  {{'CONSUMPTION_INTERVAL' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','OnlineTopupSuccessRate')",ng-click='vm.loadPage("ONLINE_TOPUP_SUCCESS_RATE")')
+                    a  {{'ONLINE_TOPUP_SUCCESS_RATE' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','topUp')",ng-click='vm.loadPage("TOPUPMANUAL")')
+                    a  {{'TOPUPMANUAL' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','topUp')",ng-click='vm.loadPage("TOPUPALIPAY")')
+                    a  {{'TOPUPALIPAY' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','topUp')",ng-click='vm.loadPage("TOPUPWECHAT")')
+                    a  {{'TOPUPWECHAT' | translate}}
+
+
                 //li(ng-click='vm.loadPage("GAME_ANALYSIS")')
                     a  {{'GAME_ANALYSIS' | translate}}
         a.pull-right(ng-click='vm.loadPageFunc(vm.showPageName)')
@@ -65,6 +77,8 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/player-login
             div(ng-if='vm.showPageName=="ACTIVE_PLAYER"')
                 include category/player-active
+            div(ng-if='vm.showPageName=="VALID_ACTIVE_PLAYER"')
+                include category/player-valid-active
             div(ng-if='vm.showPageName=="PEAK_HOUR"')
                 include category/peak-hour
             div(ng-if='vm.showPageName=="PLAYER_IP_LOCATION"')
@@ -91,9 +105,16 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/bonus-amount
             div(ng-if='vm.showPageName=="CLIENT_SOURCE"')
                 include category/client-source
-
             div(ng-if='vm.showPageName=="CONSUMPTION_INTERVAL"')
                 include category/consumption-interval
+            div(ng-if='vm.showPageName=="ONLINE_TOPUP_SUCCESS_RATE"')
+                include category/online-topup-success-rate
+            div(ng-if='vm.showPageName=="TOPUPMANUAL"')
+                include category/player-top-up
+            div(ng-if='vm.showPageName=="TOPUPALIPAY"')
+                include category/player-top-up
+            div(ng-if='vm.showPageName=="TOPUPWECHAT"')
+                include category/player-top-up
             div(ng-if='vm.showPageName==""')
                 label Please select a Data type
     include category/common/input-date

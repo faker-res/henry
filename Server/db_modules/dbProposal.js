@@ -165,7 +165,7 @@ var proposal = {
             return dbconfig.collection_playerCreditTransferLog.find({
                 transferId,
                 isRepaired: {$ne: true},
-                status: {$in: [constPlayerCreditTransferStatus.FAIL, constPlayerCreditTransferStatus.TIMEOUT]}
+                status: {$ne: constPlayerCreditTransferStatus.SUCCESS}
             }, {_id: 1}).limit(1).lean().then(
                 log => {
                     return Boolean(log && log[0]);
@@ -1487,7 +1487,7 @@ var proposal = {
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
-                            dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred")
+                            dbconfig.collection_proposal.find(queryObj)// .read("secondaryPreferred")
                                 .populate({path: 'type', model: dbconfig.collection_proposalType})
                                 .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
@@ -3634,7 +3634,54 @@ var proposal = {
                 }
             }
         )
+    },
+
+    getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate) => {
+        return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
+            (onlineTopupType) => {
+                if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+                let proms = [];
+                for(let i =1; i<=3; i++) {
+                    let groupByObj = {
+                        _id: "$data.topupType",
+                        userIds: { $addToSet: "$data.playerObjId" },
+                        amount: {$sum: "$data.amount"},
+                        count: {$sum: 1},
+
+                    };
+                    let successProm = dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                type: onlineTopupType._id,
+                                status:"Success",
+                                "data.userAgent": i
+                            }
+                        }, {
+                            $group: groupByObj
+                        }
+                    );
+
+                    let unsuccessProm = dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                type: onlineTopupType._id,
+                                status:{$ne: "Success"},
+                                "data.userAgent": i
+                            }
+                        }, {
+                            $group: groupByObj
+                        }
+                    );
+
+                    proms.push(Q.all([successProm, unsuccessProm]));
+                }
+                return Q.all(proms);
+            }
+        )
     }
+
 };
 
 /*

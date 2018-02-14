@@ -23,6 +23,11 @@
             div
                 label {{"End date"|translate}}
                 .endTime
+            div(ng-if='vm.showPageName == "PLAYER_EXPENSES"')
+                label {{'Game Type' | translate}}
+                select.form-control(ng-model='vm.queryPara.playerCredit.filterGameProvider')
+                    option(value='all') {{'ALL' | translate}}
+                    option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name}}
             //div
             //    label {{"Start date"|translate}}
             //    input.form-control(type='date', ng-model='vm.queryPara.playerCredit.startTime')
@@ -31,14 +36,41 @@
             //    input.form-control(type='date', ng-model='vm.queryPara.playerCredit.endTime')
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.drawPlayerCreditLine(vm.showPageName)') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.showPageName == "PLAYER_TOPUP"' ng-click='vm.drawPlayerCreditLine(); vm.drawPlayerCreditCountLine();') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.showPageName == "PLAYER_EXPENSES"' ng-click='vm.plotPlayerCreditLine(vm.showPageName)') {{'SEARCH' | translate}}
         .row
             .col-md-6
                 .graph
                     .panel.panel-default
-                        #line-playerCredit.lineChart.graphDiv
+                        #line-playerCredit.lineChart.graphDiv(style='height:600px')
             .col-md-6
                 .graph
-                    table#playerCreditAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table#playerCreditAnalysisTable.display.tableDiv(style='min-width:100%' ng-if='vm.showPageName == "PLAYER_TOPUP"')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%' ng-if='vm.showPageName == "PLAYER_EXPENSES"')
+                        thead
+                            tr
+                                th(ng-click='vm.platformConsumptionAnalysisSort.consumptionSort = vm.platformConsumptionAnalysisSort.consumptionSort == "date" ? "-date":"date"') {{ vm.platformConsumptionDataPeriodText | translate}}
+                                th(ng-click='vm.platformConsumptionAnalysisSort.consumptionSort = vm.platformConsumptionAnalysisSort.consumptionSort == "consumptions" ? "-consumptions":"consumptions"') {{ "amount" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformConsumptionAnalysisAmount | orderBy: vm.platformConsumptionAnalysisSort.consumptionSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.consumptions }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformConsumptionAmountAverage }}
+
+    #playerCreditCountAnalysis(ng-if='vm.showPageName == "PLAYER_TOPUP"')
+        .row
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-playerCreditCount.lineChart.graphDiv(style='height: 600px;')
+            .col-md-6
+                .graph
+                    table#playerCreditCountAnalysisTable.display.tableDiv(style='min-width:100%')
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")
