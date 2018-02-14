@@ -2186,7 +2186,10 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
     managingDataList: function(dataList, addList, removeList){
-        let result = dataList;
+        let result = [];
+        dataList.forEach(d=>{
+            result.push(String(d));
+        })
         console.log('dataList',dataList);
         console.log('addList',addList);
         let finalResult = [];
@@ -2198,39 +2201,13 @@ let dbPlayerInfo = {
         })
         console.log(result);
         console.log(removeList);
-        // result = result.filter(uItem=>{
-        //     if(removeList.indexOf(uItem)!=-1){
-        //         console.log(uItem);
-        //         console.log(removeList.indexOf(uItem));
-        //         console.log('this not exist in removeList');
-        //         console.log('------------')
-        //         return uItem;
-        //     }else{
-        //         console.log(uItem);
-        //         console.log(removeList.indexOf(uItem));
-        //         console.log('this exist, need to be remove');
-        //         console.log('------------')
-        //     }
-        // })
         result = result.filter(rItem=>{
             // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
             let currentItem = String(rItem);
             if(removeList.length == 0){
                 finalResult.push(currentItem);
             }else if(removeList.indexOf(currentItem)==-1){
-                console.log(removeList.indexOf(currentItem));
                 finalResult.push(currentItem);
-                console.log(currentItem);
-                console.log(typeof currentItem);
-                console.log('not exist');
-                console.log('-----------------------------');
-
-            }else{
-                console.log(removeList.indexOf(currentItem));
-                console.log(currentItem);
-                console.log(typeof currentItem);
-                console.log(' this is exist');
-                console.log('-----------------------------');
             }
         })
         return finalResult;
@@ -11963,31 +11940,43 @@ let dbPlayerInfo = {
     },
 
     updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
+            console.log(remarks);
 
-        let proms = [];
-        playerNames.forEach(playerName=>{
+            let addList = remarks.addList;
+            let removeList = remarks.removeList;
+            let updateData = {};
+            let proms = [];
 
-            let prom = dbconfig.collection_players.findOne(data=>{
-                return 
-
-            });
-            dbUtility.findOneAndUpdateForShard(
-                dbconfig.collection_players,
-                {
-                    name: playerName,
-                    platform: platformObjId
-                },
-                {
-                    credibilityRemarks: remarks
-                },
-                 constShardKeys.collection_players
-            ).then(
-                playerData => {
-                    let playerObjId = playerData._id;
-                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
-                    return playerData;
+            playerNames.forEach(playerName=>{
+            let prom = dbconfig.collection_players.findOne({ name: playerName, platform: platformObjId })
+            .then(data=>{
+                let playerCredibilityRemarks = data.credibilityRemarks.filter(item=>{
+                    return item!= "undefined"
+                })
+                if(playerCredibilityRemarks){
+                    updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
                 }
-            );
+                console.log(updateData);
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: playerName, platform: platformObjId }, updateData, constShardKeys.collection_players);
+                // return data
+            });
+            // dbUtility.findOneAndUpdateForShard(
+            //     dbconfig.collection_players,
+            //     {
+            //         name: playerName,
+            //         platform: platformObjId
+            //     },
+            //     {
+            //         credibilityRemarks: remarks
+            //     },
+            //      constShardKeys.collection_players
+            // ).then(
+            //     playerData => {
+            //         let playerObjId = playerData._id;
+            //         dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+            //         return playerData;
+            //     }
+            // );
             proms.push(prom);
         })
         return Promise.all(proms);
