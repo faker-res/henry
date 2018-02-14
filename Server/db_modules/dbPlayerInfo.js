@@ -7968,7 +7968,7 @@ let dbPlayerInfo = {
                                 count: {$sum: 1},
                             }
                         }
-                        ).read("secondaryPreferred").then(
+                        ).then(
                         data => {
                             return {
                                 date: startTime,
