@@ -3655,7 +3655,8 @@ var proposal = {
                             $match: {
                                 createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                                 type: onlineTopupType._id,
-                                "data.userAgent": i
+                                "data.userAgent": i,
+                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}],
                             }
                         }, {
                             $group: groupByObj
@@ -3668,7 +3669,8 @@ var proposal = {
                                         createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                                         type: onlineTopupType._id,
                                         status: "Success",
-                                        "data.userAgent": i
+                                        "data.userAgent": i,
+                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}],
                                     }
                                 }, {
                                     $group: {
@@ -3682,7 +3684,7 @@ var proposal = {
                                         a.successUserIds = [];
                                         data1.forEach(
                                             b => {
-                                                if(a._id == b._id)
+                                                if(a._id === b._id)
                                                     a.successUserIds = b.userIds;
                                             }
                                         );
