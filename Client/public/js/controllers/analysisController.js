@@ -252,16 +252,16 @@ define(['js/app'], function (myApp) {
                             //vm.drawPlayerTopUp('TOPUPMANUAL');
                         });
                         break;
-                    case "TOPUPALIPAY":
+                    case "PlayerAlipayTopUp":
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
-                            //vm.drawPlayerTopUp('TOPUPALIPAY');
+                            //vm.drawPlayerTopUp('PlayerAlipayTopUp');
                         });
                         break;
-                    case "TOPUPWECHAT":
+                    case "PlayerWechatTopUp":
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
-                            //vm.drawPlayerTopUp('TOPUPWECHAT');
+                           // vm.drawPlayerTopUp('PlayerWechatTopUp');
                         });
                         break;
                 }
@@ -2761,11 +2761,11 @@ define(['js/app'], function (myApp) {
                 opt = 'MANUAL';
                 vm.queryPara.topUp.amountTag = 'TOPUPMANUAL_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPMANUAL_COUNT';
-            } else if (type == 'TOPUPALIPAY') {
+            } else if (type == 'PlayerAlipayTopUp') {
                 opt = 'ALIPAY';
                 vm.queryPara.topUp.amountTag = 'TOPUPALIPAY_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPALIPAY_COUNT';
-            } else if (type == 'TOPUPWECHAT'){
+            } else if (type == 'PlayerWechatTopUp'){
                 opt = 'WECHAT';
                 vm.queryPara.topUp.amountTag = 'TOPUPWECHAT_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPWECHAT_COUNT';
