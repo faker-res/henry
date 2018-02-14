@@ -1630,7 +1630,7 @@ let dbPlayerInfo = {
             }
         );
     },
-    updateBatchPlayerPermission: function(query, admin, permission, remark){
+    updateBatchPlayerPermission: function (query, admin, permission, remark) {
 
         var updateObj = {};
 
@@ -1640,8 +1640,8 @@ let dbPlayerInfo = {
         let players = query.playerNames;
         let proms = [];
         players.forEach(item => {
-            let playerQuery = { 'name' : item, 'platform': query.platformObjId };
-            let prom =  dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
+            let playerQuery = {'name': item, 'platform': query.platformObjId};
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
                 function (suc) {
                     var oldData = {};
                     for (var i in permission) {
@@ -1652,15 +1652,15 @@ let dbPlayerInfo = {
                         }
                     }
                     if (Object.keys(oldData).length !== 0) {
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: playerQuery.platform,
-                        player: suc._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
+                        var newLog = new dbconfig.collection_playerPermissionLog({
+                            admin: admin,
+                            platform: playerQuery.platform,
+                            player: suc._id,
+                            remark: remark,
+                            oldData: oldData,
+                            newData: permission,
+                        });
+                        return newLog.save();
                     } else return true;
                 },
                 function (error) {
@@ -2100,7 +2100,10 @@ let dbPlayerInfo = {
         let playerNames = query.playerNames;
         let updateData = {forbidTopUpType: forbidTopUpTypes}
         playerNames.forEach(name => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform: query.platformObjId }, updateData, constShardKeys.collection_players);
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                name: name,
+                platform: query.platformObjId
+            }, updateData, constShardKeys.collection_players);
             proms.push(prom)
         });
 
@@ -2146,8 +2149,11 @@ let dbPlayerInfo = {
         }
         let proms = [];
 
-        playerNames.forEach(player=>{
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
+        playerNames.forEach(player => {
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                'name': player,
+                'platform': platformObjId
+            }, updateData, constShardKeys.collection_players);
             proms.push(prom);
         });
 
@@ -2169,8 +2175,11 @@ let dbPlayerInfo = {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
         let proms = [];
-        playerNames.forEach(name=>{
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
+        playerNames.forEach(name => {
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                'name': name,
+                'platform': platformObjId
+            }, updateData, constShardKeys.collection_players);
             proms.push(prom);
         });
         return Promise.all(proms);
@@ -2190,8 +2199,11 @@ let dbPlayerInfo = {
         if (forbidRewardPointsEvent) {
             updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
         }
-        playerNames.forEach(name=>{
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform:platformObjId }, updateData, constShardKeys.collection_players);
+        playerNames.forEach(name => {
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                name: name,
+                platform: platformObjId
+            }, updateData, constShardKeys.collection_players);
             proms.push(prom);
         })
         return Promise.all(proms);
@@ -3901,7 +3913,7 @@ let dbPlayerInfo = {
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : '',
+                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
@@ -5868,7 +5880,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode, platformId) {
+    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode, platformId, status) {
         var queryProm = null;
         var playerName = '';
         var queryObject = {
@@ -5883,6 +5895,15 @@ let dbPlayerInfo = {
         }
         if (startTime && endTime) {
             queryObject.createTime = {$gte: new Date(startTime), $lt: new Date(endTime)};
+        }
+
+        if (status) {
+            queryObject.status = status;
+            if (status == constProposalStatus.APPROVED) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            } else if (status == constProposalStatus.SUCCESS) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            }
         }
 
         return dbconfig.collection_players.findOne({playerId: playerId}).catch(
@@ -7663,6 +7684,18 @@ let dbPlayerInfo = {
         }
         return dbconfig.collection_providerDaySummary.find(query);
     },
+    getTopUpByPlatform: function (platformId, startDate, endDate, type) {
+        var queryObj = {
+            topUpType: constPlayerTopUpType[type],
+            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
+        };
+
+        if (platformId != 'all') {
+            queryObj.platformId = ObjectId(platformId);
+        }
+
+        return dbconfig.collection_playerTopUpRecord.find(queryObj);
+    },
     countTopUpByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
         var calculation = {$sum: "$amount"};
@@ -7808,12 +7841,12 @@ let dbPlayerInfo = {
                 let activePlayerConsumptionTimes;
                 let activePlayerConsumptionAmount;
                 let activePlayerValue;
-                let topupCollectionName = 'collection_playerTopUpWeekSummary';
-                let consumptionCollectionName = 'collection_playerConsumptionWeekSummary';
+                let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
+                let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
                 switch (period) {
                     case 'day':
-                        topupCollectionName = 'collection_playerTopUpDaySummary';
-                        consumptionCollectionName = 'collection_playerConsumptionDaySummary';
+                        // topupCollectionName = 'collection_playerTopUpDaySummary';
+                        // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
@@ -7873,7 +7906,7 @@ let dbPlayerInfo = {
                                         "times": {"$sum": '$times'}
                                     }
                                 }
-                            ]).read("secondaryPreferred").cursor({batchSize: constSystemParam.BATCH_SIZE}).allowDiskUse(true).exec();
+                            ]).read("secondaryPreferred").cursor({batchSize: 10000}).allowDiskUse(true).exec();
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
                                 return balancer.processStream(
@@ -7914,7 +7947,8 @@ let dbPlayerInfo = {
         );
     },
 
-    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, merchantTopupTypeId) => {
+
+    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, merchantTopupTypeId, userAgent) => {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
@@ -7926,6 +7960,7 @@ let dbPlayerInfo = {
                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                         type: onlineTopupType._id,
                         "data.topupType": merchantTopupTypeId,
+                        "data.userAgent": parseFloat(userAgent),
                     };
                     proms.push(dbconfig.collection_proposal.aggregate(
                         {
@@ -7933,22 +7968,41 @@ let dbPlayerInfo = {
                         }, {
                             $group: {
                                 _id: "$data.topupType",
-                                userIds: { $addToSet: "$data.playerObjId" },
-                                receivedAmount: {$sum: {$cond: [{ $eq: [ "$status", 'Success'] }, '$data.amount', 0]}},
-                                successCount: {$sum: {$cond: [{ $eq: [ "$status", 'Success'] }, 1, 0]}},
+                                userIds: {$addToSet: "$data.playerObjId"},
+                                receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
                                 count: {$sum: 1},
                             }
                         }
-                    ).read("secondaryPreferred").then(
+                        ).then(
                         data => {
-                            return {
-                                date: startTime,
-                                userCount: data && data[0] ? data[0].userIds.length : 0,
-                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
-                                successCount: data && data[0] ? data[0].successCount : 0,
-                                totalCount: data && data[0] ? data[0].count : 0,
-
-                            }
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: {
+                                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                        type: onlineTopupType._id,
+                                        status: "Success",
+                                        "data.topupType": merchantTopupTypeId,
+                                        "data.userAgent": parseFloat(userAgent),
+                                    }
+                                }, {
+                                    $group: {
+                                        _id: "$data.topupType",
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).then(
+                                data1 => {
+                                    return {
+                                        date: startTime,
+                                        userCount: data && data[0] ? data[0].userIds.length : 0,
+                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                        successCount: data && data[0] ? data[0].successCount : 0,
+                                        totalCount: data && data[0] ? data[0].count : 0,
+                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
+                                    }
+                                }
+                            );
                         })
                     );
                     startDate = dayEndTime;
@@ -11796,16 +11850,22 @@ let dbPlayerInfo = {
                         let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
 
                         return dbconfig.collection_playerMail.find(
-                            {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false, createTime: {$gte: startDate, $lt: endDate} }
+                            {
+                                recipientId: playerData._id,
+                                recipientType: "player",
+                                hasBeenRead: false,
+                                bDelete: false,
+                                createTime: {$gte: startDate, $lt: endDate}
+                            }
                         ).lean();
                     }
                     else {
                         return dbconfig.collection_playerMail.find(
-                            {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false }
+                            {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
                         ).lean();
                     }
                 }
-                else{
+                else {
                     return Q.reject({name: "DBError", message: "Invalid platform data"});
 
                 }
@@ -11871,7 +11931,7 @@ let dbPlayerInfo = {
     updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
 
         let proms = [];
-        playerNames.forEach(playerName=>{
+        playerNames.forEach(playerName => {
 
             let prom = dbUtility.findOneAndUpdateForShard(
                 dbconfig.collection_players,
@@ -11882,7 +11942,7 @@ let dbPlayerInfo = {
                 {
                     credibilityRemarks: remarks
                 },
-                 constShardKeys.collection_players
+                constShardKeys.collection_players
             ).then(
                 playerData => {
                     let playerObjId = playerData._id;

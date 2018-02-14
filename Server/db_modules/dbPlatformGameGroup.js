@@ -195,14 +195,14 @@ var dbPlatformGameGroup = {
                 let gameInfo = gameData;
                 return dbconfig.collection_players.findOne({playerId: playerId, platform: platformObjId}).lean().then(
                     playerData => {
-                        if (playerData && playerData.permission && playerData.permission.forbidPlayerFromEnteringGame) {
+                        if (playerData) {
                             let strProviderObjId;
                             let strForbidProviders;
 
                             if (providerObjId) {
                                 strProviderObjId = providerObjId.toString();
                             }
-                            if (playerData && playerData.forbidProviders) {
+                            if (playerData.forbidProviders) {
                                 strForbidProviders = playerData.forbidProviders.toString();
                             }
                             if (playerData && playerData.permission && (playerData.permission.forbidPlayerFromEnteringGame)) {
@@ -215,42 +215,42 @@ var dbPlatformGameGroup = {
                         }
                         return gameInfo;
                     }
-                ).then(
-                    games => {
-                        gameGroup.games = {
-                            stats: gameGroup.stats,
-                            gameList: games
-                        };
-                        delete gameGroup.stats;
-                        //get providerid for games
-                        var gameObjIds = gameGroup.games.gameList.map(game => game.game._id);
-                        return dbconfig.collection_game.find({_id: {$in: gameObjIds}}).populate({
-                            path: "provider",
-                            model: dbconfig.collection_gameProvider
-                        }).lean().then(
-                            gameData => {
-                                if (gameData && gameData.length > 0) {
-                                    var gameProviderMap = {};
-                                    gameData.forEach(
-                                        game => {
-                                            if (game.provider) {
-                                                gameProviderMap[String(game.provider._id)] = game.provider.providerId;
-                                            }
-                                        }
-                                    );
-                                    gameGroup.games.gameList.forEach(
-                                        game => {
-                                            game.game.provider = gameProviderMap[String(game.game.provider)] || game.game.provider;
-                                        }
-                                    )
+                )
+            }
+        ).then(
+            games => {
+                gameGroup.games = {
+                    stats: gameGroup.stats,
+                    gameList: games
+                };
+                delete gameGroup.stats;
+                //get providerid for games
+                var gameObjIds = gameGroup.games.gameList.map(game => game.game._id);
+                return dbconfig.collection_game.find({_id: {$in: gameObjIds}}).populate({
+                    path: "provider",
+                    model: dbconfig.collection_gameProvider
+                }).lean().then(
+                    gameData => {
+                        if (gameData && gameData.length > 0) {
+                            var gameProviderMap = {};
+                            gameData.forEach(
+                                game => {
+                                    if (game.provider) {
+                                        gameProviderMap[String(game.provider._id)] = game.provider.providerId;
+                                    }
                                 }
-                                return gameGroup;
-                            }
-                        );
+                            );
+                            gameGroup.games.gameList.forEach(
+                                game => {
+                                    game.game.provider = gameProviderMap[String(game.game.provider)] || game.game.provider;
+                                }
+                            )
+                        }
+                        return gameGroup;
                     }
                 );
             }
-        )
+        );
     },
 
     /**

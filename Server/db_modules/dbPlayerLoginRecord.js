@@ -433,7 +433,12 @@ var dbPlayerLoginRecord = {
         //     matchObj.clientType = data.clientType
         // }
         if (data.accessType) {
-            matchObj.accessType = data.accessType
+            matchObj.accessType = { $regex : new RegExp(data.accessType, "i") }
+        }
+        else{
+            matchObj.$or = [];
+            matchObj.$or.push({"accessType": { $regex : /register/i }});
+            matchObj.$or.push({"accessType": { $regex : /login/i }});
         }
 
         let count = dbconfig.collection_playerClientSourceLog.aggregate([
@@ -458,7 +463,7 @@ var dbPlayerLoginRecord = {
                         data.map(d => {
                             if(d){
                                 if(d.count){
-                                    d.ratio = ((d.count / totalCount) * 100).toFixed(2);
+                                    d.ratio = ((d.count / totalCount) * 100).toFixed(0) + "%";
                                 }
                             }
 

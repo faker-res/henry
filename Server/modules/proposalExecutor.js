@@ -2076,7 +2076,7 @@ var proposalExecutor = {
                     };
 
                     // Target providers or providerGroup
-                    if (proposalData.data.providerGroup) {
+                    if (proposalData.data.providerGroup && proposalData.data.providerGroup.length > 0) {
                         taskData.providerGroup = proposalData.data.providerGroup;
 
                         // Lock apply amount to reward if type-C promo code

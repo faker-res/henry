@@ -3640,37 +3640,63 @@ var proposal = {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
-                let groupByObj = {
-                    _id: "$data.topupType",
-                    userIds: { $addToSet: "$data.playerObjId" },
-                    amount: {$sum: "$data.amount"},
-                    count: {$sum: 1},
-                };
-                let successProm = dbconfig.collection_proposal.aggregate(
-                    {
-                        $match: {
-                            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                            type: onlineTopupType._id,
-                            status:"Success"
-                        }
-                    }, {
-                        $group: groupByObj
-                    }
-                ).read("secondaryPreferred");
+                let proms = [];
+                for(let i =1; i<=3; i++) {
+                    let groupByObj = {
+                        _id: "$data.topupType",
+                        userIds: { $addToSet: "$data.playerObjId" },
+                        amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                        count: {$sum: 1},
+                        successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
 
-                let unsuccessProm = dbconfig.collection_proposal.aggregate(
-                    {
-                        $match: {
-                            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                            type: onlineTopupType._id,
-                            status:{$ne: "Success"}
+                    };
+                    let prom = dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                type: onlineTopupType._id,
+                                "data.userAgent": i
+                            }
+                        }, {
+                            $group: groupByObj
                         }
-                    }, {
-                        $group: groupByObj
-                    }
-                ).read("secondaryPreferred");
+                    ).then(
+                        data => {
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: {
+                                        createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                        type: onlineTopupType._id,
+                                        status: "Success",
+                                        "data.userAgent": i
+                                    }
+                                }, {
+                                    $group: {
+                                        _id: "$data.topupType",
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).then(
+                                data1 => {
+                                    return data.map(a => {
+                                        a.successUserIds = [];
+                                        data1.forEach(
+                                            b => {
+                                                if(a._id == b._id)
+                                                    a.successUserIds = b.userIds;
+                                            }
+                                        );
+                                        return a;
+                                    })
 
-                return Q.all([successProm, unsuccessProm]);
+                                }
+                            )
+                        }
+                    );
+
+                    proms.push(prom);
+                }
+                return Q.all(proms);
             }
         )
     }
