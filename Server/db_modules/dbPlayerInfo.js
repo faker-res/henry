@@ -3913,7 +3913,7 @@ let dbPlayerInfo = {
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : '',
+                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
@@ -7959,7 +7959,7 @@ let dbPlayerInfo = {
                     let queryObj = {
                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                         type: onlineTopupType._id,
-                        "data.topupType": merchantTopupTypeId,
+                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType': merchantTopupTypeId}],
                         "data.userAgent": parseFloat(userAgent),
                     };
                     proms.push(dbconfig.collection_proposal.aggregate(
@@ -7974,16 +7974,35 @@ let dbPlayerInfo = {
                                 count: {$sum: 1},
                             }
                         }
-                        ).read("secondaryPreferred").then(
+                        ).then(
                         data => {
-                            return {
-                                date: startTime,
-                                userCount: data && data[0] ? data[0].userIds.length : 0,
-                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
-                                successCount: data && data[0] ? data[0].successCount : 0,
-                                totalCount: data && data[0] ? data[0].count : 0,
-
-                            }
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: {
+                                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                        type: onlineTopupType._id,
+                                        status: "Success",
+                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType': merchantTopupTypeId}],
+                                        "data.userAgent": parseFloat(userAgent),
+                                    }
+                                }, {
+                                    $group: {
+                                        _id: "$data.topupType",
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).then(
+                                data1 => {
+                                    return {
+                                        date: startTime,
+                                        userCount: data && data[0] ? data[0].userIds.length : 0,
+                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                        successCount: data && data[0] ? data[0].successCount : 0,
+                                        totalCount: data && data[0] ? data[0].count : 0,
+                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
+                                    }
+                                }
+                            );
                         })
                     );
                     startDate = dayEndTime;

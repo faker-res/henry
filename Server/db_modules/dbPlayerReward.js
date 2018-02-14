@@ -4344,7 +4344,7 @@ let dbPlayerReward = {
                             isUpdateTopupRecord = true;
 
                             // Set player valid credit update flag
-                            if (eventData.condition.providerGroup && eventData.condition.isDynamicRewardAmount) {
+                            if (/*eventData.condition.providerGroup &&*/ eventData.condition.isDynamicRewardAmount) {
                                 isUpdateValidCredit = true;
                             }
                         }
