@@ -1206,6 +1206,8 @@
   "PENDING": "Pending",
   "CANCELLED": "Cancelled",
   "BACKSTAGE": "Backstage",
-  "dailyMaxRewardPoint": "Daily Max Reward Point"
+  "dailyMaxRewardPoint": "Daily Max Reward Point",
+  "PlayerAlipayTopUp": "Player Alipay Topup",
+  "Credit_Amount": "Credit Amount"
 
 }
