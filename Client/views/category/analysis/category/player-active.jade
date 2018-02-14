@@ -33,7 +33,7 @@
             //    input.form-control(type='date', ng-model='vm.queryPara.activePlayer.endTime')
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.plotActivePlayerLine()') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.plotActivePlayerLine()' ng-disabled='vm.isLoadingctivePlayer') {{'SEARCH' | translate}}
         .row
             .col-md-6
                 .graph
