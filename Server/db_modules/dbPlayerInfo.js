@@ -2098,9 +2098,21 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
         let proms = [];
         let playerNames = query.playerNames;
-        let updateData = {forbidTopUpType: forbidTopUpTypes}
+        let addList = forbidTopUpTypes.addList;
+        let removeList = forbidTopUpTypes.removeList;
+        let updateData = {};
+
         playerNames.forEach(name => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform: query.platformObjId }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({ name: name, platform: query.platformObjId })
+            .then(data=>{
+                let playerForbidTopupType = data.forbidTopUpType.filter(item=>{
+                    return item!= "undefined"
+                })
+                if(playerForbidTopupType){
+                    updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
+                }
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform: query.platformObjId }, updateData, constShardKeys.collection_players);
+            });
             proms.push(prom)
         });
 
@@ -2141,16 +2153,28 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidProviders: function (platformObjId, playerNames, forbidProviders) {
 
         let updateData = {};
-        if (forbidProviders) {
-            updateData.forbidProviders = forbidProviders;
-        }
+        let addList = forbidProviders.addList;
+        let removeList = forbidProviders.removeList;
+        console.log(forbidProviders);
+        // if (forbidProviders) {
+        //     updateData.forbidProviders = forbidProviders;
+        // }
         let proms = [];
 
         playerNames.forEach(player=>{
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
-            proms.push(prom);
+            // let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({ name: player, platform: platformObjId })
+            .then(data=>{
+                console.log(data.forbidProviders);
+                let playerForbidProviders = data.forbidProviders;
+                if(playerForbidProviders){
+                    updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
+                }
+                console.log(updateData);
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
+            });
+            proms.push(prom)
         });
-
         return Promise.all(proms);
     },
 
@@ -2163,26 +2187,59 @@ let dbPlayerInfo = {
     },
     managingDataList: function(dataList, addList, removeList){
         let result = dataList;
+        console.log('dataList',dataList);
+        console.log('addList',addList);
+        let finalResult = [];
         addList.forEach(item=>{
+            console.log(result.indexOf(item));
             if(result.indexOf(item)==-1){
                 result.push(item);
             }
         })
-        result.filter(item=>{
-            if(removeList.includes(item)==false){
-                return item;
-            };
+        console.log(result);
+        console.log(removeList);
+        // result = result.filter(uItem=>{
+        //     if(removeList.indexOf(uItem)!=-1){
+        //         console.log(uItem);
+        //         console.log(removeList.indexOf(uItem));
+        //         console.log('this not exist in removeList');
+        //         console.log('------------')
+        //         return uItem;
+        //     }else{
+        //         console.log(uItem);
+        //         console.log(removeList.indexOf(uItem));
+        //         console.log('this exist, need to be remove');
+        //         console.log('------------')
+        //     }
+        // })
+        result = result.filter(rItem=>{
+            // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
+            let currentItem = String(rItem);
+            if(removeList.length == 0){
+                finalResult.push(currentItem);
+            }else if(removeList.indexOf(currentItem)==-1){
+                console.log(removeList.indexOf(currentItem));
+                finalResult.push(currentItem);
+                console.log(currentItem);
+                console.log(typeof currentItem);
+                console.log('not exist');
+                console.log('-----------------------------');
+
+            }else{
+                console.log(removeList.indexOf(currentItem));
+                console.log(currentItem);
+                console.log(typeof currentItem);
+                console.log(' this is exist');
+                console.log('-----------------------------');
+            }
         })
-        return result;
+        return finalResult;
     },
     updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
         let updateData = {};
         let result = [];
         let addList = forbidRewardEvents.addList;
         let removeList = forbidRewardEvents.removeList;
-        // if (forbidRewardEvents) {
-        //     updateData.forbidRewardEvents = forbidRewardEvents;
-        // }
         let proms = [];
         playerNames.forEach(name=>{
             let prom = dbconfig.collection_players.findOne({'name': name, 'platform':platformObjId})
@@ -2210,11 +2267,20 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidRewardPointsEvent: function (playerNames, platformObjId, forbidRewardPointsEvent) {
         let proms = [];
         let updateData = {};
-        if (forbidRewardPointsEvent) {
-            updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
-        }
+        let addList = forbidRewardPointsEvent.addList;
+        let removeList = forbidRewardPointsEvent.removeList;
+        // if (forbidRewardPointsEvent) {
+        //     updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
+        // }
         playerNames.forEach(name=>{
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform:platformObjId }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({ name: name, platform:platformObjId })
+            .then(data=>{
+                let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent;
+                if(playerForbidRewardPointsEvent){
+                    updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
+                }
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform:platformObjId }, updateData, constShardKeys.collection_players);
+            })
             proms.push(prom);
         })
         return Promise.all(proms);

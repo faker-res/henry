@@ -23270,6 +23270,9 @@ define(['js/app'], function (myApp) {
                 vm.prepareCredibilityConfig();
                 vm.resetBatchEditData();
                 // init edit data
+                vm.forbidCredibilityAddList = [];
+                vm.forbidCredibilityRemoveList = [];
+
                 vm.forbidRewardEventAddList = [];
                 vm.forbidRewardEventRemoveList = [];
 
@@ -24049,23 +24052,25 @@ define(['js/app'], function (myApp) {
             vm.forbidModification = function(id, val, addList, removeList){
                 if(val===true){
                     if(vm[addList].indexOf(id)==-1){
-                        vm[addList].push(id);
+                        vm[addList].push(String(id));
                     }
-                    vm[removeList].filter(item=>{
-                        if(vm[removeList].includes(item)==false){
+                    vm[removeList] = vm[removeList].filter(item=>{
+                        if(item != id){
                             return item;
                         }
-                    })
+                    });
                 }else{
                     if(vm[removeList].indexOf(id==-1)){
-                        vm[removeList].push(id);
+                        vm[removeList].push(String(id));
                     }
-                    vm[addList].filter(item=>{
-                        if(vm[addList].includes(item)==false){
+                    vm[addList] = vm[addList].filter(item=>{
+                        if(item != id){
                             return item;
                         }
                     })
                 }
+                // add to record which is selected to edit
+                $('#c-'+id).html($translate("ModifyIt"));
                 console.log(vm[addList]);
                 console.log(vm[removeList]);
             }
