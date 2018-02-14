@@ -23301,7 +23301,10 @@ define(['js/app'], function (myApp) {
                     admin: authService.adminName,
                     platformObjId: vm.selectedPlatform.id,
                     playerNames: playerNames,
-                    remarks: selectedRemarks,
+                    remarks: {
+                        'addList': vm.forbidCredibilityAddList,
+                        'removeList': vm.forbidCredibilityRemoveList
+                    },
                     comment: vm.credibilityRemarkComment
                 };
 

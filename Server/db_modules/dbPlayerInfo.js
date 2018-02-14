@@ -11967,7 +11967,11 @@ let dbPlayerInfo = {
         let proms = [];
         playerNames.forEach(playerName=>{
 
-            let prom = dbUtility.findOneAndUpdateForShard(
+            let prom = dbconfig.collection_players.findOne(data=>{
+                return 
+
+            });
+            dbUtility.findOneAndUpdateForShard(
                 dbconfig.collection_players,
                 {
                     name: playerName,
