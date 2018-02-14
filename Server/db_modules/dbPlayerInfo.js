@@ -7970,14 +7970,33 @@ let dbPlayerInfo = {
                         }
                         ).then(
                         data => {
-                            return {
-                                date: startTime,
-                                userCount: data && data[0] ? data[0].userIds.length : 0,
-                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
-                                successCount: data && data[0] ? data[0].successCount : 0,
-                                totalCount: data && data[0] ? data[0].count : 0,
-
-                            }
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: {
+                                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                        type: onlineTopupType._id,
+                                        status: "Success",
+                                        "data.topupType": merchantTopupTypeId,
+                                        "data.userAgent": parseFloat(userAgent),
+                                    }
+                                }, {
+                                    $group: {
+                                        _id: "$data.topupType",
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).then(
+                                data1 => {
+                                    return {
+                                        date: startTime,
+                                        userCount: data && data[0] ? data[0].userIds.length : 0,
+                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                        successCount: data && data[0] ? data[0].successCount : 0,
+                                        totalCount: data && data[0] ? data[0].count : 0,
+                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
+                                    }
+                                }
+                            );
                         })
                     );
                     startDate = dayEndTime;
