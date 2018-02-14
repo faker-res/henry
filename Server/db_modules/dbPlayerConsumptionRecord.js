@@ -1947,45 +1947,78 @@ var dbPlayerConsumptionRecord = {
             }
         })
     },
-    getProviderLatestTimeRecord: function (providerId, platformObjId) {
-        let platform;
+    getProviderLatestTimeRecord: function (providerIdArr, platformObjId) {
+        let platformData;
+        let proms = [];
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+            platformDetail => {
+                if(platformDetail && platformDetail.gameProviders){
+                    platformData = platformDetail;
 
-        let gameProviderProm = dbconfig.collection_gameProvider.findOne({providerId: providerId}).lean();
-        let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
-
-        return Promise.all([gameProviderProm, platformProm]).then(
-            data => {
-                let gameProviderData = data[0];
-                platform = data[1];
-                return dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProviderData._id}).sort({createTime: -1}).limit(1).lean();
+                    return dbconfig.collection_gameProvider.find({_id: {$in: platformDetail.gameProviders}});
+                }
             }
         ).then(
-            lastestConsumptionRecord => {
-                if (!lastestConsumptionRecord) return
+            gameProviderDetail => {
+                if(gameProviderDetail && gameProviderDetail.length > 0){
+                    gameProviderDetail.map(gameProvider => {
+                        if(gameProvider){
+                            let playerConsumptionRecordData = dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProvider._id}).sort({createTime: -1}).limit(1).lean().then(
+                                playerConsumption => {
+                                    if(playerConsumption){
+                                        return {gameProviderName: gameProvider.name || "", data: playerConsumption};
+                                    }else{
+                                        return {gameProviderName: gameProvider.name || "", data: null};
+                                    }
+                                }
+                            )
 
-                var currentDate = new Date();
-                var latestCreateTime = new Date(lastestConsumptionRecord.createTime);
-                var difference = currentDate - latestCreateTime;
-                var resultInMinutes = Math.round(difference / 60000);
-                var recordStatus = {createTime: latestCreateTime, delayStatusColor: "rgb(255,255,255)"};
-
-                if (platform) {
-                    let consumptionTimeConfig = platform.consumptionTimeConfig;
-                    if (consumptionTimeConfig && consumptionTimeConfig.length > 0) {
-                        consumptionTimeConfig = consumptionTimeConfig.sort(function (configA, configB) {
-                            return configA.duration - configB.duration;
-                        });
-
-                        for (let i = 0; i < consumptionTimeConfig.length; i++) {
-                            recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
-                            if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
+                            proms.push(playerConsumptionRecordData);
                         }
-                    }
-                }
+                    })
 
-                return recordStatus;
+                    return Promise.all(proms);
+                }
             }
-        );
+        ).then(
+            result => {
+                let resultArr = [];
+                if(result && result.length > 0){
+                    result.map(r => {
+                        if(r){
+                            var recordStatus = {gameProviderName: r.gameProviderName, createTime: "", delayStatusColor: "rgb(255,255,255)"};
+
+                            if(r.data){
+                                var currentDate = new Date();
+                                var latestCreateTime = r.data.createTime ? new Date(r.data.createTime) : new Date();
+                                var difference = currentDate.getTime() - latestCreateTime.getTime();
+                                var resultInMinutes = Number.isFinite(difference) ? Math.round(difference / 60000) : 0;
+
+                                recordStatus.createTime = latestCreateTime;
+
+                                if (platformData && platformData.consumptionTimeConfig) {
+                                    let consumptionTimeConfig = platformData.consumptionTimeConfig;
+                                    if (consumptionTimeConfig && consumptionTimeConfig.length > 0) {
+                                        consumptionTimeConfig = consumptionTimeConfig.sort(function (configA, configB) {
+                                            return configA.duration - configB.duration;
+                                        });
+
+                                        for (let i = 0; i < consumptionTimeConfig.length; i++) {
+                                            recordStatus.delayStatusColor = consumptionTimeConfig[i].color;
+                                            if (resultInMinutes <= consumptionTimeConfig[i].duration) break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            resultArr.push(recordStatus);
+                        }
+                    })
+
+                    return resultArr;
+                }
+            }
+        )
     },
     getConsumptionTotalAmountForProvider: function (startTime, endTime, providerId) {
         const matchObj = {

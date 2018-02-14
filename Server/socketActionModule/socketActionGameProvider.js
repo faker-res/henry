@@ -165,7 +165,7 @@ function socketActionGame(socketIO, socket) {
          */
         getProviderLatestTimeRecord: function getProviderLatestTimeRecord(data) {
             let actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getProviderLatestTimeRecord, [data.providerId,data.platformObjId], actionName);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getProviderLatestTimeRecord, [data.providerIdArr,data.platformObjId], actionName);
         },
 
         checkTransferInSequence: function checkTransferInSequence(data) {
