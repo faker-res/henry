@@ -242,6 +242,24 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('onlineTopupSuccessRate', 'day', 1);
                         vm.getOnlineToupSuccessRateData();
                         break;
+                    case "TOPUPMANUAL":
+                        vm.platformTopUpAnalysisSort = {};
+                        vm.initSearchParameter('topUp', 'day', 3, function () {
+                            vm.drawPlayerTopUp('TOPUPMANUAL');
+                        });
+                        break;
+                    case "TOPUPALIPAY":
+                        vm.platformTopUpAnalysisSort = {};
+                        vm.initSearchParameter('topUp', 'day', 3, function () {
+                            vm.drawPlayerTopUp('TOPUPALIPAY');
+                        });
+                        break;
+                    case "TOPUPWECHAT":
+                        vm.platformTopUpAnalysisSort = {};
+                        vm.initSearchParameter('topUp', 'day', 3, function () {
+                            vm.drawPlayerTopUp('TOPUPWECHAT');
+                        });
+                        break;
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
 
@@ -532,27 +550,29 @@ define(['js/app'], function (myApp) {
             vm.isShowLoadingSpinner('#onlineTopupSuccessRateAnalysis', true);
             socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisByPlatform', sendData, data => {
                 console.log('data.data', data.data);
-                vm.platformOnlineTopupAnalysisSuccessData = data.data[0];
-                vm.platformOnlineTopupAnalysisUnsuccessData = data.data[1];
-                vm.platformOnlineTopupAnalysisTotalUserCount =
-                    vm.platformOnlineTopupAnalysisSuccessData.reduce((a, data) => a + data.userIds.length ,0) +
-                    vm.platformOnlineTopupAnalysisUnsuccessData.reduce((a, data) => a + data.userIds.length ,0);
-                let totalSuccessCount = vm.platformOnlineTopupAnalysisSuccessData.reduce((a, data) => a + data.count ,0);
-                let totalUnsuccessCount = vm.platformOnlineTopupAnalysisUnsuccessData.reduce((a, data) => a + data.count ,0);
+                vm.platformOnlineTopupAnalysisData = data.data;
+                vm.platformOnlineTopupAnalysisTotalUserCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data.reduce((b, data1) => b + data1.reduce((c, data2) => c + data2.userIds.length, 0), 0),0);
+                let totalSuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.count, 0), 0);
+                let totalUnsuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[1].reduce((b, data1) => b + data1.count, 0), 0);
                 let totalCount = totalSuccessCount + totalUnsuccessCount;
                 vm.platformOnlineTopupAnalysisTotalData = {
                     totalCount: totalCount,
                     successCount: totalSuccessCount,
                     successRate: totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((totalSuccessCount / totalCount) * 100),
-                    receivedAmount: vm.platformOnlineTopupAnalysisSuccessData.reduce((a, data) => a + data.amount ,0),
+                    receivedAmount: vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.amount, 0),0),
                     amountRatio: 100,
                     userCount: vm.platformOnlineTopupAnalysisTotalUserCount,
                     userCountRatio: 100,
                 };
                 vm.platformOnlineTopupAnalysisByType = [];
-                Object.keys($scope.merchantTopupTypeJson).forEach(key => {
-                    vm.platformOnlineTopupAnalysisByType.push(vm.calculateOnlineTopupTypeData(key));
-                });
+                Object.keys($scope.userAgentType).forEach(
+                    userAgentTypeKey => {
+                        Object.keys($scope.merchantTopupTypeJson).forEach(key => {
+                            vm.platformOnlineTopupAnalysisByType.push(vm.calculateOnlineTopupTypeData(key, userAgentTypeKey-1));
+                        });
+                    }
+                );
+
                 vm.platformOnlineTopupAnalysisSubTotalData = {
                     WEB: vm.calculateOnlineTopupTypeSubtotalData('WEB'),
                     APP: vm.calculateOnlineTopupTypeSubtotalData('APP'),
@@ -569,9 +589,9 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.calculateOnlineTopupTypeData = (merchantTopupTypeId) => {
-            let successData = vm.platformOnlineTopupAnalysisSuccessData.filter(data => data._id == merchantTopupTypeId)[0];
-            let unsuccessData = vm.platformOnlineTopupAnalysisUnsuccessData.filter(data => data._id == merchantTopupTypeId)[0];
+        vm.calculateOnlineTopupTypeData = (merchantTopupTypeId, userAgent) => {
+            let successData = vm.platformOnlineTopupAnalysisData[userAgent][0].filter(data => data._id == merchantTopupTypeId)[0];
+            let unsuccessData = vm.platformOnlineTopupAnalysisData[userAgent][1].filter(data => data._id == merchantTopupTypeId)[0];
             successData = successData ? successData : {amount:0, userIds:[], _id: merchantTopupTypeId, count:0};
             unsuccessData = unsuccessData ? unsuccessData : {amount:0, userIds:[], _id: merchantTopupTypeId, count:0};
             let totalCount = successData.count + unsuccessData.count;
@@ -587,15 +607,9 @@ define(['js/app'], function (myApp) {
                 userCountRatio: vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((userCount / vm.platformOnlineTopupAnalysisTotalUserCount) * 100),
             };
 
-            let typeName = $scope.merchantTopupTypeJson[merchantTopupTypeId];
-            returnObj.name = typeName;
-            if(typeName.indexOf('QR') !== -1)
-                returnObj.type = 'H5';
-            else if(typeName.indexOf('App') !== -1 || typeName.indexOf('WAP') !== -1)
-                returnObj.type = 'APP';
-            else
-                returnObj.type = 'WEB';
-
+            returnObj.name = $scope.merchantTopupTypeJson[merchantTopupTypeId];
+            returnObj.userAgent = userAgent + 1;
+            returnObj.type = $scope.userAgentType[returnObj.userAgent];
             return returnObj;
         };
         vm.calculateOnlineTopupTypeSubtotalData = (type) => {
@@ -607,15 +621,16 @@ define(['js/app'], function (myApp) {
                 successCount: typeData.reduce((a, data) => a + data.successCount ,0),
                 successRate: dataContainRecord === 0 ? 0 : $noRoundTwoDecimalPlaces(typeData.reduce((a, data) => a + data.successRate ,0) / dataContainRecord),
                 receivedAmount: typeData.reduce((a, data) => a + data.receivedAmount ,0),
-                amountRatio: typeData.reduce((a, data) => a + data.amountRatio ,0),
+                amountRatio: $noRoundTwoDecimalPlaces(typeData.reduce((a, data) => a + data.amountRatio ,0)),
                 userCount: typeData.reduce((a, data) => a + data.userCount ,0),
-                userCountRatio: typeData.reduce((a, data) => a + data.userCountRatio ,0),
+                userCountRatio: $noRoundTwoDecimalPlaces(typeData.reduce((a, data) => a + data.userCountRatio ,0)),
                 name: type
             };
         };
 
-        vm.platformOnlineTopupAnalysisShowDetail = (merchantTopupTypeId) => {
+        vm.platformOnlineTopupAnalysisShowDetail = (merchantTopupTypeId, userAgent) => {
             vm.platformOnlineTopupAnalysisDetailMerchantId = merchantTopupTypeId;
+            vm.platformOnlineTopupAnalysisDetailUserAgent = userAgent;
             let typeName = $scope.merchantTopupTypeJson[merchantTopupTypeId];
             let startDate = vm.queryPara.onlineTopupSuccessRate.startTime.data('datetimepicker').getLocalDate();
             let endDate = vm.queryPara.onlineTopupSuccessRate.endTime.data('datetimepicker').getLocalDate();
@@ -625,11 +640,12 @@ define(['js/app'], function (myApp) {
                 merchantTopupTypeId: merchantTopupTypeId,
                 startDate: startDate,
                 endDate: endDate,
+                userAgent: userAgent
             };
             socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisDetailUserCount', sendData, data => {
                 console.log('data.data', data.data);
                 let detailDataByDate = data.data;
-                let typeData = vm.platformOnlineTopupAnalysisByType.filter(data => data.name == typeName)[0];
+                let typeData = vm.platformOnlineTopupAnalysisByType.filter(data => data.name == typeName && data.userAgent == userAgent)[0];
                 let periodDateData = [];
                 while (startDate.getTime() <= endDate.getTime()) {
                     let dayEndTime = vm.getNextDateByPeriodAndDate(vm.platformOnlineTopupAnalysisDetailPeriod, startDate);
@@ -2725,6 +2741,84 @@ define(['js/app'], function (myApp) {
         //     a.columns.adjust().draw();
         // }
         //player bonus end
+
+        // top up manual
+        vm.drawPlayerTopUp = function (type) {
+            var opt = '';
+            if (type == 'TOPUPMANUAL') {
+                opt = 'MANUAL';
+                vm.queryPara.topUp.amountTag = 'TOPUPMANUAL_AMOUNT';
+                vm.queryPara.topUp.countTag = 'TOPUPMANUAL_COUNT';
+            } else if (type == 'TOPUPALIPAY') {
+                opt = 'ALIPAY';
+                vm.queryPara.topUp.amountTag = 'TOPUPALIPAY_AMOUNT';
+                vm.queryPara.topUp.countTag = 'TOPUPALIPAY_COUNT';
+            } else if (type == 'TOPUPWECHAT'){
+                opt = 'WECHAT';
+                vm.queryPara.topUp.amountTag = 'TOPUPWECHAT_AMOUNT';
+                vm.queryPara.topUp.countTag = 'TOPUPWECHAT_COUNT';
+            }else {
+
+            }
+
+            vm.isShowLoadingSpinner('#topUpAnalysis', true);
+            let startDate = vm.queryPara.topUp.startTime.data('datetimepicker').getLocalDate();
+            let endDate = vm.queryPara.topUp.endTime.data('datetimepicker').getLocalDate();
+
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                type: opt,
+                startDate: startDate,
+                endDate: endDate,
+            };
+
+            socketService.$socket($scope.AppSocket, 'getTopUpAnalysisList', sendData, function (data) {
+
+                $scope.$evalAsync(() => {
+                    let periodDateData = [];
+                    while (startDate.getTime() <= endDate.getTime()) {
+                        let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.topUp.periodText, startDate);
+                        periodDateData.push(startDate);
+                        startDate = dayEndTime;
+                    }
+
+                    vm.platformTopUpData = data.data;
+                    vm.platformTopUpAnalysisData = [];
+
+                    for (let i = 0; i < periodDateData.length; i++) {
+                        let topUpWithinPeriod = vm.platformTopUpData.filter(item => new Date(item.createTime).getTime() > periodDateData[i].getTime() && new Date(item.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.topUp.periodText, periodDateData[i]));
+                        vm.platformTopUpAnalysisData.push({
+                            date: periodDateData[i],
+                            topUpData: topUpWithinPeriod,
+                        });
+                    }
+                    vm.platformTopUpDataPeriodText = vm.queryPara.topUp.periodText;
+                    console.log('vm.platformTopUpAnalysisData', vm.platformTopUpAnalysisData);
+
+                    vm.platformTopUpAnalysisAmount = [];
+                    vm.platformTopUpAnalysisData.forEach(item => {
+
+                        let totalAmount = item.topUpData.length > 0 ? item.topUpData.reduce((a, b) => a + (b.amount ? b.amount : 0), 0) : 0;
+
+                        vm.platformTopUpAnalysisAmount.push({
+                            date: item.date,
+                            amount: totalAmount
+                        });
+
+                    });
+
+                    let calculatedTopUpData = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisAmount, 'amount', vm.queryPara.topUp.amountTag);
+                    vm.platformTopUpAmountAverage = calculatedTopUpData.average;
+                    vm.plotLineByElementId("#line-topUpAmount", calculatedTopUpData.lineData, $translate(  vm.queryPara.topUp.amountTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+
+                    let calculatedTopUpCount = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisData, 'topUpData',  vm.queryPara.topUp.countTag);
+                    vm.platformTopUpCountAverage = calculatedTopUpCount.average;
+                    vm.plotLineByElementId("#line-topUpCount", calculatedTopUpCount.lineData, $translate( vm.queryPara.topUp.countTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+                    vm.isShowLoadingSpinner('#topUpAnalysis', false);
+                });
+            });
+        }
+        // top up manual end
 
         //client source start =======================================
         vm.initClientSourcePara = function (callback) {
