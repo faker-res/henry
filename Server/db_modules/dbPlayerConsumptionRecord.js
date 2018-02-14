@@ -1966,9 +1966,9 @@ var dbPlayerConsumptionRecord = {
                             let playerConsumptionRecordData = dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProvider._id}).sort({createTime: -1}).limit(1).lean().then(
                                 playerConsumption => {
                                     if(playerConsumption){
-                                        return {gameProviderName: gameProvider.name, data: playerConsumption};
+                                        return {gameProviderName: gameProvider.name || "", data: playerConsumption};
                                     }else{
-                                        return {gameProviderName: gameProvider.name, data: null};
+                                        return {gameProviderName: gameProvider.name || "", data: null};
                                     }
                                 }
                             )
@@ -1990,9 +1990,9 @@ var dbPlayerConsumptionRecord = {
 
                             if(r.data){
                                 var currentDate = new Date();
-                                var latestCreateTime = new Date(r.data.createTime);
+                                var latestCreateTime = r.data.createTime ? new Date(r.data.createTime) : new Date();
                                 var difference = currentDate.getTime() - latestCreateTime.getTime();
-                                var resultInMinutes = Math.round(difference / 60000);
+                                var resultInMinutes = Number.isFinite(difference) ? Math.round(difference / 60000) : 0;
 
                                 recordStatus.createTime = latestCreateTime;
 
