@@ -3260,6 +3260,12 @@
   "userCountRatio": "人数占比",
   "subtotal": "小计",
   "consumptionTimes": "投注笔数",
-  "batchPermit":"批量设置"
+  "batchPermit":"批量设置",
+  "TOPUPMANUAL_AMOUNT": "手工存款数额",
+  "TOPUPMANUAL_COUNT": "手工存款笔数",
+  "TOPUPALIPAY_AMOUNT": "支付宝存款数额",
+  "TOPUPALIPAY_COUNT": "支付宝存款笔数",
+  "TOPUPWECHAT_AMOUNT": "微信存款数额",
+  "TOPUPWECHAT_COUNT": "微信存款笔数"
 
 }
