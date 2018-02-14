@@ -252,16 +252,16 @@ define(['js/app'], function (myApp) {
                             //vm.drawPlayerTopUp('TOPUPMANUAL');
                         });
                         break;
-                    case "TOPUPALIPAY":
+                    case "PlayerAlipayTopUp":
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
-                            //vm.drawPlayerTopUp('TOPUPALIPAY');
+                            //vm.drawPlayerTopUp('PlayerAlipayTopUp');
                         });
                         break;
-                    case "TOPUPWECHAT":
+                    case "PlayerWechatTopUp":
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
-                            //vm.drawPlayerTopUp('TOPUPWECHAT');
+                           // vm.drawPlayerTopUp('PlayerWechatTopUp');
                         });
                         break;
                 }
@@ -595,9 +595,9 @@ define(['js/app'], function (myApp) {
 
         vm.calculateOnlineTopupTypeData = (merchantTopupTypeId, userAgent) => {
             let typeData = vm.platformOnlineTopupAnalysisData[userAgent].filter(data => data._id == merchantTopupTypeId)[0];
-            typeData = typeData ? typeData : {amount:0, userIds:[], _id: merchantTopupTypeId, count:0, successCount: 0};
+            typeData = typeData ? typeData : {amount:0, userIds:[], successUserIds:[], _id: merchantTopupTypeId, count:0, successCount: 0};
             let totalCount = typeData.count;
-            let userCount = typeData.userIds.length;
+            let userCount = typeData.successUserIds.length;
             let returnObj =  {
                 totalCount: totalCount,
                 successCount: typeData.successCount,
@@ -666,7 +666,7 @@ define(['js/app'], function (myApp) {
                             successRate: data.totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.successCount / data.totalCount) * 100),
                             receivedAmount: data.receivedAmount,
                             amountRatio: totalReceivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.receivedAmount / totalReceivedAmount) * 100),
-                            userCount: data.userCount,
+                            userCount: data.successUserCount,
                             userCountRatio: totalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.userCount / totalUserCount) * 100)
                         });
                     }
@@ -2761,11 +2761,11 @@ define(['js/app'], function (myApp) {
                 opt = 'MANUAL';
                 vm.queryPara.topUp.amountTag = 'TOPUPMANUAL_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPMANUAL_COUNT';
-            } else if (type == 'TOPUPALIPAY') {
+            } else if (type == 'PlayerAlipayTopUp') {
                 opt = 'ALIPAY';
                 vm.queryPara.topUp.amountTag = 'TOPUPALIPAY_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPALIPAY_COUNT';
-            } else if (type == 'TOPUPWECHAT'){
+            } else if (type == 'PlayerWechatTopUp'){
                 opt = 'WECHAT';
                 vm.queryPara.topUp.amountTag = 'TOPUPWECHAT_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPWECHAT_COUNT';

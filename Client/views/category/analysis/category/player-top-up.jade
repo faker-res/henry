@@ -35,7 +35,7 @@
                         thead
                             tr
                                 th(ng-click='vm.platformTopUpAnalysisSort.amountSort = vm.platformTopUpAnalysisSort.amountSort == "date" ? "-date":"date"') {{ vm.platformTopUpDataPeriodText | translate}}
-                                th(ng-click='vm.platformTopUpAnalysisSort.amountSort = vm.platformTopUpAnalysisSort.amountSort == "amount" ? "-amount":"amount"') {{vm.queryPara.topUp.amountTag | translate}}
+                                th(ng-click='vm.platformTopUpAnalysisSort.amountSort = vm.platformTopUpAnalysisSort.amountSort == "amount" ? "-amount":"amount"') {{"Credit_Amount"| translate}}
                         tbody
                             tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisAmount | orderBy: vm.platformTopUpAnalysisSort.amountSort')
                                 td
@@ -60,7 +60,7 @@
                         thead
                             tr
                                 th(ng-click='vm.platformTopUpAnalysisSort.countSort = vm.platformTopUpAnalysisSort.countSort == "date" ? "-date":"date"') {{ vm.platformTopUpDataPeriodText | translate}}
-                                th(ng-click='vm.platformTopUpAnalysisSort.countSort = vm.platformTopUpAnalysisSort.countSort == "topUpData.length" ? "-topUpData.length":"topUpData.length"') {{ vm.queryPara.topUp.countTag | translate}}
+                                th(ng-click='vm.platformTopUpAnalysisSort.countSort = vm.platformTopUpAnalysisSort.countSort == "topUpData.length" ? "-topUpData.length":"topUpData.length"') {{ "COUNT" | translate}}
                         tbody
                             tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopUpAnalysisSort.countSort')
                                 td
