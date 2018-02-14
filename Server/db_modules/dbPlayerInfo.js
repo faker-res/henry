@@ -5896,9 +5896,6 @@ let dbPlayerInfo = {
         if (startTime && endTime) {
             queryObject.createTime = {$gte: new Date(startTime), $lt: new Date(endTime)};
         }
-        if (status) {
-            queryObject.status = status;
-        }
 
         if (status) {
             queryObject.status = status;
