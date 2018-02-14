@@ -205,7 +205,7 @@ var dbPlatformGameGroup = {
                             if (playerData && playerData.forbidProviders) {
                                 strForbidProviders = playerData.forbidProviders.toString();
                             }
-                            if (playerData && playerData.permission && (playerData.permission.forbidPlayerFromEnteringGame || strForbidProviders.includes(strProviderObjId))) {
+                            if (playerData && playerData.permission && (playerData.permission.forbidPlayerFromEnteringGame)) {
                                 gameInfo.forEach(
                                     game => {
                                         game.game.status = 2;
