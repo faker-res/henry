@@ -3640,37 +3640,44 @@ var proposal = {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
-                let groupByObj = {
-                    _id: "$data.topupType",
-                    userIds: { $addToSet: "$data.playerObjId" },
-                    amount: {$sum: "$data.amount"},
-                    count: {$sum: 1},
-                };
-                let successProm = dbconfig.collection_proposal.aggregate(
-                    {
-                        $match: {
-                            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                            type: onlineTopupType._id,
-                            status:"Success"
-                        }
-                    }, {
-                        $group: groupByObj
-                    }
-                ).read("secondaryPreferred");
+                let proms = [];
+                for(let i =1; i<=3; i++) {
+                    let groupByObj = {
+                        _id: "$data.topupType",
+                        userIds: { $addToSet: "$data.playerObjId" },
+                        amount: {$sum: "$data.amount"},
+                        count: {$sum: 1},
 
-                let unsuccessProm = dbconfig.collection_proposal.aggregate(
-                    {
-                        $match: {
-                            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                            type: onlineTopupType._id,
-                            status:{$ne: "Success"}
+                    };
+                    let successProm = dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                type: onlineTopupType._id,
+                                status:"Success",
+                                "data.userAgent": i
+                            }
+                        }, {
+                            $group: groupByObj
                         }
-                    }, {
-                        $group: groupByObj
-                    }
-                ).read("secondaryPreferred");
+                    );
 
-                return Q.all([successProm, unsuccessProm]);
+                    let unsuccessProm = dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                type: onlineTopupType._id,
+                                status:{$ne: "Success"},
+                                "data.userAgent": i
+                            }
+                        }, {
+                            $group: groupByObj
+                        }
+                    );
+
+                    proms.push(Q.all([successProm, unsuccessProm]));
+                }
+                return Q.all(proms);
             }
         )
     }
