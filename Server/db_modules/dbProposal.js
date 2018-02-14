@@ -165,7 +165,7 @@ var proposal = {
             return dbconfig.collection_playerCreditTransferLog.find({
                 transferId,
                 isRepaired: {$ne: true},
-                status: {$in: [constPlayerCreditTransferStatus.FAIL, constPlayerCreditTransferStatus.TIMEOUT]}
+                status: {$ne: constPlayerCreditTransferStatus.SUCCESS}
             }, {_id: 1}).limit(1).lean().then(
                 log => {
                     return Boolean(log && log[0]);
@@ -1487,7 +1487,7 @@ var proposal = {
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
-                            dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred")
+                            dbconfig.collection_proposal.find(queryObj)// .read("secondaryPreferred")
                                 .populate({path: 'type', model: dbconfig.collection_proposalType})
                                 .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
