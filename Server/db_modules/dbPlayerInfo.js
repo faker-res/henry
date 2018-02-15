@@ -7994,14 +7994,34 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 data1 => {
-                                    return {
-                                        date: startTime,
-                                        userCount: data && data[0] ? data[0].userIds.length : 0,
-                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
-                                        successCount: data && data[0] ? data[0].successCount : 0,
-                                        totalCount: data && data[0] ? data[0].count : 0,
-                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
-                                    }
+                                    return dbconfig.collection_proposal.aggregate(
+                                        {
+                                            $match: {
+                                                createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                                type: onlineTopupType._id,
+                                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                            }
+                                        }, {
+                                            $group: {
+                                                _id: null,
+                                                userIds: {$addToSet: "$data.playerObjId"},
+                                                receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                            }
+                                        }
+                                    ).then(
+                                        data2 => {
+                                            return {
+                                                date: startTime,
+                                                userCount: data && data[0] ? data[0].userIds.length : 0,
+                                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                                successCount: data && data[0] ? data[0].successCount : 0,
+                                                totalCount: data && data[0] ? data[0].count : 0,
+                                                successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0,
+                                                totalUserCount: data2 && data2[0] ? data2[0].userIds.length : 0,
+                                                totalReceivedAmount: data2 && data2[0] ? data2[0].receivedAmount : 0,
+                                            }
+                                        }
+                                    )
                                 }
                             );
                         })
