@@ -555,6 +555,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisByPlatform', sendData, data => {
                 console.log('data.data', data.data);
                 vm.platformOnlineTopupAnalysisData = data.data;
+                vm.platformOnlineTopupAnalysisTotalUserCountWithoutFilter = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.userIds.length, 0),0);
                 vm.platformOnlineTopupAnalysisTotalUserCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[1].userAgentUserCount,0);
                 let totalSuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.successCount, 0), 0);
                 let totalUnsuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.count, 0), 0) - totalSuccessCount;
@@ -609,7 +610,7 @@ define(['js/app'], function (myApp) {
                 merchantTopupTypeId: merchantTopupTypeId,
                 amountRatio: vm.platformOnlineTopupAnalysisTotalData.receivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((typeData.amount / vm.platformOnlineTopupAnalysisTotalData.receivedAmount) * 100),
                 userCount: userCount,
-                userCountRatio: vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((userCount / vm.platformOnlineTopupAnalysisTotalUserCount) * 100),
+                userCountRatio: vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((userCount / vm.platformOnlineTopupAnalysisTotalUserCountWithoutFilter) * 100),
             };
 
             returnObj.name = $scope.merchantTopupTypeJson[merchantTopupTypeId];
