@@ -165,7 +165,7 @@ var proposal = {
             return dbconfig.collection_playerCreditTransferLog.find({
                 transferId,
                 isRepaired: {$ne: true},
-                status: {$in: [constPlayerCreditTransferStatus.FAIL, constPlayerCreditTransferStatus.TIMEOUT]}
+                status: {$ne: constPlayerCreditTransferStatus.SUCCESS}
             }, {_id: 1}).limit(1).lean().then(
                 log => {
                     return Boolean(log && log[0]);
@@ -1487,7 +1487,7 @@ var proposal = {
                         inputDevice ? queryObj.inputDevice = inputDevice : null;
                         var sortKey = (Object.keys(sortCol))[0];
                         var a = sortKey != 'relatedAmount' ?
-                            dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred")
+                            dbconfig.collection_proposal.find(queryObj)// .read("secondaryPreferred")
                                 .populate({path: 'type', model: dbconfig.collection_proposalType})
                                 .populate({path: 'process', model: dbconfig.collection_proposalProcess})
                                 // .populate({path: 'remark.admin', model: dbconfig.collection_admin})
@@ -3640,24 +3640,88 @@ var proposal = {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
-                let queryObj = {
-                    createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                    type: onlineTopupType._id
-                };
-                let proposalProm = dbconfig.collection_proposal.find(queryObj).read("secondaryPreferred").lean();
+                let proms = [];
+                for(let i =1; i<=3; i++) {
+                    let groupByObj = {
+                        _id: "$data.topupType",
+                        userIds: { $addToSet: "$data.playerObjId" },
+                        amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                        count: {$sum: 1},
+                        successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
 
-                let playerCountTypeProm = dbconfig.collection_proposal.aggregate(
-                    {
-                        $match: queryObj
-                    }, {
-                        $group: {
-                            _id: "$data.merchantUseType",
-                            userIds: { $addToSet: "$data.playerObjId" },
+                    };
+                    let prom = dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                type: onlineTopupType._id,
+                                "data.userAgent": i,
+                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                            }
+                        }, {
+                            $group: groupByObj
                         }
-                    }
-                ).read("secondaryPreferred");
+                    ).then(
+                        data => {
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: {
+                                        createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                        type: onlineTopupType._id,
+                                        status: "Success",
+                                        "data.userAgent": i,
+                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                    }
+                                }, {
+                                    $group: {
+                                        _id: "$data.topupType",
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).then(
+                                data1 => {
+                                    return data.map(a => {
+                                        a.successUserIds = [];
+                                        data1.forEach(
+                                            b => {
+                                                if(a._id === b._id)
+                                                    a.successUserIds = b.userIds;
+                                            }
+                                        );
+                                        return a;
+                                    })
 
-                return Q.all([proposalProm, playerCountTypeProm]);
+                                }
+                            )
+                        }
+                    );
+
+                    let userAgentUserCountProm = dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                type: onlineTopupType._id,
+                                status: "Success",
+                                "data.userAgent": i,
+                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                            }
+                        }, {
+                            $group: {
+                                _id: "$data.userAgent",
+                                userIds: { $addToSet: "$data.playerObjId" },
+                            }
+                        }
+                    ).then(
+                        data => {
+                            return {
+                                userAgentUserCount: data && data[0] ? data[0].userIds.length : 0
+                            }
+                        }
+                    );
+
+                    proms.push(Q.all([prom, userAgentUserCountProm]));
+                }
+                return Q.all(proms);
             }
         )
     }

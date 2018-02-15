@@ -1630,7 +1630,7 @@ let dbPlayerInfo = {
             }
         );
     },
-    updateBatchPlayerPermission: function(query, admin, permission, remark){
+    updateBatchPlayerPermission: function (query, admin, permission, remark) {
 
         var updateObj = {};
 
@@ -1640,8 +1640,8 @@ let dbPlayerInfo = {
         let players = query.playerNames;
         let proms = [];
         players.forEach(item => {
-            let playerQuery = { 'name' : item, 'platform': query.platformObjId };
-            let prom =  dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
+            let playerQuery = {'name': item, 'platform': query.platformObjId};
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
                 function (suc) {
                     var oldData = {};
                     for (var i in permission) {
@@ -1652,15 +1652,15 @@ let dbPlayerInfo = {
                         }
                     }
                     if (Object.keys(oldData).length !== 0) {
-                    var newLog = new dbconfig.collection_playerPermissionLog({
-                        admin: admin,
-                        platform: playerQuery.platform,
-                        player: suc._id,
-                        remark: remark,
-                        oldData: oldData,
-                        newData: permission,
-                    });
-                    return newLog.save();
+                        var newLog = new dbconfig.collection_playerPermissionLog({
+                            admin: admin,
+                            platform: playerQuery.platform,
+                            player: suc._id,
+                            remark: remark,
+                            oldData: oldData,
+                            newData: permission,
+                        });
+                        return newLog.save();
                     } else return true;
                 },
                 function (error) {
@@ -3861,7 +3861,7 @@ let dbPlayerInfo = {
      * check the player exists and check password is matched against the password in DB using bcrypt
      *  @param include name and password of the player and some more additional info to log the player's login
      */
-    playerLogin: function (playerData, userAgent, inputDevice) {
+    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect) {
         let deferred = Q.defer();
         let db_password = null;
         let newAgentArray = [];
@@ -3979,7 +3979,7 @@ let dbPlayerInfo = {
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || '',
+                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
@@ -5946,7 +5946,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode, platformId) {
+    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode, platformId, status) {
         var queryProm = null;
         var playerName = '';
         var queryObject = {
@@ -5961,6 +5961,15 @@ let dbPlayerInfo = {
         }
         if (startTime && endTime) {
             queryObject.createTime = {$gte: new Date(startTime), $lt: new Date(endTime)};
+        }
+
+        if (status) {
+            queryObject.status = status;
+            if (status == constProposalStatus.APPROVED) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            } else if (status == constProposalStatus.SUCCESS) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            }
         }
 
         return dbconfig.collection_players.findOne({playerId: playerId}).catch(
@@ -6033,13 +6042,17 @@ let dbPlayerInfo = {
                             status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
 
+                        let eventNameRec = proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "", null, platformId)
+                        if (proposals[i].type && proposals[i].type.name == constProposalType.ADD_PLAYER_REWARD_TASK) {
+                            eventNameRec = "促销优惠";
+                        }
                         let rec = {
                             playerId: playerId,
                             playerName: playerName,
                             createTime: proposals[i].createTime,
                             rewardType: proposals[i].type ? proposals[i].type.name : "",
                             rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                            eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "", null, platformId),
+                            eventName: eventNameRec,
                             eventCode: proposals[i].data.eventCode,
                             status: status
                         }
@@ -7741,54 +7754,21 @@ let dbPlayerInfo = {
         }
         return dbconfig.collection_providerDaySummary.find(query);
     },
-    countTopUpORConsumptionByPlatform: function (platformId, startDate, endDate, period, type) {
-        // var options = {};
-        // var calculation = null;
-        // switch (period) {
-        //     case 'day':
-        //         options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
-        //         break;
-        //     case 'week':
-        //         options.week = {$floor: {$divide: [{$subtract: ["$date", startDate]}, 604800000]}};
-        //         break;
-        //     case 'month':
-        //     default:
-        //         options.year = {$year: "$date"};
-        //         options.month = {$month: "$date"};
-        // }
-        // switch (type) {
-        //     case 'topup' :
-        //         calculation = {$sum: "$topUpAmount"};
-        //         break;
-        //     case 'consumption' :
-        //         calculation = {$sum: "$consumptionAmount"}
-        // }
-        // var matchOption = {
-        //     date: {$gte: startDate, $lt: endDate}
-        // }
-        // if (platformId != 'all') {
-        //     matchOption.platformId = platformId;
-        // }
-        // return dbconfig.collection_platformDaySummary.aggregate(
-        //     {
-        //         $match: matchOption
-        //     },
-        //     {
-        //         $group: {_id: options, number: calculation}
-        //     }).then(
-        //     data => {
-        //         return data;
-        //     }
-        // );
-        var proms = [];
-        var calculation = null;
-        switch (type) {
-            case 'topup' :
-                calculation = {$sum: "$topUpAmount"};
-                break;
-            case 'consumption' :
-                calculation = {$sum: "$consumptionAmount"}
+    getTopUpByPlatform: function (platformId, startDate, endDate, type) {
+        var queryObj = {
+            topUpType: constPlayerTopUpType[type],
+            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
+        };
+
+        if (platformId != 'all') {
+            queryObj.platformId = ObjectId(platformId);
         }
+
+        return dbconfig.collection_playerTopUpRecord.find(queryObj);
+    },
+    countTopUpByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var calculation = {$sum: "$amount"};
         var dayStartTime = startDate;
         var getNextDate;
         switch (period) {
@@ -7813,17 +7793,20 @@ let dbPlayerInfo = {
         }
         while (dayStartTime.getTime() < endDate.getTime()) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
-            var matchObj = {date: {$gte: dayStartTime, $lt: dayEndTime}};
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                topUpType: constPlayerTopUpType.ONLINE.toString()
+            };
             if (platformId != 'all') {
                 matchObj.platformId = platformId;
             }
-            proms.push(dbconfig.collection_platformDaySummary.aggregate(
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
                 {$match: matchObj}, {
                     $group: {
                         _id: null,
                         calc: calculation
                     }
-                }))
+                }).read("secondaryPreferred"))
             dayStartTime = dayEndTime;
         }
         return Q.all(proms).then(data => {
@@ -7837,16 +7820,9 @@ let dbPlayerInfo = {
         });
 
     },
-    countTopUpORConsumptionCountByPlatform: function (platformId, startDate, endDate, period, type) {
+    countTopUpCountByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
-        var calculation = null;
-        switch (type) {
-            case 'topup' :
-                calculation = {$sum: "$topUpAmount"};
-                break;
-            case 'consumption' :
-                calculation = {$sum: "$consumptionAmount"}
-        }
+        var calculation = {$sum: "$amount"};
         var dayStartTime = startDate;
         var getNextDate;
         switch (period) {
@@ -7871,17 +7847,20 @@ let dbPlayerInfo = {
         }
         while (dayStartTime.getTime() < endDate.getTime()) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
-            var matchObj = {date: {$gte: dayStartTime, $lt: dayEndTime}};
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                topUpType: constPlayerTopUpType.ONLINE.toString()
+            };
             if (platformId != 'all') {
                 matchObj.platformId = platformId;
             }
-            proms.push(dbconfig.collection_platformDaySummary.aggregate(
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
                 {$match: matchObj}, {
                     $group: {
                         _id: null,
                         "count": {"$sum": 1},
                     }
-                }))
+                }).read("secondaryPreferred"))
             dayStartTime = dayEndTime;
         }
         return Q.all(proms).then(data => {
@@ -7930,34 +7909,39 @@ let dbPlayerInfo = {
                 let activePlayerTopUpTimes;
                 let activePlayerTopUpAmount;
                 let activePlayerConsumptionTimes;
+                let activePlayerConsumptionAmount;
                 let activePlayerValue;
-                let topupCollectionName = 'collection_playerTopUpWeekSummary';
-                let consumptionCollectionName = 'collection_playerConsumptionWeekSummary';
+                let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
+                let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
                 switch (period) {
                     case 'day':
-                        topupCollectionName = 'collection_playerTopUpDaySummary';
-                        consumptionCollectionName = 'collection_playerConsumptionDaySummary';
+                        // topupCollectionName = 'collection_playerTopUpDaySummary';
+                        // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.dailyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
                         activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.weeklyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
                         activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.halfMonthActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
                         activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.monthlyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.monthlyActivePlayerValue;
                         break;
                     case 'season':
@@ -7965,6 +7949,7 @@ let dbPlayerInfo = {
                         activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.seasonActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.seasonActivePlayerValue;
                 }
 
@@ -7991,7 +7976,7 @@ let dbPlayerInfo = {
                                         "times": {"$sum": '$times'}
                                     }
                                 }
-                            ]).read("secondaryPreferred").cursor({batchSize: constSystemParam.BATCH_SIZE}).allowDiskUse(true).exec();
+                            ]).read("secondaryPreferred").cursor({batchSize: 10000}).allowDiskUse(true).exec();
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
                                 return balancer.processStream(
@@ -8004,6 +7989,7 @@ let dbPlayerInfo = {
                                                 dayStartTime: dayStartTime,
                                                 dayEndTime: dayEndTime,
                                                 activePlayerConsumptionTimes: activePlayerConsumptionTimes,
+                                                activePlayerConsumptionAmount: activePlayerConsumptionAmount,
                                                 activePlayerValue: activePlayerValue,
                                                 partnerLevelConfig: partnerLevelConfig,
                                                 consumptionCollectionName: consumptionCollectionName,
@@ -8031,7 +8017,8 @@ let dbPlayerInfo = {
         );
     },
 
-    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, merchantTopupTypeId) => {
+
+    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, merchantTopupTypeId, userAgent) => {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
@@ -8042,23 +8029,51 @@ let dbPlayerInfo = {
                     let queryObj = {
                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                         type: onlineTopupType._id,
-                        "data.merchantUseType": parseInt(merchantTopupTypeId)
+                        "data.topupType": parseInt(merchantTopupTypeId),
+                        "data.userAgent": userAgent,
+
                     };
                     proms.push(dbconfig.collection_proposal.aggregate(
                         {
                             $match: queryObj
                         }, {
                             $group: {
-                                _id: "$data.merchantUseType",
-                                userIds: { $addToSet: "$data.playerObjId" },
+                                _id: "$data.topupType",
+                                userIds: {$addToSet: "$data.playerObjId"},
+                                receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
+                                count: {$sum: 1},
                             }
                         }
-                    ).read("secondaryPreferred").then(
+                        ).then(
                         data => {
-                            return {
-                                date: startTime,
-                                userCount: data && data[0] ? data[0].userIds.length : 0
-                            }
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: {
+                                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                        type: onlineTopupType._id,
+                                        status: "Success",
+                                        "data.topupType": parseInt(merchantTopupTypeId),
+                                        "data.userAgent": userAgent,
+                                    }
+                                }, {
+                                    $group: {
+                                        _id: "$data.topupType",
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).then(
+                                data1 => {
+                                    return {
+                                        date: startTime,
+                                        userCount: data && data[0] ? data[0].userIds.length : 0,
+                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                        successCount: data && data[0] ? data[0].successCount : 0,
+                                        totalCount: data && data[0] ? data[0].count : 0,
+                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
+                                    }
+                                }
+                            );
                         })
                     );
                     startDate = dayEndTime;
@@ -8072,7 +8087,7 @@ let dbPlayerInfo = {
         return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true);
     },
 
-    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs) {
+    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerConsumptionAmount, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs) {
         let matchObj = {
             playerId: {$in: playerObjs.map(player => ObjectId(player._id))},
             platformId: ObjectId(platformId),
@@ -8083,7 +8098,7 @@ let dbPlayerInfo = {
             {$group: {_id: "$playerId", "amount": {"$sum": '$amount'}, "times": {"$sum": '$times'}}}
         ]).read("secondaryPreferred").then(
             records => {
-                records = records.filter(records => records.times >= activePlayerConsumptionTimes);
+                records = records.filter(records => records.times >= activePlayerConsumptionTimes && records.amount >= activePlayerConsumptionAmount);
                 return dbconfig.collection_players.populate(records, {
                     path: '_id',
                     model: dbconfig.collection_players
@@ -8097,7 +8112,8 @@ let dbPlayerInfo = {
                                 records._id.valueScore >= partnerLevelConfig.validPlayerValue &&
                                 records._id.topUpTimes >= partnerLevelConfig.validPlayerTopUpTimes &&
                                 records._id.topUpSum >= partnerLevelConfig.validPlayerTopUpAmount &&
-                                records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes
+                                records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes &&
+                                records._id.consumptionSum >= partnerLevelConfig.validPlayerConsumptionAmount
                             ).length;
                         else
                             return records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue).length;
@@ -10947,15 +10963,19 @@ let dbPlayerInfo = {
         )
     },
 
-    getPlayerTransferErrorLog: function (playerObjId, createTime) {
+    getPlayerTransferErrorLog: function (playerObjId, transferId, transferObjId) {
         let query = {
             playerObjId: playerObjId,
             bUsed: {$ne: true},
             // status: constPlayerCreditTransferStatus.FAIL
         };
 
-        if (createTime) {
-            query.createTime = createTime;
+        if (transferId) {
+            query.transferId = transferId;
+        }
+
+        if (transferObjId) {
+            query._id = transferObjId;
         }
 
         return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
@@ -11885,12 +11905,40 @@ let dbPlayerInfo = {
     },
 
     getUnreadMail: (playerId) => {
-        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}).lean().then(
             playerData => {
+
                 if (playerData) {
-                    return dbconfig.collection_playerMail.find(
-                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
-                    ).lean();
+
+                    if (playerData.platform.unreadMailMaxDuration && playerData.platform.unreadMailMaxDuration > 0) {
+                        let duration = playerData.platform.unreadMailMaxDuration;
+                        let todayDate = new Date();
+                        // get today end time
+                        let todayEndDate = new Date(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0).getTime() + 24 * 3600 * 1000);
+
+                        let endDate = todayEndDate.toISOString();
+                        let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
+
+                        return dbconfig.collection_playerMail.find(
+                            {
+                                recipientId: playerData._id,
+                                recipientType: "player",
+                                hasBeenRead: false,
+                                bDelete: false,
+                                createTime: {$gte: startDate, $lt: endDate}
+                            }
+                        ).lean();
+                    }
+                    else {
+                        return dbconfig.collection_playerMail.find(
+                            {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
+                        ).lean();
+                    }
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid platform data"});
+
                 }
             }
         );
@@ -12287,7 +12335,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (platformData) {
-                    return dbconfig.collection_players.findOne({name: playerName}, {password: 1}).lean();
+                    return dbconfig.collection_players.findOne({platform: platformData._id, name: playerName}).lean();
                 }
             }
         ).then(

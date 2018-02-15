@@ -22,6 +22,7 @@ const dbLogger = require('./../../modules/dbLogger');
 const dbPlayerPartner = require('../../db_modules/dbPlayerPartner');
 const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegistrationIntentRecord');
 const errorUtils = require("./../../modules/errorUtils");
+const mobileDetect = require('mobile-detect');
 
 let PlayerServiceImplement = function () {
     PlayerService.call(this);
@@ -42,9 +43,10 @@ let PlayerServiceImplement = function () {
             data.loginIps = [data.lastLoginIp];
             var uaString = conn.upgradeReq.headers['user-agent'];
             var ua = uaParser(uaString);
+            var md = new mobileDetect(uaString);
             data.userAgent = [{
                 browser: ua.browser.name || '',
-                device: ua.device.name || '',
+                device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
                 os: ua.os.name || ''
             }];
             var geo = geoip.lookup(data.lastLoginIp);
@@ -369,8 +371,9 @@ let PlayerServiceImplement = function () {
         }
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);
+        var md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice, md], isValidData, true, true, true).then(
             function (playerData) {
                 if (conn.noOfAttempt >= constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {

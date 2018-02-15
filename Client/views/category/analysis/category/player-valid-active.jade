@@ -25,7 +25,7 @@
                 .endTime
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.plotValidActivePlayerLine()') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.plotValidActivePlayerLine()' ng-disabled='vm.isLoadingValidActivePlayer') {{'SEARCH' | translate}}
         .row
             .col-md-6
                 .graph

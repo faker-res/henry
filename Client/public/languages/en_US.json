@@ -1109,6 +1109,7 @@
   "BANNER_TEXT": "Banner Text",
   "PROMO_CODE": "Promo Code",
   "SMS_INTERMAIL": "SMS Intermail",
+  "ALLOWED_SEND_SMS": "Allowed Send SMS",
   "PROMO_CODE_TYPE_2": "Promo Code Type 2",
   "PROMO_CODE_TYPE_3": "Promo Code Type 3",
   "PROMO_REWARD_%": "Promo Reward %",
@@ -1205,6 +1206,8 @@
   "PENDING": "Pending",
   "CANCELLED": "Cancelled",
   "BACKSTAGE": "Backstage",
-  "dailyMaxRewardPoint": "Daily Max Reward Point"
+  "dailyMaxRewardPoint": "Daily Max Reward Point",
+  "PlayerAlipayTopUp": "Player Alipay Topup",
+  "Credit_Amount": "Credit Amount"
 
 }

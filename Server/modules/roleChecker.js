@@ -165,7 +165,8 @@ var roleChecker = {
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
         "countConsumptionByPlatform": true,
-        "countTopUpORConsumptionbyPlatform": true,
+        "countTopUpbyPlatform": true,
+        "countTopUpCountbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
         "getAdminInfo": true,
@@ -553,7 +554,7 @@ var roleChecker = {
                 Reward: ['getPlatformRewardAnalysis'],
                 Device: ['getPlayerDeviceAnalysisData'],
                 Consumption: ['getPlayerConsumptionSumForAllPlatform'],
-                TopUp: ['getTopUpTotalAmountForAllPlatform'],
+                TopUp: ['getTopUpTotalAmountForAllPlatform','getTopUpAnalysisList'],
                 NewPlayer: ['countNewPlayerbyPlatform', 'countNewPlayers'],
                 ActivePlayer: ['countActivePlayerbyPlatform', 'countActivePlayerALLPlatform'],
                 PlayerRetention: ['getPlayerRetention'],
@@ -564,7 +565,6 @@ var roleChecker = {
                 LoginPlayer: [],
                 ValidActivePlayer: [],
                 OnlineTopupSuccessRate: [],
-
             }
         },
         Report: {

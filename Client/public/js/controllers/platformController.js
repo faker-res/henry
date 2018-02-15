@@ -401,6 +401,8 @@ define(['js/app'], function (myApp) {
 
             vm.prepareToBeDeletedProviderGroupId = [];
 
+            vm.longestDelayStatus = "rgb(0,180,0)";
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -612,41 +614,44 @@ define(['js/app'], function (myApp) {
             });
 
             vm.getProviderLatestTimeRecord = function () {
-                vm.providerLatestTime = {};
-                vm.delayStatus = {};
-                vm.longestDelayDate = new Date().toString();
-                vm.longestDelayStatus = "rgb(0,180,0)";
+                let longestDelayDate = new Date().toString();
 
-                let counter = 1;
+                let providerIdArr = [];
 
-                let p = Promise.resolve();
+                vm.platformProviderList.forEach( p => {
+                    if(p && p.providerId){
+                        providerIdArr.push(p.providerId);
+                    }
+                })
 
-                vm.platformProviderList.forEach(providerId => {
-                    p = p.then(() => {
-                        return $scope.$socketPromise('getProviderLatestTimeRecord', {
-                            providerId: providerId.providerId,
-                            platformObjId: vm.selectedPlatform.id
-                        }).then(function (data) {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    providerIdList: providerIdArr
+                }
 
-                            if (data.data) {
-                                if (data.data.createTime < vm.longestDelayDate) {
-                                    vm.longestDelayDate = data.data.createTime
-                                    vm.longestDelayStatus = data.data.delayStatusColor;
+                socketService.$socket($scope.AppSocket, 'getProviderLatestTimeRecord', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log("getProviderLatestTimeRecord", data.data)
+                        if(data && data.data && data.data.length > 0){
+                            data.data.map(d => {
+                                if(d){
+                                    if(d.createTime){
+                                        d.createTime = vm.dateReformat(d.createTime);
+
+                                        if (d.createTime < longestDelayDate) {
+                                            longestDelayDate = d.createTime
+                                            vm.longestDelayStatus = d.delayStatusColor;
+                                        }
+                                    }
                                 }
 
-                                vm.providerLatestTime[counter] = vm.dateReformat(data.data.createTime);
-                                vm.delayStatus[counter] = data.data.delayStatusColor;
-                            }
-                            else {
-                                vm.providerLatestTime[counter] = "";
-                                vm.delayStatus[counter] = "rgb(255,255,255)";
-                            }
-                            counter++;
-                            $scope.safeApply();
-                        })
+                                return;
+                            })
+
+                            vm.providerLatestTimeRecord = data.data;
+                        }
                     })
-                })
-                return p;
+                });
             };
 
             vm.setPlatformFooter = function (platformAction) {
@@ -842,6 +847,7 @@ define(['js/app'], function (myApp) {
             vm.buildPlatformList = function (data) {
                 vm.platformList = [];
                 for (var i = 0; i < data.length; i++) {
+
                     vm.platformList.push(vm.createPlatformNode(data[i]));
                 }
                 //var platformsToDisplay = vm.platformList;
@@ -3223,10 +3229,6 @@ define(['js/app'], function (myApp) {
 
                         let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
                         let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
-                        let createTimeQuery = {
-                            $gte: startTime,
-                            $lte: endTime
-                        };
 
                         var playerTransfer;
                         socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: record.playerObjId}, function (reply) {
@@ -3234,7 +3236,7 @@ define(['js/app'], function (myApp) {
                             updateShowPlayerCredit();
                         });
 
-                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId, createTime: createTimeQuery}, function (data) {
+                        socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: record.playerObjId, transferId: record.transferId}, function (data) {
                             console.log('getPlayerTransferErrorLogs', data); // todo :: delete log after problem solved
                             data.data.forEach(function (playerTransLog) {
                                 if (playerTransLog._id == record._id) {
@@ -4470,7 +4472,7 @@ define(['js/app'], function (myApp) {
 
             vm.prepareRepairTransfer = function () {
                 vm.showPlatformRepair = !vm.showPlatformRepair;
-                if (vm.showPlatformRepair) {
+                if (vm.showPlatformRepair && !vm.creditChange) {
                     vm.creditChange = {
                         finalValidAmount: $translate("Unknown"),
                         finalLockedAmount: $translate("Unknown"),
@@ -4483,12 +4485,8 @@ define(['js/app'], function (myApp) {
             vm.submitRepairTransfer = function () {
                 let startTime = vm.platformCreditTransferLog.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.platformCreditTransferLog.endTime.data('datetimepicker').getLocalDate();
-                let createTimeQuery = {
-                    $gte: startTime,
-                    $lte: endTime
-                };
 
-                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id, createTime: createTimeQuery}
+                socketService.$socket($scope.AppSocket, 'getPlayerTransferErrorLogs', {playerObjId: vm.selectedThisPlayer._id, transferObjId: vm.linkedPlayerTransferId}
                     , function (pData) {
                         let playerTransfer = {};
                         pData.data.forEach(function (playerTransLog) {
@@ -4516,7 +4514,7 @@ define(['js/app'], function (myApp) {
                         if (vm.linkedPlayerTransferId) {
                             sendData.data.transferId = playerTransfer.transferId;
                             //if reward task is still there fix locked amount otherwise fix valid amount
-                            if (vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
+                            if (vm.isOneSelectedPlayer() && vm.isOneSelectedPlayer().rewardInfo && vm.isOneSelectedPlayer().rewardInfo.length > 0) {
                                 sendData.data.updateLockedAmount = playerTransfer.lockedAmount < 0 ? 0 : playerTransfer.lockedAmount;
                                 sendData.data.curLockedAmount = vm.isOneSelectedPlayer().lockedCredit;
                             }
@@ -9411,6 +9409,7 @@ define(['js/app'], function (myApp) {
                     initAmount: vm.playerAddRewardTask.currentAmount,
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
+                    eventCode: "manualReward"
                 };
 
                 if(!vm.selectedPlatform.data.useProviderGroup){
@@ -13062,13 +13061,13 @@ define(['js/app'], function (myApp) {
                             vm.playerFeedbackResultExtended.onlineTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.onlineTopUpAmount).toFixed(2);
                             vm.playerFeedbackResultExtended.weChatTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.weChatTopUpAmount).toFixed(2);
                             vm.playerFeedbackResultExtended.aliPayTopUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.aliPayTopUpAmount).toFixed(2);
-                            vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.playerFeedbackResultExtended.topUpAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.topUpAmount$ = parseFloat(vm.curFeedbackPlayer.topUpSum).toFixed(2);
                             vm.playerFeedbackResultExtended.bonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.bonusAmount).toFixed(2);
                             vm.playerFeedbackResultExtended.rewardAmount$ = parseFloat(vm.playerFeedbackResultExtended.rewardAmount).toFixed(2);
                             vm.playerFeedbackResultExtended.consumptionReturnAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionReturnAmount).toFixed(2);
                             vm.playerFeedbackResultExtended.consumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionAmount).toFixed(2);
                             vm.playerFeedbackResultExtended.validConsumptionAmount$ = parseFloat(vm.playerFeedbackResultExtended.validConsumptionAmount).toFixed(2);
-                            vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.playerFeedbackResultExtended.consumptionBonusAmount).toFixed(2);
+                            vm.playerFeedbackResultExtended.consumptionBonusAmount$ = parseFloat(vm.curFeedbackPlayer.bonusAmountSum).toFixed(2);
 
                             vm.playerFeedbackResultExtended.playerLevel$ = "";
                             if (vm.playerLvlData[vm.playerFeedbackResultExtended.playerLevel]) {
@@ -13118,6 +13117,9 @@ define(['js/app'], function (myApp) {
                                 vm.playerFeedbackResultExtended.profit$ = parseFloat((vm.playerFeedbackResultExtended.consumptionBonusAmount / vm.playerFeedbackResultExtended.validConsumptionAmount) * -100).toFixed(2) + "%";
                             }
 
+                            vm.playerFeedbackResultExtended.topUpTimes = vm.curFeedbackPlayer.topUpTimes || 0;
+                            vm.playerFeedbackResultExtended.bonusTimes = vm.curFeedbackPlayer.withdrawTimes || 0;
+                            vm.playerFeedbackResultExtended.consumptionTimes = vm.curFeedbackPlayer.consumptionTimes || 0;
                             extendedResult.push(vm.playerFeedbackResultExtended);
                         } //end processing for extended table
                     }
@@ -17955,8 +17957,8 @@ define(['js/app'], function (myApp) {
 
             vm.promoCodeNewRow = function (collection, type, data) {
                 let tableId = "#createPromoCodeTable" + type;
-
-                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true}));
+                let date = (data && data.expirationTime$) ? new Date(data.expirationTime$) : utilService.setLocalDayEndTime(new Date());
+                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: true}));
 
                 return p.then(
                     () => {setTimeout( () => {
@@ -17969,7 +17971,7 @@ define(['js/app'], function (myApp) {
                                     format: 'yyyy/MM/dd hh:mm:ss',
                                     startDate: utilService.setLocalDayStartTime(new Date())
                                 });
-                                collection[index].expirationTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                                collection[index].expirationTime.data('datetimepicker').setDate(date);
                             });
 
                             $scope.safeApply();
@@ -17994,6 +17996,7 @@ define(['js/app'], function (myApp) {
                         let newData = Object.assign({}, sendData);
                         newData.playerName = el;
                         newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
+                        newData.expirationTime$ = data.expirationTime.data('datetimepicker').getDate();
 
                         delete newData.$$hashKey;
 
@@ -18044,13 +18047,13 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.generateAllPromoCode = function (col) {
+            vm.generateAllPromoCode = function (col, type) {
                 let p = Promise.resolve();
 
                 col.forEach((elem, index, arr) => {
                     if (!elem.code) {
                         p = p.then(function () {
-                            return vm.generatePromoCode(col, index, elem);
+                            return vm.generatePromoCode(col, index, elem, type);
                         });
                     }
                 });
@@ -19656,6 +19659,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.usePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.usePhoneNumberTwoStepsVerification;
                 vm.platformBasic.whiteListingPhoneNumbers$ = "";
                 vm.platformBasic.playerForbidApplyBonusNeedCsApproval = vm.selectedPlatform.data.playerForbidApplyBonusNeedCsApproval;
+                vm.platformBasic.unreadMailMaxDuration = vm.selectedPlatform.data.unreadMailMaxDuration;
 
                 if (vm.selectedPlatform.data.whiteListingPhoneNumbers && vm.selectedPlatform.data.whiteListingPhoneNumbers.length > 0) {
                     let phones = vm.selectedPlatform.data.whiteListingPhoneNumbers;
@@ -20152,7 +20156,8 @@ define(['js/app'], function (myApp) {
                         whiteListingPhoneNumbers: whiteListingPhoneNumbers,
                         usePointSystem: srcData.usePointSystem,
                         usePhoneNumberTwoStepsVerification: srcData.usePhoneNumberTwoStepsVerification,
-                        playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval
+                        playerForbidApplyBonusNeedCsApproval: srcData.playerForbidApplyBonusNeedCsApproval,
+                        unreadMailMaxDuration: srcData.unreadMailMaxDuration
                     }
                 };
                 let isProviderGroupOn = false;

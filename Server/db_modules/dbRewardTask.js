@@ -295,17 +295,18 @@ const dbRewardTask = {
                 if (rewardData && !rewardData.useLockedCredit) {
                     let amountToUpdate = 0;
                     if (proposalData && proposalData.data) {
-                        if (proposalData.data.isDynamicRewardAmount === false) {
-                            amountToUpdate = proposalData.data.rewardAmount;
-                        } else if (proposalData.data.rewardAmount && proposalData.data.applyAmount) {
-                            amountToUpdate = proposalData.data.rewardAmount; //+ proposalData.data.applyAmount;
-                        } else if (proposalData.data.rewardAmount) {
-                            amountToUpdate = proposalData.data.rewardAmount;
-                        }
+                        // if (proposalData.data.isDynamicRewardAmount === false) {
+                        //     amountToUpdate = proposalData.data.rewardAmount;
+                        // } else if (proposalData.data.rewardAmount && proposalData.data.applyAmount) {
+                        //     amountToUpdate = proposalData.data.rewardAmount; //+ proposalData.data.applyAmount;
+                        // } else if (proposalData.data.rewardAmount) {
+                        //     amountToUpdate = proposalData.data.rewardAmount;
+                        // }
+                        amountToUpdate = rewardData.initAmount;
 
                         return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
                             playerData => {
-                                dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, amountToUpdate, rewardType, proposalData);
+                                return dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, amountToUpdate, rewardType, proposalData);
                             }
                         ).then(
                             () => {
@@ -2107,7 +2108,9 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                         // RTG updated successfully
                         if (updatedRTG) {
                             // Check boundary case - RTG still overflow, try again
-                            if (updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                            if (updatedRTG.curConsumption > updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt
+                            // Status changed before we change them
+                            || updatedRTG.status != constRewardTaskStatus.STARTED) {
                                 // Revert this operation and try again
                                 return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                     {_id: updatedRTG._id},
@@ -2162,7 +2165,16 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                             return res;
                                         }
 
-                                        return updatedRTG
+                                        // The status change is not updated, try again
+                                        return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                            {_id: updatedRTG._id},
+                                            {
+                                                $inc: {
+                                                    currentAmt: -consumptionRecord.bonusAmount,
+                                                    curConsumption: -consumptionAmt
+                                                }
+                                            }
+                                        ).then(() => false);
                                     }
                                 )
                             }

@@ -2384,7 +2384,9 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
-                SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                if (newPromoCodeEntry.allowedSendSms) {
+                    SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                }
                 messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
                 return newPromoCode.code;
             }
@@ -2511,10 +2513,6 @@ let dbPlayerReward = {
                             mainType: "TopUp"
                         };
 
-                        if ([1, 3].indexOf(promoCodeObj.promoCodeTypeObjId.type) > -1) {
-                            searchQuery["data.amount"] = {$gte: promoCodeObj.minTopUpAmount}
-                        }
-
                         // Search Top Up Proposal After Received Promo Code
                         return dbConfig.collection_proposal.find(searchQuery).sort({createTime: -1}).limit(1).lean();
                     }
@@ -2543,6 +2541,16 @@ let dbPlayerReward = {
                         })
                     }
 
+                    // Check latest top up has sufficient amount to apply
+                    if ([1, 3].indexOf(promoCodeObj.promoCodeTypeObjId.type) > -1 && topUpProp.data.amount < promoCodeObj.minTopUpAmount) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
+                            name: "ConditionError",
+                            // message: "Topup amount '$" + promoCodeObj.minTopUpAmount + "' is needed for this reward"
+                            message: "你需要有新存款（" + promoCodeObj.minTopUpAmount + "元）才能领取此优惠，千万别错过了！"
+                        })
+                    }
+
                     // Process amount and requiredConsumption for type 3 promo code
                     if (promoCodeObj.promoCodeTypeObjId.type == 3) {
                         promoCodeObj.amount = topUpProp.data.amount * promoCodeObj.amount * 0.01;
@@ -2552,20 +2560,15 @@ let dbPlayerReward = {
                         promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
-                    return dbConfig.collection_playerConsumptionRecord.aggregate(
-                        {
-                            $match: {
-                                playerId: {$in: [ObjectId(promoCodeObj.playerObjId), String(promoCodeObj.playerObjId)]},
-                                platformId: {$in: [ObjectId(platformObjId), String(platformObjId)]},
-                                createTime: {$gte: topUpProp.settleTime, $lt: new Date()}
-                            }
-                        },
-                        {
-                            $group: {
-                                _id: {playerId: "$playerId"},
-                                amount: {$sum: "$amount"}
-                            }
-                        });
+                    let consumptionRecordProm = dbConfig.collection_playerConsumptionRecord.findOne({
+                        playerId: { $in: [ObjectId(promoCodeObj.playerObjId), String(promoCodeObj.playerObjId)] },
+                        platformId: { $in: [ObjectId(platformObjId), String(platformObjId)] },
+                        createTime: { $gte: topUpProp.settleTime, $lt: new Date() }
+                    }).lean();
+
+                    let topUpRecordProm = dbConfig.collection_playerTopUpRecord.findOne({proposalId: topUpProp.proposalId}).lean();
+
+                    return Promise.all([consumptionRecordProm, topUpRecordProm]);
                 } else {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_MINTOPUP,
@@ -2576,8 +2579,21 @@ let dbPlayerReward = {
                 }
             }
         ).then(
-            consumptionSumm => {
-                if (isType2Promo || consumptionSumm.length == 0) {
+            data => {
+                if (data && data[1]) {
+                    let topUpRecord = data[1];
+                    if (topUpRecord.bDirty || (topUpRecord.usedEvent && topUpRecord.usedEvent.length > 0)) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NOT_MINTOPUP,
+                            name: "ConditionError",
+                            message: "Topup has been used for other reward"
+                        });
+                    }
+                }
+
+                let consumptionRec = data[0];
+
+                if (!consumptionRec || isType2Promo) {
                     // Try deduct player credit first if it is type-C promo code
                     if (promoCodeObj.isProviderGroup && promoCodeObj.allowedProviders.length > 0 && promoCodeObj.promoCodeTypeObjId.type == 3 && topUpProp && topUpProp.data && topUpProp.data.amount) {
                         return dbPlayerUtil.tryToDeductCreditFromPlayer(playerObj._id, platformObjId, topUpProp.data.amount, promoCodeObj.promoCodeTypeObjId.name + ":Deduction", topUpProp.data)
@@ -2585,7 +2601,7 @@ let dbPlayerReward = {
                         return Promise.resolve();
                     }
                 } else {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.FAILED_PROMO_CODE_CONDITION,
                         name: "ConditionError",
                         message: "There is consumption after topup"
@@ -4328,7 +4344,7 @@ let dbPlayerReward = {
                             isUpdateTopupRecord = true;
 
                             // Set player valid credit update flag
-                            if (eventData.condition.providerGroup && eventData.condition.isDynamicRewardAmount) {
+                            if (/*eventData.condition.providerGroup &&*/ eventData.condition.isDynamicRewardAmount) {
                                 isUpdateValidCredit = true;
                             }
                         }
@@ -5359,7 +5375,8 @@ function addUsedRewardToTopUpRecord(topUpProposalId, rewardEvent) {
                     createTime: topUpRecord.createTime,
                     platformId: topUpRecord.platformId
                 }, {
-                    $push: {usedEvent: rewardEvent}
+                    $push: {usedEvent: rewardEvent},
+                    bDirty: true
                 }).lean().exec();
             }
             return Promise.resolve();

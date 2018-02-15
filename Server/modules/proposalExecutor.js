@@ -2061,6 +2061,7 @@ var proposalExecutor = {
 
             executePlayerPromoCodeReward: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_PROMO_CODE_REWARD,
@@ -2076,7 +2077,7 @@ var proposalExecutor = {
                     };
 
                     // Target providers or providerGroup
-                    if (proposalData.data.providerGroup) {
+                    if (proposalData.data.providerGroup && proposalData.data.providerGroup.length > 0) {
                         taskData.providerGroup = proposalData.data.providerGroup;
 
                         // Lock apply amount to reward if type-C promo code
@@ -2106,7 +2107,7 @@ var proposalExecutor = {
                     }
 
                     if (proposalData.data.disableWithdraw) {
-                        disablePlayerWithdrawal(proposalData.data.playerObjId, proposalData.data.platformId).catch(errorUtils.reportError);
+                        disablePlayerWithdrawal(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.proposalId).catch(errorUtils.reportError);
                     }
 
                     prom.then(
@@ -2148,6 +2149,8 @@ var proposalExecutor = {
                     } else {
                         taskData.providerGroup = proposalData.data.providerGroup;
                     }
+
+                    proposalData.data.proposalId = proposalData.proposalId;
 
                     createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.PLAYER_LIMITED_OFFERS_REWARD, proposalData);
                 } else {
@@ -3210,13 +3213,36 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     );
 }
 
-function disablePlayerWithdrawal(playerObjId, platformObjId) {
+function disablePlayerWithdrawal(playerObjId, platformObjId, proposalId) {
     return dbconfig.collection_players.findOneAndUpdate({
         _id: playerObjId,
         platform: platformObjId
     }, {
         $set: {"permission.applyBonus": false}
-    }).lean().exec();
+    }).lean().then(
+        playerData => {
+            let oldData = {"applyBonus": true};
+            if (playerData && playerData.permission && playerData.permission.applyBonus === false) {
+                oldData.applyBonus = false;
+            }
+
+            let newData = {"applyBonus": false};
+
+            let remark = "优惠提案：" + proposalId;
+
+            let newLog = new dbconfig.collection_playerPermissionLog({
+                isSystem: true,
+                platform: platformObjId,
+                player: playerObjId,
+                remark: remark,
+                oldData: oldData,
+                newData: newData,
+            });
+            newLog.save().catch(errorUtils.reportError);
+
+            return playerData;
+        }
+    )
 }
 
 function sendMessageToPlayer (proposalData,type,metaDataObj) {
