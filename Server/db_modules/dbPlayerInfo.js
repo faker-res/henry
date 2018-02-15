@@ -2107,10 +2107,8 @@ let dbPlayerInfo = {
                 .then(data => {
                     let playerForbidTopupType = data.forbidTopUpType.filter(item => {
                         return item != "undefined"
-                    })
-                    if (playerForbidTopupType) {
-                        updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
-                    }
+                    }) || []
+                    updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
                     if (addList.length == 0 && removeList.length == 0) {
                         updateData.forbidTopUpType = [];
                     }
@@ -2167,10 +2165,8 @@ let dbPlayerInfo = {
             let prom = dbconfig.collection_players.findOne({name: player, platform: platformObjId})
                 .then(data => {
 
-                    let playerForbidProviders = data.forbidProviders;
-                    if (playerForbidProviders) {
-                        updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
-                    }
+                    let playerForbidProviders = data.forbidProviders || [];
+                    updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
                     if (addList.length == 0 && removeList.length == 0) {
                         updateData.forbidProviders = [];
                     }
@@ -2223,10 +2219,9 @@ let dbPlayerInfo = {
         playerNames.forEach(name => {
             let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
                 .then(data => {
-                    let playerForbidRewardEvents = data.forbidRewardEvents;
-                    if (playerForbidRewardEvents) {
-                        updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
-                    }
+                    let playerForbidRewardEvents = data.forbidRewardEvents || [];
+                    updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+
                     if (addList.length == 0 && removeList.length == 0) {
                         updateData.forbidRewardEvents = [];
                     }
@@ -2257,10 +2252,8 @@ let dbPlayerInfo = {
         playerNames.forEach(name => {
             let prom = dbconfig.collection_players.findOne({name: name, platform: platformObjId})
                 .then(data => {
-                    let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent;
-                    if (playerForbidRewardPointsEvent) {
-                        updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
-                    }
+                    let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent || [];
+                    updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
                     if (addList.length == 0 && removeList.length == 0) {
                         updateData.forbidRewardPointsEvent = [];
                     }
@@ -12002,7 +11995,7 @@ let dbPlayerInfo = {
 
         let addList = remarks.addList;
         let removeList = remarks.removeList;
-        let updateData = {};
+        let updateData = { credibilityRemarks:[] };
         let proms = [];
 
         playerNames.forEach(playerName => {
@@ -12010,10 +12003,8 @@ let dbPlayerInfo = {
                 .then(data => {
                     let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
                         return item != "undefined"
-                    })
-                    if (playerCredibilityRemarks) {
-                        updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
-                    }
+                    }) || [];
+                    updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
                     if (addList.length == 0 && removeList.length == 0) {
                         updateData.credibilityRemarks = [];
                     }
