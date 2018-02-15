@@ -494,7 +494,7 @@
                             label {{'REMARKS' | translate}}:
                             div
                                 textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
-                        div.col-md-4(style='width:60%;')
+                        div.col-md-4(style='width:60%;', ng-if="vm.platformPageName != 'batchPermit'")
                             label {{'CREDIBILITY_RECORD' | translate}}
                             .well
                                 div(align="center")
