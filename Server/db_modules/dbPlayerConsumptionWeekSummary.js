@@ -9,24 +9,22 @@ var dbconfig = require('./../modules/dbproperties');
 var dbutility = require('./../modules/dbutility');
 var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var dbPlayerConsumptionDaySummary = require('../db_modules/dbPlayerConsumptionDaySummary');
-var dbPlayerGameTypeConsumptionDaySummary = require('../db_modules/dbPlayerGameTypeConsumptionDaySummary');
-var dbPlayerGameTypeConsumptionWeekSummary = require('../db_modules/dbPlayerGameTypeConsumptionWeekSummary');
 var dbProposal = require('../db_modules/dbProposal');
-var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbPlayerReward = require('../db_modules/dbPlayerReward');
 var dbRewardEvent = require('../db_modules/dbRewardEvent');
-//var constGameType = require('../const/constGameType');
 var dbGameType = require('../db_modules/dbGameType');
 var constRewardType = require('../const/constRewardType');
-var constPlatformStatus = require('../const/constPlatformStatus');
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require('../const/constShardKeys');
 var util = require('util');
 var constServerCode = require('../const/constServerCode');
+
 const constProposalEntryType = require("../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
 const constSettlementPeriod = require('../const/constSettlementPeriod');
+
+const dbOps = require("../db_common/dbOperations");
 
 var dbPlayerConsumptionWeekSummary = {
 
@@ -382,9 +380,7 @@ var dbPlayerConsumptionWeekSummary = {
                         summaryRecords => {
                             //only mark summary dirty if they are not removed , which means the proposal is not approved
                             if (summaryRecords && summaryRecords.length > 0) {
-                                return dbconfig.collection_playerConsumptionSummary.remove(
-                                    {_id: {$in: summaryIds}}
-                                ).then(
+                                return dbOps.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: summaryIds}}).then(
                                     () => {
                                         var summaryProms = processedSummaries.map(
                                             summary => {
