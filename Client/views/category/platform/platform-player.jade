@@ -1142,8 +1142,8 @@ include modalGameCreditLog
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
             button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
                 text {{"Permission History" | translate}}
-        div(ng-show="vm.platformPageName!='batchPermit'") * 若要开启/解除某权限设置，请
-        div(ng-show="vm.platformPageName!='batchPermit'") 关闭->开启->再按确定按钮。
+        div(ng-show="vm.platformPageName=='batchPermit'") * 若要开启/解除某权限设置，请
+        div(ng-show="vm.platformPageNam=='batchPermit'") 关闭->开启->再按确定按钮。
 
 #modalForbidRewardLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
