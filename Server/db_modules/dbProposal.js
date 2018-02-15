@@ -3721,7 +3721,33 @@ var proposal = {
 
                     proms.push(Q.all([prom, userAgentUserCountProm]));
                 }
-                return Q.all(proms);
+
+                return Q.all(proms).then(
+                    (data) => {
+                        return dbconfig.collection_proposal.aggregate(
+                            {
+                                $match: {
+                                    createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                    type: onlineTopupType._id,
+                                    status: "Success",
+                                    $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                }
+                            }, {
+                                $group: {
+                                    _id: null,
+                                    userIds: { $addToSet: "$data.playerObjId" },
+                                }
+                            }
+                        ).then(
+                            data1 => {
+                                let totalUser = {
+                                    totalUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
+                                };
+                                return [data, totalUser]
+                            }
+                        )
+                    }
+                );
             }
         )
     }

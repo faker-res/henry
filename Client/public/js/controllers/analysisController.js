@@ -554,7 +554,8 @@ define(['js/app'], function (myApp) {
             vm.isShowLoadingSpinner('#onlineTopupSuccessRateAnalysis', true);
             socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisByPlatform', sendData, data => {
                 console.log('data.data', data.data);
-                vm.platformOnlineTopupAnalysisData = data.data;
+                vm.platformOnlineTopupAnalysisData = data.data[0];
+                vm.platformOnlineTopupAnalysisDataTotalUserCount = data.data[1].totalUserCount;
                 vm.platformOnlineTopupAnalysisTotalUserCountWithoutFilter = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.userIds.length, 0),0);
                 vm.platformOnlineTopupAnalysisTotalUserCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[1].userAgentUserCount,0);
                 let totalSuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.successCount, 0), 0);
@@ -566,7 +567,7 @@ define(['js/app'], function (myApp) {
                     successRate: totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((totalSuccessCount / totalCount) * 100),
                     receivedAmount: vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.amount, 0),0),
                     amountRatio: 100,
-                    userCount: vm.platformOnlineTopupAnalysisTotalUserCount,
+                    userCount: vm.platformOnlineTopupAnalysisDataTotalUserCount,
                     userCountRatio: 100,
                 };
                 vm.platformOnlineTopupAnalysisByType = [];
@@ -583,10 +584,7 @@ define(['js/app'], function (myApp) {
                     APP: vm.calculateOnlineTopupTypeSubtotalData(2),
                     H5: vm.calculateOnlineTopupTypeSubtotalData(3)
                 };
-                vm.platformOnlineTopupAnalysisTotalData.userCount =
-                    vm.platformOnlineTopupAnalysisSubTotalData.WEB.userCount +
-                    vm.platformOnlineTopupAnalysisSubTotalData.APP.userCount +
-                    vm.platformOnlineTopupAnalysisSubTotalData.H5.userCount;
+               
                 vm.platformOnlineTopupAnalysisDetailMerchantId = null;
                 // console.log('vm.platformOnlineTopupAnalysisData', vm.platformOnlineTopupAnalysisData);
                 // console.log('vm.platformOnlineTopupAnalysisTotalData', vm.platformOnlineTopupAnalysisTotalData);
