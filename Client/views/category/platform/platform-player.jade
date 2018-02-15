@@ -656,7 +656,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success.forbidBatchGameConfirm(ng-show="vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
 
                 button.common-button.margin-right-5.btn.btn-warning.forbidGameCancel {{'CANCEL' | translate}}
-                button.common-button.margin-right-5.btn.btn-primary.showForbidGame(data-toggle="modal", data-target="#modalForbidGameLog", ng-click="vm.getForbidGame();") {{'CHANGES_RECORD' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidGame(data-toggle="modal", data-target="#modalForbidGameLog", ng-click="vm.getForbidGame();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
 #forbidRewardEventPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
@@ -677,7 +677,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardEventConfirm(ng-show="vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
 
                 button.common-button.margin-right-5.btn.btn-warning.forbidRewardEventCancel(data-dismiss='popover') {{'CANCEL' | translate}}
-                button.common-button.margin-right-5.btn.btn-primary.showForbidreward(data-toggle="modal", data-target="#modalForbidRewardLog", ng-click="vm.getForbidReward();") {{'CHANGES_RECORD' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidreward(data-toggle="modal", data-target="#modalForbidRewardLog", ng-click="vm.getForbidReward();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
 #forbidTopUpPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
@@ -693,7 +693,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success.forbidTopUpConfirm(ng-show="vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidTopUpDisable') {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-success.forbidBatchTopUpConfirm(ng-show="vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidTopUpCancel {{'CANCEL' | translate}}
-                button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();") {{'CHANGES_RECORD' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidTopUp(data-toggle="modal", data-target="#modalForbidTopUpLog", ng-click="vm.getForbidTopUp();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
 #forbidRewardPointsEventPopover.hide(style="width: 600px", ng-non-bindable)
     table.simple-table
@@ -722,7 +722,7 @@ include modalGameCreditLog
                 button.common-button.margin-right-5.btn.btn-success.forbidRewardPointsEventConfirm(ng-show="vm.platformPageName!='batchPermit'",ng-disabled='vm.forbidRewardPointsEventDisable') {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-success.forbidBatchRewardPointsEventConfirm(ng-show="vm.platformPageName=='batchPermit'") {{'CONFIRM' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning.forbidRewardPointsEventCancel {{'CANCEL' | translate}}
-                button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();") {{'CHANGES_RECORD' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary.showForbidRewardPointsEvent(data-toggle="modal", data-target="#modalForbidRewardPointsEventLog", ng-click="vm.getForbidRewardPointsEvent();", ng-show="vm.platformPageName!='batchPermit'") {{'CHANGES_RECORD' | translate}}
 
 #partnerLevelPopover.hide
     //- label The level for {{vm.partnerLevelPopover.name}}
@@ -1140,10 +1140,10 @@ include modalGameCreditLog
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
         .text-left(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
-            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog')
+            button#permissionRecordButton.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Platform', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChange("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
                 text {{"Permission History" | translate}}
-        div * 若要开启/解除某权限设置，请
-        div 关闭->开启->再按确定按钮。
+        div(ng-show="vm.platformPageName!='batchPermit'") * 若要开启/解除某权限设置，请
+        div(ng-show="vm.platformPageName!='batchPermit'") 关闭->开启->再按确定按钮。
 
 #modalForbidRewardLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')

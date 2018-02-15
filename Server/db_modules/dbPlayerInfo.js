@@ -2111,6 +2111,9 @@ let dbPlayerInfo = {
                 if(playerForbidTopupType){
                     updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
                 }
+                if(addList.length == 0 && removeList.length == 0){
+                    updateData.forbidTopUpType = [];
+                }
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform: query.platformObjId }, updateData, constShardKeys.collection_players);
             });
             proms.push(prom)
@@ -2170,6 +2173,9 @@ let dbPlayerInfo = {
                 if(playerForbidProviders){
                     updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
                 }
+                if(addList.length == 0 && removeList.length == 0){
+                    updateData.forbidProviders = [];
+                }
                 console.log(updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
             });
@@ -2225,6 +2231,9 @@ let dbPlayerInfo = {
                 if(playerForbidRewardEvents){
                     updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
                 }
+                if(addList.length == 0 && removeList.length == 0){
+                    updateData.forbidRewardEvents = [];
+                }
                 console.log(updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
             })
@@ -2255,6 +2264,9 @@ let dbPlayerInfo = {
                 let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent;
                 if(playerForbidRewardPointsEvent){
                     updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
+                }
+                if(addList.length == 0 && removeList.length == 0){
+                    updateData.forbidRewardPointsEvent = [];
                 }
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform:platformObjId }, updateData, constShardKeys.collection_players);
             })
@@ -11956,27 +11968,16 @@ let dbPlayerInfo = {
                 if(playerCredibilityRemarks){
                     updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
                 }
-                console.log(updateData);
+                if(addList.length == 0 && removeList.length == 0){
+                    updateData.credibilityRemarks = [];
+                }
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: playerName, platform: platformObjId }, updateData, constShardKeys.collection_players);
-                // return data
-            });
-            // dbUtility.findOneAndUpdateForShard(
-            //     dbconfig.collection_players,
-            //     {
-            //         name: playerName,
-            //         platform: platformObjId
-            //     },
-            //     {
-            //         credibilityRemarks: remarks
-            //     },
-            //      constShardKeys.collection_players
-            // ).then(
-            //     playerData => {
-            //         let playerObjId = playerData._id;
-            //         dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
-            //         return playerData;
-            //     }
-            // );
+            })
+            .then(playerData=>{
+                let playerObjId = playerData._id;
+                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
+                return playerData;
+            })
             proms.push(prom);
         })
         return Promise.all(proms);

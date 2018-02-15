@@ -23290,6 +23290,13 @@ define(['js/app'], function (myApp) {
                 vm.playerCredibilityRemarksUpdated = false;
             };
             vm.localRemarkUpdate = function () {
+                if(vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0){
+                    var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                    if(!ans){
+                        return
+                    }
+                }
+
                 let selectedRemarks = [];
                 for (let i = 0; i < vm.credibilityRemarks.length; i++) {
                     if (vm.credibilityRemarks[i].selected === true) {
@@ -23798,6 +23805,13 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
+
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
                                     $.each(forbidRewardEventList, function (i, v) {
@@ -23868,6 +23882,12 @@ define(['js/app'], function (myApp) {
                                 $("button.forbidBatchGameConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
                                         return;
+                                    }
+                                    if(vm.forbidGameAddList.length == 0 && vm.forbidGameRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
                                     }
                                     let forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
                                     let forbidProviders = [];
@@ -23940,6 +23960,12 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidTopUpAddList.length == 0 && vm.forbidTopUpRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
                                     let forbidTopUpList = $(thisPopover).find('.playerTopUpTypeForbid');
                                     let forbidTopUpTypes = [];
                                     $.each(forbidTopUpList, function (i, v) {
@@ -24010,6 +24036,12 @@ define(['js/app'], function (myApp) {
                                 $("button.forbidBatchRewardPointsEventConfirm").on('click', function () {
                                     if ($(this).hasClass('disabled')) {
                                         return;
+                                    }
+                                    if(vm.forbidRewardPointsAddList.length == 0 && vm.forbidRewardPointsRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
                                     }
                                     let forbidRewardPointsEventList = $(thisPopover).find('.playerRewardPointsEventForbid');
                                     let forbidRewardPointsEvent = [];
