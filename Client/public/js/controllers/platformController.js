@@ -23361,11 +23361,9 @@ define(['js/app'], function (myApp) {
             vm.permissionChangeMark = function(){
                 // a object to record which permission is been change;
                 vm.playerPermissionChange = {};
-                console.log(vm.playerPermissionChange);
                 Object.keys(vm.playerPermissionTypes).map(item=>{
                     vm.playerPermissionChange[item] = false;
                 });
-                console.log(vm.playerPermissionChange);
             }
             vm.drawBatchPermitTable = function () {
 
@@ -23707,7 +23705,6 @@ define(['js/app'], function (myApp) {
                                     var key = $(this).data("which");
                                     var select = $(this).data("on");
                                     changeObj[key] = !select;
-                                    vm.playerPermissionChange[key] = "(C)";
 
                                     $(thisPopover + ' .' + key).toggleClass('hide');
                                     $submit.prop('disabled', $remark.val() == '');
@@ -24111,8 +24108,6 @@ define(['js/app'], function (myApp) {
                 }
                 // add to record which is selected to edit
                 $('#c-'+id).html($translate("ModifyIt"));
-                console.log(vm[addList]);
-                console.log(vm[removeList]);
             }
 
             ///

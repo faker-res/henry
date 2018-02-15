@@ -2158,17 +2158,12 @@ let dbPlayerInfo = {
         let updateData = {};
         let addList = forbidProviders.addList;
         let removeList = forbidProviders.removeList;
-        console.log(forbidProviders);
-        // if (forbidProviders) {
-        //     updateData.forbidProviders = forbidProviders;
-        // }
         let proms = [];
 
         playerNames.forEach(player=>{
-            // let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
             let prom = dbconfig.collection_players.findOne({ name: player, platform: platformObjId })
             .then(data=>{
-                console.log(data.forbidProviders);
+
                 let playerForbidProviders = data.forbidProviders;
                 if(playerForbidProviders){
                     updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
@@ -2176,7 +2171,6 @@ let dbPlayerInfo = {
                 if(addList.length == 0 && removeList.length == 0){
                     updateData.forbidProviders = [];
                 }
-                console.log(updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
             });
             proms.push(prom)
@@ -2196,17 +2190,13 @@ let dbPlayerInfo = {
         dataList.forEach(d=>{
             result.push(String(d));
         })
-        console.log('dataList',dataList);
-        console.log('addList',addList);
         let finalResult = [];
         addList.forEach(item=>{
-            console.log(result.indexOf(item));
             if(result.indexOf(item)==-1){
                 result.push(item);
             }
         })
-        console.log(result);
-        console.log(removeList);
+
         result = result.filter(rItem=>{
             // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
             let currentItem = String(rItem);
@@ -2234,7 +2224,6 @@ let dbPlayerInfo = {
                 if(addList.length == 0 && removeList.length == 0){
                     updateData.forbidRewardEvents = [];
                 }
-                console.log(updateData);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
             })
             proms.push(prom);
@@ -2255,9 +2244,7 @@ let dbPlayerInfo = {
         let updateData = {};
         let addList = forbidRewardPointsEvent.addList;
         let removeList = forbidRewardPointsEvent.removeList;
-        // if (forbidRewardPointsEvent) {
-        //     updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
-        // }
+
         playerNames.forEach(name=>{
             let prom = dbconfig.collection_players.findOne({ name: name, platform:platformObjId })
             .then(data=>{
@@ -12000,7 +11987,6 @@ let dbPlayerInfo = {
     },
 
     updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
-            console.log(remarks);
 
             let addList = remarks.addList;
             let removeList = remarks.removeList;
