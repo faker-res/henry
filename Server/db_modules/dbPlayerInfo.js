@@ -7959,8 +7959,8 @@ let dbPlayerInfo = {
                     let queryObj = {
                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                         type: onlineTopupType._id,
-                        "data.topupType": {$in: [parseInt(merchantTopupTypeId), merchantTopupTypeId.toString()]},
-                        "data.userAgent": {$in: [parseInt(userAgent), userAgent.toString()]},
+                        "data.topupType": parseInt(merchantTopupTypeId),
+                        "data.userAgent": userAgent,
 
                     };
                     proms.push(dbconfig.collection_proposal.aggregate(
@@ -7983,8 +7983,8 @@ let dbPlayerInfo = {
                                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                                         type: onlineTopupType._id,
                                         status: "Success",
-                                        "data.topupType": {$in: [parseInt(merchantTopupTypeId), merchantTopupTypeId.toString()]},
-                                        "data.userAgent": {$in: [parseInt(userAgent), userAgent.toString()]},
+                                        "data.topupType": parseInt(merchantTopupTypeId),
+                                        "data.userAgent": userAgent,
                                     }
                                 }, {
                                     $group: {

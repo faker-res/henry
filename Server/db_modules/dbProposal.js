@@ -3656,7 +3656,7 @@ var proposal = {
                                 createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                                 type: onlineTopupType._id,
                                 "data.userAgent": i,
-                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}],
+                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
                             }
                         }, {
                             $group: groupByObj
@@ -3670,7 +3670,7 @@ var proposal = {
                                         type: onlineTopupType._id,
                                         status: "Success",
                                         "data.userAgent": i,
-                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}],
+                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
                                     }
                                 }, {
                                     $group: {
@@ -3696,7 +3696,30 @@ var proposal = {
                         }
                     );
 
-                    proms.push(prom);
+                    let userAgentUserCountProm = dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                                type: onlineTopupType._id,
+                                status: "Success",
+                                "data.userAgent": i,
+                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                            }
+                        }, {
+                            $group: {
+                                _id: "$data.userAgent",
+                                userIds: { $addToSet: "$data.playerObjId" },
+                            }
+                        }
+                    ).then(
+                        data => {
+                            return {
+                                userAgentUserCount: data && data[0] ? data[0].userIds.length : 0
+                            }
+                        }
+                    );
+
+                    proms.push(Q.all([prom, userAgentUserCountProm]));
                 }
                 return Q.all(proms);
             }
