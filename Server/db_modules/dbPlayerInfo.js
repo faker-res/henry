@@ -2098,12 +2098,25 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
         let proms = [];
         let playerNames = query.playerNames;
-        let updateData = {forbidTopUpType: forbidTopUpTypes}
+        let addList = forbidTopUpTypes.addList;
+        let removeList = forbidTopUpTypes.removeList;
+        let updateData = {};
+
         playerNames.forEach(name => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                name: name,
-                platform: query.platformObjId
-            }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({name: name, platform: query.platformObjId})
+                .then(data => {
+                    let playerForbidTopupType = data.forbidTopUpType.filter(item => {
+                        return item != "undefined"
+                    }) || []
+                    updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidTopUpType = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: name,
+                        platform: query.platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                });
             proms.push(prom)
         });
 
@@ -2144,19 +2157,26 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidProviders: function (platformObjId, playerNames, forbidProviders) {
 
         let updateData = {};
-        if (forbidProviders) {
-            updateData.forbidProviders = forbidProviders;
-        }
+        let addList = forbidProviders.addList;
+        let removeList = forbidProviders.removeList;
         let proms = [];
 
         playerNames.forEach(player => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                'name': player,
-                'platform': platformObjId
-            }, updateData, constShardKeys.collection_players);
-            proms.push(prom);
-        });
+            let prom = dbconfig.collection_players.findOne({name: player, platform: platformObjId})
+                .then(data => {
 
+                    let playerForbidProviders = data.forbidProviders || [];
+                    updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidProviders = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': player,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                });
+            proms.push(prom)
+        });
         return Promise.all(proms);
     },
 
@@ -2167,19 +2187,49 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
+    managingDataList: function(dataList, addList, removeList){
+        let result = [];
+        dataList.forEach(d => {
+            result.push(String(d));
+        })
+        let finalResult = [];
+        addList.forEach(item => {
+            if (result.indexOf(item) == -1) {
+                result.push(item);
+            }
+        })
 
+        result = result.filter(rItem => {
+            // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
+            let currentItem = String(rItem);
+            if (removeList.length == 0) {
+                finalResult.push(currentItem);
+            } else if (removeList.indexOf(currentItem) == -1) {
+                finalResult.push(currentItem);
+            }
+        })
+        return finalResult;
+    },
     updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
         let updateData = {};
         let result = [];
-        if (forbidRewardEvents) {
-            updateData.forbidRewardEvents = forbidRewardEvents;
-        }
+        let addList = forbidRewardEvents.addList;
+        let removeList = forbidRewardEvents.removeList;
         let proms = [];
         playerNames.forEach(name => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                'name': name,
-                'platform': platformObjId
-            }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
+                .then(data => {
+                    let playerForbidRewardEvents = data.forbidRewardEvents || [];
+                    updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidRewardEvents = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': name,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
             proms.push(prom);
         });
         return Promise.all(proms);
@@ -2196,14 +2246,22 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidRewardPointsEvent: function (playerNames, platformObjId, forbidRewardPointsEvent) {
         let proms = [];
         let updateData = {};
-        if (forbidRewardPointsEvent) {
-            updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
-        }
+        let addList = forbidRewardPointsEvent.addList;
+        let removeList = forbidRewardPointsEvent.removeList;
+
         playerNames.forEach(name => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                name: name,
-                platform: platformObjId
-            }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({name: name, platform: platformObjId})
+                .then(data => {
+                    let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent || [];
+                    updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidRewardPointsEvent = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: name,
+                        platform: platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
             proms.push(prom);
         })
         return Promise.all(proms);
@@ -5976,13 +6034,17 @@ let dbPlayerInfo = {
                             status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
 
+                        let eventNameRec = proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "", null, platformId)
+                        if (proposals[i].type && proposals[i].type.name == constProposalType.ADD_PLAYER_REWARD_TASK) {
+                            eventNameRec = "促销优惠";
+                        }
                         let rec = {
                             playerId: playerId,
                             playerName: playerName,
                             createTime: proposals[i].createTime,
                             rewardType: proposals[i].type ? proposals[i].type.name : "",
                             rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                            eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "", null, platformId),
+                            eventName: eventNameRec,
                             eventCode: proposals[i].data.eventCode,
                             status: status
                         }
@@ -7959,8 +8021,9 @@ let dbPlayerInfo = {
                     let queryObj = {
                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                         type: onlineTopupType._id,
-                        "data.topupType": merchantTopupTypeId,
-                        "data.userAgent": parseFloat(userAgent),
+                        "data.topupType": parseInt(merchantTopupTypeId),
+                        "data.userAgent": userAgent,
+
                     };
                     proms.push(dbconfig.collection_proposal.aggregate(
                         {
@@ -7982,8 +8045,8 @@ let dbPlayerInfo = {
                                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                                         type: onlineTopupType._id,
                                         status: "Success",
-                                        "data.topupType": merchantTopupTypeId,
-                                        "data.userAgent": parseFloat(userAgent),
+                                        "data.topupType": parseInt(merchantTopupTypeId),
+                                        "data.userAgent": userAgent,
                                     }
                                 }, {
                                     $group: {
@@ -11930,26 +11993,31 @@ let dbPlayerInfo = {
 
     updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
 
+        let addList = remarks.addList;
+        let removeList = remarks.removeList;
+        let updateData = { credibilityRemarks:[] };
         let proms = [];
-        playerNames.forEach(playerName => {
 
-            let prom = dbUtility.findOneAndUpdateForShard(
-                dbconfig.collection_players,
-                {
-                    name: playerName,
-                    platform: platformObjId
-                },
-                {
-                    credibilityRemarks: remarks
-                },
-                constShardKeys.collection_players
-            ).then(
-                playerData => {
+        playerNames.forEach(playerName => {
+            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
+                .then(data => {
+                    let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
+                        return item != "undefined"
+                    }) || [];
+                    updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.credibilityRemarks = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: playerName,
+                        platform: platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
+                .then(playerData => {
                     let playerObjId = playerData._id;
-                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
                     return playerData;
-                }
-            );
+                })
             proms.push(prom);
         })
         return Promise.all(proms);

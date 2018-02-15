@@ -447,8 +447,9 @@
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
-
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
+                                                    input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
+                                                    span(id="{{'c-'+data._id}}")
                             div.col-md-4
                                 .well
                                     label {{"ADD_SCORE" | translate}}
@@ -465,8 +466,9 @@
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
-
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
+                                                    input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
+                                                    span(id="{{'c-'+data._id}}")
                             div.col-md-4
                                 .well
                                     label {{"REMINDER" | translate}}
@@ -483,14 +485,16 @@
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
+                                                    input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
+                                                    span(id="{{'c-'+data._id}}")
                 .panel.panel-primary
                     .panel-body
                         div.col-md-4(style='width:40%;')
                             label {{'REMARKS' | translate}}:
                             div
                                 textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
-                        div.col-md-4(style='width:60%;')
+                        div.col-md-4(style='width:60%;', ng-if="vm.platformPageName != 'batchPermit'")
                             label {{'CREDIBILITY_RECORD' | translate}}
                             .well
                                 div(align="center")

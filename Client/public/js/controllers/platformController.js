@@ -401,6 +401,8 @@ define(['js/app'], function (myApp) {
 
             vm.prepareToBeDeletedProviderGroupId = [];
 
+            vm.longestDelayStatus = "rgb(0,180,0)";
+
             // Basic library functions
             var Lodash = {
                 keyBy: (array, keyName) => {
@@ -612,41 +614,44 @@ define(['js/app'], function (myApp) {
             });
 
             vm.getProviderLatestTimeRecord = function () {
-                vm.providerLatestTime = {};
-                vm.delayStatus = {};
-                vm.longestDelayDate = new Date().toString();
-                vm.longestDelayStatus = "rgb(0,180,0)";
+                let longestDelayDate = new Date().toString();
 
-                let counter = 1;
+                let providerIdArr = [];
 
-                let p = Promise.resolve();
+                vm.platformProviderList.forEach( p => {
+                    if(p && p.providerId){
+                        providerIdArr.push(p.providerId);
+                    }
+                })
 
-                vm.platformProviderList.forEach(providerId => {
-                    p = p.then(() => {
-                        return $scope.$socketPromise('getProviderLatestTimeRecord', {
-                            providerId: providerId.providerId,
-                            platformObjId: vm.selectedPlatform.id
-                        }).then(function (data) {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    providerIdList: providerIdArr
+                }
 
-                            if (data.data) {
-                                if (data.data.createTime < vm.longestDelayDate) {
-                                    vm.longestDelayDate = data.data.createTime
-                                    vm.longestDelayStatus = data.data.delayStatusColor;
+                socketService.$socket($scope.AppSocket, 'getProviderLatestTimeRecord', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log("getProviderLatestTimeRecord", data.data)
+                        if(data && data.data && data.data.length > 0){
+                            data.data.map(d => {
+                                if(d){
+                                    if(d.createTime){
+                                        d.createTime = vm.dateReformat(d.createTime);
+
+                                        if (d.createTime < longestDelayDate) {
+                                            longestDelayDate = d.createTime
+                                            vm.longestDelayStatus = d.delayStatusColor;
+                                        }
+                                    }
                                 }
 
-                                vm.providerLatestTime[counter] = vm.dateReformat(data.data.createTime);
-                                vm.delayStatus[counter] = data.data.delayStatusColor;
-                            }
-                            else {
-                                vm.providerLatestTime[counter] = "";
-                                vm.delayStatus[counter] = "rgb(255,255,255)";
-                            }
-                            counter++;
-                            $scope.safeApply();
-                        })
+                                return;
+                            })
+
+                            vm.providerLatestTimeRecord = data.data;
+                        }
                     })
-                })
-                return p;
+                });
             };
 
             vm.setPlatformFooter = function (platformAction) {
@@ -6165,6 +6170,7 @@ define(['js/app'], function (myApp) {
                                         height: '26px'
                                     },
                                 };
+
                                 $("#playerPermissionTable td").removeClass('hide');
 
                                 vm.popOverPlayerPermission = row;
@@ -9403,7 +9409,6 @@ define(['js/app'], function (myApp) {
                     initAmount: vm.playerAddRewardTask.currentAmount,
                     useConsumption: Boolean(vm.playerAddRewardTask.useConsumption),
                     remark: vm.playerAddRewardTask.remark,
-                    eventName: "促销优惠",
                     eventCode: "manualReward"
                 };
 
@@ -23269,11 +23274,34 @@ define(['js/app'], function (myApp) {
             vm.initBatchPermit = function () {
                 vm.prepareCredibilityConfig();
                 vm.resetBatchEditData();
+                // init edit data
+                vm.forbidCredibilityAddList = [];
+                vm.forbidCredibilityRemoveList = [];
+
+                vm.forbidRewardEventAddList = [];
+                vm.forbidRewardEventRemoveList = [];
+
+                vm.forbidGameAddList = [];
+                vm.forbidGameRemoveList = [];
+
+                vm.forbidTopUpAddList = [];
+                vm.forbidTopUpRemoveList = [];
+
+                vm.forbidRewardPointsAddList = [];
+                vm.forbidRewardPointsRemoveList = [];
+
                 vm.drawBatchPermitTable();
 
                 vm.playerCredibilityRemarksUpdated = false;
             };
             vm.localRemarkUpdate = function () {
+                if(vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0){
+                    var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                    if(!ans){
+                        return
+                    }
+                }
+
                 let selectedRemarks = [];
                 for (let i = 0; i < vm.credibilityRemarks.length; i++) {
                     if (vm.credibilityRemarks[i].selected === true) {
@@ -23285,7 +23313,10 @@ define(['js/app'], function (myApp) {
                     admin: authService.adminName,
                     platformObjId: vm.selectedPlatform.id,
                     playerNames: playerNames,
-                    remarks: selectedRemarks,
+                    remarks: {
+                        'addList': vm.forbidCredibilityAddList,
+                        'removeList': vm.forbidCredibilityRemoveList
+                    },
                     comment: vm.credibilityRemarkComment
                 };
 
@@ -23325,6 +23356,14 @@ define(['js/app'], function (myApp) {
                         "manualTopup": false
                     },
                 };
+            }
+
+            vm.permissionChangeMark = function(){
+                // a object to record which permission is been change;
+                vm.playerPermissionChange = {};
+                Object.keys(vm.playerPermissionTypes).map(item=>{
+                    vm.playerPermissionChange[item] = false;
+                });
             }
             vm.drawBatchPermitTable = function () {
 
@@ -23394,7 +23433,9 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
-                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;",
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;"
+                                    + "; vm.permissionChangeMark();",
+
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
@@ -23664,8 +23705,12 @@ define(['js/app'], function (myApp) {
                                     var key = $(this).data("which");
                                     var select = $(this).data("on");
                                     changeObj[key] = !select;
+
                                     $(thisPopover + ' .' + key).toggleClass('hide');
                                     $submit.prop('disabled', $remark.val() == '');
+                                    $(thisPopover +' #'+key).html($translate('ModifyIt'));
+
+                                    $scope.safeApply();
                                 })
 
                                 $remark.on('input selectionchange propertychange', function () {
@@ -23762,6 +23807,13 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
+
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
                                     $.each(forbidRewardEventList, function (i, v) {
@@ -23773,7 +23825,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         playerNames: playerNames,
-                                        forbidRewardEvents: forbidRewardEvents,
+                                        forbidRewardEvents: {
+                                            'addList': vm.forbidRewardEventAddList,
+                                            'removeList': vm.forbidRewardEventRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     // subcategory 1
@@ -23789,6 +23844,7 @@ define(['js/app'], function (myApp) {
                             context: container,
                             elem: '.prohibitGamePopover',
                             content: function () {
+
                                 // var data = JSON.parse(this.dataset.row);
                                 var data = uData;
                                 vm.prohibitGamePopover = data;
@@ -23829,6 +23885,12 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidGameAddList.length == 0 && vm.forbidGameRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
                                     let forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
                                     let forbidProviders = [];
                                     $.each(forbidProviderList, function (i, v) {
@@ -23840,7 +23902,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         playerNames: playerNames,
-                                        forbidProviders: forbidProviders,
+                                        forbidProviders: {
+                                            'addList': vm.forbidGameAddList,
+                                            'removeList': vm.forbidGameRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     //subcategory 2
@@ -23897,6 +23962,12 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidTopUpAddList.length == 0 && vm.forbidTopUpRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
                                     let forbidTopUpList = $(thisPopover).find('.playerTopUpTypeForbid');
                                     let forbidTopUpTypes = [];
                                     $.each(forbidTopUpList, function (i, v) {
@@ -23911,7 +23982,10 @@ define(['js/app'], function (myApp) {
                                             playerNames: playerNames,
                                             platformObjId: vm.selectedPlatform.id
                                         },
-                                        updateData: {forbidTopUpType: forbidTopUpTypes},
+                                        updateData: {forbidTopUpType: {
+                                            'addList': vm.forbidTopUpAddList,
+                                            'removeList': vm.forbidTopUpRemoveList
+                                        }},
                                         adminName: authService.adminName
                                     };
                                     //subcategory 3
@@ -23965,6 +24039,12 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidRewardPointsAddList.length == 0 && vm.forbidRewardPointsRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
                                     let forbidRewardPointsEventList = $(thisPopover).find('.playerRewardPointsEventForbid');
                                     let forbidRewardPointsEvent = [];
                                     $.each(forbidRewardPointsEventList, function (i, v) {
@@ -23976,7 +24056,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         playerNames: playerNames,
                                         platformObjId: vm.selectedPlatform.id,
-                                        forbidRewardPointsEvent: forbidRewardPointsEvent,
+                                        forbidRewardPointsEvent: {
+                                            'addList':vm.forbidRewardPointsAddList,
+                                            'removeList':vm.forbidRewardPointsRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     // subcategory 4
@@ -24001,9 +24084,32 @@ define(['js/app'], function (myApp) {
                         playerNames.push(item);
                     });
                 }
-
                 return playerNames;
             }
+            vm.forbidModification = function(id, val, addList, removeList){
+                if(val===true){
+                    if(vm[addList].indexOf(id)==-1){
+                        vm[addList].push(String(id));
+                    }
+                    vm[removeList] = vm[removeList].filter(item=>{
+                        if(item != id){
+                            return item;
+                        }
+                    });
+                }else{
+                    if(vm[removeList].indexOf(id==-1)){
+                        vm[removeList].push(String(id));
+                    }
+                    vm[addList] = vm[addList].filter(item=>{
+                        if(item != id){
+                            return item;
+                        }
+                    })
+                }
+                // add to record which is selected to edit
+                $('#c-'+id).html($translate("ModifyIt"));
+            }
+
             ///
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function() {
