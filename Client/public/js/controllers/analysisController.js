@@ -969,7 +969,7 @@ define(['js/app'], function (myApp) {
                 axisLabel: xLabel,
             }];
 
-            newOptions.colors = ["#00afff", "#FF0000"];
+            newOptions.colors = ["#00afff", "#FF0000",'#00ff00'];
             socketService.$plotLine(elementId, data, newOptions);
             $(elementId).bind("plothover", function (event, pos, obj) {
                 var previousPoint;
