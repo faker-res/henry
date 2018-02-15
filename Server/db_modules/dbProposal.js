@@ -3005,13 +3005,15 @@ var proposal = {
                         $lt: new Date(endTime)
                     },
                     type: ObjectId.isValid(proposalType._id) ? proposalType._id : ObjectId(proposalType._id),
-                    "data.eventCode": code
+                    "data.eventCode": code,
+                    "data.platformId": platformId
                 } : {
                     createTime: {
                         $gte: new Date(startTime),
                         $lt: new Date(endTime)
                     },
                     mainType: constProposalMainType['PlayerConsumptionReturn'],
+                    "data.platformId": platformId
                 };
                 var a = dbconfig.collection_proposal.find({$and: [matchObj]})
                     .sort(sortKey).skip(index).limit(limit)

@@ -82,7 +82,7 @@ let dbRewardTaskGroup = {
                 let updObj = {
                     $inc: {
                         //currentAmt: consumptionRecord.bonusAmount,
-                        curConsumption: remainCurConsumption ? remainCurConsumption : 0
+                        curConsureportmption: remainCurConsumption ? remainCurConsumption : 0
                     },
                     status: freeRewardTaskGroup.status,
                     unlockTime: freeRewardTaskGroup.unlockTime
