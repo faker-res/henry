@@ -2103,19 +2103,22 @@ let dbPlayerInfo = {
         let updateData = {};
 
         playerNames.forEach(name => {
-            let prom = dbconfig.collection_players.findOne({ name: name, platform: query.platformObjId })
-            .then(data=>{
-                let playerForbidTopupType = data.forbidTopUpType.filter(item=>{
-                    return item!= "undefined"
-                })
-                if(playerForbidTopupType){
-                    updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
-                }
-                if(addList.length == 0 && removeList.length == 0){
-                    updateData.forbidTopUpType = [];
-                }
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform: query.platformObjId }, updateData, constShardKeys.collection_players);
-            });
+            let prom = dbconfig.collection_players.findOne({name: name, platform: query.platformObjId})
+                .then(data => {
+                    let playerForbidTopupType = data.forbidTopUpType.filter(item => {
+                        return item != "undefined"
+                    })
+                    if (playerForbidTopupType) {
+                        updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
+                    }
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidTopUpType = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: name,
+                        platform: query.platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                });
             proms.push(prom)
         });
 
@@ -2160,19 +2163,22 @@ let dbPlayerInfo = {
         let removeList = forbidProviders.removeList;
         let proms = [];
 
-        playerNames.forEach(player=>{
-            let prom = dbconfig.collection_players.findOne({ name: player, platform: platformObjId })
-            .then(data=>{
+        playerNames.forEach(player => {
+            let prom = dbconfig.collection_players.findOne({name: player, platform: platformObjId})
+                .then(data => {
 
-                let playerForbidProviders = data.forbidProviders;
-                if(playerForbidProviders){
-                    updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
-                }
-                if(addList.length == 0 && removeList.length == 0){
-                    updateData.forbidProviders = [];
-                }
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { 'name':player, 'platform':platformObjId }, updateData, constShardKeys.collection_players);
-            });
+                    let playerForbidProviders = data.forbidProviders;
+                    if (playerForbidProviders) {
+                        updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
+                    }
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidProviders = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': player,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                });
             proms.push(prom)
         });
         return Promise.all(proms);
@@ -2187,22 +2193,22 @@ let dbPlayerInfo = {
     },
     managingDataList: function(dataList, addList, removeList){
         let result = [];
-        dataList.forEach(d=>{
+        dataList.forEach(d => {
             result.push(String(d));
         })
         let finalResult = [];
-        addList.forEach(item=>{
-            if(result.indexOf(item)==-1){
+        addList.forEach(item => {
+            if (result.indexOf(item) == -1) {
                 result.push(item);
             }
         })
 
-        result = result.filter(rItem=>{
+        result = result.filter(rItem => {
             // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
             let currentItem = String(rItem);
-            if(removeList.length == 0){
+            if (removeList.length == 0) {
                 finalResult.push(currentItem);
-            }else if(removeList.indexOf(currentItem)==-1){
+            } else if (removeList.indexOf(currentItem) == -1) {
                 finalResult.push(currentItem);
             }
         })
@@ -2214,18 +2220,21 @@ let dbPlayerInfo = {
         let addList = forbidRewardEvents.addList;
         let removeList = forbidRewardEvents.removeList;
         let proms = [];
-        playerNames.forEach(name=>{
-            let prom = dbconfig.collection_players.findOne({'name': name, 'platform':platformObjId})
-            .then(data=>{
-                let playerForbidRewardEvents = data.forbidRewardEvents;
-                if(playerForbidRewardEvents){
-                    updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
-                }
-                if(addList.length == 0 && removeList.length == 0){
-                    updateData.forbidRewardEvents = [];
-                }
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {'name': name, 'platform':platformObjId}, updateData, constShardKeys.collection_players);
-            })
+        playerNames.forEach(name => {
+            let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
+                .then(data => {
+                    let playerForbidRewardEvents = data.forbidRewardEvents;
+                    if (playerForbidRewardEvents) {
+                        updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+                    }
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidRewardEvents = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': name,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
             proms.push(prom);
         });
         return Promise.all(proms);
@@ -2245,18 +2254,21 @@ let dbPlayerInfo = {
         let addList = forbidRewardPointsEvent.addList;
         let removeList = forbidRewardPointsEvent.removeList;
 
-        playerNames.forEach(name=>{
-            let prom = dbconfig.collection_players.findOne({ name: name, platform:platformObjId })
-            .then(data=>{
-                let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent;
-                if(playerForbidRewardPointsEvent){
-                    updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
-                }
-                if(addList.length == 0 && removeList.length == 0){
-                    updateData.forbidRewardPointsEvent = [];
-                }
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: name, platform:platformObjId }, updateData, constShardKeys.collection_players);
-            })
+        playerNames.forEach(name => {
+            let prom = dbconfig.collection_players.findOne({name: name, platform: platformObjId})
+                .then(data => {
+                    let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent;
+                    if (playerForbidRewardPointsEvent) {
+                        updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
+                    }
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidRewardPointsEvent = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: name,
+                        platform: platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
             proms.push(prom);
         })
         return Promise.all(proms);
@@ -11988,30 +12000,33 @@ let dbPlayerInfo = {
 
     updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
 
-            let addList = remarks.addList;
-            let removeList = remarks.removeList;
-            let updateData = {};
-            let proms = [];
+        let addList = remarks.addList;
+        let removeList = remarks.removeList;
+        let updateData = {};
+        let proms = [];
 
-            playerNames.forEach(playerName=>{
-            let prom = dbconfig.collection_players.findOne({ name: playerName, platform: platformObjId })
-            .then(data=>{
-                let playerCredibilityRemarks = data.credibilityRemarks.filter(item=>{
-                    return item!= "undefined"
+        playerNames.forEach(playerName => {
+            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
+                .then(data => {
+                    let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
+                        return item != "undefined"
+                    })
+                    if (playerCredibilityRemarks) {
+                        updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
+                    }
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.credibilityRemarks = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: playerName,
+                        platform: platformObjId
+                    }, updateData, constShardKeys.collection_players);
                 })
-                if(playerCredibilityRemarks){
-                    updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
-                }
-                if(addList.length == 0 && removeList.length == 0){
-                    updateData.credibilityRemarks = [];
-                }
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, { name: playerName, platform: platformObjId }, updateData, constShardKeys.collection_players);
-            })
-            .then(playerData=>{
-                let playerObjId = playerData._id;
-                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
-                return playerData;
-            })
+                .then(playerData => {
+                    let playerObjId = playerData._id;
+                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
+                    return playerData;
+                })
             proms.push(prom);
         })
         return Promise.all(proms);
