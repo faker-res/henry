@@ -232,11 +232,11 @@
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.platformOnlineTopupAnalysisDetailTotalData.receivedAmount }}
                                 td(style='background-color: #ffc1c1;')
-                                    span 100 %
+                                    span {{ vm.platformOnlineTopupAnalysisDetailTotalData.amountRatio }} %
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.platformOnlineTopupAnalysisDetailTotalData.userCount }}
                                 td(style='background-color: #ffc1c1;')
-                                    span 100 %
+                                    span {{ vm.platformOnlineTopupAnalysisDetailTotalData.userCountRatio }} %
 
     .row(ng-if='vm.platformOnlineTopupAnalysisDetailMerchantId')
         .col-md-12
