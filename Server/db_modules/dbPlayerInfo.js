@@ -5976,13 +5976,17 @@ let dbPlayerInfo = {
                             status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
 
+                        let eventNameRec = proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "", null, platformId)
+                        if (proposals[i].type && proposals[i].type.name == constProposalType.ADD_PLAYER_REWARD_TASK) {
+                            eventNameRec = "促销优惠";
+                        }
                         let rec = {
                             playerId: playerId,
                             playerName: playerName,
                             createTime: proposals[i].createTime,
                             rewardType: proposals[i].type ? proposals[i].type.name : "",
                             rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                            eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "", null, platformId),
+                            eventName: eventNameRec,
                             eventCode: proposals[i].data.eventCode,
                             status: status
                         }
