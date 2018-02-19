@@ -6799,7 +6799,7 @@ define(['js/app'], function (myApp) {
                 $scope.phoneCall.phone = phoneNumber;
                 $scope.phoneCall.loadingNumber = false;
                 $scope.safeApply();
-                $scope.makePhoneCall();
+                $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
                 vm.getSMSTemplate();
@@ -6849,7 +6849,7 @@ define(['js/app'], function (myApp) {
                         $scope.phoneCall.phone = data.data;
                         $scope.phoneCall.loadingNumber = false;
                         $scope.safeApply();
-                        $scope.makePhoneCall();
+                        $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
                     }, function (err) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.phoneCall.err = err.error.message;
@@ -6871,7 +6871,7 @@ define(['js/app'], function (myApp) {
                 $scope.phoneCall.phone = data.tel;
                 $scope.phoneCall.loadingNumber = false;
                 $scope.safeApply();
-                $scope.makePhoneCall();
+                $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
             }
 
             vm.sendSMSToPlayer = function () {
@@ -14380,7 +14380,7 @@ define(['js/app'], function (myApp) {
                                         $scope.phoneCall.phone = data.data;
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.safeApply();
-                                        $scope.makePhoneCall();
+                                        $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
                                     }, function (err) {
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.phoneCall.err = err.error.message;
@@ -21436,7 +21436,7 @@ define(['js/app'], function (myApp) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
-                    $scope.makePhoneCall();
+                    $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;
