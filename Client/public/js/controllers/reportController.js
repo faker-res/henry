@@ -1528,13 +1528,15 @@ define(['js/app'], function (myApp) {
                     });
                 })
                 $scope.safeApply();
-            } else if (choice.indexOf('REWARD_REPORT') !== -1) {
-                // Unless customization is necessary, this should handle the rest of reward report
+            } else if (choice.indexOf('REWARD_REPORT') !== -1 || choice.indexOf('REWARD_GROUP_REPORT') !== -1) {
+                // Unless customization is necessary, this should handle the rest of reward report & reward group reward
                 let rewardNameWithoutReport = choice.replace("_REPORT", "");
                 vm.rewardTypeName = rewardNameWithoutReport;
                 vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = rewardNameWithoutReport;
+                if(choice.indexOf('REWARD_REPORT') !== -1) {
+                    vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                    vm.currentRewardTaskName = rewardNameWithoutReport;
+                }
             }
 
             if (vm.currentRewardCode) {
