@@ -1209,30 +1209,32 @@ let dbPlayerInfo = {
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
                 promArr.push(demoNameProm);
 
-                if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
-                    let anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-                    let now = new Date(Date.now()).toISOString();
-                    let ipQuery = {
-                        'loginIps.0': deviceData.lastLoginIp,
-                        registrationTime: {
-                            $lte: now,
-                            $gte: anHourAgo
-                        },
-                        platform: platform._id
-                    };
-
-                    let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
-                        data => {
-                            if (data >= 5) {
-                                return Promise.reject({
-                                    name: "DataError",
-                                    message: "Player registration limit exceed (IP Address)"
-                                });
-                            }
-                        }
-                    );
-                    promArr.push(ipDuplicateProm);
-                }
+                // commented for debugging / testing purpose, uncomment the following IF block for production
+                // if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
+                //     let anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+                //     let now = new Date(Date.now()).toISOString();
+                //     let ipQuery = {
+                //         'loginIps.0': deviceData.lastLoginIp,
+                //         registrationTime: {
+                //             $lte: now,
+                //             $gte: anHourAgo
+                //         },
+                //         platform: platform._id
+                //     };
+                //
+                //     let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
+                //         data => {
+                //             if (data >= 5) {
+                //                 return Promise.reject({
+                //                     name: "DataError",
+                //                     message: "Player registration limit exceed (IP Address)"
+                //                 });
+                //             }
+                //         }
+                //     );
+                //     promArr.push(ipDuplicateProm);
+                // }
+                // end of commenting
 
                 if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
                     return Promise.all(promArr);
