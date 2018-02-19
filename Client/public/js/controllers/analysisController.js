@@ -584,7 +584,7 @@ define(['js/app'], function (myApp) {
                     APP: vm.calculateOnlineTopupTypeSubtotalData(2),
                     H5: vm.calculateOnlineTopupTypeSubtotalData(3)
                 };
-               
+
                 vm.platformOnlineTopupAnalysisDetailMerchantId = null;
                 // console.log('vm.platformOnlineTopupAnalysisData', vm.platformOnlineTopupAnalysisData);
                 // console.log('vm.platformOnlineTopupAnalysisTotalData', vm.platformOnlineTopupAnalysisTotalData);
@@ -659,8 +659,6 @@ define(['js/app'], function (myApp) {
                     startDate = dayEndTime;
                 }
                 vm.platformOnlineTopupAnalysisDetailData = [];
-                let totalReceivedAmount = typeData.receivedAmount;
-                let totalUserCount = typeData.userCount;
                 detailDataByDate.forEach(
                     data => {
                         vm.platformOnlineTopupAnalysisDetailData.push({
@@ -669,13 +667,15 @@ define(['js/app'], function (myApp) {
                             successCount: data.successCount,
                             successRate: data.totalCount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.successCount / data.totalCount) * 100),
                             receivedAmount: data.receivedAmount,
-                            amountRatio: totalReceivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.receivedAmount / totalReceivedAmount) * 100),
+                            amountRatio: data.totalReceivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.receivedAmount / data.totalReceivedAmount) * 100),
                             userCount: data.successUserCount,
-                            userCountRatio: totalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.userCount / totalUserCount) * 100)
+                            userCountRatio: data.totalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.userCount / data.totalUserCount) * 100)
                         });
                     }
                 );
                 vm.platformOnlineTopupAnalysisDetailTotalData = typeData;
+                vm.platformOnlineTopupAnalysisDetailTotalData.amountRatio = $noRoundTwoDecimalPlaces(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.amountRatio, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
+                vm.platformOnlineTopupAnalysisDetailTotalData.userCountRatio = $noRoundTwoDecimalPlaces(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.userCountRatio, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
                 let successRate = [];
                 let amountRatio = [];
                 let userCountRatio = [];
@@ -969,7 +969,7 @@ define(['js/app'], function (myApp) {
                 axisLabel: xLabel,
             }];
 
-            newOptions.colors = ["#00afff", "#FF0000"];
+            newOptions.colors = ["#00afff", "#FF0000",'#00ff00'];
             socketService.$plotLine(elementId, data, newOptions);
             $(elementId).bind("plothover", function (event, pos, obj) {
                 var previousPoint;

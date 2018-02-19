@@ -1209,30 +1209,32 @@ let dbPlayerInfo = {
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
                 promArr.push(demoNameProm);
 
-                if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
-                    let anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-                    let now = new Date(Date.now()).toISOString();
-                    let ipQuery = {
-                        'loginIps.0': deviceData.lastLoginIp,
-                        registrationTime: {
-                            $lte: now,
-                            $gte: anHourAgo
-                        },
-                        platform: platform._id
-                    };
-
-                    let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
-                        data => {
-                            if (data >= 5) {
-                                return Promise.reject({
-                                    name: "DataError",
-                                    message: "Player registration limit exceed (IP Address)"
-                                });
-                            }
-                        }
-                    );
-                    promArr.push(ipDuplicateProm);
-                }
+                // commented for debugging / testing purpose, uncomment the following IF block for production
+                // if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
+                //     let anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+                //     let now = new Date(Date.now()).toISOString();
+                //     let ipQuery = {
+                //         'loginIps.0': deviceData.lastLoginIp,
+                //         registrationTime: {
+                //             $lte: now,
+                //             $gte: anHourAgo
+                //         },
+                //         platform: platform._id
+                //     };
+                //
+                //     let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
+                //         data => {
+                //             if (data >= 5) {
+                //                 return Promise.reject({
+                //                     name: "DataError",
+                //                     message: "Player registration limit exceed (IP Address)"
+                //                 });
+                //             }
+                //         }
+                //     );
+                //     promArr.push(ipDuplicateProm);
+                // }
+                // end of commenting
 
                 if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
                     return Promise.all(promArr);
@@ -8056,14 +8058,34 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 data1 => {
-                                    return {
-                                        date: startTime,
-                                        userCount: data && data[0] ? data[0].userIds.length : 0,
-                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
-                                        successCount: data && data[0] ? data[0].successCount : 0,
-                                        totalCount: data && data[0] ? data[0].count : 0,
-                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
-                                    }
+                                    return dbconfig.collection_proposal.aggregate(
+                                        {
+                                            $match: {
+                                                createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                                type: onlineTopupType._id,
+                                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                            }
+                                        }, {
+                                            $group: {
+                                                _id: null,
+                                                userIds: {$addToSet: "$data.playerObjId"},
+                                                receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                            }
+                                        }
+                                    ).then(
+                                        data2 => {
+                                            return {
+                                                date: startTime,
+                                                userCount: data && data[0] ? data[0].userIds.length : 0,
+                                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                                successCount: data && data[0] ? data[0].successCount : 0,
+                                                totalCount: data && data[0] ? data[0].count : 0,
+                                                successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0,
+                                                totalUserCount: data2 && data2[0] ? data2[0].userIds.length : 0,
+                                                totalReceivedAmount: data2 && data2[0] ? data2[0].receivedAmount : 0,
+                                            }
+                                        }
+                                    )
                                 }
                             );
                         })
