@@ -814,7 +814,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         $scope.phoneCall.username = data.toText;
         $scope.getNewPhoneCaptha();
     }
-    $scope.makePhoneCall = function () {
+    $scope.makePhoneCall = function (platformId) {
         socketService.$socket($scope.AppSocket, 'getAdminInfo', {
             adminName: $scope.getUserName()
         }, onSuccess, onFail, true);
@@ -838,61 +838,143 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action", "http://jinbailicro.tel400.me/cti/previewcallout.action",
                 "http://xindelitz.tel400.me/cti/previewcallout.action", "http://bbet8.tel400.me/cti/previewcallout.action"];
 
-            urls.forEach(
-                url => {
-                    let now = new Date();
-                    let formattedNow = $filter('date')(now, "yyyyMMdd");
-                    let firstLevelMd5 = convertToMD5(adminData.callerId + "");
-                    let password = convertToMD5(firstLevelMd5 + formattedNow);
-                    //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
-                    let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+            if (platformId == '6') {
+                let jblUrl = urls[2];
+                urls[2] = urls[0];
+                urls[0] = jblUrl;
+            } else if (platformId == '7') {
+                let xdlUrl = urls[3];
+                urls[3] = urls[0];
+                urls[0] = xdlUrl;
+            } else if (platformId == '2') {
+                let bbetUrl = urls[4];
+                urls[4] = urls[0];
+                urls[0] = bbetUrl;
+            }
 
-                    $.ajax({
-                        url: urlWithParams,
-                        dataType: "jsonp",
-                        type: "get",
-                        success: function (e) {
-                            console.log("ok", e);
-                            //{“result”:”1”}
-                            // 1：成功
-                            // -1：失败，入参的参数不合法
-                            // -2：失败，坐席工号不存在
-                            // -3：失败，密码错误
-                            // -4：失败，系统错误
-                            // -5: 失败，URL错误
-                            if (e.result && e.result == "1") {
-                                alert("正在呼叫。。。");
-                            }
-                            else if (e.result && e.result == "-1") {
-                                alert("失败，入参的参数不合法。");
-                            }
-                            else if (e.result && e.result == "-2") {
-                                alert("失败，坐席工号不存在。");
-                            }
-                            else if (e.result && e.result == "-3") {
-                                alert("失败，密码错误。");
-                            }
-                            else if (e.result && e.result == "-4") {
-                                alert("失败，系统错误。");
-                            }
-                            else if (e.result && e.result == "-5") {
-                                alert("失败，URL错误。");
-                            }
-                            else {
-                                alert("失败，Uknown错误。" + e);
-                            }
-                        },
-                        error: function (e) {
-                            console.log("error", e);
-                            if (e && e.status == 200) {
-                                alert("正在呼叫。。。");
-                            } else {
-                                alert("呼叫超时请重试");
-                            }
+            performPhoneCall();
+
+            function performPhoneCall(triedTimes) {
+                triedTimes = triedTimes || 0;
+                if (triedTimes >= urls.length) return;
+                let nextTriedTimes = triedTimes + 1;
+                let url = urls[triedTimes];
+
+                let now = new Date();
+                let formattedNow = $filter('date')(now, "yyyyMMdd");
+                let firstLevelMd5 = convertToMD5(adminData.callerId + "");
+                let password = convertToMD5(firstLevelMd5 + formattedNow);
+                //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
+                let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+
+                $.ajax({
+                    url: urlWithParams,
+                    dataType: "jsonp",
+                    type: "get",
+                    success: function (e) {
+                        console.log("ok", e);
+                        //{“result”:”1”}
+                        // 1：成功
+                        // -1：失败，入参的参数不合法
+                        // -2：失败，坐席工号不存在
+                        // -3：失败，密码错误
+                        // -4：失败，系统错误
+                        // -5: 失败，URL错误
+                        if (e.result && e.result == "1") {
+                            alert("正在呼叫。。。");
                         }
-                    });
-                }
-            );
+                        else if (e.result && e.result == "-1") {
+                            alert("失败，入参的参数不合法。");
+                            performPhoneCall(nextTriedTimes);
+                        }
+                        else if (e.result && e.result == "-2") {
+                            alert("失败，坐席工号不存在。");
+                            performPhoneCall(nextTriedTimes);
+                        }
+                        else if (e.result && e.result == "-3") {
+                            alert("失败，密码错误。");
+                            performPhoneCall(nextTriedTimes);
+                        }
+                        else if (e.result && e.result == "-4") {
+                            alert("失败，系统错误。");
+                            performPhoneCall(nextTriedTimes);
+                        }
+                        else if (e.result && e.result == "-5") {
+                            alert("失败，URL错误。");
+                            performPhoneCall(nextTriedTimes);
+                        }
+                        else {
+                            alert("失败，Uknown错误。" + e);
+                            performPhoneCall(nextTriedTimes);
+                        }
+                    },
+                    error: function (e) {
+                        console.log("error", e);
+                        if (e && e.status == 200) {
+                            alert("正在呼叫。。。");
+                        } else {
+                            alert("呼叫超时请重试");
+                            performPhoneCall(nextTriedTimes);
+                        }
+                    }
+                });
+            }
+
+            // urls.forEach(
+            //     url => {
+            //         let now = new Date();
+            //         let formattedNow = $filter('date')(now, "yyyyMMdd");
+            //         let firstLevelMd5 = convertToMD5(adminData.callerId + "");
+            //         let password = convertToMD5(firstLevelMd5 + formattedNow);
+            //         //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
+            //         let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+            //
+            //         $.ajax({
+            //             url: urlWithParams,
+            //             dataType: "jsonp",
+            //             type: "get",
+            //             success: function (e) {
+            //                 console.log("ok", e);
+            //                 //{“result”:”1”}
+            //                 // 1：成功
+            //                 // -1：失败，入参的参数不合法
+            //                 // -2：失败，坐席工号不存在
+            //                 // -3：失败，密码错误
+            //                 // -4：失败，系统错误
+            //                 // -5: 失败，URL错误
+            //                 if (e.result && e.result == "1") {
+            //                     alert("正在呼叫。。。");
+            //                 }
+            //                 else if (e.result && e.result == "-1") {
+            //                     alert("失败，入参的参数不合法。");
+            //                 }
+            //                 else if (e.result && e.result == "-2") {
+            //                     alert("失败，坐席工号不存在。");
+            //                 }
+            //                 else if (e.result && e.result == "-3") {
+            //                     alert("失败，密码错误。");
+            //                 }
+            //                 else if (e.result && e.result == "-4") {
+            //                     alert("失败，系统错误。");
+            //                 }
+            //                 else if (e.result && e.result == "-5") {
+            //                     alert("失败，URL错误。");
+            //                 }
+            //                 else {
+            //                     alert("失败，Uknown错误。" + e);
+            //                 }
+            //             },
+            //             error: function (e) {
+            //                 console.log("error", e);
+            //                 if (e && e.status == 200) {
+            //                     alert("正在呼叫。。。");
+            //                 } else {
+            //                     alert("呼叫超时请重试");
+            //                 }
+            //             }
+            //         });
+            //     }
+            // );
         }
 
         function onFail(error) {
@@ -900,7 +982,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 callback.call(this, error);
             }
         }
-    }
+    };
     // phone call related....
 
     //copy from internet, bad naming conventions i know
