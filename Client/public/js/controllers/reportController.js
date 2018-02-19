@@ -1533,8 +1533,8 @@ define(['js/app'], function (myApp) {
                 let rewardNameWithoutReport = choice.replace("_REPORT", "");
                 vm.rewardTypeName = rewardNameWithoutReport;
                 vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
                 if(choice.indexOf('REWARD_REPORT') !== -1) {
+                    vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
                     vm.currentRewardTaskName = rewardNameWithoutReport;
                 }
             }
