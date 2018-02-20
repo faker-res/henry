@@ -1199,6 +1199,10 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
+                const anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+                const now = new Date(Date.now()).toISOString();
+                const maxIpCount = 5;
+                const maxPhoneNumberCount = 5;
                 let promArr = [];
 
                 if (!platformData) {
@@ -1209,10 +1213,8 @@ let dbPlayerInfo = {
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
                 promArr.push(demoNameProm);
 
-                // commented for debugging / testing purpose, uncomment the following IF block for production
+                // commented for debugging / testing purpose, uncomment the following IF blocks for production
                 // if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
-                //     let anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-                //     let now = new Date(Date.now()).toISOString();
                 //     let ipQuery = {
                 //         'loginIps.0': deviceData.lastLoginIp,
                 //         registrationTime: {
@@ -1224,7 +1226,7 @@ let dbPlayerInfo = {
                 //
                 //     let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
                 //         data => {
-                //             if (data >= 5) {
+                //             if (data >= maxIpCount) {
                 //                 return Promise.reject({
                 //                     name: "DataError",
                 //                     message: "Demo player registration limit exceeded 5 times in 1 hour (same IP Address)"
@@ -1234,6 +1236,29 @@ let dbPlayerInfo = {
                 //     );
                 //     promArr.push(ipDuplicateProm);
                 // }
+                //
+                // if(phoneNumber && !isBackStageGenerated) {
+                //     let phoneNumberQuery = {
+                //         phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                //         platform: platform._id,
+                //         registrationTime: {
+                //             $lte: now,
+                //             $gte: anHourAgo
+                //         }
+                //     };
+                //
+                //     let phoneDuplicateProm = dbconfig.collection_players.count(phoneNumberQuery).then(
+                //         data => {
+                //             if (data >= maxPhoneNumberCount) {
+                //                 return Promise.reject({
+                //                     name: "DataError",
+                //                     message: "Demo player registration limit exceeded 5 times in 1 hour (same Phone Number)"
+                //                 });
+                //             }
+                //         }
+                //     );
+                //     promArr.push(phoneDuplicateProm);
+                // }
                 // end of commenting
 
                 if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
@@ -1241,23 +1266,6 @@ let dbPlayerInfo = {
                 }
 
                 if (phoneNumber) {
-                    let phoneDuplicateProm = dbPlayerInfo.isPhoneNumberValidToRegister({
-                        phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                        platform: platform._id,
-                        isTestPlayer: true
-                    }).then(
-                        data => {
-                            if (data.isPhoneNumberValid === false) {
-                                return Promise.reject({
-                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                    name: "DataError",
-                                    message: "Phone number already exists"
-                                });
-                            }
-                        }
-                    );
-                    promArr.push(phoneDuplicateProm);
-
                     let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
                     promArr.push(smsValidationProm);
 
