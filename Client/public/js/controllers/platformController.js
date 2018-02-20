@@ -5319,43 +5319,44 @@ define(['js/app'], function (myApp) {
 
                                 let perm = (row && row.permission) ? row.permission : {};
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
-                                    height: "13px",
-                                    width: "15px",
-                                }));
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.topupManual === true ? "manualTopUpBlue.png" : "manualTopUpRed.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
+                                if(row.isRealPlayer) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
+                                        height: "13px",
+                                        width: "15px",
+                                    }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.topupManual === true ? "manualTopUpBlue.png" : "manualTopUpRed.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5',
-                                    'src': "images/icon/" + (perm.alipayTransaction === true ? "aliPayBlue.png" : "aliPayRed.png"),
-                                    height: "15px",
-                                    width: "15px",
-                                }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5',
+                                        'src': "images/icon/" + (perm.alipayTransaction === true ? "aliPayBlue.png" : "aliPayRed.png"),
+                                        height: "15px",
+                                        width: "15px",
+                                    }));
 
-                                link.append($('<i>', {
-                                    'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
-                                }));
+                                    link.append($('<i>', {
+                                        'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
+                                    }));
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.topUpCard === false ? "cardTopUpRed.png" : "cardTopUpBlue.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
-
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.topUpCard === false ? "cardTopUpRed.png" : "cardTopUpBlue.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
+                                }
                                 link.append($('<i>', {
                                     'class': 'fa margin-right-5 ' + (perm.forbidPlayerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
                                 }));
@@ -5364,7 +5365,9 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
                                 }));
 
-                                link.append($('<br>'));
+                                if(row.isRealPlayer) {
+                                    link.append($('<br>'));
+                                }
 
                                 link.append($('<i>', {
                                     'class': 'fa fa-volume-control-phone margin-right-5 ' + (perm.phoneCallFeedback === false ? "text-danger" : "text-primary"),
@@ -5380,25 +5383,25 @@ define(['js/app'], function (myApp) {
                                 //     height: "14px",
                                 //     width: "14px",
                                 // }));
+                                if(row.isRealPlayer) {
+                                    link.append($('<i>', {
+                                        'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
+                                    }));
 
-                                link.append($('<i>', {
-                                    'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
-                                }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
-
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.levelChange === false ? "levelRed.png" : "levelBlue.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
-
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.levelChange === false ? "levelRed.png" : "levelBlue.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
+                                }
 
                                 // link.append($('<i>', {
                                 //     'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
@@ -6141,8 +6144,8 @@ define(['js/app'], function (myApp) {
                                         width: "26px",
                                         height: '26px'
                                     },
-                                    forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
-                                    forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
+                                    forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in", testPlayer: true},
+                                    forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad", testPlayer: true},
                                     // forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
                                     // forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"},
                                     // advanceConsumptionReward: {imgType: 'i', iconClass: "fa fa-tint"},
@@ -6150,8 +6153,8 @@ define(['js/app'], function (myApp) {
                                     // PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
                                     // playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"},
                                     // PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"},
-                                    phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone"},
-                                    SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment"},
+                                    phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone", testPlayer: true},
+                                    SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment", testPlayer: true},
                                     // PlayerLimitedOfferReward: {
                                     //     imgType: 'img',
                                     //     src: "images/icon/limitedRewardBlue.png",

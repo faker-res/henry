@@ -1043,6 +1043,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     playerData = data;
+                    let promArr = [];
                     var levelProm = dbconfig.collection_playerLevel.findOne({
                         platform: playerdata.platform,
                         value: mongoose.Types.ObjectId.isValid(playerdata.level) ? playerdata.level : (playerdata.level || 0)
@@ -1068,7 +1069,28 @@ let dbPlayerInfo = {
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm]);
+                    promArr = [levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm];
+                    //special handling for demo players
+                    if(playerData.isTestPlayer) {
+                        let permissionQuery = {
+                            "permission.applyBonus": false,
+                            "permission.topupOnline": false,
+                            "permission.topupManual": false,
+                            "permission.alipayTransaction": false,
+                            "permission.disableWechatPay": true,
+                            "permission.topUpCard": false,
+                            "permission.banReward": true,
+                            "permission.rewardPointsTask": false,
+                            "permission.levelChange": false
+                        };
+                        let testPlayerHandlingProm = dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerData._id, platform: playerData.platform},
+                            permissionQuery,
+                            {new: true}
+                        )
+                        promArr.push(testPlayerHandlingProm);
+                    }
+                    return Q.all(promArr);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't create new player."});

@@ -1123,7 +1123,8 @@ include modalGameCreditLog
     #playerPermissionTable
         table.paddingTbl
             tbody
-                tr(ng-repeat='(key,v) in vm.playerPermissionTypes')
+                tr(ng-repeat='(key,v) in vm.playerPermissionTypes',
+                ng-if="vm.selectedSinglePlayer.isRealPlayer || vm.selectedSinglePlayer.isTestPlayer && v.testPlayer")
                     td
                         i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
                         img(ng-show='v.imgType=="img"', src='{{v.src}}', width='{{v.width}}', height='{{v.height}}')
