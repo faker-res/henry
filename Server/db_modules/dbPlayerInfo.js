@@ -1243,7 +1243,8 @@ let dbPlayerInfo = {
                 if (phoneNumber) {
                     let phoneDuplicateProm = dbPlayerInfo.isPhoneNumberValidToRegister({
                         phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                        platform: platform._id
+                        platform: platform._id,
+                        isTestPlayer: true
                     }).then(
                         data => {
                             if (data.isPhoneNumberValid === false) {
