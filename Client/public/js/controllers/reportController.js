@@ -1529,7 +1529,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
                 $scope.safeApply();
-            } else if (choice.indexOf('REWARD_REPORT') !== -1 || choice.indexOf('REWARD_GROUP_REPORT') !== -1) {
+            } else if (choice.indexOf('REWARD_REPORT') !== -1 || choice.indexOf('GROUP_REPORT') !== -1) {
                 // Unless customization is necessary, this should handle the rest of reward report & reward group reward
                 let rewardNameWithoutReport = choice.replace("_REPORT", "");
                 vm.rewardTypeName = rewardNameWithoutReport;
@@ -1896,7 +1896,7 @@ define(['js/app'], function (myApp) {
         vm.getPageNameByRewardName = function (rewardName) {
             if (vm.rewardNamePage[rewardName]) {
                 return vm.rewardNamePage[rewardName];
-            } else if (rewardName.indexOf("Reward") !== -1) {
+            } else if (rewardName.indexOf("Reward") !== -1 || rewardName.indexOf("Group") !== -1) {
                 let splitRewardName = rewardName.split(/(?=[A-Z])/);
                 let rewardReportString = (splitRewardName.join("_") + "_REPORT").toUpperCase();
                 return rewardReportString;
