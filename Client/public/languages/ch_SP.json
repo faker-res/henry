@@ -1434,6 +1434,13 @@
   "createdAccount": "已开户",
   "notYetCreateAccount": "未开户",
 
+  "PLAYER_TOP_UP_RETURN_GROUP_REPORT": "存送金(组)优惠报表",
+  "PLAYER_CONSECUTIVE_REWARD_GROUP_REPORT": "签到全勤（组）优惠报表",
+  "PLAYER_LOSE_RETURN_REWARD_GROUP_REPORT": "输值反利（組）优惠报表",
+  "PLAYER_CONSUMPTION_REWARD_GROUP_REPORT": "投注额优惠（组）优惠报表",
+  "PLAYER_FREE_TRIAL_REWARD_GROUP_REPORT": "免费体验金（组）优惠报表",
+  "PLAYER_RANDOM_REWARD_GROUP_REPORT": "随机抽奖（组）优惠报表",
+
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",

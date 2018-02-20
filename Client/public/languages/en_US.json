@@ -958,6 +958,13 @@
   "createdAccount": "Created account",
   "notYetCreateAccount": "Not yet create account",
 
+  "PLAYER_TOP_UP_RETURN_GROUP_REPORT": "Player Top Up Return Group Report",
+  "PLAYER_CONSECUTIVE_REWARD_GROUP_REPORT": "Player Consecutive Reward Group Report",
+  "PLAYER_LOSE_RETURN_REWARD_GROUP_REPORT": "Player Lose Return Reward Group Report",
+  "PLAYER_CONSUMPTION_REWARD_GROUP_REPORT": "Player Consumption Reward Group Report",
+  "PLAYER_FREE_TRIAL_REWARD_GROUP_REPORT": "Player Free Trial Reward Group Report",
+  "PLAYER_RANDOM_REWARD_GROUP_REPORT": "Player Random Reward Group Report",
+
   "SOUND_NOTIFICATION": "Sound Notification",
   "SOUND_NOTIFICATION_CHOICE": "Sound Notification Choice",
   "REDUCE_SCORE": "Reduce Score",
