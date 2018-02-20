@@ -1227,7 +1227,7 @@ let dbPlayerInfo = {
                 //             if (data >= 5) {
                 //                 return Promise.reject({
                 //                     name: "DataError",
-                //                     message: "Player registration limit exceed (IP Address)"
+                //                     message: "Demo player registration limit exceeded 5 times in 1 hour (same IP Address)"
                 //                 });
                 //             }
                 //         }
