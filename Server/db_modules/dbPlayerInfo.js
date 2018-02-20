@@ -1227,7 +1227,7 @@ let dbPlayerInfo = {
                 //             if (data >= 5) {
                 //                 return Promise.reject({
                 //                     name: "DataError",
-                //                     message: "Player registration limit exceed (IP Address)"
+                //                     message: "Demo player registration limit exceeded 5 times in 1 hour (same IP Address)"
                 //                 });
                 //             }
                 //         }
@@ -1243,7 +1243,8 @@ let dbPlayerInfo = {
                 if (phoneNumber) {
                     let phoneDuplicateProm = dbPlayerInfo.isPhoneNumberValidToRegister({
                         phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                        platform: platform._id
+                        platform: platform._id,
+                        isTestPlayer: true
                     }).then(
                         data => {
                             if (data.isPhoneNumberValid === false) {

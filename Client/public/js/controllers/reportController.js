@@ -585,7 +585,8 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('APPLYAMOUNT'), sClass: "sumFloat alignRight", data: "$applyAmount",
                         render: function (data, type, row) {
-                            return parseFloat(row.data.applyAmount).toFixed(2);
+                            let applyAmount = row.data.applyAmount || 0;
+                            return parseFloat(applyAmount).toFixed(2);
                         }
                     },
                     {title: $translate('CREATE_TIME'), data: "$createTime"},
@@ -5841,6 +5842,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     item.$amount = parseFloat(item.$amount).toFixed(2);
+                    item.$applyAmount = item.data.applyAmount || 0;
                     item.$createTime = utilService.$getTimeFromStdTimeFormat(item.createTime);
                     if (vm.rewardTypeName == 'ALL') {
                         item.type.name$ = $translate(item.type.name);
