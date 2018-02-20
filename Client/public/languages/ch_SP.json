@@ -1398,7 +1398,7 @@
   "PlayerFreeTrialRewardGroup": "免费体验金（组）",
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",
   "Check if this phone number has received free trial": "（领优惠前）检查该电话是否曾经领过",
-  "Need SMS verification": "（领优惠中）是否需要短信验证",
+  "Need SMS verification": "（领优惠中）玩家前端申请是否需要短信验证",
   "FREE_TRIAL_REWARD_AMOUNT": "固定优惠金额",
   "FREE_TRIAL_SPENDING_TIMES": "解锁流水（优）X倍",
   "freeTrialReward": "免费体验金",
