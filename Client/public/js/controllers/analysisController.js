@@ -23,6 +23,14 @@ define(['js/app'], function (myApp) {
             accessType: ["register", "login"]
         };
 
+        vm.constPlayerTopUpTypes = {
+            MANUAL: "MANUAL",
+            ONLINE: "ONLINE",
+            ALIPAY: "ALIPAY",
+            WECHAT: "WECHAT",
+            QUICKPAY: "QUICKPAY"
+        };
+
         // For debugging:
         window.VM = vm;
 
@@ -262,6 +270,12 @@ define(['js/app'], function (myApp) {
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
                            // vm.drawPlayerTopUp('PlayerWechatTopUp');
+                        });
+                        break;
+                    case "TOPUP_METHOD_RATE":
+                        vm.initSearchParameter('topupMethod', 'day', 3, function () {
+                            vm.drawTopupMethodLine();
+                            vm.drawTopupMethodCountLine();
                         });
                         break;
                 }
@@ -694,6 +708,135 @@ define(['js/app'], function (myApp) {
         };
 
         // online topup success rate end =============================================
+
+        //topup method rate start ====================================================
+        vm.drawTopupMethodLine = function () {
+            vm.isShowLoadingSpinner('#topupMethodAnalysis', true);
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.topupMethod.periodText,
+                startDate: vm.queryPara.topupMethod.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.topupMethod.endTime.data('datetimepicker').getLocalDate(),
+            }
+            socketService.$socket($scope.AppSocket, 'getTopUpMethodAnalysisByPlatform', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.topupMethodData = data.data;
+                    console.log('vm.topupMethodData', vm.topupMethodData);
+                    vm.isShowLoadingSpinner('#topupMethodAnalysis', false);
+
+                    vm.drawTopupMethodPie(vm.topupMethodData, "#topupMethodAnalysis");
+                    vm.drawTopupMethodTable(vm.topupMethodData, "#topupMethodAnalysisTable");
+                })
+            }, function (data) {
+                vm.isShowLoadingSpinner('#topupMethodAnalysis', false);
+                console.log("topup method data not", data);
+            });
+        }
+
+        vm.drawTopupMethodCountLine = function () {
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.topupMethod.periodText,
+                type: 'topup',
+                startDate: vm.queryPara.topupMethod.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.topupMethod.endTime.data('datetimepicker').getLocalDate(),
+            }
+            socketService.$socket($scope.AppSocket, 'getTopUpMethodCountByPlatform', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.topupMethodCountData = data.data;
+                    console.log('vm.topupMethodCountData', vm.topupMethodCountData);
+
+                    vm.drawTopupMethodPie(vm.topupMethodCountData, "#topupMethodCountAnalysis");
+                    vm.drawTopupMethodTable(vm.topupMethodCountData, "#topupMethodCountAnalysisTable");
+                })
+            }, function (data) {
+                console.log("topup method data not", data);
+            });
+        }
+
+        vm.drawTopupMethodPie = function (srcData, pieChartName) {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            srcData.map(s => {
+                let total = 0;
+                if(s && s.length > 0){
+                    s.map(data => {
+                        if(data){
+                            let indexNo = finalizedPieData.findIndex(f => f.label == data._id.topUpType)
+                            if(indexNo != -1){
+                                finalizedPieData[indexNo].data += data.number;
+                            }else{
+                                finalizedPieData.push({label: data._id.topUpType, data: data.number});
+                            }
+                        }
+                    })
+                }
+            })
+
+            socketService.$plotPie(placeholder, finalizedPieData, {}, 'clientSourceClickData');
+
+        }
+
+        vm.drawTopupMethodTable = function (srcData, tableName) {
+            let tableData = [];
+
+            srcData.map(item => {
+                if(item && item.length > 0){
+                    item.forEach(i => {
+                        let indexNo = tableData.findIndex(t => t.date == i._id.date);
+
+                        if(indexNo == -1){
+                            tableData.push({date: i._id.date, MANUAL: 0, ALIPAY: 0, ONLINE: 0, WECHAT: 0})
+                            indexNo = tableData.findIndex(t => t.date == i._id.date);
+                        }
+
+                        if(i._id.topUpType == vm.constPlayerTopUpTypes.MANUAL){
+                            tableData[indexNo].MANUAL += i.number;
+                        }else if(i._id.topUpType == vm.constPlayerTopUpTypes.ALIPAY){
+                            tableData[indexNo].ALIPAY += i.number;
+                        }else if(i._id.topUpType == vm.constPlayerTopUpTypes.ONLINE){
+                            tableData[indexNo].ONLINE += i.number;
+                        }else if(i._id.topUpType == vm.constPlayerTopUpTypes.WECHAT){
+                            tableData[indexNo].WECHAT += i.number;
+                        }
+
+                    })
+                }
+            })
+
+            tableData.map(data => {
+                if(data){
+                    if(data.date){
+                        data.date = String(utilService.$getTimeFromStdTimeFormat(new Date(data.date))).substring(0, 10);
+                    }
+                }
+            })
+
+            let manualAverageNo = ((tableData.reduce((a,b) => a + (b.MANUAL ? b.MANUAL : 0),0)) / tableData.length).toFixed(2);
+            let alipayAverageNo = ((tableData.reduce((a,b) => a + (b.ALIPAY ? b.ALIPAY : 0),0)) / tableData.length).toFixed(2);
+            let onlineAverageNo = ((tableData.reduce((a,b) => a + (b.ONLINE ? b.ONLINE : 0),0)) / tableData.length).toFixed(2);
+            let wechatAverageNo = ((tableData.reduce((a,b) => a + (b.WECHAT ? b.WECHAT : 0),0)) / tableData.length).toFixed(2);
+
+            tableData.push({date: $translate('average value'), MANUAL: manualAverageNo, ALIPAY: alipayAverageNo, ONLINE: onlineAverageNo, WECHAT: wechatAverageNo});
+
+            var dataOptions = {
+                data: tableData,
+                columns: [
+                    {title: $translate(vm.queryPara.topupMethod.periodText), data: "date"},
+                    {title: $translate('MANUAL_TOP_UP'), data: "MANUAL"},
+                    {title: $translate('ALIPAY'), data: "ALIPAY"},
+                    {title: $translate('TOPUPONLINE'), data: "ONLINE"},
+                    {title: $translate('WECHAT'), data: "WECHAT"}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            var a = $(tableName).DataTable(dataOptions);
+            a.columns.adjust().draw();
+        }
+        //topup method rate end =======================================================
+
         // new player start =============================================
         vm.getNextDateByPeriodAndDate = (period, startDate) => {
             let date = new Date(startDate);
