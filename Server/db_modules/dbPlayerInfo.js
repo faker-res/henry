@@ -8048,7 +8048,7 @@ let dbPlayerInfo = {
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
-                while (startDate.getTime() <= endDate.getTime()) {
+                while (startDate.getTime() < endDate.getTime()) {
                     let dayEndTime = getNextDateByPeriodAndDate(period, startDate);
                     let startTime = startDate;
                     let queryObj = {
