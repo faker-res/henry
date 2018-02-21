@@ -18,6 +18,12 @@
                 label {{"End date"|translate}}
                 .endTime
             div
+                label {{"Analysis category"|translate}}
+                select.form-control(ng-model='vm.queryPara.analysisCategory')
+                    option(value='onlineTopupType') {{'OnlineTopUpType' | translate}}
+                    //option(value='thirdPartyPlatform') {{'thirdPartyPlatform' | translate}}
+                    //option(value='merchantNo') {{'merchantNo' | translate}}
+            div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.getOnlineToupSuccessRateData()') {{'SEARCH' | translate}}
         .row
@@ -222,7 +228,7 @@
                                     span {{ v.userCountRatio }} %
                             tr
                                 td(style='background-color: #ffc1c1;')
-                                    span {{ 'Total' | translate }}
+                                    span {{ 'average value' | translate }}
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.platformOnlineTopupAnalysisDetailTotalData.successCount }}
                                 td(style='background-color: #ffc1c1;')
