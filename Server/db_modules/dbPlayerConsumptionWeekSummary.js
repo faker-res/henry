@@ -233,7 +233,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
 
                                 if (dbPlayerReward.isRewardEventForbidden(playerData, eventData._id)) {
-                                    return Q.reject({status:constServerCode.PLAYER_NO_PERMISSION, name: "DataError", message: "Player is forbidden for this reward."});
+                                    return;
                                 }
 
                                 var returnAmount = 0;
