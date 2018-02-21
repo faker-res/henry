@@ -3276,6 +3276,8 @@
   "TOPUPALIPAY_COUNT": "个人支付宝存款笔数",
   "TOPUPWECHAT_AMOUNT": "个人微信存款数额",
   "TOPUPWECHAT_COUNT": "个人微信存款笔数",
-  "Credit_Amount": "数额"
+  "Credit_Amount": "数额",
+  "Analysis category": "分析项目",
+  "thirdPartyPlatform": "第三方平台"
 
 }

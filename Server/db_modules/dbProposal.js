@@ -3638,42 +3638,42 @@ var proposal = {
         )
     },
 
-    getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate) => {
+    getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate, analysisCategory) => {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
+                // loop for userAgent
                 for(let i =1; i<=3; i++) {
+                    let matchObj = {
+                        createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
+                        type: onlineTopupType._id,
+                        "data.userAgent": i,
+                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                    };
+
                     let groupByObj = {
                         _id: "$data.topupType",
                         userIds: { $addToSet: "$data.playerObjId" },
                         amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
                         count: {$sum: 1},
                         successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
-
                     };
+
+
+                    //get topup analysis group by topupType
                     let prom = dbconfig.collection_proposal.aggregate(
                         {
-                            $match: {
-                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                                type: onlineTopupType._id,
-                                "data.userAgent": i,
-                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
-                            }
+                            $match: matchObj
                         }, {
                             $group: groupByObj
                         }
                     ).then(
                         data => {
+                            //get success proposal count group by topupType, filter repeat user
                             return dbconfig.collection_proposal.aggregate(
                                 {
-                                    $match: {
-                                        createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                                        type: onlineTopupType._id,
-                                        status: "Success",
-                                        "data.userAgent": i,
-                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
-                                    }
+                                    $match: Object.assign({}, matchObj,{status: "Success"})
                                 }, {
                                     $group: {
                                         _id: "$data.topupType",
@@ -3697,16 +3697,10 @@ var proposal = {
                             )
                         }
                     );
-
+                    //get success proposal count group by useragent, filter repeat user
                     let userAgentUserCountProm = dbconfig.collection_proposal.aggregate(
                         {
-                            $match: {
-                                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                                type: onlineTopupType._id,
-                                status: "Success",
-                                "data.userAgent": i,
-                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
-                            }
+                            $match: Object.assign({}, matchObj,{status: "Success"})
                         }, {
                             $group: {
                                 _id: "$data.userAgent",
@@ -3726,6 +3720,7 @@ var proposal = {
 
                 return Q.all(proms).then(
                     (data) => {
+                        //get total success proposal count, filter repeat user
                         return dbconfig.collection_proposal.aggregate(
                             {
                                 $match: {
