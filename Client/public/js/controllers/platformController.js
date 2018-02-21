@@ -942,8 +942,14 @@ define(['js/app'], function (myApp) {
                 vm.platformSettlement = {};
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
-                vm.playerAdvanceSearchQuery = {creditOperator: ">="};
-                vm.advancedQueryObj = {};
+                vm.playerAdvanceSearchQuery = {
+                    creditOperator: ">=",
+                    playerType: 'Real Player (all)'
+                };
+                vm.advancedQueryObj = {
+                    creditOperator: ">=",
+                    playerType: 'Real Player (all)'
+                };
 
                 vm.getRewardEventsByPlatform();
                 vm.getRewardPointsEvent(vm.selectedPlatform.id);
@@ -22070,10 +22076,16 @@ define(['js/app'], function (myApp) {
                     utilService.clearDatePickerDate('#lastAccessEndDateTimePicker');
                     $("select#selectCredibilityRemark").multipleSelect("enable");
                     $("select#selectCredibilityRemark").multipleSelect("uncheckAll");
-                    vm.playerAdvanceSearchQuery = {creditOperator: ">="};
+                    vm.playerAdvanceSearchQuery = {
+                        creditOperator: ">=",
+                        playerType: 'Real Player (all)'
+                    };
                     vm.getPlayersByAdvanceQueryDebounced(function () {
                     });
-                    vm.advancedQueryObj = {};
+                    vm.advancedQueryObj = {
+                        creditOperator: ">=",
+                        playerType: 'Real Player (all)'
+                    };
                     vm.advancedPlayerQuery(true);
                 })
 
@@ -22125,22 +22137,22 @@ define(['js/app'], function (myApp) {
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.name) {
-                var te = $("#playerTable-search-filter > div").not(":nth-child(2)").find(".form-control");
+                var te = $("#playerTable-search-filter > div").not(":nth-child(3)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.phoneNumber) {
-                var te = $("#playerTable-search-filter > div").not(":nth-child(9)").find(".form-control");
+                var te = $("#playerTable-search-filter > div").not(":nth-child(10)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.bankAccount) {
-                let te = $("#playerTable-search-filter > div").not(":nth-child(10)").find(".form-control");
+                let te = $("#playerTable-search-filter > div").not(":nth-child(11)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
             } else if (playerQuery.email) {
-                let te = $("#playerTable-search-filter > div").not(":nth-child(11)").find(".form-control");
+                let te = $("#playerTable-search-filter > div").not(":nth-child(12)").find(".form-control");
                 te.prop("disabled", true).css("background-color", "#eee");
                 te.find("input").prop("disabled", true).css("background-color", "#eee");
                 $("select#selectCredibilityRemark").multipleSelect("disable");
@@ -22222,7 +22234,7 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.advancedPlayerQuery(true);
             }
-            };
+        };
 
             vm.isForbidChanged = function (newForbid, oldForbid) {
                 var disableSubmit = true;

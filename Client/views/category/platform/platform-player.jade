@@ -15,6 +15,13 @@
             label.control-label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'USER_TYPE' | translate}}
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerType', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                option(value='Test Player') {{'TEST_PLAYER' | translate}}
+        .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'PLAYERNAME' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.name', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
