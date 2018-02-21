@@ -1545,8 +1545,8 @@ var dbPlatform = {
                 if (smsLogsWithCount.length > 0) {
                     let promises =  smsLogsWithCount.map(function (sms) {
                         if (sms.tel) {
-                            //check phone number with player db
-                            return dbPlatform.checkPhoneNum(sms.tel, data.platformObjId, sms).then(
+                            //check phone number with real player
+                            return dbPlatform.checkPhoneNumWithRealPlayer(sms.tel, data.platformObjId, sms).then(
                                 smsTel => {
                                     sms.tel = smsTel;
                                     return sms;
@@ -1592,13 +1592,14 @@ var dbPlatform = {
         )
     },
 
-    checkPhoneNum: (phone, platformObjId, sms) => {
+    checkPhoneNumWithRealPlayer: (phone, platformObjId, sms) => {
         let encryptPhone = rsaCrypto.encrypt(phone);
 
         return dbconfig.collection_players.find(
             {
                 phoneNumber: encryptPhone,
-                platform: platformObjId
+                platform: platformObjId,
+                isRealPlayer: true // only compare with real player
             }
         ).count().then(
             count => {
