@@ -244,6 +244,9 @@ define(['js/app'], function (myApp) {
                         vm.platformOnlineTopupSuccessAnalysisSort = {};
                         vm.platformOnlineTopupAnalysisDetailPeriod = 'day';
                         vm.initSearchParameter('onlineTopupSuccessRate', 'day', 1);
+                        vm.queryPara.analysisCategory = 'onlineTopupType';
+                        vm.getMerchantList();
+                        vm.getMerchantType();
                         //vm.getOnlineToupSuccessRateData();
                         break;
                     case "TOPUPMANUAL":
@@ -550,6 +553,7 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform._id,
                 startDate: startDate,
                 endDate: endDate,
+                analysisCategory: vm.queryPara.analysisCategory
             };
             vm.isShowLoadingSpinner('#onlineTopupSuccessRateAnalysis', true);
             socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisByPlatform', sendData, data => {
@@ -571,6 +575,20 @@ define(['js/app'], function (myApp) {
                     userCountRatio: 100,
                 };
                 vm.platformOnlineTopupAnalysisByType = [];
+                // if(vm.queryPara.analysisCategory !== 'onlineTopupType')
+                //     vm.platformOnlineTopupAnalysisData = vm.platformOnlineTopupAnalysisData.map(
+                //         data1 => {
+                //             data1[0] = data1[0].map(
+                //                 data2 => {
+                //                     let merchant = vm.merchantList.filter(merchant => merchant.merchantNo == data2._id);
+                //                     data2.merchantTypeId = merchant && merchant[0] ? merchant[0].merchantTypeId : '';
+                //                     data2.merchantTypeName = data2.merchantTypeId ? vm.merchantTypes.filter(merchantType => merchantType.merchantTypeId == data2.merchantTypeId) : '';
+                //                     return data2;
+                //                 }
+                //             );
+                //             return data1;
+                //         }
+                //     );
                 Object.keys($scope.userAgentType).forEach(
                     userAgentTypeKey => {
                         Object.keys($scope.merchantTopupTypeJson).forEach(key => {
@@ -608,7 +626,7 @@ define(['js/app'], function (myApp) {
                 merchantTopupTypeId: merchantTopupTypeId,
                 amountRatio: vm.platformOnlineTopupAnalysisTotalData.receivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((typeData.amount / vm.platformOnlineTopupAnalysisTotalData.receivedAmount) * 100),
                 userCount: userCount,
-                userCountRatio: vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((userCount / vm.platformOnlineTopupAnalysisTotalUserCountWithoutFilter) * 100),
+                userCountRatio: vm.platformOnlineTopupAnalysisTotalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((userCount / vm.platformOnlineTopupAnalysisTotalUserCount) * 100),
             };
 
             returnObj.name = $scope.merchantTopupTypeJson[merchantTopupTypeId];
@@ -673,7 +691,12 @@ define(['js/app'], function (myApp) {
                         });
                     }
                 );
-                vm.platformOnlineTopupAnalysisDetailTotalData = typeData;
+                vm.platformOnlineTopupAnalysisDetailTotalData = {};
+                vm.platformOnlineTopupAnalysisDetailTotalData.totalCount = Math.floor(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.totalCount, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
+                vm.platformOnlineTopupAnalysisDetailTotalData.successCount = Math.floor(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.successCount, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
+                vm.platformOnlineTopupAnalysisDetailTotalData.successRate = $noRoundTwoDecimalPlaces(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.successRate, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
+                vm.platformOnlineTopupAnalysisDetailTotalData.receivedAmount = $noRoundTwoDecimalPlaces(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.receivedAmount, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
+                vm.platformOnlineTopupAnalysisDetailTotalData.userCount = Math.floor(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.userCount, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
                 vm.platformOnlineTopupAnalysisDetailTotalData.amountRatio = $noRoundTwoDecimalPlaces(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.amountRatio, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
                 vm.platformOnlineTopupAnalysisDetailTotalData.userCountRatio = $noRoundTwoDecimalPlaces(vm.platformOnlineTopupAnalysisDetailData.reduce((a, data) => a + data.userCountRatio, 0) / vm.platformOnlineTopupAnalysisDetailData.length);
                 let successRate = [];
@@ -697,6 +720,21 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getMerchantList = () => {
+            return $scope.$socketPromise('getMerchantList', {platformId: vm.selectedPlatform.platformId}).then(function (data) {
+                vm.merchantList = data.data;
+                console.log('vm.merchantList',vm.merchantList);
+                $scope.safeApply();
+            });
+        };
+
+        vm.getMerchantType = () => {
+            return $scope.$socketPromise('getMerchantTypeList', {}).then(function (data) {
+                vm.merchantTypes = data.data.merchantTypes;
+                console.log('vm.merchantTypes',vm.merchantTypes);
+                $scope.safeApply();
+            });
+        };
         // online topup success rate end =============================================
         // new player start =============================================
         vm.getNextDateByPeriodAndDate = (period, startDate) => {
