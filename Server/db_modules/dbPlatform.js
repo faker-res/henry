@@ -1563,19 +1563,19 @@ var dbPlatform = {
         ).then(
             (smsLogsWithCount) => {
                 // filter based on Demo Player Account Status: All, Created, Not Created
-                if (data.purpose === 'demoPlayer' && data.accountStatus === '') {
+                if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === '') {
                     return {
                         data: smsLogsWithCount,
                         size: smsLogCount
                     };
-                } else if (data.purpose === 'demoPlayer' && data.accountStatus === 'createdAccount') {
+                } else if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === 'createdAccount') {
                     let smsResult = smsLogsWithCount.filter(sms => sms.tel.indexOf('******') > -1);
                     smsLogCount = smsResult.length;
                     return {
                         data: smsResult,
                         size: smsLogCount
                     };
-                } else if (data.purpose === 'demoPlayer' && data.accountStatus === 'notYetCreateAccount') {
+                } else if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === 'notYetCreateAccount') {
                     let smsResult = smsLogsWithCount.filter(sms => sms.tel.indexOf('******') === -1);
                     smsLogCount = smsResult.length;
                     return {
