@@ -8094,6 +8094,7 @@ let dbPlayerInfo = {
                                             $match: {
                                                 createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                                                 type: onlineTopupType._id,
+                                                status: "Success",
                                                 $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
                                             }
                                         }, {

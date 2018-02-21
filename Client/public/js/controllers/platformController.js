@@ -5459,21 +5459,22 @@ define(['js/app'], function (myApp) {
                                 var link = $('<div>', {});
                                 var playerObjId = row._id ? row._id : "";
 
-                                link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'popover',
-                                    // 'title': $translate("PHONE"),
-                                    'data-placement': 'left',
-                                    'data-trigger': 'focus',
-                                    'type': 'button',
-                                    'data-html': true,
-                                    'href': '#',
-                                    'style': "z-index: auto; min-width:23px",
-                                    'data-container': "body",
-                                    'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
-                                }));
-
+                                if(row.isRealPlayer) {
+                                    link.append($('<a>', {
+                                        'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'popover',
+                                        // 'title': $translate("PHONE"),
+                                        'data-placement': 'left',
+                                        'data-trigger': 'focus',
+                                        'type': 'button',
+                                        'data-html': true,
+                                        'href': '#',
+                                        'style': "z-index: auto; min-width:23px",
+                                        'data-container': "body",
+                                        'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
+                                    }));
+                                }
 
                                 link.append($('<a>', {
                                     'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0 ? " text-danger" : ""),
@@ -5490,39 +5491,39 @@ define(['js/app'], function (myApp) {
                                     'html': (row.forbidProviders && row.forbidProviders.length > 0 ? '<sup>' + row.forbidProviders.length + '</sup>' : ''),
                                 }));
 
+                                if(row.isRealPlayer) {
+                                    link.append($('<a>', {
+                                        'class': 'forbidTopUpPopover margin-right-5' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? " text-danger" : ""),
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'popover',
+                                        // 'title': $translate("PHONE"),
+                                        'data-placement': 'left',
+                                        'data-trigger': 'focus',
+                                        'type': 'button',
+                                        'data-html': true,
+                                        'href': '#',
+                                        // 'style': "z-index: auto; min-width:23px",
+                                        'data-container': "body",
+                                        'html': '<img width="15px" height="12px" src="images/icon/' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? "onlineTopUpRed.png" : "onlineTopUpBlue.png") + '"></img>'
+                                        + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? '<sup>' + row.forbidTopUpType.length + '</sup>' : ''),
+                                        'style': "z-index: auto; width:23px; display:inline-block;",
+                                    }));
 
-                                link.append($('<a>', {
-                                    'class': 'forbidTopUpPopover margin-right-5' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? " text-danger" : ""),
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'popover',
-                                    // 'title': $translate("PHONE"),
-                                    'data-placement': 'left',
-                                    'data-trigger': 'focus',
-                                    'type': 'button',
-                                    'data-html': true,
-                                    'href': '#',
-                                    // 'style': "z-index: auto; min-width:23px",
-                                    'data-container': "body",
-                                    'html': '<img width="15px" height="12px" src="images/icon/' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? "onlineTopUpRed.png" : "onlineTopUpBlue.png") + '"></img>'
-                                    + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? '<sup>' + row.forbidTopUpType.length + '</sup>' : ''),
-                                    'style': "z-index: auto; width:23px; display:inline-block;",
-                                }));
-
-                                link.append($('<a>', {
-                                    'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'popover',
-                                    'data-placement': 'left',
-                                    'data-trigger': 'focus',
-                                    'type': 'button',
-                                    'data-html': true,
-                                    'href': '#',
-                                    'data-container': "body",
-                                    'html': '<img width="14px" height="14px" src="images/icon/' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? "rewardPointsRed.png" : "rewardPointsBlue.png") + '"></img>'
-                                    + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? '<sup>' + row.forbidRewardPointsEvent.length + '</sup>' : ''),
-                                    'style': "z-index: auto; width:23px; display: inline-block;",
-                                }));
-
+                                    link.append($('<a>', {
+                                        'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'popover',
+                                        'data-placement': 'left',
+                                        'data-trigger': 'focus',
+                                        'type': 'button',
+                                        'data-html': true,
+                                        'href': '#',
+                                        'data-container': "body",
+                                        'html': '<img width="14px" height="14px" src="images/icon/' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? "rewardPointsRed.png" : "rewardPointsBlue.png") + '"></img>'
+                                        + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? '<sup>' + row.forbidRewardPointsEvent.length + '</sup>' : ''),
+                                        'style': "z-index: auto; width:23px; display: inline-block;",
+                                    }));
+                                }
                                 return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
