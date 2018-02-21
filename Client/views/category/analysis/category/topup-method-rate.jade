@@ -1,0 +1,52 @@
+.section
+    .row
+        .titlePic
+            .title
+                text {{vm.showPageName | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#topupMethodAnalysis .block-query","topupMethod")')
+                        text.pull-left.margin-right-5 {{vm.optionText.topupMethod | translate}}
+    #topupMethodAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.topupMethod.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.drawTopupMethodLine(); vm.drawTopupMethodCountLine();') {{'SEARCH' | translate}}
+
+        label.text-primary {{'TopupAmount' | translate}} VS {{vm.queryPara.topupMethod.periodText | translate}}
+        .row
+
+            .col-md-6
+                .graph
+                    table#topupMethodAnalysisTable.display.tableDiv(style='min-width:100%')
+            .col-md-6
+
+                .graph
+                    .panel.panel-default
+                        .pieChart
+                            div.graphDiv
+
+    #topupMethodCountAnalysis
+        label.text-primary {{'DEPOSIT_COUNT' | translate}} VS {{vm.queryPara.topupMethod.periodText | translate}}
+        .row
+            .col-md-6
+                .graph
+                    table#topupMethodCountAnalysisTable.display.tableDiv(style='min-width:100%')
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-topupMethodCount.lineChart.graphDiv(style='height: 600px;')
+
+
+p(ng-init="vm.loadPageFunc(vm.showPageName)")
