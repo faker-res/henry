@@ -687,7 +687,7 @@ define(['js/app'], function (myApp) {
                             receivedAmount: data.receivedAmount,
                             amountRatio: data.totalReceivedAmount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.receivedAmount / data.totalReceivedAmount) * 100),
                             userCount: data.successUserCount,
-                            userCountRatio: data.totalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.userCount / data.totalUserCount) * 100)
+                            userCountRatio: data.totalUserCount === 0 ? 0 : $noRoundTwoDecimalPlaces((data.successUserCount / data.totalUserCount) * 100)
                         });
                     }
                 );
