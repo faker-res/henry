@@ -251,6 +251,8 @@ var simplifiedChinese = {
     "Concurrent issue detected": "请联系客服",
     "Fail to generate demo player name.": "生成试玩玩家账号失败，请联系客服。",
     "This IP address has applied for max reward times in event period": "此IP已经达到了该优惠周期内的申请上限",
+    "Demo player registration limit exceeded 5 times in 1 hour (same IP Address)": "该玩家IP地址已在1小时内达申请上限（5）次，请稍后再次尝试。",
+    "Demo player registration limit exceeded 5 times in 1 hour (same Phone Number)": "该玩家手机号码已在1小时内达申请上限（5）次，请稍后再次尝试。",
     //todo::add missing messages here
 
     /*

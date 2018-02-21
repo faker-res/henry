@@ -521,7 +521,7 @@
   "Delete": "删除",
   "Edit": "编辑",
   "CreateTrial": "创建试玩玩家",
-  "DemoPlayerPrefix": "试玩账号开头",
+  "DemoPlayerPrefix": "试玩帐号F开头后的字母",
   "AdvancedSearch": "高级搜索",
   "EditContact": "编辑联系",
   "PaymentInformation": "支付资料",
@@ -1398,7 +1398,7 @@
   "PlayerFreeTrialRewardGroup": "免费体验金（组）",
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",
   "Check if this phone number has received free trial": "（领优惠前）检查该电话是否曾经领过",
-  "Need SMS verification": "（领优惠中）是否需要短信验证",
+  "Need SMS verification": "（领优惠中）玩家前端申请是否需要短信验证",
   "FREE_TRIAL_REWARD_AMOUNT": "固定优惠金额",
   "FREE_TRIAL_SPENDING_TIMES": "解锁流水（优）X倍",
   "freeTrialReward": "免费体验金",
@@ -1433,6 +1433,13 @@
   "ACCOUNT_STATUS": "开户状态",
   "createdAccount": "已开户",
   "notYetCreateAccount": "未开户",
+
+  "PLAYER_TOP_UP_RETURN_GROUP_REPORT": "存送金(组)优惠报表",
+  "PLAYER_CONSECUTIVE_REWARD_GROUP_REPORT": "签到全勤（组）优惠报表",
+  "PLAYER_LOSE_RETURN_REWARD_GROUP_REPORT": "输值反利（組）优惠报表",
+  "PLAYER_CONSUMPTION_REWARD_GROUP_REPORT": "投注额优惠（组）优惠报表",
+  "PLAYER_FREE_TRIAL_REWARD_GROUP_REPORT": "免费体验金（组）优惠报表",
+  "PLAYER_RANDOM_REWARD_GROUP_REPORT": "随机抽奖（组）优惠报表",
 
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
@@ -3223,7 +3230,7 @@
   "CsApproveProposal": "客服审核",
   "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款",
   "FIRST_WITHDRAWAL_MANUAL_AUDIT": "首次提款转人工审核（不论金额）",
-  "MANUAL_AUDIT_AFTER_BANK_CHANGED": "银改之后第一次提款转人工审核（不论金额）",
+  "MANUAL_AUDIT_AFTER_BANK_CHANGED": "银行改之后第一次提款转人工审核（不论金额）",
   "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）",
   "consumeValidAmount": "有效流水",
   "average line": "平均线",
@@ -3259,6 +3266,7 @@
   "userCount": "使用人数",
   "userCountRatio": "人数占比",
   "subtotal": "小计",
+  "ModifyIt": "（改）",
   "consumptionTimes": "投注笔数",
   "batchPermit":"批量设置",
   "register": "注册",
@@ -3270,6 +3278,8 @@
   "TOPUPWECHAT_COUNT": "个人微信存款笔数",
   "Credit_Amount": "数额",
   "TOPUP_METHOD_RATE": "存款方式占比",
-  "TopAmount": "金额"
+  "TopAmount": "金额",
+  "Analysis category": "分析项目",
+  "thirdPartyPlatform": "第三方平台"
 
 }

@@ -516,7 +516,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbProposal.getOnlineTopupAnalysisByPlatform, [ObjectId(data.platformId), startTime, endTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getOnlineTopupAnalysisByPlatform, [ObjectId(data.platformId), startTime, endTime, data.analysisCategory], actionName, isValidData);
         },
     };
     socketActionProposal.actions = this.actions;
