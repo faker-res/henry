@@ -43,11 +43,12 @@ var dbPlatformMerchantGroup = {
                 merchants: {$in: merchantNo},
                 merchantNames: {$in: merchantNames},
               }}
-
-            return dbconfig.collection_platformMerchantGroup.find(query).then(data=>{
-                console.log(data);
-                console.log(data.merchantNo);
-            })
+            // 
+            // return dbconfig.collection_platformMerchantGroup.find(query).then(data=>{
+            //     console.log(data);
+            //     console.log(data.merchantNo);
+            // })
+            return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
         }
 
     },

@@ -1328,34 +1328,67 @@ define(['js/app'], function (myApp) {
         vm.removeMerchantFromGroup = function (type) {
             let merchantNumbers = [];
             let merchantNames = [];
-            for (let i = 0; i < vm.allMerchantList.length; i++) {
-                let merchant = vm.allMerchantList[i];
-                if (merchant.selected && merchant.isIncluded) {
+            let mGroup = vm.allMerchantList.filter(item=>{
+              return item.selected  && item.isIncluded
+            });
+            let mNameCount = 0;
+            let mLeftCount = 0;
+            console.log(mGroup);
+            mGroup.forEach(mItem=>{
+                let curMerchantsGroup = vm.SelectedMerchantGroupNode;
+                curMerchantsGroup.merchants.forEach(currentMechant=>{
+                    let sameMerchantNo = vm.allMerchantList.filter(merchant=>{
+                        return merchant.merchantNo == currentMechant;
+                    });
+                    console.log(sameMerchantNo);
+                });
+            })
 
-                   let curMerchantsGroup = vm.SelectedMerchantGroupNode;
-                   let countLeft = 0;
-                   let totalCount = 0;
-
-                   // calculate how many merchantName with same merchantNo
-                   //  curMerchantsGroup.merchantNames.forEach(mName=>{
-                   //      let result = vm.allMerchantList.filter(aItem=>{
-                   //        return aItem.name == mName;
-                   //      });
-                   //      if(result[0].merchantNo == merchant.merchantNo){
-                   //        countLeft += 1;
-                   //      }
-                   //  });
-
-                     // only can delete when left last merchantNo .
-                    merchantNumbers.push(merchant.merchantNo);
-                    merchantNames.push(merchant.name);
-                }
-            }
-
-            // if (!merchantNumbers.length && !merchantNames.length ) {
-            //     socketService.showErrorMessage($translate("There is no merchant group to be remove"));
-            //     return;
+            // curMerchantsGroup.merchantNames.forEach(mName=>{
+            //     let result = mGroup.filter(aItem=>{
+            //         return aItem.name == mName;
+            //     });
+            //     mNameCount += 1;
+            //     result.forEach()
+            //     if(result.length > 0 && result[0].merchantNo == mItem.merchantNo){
+            //         mLeftCount += 1;
+            //     }
+            // });
+            // if(mNameCount - mLeftCount == 0){
+            //     merchantNumbers.push(mItem.merchantNo);
             // }
+            // merchantNames.push(mItem.name);
+
+
+
+            // for (let i = 0; i < vm.allMerchantList.length; i++) {
+            //     let merchant = vm.allMerchantList[i];
+            //     if (merchant.selected && merchant.isIncluded) {
+            //
+            //        let curMerchantsGroup = vm.SelectedMerchantGroupNode;
+            //        let countLeft = 0;
+            //        let totalCount = 0;
+            //
+            //        // calculate how many merchantName with same merchantNo
+            //         curMerchantsGroup.merchantNames.forEach(mName=>{
+            //             let result = vm.allMerchantList.filter(aItem=>{
+            //               return aItem.name == mName;
+            //             });
+            //             if(result[0].merchantNo == merchant.merchantNo){
+            //               countLeft += 1;
+            //             }
+            //         });
+            //
+            //          // only can delete when left last merchantNo .
+            //         merchantNumbers.push(merchant.merchantNo);
+            //         merchantNames.push(merchant.name);
+            //     }
+            // }
+
+            if (!merchantNumbers.length && !merchantNames.length ) {
+                socketService.showErrorMessage($translate("There is no merchant group to be remove"));
+                return;
+            }
             let selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
             var sendData = {
                 query: {
