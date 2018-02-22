@@ -806,18 +806,50 @@ define(['js/app'], function (myApp) {
                 if(s && s.length > 0){
                     s.map(data => {
                         if(data){
-                            let indexNo = finalizedPieData.findIndex(f => f.label == data._id.topUpType)
+                            let indexNo = finalizedPieData.findIndex(f => f.label == $translate(data._id.topUpType))
                             if(indexNo != -1){
                                 finalizedPieData[indexNo].data += data.number;
                             }else{
-                                finalizedPieData.push({label: data._id.topUpType, data: data.number});
+                                finalizedPieData.push({label: $translate(data._id.topUpType), data: data.number});
                             }
                         }
                     })
                 }
             })
 
-            socketService.$plotPie(placeholder, finalizedPieData, {}, 'clientSourceClickData');
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            var options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'clientSourceClickData');
 
         }
 
@@ -861,7 +893,7 @@ define(['js/app'], function (myApp) {
             let onlineAverageNo = ((tableData.reduce((a,b) => a + (b.ONLINE ? b.ONLINE : 0),0)) / tableData.length).toFixed(2);
             let wechatAverageNo = ((tableData.reduce((a,b) => a + (b.WECHAT ? b.WECHAT : 0),0)) / tableData.length).toFixed(2);
 
-            tableData.push({date: $translate('average value'), MANUAL: manualAverageNo, ALIPAY: alipayAverageNo, ONLINE: onlineAverageNo, WECHAT: wechatAverageNo});
+            tableData.splice(0,0,{date: $translate('average value'), MANUAL: manualAverageNo, ALIPAY: alipayAverageNo, ONLINE: onlineAverageNo, WECHAT: wechatAverageNo});
 
             var dataOptions = {
                 data: tableData,
