@@ -5861,15 +5861,28 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince) {
+    getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince, isRealPlayer, isTestPlayer, hasPartner) {
         //todo: active player indicator
         var matchObj = {
-            platform: platform
+            platform: platform,
+            isRealPlayer: isRealPlayer,
+            isTestPlayer: isTestPlayer
         };
         date = date || 'lastAccessTime';
         matchObj[date] = {
             $gte: startTime,
             $lt: endTime
+        }
+
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                matchObj.partner = {$type: "objectId"};
+            }else {
+                matchObj['$or'] = [
+                    {partner: null},
+                    {partner: {$exists: false}}
+                ]
+            }
         }
 
         var idObj = {}
