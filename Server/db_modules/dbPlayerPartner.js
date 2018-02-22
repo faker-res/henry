@@ -353,6 +353,13 @@ let dbPlayerPartner = {
             }
         ).then(
             userData => {
+                // block action if it is Demo player
+                if (userData && !userData.isRealPlayer) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Demo player cannot perform this action"
+                    })
+                }
                 if (userData) {
                     // 3. Check if number has already registered on platform
                     let promises = [];
