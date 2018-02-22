@@ -801,9 +801,10 @@
                 div
                     label {{"USER TYPE"|translate}}
                     select.form-control(ng-model='vm.dxNewPlayerQuery.userType', style='max-width:300px')
-                        option(value='') {{'all' | translate}}
-                        option(value='1') {{'NON_PARTNER' | translate}}
-                        option(value='2') {{'WITH_PARTNER' | translate}}
+                        option(value='') {{'REAL_PLAYER_ALL' | translate}}
+                        option(value='1') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                        option(value='2') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                        option(value='3') {{'TEST_PLAYER' | translate}}
                 div
                     label {{'REGISTRATION_TIME_START' | translate}}
                     .startTime

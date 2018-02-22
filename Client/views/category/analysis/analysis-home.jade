@@ -60,6 +60,8 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'PlayerAlipayTopUp' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','topUp')",ng-click='vm.loadPage("PlayerWechatTopUp")')
                     a  {{'PlayerWechatTopUp' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','TopupMethodRate')",ng-click='vm.loadPage("TOPUP_METHOD_RATE")')
+                    a  {{'TOPUP_METHOD_RATE' | translate}}
 
 
                 //li(ng-click='vm.loadPage("GAME_ANALYSIS")')
@@ -115,6 +117,8 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/player-top-up
             div(ng-if='vm.showPageName=="PlayerWechatTopUp"')
                 include category/player-top-up
+            div(ng-if='vm.showPageName=="TOPUP_METHOD_RATE"')
+                include category/topup-method-rate
             div(ng-if='vm.showPageName==""')
                 label Please select a Data type
     include category/common/input-date

@@ -1043,6 +1043,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     playerData = data;
+                    let promArr = [];
                     var levelProm = dbconfig.collection_playerLevel.findOne({
                         platform: playerdata.platform,
                         value: mongoose.Types.ObjectId.isValid(playerdata.level) ? playerdata.level : (playerdata.level || 0)
@@ -1068,7 +1069,28 @@ let dbPlayerInfo = {
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm]);
+                    promArr = [levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm];
+                    //special handling for demo players
+                    if(playerData.isTestPlayer) {
+                        let permissionQuery = {
+                            "permission.applyBonus": false,
+                            "permission.topupOnline": false,
+                            "permission.topupManual": false,
+                            "permission.alipayTransaction": false,
+                            "permission.disableWechatPay": true,
+                            "permission.topUpCard": false,
+                            "permission.banReward": true,
+                            "permission.rewardPointsTask": false,
+                            "permission.levelChange": false
+                        };
+                        let testPlayerHandlingProm = dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerData._id, platform: playerData.platform},
+                            permissionQuery,
+                            {new: true}
+                        )
+                        promArr.push(testPlayerHandlingProm);
+                    }
+                    return Q.all(promArr);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't create new player."});
@@ -1970,6 +1992,13 @@ let dbPlayerInfo = {
         // Get platform
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
+                // block action if it is Demo player
+                if (playerData && !playerData.isRealPlayer) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Demo player cannot perform this action"
+                    })
+                }
                 if (playerData) {
                     playerObj = playerData;
                     platformObjId = playerData.platform;
@@ -7892,6 +7921,142 @@ let dbPlayerInfo = {
 
     },
 
+    getTopUpMethodAnalysisByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var calculation = {$sum: "$amount"};
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType"},
+                        calc: calculation
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id && i._id.topUpType ? getKey(constPlayerTopUpType,Number(i._id.topUpType)) : ""}, number: i.calc ? i.calc : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+
+    },
+    getTopUpMethodCountByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType"},
+                        "count": {"$sum": 1},
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id && i._id.topUpType ? getKey(constPlayerTopUpType,Number(i._id.topUpType)) : ""}, number: i.count ? i.count : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+
+    },
+
     /* 
      * Get active player count 
      */
@@ -8043,7 +8208,7 @@ let dbPlayerInfo = {
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
-                while (startDate.getTime() <= endDate.getTime()) {
+                while (startDate.getTime() < endDate.getTime()) {
                     let dayEndTime = getNextDateByPeriodAndDate(period, startDate);
                     let startTime = startDate;
                     let queryObj = {
@@ -8089,6 +8254,7 @@ let dbPlayerInfo = {
                                             $match: {
                                                 createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                                                 type: onlineTopupType._id,
+                                                status: "Success",
                                                 $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
                                             }
                                         }, {
@@ -8893,34 +9059,63 @@ let dbPlayerInfo = {
     /*
      * get Player Device Analysis Data
      */
-    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime) {
-        return dbconfig.collection_players.aggregate(
-            {
-                $unwind: "$userAgent",
-            },
-            {
-                $match: {
-                    platform: platform,
-                    registrationTime: {$gte: startTime, $lt: endTime}
+    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement) {
+        if(queryRequirement == "register"){
+            return dbconfig.collection_players.aggregate(
+                {
+                    $unwind: "$userAgent",
+                },
+                {
+                    $match: {
+                        platform: platform,
+                        registrationTime: {$gte: startTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                        // cateNum: {$sum: 1}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {name: "$_id.userAgent1"},
+                        // total: {$avg: "$totalCount"},
+                        number: {$sum: 1}
+                    }
+                },
+                {
+                    $sort: {number: -1}
                 }
-            },
-            {
-                $group: {
-                    _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
-                    // cateNum: {$sum: 1}
+            )
+        }else{
+            return dbconfig.collection_playerLoginRecord.aggregate(
+                {
+                    $unwind: "$userAgent",
+                },
+                {
+                    $match: {
+                        platform: platform,
+                        loginTime: {$gte: startTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                    }
+                },
+                {
+                    $group: {
+                        _id: {name: "$_id.userAgent1"},
+                        number: {$sum: 1}
+                    }
+                },
+                {
+                    $sort: {number: -1}
                 }
-            },
-            {
-                $group: {
-                    _id: {name: "$_id.userAgent1"},
-                    // total: {$avg: "$totalCount"},
-                    number: {$sum: 1}
-                }
-            },
-            {
-                $sort: {number: -1}
-            }
-        )
+            )
+        }
+
     },
 
     /*
@@ -9633,11 +9828,13 @@ let dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
-                                            resData.push({
-                                                type: paymentData.data[i].bankTypeId,
-                                                status: status,
-                                                accountNumber: paymentData.data[i].accountNumber
-                                            });
+                                            if (status == 1) {
+                                                resData.push({
+                                                    type: paymentData.data[i].bankTypeId,
+                                                    status: status,
+                                                    //accountNumber: paymentData.data[i].accountNumber
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -12286,7 +12483,8 @@ let dbPlayerInfo = {
         let result = [];
         let matchObj = {
             platform: platform,
-            registrationTime: {$gte: startDate, $lt: endDate}
+            registrationTime: {$gte: startDate, $lt: endDate},
+            isTestPlayer: false
         };
 
         if (query.userType) {
@@ -12296,6 +12494,9 @@ let dbPlayerInfo = {
                     break;
                 case "2":
                     matchObj.partner = {$exists: true};
+                    break;
+                case "3":
+                    matchObj.isTestPlayer = true;
                     break;
             }
         }

@@ -629,6 +629,30 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Get total count of topUpAmount by topup method and platform
+         * @param {json} data - data contains platformId, startDate, endDate and period
+         */
+        getTopUpMethodAnalysisByPlatform: function getTopUpMethodAnalysisByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.getTopUpMethodAnalysisByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+        },
+
+        /**
+         * Get total count of totalrecord by topup method and platform
+         * @param {json} data - data contains platformId, startDate, endDate and period
+         */
+        getTopUpMethodCountByPlatform: function getTopUpMethodCountByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.getTopUpMethodCountByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+        },
+
+        /**
          * Get new player count for all the platforms within the time frame
          * @param {json} data - data contains start time , end time
          */
@@ -740,10 +764,10 @@ function socketActionPlayer(socketIO, socket) {
          */
         getPlayerDeviceAnalysisData: function getPlayerDeviceAnalysisData(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.type);
+            var isValidData = Boolean(data && data.platformId && data.type && data.queryRequirement);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime, data.queryRequirement], actionName, isValidData);
         },
         /**
          *  apply Manual TopUp

@@ -1433,6 +1433,7 @@
   "ACCOUNT_STATUS": "开户状态",
   "createdAccount": "已开户",
   "notYetCreateAccount": "未开户",
+  "Demo player cannot perform this action": "试玩帐号无法进行此动作",
 
   "PLAYER_TOP_UP_RETURN_GROUP_REPORT": "存送金(组)优惠报表",
   "PLAYER_CONSECUTIVE_REWARD_GROUP_REPORT": "签到全勤（组）优惠报表",
@@ -2109,7 +2110,7 @@
   "Client Type": "客户类型",
   "APPROVAL_PROPOSAL": "待审提案",
   "AUTO_SETTLEMENT": "自动结算",
-  "DEMO_PLAYER_VALID_DAYS": "试玩帐号的有效时间 ",
+  "DEMO_PLAYER_VALID_DAYS": "试玩帐号的有效时间 X 天",
   "SMS_VERIFICATION": "玩家注册需短信验证",
   "SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER": "玩家前端索取试玩帐号需短信验证",
   "SMS_VERIFICATION_FOR_PASSWORD_UPDATE": "修改密码需短信验证",
@@ -3276,6 +3277,12 @@
   "TOPUPALIPAY_COUNT": "个人支付宝存款笔数",
   "TOPUPWECHAT_AMOUNT": "个人微信存款数额",
   "TOPUPWECHAT_COUNT": "个人微信存款笔数",
-  "Credit_Amount": "数额"
+  "Credit_Amount": "数额",
+  "TOPUP_METHOD_RATE": "存款方式占比",
+  "TopAmount": "金额",
+  "Analysis category": "分析项目",
+  "thirdPartyPlatform": "第三方平台",
+  "QUERY_REQUIREMENT": "查询需求",
+  "NEW_REGISTRATION": "新开户"
 
 }
