@@ -536,8 +536,6 @@ function socketActionPlayer(socketIO, socket) {
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.countNewPlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
-
-
         },
 
         countNewPlayerAllPlatform: function countNewPlayerAllPlatform(data) {
