@@ -316,12 +316,14 @@ const dbPlayerMail = {
                             if (platform.allowSamePhoneNumberToRegister === true) {
                                 validPhoneNumberProm =  dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                                     phoneNumber: rsaCrypto.encrypt(telNum),
-                                    platform: platformObjId
+                                    platform: platformObjId,
+                                    isRealPlayer: true
                                 }, platform.samePhoneNumberRegisterCount);
                             } else {
                                 validPhoneNumberProm = dbPlayerInfo.isPhoneNumberValidToRegister({
                                     phoneNumber: rsaCrypto.encrypt(telNum),
-                                    platform: platformObjId
+                                    platform: platformObjId,
+                                    isRealPlayer: true
                                 });
                             }
                         }
@@ -487,6 +489,13 @@ const dbPlayerMail = {
             }
         ).then(
             player => {
+                // block send SMS code to player if it is Demo player and meet purpose condition
+                if (player && !player.isRealPlayer && purpose && (purpose === 'oldPhoneNumber' || purpose === 'newPhoneNumber' || purpose === 'updateBankInfo' || purpose === 'freeTrialReward')) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Demo player cannot perform this action"
+                    })
+                }
                 return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name);
             },
             error => {
