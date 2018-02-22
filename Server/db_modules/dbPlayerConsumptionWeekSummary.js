@@ -256,16 +256,16 @@ var dbPlayerConsumptionWeekSummary = {
 
 
                                     if (!eventRatios) {
-                                        var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
+                                        // var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
                                         //deferred.reject(Error(msg));
-                                        console.warn(msg);
+                                        // console.warn(msg);
                                         // Do not create a reward for this game type.  Proceed to the next game type.
                                         ratio = 0;
                                     }
                                     if (typeof ratio !== 'number') {
-                                        var msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData.param);
+                                        // var msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData.param);
                                         //deferred.reject(Error(msg));
-                                        console.warn(msg);
+                                        // console.warn(msg);
                                         // Do not create a reward for this game type.  Proceed to the next game type.
                                         ratio = 0;
                                     }
@@ -434,6 +434,8 @@ var dbPlayerConsumptionWeekSummary = {
             function (error) {
                 deferred.reject({name: "DBError", message: "Error marking player consumption record", error: error});
             }
+        ).catch(
+            error => console.log(error)
         );
 
         return deferred.promise;
