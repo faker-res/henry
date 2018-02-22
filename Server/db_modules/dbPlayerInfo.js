@@ -7135,7 +7135,8 @@ let dbPlayerInfo = {
         };
         var query = {
             platform: platform,
-            registrationTime: timeQuery
+            registrationTime: timeQuery,
+            isRealPlayer: true //only count real player
         };
 
         // var a = dbconfig.collection_players.find(query).count();
