@@ -1279,7 +1279,7 @@ define(['js/app'], function (myApp) {
             for (let i = 0; i < vm.allMerchantList.length; i++) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && !merchant.isIncluded) {
-                    merchantNumbers.push(merchant.name)
+                    merchantNumbers.push(merchant.merchantNo)
                 }
             }
 
@@ -1296,15 +1296,17 @@ define(['js/app'], function (myApp) {
             }
 
             sendData.update = {
-                type: "addToSet",
-                data: merchantNumbers
+                "$push": {
+                    merchants: {$each: merchantNumbers}
+                }
             }
 
+
+            console.log(sendData);
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
                 vm.curMerchant = null;
                 console.log(data);
-                vm.loadMerchantGroupData();
                 vm.merchantGroupClicked(0, vm.SelectedMerchantGroupNode);
                 $scope.safeApply();
             }
@@ -1315,7 +1317,7 @@ define(['js/app'], function (myApp) {
             for (let i = 0; i < vm.allMerchantList.length; i++) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && merchant.isIncluded) {
-                    merchantNumbers.push(merchant.name)
+                    merchantNumbers.push(merchant.merchantNo)
                 }
             }
 
@@ -1332,15 +1334,17 @@ define(['js/app'], function (myApp) {
             }
 
             sendData.update = {
-                type: "pull",
-                data: merchantNumbers
+                "$pull": {
+                    merchants: {$in: merchantNumbers}
+                }
             }
+
+
             console.log(sendData);
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
                 vm.curMerchant = null;
                 console.log(data);
-                vm.loadMerchantGroupData();
                 vm.merchantGroupClicked(0, vm.SelectedMerchantGroupNode);
                 $scope.safeApply();
             }
