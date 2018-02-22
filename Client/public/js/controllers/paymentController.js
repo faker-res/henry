@@ -1077,7 +1077,7 @@ define(['js/app'], function (myApp) {
             })
         };
 
-        vm.loadMerchantGroupData = function (keepSelected) {
+        vm.loadMerchantGroupData = function () {
             //init gametab start===============================
             vm.showMerchantCate = "include";
             vm.curGame = null;
@@ -1085,23 +1085,18 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) {
                 return
             }
-            if(!keepSelected){
-              vm.SelectedMerchantGroupNode = null;
-            }
+            vm.SelectedMerchantGroupNode = null;
             console.log("getMerchants", vm.selectedPlatform.id);
-            return new Promise((resolve, reject)=>{
-              socketService.$socket($scope.AppSocket, 'getPlatformMerchantGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                  console.log('merchantgroup', data);
-                  //provider list init
-                  vm.platformMerchantGroupList = data.data;
-                  vm.platformMerchantGroupListCheck = {};
-                  $.each(vm.platformMerchantGroupList, function (i, v) {
-                      vm.platformMerchantGroupListCheck[v._id] = true;
-                  })
-                  resolve([]);
-              })
+            socketService.$socket($scope.AppSocket, 'getPlatformMerchantGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                console.log('merchantgroup', data);
+                //provider list init
+                vm.platformMerchantGroupList = data.data;
+                vm.platformMerchantGroupListCheck = {};
+                $.each(vm.platformMerchantGroupList, function (i, v) {
+                    vm.platformMerchantGroupListCheck[v._id] = true;
+                })
+                $scope.safeApply();
             })
-
         }
 
         vm.merchantGroupClicked = function (i, merchantGroup) {
@@ -1292,7 +1287,7 @@ define(['js/app'], function (myApp) {
                 socketService.showErrorMessage($translate("There is no merchant group to be added"));
                 return;
             }
-            var SelectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
+
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
@@ -1308,17 +1303,9 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
                 vm.curMerchant = null;
-                var p1 = new Promise((resolve, reject)=>{
-                    resolve(vm.loadMerchantGroupData(true));
-                })
-                p1.then(data=>{
-                    let selectedNode = vm.platformMerchantGroupList.filter(item=>{
-                      return item._id == SelectedMerchantGroupId;
-                    })
-                    if(selectedNode.length > 0){
-                        vm.merchantGroupClicked(0, selectedNode[0]);
-                    }
-                });
+                console.log(data);
+                vm.loadMerchantGroupData();
+                vm.merchantGroupClicked(0, vm.SelectedMerchantGroupNode);
                 $scope.safeApply();
             }
         }
@@ -1336,7 +1323,7 @@ define(['js/app'], function (myApp) {
                 socketService.showErrorMessage($translate("There is no merchant group to be remove"));
                 return;
             }
-            let SelectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
+
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
@@ -1348,21 +1335,13 @@ define(['js/app'], function (myApp) {
                 type: "pull",
                 data: merchantNumbers
             }
+            console.log(sendData);
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
                 vm.curMerchant = null;
-
-                var p1 = new Promise((resolve, reject)=>{
-                    resolve(vm.loadMerchantGroupData(true));
-                })
-                p1.then(data=>{
-                    let selectedNode = vm.platformMerchantGroupList.filter(item=>{
-                      return item._id == SelectedMerchantGroupId;
-                    })
-                    if(selectedNode.length > 0){
-                        vm.merchantGroupClicked(0, selectedNode[0]);
-                    }
-                });
+                console.log(data);
+                vm.loadMerchantGroupData();
+                vm.merchantGroupClicked(0, vm.SelectedMerchantGroupNode);
                 $scope.safeApply();
             }
         }
