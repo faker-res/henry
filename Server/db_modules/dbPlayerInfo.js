@@ -1283,22 +1283,7 @@ let dbPlayerInfo = {
                 // }
                 // end of commenting
 
-                if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
-                    return Promise.all(promArr);
-                }
-
-                if (phoneNumber) {
-                    let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
-                    promArr.push(smsValidationProm);
-
-                    return Promise.all(promArr);
-                } else {
-                    return Promise.reject({
-                        status: constServerCode.INVALID_PHONE_NUMBER,
-                        name: "DataError",
-                        message: "Invalid phone number"
-                    });
-                }
+                return Promise.all(promArr);
             }
         ).then(
             data => {
@@ -1317,6 +1302,19 @@ let dbPlayerInfo = {
                     isTestPlayer: true,
                     isRealPlayer: false
                 };
+
+                if(platform.requireSMSVerificationForDemoPlayer || !isBackStageGenerated) {
+                    if (phoneNumber) {
+                        dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode, demoPlayerName);
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.INVALID_PHONE_NUMBER,
+                            name: "DataError",
+                            message: "Invalid phone number"
+                        });
+                    }
+                }
+
                 if (phoneNumber) {
                     demoPlayerData.phoneNumber = phoneNumber;
                 }

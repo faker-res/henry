@@ -529,7 +529,7 @@ const dbPlayerMail = {
         );
     },
 
-    verifySMSValidationCode: function (phoneNumber, platformData, smsCode) {
+    verifySMSValidationCode: function (phoneNumber, platformData, smsCode, playerName) {
         if (!platformData) {
             platformData = {};
         }
@@ -563,7 +563,7 @@ const dbPlayerMail = {
                         _id: verificationSMS._id
                     }).then(
                         () => {
-                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                            dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code, playerName);
                             return verificationSMS;
                         }
                     );
