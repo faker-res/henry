@@ -340,8 +340,9 @@ var dbPlayerConsumptionWeekSummary = {
                                         }
                                     }
                                     proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
+                                    //only if proposal is created then add summary ids
+                                    processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
                                 }
-                                processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
                             }
                         }
                     );
