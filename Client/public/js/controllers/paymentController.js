@@ -1328,64 +1328,38 @@ define(['js/app'], function (myApp) {
         vm.removeMerchantFromGroup = function (type) {
             let merchantNumbers = [];
             let merchantNames = [];
-            let mGroup = vm.allMerchantList.filter(item=>{
-              return item.selected  && item.isIncluded
+            let removeGroup = vm.allMerchantList.filter(item => {
+                return item.selected && item.isIncluded
             });
             let mNameCount = 0;
             let mLeftCount = 0;
-            console.log(mGroup);
-            mGroup.forEach(mItem=>{
+            removeGroup.forEach(mItem => {
+
+                /* current merchantName And merchantNo */
                 let curMerchantsGroup = vm.SelectedMerchantGroupNode;
-                curMerchantsGroup.merchants.forEach(currentMechant=>{
-                    let sameMerchantNo = vm.allMerchantList.filter(merchant=>{
-                        return merchant.merchantNo == currentMechant;
-                    });
-                    console.log(sameMerchantNo);
+                curMerchantsGroup.merchants.forEach(currentMechant => {
+
+                    /*  find total merchantName with same merchantNo */
+                    let totalMerchantNamesRecord = vm.allMerchantList.filter(item => {
+                        if (curMerchantsGroup.merchantNames.indexOf(item.name) != -1 && item.merchantNo == mItem.merchantNo) {
+                            return item;
+                        }
+                    })
+
+                    /* find how many merchantName with same merchant in selected to remove */
+                    let merchantNamesRemoveItem = removeGroup.filter(merchant => {
+                        return merchant.merchantNo == mItem.merchantNo;
+                    })
+
+                    /* only all merchantName(with same merchantNo) is been remove, then the merchantNo can be remove */
+                    if (totalMerchantNamesRecord.length - merchantNamesRemoveItem.length == 0) {
+                        merchantNumbers.push(mItem.merchantNo);
+                    }
+                    merchantNames.push(mItem.name);
                 });
             })
 
-            // curMerchantsGroup.merchantNames.forEach(mName=>{
-            //     let result = mGroup.filter(aItem=>{
-            //         return aItem.name == mName;
-            //     });
-            //     mNameCount += 1;
-            //     result.forEach()
-            //     if(result.length > 0 && result[0].merchantNo == mItem.merchantNo){
-            //         mLeftCount += 1;
-            //     }
-            // });
-            // if(mNameCount - mLeftCount == 0){
-            //     merchantNumbers.push(mItem.merchantNo);
-            // }
-            // merchantNames.push(mItem.name);
-
-
-
-            // for (let i = 0; i < vm.allMerchantList.length; i++) {
-            //     let merchant = vm.allMerchantList[i];
-            //     if (merchant.selected && merchant.isIncluded) {
-            //
-            //        let curMerchantsGroup = vm.SelectedMerchantGroupNode;
-            //        let countLeft = 0;
-            //        let totalCount = 0;
-            //
-            //        // calculate how many merchantName with same merchantNo
-            //         curMerchantsGroup.merchantNames.forEach(mName=>{
-            //             let result = vm.allMerchantList.filter(aItem=>{
-            //               return aItem.name == mName;
-            //             });
-            //             if(result[0].merchantNo == merchant.merchantNo){
-            //               countLeft += 1;
-            //             }
-            //         });
-            //
-            //          // only can delete when left last merchantNo .
-            //         merchantNumbers.push(merchant.merchantNo);
-            //         merchantNames.push(merchant.name);
-            //     }
-            // }
-
-            if (!merchantNumbers.length && !merchantNames.length ) {
+            if (!merchantNumbers.length && !merchantNames.length) {
                 socketService.showErrorMessage($translate("There is no merchant group to be remove"));
                 return;
             }
@@ -1399,20 +1373,20 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 type: "pull",
-                data: {'merchantNo':merchantNumbers , 'merchantNames':merchantNames}
+                data: {'merchantNo': merchantNumbers, 'merchantNames': merchantNames}
             }
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
 
                 vm.curMerchant = null;
-                var p1 = new Promise((resolve, reject)=>{
+                var p1 = new Promise((resolve, reject) => {
                     resolve(vm.loadMerchantGroupData(true));
                 })
-                p1.then(data=>{
-                    let selectedNode = vm.platformMerchantGroupList.filter(item=>{
-                      return item._id == selectedMerchantGroupId;
+                p1.then(data => {
+                    let selectedNode = vm.platformMerchantGroupList.filter(item => {
+                        return item._id == selectedMerchantGroupId;
                     })
-                    if(selectedNode.length > 0){
+                    if (selectedNode.length > 0) {
                         vm.merchantGroupClicked(0, selectedNode[0]);
                     }
                 });
@@ -1453,6 +1427,15 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.syncMerchantNoScript = function(){
+          let sendData = {'platformId': vm.selectedPlatform.id}
+          socketService.$socket($scope.AppSocket, 'syncMerchantNoScript', sendData, function (data) {
+            console.log(data);
+            if(data.length){
+              alert('同步完成');
+            }
+          });
+        }
         /////////////////////////////////////// Merchant Group end  /////////////////////////////////////////////////
 
         /////////////////////////////////////// Alipay Group start  /////////////////////////////////////////////////

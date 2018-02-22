@@ -9523,13 +9523,13 @@ let dbPlayerInfo = {
                 if (paymentData) {
                     var resData = [];
                     if (merchantUse == 1 && paymentData.merchants) {
-                        if (playerData.merchantGroup && playerData.merchantGroup.merchants && playerData.merchantGroup.merchants.length > 0) {
-                            playerData.merchantGroup.merchants.forEach(
+                        if (playerData.merchantGroup && playerData.merchantGroup.merchantNames && playerData.merchantGroup.merchantNames.length > 0) {
+                            playerData.merchantGroup.merchantNames.forEach(
                                 merchant => {
                                     let maxDeposit = 0;
                                     for (let i = 0; i < paymentData.merchants.length; i++) {
                                         let status = 2;
-                                        if (paymentData.merchants[i].merchantNo == merchant) {
+                                        if (paymentData.merchants[i].name == merchant) {
                                             status = 1;
                                         }
 

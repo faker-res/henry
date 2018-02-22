@@ -144,7 +144,11 @@ function socketActionMerchantGroup(socketIO, socket) {
             let isValidData = Boolean(data && data.bankMerchantGroupObjId && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.addAllPlayersToMerchantGroup, [data.bankMerchantGroupObjId, data.platformObjId], actionName, isValidData);
         },
-
+        syncMerchantNoScript: function syncMerchantNoScript(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.syncMerchantNoScript, [data.platformId], actionName, isValidData);
+        }
     };
     socketActionMerchantGroup.actions = this.actions;
 };
