@@ -182,6 +182,7 @@ define(['js/app'], function (myApp) {
                         };
                         vm.initSearchParameter('playerDevice', true, 2, function () {
                             vm.queryPara.playerDevice.type = 'os';
+                            vm.queryPara.playerDevice.queryRequirement = 'register';
                             //vm.deviceAnalysisInit();
                         });
                         break;
@@ -2156,6 +2157,7 @@ define(['js/app'], function (myApp) {
                 // endDate: vm.queryPara.playerDevice.endTime
                 startDate: vm.queryPara.playerDevice.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.playerDevice.endTime.data('datetimepicker').getLocalDate(),
+                queryRequirement: vm.queryPara.playerDevice.queryRequirement
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDeviceAnalysisData', sendData, function (data) {
