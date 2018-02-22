@@ -639,8 +639,18 @@ define(['js/app'], function (myApp) {
                             });
                         } else if(vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo') {
                             // merchantNo
+                            let merchantListWithoutRepeatMerchantNo = [];
+                            let existMerchantNoArr = [];
+                            vm.merchantList.merchants.forEach(
+                                merchant => {
+                                    if(!existMerchantNoArr.includes(merchant.merchantNo)){
+                                        existMerchantNoArr.push(merchant.merchantNo);
+                                        merchantListWithoutRepeatMerchantNo.push(merchant);
+                                    }
+                                }
+                            );
                             Object.keys($scope.merchantTopupTypeJson).forEach(key => {
-                                vm.merchantList.merchants.forEach(
+                                merchantListWithoutRepeatMerchantNo.forEach(
                                     merchant => {
                                         let calculatedData = vm.calculateOnlineTopupTypeData(key, userAgentTypeKey-1, merchant.merchantTypeId, merchant.merchantNo);
                                         if(calculatedData.totalCount) // if no data dont show
