@@ -4630,6 +4630,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('REMARK'), data: "remark$"},
+                            {title: $translate('COUNT'), data: "consumptionTimes"},
                             //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
@@ -5207,87 +5208,89 @@ define(['js/app'], function (myApp) {
                                         'data-placement': 'right',
                                     }));
                                 }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
-                                    link.append($('<a>', {
-                                        'class': 'fa fa-plus-circle',
-                                        'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
-                                        'data-row': JSON.stringify(row),
-                                        'data-toggle': 'modal',
-                                        'data-target': '#modalPlayerTopUp',
-                                        'title': $translate("TOP_UP"),
-                                        'data-placement': 'left',
-                                        'style': 'color: #68C60C'
-                                    }));
-                                }
-                                link.append($('<br>'));
-                                if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
-                                    link.append($('<img>', {
-                                        'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/withdrawBlue.png",
-                                        'height': "14px",
-                                        'width': "14px",
-                                        'ng-click': 'vm.initPlayerBonus();',
-                                        'data-row': JSON.stringify(row),
-                                        'data-toggle': 'modal',
-                                        'data-target': '#modalPlayerBonus',
-                                        'title': $translate("Bonus"),
-                                        'data-placement': 'left',   // because top and bottom got hidden behind the table edges
-                                    }));
-                                }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
-                                    link.append($('<img>', {
-                                        'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/rewardBlue.png",
-                                        'height': "14px",
-                                        'width': "14px",
-                                        'ng-click': 'vm.initRewardSettings();vm.initPlayerAddRewardTask();',
-                                        'data-row': JSON.stringify(row),
-                                        'data-toggle': 'modal',
-                                        'data-target': '#modalPlayerAddRewardTask',
-                                        'title': $translate("REWARD_ACTION"),
-                                        'data-placement': 'left',
-                                    }));
-                                }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
-                                    link.append($('<img>', {
-                                        'class': 'margin-right-5',
-                                        'src': "images/icon/reapplyBlue.png",
-                                        'height': "14px",
-                                        'width': "14px",
-                                        'ng-click': 'vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
-                                        'data-row': JSON.stringify(row),
-                                        'data-toggle': 'modal',
-                                        'title': $translate("ALL_REAPPLY_ORDER"),
-                                        'data-placement': 'right',
-                                    }));
-                                }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
-                                    link.append($('<img>', {
-                                        'class': 'margin-right-5',
-                                        'src': "images/icon/creditAdjustBlue.png",
-                                        'height': "14px",
-                                        'width': "14px",
-                                        'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
-                                        'data-row': JSON.stringify(row),
-                                        'data-toggle': 'modal',
-                                        'data-target': '#modalPlayerCreditAdjustment',
-                                        'title': $translate("CREDIT_ADJUSTMENT"),
-                                        'data-placement': 'right',
-                                    }));
-                                }
-                                if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
-                                    link.append($('<img>', {
-                                        'class': 'margin-right-5',
-                                        'src': "images/icon/rewardPointsBlue.png",
-                                        'height': "14px",
-                                        'width': "14px",
-                                        'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
-                                        'data-row': JSON.stringify(row),
-                                        'data-toggle': 'modal',
-                                        'data-target': '#modalPlayerRewardPointsAdjustment',
-                                        'title': $translate("REWARD_POINTS_ADJUSTMENT"),
-                                        'data-placement': 'right',
-                                    }));
+                                if(row.isRealPlayer) {
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
+                                        link.append($('<a>', {
+                                            'class': 'fa fa-plus-circle',
+                                            'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerTopUp',
+                                            'title': $translate("TOP_UP"),
+                                            'data-placement': 'left',
+                                            'style': 'color: #68C60C'
+                                        }));
+                                    }
+                                    link.append($('<br>'));
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5 margin-right-5',
+                                            'src': "images/icon/withdrawBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.initPlayerBonus();',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerBonus',
+                                            'title': $translate("Bonus"),
+                                            'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5 margin-right-5',
+                                            'src': "images/icon/rewardBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.initRewardSettings();vm.initPlayerAddRewardTask();',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerAddRewardTask',
+                                            'title': $translate("REWARD_ACTION"),
+                                            'data-placement': 'left',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/reapplyBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'title': $translate("ALL_REAPPLY_ORDER"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/creditAdjustBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerCreditAdjustment',
+                                            'title': $translate("CREDIT_ADJUSTMENT"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/rewardPointsBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerRewardPointsAdjustment',
+                                            'title': $translate("REWARD_POINTS_ADJUSTMENT"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
                                 }
                                 return link.prop('outerHTML');
                             },
@@ -5317,43 +5320,44 @@ define(['js/app'], function (myApp) {
 
                                 let perm = (row && row.permission) ? row.permission : {};
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
-                                    height: "13px",
-                                    width: "15px",
-                                }));
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.topupManual === true ? "manualTopUpBlue.png" : "manualTopUpRed.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
+                                if(row.isRealPlayer) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
+                                        height: "13px",
+                                        width: "15px",
+                                    }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.topupManual === true ? "manualTopUpBlue.png" : "manualTopUpRed.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5',
-                                    'src': "images/icon/" + (perm.alipayTransaction === true ? "aliPayBlue.png" : "aliPayRed.png"),
-                                    height: "15px",
-                                    width: "15px",
-                                }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5',
+                                        'src': "images/icon/" + (perm.alipayTransaction === true ? "aliPayBlue.png" : "aliPayRed.png"),
+                                        height: "15px",
+                                        width: "15px",
+                                    }));
 
-                                link.append($('<i>', {
-                                    'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
-                                }));
+                                    link.append($('<i>', {
+                                        'class': 'fa fa-comments margin-right-5 ' + (perm.disableWechatPay === true ? "text-danger" : "text-primary"),
+                                    }));
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.topUpCard === false ? "cardTopUpRed.png" : "cardTopUpBlue.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
-
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.topUpCard === false ? "cardTopUpRed.png" : "cardTopUpBlue.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
+                                }
                                 link.append($('<i>', {
                                     'class': 'fa margin-right-5 ' + (perm.forbidPlayerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
                                 }));
@@ -5362,7 +5366,9 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-gamepad margin-right-5 ' + (perm.forbidPlayerFromEnteringGame === true ? "text-danger" : "text-primary"),
                                 }));
 
-                                link.append($('<br>'));
+                                if(row.isRealPlayer) {
+                                    link.append($('<br>'));
+                                }
 
                                 link.append($('<i>', {
                                     'class': 'fa fa-volume-control-phone margin-right-5 ' + (perm.phoneCallFeedback === false ? "text-danger" : "text-primary"),
@@ -5378,25 +5384,25 @@ define(['js/app'], function (myApp) {
                                 //     height: "14px",
                                 //     width: "14px",
                                 // }));
+                                if(row.isRealPlayer) {
+                                    link.append($('<i>', {
+                                        'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
+                                    }));
 
-                                link.append($('<i>', {
-                                    'class': 'fa fa-gift margin-right-5 ' + (perm.banReward === false ? "text-primary" : "text-danger"),
-                                }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
 
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.rewardPointsTask === false ? "rewardPointsRed.png" : "rewardPointsBlue.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
-
-                                link.append($('<img>', {
-                                    'class': 'margin-right-5 ',
-                                    'src': "images/icon/" + (perm.levelChange === false ? "levelRed.png" : "levelBlue.png"),
-                                    height: "14px",
-                                    width: "14px",
-                                }));
-
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.levelChange === false ? "levelRed.png" : "levelBlue.png"),
+                                        height: "14px",
+                                        width: "14px",
+                                    }));
+                                }
 
                                 // link.append($('<i>', {
                                 //     'class': 'fa fa-share-square margin-right-5 ' + (perm.transactionReward === true ? "text-primary" : "text-danger"),
@@ -5454,21 +5460,22 @@ define(['js/app'], function (myApp) {
                                 var link = $('<div>', {});
                                 var playerObjId = row._id ? row._id : "";
 
-                                link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'popover',
-                                    // 'title': $translate("PHONE"),
-                                    'data-placement': 'left',
-                                    'data-trigger': 'focus',
-                                    'type': 'button',
-                                    'data-html': true,
-                                    'href': '#',
-                                    'style': "z-index: auto; min-width:23px",
-                                    'data-container': "body",
-                                    'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
-                                }));
-
+                                if(row.isRealPlayer) {
+                                    link.append($('<a>', {
+                                        'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'popover',
+                                        // 'title': $translate("PHONE"),
+                                        'data-placement': 'left',
+                                        'data-trigger': 'focus',
+                                        'type': 'button',
+                                        'data-html': true,
+                                        'href': '#',
+                                        'style': "z-index: auto; min-width:23px",
+                                        'data-container': "body",
+                                        'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
+                                    }));
+                                }
 
                                 link.append($('<a>', {
                                     'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0 ? " text-danger" : ""),
@@ -5485,39 +5492,39 @@ define(['js/app'], function (myApp) {
                                     'html': (row.forbidProviders && row.forbidProviders.length > 0 ? '<sup>' + row.forbidProviders.length + '</sup>' : ''),
                                 }));
 
+                                if(row.isRealPlayer) {
+                                    link.append($('<a>', {
+                                        'class': 'forbidTopUpPopover margin-right-5' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? " text-danger" : ""),
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'popover',
+                                        // 'title': $translate("PHONE"),
+                                        'data-placement': 'left',
+                                        'data-trigger': 'focus',
+                                        'type': 'button',
+                                        'data-html': true,
+                                        'href': '#',
+                                        // 'style': "z-index: auto; min-width:23px",
+                                        'data-container': "body",
+                                        'html': '<img width="15px" height="12px" src="images/icon/' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? "onlineTopUpRed.png" : "onlineTopUpBlue.png") + '"></img>'
+                                        + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? '<sup>' + row.forbidTopUpType.length + '</sup>' : ''),
+                                        'style': "z-index: auto; width:23px; display:inline-block;",
+                                    }));
 
-                                link.append($('<a>', {
-                                    'class': 'forbidTopUpPopover margin-right-5' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? " text-danger" : ""),
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'popover',
-                                    // 'title': $translate("PHONE"),
-                                    'data-placement': 'left',
-                                    'data-trigger': 'focus',
-                                    'type': 'button',
-                                    'data-html': true,
-                                    'href': '#',
-                                    // 'style': "z-index: auto; min-width:23px",
-                                    'data-container': "body",
-                                    'html': '<img width="15px" height="12px" src="images/icon/' + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? "onlineTopUpRed.png" : "onlineTopUpBlue.png") + '"></img>'
-                                    + (row.forbidTopUpType && row.forbidTopUpType.length > 0 ? '<sup>' + row.forbidTopUpType.length + '</sup>' : ''),
-                                    'style': "z-index: auto; width:23px; display:inline-block;",
-                                }));
-
-                                link.append($('<a>', {
-                                    'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'popover',
-                                    'data-placement': 'left',
-                                    'data-trigger': 'focus',
-                                    'type': 'button',
-                                    'data-html': true,
-                                    'href': '#',
-                                    'data-container': "body",
-                                    'html': '<img width="14px" height="14px" src="images/icon/' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? "rewardPointsRed.png" : "rewardPointsBlue.png") + '"></img>'
-                                    + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? '<sup>' + row.forbidRewardPointsEvent.length + '</sup>' : ''),
-                                    'style': "z-index: auto; width:23px; display: inline-block;",
-                                }));
-
+                                    link.append($('<a>', {
+                                        'class': 'forbidRewardPointsEventPopover margin-right-5' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? " text-danger" : ""),
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'popover',
+                                        'data-placement': 'left',
+                                        'data-trigger': 'focus',
+                                        'type': 'button',
+                                        'data-html': true,
+                                        'href': '#',
+                                        'data-container': "body",
+                                        'html': '<img width="14px" height="14px" src="images/icon/' + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? "rewardPointsRed.png" : "rewardPointsBlue.png") + '"></img>'
+                                        + (row.forbidRewardPointsEvent && row.forbidRewardPointsEvent.length > 0 ? '<sup>' + row.forbidRewardPointsEvent.length + '</sup>' : ''),
+                                        'style': "z-index: auto; width:23px; display: inline-block;",
+                                    }));
+                                }
                                 return link.prop('outerHTML');
                             },
                             "sClass": "alignLeft"
@@ -6139,8 +6146,8 @@ define(['js/app'], function (myApp) {
                                         width: "26px",
                                         height: '26px'
                                     },
-                                    forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in"},
-                                    forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad"},
+                                    forbidPlayerFromLogin: {imgType: 'i', iconClass: "fa fa-sign-in", testPlayer: true},
+                                    forbidPlayerFromEnteringGame: {imgType: 'i', iconClass: "fa fa-gamepad", testPlayer: true},
                                     // forbidPlayerConsumptionReturn: {imgType: 'i', iconClass: "fa fa-repeat"},
                                     // forbidPlayerConsumptionIncentive: {imgType: 'i', iconClass: "fa fa-ambulance"},
                                     // advanceConsumptionReward: {imgType: 'i', iconClass: "fa fa-tint"},
@@ -6148,8 +6155,8 @@ define(['js/app'], function (myApp) {
                                     // PlayerDoubleTopUpReturn: {imgType: 'i', iconClass: "fa fa-plus-square-o"},
                                     // playerConsecutiveConsumptionReward: {imgType: 'i', iconClass: "fa fa-forward"},
                                     // PlayerPacketRainReward: {imgType: 'i', iconClass: "fa fa-umbrella"},
-                                    phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone"},
-                                    SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment"},
+                                    phoneCallFeedback: {imgType: 'i', iconClass: "fa fa-volume-control-phone", testPlayer: true},
+                                    SMSFeedBack: {imgType: 'i', iconClass: "fa fa-comment", testPlayer: true},
                                     // PlayerLimitedOfferReward: {
                                     //     imgType: 'img',
                                     //     src: "images/icon/limitedRewardBlue.png",
@@ -6170,6 +6177,7 @@ define(['js/app'], function (myApp) {
                                         height: '26px'
                                     },
                                 };
+
                                 $("#playerPermissionTable td").removeClass('hide');
 
                                 vm.popOverPlayerPermission = row;
@@ -6798,7 +6806,7 @@ define(['js/app'], function (myApp) {
                 $scope.phoneCall.phone = phoneNumber;
                 $scope.phoneCall.loadingNumber = false;
                 $scope.safeApply();
-                $scope.makePhoneCall();
+                $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
             }
             vm.smsNewPlayerBtn = function (phoneNumber, data) {
                 vm.getSMSTemplate();
@@ -6848,7 +6856,7 @@ define(['js/app'], function (myApp) {
                         $scope.phoneCall.phone = data.data;
                         $scope.phoneCall.loadingNumber = false;
                         $scope.safeApply();
-                        $scope.makePhoneCall();
+                        $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
                     }, function (err) {
                         $scope.phoneCall.loadingNumber = false;
                         $scope.phoneCall.err = err.error.message;
@@ -6870,7 +6878,7 @@ define(['js/app'], function (myApp) {
                 $scope.phoneCall.phone = data.tel;
                 $scope.phoneCall.loadingNumber = false;
                 $scope.safeApply();
-                $scope.makePhoneCall();
+                $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
             }
 
             vm.sendSMSToPlayer = function () {
@@ -9908,6 +9916,7 @@ define(['js/app'], function (myApp) {
                             },
                             {title: $translate('Total Amount'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
                             {title: $translate('REMARK'), data: "remark$"},
+                            {title: $translate('COUNT'), data: "consumptionTimes"},
                             //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
@@ -14379,7 +14388,7 @@ define(['js/app'], function (myApp) {
                                         $scope.phoneCall.phone = data.data;
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.safeApply();
-                                        $scope.makePhoneCall();
+                                        $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
                                     }, function (err) {
                                         $scope.phoneCall.loadingNumber = false;
                                         $scope.phoneCall.err = err.error.message;
@@ -21435,7 +21444,7 @@ define(['js/app'], function (myApp) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
-                    $scope.makePhoneCall();
+                    $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;
@@ -23273,11 +23282,34 @@ define(['js/app'], function (myApp) {
             vm.initBatchPermit = function () {
                 vm.prepareCredibilityConfig();
                 vm.resetBatchEditData();
+                // init edit data
+                vm.forbidCredibilityAddList = [];
+                vm.forbidCredibilityRemoveList = [];
+
+                vm.forbidRewardEventAddList = [];
+                vm.forbidRewardEventRemoveList = [];
+
+                vm.forbidGameAddList = [];
+                vm.forbidGameRemoveList = [];
+
+                vm.forbidTopUpAddList = [];
+                vm.forbidTopUpRemoveList = [];
+
+                vm.forbidRewardPointsAddList = [];
+                vm.forbidRewardPointsRemoveList = [];
+
                 vm.drawBatchPermitTable();
 
                 vm.playerCredibilityRemarksUpdated = false;
             };
             vm.localRemarkUpdate = function () {
+                if(vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0){
+                    var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                    if(!ans){
+                        return
+                    }
+                }
+
                 let selectedRemarks = [];
                 for (let i = 0; i < vm.credibilityRemarks.length; i++) {
                     if (vm.credibilityRemarks[i].selected === true) {
@@ -23289,7 +23321,10 @@ define(['js/app'], function (myApp) {
                     admin: authService.adminName,
                     platformObjId: vm.selectedPlatform.id,
                     playerNames: playerNames,
-                    remarks: selectedRemarks,
+                    remarks: {
+                        'addList': vm.forbidCredibilityAddList,
+                        'removeList': vm.forbidCredibilityRemoveList
+                    },
                     comment: vm.credibilityRemarkComment
                 };
 
@@ -23329,6 +23364,14 @@ define(['js/app'], function (myApp) {
                         "manualTopup": false
                     },
                 };
+            }
+
+            vm.permissionChangeMark = function(){
+                // a object to record which permission is been change;
+                vm.playerPermissionChange = {};
+                Object.keys(vm.playerPermissionTypes).map(item=>{
+                    vm.playerPermissionChange[item] = false;
+                });
             }
             vm.drawBatchPermitTable = function () {
 
@@ -23398,7 +23441,9 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
-                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;",
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;"
+                                    + "; vm.permissionChangeMark();",
+
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
@@ -23668,8 +23713,12 @@ define(['js/app'], function (myApp) {
                                     var key = $(this).data("which");
                                     var select = $(this).data("on");
                                     changeObj[key] = !select;
+
                                     $(thisPopover + ' .' + key).toggleClass('hide');
                                     $submit.prop('disabled', $remark.val() == '');
+                                    $(thisPopover +' #'+key).html($translate('ModifyIt'));
+
+                                    $scope.safeApply();
                                 })
 
                                 $remark.on('input selectionchange propertychange', function () {
@@ -23766,6 +23815,13 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
+
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
                                     $.each(forbidRewardEventList, function (i, v) {
@@ -23777,7 +23833,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         playerNames: playerNames,
-                                        forbidRewardEvents: forbidRewardEvents,
+                                        forbidRewardEvents: {
+                                            'addList': vm.forbidRewardEventAddList,
+                                            'removeList': vm.forbidRewardEventRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     // subcategory 1
@@ -23793,6 +23852,7 @@ define(['js/app'], function (myApp) {
                             context: container,
                             elem: '.prohibitGamePopover',
                             content: function () {
+
                                 // var data = JSON.parse(this.dataset.row);
                                 var data = uData;
                                 vm.prohibitGamePopover = data;
@@ -23833,6 +23893,12 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidGameAddList.length == 0 && vm.forbidGameRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
                                     let forbidProviderList = $(thisPopover).find('.playerStatusProviderForbid');
                                     let forbidProviders = [];
                                     $.each(forbidProviderList, function (i, v) {
@@ -23844,7 +23910,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         platformObjId: vm.selectedPlatform.id,
                                         playerNames: playerNames,
-                                        forbidProviders: forbidProviders,
+                                        forbidProviders: {
+                                            'addList': vm.forbidGameAddList,
+                                            'removeList': vm.forbidGameRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     //subcategory 2
@@ -23901,6 +23970,12 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidTopUpAddList.length == 0 && vm.forbidTopUpRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
                                     let forbidTopUpList = $(thisPopover).find('.playerTopUpTypeForbid');
                                     let forbidTopUpTypes = [];
                                     $.each(forbidTopUpList, function (i, v) {
@@ -23915,7 +23990,10 @@ define(['js/app'], function (myApp) {
                                             playerNames: playerNames,
                                             platformObjId: vm.selectedPlatform.id
                                         },
-                                        updateData: {forbidTopUpType: forbidTopUpTypes},
+                                        updateData: {forbidTopUpType: {
+                                            'addList': vm.forbidTopUpAddList,
+                                            'removeList': vm.forbidTopUpRemoveList
+                                        }},
                                         adminName: authService.adminName
                                     };
                                     //subcategory 3
@@ -23969,6 +24047,12 @@ define(['js/app'], function (myApp) {
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
+                                    if(vm.forbidRewardPointsAddList.length == 0 && vm.forbidRewardPointsRemoveList == 0){
+                                        var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
+                                        if(!ans){
+                                            return
+                                        }
+                                    }
                                     let forbidRewardPointsEventList = $(thisPopover).find('.playerRewardPointsEventForbid');
                                     let forbidRewardPointsEvent = [];
                                     $.each(forbidRewardPointsEventList, function (i, v) {
@@ -23980,7 +24064,10 @@ define(['js/app'], function (myApp) {
                                     let sendData = {
                                         playerNames: playerNames,
                                         platformObjId: vm.selectedPlatform.id,
-                                        forbidRewardPointsEvent: forbidRewardPointsEvent,
+                                        forbidRewardPointsEvent: {
+                                            'addList':vm.forbidRewardPointsAddList,
+                                            'removeList':vm.forbidRewardPointsRemoveList
+                                        },
                                         adminName: authService.adminName
                                     };
                                     // subcategory 4
@@ -24005,9 +24092,32 @@ define(['js/app'], function (myApp) {
                         playerNames.push(item);
                     });
                 }
-
                 return playerNames;
             }
+            vm.forbidModification = function(id, val, addList, removeList){
+                if(val===true){
+                    if(vm[addList].indexOf(id)==-1){
+                        vm[addList].push(String(id));
+                    }
+                    vm[removeList] = vm[removeList].filter(item=>{
+                        if(item != id){
+                            return item;
+                        }
+                    });
+                }else{
+                    if(vm[removeList].indexOf(id==-1)){
+                        vm[removeList].push(String(id));
+                    }
+                    vm[addList] = vm[addList].filter(item=>{
+                        if(item != id){
+                            return item;
+                        }
+                    })
+                }
+                // add to record which is selected to edit
+                $('#c-'+id).html($translate("ModifyIt"));
+            }
+
             ///
             //Partner Advertisement
             vm.addNewPartnerAdvertisementRecord = function() {

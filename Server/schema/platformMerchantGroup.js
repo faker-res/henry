@@ -14,6 +14,7 @@ var platformMerchantGroupSchema = new Schema({
     platform: {type: Schema.ObjectId, ref: 'platform', required: true},
     //group merchants
     merchants: [{type: String}],
+    merchantNames: [{type: String}],
     //if it is default group
     bDefault: {type: Boolean, default: false}
 });

@@ -1043,6 +1043,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     playerData = data;
+                    let promArr = [];
                     var levelProm = dbconfig.collection_playerLevel.findOne({
                         platform: playerdata.platform,
                         value: mongoose.Types.ObjectId.isValid(playerdata.level) ? playerdata.level : (playerdata.level || 0)
@@ -1068,7 +1069,28 @@ let dbPlayerInfo = {
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm]);
+                    promArr = [levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm];
+                    //special handling for demo players
+                    if(playerData.isTestPlayer) {
+                        let permissionQuery = {
+                            "permission.applyBonus": false,
+                            "permission.topupOnline": false,
+                            "permission.topupManual": false,
+                            "permission.alipayTransaction": false,
+                            "permission.disableWechatPay": true,
+                            "permission.topUpCard": false,
+                            "permission.banReward": true,
+                            "permission.rewardPointsTask": false,
+                            "permission.levelChange": false
+                        };
+                        let testPlayerHandlingProm = dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerData._id, platform: playerData.platform},
+                            permissionQuery,
+                            {new: true}
+                        )
+                        promArr.push(testPlayerHandlingProm);
+                    }
+                    return Q.all(promArr);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't create new player."});
@@ -1199,6 +1221,10 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
+                const anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+                const now = new Date(Date.now()).toISOString();
+                const maxIpCount = 5;
+                const maxPhoneNumberCount = 5;
                 let promArr = [];
 
                 if (!platformData) {
@@ -1209,52 +1235,59 @@ let dbPlayerInfo = {
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
                 promArr.push(demoNameProm);
 
-                if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
-                    let anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-                    let now = new Date(Date.now()).toISOString();
-                    let ipQuery = {
-                        'loginIps.0': deviceData.lastLoginIp,
-                        registrationTime: {
-                            $lte: now,
-                            $gte: anHourAgo
-                        },
-                        platform: platform._id
-                    };
-
-                    let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
-                        data => {
-                            if (data >= 5) {
-                                return Promise.reject({
-                                    name: "DataError",
-                                    message: "Player registration limit exceed (IP Address)"
-                                });
-                            }
-                        }
-                    );
-                    promArr.push(ipDuplicateProm);
-                }
+                // commented for debugging / testing purpose, uncomment the following IF blocks for production
+                // if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
+                //     let ipQuery = {
+                //         'loginIps.0': deviceData.lastLoginIp,
+                //         registrationTime: {
+                //             $lte: now,
+                //             $gte: anHourAgo
+                //         },
+                //         platform: platform._id
+                //     };
+                //
+                //     let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
+                //         data => {
+                //             if (data >= maxIpCount) {
+                //                 return Promise.reject({
+                //                     name: "DataError",
+                //                     message: "Demo player registration limit exceeded 5 times in 1 hour (same IP Address)"
+                //                 });
+                //             }
+                //         }
+                //     );
+                //     promArr.push(ipDuplicateProm);
+                // }
+                //
+                // if(phoneNumber && !isBackStageGenerated) {
+                //     let phoneNumberQuery = {
+                //         phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                //         platform: platform._id,
+                //         registrationTime: {
+                //             $lte: now,
+                //             $gte: anHourAgo
+                //         }
+                //     };
+                //
+                //     let phoneDuplicateProm = dbconfig.collection_players.count(phoneNumberQuery).then(
+                //         data => {
+                //             if (data >= maxPhoneNumberCount) {
+                //                 return Promise.reject({
+                //                     name: "DataError",
+                //                     message: "Demo player registration limit exceeded 5 times in 1 hour (same Phone Number)"
+                //                 });
+                //             }
+                //         }
+                //     );
+                //     promArr.push(phoneDuplicateProm);
+                // }
+                // end of commenting
 
                 if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
                     return Promise.all(promArr);
                 }
 
                 if (phoneNumber) {
-                    let phoneDuplicateProm = dbPlayerInfo.isPhoneNumberValidToRegister({
-                        phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                        platform: platform._id
-                    }).then(
-                        data => {
-                            if (data.isPhoneNumberValid === false) {
-                                return Promise.reject({
-                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                    name: "DataError",
-                                    message: "Phone number already exists"
-                                });
-                            }
-                        }
-                    );
-                    promArr.push(phoneDuplicateProm);
-
                     let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
                     promArr.push(smsValidationProm);
 
@@ -2098,12 +2131,25 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
         let proms = [];
         let playerNames = query.playerNames;
-        let updateData = {forbidTopUpType: forbidTopUpTypes}
+        let addList = forbidTopUpTypes.addList;
+        let removeList = forbidTopUpTypes.removeList;
+        let updateData = {};
+
         playerNames.forEach(name => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                name: name,
-                platform: query.platformObjId
-            }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({name: name, platform: query.platformObjId})
+                .then(data => {
+                    let playerForbidTopupType = data.forbidTopUpType.filter(item => {
+                        return item != "undefined"
+                    }) || []
+                    updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidTopUpType = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: name,
+                        platform: query.platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                });
             proms.push(prom)
         });
 
@@ -2144,19 +2190,26 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidProviders: function (platformObjId, playerNames, forbidProviders) {
 
         let updateData = {};
-        if (forbidProviders) {
-            updateData.forbidProviders = forbidProviders;
-        }
+        let addList = forbidProviders.addList;
+        let removeList = forbidProviders.removeList;
         let proms = [];
 
         playerNames.forEach(player => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                'name': player,
-                'platform': platformObjId
-            }, updateData, constShardKeys.collection_players);
-            proms.push(prom);
-        });
+            let prom = dbconfig.collection_players.findOne({name: player, platform: platformObjId})
+                .then(data => {
 
+                    let playerForbidProviders = data.forbidProviders || [];
+                    updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidProviders = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': player,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                });
+            proms.push(prom)
+        });
         return Promise.all(proms);
     },
 
@@ -2167,19 +2220,49 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
+    managingDataList: function(dataList, addList, removeList){
+        let result = [];
+        dataList.forEach(d => {
+            result.push(String(d));
+        })
+        let finalResult = [];
+        addList.forEach(item => {
+            if (result.indexOf(item) == -1) {
+                result.push(item);
+            }
+        })
 
+        result = result.filter(rItem => {
+            // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
+            let currentItem = String(rItem);
+            if (removeList.length == 0) {
+                finalResult.push(currentItem);
+            } else if (removeList.indexOf(currentItem) == -1) {
+                finalResult.push(currentItem);
+            }
+        })
+        return finalResult;
+    },
     updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
         let updateData = {};
         let result = [];
-        if (forbidRewardEvents) {
-            updateData.forbidRewardEvents = forbidRewardEvents;
-        }
+        let addList = forbidRewardEvents.addList;
+        let removeList = forbidRewardEvents.removeList;
         let proms = [];
         playerNames.forEach(name => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                'name': name,
-                'platform': platformObjId
-            }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
+                .then(data => {
+                    let playerForbidRewardEvents = data.forbidRewardEvents || [];
+                    updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidRewardEvents = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': name,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
             proms.push(prom);
         });
         return Promise.all(proms);
@@ -2196,14 +2279,22 @@ let dbPlayerInfo = {
     updateBatchPlayerForbidRewardPointsEvent: function (playerNames, platformObjId, forbidRewardPointsEvent) {
         let proms = [];
         let updateData = {};
-        if (forbidRewardPointsEvent) {
-            updateData.forbidRewardPointsEvent = forbidRewardPointsEvent;
-        }
+        let addList = forbidRewardPointsEvent.addList;
+        let removeList = forbidRewardPointsEvent.removeList;
+
         playerNames.forEach(name => {
-            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                name: name,
-                platform: platformObjId
-            }, updateData, constShardKeys.collection_players);
+            let prom = dbconfig.collection_players.findOne({name: name, platform: platformObjId})
+                .then(data => {
+                    let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent || [];
+                    updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidRewardPointsEvent = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: name,
+                        platform: platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
             proms.push(prom);
         })
         return Promise.all(proms);
@@ -7809,6 +7900,142 @@ let dbPlayerInfo = {
 
     },
 
+    getTopUpMethodAnalysisByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var calculation = {$sum: "$amount"};
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType"},
+                        calc: calculation
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id && i._id.topUpType ? getKey(constPlayerTopUpType,Number(i._id.topUpType)) : ""}, number: i.calc ? i.calc : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+
+    },
+    getTopUpMethodCountByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType"},
+                        "count": {"$sum": 1},
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id && i._id.topUpType ? getKey(constPlayerTopUpType,Number(i._id.topUpType)) : ""}, number: i.count ? i.count : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+
+    },
+
     /* 
      * Get active player count 
      */
@@ -7957,14 +8184,15 @@ let dbPlayerInfo = {
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
                 let proms = [];
-                while (startDate.getTime() <= endDate.getTime()) {
+                while (startDate.getTime() < endDate.getTime()) {
                     let dayEndTime = getNextDateByPeriodAndDate(period, startDate);
                     let startTime = startDate;
                     let queryObj = {
                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                         type: onlineTopupType._id,
-                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType': merchantTopupTypeId}],
-                        "data.userAgent": parseFloat(userAgent),
+                        "data.topupType": parseInt(merchantTopupTypeId),
+                        "data.userAgent": userAgent,
+
                     };
                     proms.push(dbconfig.collection_proposal.aggregate(
                         {
@@ -7986,8 +8214,8 @@ let dbPlayerInfo = {
                                         createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
                                         type: onlineTopupType._id,
                                         status: "Success",
-                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType': merchantTopupTypeId}],
-                                        "data.userAgent": parseFloat(userAgent),
+                                        "data.topupType": parseInt(merchantTopupTypeId),
+                                        "data.userAgent": userAgent,
                                     }
                                 }, {
                                     $group: {
@@ -7997,14 +8225,35 @@ let dbPlayerInfo = {
                                 }
                             ).then(
                                 data1 => {
-                                    return {
-                                        date: startTime,
-                                        userCount: data && data[0] ? data[0].userIds.length : 0,
-                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
-                                        successCount: data && data[0] ? data[0].successCount : 0,
-                                        totalCount: data && data[0] ? data[0].count : 0,
-                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
-                                    }
+                                    return dbconfig.collection_proposal.aggregate(
+                                        {
+                                            $match: {
+                                                createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                                type: onlineTopupType._id,
+                                                status: "Success",
+                                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                            }
+                                        }, {
+                                            $group: {
+                                                _id: null,
+                                                userIds: {$addToSet: "$data.playerObjId"},
+                                                receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                            }
+                                        }
+                                    ).then(
+                                        data2 => {
+                                            return {
+                                                date: startTime,
+                                                userCount: data && data[0] ? data[0].userIds.length : 0,
+                                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                                successCount: data && data[0] ? data[0].successCount : 0,
+                                                totalCount: data && data[0] ? data[0].count : 0,
+                                                successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0,
+                                                totalUserCount: data2 && data2[0] ? data2[0].userIds.length : 0,
+                                                totalReceivedAmount: data2 && data2[0] ? data2[0].receivedAmount : 0,
+                                            }
+                                        }
+                                    )
                                 }
                             );
                         })
@@ -11934,26 +12183,31 @@ let dbPlayerInfo = {
 
     updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
 
+        let addList = remarks.addList;
+        let removeList = remarks.removeList;
+        let updateData = { credibilityRemarks:[] };
         let proms = [];
-        playerNames.forEach(playerName => {
 
-            let prom = dbUtility.findOneAndUpdateForShard(
-                dbconfig.collection_players,
-                {
-                    name: playerName,
-                    platform: platformObjId
-                },
-                {
-                    credibilityRemarks: remarks
-                },
-                constShardKeys.collection_players
-            ).then(
-                playerData => {
+        playerNames.forEach(playerName => {
+            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
+                .then(data => {
+                    let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
+                        return item != "undefined"
+                    }) || [];
+                    updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.credibilityRemarks = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: playerName,
+                        platform: platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
+                .then(playerData => {
                     let playerObjId = playerData._id;
-                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
                     return playerData;
-                }
-            );
+                })
             proms.push(prom);
         })
         return Promise.all(proms);
