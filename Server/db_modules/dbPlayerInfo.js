@@ -1992,6 +1992,13 @@ let dbPlayerInfo = {
         // Get platform
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
+                // block action if it is Demo player
+                if (playerData && !playerData.isRealPlayer) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Demo player cannot perform this action"
+                    })
+                }
                 if (playerData) {
                     playerObj = playerData;
                     platformObjId = playerData.platform;
