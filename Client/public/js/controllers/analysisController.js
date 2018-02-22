@@ -165,6 +165,7 @@ define(['js/app'], function (myApp) {
                                             vm.queryPara.playerLocation.date = 'lastAccessTime';
                                             var setHeight = height - 50;
                                             $(".analysisLocationTable").height(setHeight + "px");
+                                            vm.queryPara.playerLocation.userType = 'all';
                                             $scope.safeApply();
                                             //vm.playerLocationPage();
                                         });
@@ -638,8 +639,18 @@ define(['js/app'], function (myApp) {
                             });
                         } else if(vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo') {
                             // merchantNo
+                            let merchantListWithoutRepeatMerchantNo = [];
+                            let existMerchantNoArr = [];
+                            vm.merchantList.merchants.forEach(
+                                merchant => {
+                                    if(!existMerchantNoArr.includes(merchant.merchantNo)){
+                                        existMerchantNoArr.push(merchant.merchantNo);
+                                        merchantListWithoutRepeatMerchantNo.push(merchant);
+                                    }
+                                }
+                            );
                             Object.keys($scope.merchantTopupTypeJson).forEach(key => {
-                                vm.merchantList.merchants.forEach(
+                                merchantListWithoutRepeatMerchantNo.forEach(
                                     merchant => {
                                         let calculatedData = vm.calculateOnlineTopupTypeData(key, userAgentTypeKey-1, merchant.merchantTypeId, merchant.merchantNo);
                                         if(calculatedData.totalCount) // if no data dont show
@@ -1817,6 +1828,31 @@ define(['js/app'], function (myApp) {
                 endTime: vm.queryPara.playerLocation.endTime.data('datetimepicker').getLocalDate(),
             };
 
+            switch (vm.queryPara.playerLocation.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
             vm.currentProvince = '';
             var queryStr = '';
             if (province) {
@@ -2016,6 +2052,32 @@ define(['js/app'], function (myApp) {
                         startTime: vm.queryPara.playerLocation.startTime.data('datetimepicker').getLocalDate(),
                         endTime: vm.queryPara.playerLocation.endTime.data('datetimepicker').getLocalDate(),
                     };
+
+                    switch (vm.queryPara.playerLocation.userType) {
+                        case 'all':
+                            sendData.isRealPlayer = true;
+                            sendData.isTestPlayer = false;
+                            break;
+                        case 'individual':
+                            sendData.isRealPlayer = true;
+                            sendData.isTestPlayer = false;
+                            sendData.hasPartner = false;
+                            break;
+                        case 'underPartner':
+                            sendData.isRealPlayer = true;
+                            sendData.isTestPlayer = false;
+                            sendData.hasPartner = true;
+                            break;
+                        case 'test':
+                            sendData.isRealPlayer = false;
+                            sendData.isTestPlayer = true;
+                            break;
+                    }
+
+                    if (typeof sendData.hasPartner !== 'boolean'){
+                        sendData.hasPartner = null;
+                    }
+
                     socketService.$socket($scope.AppSocket, 'getPlayerLoginLocationInCountry', sendData, function (data) {
                         console.log('city data', data);
                         vm.playerLocationCities = data.data;

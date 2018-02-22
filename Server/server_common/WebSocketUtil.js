@@ -40,8 +40,8 @@ var WebSocketUtility = {
                 // Log the error in detail, so a developer can reproduce it and resolve it.
                 if( wsFunc && wsFunc.name != "authenticate" ){
                     console.error("Error while performing action '" + (wsFunc && wsFunc.name) + "' with args:", errorUtils.stringifyIfPossible(args));
+                    WebSocketUtility.errorHandler(error);
                 }
-                WebSocketUtility.errorHandler(error);
             }
         ).done();
     },
