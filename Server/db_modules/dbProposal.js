@@ -352,7 +352,7 @@ var proposal = {
                             //for online top up and player consumption return, there can be multiple pending proposals
                             if (pendingProposal
                                 && data[0].name != constProposalType.PLAYER_TOP_UP
-                                && data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
+                                //&& data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
                                 && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION
                                 && data[0].name != constProposalType.PLAYER_CONSECUTIVE_REWARD_GROUP
                                 && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
