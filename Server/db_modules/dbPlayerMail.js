@@ -316,12 +316,14 @@ const dbPlayerMail = {
                             if (platform.allowSamePhoneNumberToRegister === true) {
                                 validPhoneNumberProm =  dbPlayerInfo.isExceedPhoneNumberValidToRegister({
                                     phoneNumber: rsaCrypto.encrypt(telNum),
-                                    platform: platformObjId
+                                    platform: platformObjId,
+                                    isRealPlayer: true
                                 }, platform.samePhoneNumberRegisterCount);
                             } else {
                                 validPhoneNumberProm = dbPlayerInfo.isPhoneNumberValidToRegister({
                                     phoneNumber: rsaCrypto.encrypt(telNum),
-                                    platform: platformObjId
+                                    platform: platformObjId,
+                                    isRealPlayer: true
                                 });
                             }
                         }
