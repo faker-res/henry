@@ -36,14 +36,20 @@ var dbPlatformMerchantGroup = {
                   merchants: {$each: merchantNo},
                   merchantNames: {$each: merchantNames}
               }}
+            return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
         } else if (data.type == 'pull') {
             updateData = {
               '$pull': {
                 merchants: {$in: merchantNo},
                 merchantNames: {$in: merchantNames},
               }}
+
+            return dbconfig.collection_platformMerchantGroup.find(query).then(data=>{
+                console.log(data);
+                console.log(data.merchantNo);
+            })
         }
-        return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+
     },
 
     /**

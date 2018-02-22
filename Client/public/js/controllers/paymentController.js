@@ -1303,7 +1303,7 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 type: "addToSet",
-                data: {'merchantNo': merchantNumbers, 'merchantNames': merchantNames}
+                data: {'merchantNo':merchantNumbers , 'merchantNames':merchantNames}
             }
 
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
@@ -1332,22 +1332,22 @@ define(['js/app'], function (myApp) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && merchant.isIncluded) {
 
-                    let curMerchantsGroup = vm.SelectedMerchantGroupNode;
-                    let countLeft = 0;
+                   let curMerchantsGroup = vm.SelectedMerchantGroupNode;
+                   let countLeft = 0;
+                   let totalCount = 0;
 
-                    // calculate how many merchantName with same merchantNo
-                    curMerchantsGroup.merchantNames.forEach(mName => {
-                        let result = vm.allMerchantList.filter(aItem => {
-                            return aItem.name == mName;
-                        });
-                        if (result[0].merchantNo == merchant.merchantNo) {
-                            countLeft += 1;
-                        }
-                    });
-                    // only can delete when left last merchantNo .
-                    if (countLeft == 1) {
-                        merchantNumbers.push(merchant.merchantNo);
-                    }
+                   // calculate how many merchantName with same merchantNo
+                   //  curMerchantsGroup.merchantNames.forEach(mName=>{
+                   //      let result = vm.allMerchantList.filter(aItem=>{
+                   //        return aItem.name == mName;
+                   //      });
+                   //      if(result[0].merchantNo == merchant.merchantNo){
+                   //        countLeft += 1;
+                   //      }
+                   //  });
+
+                     // only can delete when left last merchantNo .
+                    merchantNumbers.push(merchant.merchantNo);
                     merchantNames.push(merchant.name);
                 }
             }
@@ -1366,20 +1366,20 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 type: "pull",
-                data: {'merchantNo': merchantNumbers, 'merchantNames': merchantNames}
+                data: {'merchantNo':merchantNumbers , 'merchantNames':merchantNames}
             }
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
 
                 vm.curMerchant = null;
-                var p1 = new Promise((resolve, reject) => {
+                var p1 = new Promise((resolve, reject)=>{
                     resolve(vm.loadMerchantGroupData(true));
                 })
-                p1.then(data => {
-                    let selectedNode = vm.platformMerchantGroupList.filter(item => {
-                        return item._id == selectedMerchantGroupId;
+                p1.then(data=>{
+                    let selectedNode = vm.platformMerchantGroupList.filter(item=>{
+                      return item._id == selectedMerchantGroupId;
                     })
-                    if (selectedNode.length > 0) {
+                    if(selectedNode.length > 0){
                         vm.merchantGroupClicked(0, selectedNode[0]);
                     }
                 });
