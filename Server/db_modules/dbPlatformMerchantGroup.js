@@ -28,12 +28,21 @@ var dbPlatformMerchantGroup = {
      */
     updatePlatformMerchantGroup: function (query, data) {
         let updateData = {};
+        let merchantNo = data.data.merchantNo ? data.data.merchantNo : [];
+        let merchantNames = data.data.merchantNames ? data.data.merchantNames : [];
         if (data.type == 'addToSet') {
-            updateData = {'$addToSet': {merchantNames: {$each: data.data}}}
+            updateData = {
+              '$addToSet': {
+                  merchants: {$each: merchantNo},
+                  merchantNames: {$each: merchantNames}
+              }}
         } else if (data.type == 'pull') {
-            updateData = {'$pull': {merchantNames: {$in: data.data}}}
+            updateData = {
+              '$pull': {
+                merchants: {$in: merchantNo},
+                merchantNames: {$in: merchantNames},
+              }}
         }
-
         return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
 

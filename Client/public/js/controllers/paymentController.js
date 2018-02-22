@@ -1280,10 +1280,12 @@ define(['js/app'], function (myApp) {
 
         vm.addmerchantToGroup = function (type) {
             let merchantNumbers = [];
+            let merchantNames = [];
             for (let i = 0; i < vm.allMerchantList.length; i++) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && !merchant.isIncluded) {
-                    merchantNumbers.push(merchant.name)
+                    merchantNumbers.push(merchant.merchantNo);
+                    merchantNames.push(merchant.name);
                 }
             }
 
@@ -1301,7 +1303,7 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 type: "addToSet",
-                data: merchantNumbers
+                data: {'merchantNo': merchantNumbers, 'merchantNames': merchantNames}
             }
 
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
@@ -1325,17 +1327,35 @@ define(['js/app'], function (myApp) {
 
         vm.removeMerchantFromGroup = function (type) {
             let merchantNumbers = [];
+            let merchantNames = [];
             for (let i = 0; i < vm.allMerchantList.length; i++) {
                 let merchant = vm.allMerchantList[i];
                 if (merchant.selected && merchant.isIncluded) {
-                    merchantNumbers.push(merchant.name)
+
+                    let curMerchantsGroup = vm.SelectedMerchantGroupNode;
+                    let countLeft = 0;
+
+                    // calculate how many merchantName with same merchantNo
+                    curMerchantsGroup.merchantNames.forEach(mName => {
+                        let result = vm.allMerchantList.filter(aItem => {
+                            return aItem.name == mName;
+                        });
+                        if (result[0].merchantNo == merchant.merchantNo) {
+                            countLeft += 1;
+                        }
+                    });
+                    // only can delete when left last merchantNo .
+                    if (countLeft == 1) {
+                        merchantNumbers.push(merchant.merchantNo);
+                    }
+                    merchantNames.push(merchant.name);
                 }
             }
 
-            if (!merchantNumbers.length) {
-                socketService.showErrorMessage($translate("There is no merchant group to be remove"));
-                return;
-            }
+            // if (!merchantNumbers.length && !merchantNames.length ) {
+            //     socketService.showErrorMessage($translate("There is no merchant group to be remove"));
+            //     return;
+            // }
             let selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
             var sendData = {
                 query: {
@@ -1346,20 +1366,20 @@ define(['js/app'], function (myApp) {
 
             sendData.update = {
                 type: "pull",
-                data: merchantNumbers
+                data: {'merchantNo': merchantNumbers, 'merchantNames': merchantNames}
             }
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
 
                 vm.curMerchant = null;
-                var p1 = new Promise((resolve, reject)=>{
+                var p1 = new Promise((resolve, reject) => {
                     resolve(vm.loadMerchantGroupData(true));
                 })
-                p1.then(data=>{
-                    let selectedNode = vm.platformMerchantGroupList.filter(item=>{
-                      return item._id == selectedMerchantGroupId;
+                p1.then(data => {
+                    let selectedNode = vm.platformMerchantGroupList.filter(item => {
+                        return item._id == selectedMerchantGroupId;
                     })
-                    if(selectedNode.length > 0){
+                    if (selectedNode.length > 0) {
                         vm.merchantGroupClicked(0, selectedNode[0]);
                     }
                 });
