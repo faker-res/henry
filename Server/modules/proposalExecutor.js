@@ -42,6 +42,7 @@ let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
+const constManualTopupOperationType = require("../const/constManualTopupOperationType");
 
 const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
@@ -2840,7 +2841,11 @@ var proposalExecutor = {
                         }
                     );
                 }
-                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                pmsAPI.payment_modifyManualTopupRequest({
+                    requestId: proposalData.data.requestId,
+                    operationType: constManualTopupOperationType.CANCEL,
+                    data: null
+                }).then(
                     deferred.resolve, deferred.reject
                 );
                 //deferred.resolve("Proposal is rejected");
