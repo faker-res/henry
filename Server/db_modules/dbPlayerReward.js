@@ -4366,7 +4366,6 @@ let dbPlayerReward = {
                         applyAmount = 0;
 
                         if (!rewardSpecificData || !rewardSpecificData[0]) {
-                            console.log("walao1st")
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
@@ -4375,7 +4374,6 @@ let dbPlayerReward = {
                         }
 
                         let playerRewardDetail = rewardSpecificData[0];
-                        console.log("walaorewarddata",playerRewardDetail )
 
                         let rewardInfoList = playerRewardDetail.list;
 
@@ -4407,7 +4405,6 @@ let dbPlayerReward = {
                             }
                         }
                         if (applicationDetails && applicationDetails.length < 1) {
-                            console.log("walaosecond")
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
