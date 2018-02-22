@@ -7612,7 +7612,7 @@ let dbPlayerInfo = {
     /* 
      * Get new player count 
      */
-    countNewPlayerbyPlatform: function (platformId, startDate, endDate, period) {
+    countNewPlayerbyPlatform: function (platformId, startDate, endDate, isRealPlayer, isTestPlayer, hasPartner) {
         // var options = {};
         // switch (period) {
         //     case 'day':
@@ -7683,9 +7683,23 @@ let dbPlayerInfo = {
         //         return obj;
         //     });
 
-        let query = {registrationTime: {$gte: startDate, $lt: endDate}};
+        let query = {
+            registrationTime: {$gte: startDate, $lt: endDate},
+            isRealPlayer: isRealPlayer,
+            isTestPlayer: isTestPlayer,
+        };
         if (platformId != 'all') {
             query.platform = platformId;
+        }
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                query.partner = {$type: "objectId"};
+            }else {
+                query['$or'] = [
+                    {partner: null},
+                    {partner: {$exists: false}}
+                ]
+            }
         }
         return dbconfig.collection_players.find(query);
         //});
@@ -7881,7 +7895,7 @@ let dbPlayerInfo = {
     /* 
      * Get active player count 
      */
-    countActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isFilterValidPlayer) {
+    countActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isFilterValidPlayer, isRealPlayer, isTestPlayer, hasPartner) {
         // var options = {};
         // options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
         //
@@ -7998,7 +8012,10 @@ let dbPlayerInfo = {
                                                 consumptionCollectionName: consumptionCollectionName,
                                                 isFilterValidPlayer: isFilterValidPlayer,
                                                 playerObjs: playerObjs
-                                                    .filter(player => player.amount >= activePlayerTopUpAmount && player.times >= activePlayerTopUpTimes)
+                                                    .filter(player => player.amount >= activePlayerTopUpAmount && player.times >= activePlayerTopUpTimes),
+                                                isRealPlayer: isRealPlayer,
+                                                isTestPlayer: isTestPlayer,
+                                                hasPartner: hasPartner
                                             });
                                         },
                                         processResponse: function (response) {
@@ -8106,11 +8123,11 @@ let dbPlayerInfo = {
         )
     },
 
-    countValidActivePlayerbyPlatform: function (platformId, startDate, endDate, period) {
-        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true);
+    countValidActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
+        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true, isRealPlayer, isTestPlayer, hasPartner);
     },
 
-    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerConsumptionAmount, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs) {
+    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerConsumptionAmount, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs, isRealPlayer, isTestPlayer, hasPartner) {
         let matchObj = {
             playerId: {$in: playerObjs.map(player => ObjectId(player._id))},
             platformId: ObjectId(platformId),
@@ -8127,8 +8144,9 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_players
                 }).then(
                     (records) => {
-                        if (isFilterValidPlayer)
-                            return records.filter(records =>
+                        if (isFilterValidPlayer) {
+
+                            var filterRecords = records.filter(records =>
                                 records._id &&
                                 records._id.valueScore !== undefined &&
                                 records._id.valueScore >= activePlayerValue &&
@@ -8137,9 +8155,38 @@ let dbPlayerInfo = {
                                 records._id.topUpSum >= partnerLevelConfig.validPlayerTopUpAmount &&
                                 records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes &&
                                 records._id.consumptionSum >= partnerLevelConfig.validPlayerConsumptionAmount
+                            );
+                        }
+                        else {
+                            var filterRecords = records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue);
+                        }
+
+                        if (hasPartner != null){
+                            if (hasPartner == true){
+
+                                return filterRecords.filter(records => {
+                                    if (!records._id.partner){
+                                        return false
+                                    }
+                                    else{
+                                        return records._id.isRealPlayer == isRealPlayer && records._id.isTestPlayer == isTestPlayer
+                                    }
+                                }).length;
+
+                            }else {
+
+                                return filterRecords.filter(records =>
+                                    records._id.isRealPlayer == isRealPlayer &&
+                                    records._id.isTestPlayer == isTestPlayer &&
+                                    (records._id.partner == null || records._id.partner == 'undefined')).length;
+                            }
+                        }else{
+
+                            return filterRecords.filter(records =>
+                                records._id.isRealPlayer == isRealPlayer &&
+                                records._id.isTestPlayer == isTestPlayer
                             ).length;
-                        else
-                            return records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue).length;
+                        }
                     }
                 )
             }
