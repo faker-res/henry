@@ -44,7 +44,6 @@ var dbPlatformMerchantGroup = {
                     merchantNames: {$in: merchantNames},
                 }
             }
-
         }
         return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
@@ -55,15 +54,13 @@ var dbPlatformMerchantGroup = {
      */
     getPlatformMerchantGroup: function (platformId) {
         return dbPlatformMerchantGroup.syncMerchantGroupData(platformId).then(
-            data => {
-                return dbconfig.collection_platformMerchantGroup.aggregate(
-                    {
-                        $match: {
-                            platform: platformId
-                        }
+            data => dbconfig.collection_platformMerchantGroup.aggregate(
+                {
+                    $match: {
+                        platform: platformId
                     }
-                )
-            },
+                }
+            ),
             error => {
                 return dbconfig.collection_platformMerchantGroup.aggregate(
                     {
@@ -174,9 +171,10 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             data=> {
-                var merchantsArr = data.merchantNames || [];
+                var merchantsArr = data.merchants || [];
                 for (let i = 0; i < allMerchants.length; i++) {
-                    if (merchantsArr.indexOf(allMerchants[i].name) != -1) {
+
+                    if (merchantsArr.indexOf(allMerchants[i].merchantNo) != -1) {
                         allMerchants[i].isIncluded = true;
                     } else {
                         allMerchants[i].isIncluded = false;

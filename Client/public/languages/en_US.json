@@ -957,6 +957,7 @@
   "ACCOUNT_STATUS": "Account Status",
   "createdAccount": "Created account",
   "notYetCreateAccount": "Not yet create account",
+  "VERIFICATION_CODE": "Verification Code",
 
   "PLAYER_TOP_UP_RETURN_GROUP_REPORT": "Player Top Up Return Group Report",
   "PLAYER_CONSECUTIVE_REWARD_GROUP_REPORT": "Player Consecutive Reward Group Report",

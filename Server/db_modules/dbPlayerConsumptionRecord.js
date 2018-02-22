@@ -852,18 +852,23 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
+                    recordData.updateTime = new Date();
 
-                    updateRTG(oldData, recordData);
+                    let consumptionRecordQuery = {
+                        _id: oldData._id,
+                        createTime: oldData.createTime,
+                        updateTime: oldData.updateTime ? new Date(oldData.updateTime) : {$exists: false}
+                    };
 
                     delete recordData.name;
-                    return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate({
-                        _id: oldData._id,
-                        createTime: oldData.createTime
-                    }, recordData, {new: true}).then(
+                    return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(consumptionRecordQuery, recordData, {new: true}).then(
                         newRecord => {
                             if (newRecord && newRecord.toObject) {
                                 newRecord = newRecord.toObject();
                                 newRecord.providerId = providerId;
+
+                                // update RTG only if consumption record is updated
+                                updateRTG(oldData, recordData);
                             }
                             return newRecord;
                         }

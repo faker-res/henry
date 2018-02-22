@@ -15,6 +15,13 @@
             label.control-label {{'PLAYER_ID' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.playerId', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'USER_TYPE' | translate}}
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerType', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+                option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                option(value='Test Player') {{'TEST_PLAYER' | translate}}
+        .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'PLAYERNAME' | translate}}
             input.form-control(ng-model='vm.playerAdvanceSearchQuery.name', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
@@ -1123,7 +1130,8 @@ include modalGameCreditLog
     #playerPermissionTable
         table.paddingTbl
             tbody
-                tr(ng-repeat='(key,v) in vm.playerPermissionTypes')
+                tr(ng-repeat='(key,v) in vm.playerPermissionTypes',
+                ng-if="vm.permissionPlayer.isRealPlayer || vm.permissionPlayer.isTestPlayer && v.testPlayer")
                     td
                         i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
                         img(ng-show='v.imgType=="img"', src='{{v.src}}', width='{{v.width}}', height='{{v.height}}')
@@ -2012,7 +2020,7 @@ include modalGameCreditLog
                                     textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
                             button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status == 1)', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
 #modalProviderExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog(style='width:100%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
