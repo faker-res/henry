@@ -1291,7 +1291,7 @@ define(['js/app'], function (myApp) {
                 socketService.showErrorMessage($translate("There is no merchant group to be added"));
                 return;
             }
-            var selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
+            var SelectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
@@ -1306,14 +1306,13 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
-
                 vm.curMerchant = null;
                 var p1 = new Promise((resolve, reject) => {
                     resolve(vm.loadMerchantGroupData(true));
                 })
                 p1.then(data => {
                     let selectedNode = vm.platformMerchantGroupList.filter(item => {
-                        return item._id == selectedMerchantGroupId;
+                        return item._id == SelectedMerchantGroupId;
                     })
                     if (selectedNode.length > 0) {
                         vm.merchantGroupClicked(0, selectedNode[0]);
@@ -1336,7 +1335,7 @@ define(['js/app'], function (myApp) {
                 socketService.showErrorMessage($translate("There is no merchant group to be remove"));
                 return;
             }
-            let selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
+            let SelectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
@@ -1350,14 +1349,14 @@ define(['js/app'], function (myApp) {
             }
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
-
                 vm.curMerchant = null;
+
                 var p1 = new Promise((resolve, reject)=>{
                     resolve(vm.loadMerchantGroupData(true));
                 })
                 p1.then(data=>{
                     let selectedNode = vm.platformMerchantGroupList.filter(item=>{
-                      return item._id == selectedMerchantGroupId;
+                      return item._id == SelectedMerchantGroupId;
                     })
                     if(selectedNode.length > 0){
                         vm.merchantGroupClicked(0, selectedNode[0]);
