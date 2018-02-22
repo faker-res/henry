@@ -518,6 +518,7 @@ var dbPlayerConsumptionWeekSummary = {
                     ).then(
                         proposalType => {
                             if (!proposalType) {
+                                eventsData = [];
                                 deferred.reject({
                                     name: "DataError",
                                     message: "Error in getting proposal type"
