@@ -47,6 +47,7 @@ var encrypt = {
     buildPlayerQueryString: function (data) {
 
         var playerId = data.hasOwnProperty('playerId') ? data.playerId : "";
+        var playerType = data.hasOwnProperty('playerType') ? data.playerType : "";
         var trustLevel = data.hasOwnProperty('trustLevel') ? data.trustLevel : "";
         var playerLevel = data.hasOwnProperty('playerLevel') ? data.playerLevel : "";
         var isTestPlayer = data.hasOwnProperty('isTestPlayer') ? data.isTestPlayer : "";
@@ -75,6 +76,23 @@ var encrypt = {
         var query = {};
         if (playerId !== '') {
             query["playerId"] = playerId;
+        }
+        if(playerType !== "") {
+            switch (playerType) {
+                case 'Test Player':
+                    query.isRealPlayer = false;
+                    break;
+                case 'Real Player (all)':
+                    query.isRealPlayer = true;
+                    break;
+                case 'Real Player (Individual)':
+                    query.isRealPlayer = true;
+                    query.partner = null;
+                    break;
+                case 'Real Player (Under Partner)':
+                    query.isRealPlayer = true;
+                    query.partner = {$ne: null};
+            }
         }
         if (trustLevel !== '') {
             query["trustLevel"] = trustLevel;

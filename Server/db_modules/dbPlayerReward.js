@@ -1128,9 +1128,9 @@ let dbPlayerReward = {
                 consumptionSumQuery.providerId = {$in: event.condition.consumptionProvider};
             }
 
-            if (!event.condition.isSharedWithXIMA) {
-                consumptionSumQuery.bDirty = false;
-            }
+            // if (!event.condition.isSharedWithXIMA) {
+            //     consumptionSumQuery.bDirty = false;
+            // }
 
             let consumptionProm = dbConfig.collection_playerConsumptionRecord.aggregate([
                 {$match: consumptionSumQuery},
@@ -1156,6 +1156,9 @@ let dbPlayerReward = {
 
                 if (event.condition.ignoreAllTopUpDirtyCheckForReward && event.condition.ignoreAllTopUpDirtyCheckForReward.length > 0) {
                     bypassDirtyEvent = event.condition.ignoreAllTopUpDirtyCheckForReward;
+                    for (let a = 0; a  < bypassDirtyEvent.length; a++) {
+                        bypassDirtyEvent[a] = bypassDirtyEvent[a].toString();
+                    }
                 }
 
                 let totalTopUpAmount = 0;
@@ -1164,7 +1167,7 @@ let dbPlayerReward = {
                     let record = topUpRecords[i];
                     if (bypassDirtyEvent) {
                         let isSubset = record.usedEvent.every(event => {
-                            return bypassDirtyEvent.indexOf(event) > -1;
+                            return bypassDirtyEvent.indexOf(event.toString()) > -1;
                         });
                         if (!isSubset)
                             continue;

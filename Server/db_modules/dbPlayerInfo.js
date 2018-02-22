@@ -9781,11 +9781,13 @@ let dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
-                                            resData.push({
-                                                type: paymentData.data[i].bankTypeId,
-                                                status: status,
-                                                accountNumber: paymentData.data[i].accountNumber
-                                            });
+                                            if (status == 1) {
+                                                resData.push({
+                                                    type: paymentData.data[i].bankTypeId,
+                                                    status: status,
+                                                    //accountNumber: paymentData.data[i].accountNumber
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -12434,7 +12436,8 @@ let dbPlayerInfo = {
         let result = [];
         let matchObj = {
             platform: platform,
-            registrationTime: {$gte: startDate, $lt: endDate}
+            registrationTime: {$gte: startDate, $lt: endDate},
+            isTestPlayer: false
         };
 
         if (query.userType) {
@@ -12444,6 +12447,9 @@ let dbPlayerInfo = {
                     break;
                 case "2":
                     matchObj.partner = {$exists: true};
+                    break;
+                case "3":
+                    matchObj.isTestPlayer = true;
                     break;
             }
         }
