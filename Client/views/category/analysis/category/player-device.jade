@@ -20,6 +20,11 @@
                 div
                     label {{"End date"|translate}}
                     .endTime
+                div
+                    label {{"QUERY_REQUIREMENT"|translate}}
+                    select.form-control(ng-model='vm.queryPara.playerDevice.queryRequirement')
+                        option(value='register') {{'NEW_REGISTRATION' | translate}}
+                        option(value='login') {{'Login' | translate}}
                 //div
                 //    label {{"Start date"|translate}}
                 //    input.form-control(type='date', ng-model='vm.queryPara.playerDevice.startTime')

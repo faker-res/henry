@@ -565,6 +565,7 @@ var roleChecker = {
                 LoginPlayer: [],
                 ValidActivePlayer: [],
                 OnlineTopupSuccessRate: [],
+                TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform']
             }
         },
         Report: {

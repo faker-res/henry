@@ -55,10 +55,10 @@ function socketActionPartner(socketIO, socket) {
          */
         countLoginPlayerbyPlatform: function countLoginPlayerbyPlatform(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.countLoginPlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.countLoginPlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
 
         countLoginPlayerbyPlatformWeek: function countLoginPlayerbyPlatformWeek(data) {
