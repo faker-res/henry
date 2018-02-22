@@ -7900,6 +7900,142 @@ let dbPlayerInfo = {
 
     },
 
+    getTopUpMethodAnalysisByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var calculation = {$sum: "$amount"};
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType"},
+                        calc: calculation
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id && i._id.topUpType ? getKey(constPlayerTopUpType,Number(i._id.topUpType)) : ""}, number: i.calc ? i.calc : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+
+    },
+    getTopUpMethodCountByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType"},
+                        "count": {"$sum": 1},
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id && i._id.topUpType ? getKey(constPlayerTopUpType,Number(i._id.topUpType)) : ""}, number: i.count ? i.count : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+
+    },
+
     /* 
      * Get active player count 
      */
@@ -8869,34 +9005,63 @@ let dbPlayerInfo = {
     /*
      * get Player Device Analysis Data
      */
-    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime) {
-        return dbconfig.collection_players.aggregate(
-            {
-                $unwind: "$userAgent",
-            },
-            {
-                $match: {
-                    platform: platform,
-                    registrationTime: {$gte: startTime, $lt: endTime}
+    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement) {
+        if(queryRequirement == "register"){
+            return dbconfig.collection_players.aggregate(
+                {
+                    $unwind: "$userAgent",
+                },
+                {
+                    $match: {
+                        platform: platform,
+                        registrationTime: {$gte: startTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                        // cateNum: {$sum: 1}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {name: "$_id.userAgent1"},
+                        // total: {$avg: "$totalCount"},
+                        number: {$sum: 1}
+                    }
+                },
+                {
+                    $sort: {number: -1}
                 }
-            },
-            {
-                $group: {
-                    _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
-                    // cateNum: {$sum: 1}
+            )
+        }else{
+            return dbconfig.collection_playerLoginRecord.aggregate(
+                {
+                    $unwind: "$userAgent",
+                },
+                {
+                    $match: {
+                        platform: platform,
+                        loginTime: {$gte: startTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                    }
+                },
+                {
+                    $group: {
+                        _id: {name: "$_id.userAgent1"},
+                        number: {$sum: 1}
+                    }
+                },
+                {
+                    $sort: {number: -1}
                 }
-            },
-            {
-                $group: {
-                    _id: {name: "$_id.userAgent1"},
-                    // total: {$avg: "$totalCount"},
-                    number: {$sum: 1}
-                }
-            },
-            {
-                $sort: {number: -1}
-            }
-        )
+            )
+        }
+
     },
 
     /*
