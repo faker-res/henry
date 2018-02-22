@@ -9774,11 +9774,13 @@ let dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
-                                            resData.push({
-                                                type: paymentData.data[i].bankTypeId,
-                                                status: status,
-                                                accountNumber: paymentData.data[i].accountNumber
-                                            });
+                                            if (status == 1) {
+                                                resData.push({
+                                                    type: paymentData.data[i].bankTypeId,
+                                                    status: status,
+                                                    //accountNumber: paymentData.data[i].accountNumber
+                                                });
+                                            }
                                         }
                                     }
                                 }
