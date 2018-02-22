@@ -52,16 +52,7 @@ var dbPlayerLoginRecord = {
             $gte: startTime,
             $lt: endTime
         }
-
-        //
-        // let query = {
-        //     registrationTime: {$gte: startDate, $lt: endDate},
-        //     isRealPlayer: isRealPlayer,
-        //     isTestPlayer: isTestPlayer,
-        // };
-        // if (platformId != 'all') {
-        //     query.platform = platformId;
-        // }
+        
         if (hasPartner !== null){
             if (hasPartner == true){
                 matchObj.partner = {$type: "objectId"};
