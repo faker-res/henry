@@ -949,7 +949,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate || (playerdata.isTestPlayer && !playerdata.phoneNumber)) {
+                    if (isAutoCreate || (playerdata.isTestPlayer && playerdata.phoneNumber)) {
                         return {isPhoneNumberValid: true};
                     }
 

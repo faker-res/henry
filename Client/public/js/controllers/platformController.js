@@ -1856,7 +1856,9 @@ define(['js/app'], function (myApp) {
                 };
 
                 $('#loadVertificationSMSIcon').show();
+                console.log("vertificationSMSQuery sendQuery",sendQuery);
                 socketService.$socket($scope.AppSocket, 'vertificationSMSQuery', sendQuery, function (data) {
+                    console.log("vertificationSMSQuery result",data);
                     vm.smsRecordQuery.loading = false;
                     var size = data.data.size || 0;
                     var result = data.data.data || [];
@@ -1940,7 +1942,6 @@ define(['js/app'], function (myApp) {
                 vm.smsRecordQuery.tableObj = $('#vertificationSMSRecordTable').DataTable(option);
                 $('#vertificationSMSRecordTable').off('order.dt');
                 $('#vertificationSMSRecordTable').on('order.dt', function (event, a, b) {
-                    console.log('test')
                     vm.commonSortChangeHandler(a, 'smsRecordQuery', vm.submitSMSRecordQuery);
                 });
                 setTimeout(function () {
