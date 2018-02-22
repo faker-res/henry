@@ -172,43 +172,43 @@ var dbPlayerLoginRecord = {
                 var i = 0;
                 var tempDate = startDate;
 
-                if (typeof isRealPlayer === 'boolean' && typeof isTestPlayer === 'boolean'){
-                    data.map(
-                        dayData => {
-                            let query = {
-                                _id: {$in: dayData.map(playerId => ObjectId(playerId))},
-                                isRealPlayer: isRealPlayer,
-                                isTestPlayer: isTestPlayer,
-                            };
-
-                            if (hasPartner !== null){
-                                if (hasPartner == true){
-                                    query.partner = {$type: "objectId"};
-                                }else {
-                                    query['$or'] = [
-                                        {partner: null},
-                                        {partner: {$exists: false}}
-                                    ]
-                                }
-                            }
-
-                            prom.push(dbconfig.collection_players.find(query).lean().then(
-                                filteredData => {
-                                    var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
-                                    var obj = {
-                                        _id: {date: date},
-                                        number: filteredData.length
-                                    }
-                                    tempDate = getNextDate(tempDate);
-                                    return obj;
-                                })
-                            )
-                        }
-                    );
-                    return Q.all(prom);
-                }
-                // for dashboard Controller
-                else {
+                // if (typeof isRealPlayer === 'boolean' && typeof isTestPlayer === 'boolean'){
+                //     data.map(
+                //         dayData => {
+                //             let query = {
+                //                 _id: {$in: dayData.map(playerId => ObjectId(playerId))},
+                //                 isRealPlayer: isRealPlayer,
+                //                 isTestPlayer: isTestPlayer,
+                //             };
+                //
+                //             if (hasPartner !== null){
+                //                 if (hasPartner == true){
+                //                     query.partner = {$type: "objectId"};
+                //                 }else {
+                //                     query['$or'] = [
+                //                         {partner: null},
+                //                         {partner: {$exists: false}}
+                //                     ]
+                //                 }
+                //             }
+                //
+                //             prom.push(dbconfig.collection_players.find(query).lean().then(
+                //                 filteredData => {
+                //                     var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
+                //                     var obj = {
+                //                         _id: {date: date},
+                //                         number: filteredData.length
+                //                     }
+                //                     tempDate = getNextDate(tempDate);
+                //                     return obj;
+                //                 })
+                //             )
+                //         }
+                //     );
+                //     return Q.all(prom);
+                // }
+                // // for dashboard Controller
+                // else {
                     var res = data.map(
                         dayData => {
                             var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
@@ -221,7 +221,7 @@ var dbPlayerLoginRecord = {
                         }
                     );
                     return res;
-                }
+                // }
             }
         );
 
