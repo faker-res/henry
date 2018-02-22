@@ -103,22 +103,30 @@ define(['js/app'], function (myApp) {
                     case "NEW_PLAYER":
                         vm.platformNewPlayerAnalysisSort = {};
                         vm.initSearchParameter('newPlayer', 'day', 3);
+                        vm.queryPara.newPlayer.userType='all';
                         vm.getPartnerLevelConfig();
+                        $scope.safeApply();
                         //vm.plotNewPlayerLine();
                         break;
                     case "LOGIN_PLAYER":
                         vm.platformLoginPlayerAnalysisSort = {};
                         vm.initSearchParameter('loginPlayer', 'day', 3);
+                        vm.queryPara.loginPlayer.userType='all';
+                        $scope.safeApply();
                         //vm.plotLoginPlayerLine();
                         break;
                     case "ACTIVE_PLAYER":
                         vm.platformActivePlayerAnalysisSort = {};
                         vm.initSearchParameter('activePlayer', 'day', 3);
+                        vm.queryPara.activePlayer.userType='all';
+                        $scope.safeApply();
                         //vm.plotActivePlayerLine();
                         break;
                     case "VALID_ACTIVE_PLAYER":
                         vm.platformValidActivePlayerAnalysisSort = {};
                         vm.initSearchParameter('validActivePlayer', 'day', 3);
+                        vm.queryPara.validActivePlayer.userType='all';
+                        $scope.safeApply();
                         //vm.plotValidActivePlayerLine();
                         break;
                     case "PEAK_HOUR":
@@ -917,14 +925,41 @@ define(['js/app'], function (myApp) {
         vm.plotNewPlayerLine = function () {
             // var placeholder = "#line-newPlayer";
             // var periodText = $('#analysisNewPlayer select').val();
+
             let startDate = vm.queryPara.newPlayer.startTime.data('datetimepicker').getLocalDate();
             let endDate = vm.queryPara.newPlayer.endTime.data('datetimepicker').getLocalDate();
             var sendData = {
                 platformId: vm.selectedPlatform._id,
-                period: vm.queryPara.newPlayer.periodText,
+                //period: vm.queryPara.newPlayer.periodText,
                 startDate: startDate,
                 endDate: endDate,
             };
+
+            switch (vm.queryPara.newPlayer.userType) {
+                case 'all':
+                   sendData.isRealPlayer = true;
+                   sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
             vm.isShowLoadingSpinner('#newPlayerAnalysis', true);
             socketService.$socket($scope.AppSocket, 'countNewPlayerbyPlatform', sendData, function success(data1) {
                 //var newPlayerData = data1.data[0];
@@ -1125,7 +1160,7 @@ define(['js/app'], function (myApp) {
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
         };
-    
+
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.selectedPlatform._id})
                 .then(function (data) {
@@ -1190,6 +1225,32 @@ define(['js/app'], function (myApp) {
                 startDate: startDate,
                 endDate: endDate,
             };
+
+            switch (vm.queryPara.activePlayer.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
             vm.isShowLoadingSpinner('#activePlayerAnalysis', true);
             vm.isLoadingctivePlayer = true;
             socketService.$socket($scope.AppSocket, 'countActivePlayerbyPlatform', sendData, function success(data1) {
@@ -1285,6 +1346,30 @@ define(['js/app'], function (myApp) {
                 startDate: startDate,
                 endDate: endDate,
             };
+            switch (vm.queryPara.validActivePlayer.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
             vm.isShowLoadingSpinner('#validActivePlayerAnalysis', true);
             vm.isLoadingValidActivePlayer = true;
             socketService.$socket($scope.AppSocket, 'countValidActivePlayerbyPlatform', sendData, function success(data1) {
@@ -1321,6 +1406,32 @@ define(['js/app'], function (myApp) {
                 startDate: vm.queryPara.loginPlayer.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.loginPlayer.endTime.data('datetimepicker').getLocalDate(),
             };
+
+            switch (vm.queryPara.loginPlayer.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
             socketService.$socket($scope.AppSocket, 'countLoginPlayerbyPlatform', sendData, function success(data1) {
 
 
@@ -2782,7 +2893,7 @@ define(['js/app'], function (myApp) {
         }
         //player credit end =======================================================
 
-        //bonus amount 
+        //bonus amount
         vm.drawPlayerBonusAmount = function (type) {
             var opt = '';
             if (type == 'PLAYER_EXPENSES') {
