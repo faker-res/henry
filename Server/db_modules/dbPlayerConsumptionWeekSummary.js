@@ -20,6 +20,8 @@ var constShardKeys = require('../const/constShardKeys');
 var util = require('util');
 var constServerCode = require('../const/constServerCode');
 
+const constProposalType = require("../const/constProposalType");
+const constProposalStatus = require("../const/constProposalStatus");
 const constProposalEntryType = require("../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
 const constSettlementPeriod = require('../const/constSettlementPeriod');
@@ -503,31 +505,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 });
                             }
                             if (!updatePlayer.isConsumptionReturn || bAdmin) {
-                                let proms = [];
-                                for (let eventData of eventsData) {
-                                    if (dbPlayerReward.isRewardEventForbidden(updatePlayer, eventsData._id)) {
-                                        continue;
-                                    }
-                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, bAdmin, adminName, isForceApply));
-                                }
-                                return Q.all(proms).then(
-                                    data => {
-                                        //reset consumption return status
-                                        dbconfig.collection_players.findOneAndUpdate({
-                                            _id: playerData._id,
-                                            platform: playerData.platform._id
-                                        }, {isConsumptionReturn: false}).then();
-                                        return data;
-                                    },
-                                    error => {
-                                        //reset consumption return status
-                                        dbconfig.collection_players.findOneAndUpdate({
-                                            _id: playerData._id,
-                                            platform: playerData.platform._id
-                                        }, {isConsumptionReturn: false}).then();
-                                        return Q.reject(error);
-                                    }
-                                );
+                                return dbconfig.collection_proposalType.findOne({platformId: platformData._id, name: constProposalType.PLAYER_CONSUMPTION_RETURN}).lean();
                             }
                             else {
                                 deferred.reject({
@@ -536,6 +514,59 @@ var dbPlayerConsumptionWeekSummary = {
                                     message: "Player is applying consumption return"
                                 });
                             }
+                        }
+                    ).then(
+                        proposalType => {
+                            if (!proposalType) {
+                                eventsData = [];
+                                deferred.reject({
+                                    name: "DataError",
+                                    message: "Error in getting proposal type"
+                                });
+                            }
+
+                            return dbconfig.collection_proposal.findOne({
+                                type: proposalType._id,
+                                status: constProposalStatus.PENDING,
+                                "data.playerId": playerData.playerId
+                            }).lean();
+                        }
+                    ).then(
+                        rewardProposal => {
+                            if (rewardProposal) {
+                                eventsData = [];
+                                deferred.reject({
+                                    name: "DataError",
+                                    message: "Player or partner already has a pending proposal for this type"
+                                });
+                            }
+
+                            let proms = [];
+                            for (let eventData of eventsData) {
+                                if (dbPlayerReward.isRewardEventForbidden(playerData, eventsData._id)) {
+                                    continue;
+                                }
+                                proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, bAdmin, adminName, isForceApply));
+                            }
+
+                            return Q.all(proms).then(
+                                data => {
+                                    //reset consumption return status
+                                    dbconfig.collection_players.findOneAndUpdate({
+                                        _id: playerData._id,
+                                        platform: playerData.platform._id
+                                    }, {isConsumptionReturn: false}).then();
+                                    return data;
+                                },
+                                error => {
+                                    //reset consumption return status
+                                    dbconfig.collection_players.findOneAndUpdate({
+                                        _id: playerData._id,
+                                        platform: playerData.platform._id
+                                    }, {isConsumptionReturn: false}).then();
+                                    return Q.reject(error);
+                                }
+                            );
                         }
                     );
                 }

@@ -21,8 +21,8 @@
                 label {{"Analysis category"|translate}}
                 select.form-control(ng-model='vm.queryPara.analysisCategory')
                     option(value='onlineTopupType') {{'OnlineTopUpType' | translate}}
-                    //option(value='thirdPartyPlatform') {{'thirdPartyPlatform' | translate}}
-                    //option(value='merchantNo') {{'merchantNo' | translate}}
+                    option(value='thirdPartyPlatform') {{'thirdPartyPlatform' | translate}}
+                    option(value='merchantNo') {{'merchantNo' | translate}}
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.getOnlineToupSuccessRateData()') {{'SEARCH' | translate}}
@@ -33,6 +33,8 @@
                         thead
                             tr
                                 th {{ 'onlineTopupTypeWeb' | translate}}
+                                th(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'") {{ 'thirdPartyPlatform' | translate}}
+                                th(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'") {{ 'merchantNo' | translate}}
                                 th {{ "successCount" | translate}}
                                 th {{ "totalCount" | translate}}
                                 th {{ "successRate" | translate}}
@@ -42,8 +44,12 @@
                                 th {{ "userCountRatio" | translate}}
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'WEB'}")
-                                td(style='width: 500px;')
-                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent)') {{ v.name | translate }} (WEB)
+                                td(style='width: 200px;')
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.name | translate }} (WEB)
+                                td(style='width: 200px;' ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.merchantTypeName }}
+                                td(style='width: 200px;' ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.merchantNo }}
                                 td
                                     span {{ v.successCount }}
                                 td
@@ -61,6 +67,10 @@
                             tr
                                 td
                                     span {{ 'subtotal' | translate }}
+                                td(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    span {{ '' | translate }}
+                                td(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    span {{ '' | translate }}
                                 td
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.WEB.successCount }}
                                 td
@@ -79,6 +89,8 @@
                         thead
                             tr
                                 th {{ 'onlineTopupTypeH5' | translate}}
+                                th(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'") {{ 'thirdPartyPlatform' | translate}}
+                                th(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'") {{ 'merchantNo' | translate}}
                                 th {{ "successCount" | translate}}
                                 th {{ "totalCount" | translate}}
                                 th {{ "successRate" | translate}}
@@ -88,8 +100,12 @@
                                 th {{ "userCountRatio" | translate}}
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'H5'}")
-                                td(style='width: 500px;')
-                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent)') {{ v.name | translate }} (H5)
+                                td(style='width: 200px;')
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.name | translate }} (H5)
+                                td(style='width: 200px;' ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.merchantTypeName }}
+                                td(style='width: 200px;' ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.merchantNo }}
                                 td
                                     span {{ v.successCount }}
                                 td
@@ -107,6 +123,10 @@
                             tr
                                 td
                                     span {{ 'subtotal' | translate }}
+                                td(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    span {{ '' | translate }}
+                                td(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    span {{ '' | translate }}
                                 td
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.H5.successCount }}
                                 td
@@ -125,6 +145,8 @@
                         thead
                             tr
                                 th {{ 'onlineTopupTypeAPP' | translate}}
+                                th(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'") {{ 'thirdPartyPlatform' | translate}}
+                                th(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'") {{ 'merchantNo' | translate}}
                                 th {{ "successCount" | translate}}
                                 th {{ "totalCount" | translate}}
                                 th {{ "successRate" | translate}}
@@ -134,8 +156,12 @@
                                 th {{ "userCountRatio" | translate}}
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisByType | filter: {type: 'APP'}")
-                                td(style='width: 500px;')
-                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent)') {{ v.name | translate }} (APP)
+                                td(style='width: 200px;')
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.name | translate }} (APP)
+                                td(style='width: 200px;' ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.merchantTypeName }}
+                                td(style='width: 200px;' ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    a(ng-click='vm.platformOnlineTopupAnalysisShowDetail(v.merchantTopupTypeId, v.userAgent, v.merchantTypeId, v.merchantNo)') {{ v.merchantNo }}
                                 td
                                     span {{ v.successCount }}
                                 td
@@ -153,6 +179,10 @@
                             tr
                                 td
                                     span {{ 'subtotal' | translate }}
+                                td(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    span {{ '' | translate }}
+                                td(ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    span {{ '' | translate }}
                                 td
                                     span {{ vm.platformOnlineTopupAnalysisSubTotalData.APP.successCount }}
                                 td
@@ -171,6 +201,10 @@
                             tr
                                 td(style='background-color: #ffc1c1;')
                                     span {{ 'Total' | translate }}
+                                td(style='background-color: #ffc1c1;' ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'thirdPartyPlatform' || vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    span {{ '' | translate }}
+                                td(style='background-color: #ffc1c1;' ng-if="vm.platformOnlineTopupAnalysisAnalysisCategory === 'merchantNo'")
+                                    span {{ '' | translate }}
                                 td(style='background-color: #ffc1c1;')
                                     span {{ vm.platformOnlineTopupAnalysisTotalData.successCount }}
                                 td(style='background-color: #ffc1c1;')
@@ -190,7 +224,7 @@
         .col-md-12.block-query.well(style='margin-bottom:3px;')
             div
                 label {{'PERIOD' | translate}}
-                    select.form-control(ng-model='vm.platformOnlineTopupAnalysisDetailPeriod' ng-change='vm.platformOnlineTopupAnalysisShowDetail(vm.platformOnlineTopupAnalysisDetailMerchantId, vm.platformOnlineTopupAnalysisDetailUserAgent)')
+                    select.form-control(ng-model='vm.platformOnlineTopupAnalysisDetailPeriod' ng-change='vm.platformOnlineTopupAnalysisShowDetail(vm.platformOnlineTopupAnalysisDetailMerchantId, vm.platformOnlineTopupAnalysisDetailUserAgent, vm.platformOnlineTopupAnalysisDetailMerchantTypeId, vm.platformOnlineTopupAnalysisDetailMerchantNo)')
                         option(value='day') {{"DAY"|translate}}
                         option(value='week') {{"WEEK"|translate}}
                         option(value='month') {{"MONTH"|translate}}
@@ -200,7 +234,7 @@
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%;margin-top: 0 !important;margin-bottom: 0 !important;')
                         thead
                             tr
-                                th {{ merchantTopupTypeJson[vm.platformOnlineTopupAnalysisDetailMerchantId] | translate}} ({{ userAgentType[vm.platformOnlineTopupAnalysisDetailUserAgent] }}) / {{ vm.platformOnlineTopupAnalysisDetailPeriod | translate }}
+                                th {{ merchantTopupTypeJson[vm.platformOnlineTopupAnalysisDetailMerchantId] | translate}} ({{ userAgentType[vm.platformOnlineTopupAnalysisDetailUserAgent] }}) {{ vm.platformOnlineTopupAnalysisDetailMerchantName }} {{ vm.platformOnlineTopupAnalysisDetailMerchantNo ? '- ' + vm.platformOnlineTopupAnalysisDetailMerchantNo : '' }} / {{ vm.platformOnlineTopupAnalysisDetailPeriod | translate }}
                                 th {{ "successCount" | translate}}
                                 th {{ "totalCount" | translate}}
                                 th {{ "successRate" | translate}}
@@ -210,7 +244,7 @@
                                 th {{ "userCountRatio" | translate}}
                         tbody
                             tr(ng-repeat="(i, v) in vm.platformOnlineTopupAnalysisDetailData")
-                                td(style='width: 500px;')
+                                td(style='width: 400px;')
                                     span {{ v.date | date:"yyyy-MM-dd" }}
                                 td
                                     span {{ v.successCount }}
