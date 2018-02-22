@@ -9826,6 +9826,7 @@ let dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                            console.log(paymentData.merchants[i])
                                             resData.push({
                                                 type: paymentData.merchants[i].topupType,
                                                 status: status,
