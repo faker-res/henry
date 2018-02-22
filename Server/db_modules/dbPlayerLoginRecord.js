@@ -40,15 +40,28 @@ var dbPlayerLoginRecord = {
      * getPlayerLoginLocation
      * @param {String}  platform - The platform id
      */
-    getPlayerLoginLocation: function (platform, startTime, endTime, player, date) {
+    getPlayerLoginLocation: function (platform, startTime, endTime, player, date, isRealPlayer, isTestPlayer, hasPartner) {
         //todo: active player indicator
         var matchObj = {
-            platform: platform
+            platform: platform,
+            isRealPlayer: isRealPlayer,
+            isTestPlayer: isTestPlayer
         };
         date = date || 'lastAccessTime';
         matchObj[date] = {
             $gte: startTime,
             $lt: endTime
+        }
+        
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                matchObj.partner = {$type: "objectId"};
+            }else {
+                matchObj['$or'] = [
+                    {partner: null},
+                    {partner: {$exists: false}}
+                ]
+            }
         }
 
         return dbconfig.collection_players.aggregate(
@@ -71,16 +84,28 @@ var dbPlayerLoginRecord = {
      * getPlayerLoginLocationInCountry
      * @param {String}  platform, country
      */
-    getPlayerLoginLocationInCountry: function (platform, country, startTime, endTime, player, date) {
+    getPlayerLoginLocationInCountry: function (platform, country, startTime, endTime, player, date, isRealPlayer, isTestPlayer, hasPartner) {
         //todo: active player indicator
         var matchObj = {
             platform: platform,
             country: country,
+            isRealPlayer: isRealPlayer,
+            isTestPlayer: isTestPlayer
         };
         date = date || 'lastAccessTime';
         matchObj[date] = {
             $gte: startTime,
             $lt: endTime
+        }
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                matchObj.partner = {$type: "objectId"};
+            }else {
+                matchObj['$or'] = [
+                    {partner: null},
+                    {partner: {$exists: false}}
+                ]
+            }
         }
         return dbconfig.collection_players.aggregate(
             [{
@@ -147,39 +172,56 @@ var dbPlayerLoginRecord = {
                 var i = 0;
                 var tempDate = startDate;
 
-                data.map(
-                    dayData => {
-                        let query = {
-                            _id: {$in: dayData.map(playerId => ObjectId(playerId))},
-                            isRealPlayer: isRealPlayer,
-                            isTestPlayer: isTestPlayer,
-                        };
+                if (typeof isRealPlayer === 'boolean' && typeof isTestPlayer === 'boolean'){
+                    data.map(
+                        dayData => {
+                            let query = {
+                                _id: {$in: dayData.map(playerId => ObjectId(playerId))},
+                                isRealPlayer: isRealPlayer,
+                                isTestPlayer: isTestPlayer,
+                            };
 
-                        if (hasPartner !== null){
-                            if (hasPartner == true){
-                                query.partner = {$type: "objectId"};
-                            }else {
-                                query['$or'] = [
-                                    {partner: null},
-                                    {partner: {$exists: false}}
-                                ]
-                            }
-                        }
-
-                        prom.push(dbconfig.collection_players.find(query).lean().then(
-                            filteredData => {
-                                var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
-                                var obj = {
-                                    _id: {date: date},
-                                    number: filteredData.length
+                            if (hasPartner !== null){
+                                if (hasPartner == true){
+                                    query.partner = {$type: "objectId"};
+                                }else {
+                                    query['$or'] = [
+                                        {partner: null},
+                                        {partner: {$exists: false}}
+                                    ]
                                 }
-                                tempDate = getNextDate(tempDate);
-                                return obj;
-                            })
-                        )
-                    }
-                );
-                return Q.all(prom);
+                            }
+
+                            prom.push(dbconfig.collection_players.find(query).lean().then(
+                                filteredData => {
+                                    var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
+                                    var obj = {
+                                        _id: {date: date},
+                                        number: filteredData.length
+                                    }
+                                    tempDate = getNextDate(tempDate);
+                                    return obj;
+                                })
+                            )
+                        }
+                    );
+                    return Q.all(prom);
+                }
+                // for dashboard Controller
+                else {
+                    var res = data.map(
+                        dayData => {
+                            var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
+                            var obj = {
+                                _id: {date: date},
+                                number: data.length
+                            }
+                            tempDate = getNextDate(tempDate);
+                            return obj;
+                        }
+                    );
+                    return res;
+                }
             }
         );
 
