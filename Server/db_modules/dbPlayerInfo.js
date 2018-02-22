@@ -12398,7 +12398,8 @@ let dbPlayerInfo = {
         let result = [];
         let matchObj = {
             platform: platform,
-            registrationTime: {$gte: startDate, $lt: endDate}
+            registrationTime: {$gte: startDate, $lt: endDate},
+            isTestPlayer: false
         };
 
         if (query.userType) {
@@ -12408,6 +12409,9 @@ let dbPlayerInfo = {
                     break;
                 case "2":
                     matchObj.partner = {$exists: true};
+                    break;
+                case "3":
+                    matchObj.isTestPlayer = true;
                     break;
             }
         }
