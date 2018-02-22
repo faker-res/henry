@@ -949,7 +949,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate || (playerdata.isTestPlayer && playerdata.phoneNumber)) {
+                    if (isAutoCreate || playerdata.isTestPlayer) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -1303,7 +1303,7 @@ let dbPlayerInfo = {
                     isRealPlayer: false
                 };
 
-                if(platform.requireSMSVerificationForDemoPlayer || !isBackStageGenerated) {
+                if(platform.requireSMSVerificationForDemoPlayer && !isBackStageGenerated) {
                     if (phoneNumber) {
                         dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode, demoPlayerName);
                     } else {
