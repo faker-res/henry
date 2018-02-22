@@ -57,7 +57,9 @@ var playerConsumptionRecordSchema = new Schema({
     // record insert time
     insertTime: {type: Date, default: Date.now},
     // source for dba
-    source: {type: String, index: true}
+    source: {type: String, index: true},
+    // Number of comsumption (compressed records)
+    consumptionTimes: {type: Number, default: 1}
 });
 
 //record is unique by playerId platformId and date
