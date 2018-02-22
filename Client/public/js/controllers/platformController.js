@@ -17973,30 +17973,37 @@ define(['js/app'], function (myApp) {
             vm.promoCodeNewRow = function (collection, type, data) {
                 let tableId = "#createPromoCodeTable" + type;
                 let date = (data && data.expirationTime$) ? new Date(data.expirationTime$) : utilService.setLocalDayEndTime(new Date());
-                let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: true}));
+                // let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: true}));
+                collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: true});
 
-                return p.then(
-                    () => {setTimeout( () => {
-                        collection.forEach((elem, index, arr) => {
-                            let id = '#expDate' + type + '-' + index;
+                // return p.then(
+                //     () => {
+                        let index = collection.length-1;
 
-                            utilService.actionAfterLoaded(id, function () {
-                                collection[index].expirationTime = utilService.createDatePicker(id, {
-                                    language: 'en',
-                                    format: 'yyyy/MM/dd hh:mm:ss',
-                                    startDate: utilService.setLocalDayStartTime(new Date())
-                                });
-                                collection[index].expirationTime.data('datetimepicker').setDate(date);
+                        let id = '#expDate' + type + '-' + index;
+
+                        // utilService.actionAfterLoaded(id, function () {
+                        //     collection[index].expirationTime = utilService.createDatePicker(id, {
+                        //         language: 'en',
+                        //         format: 'yyyy/MM/dd hh:mm:ss',
+                        //         startDate: utilService.setLocalDayStartTime(new Date())
+                        //     });
+                        //     collection[index].expirationTime.data('datetimepicker').setDate(date);
+                        // });
+
+
+                        setTimeout( () => {
+                            collection[index].expirationTime = utilService.createDatePicker(id, {
+                                language: 'en',
+                                format: 'yyyy/MM/dd hh:mm:ss',
+                                startDate: utilService.setLocalDayStartTime(new Date())
                             });
-
-                            $scope.safeApply();
-
-                            vm.checkPlayerName(elem, tableId, index);
-                        });
-
-                        return collection;},0);
-                    }
-                );
+                            collection[index].expirationTime.data('datetimepicker').setDate(date);
+                            vm.checkPlayerName(collection[index], tableId, index);
+                            return collection;
+                        },0);
+                //     }
+                // );
             };
 
             vm.generatePromoCode = function (col, index, data, type) {

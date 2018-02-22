@@ -1097,6 +1097,10 @@ var dbPlayerTopUpRecord = {
                         case "4":
                             depositMethod = "支付宝转账";
                             break;
+                        case 5:
+                        case "5":
+                            depositMethod = "微信转账";
+                            break;
                         default:
                             break;
                     }
