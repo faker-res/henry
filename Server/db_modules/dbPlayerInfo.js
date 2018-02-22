@@ -9005,34 +9005,63 @@ let dbPlayerInfo = {
     /*
      * get Player Device Analysis Data
      */
-    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime) {
-        return dbconfig.collection_players.aggregate(
-            {
-                $unwind: "$userAgent",
-            },
-            {
-                $match: {
-                    platform: platform,
-                    registrationTime: {$gte: startTime, $lt: endTime}
+    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement) {
+        if(queryRequirement == "register"){
+            return dbconfig.collection_players.aggregate(
+                {
+                    $unwind: "$userAgent",
+                },
+                {
+                    $match: {
+                        platform: platform,
+                        registrationTime: {$gte: startTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                        // cateNum: {$sum: 1}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {name: "$_id.userAgent1"},
+                        // total: {$avg: "$totalCount"},
+                        number: {$sum: 1}
+                    }
+                },
+                {
+                    $sort: {number: -1}
                 }
-            },
-            {
-                $group: {
-                    _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
-                    // cateNum: {$sum: 1}
+            )
+        }else{
+            return dbconfig.collection_playerLoginRecord.aggregate(
+                {
+                    $unwind: "$userAgent",
+                },
+                {
+                    $match: {
+                        platform: platform,
+                        loginTime: {$gte: startTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                    }
+                },
+                {
+                    $group: {
+                        _id: {name: "$_id.userAgent1"},
+                        number: {$sum: 1}
+                    }
+                },
+                {
+                    $sort: {number: -1}
                 }
-            },
-            {
-                $group: {
-                    _id: {name: "$_id.userAgent1"},
-                    // total: {$avg: "$totalCount"},
-                    number: {$sum: 1}
-                }
-            },
-            {
-                $sort: {number: -1}
-            }
-        )
+            )
+        }
+
     },
 
     /*

@@ -3280,6 +3280,8 @@
   "TOPUP_METHOD_RATE": "存款方式占比",
   "TopAmount": "金额",
   "Analysis category": "分析项目",
-  "thirdPartyPlatform": "第三方平台"
+  "thirdPartyPlatform": "第三方平台",
+  "QUERY_REQUIREMENT": "查询需求",
+  "NEW_REGISTRATION": "新开户"
 
 }
