@@ -203,7 +203,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case "PLAYER_RETENTION":
                         vm.initSearchParameter('playerRetention', null, 2, function () {
-                            vm.queryPara.playerRetention.days = [1, 4, 8, 10, 15, 24, 30];
+                            vm.queryPara.playerRetention.days = [1, 2, 3, 5, 7, 10, 12, 14, 16, 18, 21, 23, 25, 27, 30];
                             vm.queryPara.playerRetention.playerType = "1"; //set default value
                             vm.dayListLength = [];
                             for (var i = 1; i < 31; i++) {
@@ -2269,7 +2269,11 @@ define(['js/app'], function (myApp) {
             if (Number.isInteger(data)) {
                 return data;
             } else {
-                return data.toFixed(3);
+                if(data.toFixed(1) != "0.0"){
+                    return data.toFixed(1);
+                }else{
+                    return "0";
+                }
             }
         }
 
@@ -2371,7 +2375,7 @@ define(['js/app'], function (myApp) {
             let retentionGraph = socketService.$plotLine(placeholder, vm.allRetentionLineData, newOptions)
                 $.each(retentionGraph.getData()[0].data, function(i, el){
                     var o = retentionGraph.pointOffset({x: el[0], y: el[1]});
-                    $('<div class="data-point-label">' + el[1].toFixed(3) + '%</div>').css( {
+                    $('<div class="data-point-label">' + el[1].toFixed(1) + '%</div>').css( {
                         position: 'absolute',
                         left: o.left + 4,
                         top: o.top - 15,
