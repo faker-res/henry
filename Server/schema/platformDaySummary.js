@@ -3,9 +3,9 @@ var Schema = mongoose.Schema;
 
 var platformDaySummarySchema = new Schema({
 
-    platformId: {type: Schema.ObjectId, required: true},
+    platformId: {type: Schema.ObjectId, required: true, index: true},
     // calculate time
-    date: {type: Date, required: true},
+    date: {type: Date, required: true, index: true},
     // no of valid player
     validPlayers: {type: Number, default: 0},
     // no of active players
