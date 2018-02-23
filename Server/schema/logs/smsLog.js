@@ -19,6 +19,8 @@ var smsLogSchema = new Schema ({
     adminName: {type: String, required: false},
     // Data sent
     tel: {type: String, required: true, index: true},
+    // is same phone number already exist in real player
+    phoneStatus: {type: Number},
     //Action
     message: {type: String, required: true},
     // input device that trigger this sms
