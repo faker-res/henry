@@ -13,8 +13,10 @@
                     option(value='') {{'all'|translate}}
             .inlineBlk(ng-if='vm.smsRecordQuery.purpose === "demoPlayer"')
                 label {{"ACCOUNT_STATUS"|translate}}
-                select.form-control(ng-model="vm.smsRecordQuery.accountStatus", ng-options='v | translate for (i,v) in vm.allAccountStatus')
+                select.form-control(ng-model="vm.smsRecordQuery.accountStatus")
                     option(value='') {{'all'|translate}}
+                    option(value=1) {{'CREATED_ACCOUNT' | translate}}
+                    option(value=2) {{'NOT_YET_CREATE_ACCOUNT' | translate}}
             .inlineBlk
                 label {{"DEVICE"|translate}}
                 select.form-control(ng-model="vm.smsRecordQuery.inputDevice")
