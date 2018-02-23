@@ -9120,7 +9120,7 @@ let dbPlayerInfo = {
                 {
                     $sort: {number: -1}
                 }
-            )
+            ).read("secondaryPreferred")
         }else{
             return dbconfig.collection_playerLoginRecord.aggregate(
                 {
@@ -9146,7 +9146,7 @@ let dbPlayerInfo = {
                 {
                     $sort: {number: -1}
                 }
-            )
+            ).read("secondaryPreferred")
         }
 
     },
