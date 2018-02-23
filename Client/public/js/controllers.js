@@ -846,6 +846,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let bbetUrl = urls[4];
                 urls[4] = urls[0];
                 urls[0] = bbetUrl;
+                let xdlUrl = urls[3];
+                urls[3] = urls[1];
+                urls[1] = xdlUrl;
             }
 
             performPhoneCall();
