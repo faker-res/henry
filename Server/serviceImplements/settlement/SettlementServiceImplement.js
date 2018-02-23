@@ -270,7 +270,7 @@ var SettlementServiceImplement = function () {
 
     this.getConsumptionActivePlayerAfterTopupQueryMatch.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data && data.platformId && data.dayStartTime && data.dayEndTime && data.consumptionCollectionName);
-        let args = [data.platformId, data.dayStartTime, data.dayEndTime, data.activePlayerConsumptionTimes, data.activePlayerValue, data.partnerLevelConfig,  data.consumptionCollectionName, data.isFilterValidPlayer, data.playerObjs];
+        let args = [data.platformId, data.dayStartTime, data.dayEndTime, data.activePlayerConsumptionTimes, data.activePlayerConsumptionAmount, data.activePlayerValue, data.partnerLevelConfig,  data.consumptionCollectionName, data.isFilterValidPlayer, data.playerObjs, data.isRealPlayer, data.isTestPlayer, data.hasPartner];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionActivePlayerAfterTopupQueryMatch, args, isValidData);
     };
 };

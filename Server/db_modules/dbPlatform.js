@@ -204,7 +204,18 @@ var dbPlatform = {
     getPlatform: function (platformData) {
         return dbconfig.collection_platform.findOne(platformData)
             .populate({path: "paymentChannels", model: dbconfig.collection_paymentChannel})
-            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).exec();
+            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().exec().then(
+                platform => {
+                    // debug use, delete later
+                    if (platform && (platform.platformId == 4 || platform.platformId == 6)) {
+                        console.log("whiteList length: ", platform.whiteListingPhoneNumbers && platform.whiteListingPhoneNumbers.length, 'z|^', platform.platformId)
+                        console.log("gameProviderInfo: ", JSON.stringify(platform.gameProviderInfo), 'k|^', platform.platformId)
+                    }
+
+
+                    return platform;
+                }
+            );
     },
 
     /**
@@ -1511,7 +1522,6 @@ var dbPlatform = {
         data.recipientName ? query.recipientName = data.recipientName : "";
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
-        data.accountStatus ? query.accountStatus = data.accountStatus : "";
         data.platformObjId ? query.platform = data.platformObjId : "";
 
         // Strip any fields which have value `undefined`
@@ -1533,26 +1543,78 @@ var dbPlatform = {
         ).then(
             smsLogsWithCount => {
                 if (smsLogsWithCount.length > 0) {
-                    smsLogsWithCount.map(function (sms) {
-                        if (sms.purpose && sms.purpose == constSMSPurpose.DEMO_PLAYER && !(sms.data && sms.data.isRegistered)) {
-
+                    let promises =  smsLogsWithCount.map(function (sms) {
+                        if (sms.tel) {
+                            //check phone number with real player
+                            return dbPlatform.checkPhoneNumWithRealPlayer(sms.tel, data.platformObjId, sms).then(
+                                smsTel => {
+                                    sms.tel = smsTel;
+                                    return sms;
+                                }
+                            );
                         } else {
-                            if (sms.tel) {
-                                sms.tel = dbUtility.encodePhoneNum(sms.tel);
-                            }
+                            return sms;
                         }
-                        return sms
-                    })
+                    });
+                    return Q.all(promises);
+                }
+                return smsLogsWithCount;
+            }
+        ).then(
+            (smsLogsWithCount) => {
+                // filter based on Demo Player Account Status: All, Created, Not Created
+                if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === '') {
+                    return {
+                        data: smsLogsWithCount,
+                        size: smsLogCount
+                    };
+                } else if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === 'createdAccount') {
+                    let smsResult = smsLogsWithCount.filter(sms => sms.tel.indexOf('******') > -1);
+                    smsLogCount = smsResult.length;
+                    return {
+                        data: smsResult,
+                        size: smsLogCount
+                    };
+                } else if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === 'notYetCreateAccount') {
+                    let smsResult = smsLogsWithCount.filter(sms => sms.tel.indexOf('******') === -1);
+                    smsLogCount = smsResult.length;
+                    return {
+                        data: smsResult,
+                        size: smsLogCount
+                    };
                 }
 
                 return {
                     data: smsLogsWithCount,
                     size: smsLogCount
-                }
+                };
             }
         )
-
     },
+
+    checkPhoneNumWithRealPlayer: (phone, platformObjId, sms) => {
+        let encryptPhone = rsaCrypto.encrypt(phone);
+
+        return dbconfig.collection_players.find(
+            {
+                phoneNumber: encryptPhone,
+                platform: platformObjId,
+                isRealPlayer: true // only compare with real player
+            }
+        ).count().then(
+            count => {
+                if (count > 0) {
+                    //got matching phone number in db, thus need encode
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
+                    return sms.tel;
+                } else {
+                    //no match found, return without encode
+                    return sms.tel;
+                }
+            }
+        );
+    },
+
     getSMSRepeatCount: (smsLogs, smsVerificationExpireTime) => {
         let smsVerificationExpireDate = new Date();
         smsVerificationExpireDate = smsVerificationExpireDate.setMinutes(smsVerificationExpireDate.getMinutes() - smsVerificationExpireTime);

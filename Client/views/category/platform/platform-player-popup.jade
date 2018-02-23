@@ -81,7 +81,7 @@
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Platform', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                         br
@@ -130,7 +130,7 @@
                                         //    text(style='height:inherit') {{vm.selectedSinglePlayer.isTestPlayer ? 'Yes' : 'No' | translate}}
                                         //.inlineBlk.col-md-3
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('contactInfo')") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.getPlayerContactHistory()') {{"EDIT_HISTORY" | translate}}
                                 tr
@@ -201,7 +201,7 @@
                                         //    label {{"Today Topup" | translate}}
                                         //    text {{vm.selectedSinglePlayer.dailyTopUpSum || 0}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')&&vm.selectedSinglePlayer.isRealPlayer",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
                                         br
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
                                 tr
@@ -235,7 +235,7 @@
                                                     .col-sm-8
                                                         text {{vm.platformWechatPayGroupListCheck[vm.selectedSinglePlayer.wechatPayGroup] | translate}}
                                     td.text-left
-                                        button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Platform', 'Player', 'Edit')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Platform', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
                                         //button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
@@ -426,8 +426,8 @@
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        button.btn.btn-danger.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName =='batchPermit' ", ng-click="vm.localRemarkUpdate()") {{"CONFIRM" | translate}}
                         button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
                         span {{vm.credibilityRemarkUpdateMessage | translate}}
                         div.row
@@ -447,8 +447,9 @@
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
-
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
+                                                    input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
+                                                    span(id="{{'c-'+data._id}}")
                             div.col-md-4
                                 .well
                                     label {{"ADD_SCORE" | translate}}
@@ -465,8 +466,9 @@
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
-
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
+                                                    input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
+                                                    span(id="{{'c-'+data._id}}")
                             div.col-md-4
                                 .well
                                     label {{"REMINDER" | translate}}
@@ -483,14 +485,16 @@
                                                 td
                                                     text {{data.score}}
                                                 td
-                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-if="vm.platformPageName !='batchPermit'")
+                                                    input.selectRemark(type="checkbox", ng-change='vm.forbidModification(data._id, isTrue, "forbidCredibilityAddList", "forbidCredibilityRemoveList")', ng-model="isTrue", ng-if="vm.platformPageName =='batchPermit'")
+                                                    span(id="{{'c-'+data._id}}")
                 .panel.panel-primary
                     .panel-body
                         div.col-md-4(style='width:40%;')
                             label {{'REMARKS' | translate}}:
                             div
                                 textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
-                        div.col-md-4(style='width:60%;')
+                        div.col-md-4(style='width:60%;', ng-if="vm.platformPageName != 'batchPermit'")
                             label {{'CREDIBILITY_RECORD' | translate}}
                             .well
                                 div(align="center")
@@ -514,7 +518,7 @@
 
 
 #modalPlayerAccountingDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog
+    .modal-dialog(style="width:95%;")
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")')
@@ -720,7 +724,7 @@
                                         label.control-label {{'REMARKS' | translate}}
                                     .col-md-12.textareaDetail
                                         textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
-                                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status != 2 && vm.linkedPlayerTransfer.status != 5)', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
+                                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status == 1)', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
 
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log'")
                             #playerCreditLogQuery.well
@@ -1418,7 +1422,7 @@
 
             .modal-footer
                 div(ng-show="vm.selectedReapplyLostOrderTab == 'credit'")
-                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status != 2 && vm.linkedPlayerTransfer.status != 5)', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
+                    button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status == 1)', ng-click="vm.repairTransaction();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                 div(ng-show="vm.selectedReapplyLostOrderTab == 'payment'")
                     button.common-button.margin-right-5.btn.btn-success(ng-if="vm.repairProposalId && vm.submitRepairePayementStep!=2" ng-click='vm.submitRepairPayment()')

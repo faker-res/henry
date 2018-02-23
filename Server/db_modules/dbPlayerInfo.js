@@ -949,7 +949,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data.isPlayerNameValid) {
-                    if (isAutoCreate || (playerdata.isTestPlayer && !playerdata.phoneNumber)) {
+                    if (isAutoCreate || playerdata.isTestPlayer) {
                         return {isPhoneNumberValid: true};
                     }
 
@@ -1043,6 +1043,7 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     playerData = data;
+                    let promArr = [];
                     var levelProm = dbconfig.collection_playerLevel.findOne({
                         platform: playerdata.platform,
                         value: mongoose.Types.ObjectId.isValid(playerdata.level) ? playerdata.level : (playerdata.level || 0)
@@ -1068,7 +1069,28 @@ let dbPlayerInfo = {
                         platform: playerdata.platform,
                         bDefault: true
                     });
-                    return Q.all([levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm]);
+                    promArr = [levelProm, platformProm, bankGroupProm, merchantGroupProm, alipayGroupProm, wechatGroupProm, quickpayGroupProm];
+                    //special handling for demo players
+                    if(playerData.isTestPlayer) {
+                        let permissionQuery = {
+                            "permission.applyBonus": false,
+                            "permission.topupOnline": false,
+                            "permission.topupManual": false,
+                            "permission.alipayTransaction": false,
+                            "permission.disableWechatPay": true,
+                            "permission.topUpCard": false,
+                            "permission.banReward": true,
+                            "permission.rewardPointsTask": false,
+                            "permission.levelChange": false
+                        };
+                        let testPlayerHandlingProm = dbconfig.collection_players.findOneAndUpdate(
+                            {_id: playerData._id, platform: playerData.platform},
+                            permissionQuery,
+                            {new: true}
+                        )
+                        promArr.push(testPlayerHandlingProm);
+                    }
+                    return Q.all(promArr);
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Can't create new player."});
@@ -1199,6 +1221,10 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
+                const anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+                const now = new Date(Date.now()).toISOString();
+                const maxIpCount = 5;
+                const maxPhoneNumberCount = 5;
                 let promArr = [];
 
                 if (!platformData) {
@@ -1209,63 +1235,55 @@ let dbPlayerInfo = {
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
                 promArr.push(demoNameProm);
 
-                if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
-                    let anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-                    let now = new Date(Date.now()).toISOString();
-                    let ipQuery = {
-                        'loginIps.0': deviceData.lastLoginIp,
-                        registrationTime: {
-                            $lte: now,
-                            $gte: anHourAgo
-                        },
-                        platform: platform._id
-                    };
+                // commented for debugging / testing purpose, uncomment the following IF blocks for production
+                // if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
+                //     let ipQuery = {
+                //         'loginIps.0': deviceData.lastLoginIp,
+                //         registrationTime: {
+                //             $lte: now,
+                //             $gte: anHourAgo
+                //         },
+                //         platform: platform._id
+                //     };
+                //
+                //     let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
+                //         data => {
+                //             if (data >= maxIpCount) {
+                //                 return Promise.reject({
+                //                     name: "DataError",
+                //                     message: "Demo player registration limit exceeded 5 times in 1 hour (same IP Address)"
+                //                 });
+                //             }
+                //         }
+                //     );
+                //     promArr.push(ipDuplicateProm);
+                // }
+                //
+                // if(phoneNumber && !isBackStageGenerated) {
+                //     let phoneNumberQuery = {
+                //         phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                //         platform: platform._id,
+                //         registrationTime: {
+                //             $lte: now,
+                //             $gte: anHourAgo
+                //         }
+                //     };
+                //
+                //     let phoneDuplicateProm = dbconfig.collection_players.count(phoneNumberQuery).then(
+                //         data => {
+                //             if (data >= maxPhoneNumberCount) {
+                //                 return Promise.reject({
+                //                     name: "DataError",
+                //                     message: "Demo player registration limit exceeded 5 times in 1 hour (same Phone Number)"
+                //                 });
+                //             }
+                //         }
+                //     );
+                //     promArr.push(phoneDuplicateProm);
+                // }
+                // end of commenting
 
-                    let ipDuplicateProm = dbconfig.collection_players.count(ipQuery).then(
-                        data => {
-                            if (data >= 5) {
-                                return Promise.reject({
-                                    name: "DataError",
-                                    message: "Player registration limit exceed (IP Address)"
-                                });
-                            }
-                        }
-                    );
-                    promArr.push(ipDuplicateProm);
-                }
-
-                if (!platformData.requireSMSVerificationForDemoPlayer || isBackStageGenerated) {
-                    return Promise.all(promArr);
-                }
-
-                if (phoneNumber) {
-                    let phoneDuplicateProm = dbPlayerInfo.isPhoneNumberValidToRegister({
-                        phoneNumber: rsaCrypto.encrypt(phoneNumber),
-                        platform: platform._id
-                    }).then(
-                        data => {
-                            if (data.isPhoneNumberValid === false) {
-                                return Promise.reject({
-                                    status: constServerCode.PHONENUMBER_ALREADY_EXIST,
-                                    name: "DataError",
-                                    message: "Phone number already exists"
-                                });
-                            }
-                        }
-                    );
-                    promArr.push(phoneDuplicateProm);
-
-                    let smsValidationProm = dbPlayerMail.verifySMSValidationCode(phoneNumber, platformData, smsCode);
-                    promArr.push(smsValidationProm);
-
-                    return Promise.all(promArr);
-                } else {
-                    return Promise.reject({
-                        status: constServerCode.INVALID_PHONE_NUMBER,
-                        name: "DataError",
-                        message: "Invalid phone number"
-                    });
-                }
+                return Promise.all(promArr);
             }
         ).then(
             data => {
@@ -1284,6 +1302,19 @@ let dbPlayerInfo = {
                     isTestPlayer: true,
                     isRealPlayer: false
                 };
+
+                if(platform.requireSMSVerificationForDemoPlayer && !isBackStageGenerated) {
+                    if (phoneNumber) {
+                        dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode, demoPlayerName);
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.INVALID_PHONE_NUMBER,
+                            name: "DataError",
+                            message: "Invalid phone number"
+                        });
+                    }
+                }
+
                 if (phoneNumber) {
                     demoPlayerData.phoneNumber = phoneNumber;
                 }
@@ -1630,7 +1661,47 @@ let dbPlayerInfo = {
             }
         );
     },
+    updateBatchPlayerPermission: function (query, admin, permission, remark) {
 
+        var updateObj = {};
+
+        for (var key in permission) {
+            updateObj["permission." + key] = permission[key];
+        }
+        let players = query.playerNames;
+        let proms = [];
+        players.forEach(item => {
+            let playerQuery = {'name': item, 'platform': query.platformObjId};
+            let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
+                function (suc) {
+                    var oldData = {};
+                    for (var i in permission) {
+                        if (suc.permission[i] != permission[i]) {
+                            oldData[i] = suc.permission[i];
+                        } else {
+                            delete permission[i];
+                        }
+                    }
+                    if (Object.keys(oldData).length !== 0) {
+                        var newLog = new dbconfig.collection_playerPermissionLog({
+                            admin: admin,
+                            platform: playerQuery.platform,
+                            player: suc._id,
+                            remark: remark,
+                            oldData: oldData,
+                            newData: permission,
+                        });
+                        return newLog.save();
+                    } else return true;
+                },
+                function (error) {
+                    return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+                }
+            )
+            proms.push(prom)
+        })
+        return Promise.all(proms);
+    },
     /**
      * Reset player password
      * @param {String}  playerId - The query string
@@ -1919,6 +1990,13 @@ let dbPlayerInfo = {
         // Get platform
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
+                // block action if it is Demo player
+                if (playerData && !playerData.isRealPlayer) {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Demo player cannot perform this action"
+                    })
+                }
                 if (playerData) {
                     playerObj = playerData;
                     platformObjId = playerData.platform;
@@ -2055,6 +2133,34 @@ let dbPlayerInfo = {
         });
     },
 
+    updateBatchPlayerForbidPaymentType: (query, forbidTopUpTypes) => {
+        let proms = [];
+        let playerNames = query.playerNames;
+        let addList = forbidTopUpTypes.addList;
+        let removeList = forbidTopUpTypes.removeList;
+        let updateData = {};
+
+        playerNames.forEach(name => {
+            let prom = dbconfig.collection_players.findOne({name: name, platform: query.platformObjId})
+                .then(data => {
+                    let playerForbidTopupType = data.forbidTopUpType.filter(item => {
+                        return item != "undefined"
+                    }) || []
+                    updateData.forbidTopUpType = dbPlayerInfo.managingDataList(playerForbidTopupType, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidTopUpType = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: name,
+                        platform: query.platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                });
+            proms.push(prom)
+        });
+
+        return Promise.all(proms);
+    },
+
     /**
      * Update player status info and record change rason
      * @param {objectId}  playerObjId
@@ -2086,12 +2192,85 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
 
+    updateBatchPlayerForbidProviders: function (platformObjId, playerNames, forbidProviders) {
+
+        let updateData = {};
+        let addList = forbidProviders.addList;
+        let removeList = forbidProviders.removeList;
+        let proms = [];
+
+        playerNames.forEach(player => {
+            let prom = dbconfig.collection_players.findOne({name: player, platform: platformObjId})
+                .then(data => {
+
+                    let playerForbidProviders = data.forbidProviders || [];
+                    updateData.forbidProviders = dbPlayerInfo.managingDataList(playerForbidProviders, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidProviders = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': player,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                });
+            proms.push(prom)
+        });
+        return Promise.all(proms);
+    },
+
     updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
         let updateData = {};
         if (forbidRewardEvents) {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
+    },
+    managingDataList: function(dataList, addList, removeList){
+        let result = [];
+        dataList.forEach(d => {
+            result.push(String(d));
+        })
+        let finalResult = [];
+        addList.forEach(item => {
+            if (result.indexOf(item) == -1) {
+                result.push(item);
+            }
+        })
+
+        result = result.filter(rItem => {
+            // Doing this convert, is because one of this function will sent back object, the indexOf will goes wrong.
+            let currentItem = String(rItem);
+            if (removeList.length == 0) {
+                finalResult.push(currentItem);
+            } else if (removeList.indexOf(currentItem) == -1) {
+                finalResult.push(currentItem);
+            }
+        })
+        return finalResult;
+    },
+    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
+        let updateData = {};
+        let result = [];
+        let addList = forbidRewardEvents.addList;
+        let removeList = forbidRewardEvents.removeList;
+        let proms = [];
+        playerNames.forEach(name => {
+            let prom = dbconfig.collection_players.findOne({'name': name, 'platform': platformObjId})
+                .then(data => {
+                    let playerForbidRewardEvents = data.forbidRewardEvents || [];
+                    updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidRewardEvents = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        'name': name,
+                        'platform': platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
+            proms.push(prom);
+        });
+        return Promise.all(proms);
     },
 
     updatePlayerForbidRewardPointsEvent: function (playerObjId, forbidRewardPointsEvent) {
@@ -2101,6 +2280,31 @@ let dbPlayerInfo = {
         }
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
+
+    updateBatchPlayerForbidRewardPointsEvent: function (playerNames, platformObjId, forbidRewardPointsEvent) {
+        let proms = [];
+        let updateData = {};
+        let addList = forbidRewardPointsEvent.addList;
+        let removeList = forbidRewardPointsEvent.removeList;
+
+        playerNames.forEach(name => {
+            let prom = dbconfig.collection_players.findOne({name: name, platform: platformObjId})
+                .then(data => {
+                    let playerForbidRewardPointsEvent = data.forbidRewardPointsEvent || [];
+                    updateData.forbidRewardPointsEvent = dbPlayerInfo.managingDataList(playerForbidRewardPointsEvent, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.forbidRewardPointsEvent = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: name,
+                        platform: platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
+            proms.push(prom);
+        })
+        return Promise.all(proms);
+    },
+
     /**
      * Delete playerInfo by object _id of the playerInfo schema
      * @param {array}  playerObjIds - The object _ids of the players
@@ -3687,7 +3891,7 @@ let dbPlayerInfo = {
      * check the player exists and check password is matched against the password in DB using bcrypt
      *  @param include name and password of the player and some more additional info to log the player's login
      */
-    playerLogin: function (playerData, userAgent, inputDevice) {
+    playerLogin: function (playerData, userAgent, inputDevice, mobileDetect) {
         let deferred = Q.defer();
         let db_password = null;
         let newAgentArray = [];
@@ -3805,7 +4009,7 @@ let dbPlayerInfo = {
                     newAgentArray = playerObj.userAgent || [];
                     uaObj = {
                         browser: userAgent.browser.name || '',
-                        device: userAgent.device.name || '',
+                        device: userAgent.device.name || (mobileDetect && mobileDetect.mobile()) ? mobileDetect.mobile() : 'PC',
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
@@ -5655,15 +5859,28 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince) {
+    getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince, isRealPlayer, isTestPlayer, hasPartner) {
         //todo: active player indicator
         var matchObj = {
-            platform: platform
+            platform: platform,
+            isRealPlayer: isRealPlayer,
+            isTestPlayer: isTestPlayer
         };
         date = date || 'lastAccessTime';
         matchObj[date] = {
             $gte: startTime,
             $lt: endTime
+        }
+
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                matchObj.partner = {$type: "objectId"};
+            }else {
+                matchObj['$or'] = [
+                    {partner: null},
+                    {partner: {$exists: false}}
+                ]
+            }
         }
 
         var idObj = {}
@@ -5772,7 +5989,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode, platformId) {
+    getRewardsForPlayer: function (playerId, rewardType, startTime, endTime, startIndex, count, eventCode, platformId, status) {
         var queryProm = null;
         var playerName = '';
         var queryObject = {
@@ -5787,6 +6004,15 @@ let dbPlayerInfo = {
         }
         if (startTime && endTime) {
             queryObject.createTime = {$gte: new Date(startTime), $lt: new Date(endTime)};
+        }
+
+        if (status) {
+            queryObject.status = status;
+            if (status == constProposalStatus.APPROVED) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            } else if (status == constProposalStatus.SUCCESS) {
+                queryObject.status = {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]};
+            }
         }
 
         return dbconfig.collection_players.findOne({playerId: playerId}).catch(
@@ -5859,13 +6085,17 @@ let dbPlayerInfo = {
                             status = proposals[i].process ? proposals[i].process.status : proposals[i].status;
                         }
 
+                        let eventNameRec = proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "", null, platformId)
+                        if (proposals[i].type && proposals[i].type.name == constProposalType.ADD_PLAYER_REWARD_TASK) {
+                            eventNameRec = "促销优惠";
+                        }
                         let rec = {
                             playerId: playerId,
                             playerName: playerName,
                             createTime: proposals[i].createTime,
                             rewardType: proposals[i].type ? proposals[i].type.name : "",
                             rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
-                            eventName: proposals[i].data.eventName || localization.localization.translate(proposals[i].type ? proposals[i].type.name : "", null, platformId),
+                            eventName: eventNameRec,
                             eventCode: proposals[i].data.eventCode,
                             status: status
                         }
@@ -6903,7 +7133,8 @@ let dbPlayerInfo = {
         };
         var query = {
             platform: platform,
-            registrationTime: timeQuery
+            registrationTime: timeQuery,
+            isRealPlayer: true //only count real player
         };
 
         // var a = dbconfig.collection_players.find(query).count();
@@ -7422,7 +7653,7 @@ let dbPlayerInfo = {
     /* 
      * Get new player count 
      */
-    countNewPlayerbyPlatform: function (platformId, startDate, endDate, period) {
+    countNewPlayerbyPlatform: function (platformId, startDate, endDate, isRealPlayer, isTestPlayer, hasPartner) {
         // var options = {};
         // switch (period) {
         //     case 'day':
@@ -7493,9 +7724,23 @@ let dbPlayerInfo = {
         //         return obj;
         //     });
 
-        let query = {registrationTime: {$gte: startDate, $lt: endDate}};
+        let query = {
+            registrationTime: {$gte: startDate, $lt: endDate},
+            isRealPlayer: isRealPlayer,
+            isTestPlayer: isTestPlayer,
+        };
         if (platformId != 'all') {
             query.platform = platformId;
+        }
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                query.partner = {$type: "objectId"};
+            }else {
+                query['$or'] = [
+                    {partner: null},
+                    {partner: {$exists: false}}
+                ]
+            }
         }
         return dbconfig.collection_players.find(query);
         //});
@@ -7567,54 +7812,21 @@ let dbPlayerInfo = {
         }
         return dbconfig.collection_providerDaySummary.find(query);
     },
-    countTopUpORConsumptionByPlatform: function (platformId, startDate, endDate, period, type) {
-        // var options = {};
-        // var calculation = null;
-        // switch (period) {
-        //     case 'day':
-        //         options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
-        //         break;
-        //     case 'week':
-        //         options.week = {$floor: {$divide: [{$subtract: ["$date", startDate]}, 604800000]}};
-        //         break;
-        //     case 'month':
-        //     default:
-        //         options.year = {$year: "$date"};
-        //         options.month = {$month: "$date"};
-        // }
-        // switch (type) {
-        //     case 'topup' :
-        //         calculation = {$sum: "$topUpAmount"};
-        //         break;
-        //     case 'consumption' :
-        //         calculation = {$sum: "$consumptionAmount"}
-        // }
-        // var matchOption = {
-        //     date: {$gte: startDate, $lt: endDate}
-        // }
-        // if (platformId != 'all') {
-        //     matchOption.platformId = platformId;
-        // }
-        // return dbconfig.collection_platformDaySummary.aggregate(
-        //     {
-        //         $match: matchOption
-        //     },
-        //     {
-        //         $group: {_id: options, number: calculation}
-        //     }).then(
-        //     data => {
-        //         return data;
-        //     }
-        // );
-        var proms = [];
-        var calculation = null;
-        switch (type) {
-            case 'topup' :
-                calculation = {$sum: "$topUpAmount"};
-                break;
-            case 'consumption' :
-                calculation = {$sum: "$consumptionAmount"}
+    getTopUpByPlatform: function (platformId, startDate, endDate, type) {
+        var queryObj = {
+            topUpType: constPlayerTopUpType[type],
+            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
+        };
+
+        if (platformId != 'all') {
+            queryObj.platformId = ObjectId(platformId);
         }
+
+        return dbconfig.collection_playerTopUpRecord.find(queryObj);
+    },
+    countTopUpByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var calculation = {$sum: "$amount"};
         var dayStartTime = startDate;
         var getNextDate;
         switch (period) {
@@ -7639,17 +7851,20 @@ let dbPlayerInfo = {
         }
         while (dayStartTime.getTime() < endDate.getTime()) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
-            var matchObj = {date: {$gte: dayStartTime, $lt: dayEndTime}};
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                topUpType: constPlayerTopUpType.ONLINE.toString()
+            };
             if (platformId != 'all') {
                 matchObj.platformId = platformId;
             }
-            proms.push(dbconfig.collection_platformDaySummary.aggregate(
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
                 {$match: matchObj}, {
                     $group: {
                         _id: null,
                         calc: calculation
                     }
-                }))
+                }).read("secondaryPreferred"))
             dayStartTime = dayEndTime;
         }
         return Q.all(proms).then(data => {
@@ -7663,16 +7878,9 @@ let dbPlayerInfo = {
         });
 
     },
-    countTopUpORConsumptionCountByPlatform: function (platformId, startDate, endDate, period, type) {
+    countTopUpCountByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
-        var calculation = null;
-        switch (type) {
-            case 'topup' :
-                calculation = {$sum: "$topUpAmount"};
-                break;
-            case 'consumption' :
-                calculation = {$sum: "$consumptionAmount"}
-        }
+        var calculation = {$sum: "$amount"};
         var dayStartTime = startDate;
         var getNextDate;
         switch (period) {
@@ -7697,17 +7905,20 @@ let dbPlayerInfo = {
         }
         while (dayStartTime.getTime() < endDate.getTime()) {
             var dayEndTime = getNextDate.call(this, dayStartTime);
-            var matchObj = {date: {$gte: dayStartTime, $lt: dayEndTime}};
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                topUpType: constPlayerTopUpType.ONLINE.toString()
+            };
             if (platformId != 'all') {
                 matchObj.platformId = platformId;
             }
-            proms.push(dbconfig.collection_platformDaySummary.aggregate(
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
                 {$match: matchObj}, {
                     $group: {
                         _id: null,
                         "count": {"$sum": 1},
                     }
-                }))
+                }).read("secondaryPreferred"))
             dayStartTime = dayEndTime;
         }
         return Q.all(proms).then(data => {
@@ -7722,10 +7933,146 @@ let dbPlayerInfo = {
 
     },
 
+    getTopUpMethodAnalysisByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var calculation = {$sum: "$amount"};
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType"},
+                        calc: calculation
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id && i._id.topUpType ? getKey(constPlayerTopUpType,Number(i._id.topUpType)) : ""}, number: i.calc ? i.calc : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+
+    },
+    getTopUpMethodCountByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType"},
+                        "count": {"$sum": 1},
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id && i._id.topUpType ? getKey(constPlayerTopUpType,Number(i._id.topUpType)) : ""}, number: i.count ? i.count : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+
+    },
+
     /* 
      * Get active player count 
      */
-    countActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isFilterValidPlayer) {
+    countActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isFilterValidPlayer, isRealPlayer, isTestPlayer, hasPartner) {
         // var options = {};
         // options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
         //
@@ -7756,34 +8103,39 @@ let dbPlayerInfo = {
                 let activePlayerTopUpTimes;
                 let activePlayerTopUpAmount;
                 let activePlayerConsumptionTimes;
+                let activePlayerConsumptionAmount;
                 let activePlayerValue;
-                let topupCollectionName = 'collection_playerTopUpWeekSummary';
-                let consumptionCollectionName = 'collection_playerConsumptionWeekSummary';
+                let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
+                let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
                 switch (period) {
                     case 'day':
-                        topupCollectionName = 'collection_playerTopUpDaySummary';
-                        consumptionCollectionName = 'collection_playerConsumptionDaySummary';
+                        // topupCollectionName = 'collection_playerTopUpDaySummary';
+                        // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.dailyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
                         activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.weeklyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
                         activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.halfMonthActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
                         activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.monthlyActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.monthlyActivePlayerValue;
                         break;
                     case 'season':
@@ -7791,6 +8143,7 @@ let dbPlayerInfo = {
                         activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = partnerLevelConfig.seasonActivePlayerConsumptionAmount;
                         activePlayerValue = partnerLevelConfig.seasonActivePlayerValue;
                 }
 
@@ -7817,7 +8170,7 @@ let dbPlayerInfo = {
                                         "times": {"$sum": '$times'}
                                     }
                                 }
-                            ]).read("secondaryPreferred").cursor({batchSize: constSystemParam.BATCH_SIZE}).allowDiskUse(true).exec();
+                            ]).read("secondaryPreferred").cursor({batchSize: 10000}).allowDiskUse(true).exec();
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
                                 return balancer.processStream(
@@ -7830,12 +8183,16 @@ let dbPlayerInfo = {
                                                 dayStartTime: dayStartTime,
                                                 dayEndTime: dayEndTime,
                                                 activePlayerConsumptionTimes: activePlayerConsumptionTimes,
+                                                activePlayerConsumptionAmount: activePlayerConsumptionAmount,
                                                 activePlayerValue: activePlayerValue,
                                                 partnerLevelConfig: partnerLevelConfig,
                                                 consumptionCollectionName: consumptionCollectionName,
                                                 isFilterValidPlayer: isFilterValidPlayer,
                                                 playerObjs: playerObjs
-                                                    .filter(player => player.amount >= activePlayerTopUpAmount && player.times >= activePlayerTopUpTimes)
+                                                    .filter(player => player.amount >= activePlayerTopUpAmount && player.times >= activePlayerTopUpTimes),
+                                                isRealPlayer: isRealPlayer,
+                                                isTestPlayer: isTestPlayer,
+                                                hasPartner: hasPartner
                                             });
                                         },
                                         processResponse: function (response) {
@@ -7857,11 +8214,119 @@ let dbPlayerInfo = {
         );
     },
 
-    countValidActivePlayerbyPlatform: function (platformId, startDate, endDate, period) {
-        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true);
+
+    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, userAgent, merchantTopupTypeId, analysisCategory, merchantTypeId, merchantNo) => {
+        return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP})
+            .populate({path: "platformId", model: dbconfig.collection_platform}).read("secondaryPreferred").lean().then(
+            (onlineTopupType) => {
+                if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+                let getMerchantListProm = Promise.resolve([]);
+                // only when analysis category is thirdPartyPlatform need get merchantList from pms
+                if(analysisCategory === 'thirdPartyPlatform')
+                    getMerchantListProm = pmsAPI.merchant_getMerchantList({
+                        platformId: onlineTopupType.platformId.platformId,
+                        queryId: serverInstance.getQueryId()
+                    });
+                return getMerchantListProm.then(
+                    responseData => {
+                        let merchantList = responseData.merchants || [];
+                        //  will find all merchantNo match merchantTypeId to query
+                        let merchantNoArray = merchantList.filter(merchant => merchant.merchantTypeId == merchantTypeId).map(merchant => merchant.merchantNo);
+                        let proms = [];
+                        while (startDate.getTime() < endDate.getTime()) {
+                            let dayEndTime = getNextDateByPeriodAndDate(period, startDate);
+                            let startTime = startDate;
+                            let queryObj = {
+                                createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                type: onlineTopupType._id,
+                                "data.topupType": parseInt(merchantTopupTypeId),
+                                "data.userAgent": parseInt(userAgent),
+
+                            };
+
+                            let groupObj = {
+                                _id: "$data.topupType",
+                                userIds: {$addToSet: "$data.playerObjId"},
+                                receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
+                                count: {$sum: 1},
+                            };
+                            if(analysisCategory !== 'onlineTopupType') {
+                                queryObj = Object.assign({}, queryObj,{'data.merchantNo': {$in: merchantNoArray}});
+                                groupObj._id = null;
+                            }
+                            if(analysisCategory == 'merchantNo')
+                                queryObj = Object.assign({}, queryObj,{'data.merchantNo': merchantNo});
+                            // find data by date
+                            let prom = dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match: queryObj
+                                }, {
+                                    $group: groupObj
+                                }
+                            ).read("secondaryPreferred").then(
+                                data => {
+                                    // find success proposal count and unique user
+                                    return dbconfig.collection_proposal.aggregate(
+                                        {
+                                            $match: Object.assign({}, queryObj,{status: "Success"})
+                                        }, {
+                                            $group: {
+                                                _id: "$data.topupType",
+                                                userIds: { $addToSet: "$data.playerObjId" },
+                                            }
+                                        }
+                                    ).read("secondaryPreferred").then(
+                                        data1 => {
+                                            // find current date all unique totalUserCount and totalReceivedAmount
+                                            return dbconfig.collection_proposal.aggregate(
+                                                {
+                                                    $match: {
+                                                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                                        type: onlineTopupType._id,
+                                                        status: "Success",
+                                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                                    }
+                                                }, {
+                                                    $group: {
+                                                        _id: null,
+                                                        userIds: {$addToSet: "$data.playerObjId"},
+                                                        receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                                    }
+                                                }
+                                            ).read("secondaryPreferred").then(
+                                                data2 => {
+                                                    return {
+                                                        date: startTime,
+                                                        userCount: data && data[0] ? data[0].userIds.length : 0,
+                                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                                        successCount: data && data[0] ? data[0].successCount : 0,
+                                                        totalCount: data && data[0] ? data[0].count : 0,
+                                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0,
+                                                        totalUserCount: data2 && data2[0] ? data2[0].userIds.length : 0,
+                                                        totalReceivedAmount: data2 && data2[0] ? data2[0].receivedAmount : 0,
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    );
+                                });
+
+                            proms.push(prom);
+                            startDate = dayEndTime;
+                        }
+                        return Q.all(proms);
+                    }
+                )
+            }
+        )
     },
 
-    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs) {
+    countValidActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
+        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true, isRealPlayer, isTestPlayer, hasPartner);
+    },
+
+    getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerConsumptionAmount, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs, isRealPlayer, isTestPlayer, hasPartner) {
         let matchObj = {
             playerId: {$in: playerObjs.map(player => ObjectId(player._id))},
             platformId: ObjectId(platformId),
@@ -7872,24 +8337,55 @@ let dbPlayerInfo = {
             {$group: {_id: "$playerId", "amount": {"$sum": '$amount'}, "times": {"$sum": '$times'}}}
         ]).read("secondaryPreferred").then(
             records => {
-                records = records.filter(records => records.times >= activePlayerConsumptionTimes);
+                records = records.filter(records => records.times >= activePlayerConsumptionTimes && records.amount >= activePlayerConsumptionAmount);
                 return dbconfig.collection_players.populate(records, {
                     path: '_id',
                     model: dbconfig.collection_players
                 }).then(
                     (records) => {
-                        if (isFilterValidPlayer)
-                            return records.filter(records =>
+                        if (isFilterValidPlayer) {
+
+                            var filterRecords = records.filter(records =>
                                 records._id &&
                                 records._id.valueScore !== undefined &&
                                 records._id.valueScore >= activePlayerValue &&
                                 records._id.valueScore >= partnerLevelConfig.validPlayerValue &&
                                 records._id.topUpTimes >= partnerLevelConfig.validPlayerTopUpTimes &&
                                 records._id.topUpSum >= partnerLevelConfig.validPlayerTopUpAmount &&
-                                records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes
+                                records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes &&
+                                records._id.consumptionSum >= partnerLevelConfig.validPlayerConsumptionAmount
+                            );
+                        }
+                        else {
+                            var filterRecords = records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue);
+                        }
+
+                        if (hasPartner != null){
+                            if (hasPartner == true){
+
+                                return filterRecords.filter(records => {
+                                    if (!records._id.partner){
+                                        return false
+                                    }
+                                    else{
+                                        return records._id.isRealPlayer == isRealPlayer && records._id.isTestPlayer == isTestPlayer
+                                    }
+                                }).length;
+
+                            }else {
+
+                                return filterRecords.filter(records =>
+                                    records._id.isRealPlayer == isRealPlayer &&
+                                    records._id.isTestPlayer == isTestPlayer &&
+                                    (records._id.partner == null || records._id.partner == 'undefined')).length;
+                            }
+                        }else{
+
+                            return filterRecords.filter(records =>
+                                records._id.isRealPlayer == isRealPlayer &&
+                                records._id.isTestPlayer == isTestPlayer
                             ).length;
-                        else
-                            return records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue).length;
+                        }
                     }
                 )
             }
@@ -8596,34 +9092,63 @@ let dbPlayerInfo = {
     /*
      * get Player Device Analysis Data
      */
-    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime) {
-        return dbconfig.collection_players.aggregate(
-            {
-                $unwind: "$userAgent",
-            },
-            {
-                $match: {
-                    platform: platform,
-                    registrationTime: {$gte: startTime, $lt: endTime}
+    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement) {
+        if(queryRequirement == "register"){
+            return dbconfig.collection_players.aggregate(
+                {
+                    $unwind: "$userAgent",
+                },
+                {
+                    $match: {
+                        platform: platform,
+                        registrationTime: {$gte: startTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                        // cateNum: {$sum: 1}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {name: "$_id.userAgent1"},
+                        // total: {$avg: "$totalCount"},
+                        number: {$sum: 1}
+                    }
+                },
+                {
+                    $sort: {number: -1}
                 }
-            },
-            {
-                $group: {
-                    _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
-                    // cateNum: {$sum: 1}
+            ).read("secondaryPreferred")
+        }else{
+            return dbconfig.collection_playerLoginRecord.aggregate(
+                {
+                    $unwind: "$userAgent",
+                },
+                {
+                    $match: {
+                        platform: platform,
+                        loginTime: {$gte: startTime, $lt: endTime}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {_id: "$_id", userAgent1: "$userAgent." + type,},
+                    }
+                },
+                {
+                    $group: {
+                        _id: {name: "$_id.userAgent1"},
+                        number: {$sum: 1}
+                    }
+                },
+                {
+                    $sort: {number: -1}
                 }
-            },
-            {
-                $group: {
-                    _id: {name: "$_id.userAgent1"},
-                    // total: {$avg: "$totalCount"},
-                    number: {$sum: 1}
-                }
-            },
-            {
-                $sort: {number: -1}
-            }
-        )
+            ).read("secondaryPreferred")
+        }
+
     },
 
     /*
@@ -9336,11 +9861,13 @@ let dbPlayerInfo = {
                                             }
                                         });
                                         if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
-                                            resData.push({
-                                                type: paymentData.data[i].bankTypeId,
-                                                status: status,
-                                                accountNumber: paymentData.data[i].accountNumber
-                                            });
+                                            if (status == 1) {
+                                                resData.push({
+                                                    type: paymentData.data[i].bankTypeId,
+                                                    status: status,
+                                                    //accountNumber: paymentData.data[i].accountNumber
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -10736,15 +11263,19 @@ let dbPlayerInfo = {
         )
     },
 
-    getPlayerTransferErrorLog: function (playerObjId, createTime) {
+    getPlayerTransferErrorLog: function (playerObjId, transferId, transferObjId) {
         let query = {
             playerObjId: playerObjId,
             bUsed: {$ne: true},
             // status: constPlayerCreditTransferStatus.FAIL
         };
 
-        if (createTime) {
-            query.createTime = createTime;
+        if (transferId) {
+            query.transferId = transferId;
+        }
+
+        if (transferObjId) {
+            query._id = transferObjId;
         }
 
         return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
@@ -11674,12 +12205,40 @@ let dbPlayerInfo = {
     },
 
     getUnreadMail: (playerId) => {
-        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}).lean().then(
             playerData => {
+
                 if (playerData) {
-                    return dbconfig.collection_playerMail.find(
-                        {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
-                    ).lean();
+
+                    if (playerData.platform.unreadMailMaxDuration && playerData.platform.unreadMailMaxDuration > 0) {
+                        let duration = playerData.platform.unreadMailMaxDuration;
+                        let todayDate = new Date();
+                        // get today end time
+                        let todayEndDate = new Date(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0).getTime() + 24 * 3600 * 1000);
+
+                        let endDate = todayEndDate.toISOString();
+                        let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
+
+                        return dbconfig.collection_playerMail.find(
+                            {
+                                recipientId: playerData._id,
+                                recipientType: "player",
+                                hasBeenRead: false,
+                                bDelete: false,
+                                createTime: {$gte: startDate, $lt: endDate}
+                            }
+                        ).lean();
+                    }
+                    else {
+                        return dbconfig.collection_playerMail.find(
+                            {recipientId: playerData._id, recipientType: "player", hasBeenRead: false, bDelete: false}
+                        ).lean();
+                    }
+                }
+                else {
+                    return Q.reject({name: "DBError", message: "Invalid platform data"});
+
                 }
             }
         );
@@ -11738,6 +12297,38 @@ let dbPlayerInfo = {
                 return playerData;
             }
         );
+    },
+
+    updateBatchPlayerCredibilityRemark: (adminName, platformObjId, playerNames, remarks, comment) => {
+
+        let addList = remarks.addList;
+        let removeList = remarks.removeList;
+        let updateData = { credibilityRemarks:[] };
+        let proms = [];
+
+        playerNames.forEach(playerName => {
+            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
+                .then(data => {
+                    let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
+                        return item != "undefined"
+                    }) || [];
+                    updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
+                    if (addList.length == 0 && removeList.length == 0) {
+                        updateData.credibilityRemarks = [];
+                    }
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                        name: playerName,
+                        platform: platformObjId
+                    }, updateData, constShardKeys.collection_players);
+                })
+                .then(playerData => {
+                    let playerObjId = playerData._id;
+                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
+                    return playerData;
+                })
+            proms.push(prom);
+        })
+        return Promise.all(proms);
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
@@ -11925,7 +12516,8 @@ let dbPlayerInfo = {
         let result = [];
         let matchObj = {
             platform: platform,
-            registrationTime: {$gte: startDate, $lt: endDate}
+            registrationTime: {$gte: startDate, $lt: endDate},
+            isTestPlayer: false
         };
 
         if (query.userType) {
@@ -11935,6 +12527,9 @@ let dbPlayerInfo = {
                     break;
                 case "2":
                     matchObj.partner = {$exists: true};
+                    break;
+                case "3":
+                    matchObj.isTestPlayer = true;
                     break;
             }
         }
@@ -12044,7 +12639,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (platformData) {
-                    return dbconfig.collection_players.findOne({name: playerName}, {password: 1}).lean();
+                    return dbconfig.collection_players.findOne({platform: platformData._id, name: playerName}).lean();
                 }
             }
         ).then(
@@ -12397,7 +12992,7 @@ let dbPlayerInfo = {
                                 relevant = result.consumptionTimes >= query.consumptionTimesValue;
                                 break;
                             case '=':
-                                relevant = result.consumptionTimes = query.consumptionTimesValue;
+                                relevant = result.consumptionTimes == query.consumptionTimesValue;
                                 break;
                             case '<=':
                                 relevant = result.consumptionTimes <= query.consumptionTimesValue;
@@ -12421,7 +13016,7 @@ let dbPlayerInfo = {
                                 relevant = result.consumptionBonusAmount >= query.profitAmountValue;
                                 break;
                             case '=':
-                                relevant = result.consumptionBonusAmount = query.profitAmountValue;
+                                relevant = result.consumptionBonusAmount == query.profitAmountValue;
                                 break;
                             case '<=':
                                 relevant = result.consumptionBonusAmount <= query.profitAmountValue;
@@ -12485,7 +13080,7 @@ let dbPlayerInfo = {
                                 relevant = result.topUpTimes >= query.topUpTimesValue;
                                 break;
                             case '=':
-                                relevant = result.topUpTimes = query.topUpTimesValue;
+                                relevant = result.topUpTimes == query.topUpTimesValue;
                                 break;
                             case '<=':
                                 relevant = result.topUpTimes <= query.topUpTimesValue;
@@ -12509,7 +13104,7 @@ let dbPlayerInfo = {
                                 relevant = result.bonusTimes >= query.bonusTimesValue;
                                 break;
                             case '=':
-                                relevant = result.bonusTimes = query.bonusTimesValue;
+                                relevant = result.bonusTimes == query.bonusTimesValue;
                                 break;
                             case '<=':
                                 relevant = result.bonusTimes <= query.bonusTimesValue;
@@ -12533,7 +13128,7 @@ let dbPlayerInfo = {
                                 relevant = result.topUpAmount >= query.topUpAmountValue;
                                 break;
                             case '=':
-                                relevant = result.topUpAmount = query.topUpAmountValue;
+                                relevant = result.topUpAmount == query.topUpAmountValue;
                                 break;
                             case '<=':
                                 relevant = result.topUpAmount <= query.topUpAmountValue;

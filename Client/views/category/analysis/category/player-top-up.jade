@@ -1,0 +1,76 @@
+.section
+    .row
+        .titlePic
+            .title {{vm.showPageName | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#topUpAnalysis .block-query","topUpAnalysis")')
+                        text.pull-left.margin-right-5 {{vm.optionText.topUp | translate}}
+    #topUpAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.topUp.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.drawPlayerTopUp(vm.showPageName)') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-topUpAmount.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformTopUpAnalysisSort.amountSort = vm.platformTopUpAnalysisSort.amountSort == "date" ? "-date":"date"') {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click='vm.platformTopUpAnalysisSort.amountSort = vm.platformTopUpAnalysisSort.amountSort == "amount" ? "-amount":"amount"') {{"Credit_Amount"| translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisAmount | orderBy: vm.platformTopUpAnalysisSort.amountSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.amount }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformTopUpAmountAverage }}
+        .row
+            .col-md-6
+                label.text-primary {{vm.queryPara.topUp.countTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-topUpCount.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click='vm.platformTopUpAnalysisSort.countSort = vm.platformTopUpAnalysisSort.countSort == "date" ? "-date":"date"') {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click='vm.platformTopUpAnalysisSort.countSort = vm.platformTopUpAnalysisSort.countSort == "topUpData.length" ? "-topUpData.length":"topUpData.length"') {{ "COUNT" | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopUpAnalysisSort.countSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.topUpData.length }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformTopUpCountAverage }}
+
+p(ng-init="vm.loadPageFunc(vm.showPageName)")

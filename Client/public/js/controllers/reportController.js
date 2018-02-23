@@ -585,7 +585,8 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('APPLYAMOUNT'), sClass: "sumFloat alignRight", data: "$applyAmount",
                         render: function (data, type, row) {
-                            return parseFloat(row.data.applyAmount).toFixed(2);
+                            let applyAmount = row.data.applyAmount || 0;
+                            return parseFloat(applyAmount).toFixed(2);
                         }
                     },
                     {title: $translate('CREATE_TIME'), data: "$createTime"},
@@ -1528,13 +1529,15 @@ define(['js/app'], function (myApp) {
                     });
                 })
                 $scope.safeApply();
-            } else if (choice.indexOf('REWARD_REPORT') !== -1) {
-                // Unless customization is necessary, this should handle the rest of reward report
+            } else if (choice.indexOf('REWARD_REPORT') !== -1 || choice.indexOf('GROUP_REPORT') !== -1) {
+                // Unless customization is necessary, this should handle the rest of reward report & reward group reward
                 let rewardNameWithoutReport = choice.replace("_REPORT", "");
                 vm.rewardTypeName = rewardNameWithoutReport;
                 vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = rewardNameWithoutReport;
+                if(choice.indexOf('REWARD_REPORT') !== -1) {
+                    vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                    vm.currentRewardTaskName = rewardNameWithoutReport;
+                }
             }
 
             if (vm.currentRewardCode) {
@@ -1893,7 +1896,7 @@ define(['js/app'], function (myApp) {
         vm.getPageNameByRewardName = function (rewardName) {
             if (vm.rewardNamePage[rewardName]) {
                 return vm.rewardNamePage[rewardName];
-            } else if (rewardName.indexOf("Reward") !== -1) {
+            } else if (rewardName.indexOf("Reward") !== -1 || rewardName.indexOf("Group") !== -1) {
                 let splitRewardName = rewardName.split(/(?=[A-Z])/);
                 let rewardReportString = (splitRewardName.join("_") + "_REPORT").toUpperCase();
                 return rewardReportString;
@@ -3529,7 +3532,10 @@ define(['js/app'], function (myApp) {
                         item.registrationOS$ = "";
                     }
 
-                    if (!item.sourceUrl) {
+                    // if (!item.sourceUrl) {
+                    //     item.registrationAgent$ = "Backstage";
+                    // }
+                    if (item.registrationInterface == vm.inputDevice.BACKSTAGE) {
                         item.registrationAgent$ = "Backstage";
                     }
                     else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
@@ -5170,7 +5176,7 @@ define(['js/app'], function (myApp) {
                     () => {
                         vm.newPlayerQuery.totalNewPlayerWithTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 0).length;
                         vm.newPlayerQuery.totalNewPlayerWithMultiTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 1).length;
-                        vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
+                        vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
                         vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
                         // ============ promote way new player ============
                         vm.newPlayerQuery.promoteWayData = vm.allPromoteWay.map(
@@ -5230,7 +5236,7 @@ define(['js/app'], function (myApp) {
         };
         // return object
         vm.calculateNewPlayerData = (newPlayerData, promoteWayName, ratioCalculateBy = vm.newPlayerQuery.totalNewValidPlayer, ratioBasedOn = 'validPlayer') => {
-            let validPlayer = newPlayerData.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue).length;
+            let validPlayer = newPlayerData.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.valueScore >= vm.partnerLevelConfig.validPlayerValue).length;
 
             let returnObj =  {
                 promoteWayName: promoteWayName,
@@ -5839,6 +5845,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     item.$amount = parseFloat(item.$amount).toFixed(2);
+                    item.$applyAmount = item.data.applyAmount || 0;
                     item.$createTime = utilService.$getTimeFromStdTimeFormat(item.createTime);
                     if (vm.rewardTypeName == 'ALL') {
                         item.type.name$ = $translate(item.type.name);

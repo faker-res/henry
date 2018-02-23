@@ -165,7 +165,8 @@ var roleChecker = {
         //todo::to be added to permission list
         "getCredibilityRemarks": true,
         "countConsumptionByPlatform": true,
-        "countTopUpORConsumptionbyPlatform": true,
+        "countTopUpbyPlatform": true,
+        "countTopUpCountbyPlatform": true,
         "getPlayerRetention": true,
         "getAllActions": true,
         "getAdminInfo": true,
@@ -447,7 +448,10 @@ var roleChecker = {
                 gameRewardPoints: [],
                 rewardPointsRanking: [],
                 rewardPointsLog: []
-
+            },
+            "batchPermit": {
+                Read: [],
+                Update: ['updateBatchPlayerCredibilityRemark', 'updateBatchPlayerPermission', 'updateBatchPlayerForbidRewardEvents', 'updateBatchPlayerForbidProviders', 'updateBatchPlayerForbidPaymentType', 'updateBatchPlayerForbidRewardPointsEvent'],
             }
         },
         Payment: {
@@ -550,7 +554,7 @@ var roleChecker = {
                 Reward: ['getPlatformRewardAnalysis'],
                 Device: ['getPlayerDeviceAnalysisData'],
                 Consumption: ['getPlayerConsumptionSumForAllPlatform'],
-                TopUp: ['getTopUpTotalAmountForAllPlatform'],
+                TopUp: ['getTopUpTotalAmountForAllPlatform','getTopUpAnalysisList'],
                 NewPlayer: ['countNewPlayerbyPlatform', 'countNewPlayers'],
                 ActivePlayer: ['countActivePlayerbyPlatform', 'countActivePlayerALLPlatform'],
                 PlayerRetention: ['getPlayerRetention'],
@@ -560,7 +564,8 @@ var roleChecker = {
                 ClientSource: [],
                 LoginPlayer: [],
                 ValidActivePlayer: [],
-
+                OnlineTopupSuccessRate: [],
+                TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform']
             }
         },
         Report: {

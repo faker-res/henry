@@ -991,11 +991,11 @@ function isRelevantGameEvent(event, consumptionRecord) {
         return false;
     }
 
-    if (event.target && event.target.targetDestination && event.target.targetDestination.toString() !== consumptionRecord.providerId.toString()) {
+    if (event.target && event.target.targetDestination && event.target.targetDestination.toString() !== String(consumptionRecord.providerId)) {
         return false;
     }
 
-    if (event.target && event.target.gameType && event.target.gameType.toString() !== consumptionRecord.cpGameType.toString()) {
+    if (event.target && event.target.gameType && event.target.gameType.toString() !== String(consumptionRecord.cpGameType)) {
         return false;
     }
 

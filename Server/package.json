@@ -25,6 +25,7 @@
     "md5": "^2.2.1",
     "memory-cache": "^0.1.4",
     "memwatch-next": "^0.3.0",
+    "mobile-detect": "^1.4.1",
     "moment-timezone": "^0.5.6",
     "mongodb": "^2.2.19",
     "mongoose": "^4.7.6",

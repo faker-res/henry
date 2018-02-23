@@ -511,6 +511,13 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.approveCsPendingAndChangeStatus, [data.proposalObjId, data.createTime, data.adminName], actionName, isDataValid);
         },
 
+        getOnlineTopupAnalysisByPlatform: function getOnlineTopupAnalysisByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getOnlineTopupAnalysisByPlatform, [ObjectId(data.platformId), startTime, endTime, data.analysisCategory], actionName, isValidData);
+        },
     };
     socketActionProposal.actions = this.actions;
 }

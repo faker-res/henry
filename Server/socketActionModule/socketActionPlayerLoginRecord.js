@@ -32,10 +32,10 @@ function socketActionPartner(socketIO, socket) {
          */
         getPlayerLoginLocation: function getPlayerLoginLocation(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date);
+            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerLoginLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerLoginLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
         /**
          * getPlayerLoginLocationInCountry
@@ -43,10 +43,10 @@ function socketActionPartner(socketIO, socket) {
          */
         getPlayerLoginLocationInCountry: function getPlayerLoginLocationInCountry(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform && data.country && data.startTime && data.endTime && data.player && data.date);
+            var isValidData = Boolean(data && data.platform && data.country && data.startTime && data.endTime && data.player && data.date && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerLoginLocationInCountry, [ObjectId(data.platform), data.country, startTime, endTime, data.player, data.date], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerLoginLocationInCountry, [ObjectId(data.platform), data.country, startTime, endTime, data.player, data.date, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
 
         /**
@@ -55,10 +55,10 @@ function socketActionPartner(socketIO, socket) {
          */
         countLoginPlayerbyPlatform: function countLoginPlayerbyPlatform(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.countLoginPlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.countLoginPlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
 
         countLoginPlayerbyPlatformWeek: function countLoginPlayerbyPlatformWeek(data) {
@@ -101,9 +101,16 @@ function socketActionPartner(socketIO, socket) {
          */
         getPlayerRetention: function getPlayerRetention(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform && data.startTime && data.days);
+            let diffDays;
+            if (data.startTime && data.endTime) {
+                let timeDiff =  new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
+                if (timeDiff >= 0) {
+                    diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // + 1 to include end day
+                }
+            }
+            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.days && diffDays);
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays], actionName, isValidData);
         }
     };
     socketActionPartner.actions = this.actions;
