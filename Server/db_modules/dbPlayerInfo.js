@@ -641,7 +641,10 @@ let dbPlayerInfo = {
             country: data.country,
             longitude: data.longitude,
             latitude: data.latitude,
-            loginTime: data.registrationTime
+            loginTime: data.registrationTime,
+            isRealPlayer: data.isRealPlayer,
+            isTestPlayer: data.isTestPlayer,
+            partner: data.partner ? data.partner : null
         };
         var record = new dbconfig.collection_playerLoginRecord(recordData);
         record.save().then().catch(errorUtils.reportError);
@@ -4078,7 +4081,10 @@ let dbPlayerInfo = {
                                 platform: platformId,
                                 loginIP: playerData.lastLoginIp,
                                 clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
-                                userAgent: uaObj
+                                userAgent: uaObj,
+                                isRealPlayer: playerObj.isRealPlayer,
+                                isTestPlayer: playerObj.isTestPlayer,
+                                partner: playerObj.partner ? playerObj.partner : null
                             };
 
                             if (platformObj.usePointSystem) {
@@ -4359,7 +4365,10 @@ let dbPlayerInfo = {
                                 platform: platformId,
                                 loginIP: loginData.lastLoginIp,
                                 clientDomain: loginData.clientDomain ? loginData.clientDomain : "",
-                                userAgent: uaObj
+                                userAgent: uaObj,
+                                // isRealPlayer: playerObj.isRealPlayer,
+                                // isTestPlayer: playerObj.isTestPlayer,
+                                // partner: playerObj.partner ? playerObj.partner : null
                             };
                             Object.assign(recordData, geoInfo);
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
@@ -9094,17 +9103,37 @@ let dbPlayerInfo = {
     /*
      * get Player Device Analysis Data
      */
-    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement) {
+    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement, isRealPlayer, isTestPlayer, hasPartner) {
+
         if(queryRequirement == "register"){
+            let matchObj = {
+                platform: platform,
+                registrationTime: {$gte: startTime, $lt: endTime},
+                isRealPlayer: isRealPlayer,
+                isTestPlayer: isTestPlayer,
+            };
+
+            if (hasPartner !== null){
+                if (hasPartner == true){
+                    matchObj.partner = {$type: "objectId"};
+                }else {
+                    matchObj['$or'] = [
+                        {partner: null},
+                        {partner: {$exists: false}}
+                    ]
+                }
+            }
+
             return dbconfig.collection_players.aggregate(
                 {
                     $unwind: "$userAgent",
                 },
                 {
-                    $match: {
-                        platform: platform,
-                        registrationTime: {$gte: startTime, $lt: endTime}
-                    }
+                    $match: matchObj
+                        // {
+                    //     platform: platform,
+                    //     registrationTime: {$gte: startTime, $lt: endTime}
+                    // }
                 },
                 {
                     $group: {
@@ -9122,17 +9151,51 @@ let dbPlayerInfo = {
                 {
                     $sort: {number: -1}
                 }
-            )
+            ).read("secondaryPreferred");
         }else{
+
+            let matchObj = {
+                platform: platform,
+                loginTime: {$gte: startTime, $lt: endTime}
+            };
+
+            if (hasPartner !== null){
+                if (hasPartner == true){
+                    matchObj.partner = {$type: "objectId"};
+                    matchObj.isRealPlayer = isRealPlayer;
+                    matchObj.isTestPlayer = isTestPlayer;
+                }else {
+                    matchObj['$and'] = [
+                        {$or: [ {partner: null}, {partner: {$exists: false}} ]},
+                        {$or: [{$and: [ {isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}, {$and: [ {isRealPlayer: isRealPlayer}, {isTestPlayer:isTestPlayer} ]} ]},
+                    ]
+                }
+            }
+            else{
+                if (isRealPlayer){
+                    // the old data which do not contain isTestPlayer & isRealPlayer are treated as individual UserType
+                    matchObj['$or'] = [
+                        {$and: [{isRealPlayer: isRealPlayer}, {isTestPlayer: isTestPlayer} ]},
+                        {$and: [{isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}
+                    ]
+                }
+                else {
+                    // for the case of testPlayer
+                    matchObj.isRealPlayer = isRealPlayer;
+                    matchObj.isTestPlayer = isTestPlayer;
+                }
+            }
+
             return dbconfig.collection_playerLoginRecord.aggregate(
                 {
                     $unwind: "$userAgent",
                 },
                 {
-                    $match: {
-                        platform: platform,
-                        loginTime: {$gte: startTime, $lt: endTime}
-                    }
+                    $match: matchObj
+                    //     {
+                    //     platform: platform,
+                    //     loginTime: {$gte: startTime, $lt: endTime}
+                    // }
                 },
                 {
                     $group: {
@@ -9148,7 +9211,7 @@ let dbPlayerInfo = {
                 {
                     $sort: {number: -1}
                 }
-            )
+            ).read("secondaryPreferred");
         }
 
     },

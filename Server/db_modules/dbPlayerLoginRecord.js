@@ -52,7 +52,7 @@ var dbPlayerLoginRecord = {
             $gte: startTime,
             $lt: endTime
         }
-        
+
         if (hasPartner !== null){
             if (hasPartner == true){
                 matchObj.partner = {$type: "objectId"};
@@ -544,13 +544,47 @@ var dbPlayerLoginRecord = {
         )
     },
 
-    getPlayerDomainAnalysisData: function (platform, startTime, endTime) {
+    getPlayerDomainAnalysisData: function (platform, startTime, endTime, isRealPlayer, isTestPlayer, hasPartner) {
+
+        let matchObj = {
+            platform: platform,
+            loginTime: {$gte: startTime, $lt: endTime},
+        };
+
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                matchObj.partner = {$type: "objectId"};
+                matchObj.isRealPlayer = isRealPlayer;
+                matchObj.isTestPlayer = isTestPlayer;
+            }else {
+                matchObj['$and'] = [
+                    {$or: [ {partner: null}, {partner: {$exists: false}} ]},
+                    {$or: [{$and: [ {isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}, {$and: [ {isRealPlayer: isRealPlayer}, {isTestPlayer:isTestPlayer} ]} ]},
+                ]
+            }
+        }
+        else{
+            if (isRealPlayer){
+                // the old data which do not contain isTestPlayer & isRealPlayer are treated as individual UserType
+                matchObj['$or'] = [
+                    {$and: [{isRealPlayer: isRealPlayer}, {isTestPlayer: isTestPlayer} ]},
+                    {$and: [{isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}
+                ]
+            }
+            else {
+                // for the case of testPlayer
+                matchObj.isRealPlayer = isRealPlayer;
+                matchObj.isTestPlayer = isTestPlayer;
+            }
+        }
+
         return dbconfig.collection_playerLoginRecord.aggregate(
             {
-                $match: {
-                    platform: platform,
-                    loginTime: {$gte: startTime, $lt: endTime}
-                }
+                $match: matchObj
+                //     {
+                //     platform: platform,
+                //     loginTime: {$gte: startTime, $lt: endTime}
+                // }
             },
             {
                 $group: {
@@ -561,7 +595,7 @@ var dbPlayerLoginRecord = {
             {
                 $sort: {number: -1}
             }
-        )
+        ).read("secondaryPreferred");
     },
     getClientSourcePara: function () {
         var a = dbconfig.collection_playerClientSourceLog.distinct('clientType');

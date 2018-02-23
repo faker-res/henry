@@ -90,10 +90,10 @@ function socketActionPartner(socketIO, socket) {
 
         getPlayerDomainAnalysisData: function getPlayerDomainAnalysisData(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId);
+            var isValidData = Boolean(data && data.platformId && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerDomainAnalysisData, [ObjectId(data.platformId), startTime, endTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerDomainAnalysisData, [ObjectId(data.platformId), startTime, endTime, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
         /**
          * getPlayerRetention
