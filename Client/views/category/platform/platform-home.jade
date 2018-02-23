@@ -29,17 +29,14 @@
                                         th(width="10%") {{'Delay Status' | translate}}
                                         th(width="30%") {{'Game Type' | translate}}
                                         th(width="40%") {{'Latest Recorded Time' | translate}}
-                                tr
-                                    td(style='text-align: center')
-                                        div(ng-repeat='(i,v) in vm.delayStatus' style="height:24px;")
-                                            div(style="color: {{v}}")
+                                tbody
+                                    tr(ng-repeat='timeRecord in vm.providerLatestTimeRecord')
+                                        td(style='text-align: center')
+                                            div(style="color: {{timeRecord.delayStatusColor}}")
                                                 i.fa.fa-lg.fa-circle
-                                    td(style='text-align: center')
-                                        div(ng-repeat='(i,v) in vm.platformProviderList' style="height:24px;")
-                                            label {{vm.getProviderText(v.providerId)}}
-                                    td(style='text-align: center')
-                                        div(ng-repeat='(i,v) in vm.providerLatestTime' style="height:24px;")
-                                            label {{v}}
+                                        td(style='text-align: center') {{timeRecord.gameProviderName}}
+                                        td(style='text-align: center') {{timeRecord.createTime}}
+
                         //
                         //li(ng-if='!vm.curPlatformText', style='margin-right: 0;')
                         //    div.platformName(style='border-radius: 9px 0 0 9px;')

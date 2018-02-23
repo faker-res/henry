@@ -9,24 +9,24 @@ var dbconfig = require('./../modules/dbproperties');
 var dbutility = require('./../modules/dbutility');
 var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var dbPlayerConsumptionDaySummary = require('../db_modules/dbPlayerConsumptionDaySummary');
-var dbPlayerGameTypeConsumptionDaySummary = require('../db_modules/dbPlayerGameTypeConsumptionDaySummary');
-var dbPlayerGameTypeConsumptionWeekSummary = require('../db_modules/dbPlayerGameTypeConsumptionWeekSummary');
 var dbProposal = require('../db_modules/dbProposal');
-var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbPlayerReward = require('../db_modules/dbPlayerReward');
 var dbRewardEvent = require('../db_modules/dbRewardEvent');
-//var constGameType = require('../const/constGameType');
 var dbGameType = require('../db_modules/dbGameType');
 var constRewardType = require('../const/constRewardType');
-var constPlatformStatus = require('../const/constPlatformStatus');
 var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require('../const/constShardKeys');
 var util = require('util');
 var constServerCode = require('../const/constServerCode');
+
+const constProposalType = require("../const/constProposalType");
+const constProposalStatus = require("../const/constProposalStatus");
 const constProposalEntryType = require("../const/constProposalEntryType");
 const constProposalUserType = require('../const/constProposalUserType');
 const constSettlementPeriod = require('../const/constSettlementPeriod');
+
+const dbOps = require("../db_common/dbOperations");
 
 var dbPlayerConsumptionWeekSummary = {
 
@@ -235,7 +235,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
 
                                 if (dbPlayerReward.isRewardEventForbidden(playerData, eventData._id)) {
-                                    return Q.reject({status:constServerCode.PLAYER_NO_PERMISSION, name: "DataError", message: "Player is forbidden for this reward."});
+                                    return;
                                 }
 
                                 var returnAmount = 0;
@@ -256,16 +256,16 @@ var dbPlayerConsumptionWeekSummary = {
 
 
                                     if (!eventRatios) {
-                                        var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
+                                        // var msg = util.format("Reward event has no ratios for PlayerLevel \"%s\".  eventData: %j", playerLevel.name, eventData.param);
                                         //deferred.reject(Error(msg));
-                                        console.warn(msg);
+                                        // console.warn(msg);
                                         // Do not create a reward for this game type.  Proceed to the next game type.
                                         ratio = 0;
                                     }
                                     if (typeof ratio !== 'number') {
-                                        var msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData.param);
+                                        // var msg = util.format("Reward event has no ratio for gameType=%s at PlayerLevel \"%s\".  eventData: %j", gameType, playerLevel.name, eventData.param);
                                         //deferred.reject(Error(msg));
-                                        console.warn(msg);
+                                        // console.warn(msg);
                                         // Do not create a reward for this game type.  Proceed to the next game type.
                                         ratio = 0;
                                     }
@@ -342,8 +342,9 @@ var dbPlayerConsumptionWeekSummary = {
                                         }
                                     }
                                     proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
+                                    //only if proposal is created then add summary ids
+                                    processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
                                 }
-                                processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
                             }
                         }
                     );
@@ -382,9 +383,7 @@ var dbPlayerConsumptionWeekSummary = {
                         summaryRecords => {
                             //only mark summary dirty if they are not removed , which means the proposal is not approved
                             if (summaryRecords && summaryRecords.length > 0) {
-                                return dbconfig.collection_playerConsumptionSummary.remove(
-                                    {_id: {$in: summaryIds}}
-                                ).then(
+                                return dbOps.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: summaryIds}}).then(
                                     () => {
                                         var summaryProms = processedSummaries.map(
                                             summary => {
@@ -435,6 +434,8 @@ var dbPlayerConsumptionWeekSummary = {
             function (error) {
                 deferred.reject({name: "DBError", message: "Error marking player consumption record", error: error});
             }
+        ).catch(
+            error => console.log(error)
         );
 
         return deferred.promise;
@@ -506,31 +507,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 });
                             }
                             if (!updatePlayer.isConsumptionReturn || bAdmin) {
-                                let proms = [];
-                                for (let eventData of eventsData) {
-                                    if (dbPlayerReward.isRewardEventForbidden(updatePlayer, eventsData._id)) {
-                                        continue;
-                                    }
-                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, bAdmin, adminName, isForceApply));
-                                }
-                                return Q.all(proms).then(
-                                    data => {
-                                        //reset consumption return status
-                                        dbconfig.collection_players.findOneAndUpdate({
-                                            _id: playerData._id,
-                                            platform: playerData.platform._id
-                                        }, {isConsumptionReturn: false}).then();
-                                        return data;
-                                    },
-                                    error => {
-                                        //reset consumption return status
-                                        dbconfig.collection_players.findOneAndUpdate({
-                                            _id: playerData._id,
-                                            platform: playerData.platform._id
-                                        }, {isConsumptionReturn: false}).then();
-                                        return Q.reject(error);
-                                    }
-                                );
+                                return dbconfig.collection_proposalType.findOne({platformId: platformData._id, name: constProposalType.PLAYER_CONSUMPTION_RETURN}).lean();
                             }
                             else {
                                 deferred.reject({
@@ -539,6 +516,59 @@ var dbPlayerConsumptionWeekSummary = {
                                     message: "Player is applying consumption return"
                                 });
                             }
+                        }
+                    ).then(
+                        proposalType => {
+                            if (!proposalType) {
+                                eventsData = [];
+                                deferred.reject({
+                                    name: "DataError",
+                                    message: "Error in getting proposal type"
+                                });
+                            }
+
+                            return dbconfig.collection_proposal.findOne({
+                                type: proposalType._id,
+                                status: constProposalStatus.PENDING,
+                                "data.playerId": playerData.playerId
+                            }).lean();
+                        }
+                    ).then(
+                        rewardProposal => {
+                            if (rewardProposal) {
+                                eventsData = [];
+                                deferred.reject({
+                                    name: "DataError",
+                                    message: "Player or partner already has a pending proposal for this type"
+                                });
+                            }
+
+                            let proms = [];
+                            for (let eventData of eventsData) {
+                                if (dbPlayerReward.isRewardEventForbidden(playerData, eventsData._id)) {
+                                    continue;
+                                }
+                                proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, bAdmin, adminName, isForceApply));
+                            }
+
+                            return Q.all(proms).then(
+                                data => {
+                                    //reset consumption return status
+                                    dbconfig.collection_players.findOneAndUpdate({
+                                        _id: playerData._id,
+                                        platform: playerData.platform._id
+                                    }, {isConsumptionReturn: false}).then();
+                                    return data;
+                                },
+                                error => {
+                                    //reset consumption return status
+                                    dbconfig.collection_players.findOneAndUpdate({
+                                        _id: playerData._id,
+                                        platform: playerData.platform._id
+                                    }, {isConsumptionReturn: false}).then();
+                                    return Q.reject(error);
+                                }
+                            );
                         }
                     );
                 }

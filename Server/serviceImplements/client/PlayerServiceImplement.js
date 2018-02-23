@@ -46,7 +46,7 @@ let PlayerServiceImplement = function () {
             var md = new mobileDetect(uaString);
             data.userAgent = [{
                 browser: ua.browser.name || '',
-                device: ua.device.name || (md && md.mobile()) ? md.mobile() : '',
+                device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
                 os: ua.os.name || ''
             }];
             var geo = geoip.lookup(data.lastLoginIp);
