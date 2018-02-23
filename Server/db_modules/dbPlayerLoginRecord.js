@@ -387,7 +387,7 @@ var dbPlayerLoginRecord = {
                                 }
                             }
                         }]
-                    ).exec();
+                    ).read("secondaryPreferred").exec();
                     day0PlayerArrayProm.push(temp);
                     time0.setDate(time0.getDate() + 1);
                     time1.setDate(time1.getDate() + 1);
@@ -431,7 +431,7 @@ var dbPlayerLoginRecord = {
                                         }
                                     }
                                 }]
-                            ).exec();
+                            ).read("secondaryPreferred").exec();
                             loginDataArrayProm.push(temp);
                             time0.setDate(time0.getDate() + 1);
                             time1.setDate(time1.getDate() + 1);
@@ -511,13 +511,13 @@ var dbPlayerLoginRecord = {
         let count = dbconfig.collection_playerClientSourceLog.aggregate([
             {$match: matchObj},
             {$group: {_id: null, count: {$sum: 1}}},
-        ]);
+        ]).read("secondaryPreferred");
 
         let playerClientSourceLog = dbconfig.collection_playerClientSourceLog.aggregate([
             {$match: matchObj},
             {$group: {_id: "$domain", count: {$sum: 1}}},
             {$sort: {count: -1}}
-        ]);
+        ]).read("secondaryPreferred");
 
         return Promise.all([playerClientSourceLog, count]).then(
             result => {
@@ -595,7 +595,7 @@ var dbPlayerLoginRecord = {
             {
                 $sort: {number: -1}
             }
-        ).read("secondaryPreferred");
+        ).read("secondaryPreferred")
     },
     getClientSourcePara: function () {
         var a = dbconfig.collection_playerClientSourceLog.distinct('clientType');

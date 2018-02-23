@@ -367,7 +367,9 @@ var dbLogger = {
                 };
 
                 if (playerData) {
-                    if (playerData.name)
+                    //do not log playername if sms is use for creating demo account,
+                    //an incorrect playerName will be attached to the log if executed.
+                    if (purpose !== constSMSPurpose.DEMO_PLAYER && playerData.name)
                         logData.recipientName = playerData.name || logData.recipientName;
 
                     if (purpose === constSMSPurpose.UPDATE_BANK_INFO && !playerData.bankAccount)
@@ -380,13 +382,19 @@ var dbLogger = {
         );
     },
 
-    logUsedVerificationSMS: (tel, message) => {
+    logUsedVerificationSMS: (tel, message, playerName) => {
         dbconfig.collection_smsLog.find({tel, message}).sort({createTime: -1}).limit(1).lean().exec().then(
             smsLogArr => {
                 if (smsLogArr && smsLogArr[0]) {
                     let smsLog = smsLogArr[0];
 
-                    dbconfig.collection_smsLog.update({_id: smsLog._id}, {used: true}).exec();
+                    let updateData = {
+                        used: true
+                    };
+                    if(playerName) {
+                        updateData.recipientName = playerName;
+                    }
+                    dbconfig.collection_smsLog.update({_id: smsLog._id}, updateData).exec();
                 }
             }
         ).catch(errorUtils.reportError);

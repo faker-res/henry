@@ -6,13 +6,13 @@ var Schema = mongoose.Schema;
 
 var partnerWeekSummarySchema = new Schema({
     //partner id
-    partnerId: {type: Schema.ObjectId, required: true},
+    partnerId: {type: Schema.ObjectId, required: true, index: true},
     //partner level
-    partnerLevel: {type: Number},
+    partnerLevel: {type: Number, index: true},
     //platform id
-    platformId: {type: Schema.ObjectId, required: true},
+    platformId: {type: Schema.ObjectId, required: true, index: true},
     // The start of the week covered by this summary
-    date: {type: Date, required: true},
+    date: {type: Date, required: true, index: true},
     // no of valid player
     validPlayers: {type: Number, default: 0},
     // no of active players
