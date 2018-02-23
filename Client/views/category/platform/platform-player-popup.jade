@@ -1511,10 +1511,11 @@
                             table.col-md-12.paddingTbl.text-center.datatable-sm
                                 tbody
                                     tr
-                                        td.col-md-3.oblique {{'BEFORE_REWARD_POINTS_CONVERT' | translate}}
-                                        td.col-md-3.oblique {{'REWARD_POINTS_CONVERT_AMOUNT' | translate}}
-                                        td.col-md-3.oblique.strong(style='color:red') {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
-                                        td.col-md-3.oblique {{'AFTER_REWARD_POINTS_CONVERT' | translate}}
+                                        td.col-md-3 {{'BEFORE_REWARD_POINTS_CONVERT' | translate}}
+                                        td.col-md-3 {{'REWARD_POINTS_CONVERT_AMOUNT' | translate}}
+                                            span(ng-if="vm.rewardPointToCreditManualRate") &nbsp;({{vm.rewardPointToCreditManualRate}} : 1)
+                                        td.col-md-3.strong(style='color:red') {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
+                                        td.col-md-3 {{'AFTER_REWARD_POINTS_CONVERT' | translate}}
                                     tr
                                         td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
