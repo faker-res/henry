@@ -3668,7 +3668,7 @@ var proposal = {
                         }, {
                             $group: groupByObj
                         }
-                    ).then(
+                    ).read("secondaryPreferred").then(
                         data => {
                             //get success proposal count group by topupType, filter repeat user
                             return dbconfig.collection_proposal.aggregate(
@@ -3680,7 +3680,7 @@ var proposal = {
                                         userIds: { $addToSet: "$data.playerObjId" },
                                     }
                                 }
-                            ).then(
+                            ).read("secondaryPreferred").then(
                                 data1 => {
                                     return data.map(a => {
                                         a.successUserCount = 0;
@@ -3713,19 +3713,19 @@ var proposal = {
                                             }, {
                                                 $group: Object.assign({}, groupByObj,{_id: "$data.merchantNo"})
                                             }
-                                            ).then(
+                                            ).read("secondaryPreferred").then(
                                                 merchantData => {
                                                     // get success proposal count group by merchantNo, filter repeat user
                                                     return dbconfig.collection_proposal.aggregate(
                                                         {
-                                                            $match: Object.assign({}, matchObj,{status: "Success"})
+                                                            $match: Object.assign({}, matchObj,{status: "Success", 'data.topupType': onlineTopupTypeData._id})
                                                         }, {
                                                             $group: {
                                                                 _id: "$data.merchantNo",
                                                                 userIds: { $addToSet: "$data.playerObjId" },
                                                             }
                                                         }
-                                                    ).then(
+                                                    ).read("secondaryPreferred").then(
                                                         successMerchantData => {
                                                             merchantData = merchantData.map(merchant => {
                                                                 merchant.successUserCount = 0;
@@ -3765,7 +3765,7 @@ var proposal = {
                                 userIds: { $addToSet: "$data.playerObjId" },
                             }
                         }
-                    ).then(
+                    ).read("secondaryPreferred").then(
                         data => {
                             return {
                                 userAgentUserCount: data && data[0] ? data[0].userIds.length : 0
@@ -3793,7 +3793,7 @@ var proposal = {
                                     userIds: { $addToSet: "$data.playerObjId" },
                                 }
                             }
-                        ).then(
+                        ).read("secondaryPreferred").then(
                             data1 => {
                                 let totalUser = {
                                     totalUserCount: data1 && data1[0] ? data1[0].userIds.length : 0

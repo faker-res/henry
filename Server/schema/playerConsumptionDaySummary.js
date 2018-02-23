@@ -3,11 +3,11 @@ var Schema = mongoose.Schema;
 
 var playerConsumptionDaySummarySchema = new Schema({
     //player id
-    playerId: {type: Schema.ObjectId, required: true},
+    playerId: {type: Schema.ObjectId, required: true, index: true},
     // platform Id
-    platformId: {type: Schema.ObjectId, required: true},
+    platformId: {type: Schema.ObjectId, required: true, index: true},
     // payment time
-    date: {type: Date, required: true},
+    date: {type: Date, required: true, index: true},
     //total amount
     amount: {type: Number, default: 0},
     //valid amount for reward
