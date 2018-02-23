@@ -3532,7 +3532,10 @@ define(['js/app'], function (myApp) {
                         item.registrationOS$ = "";
                     }
 
-                    if (!item.sourceUrl) {
+                    // if (!item.sourceUrl) {
+                    //     item.registrationAgent$ = "Backstage";
+                    // }
+                    if (item.registrationInterface == vm.inputDevice.BACKSTAGE) {
                         item.registrationAgent$ = "Backstage";
                     }
                     else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
