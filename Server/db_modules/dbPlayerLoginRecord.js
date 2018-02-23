@@ -214,7 +214,7 @@ var dbPlayerLoginRecord = {
                             var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
                             var obj = {
                                 _id: {date: date},
-                                number: data.length
+                                number: dayData.length
                             }
                             tempDate = getNextDate(tempDate);
                             return obj;
