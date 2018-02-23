@@ -265,6 +265,11 @@ define(['js/app'], function (myApp) {
                         vm.platformOnlineTopupAnalysisDetailPeriod = 'day';
                         vm.initSearchParameter('onlineTopupSuccessRate', 'day', 1);
                         vm.queryPara.analysisCategory = 'onlineTopupType';
+                        vm.platformOnlineTopupSuccessTableSort = {
+                            WEB: 'totalCount',
+                            APP: 'totalCount',
+                            H5: 'totalCount'
+                        }
                         //vm.getOnlineToupSuccessRateData();
                         break;
                     case "TOPUPMANUAL":
@@ -700,6 +705,10 @@ define(['js/app'], function (myApp) {
             }
             return res;
         }
+
+        vm.onlineTopupTypeDataSort = (type, sortField) => {
+            vm.platformOnlineTopupSuccessTableSort[type] = vm.platformOnlineTopupSuccessTableSort[type] === sortField ? '-'+sortField : sortField;
+        };
 
         vm.calculateOnlineTopupTypeData = (merchantTopupTypeId, userAgent, merchantTypeId, merchantNo) => {
             let typeData = vm.platformOnlineTopupAnalysisData[userAgent][0].filter(data => data._id == merchantTopupTypeId)[0];

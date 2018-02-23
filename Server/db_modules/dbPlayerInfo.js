@@ -8266,7 +8266,7 @@ let dbPlayerInfo = {
                                 }, {
                                     $group: groupObj
                                 }
-                            ).then(
+                            ).read("secondaryPreferred").then(
                                 data => {
                                     // find success proposal count and unique user
                                     return dbconfig.collection_proposal.aggregate(
@@ -8278,7 +8278,7 @@ let dbPlayerInfo = {
                                                 userIds: { $addToSet: "$data.playerObjId" },
                                             }
                                         }
-                                    ).then(
+                                    ).read("secondaryPreferred").then(
                                         data1 => {
                                             // find current date all unique totalUserCount and totalReceivedAmount
                                             return dbconfig.collection_proposal.aggregate(
@@ -8296,7 +8296,7 @@ let dbPlayerInfo = {
                                                         receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
                                                     }
                                                 }
-                                            ).then(
+                                            ).read("secondaryPreferred").then(
                                                 data2 => {
                                                     return {
                                                         date: startTime,
