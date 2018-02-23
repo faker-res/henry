@@ -53,7 +53,8 @@ define(['js/app'], function (myApp) {
         vm.getDepositMethodbyId = {
             1: 'Online',
             2: 'ATM',
-            3: 'Counter'
+            3: 'Counter',
+            4: 'AliPayTransfer'
         };
         vm.inputDevice = {
             BACKSTAGE: 0,
