@@ -5861,15 +5861,28 @@ let dbPlayerInfo = {
         );
     },
 
-    getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince) {
+    getPlayerPhoneLocation: function (platform, startTime, endTime, player, date, phoneProvince, isRealPlayer, isTestPlayer, hasPartner) {
         //todo: active player indicator
         var matchObj = {
-            platform: platform
+            platform: platform,
+            isRealPlayer: isRealPlayer,
+            isTestPlayer: isTestPlayer
         };
         date = date || 'lastAccessTime';
         matchObj[date] = {
             $gte: startTime,
             $lt: endTime
+        }
+
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                matchObj.partner = {$type: "objectId"};
+            }else {
+                matchObj['$or'] = [
+                    {partner: null},
+                    {partner: {$exists: false}}
+                ]
+            }
         }
 
         var idObj = {}
@@ -7122,7 +7135,8 @@ let dbPlayerInfo = {
         };
         var query = {
             platform: platform,
-            registrationTime: timeQuery
+            registrationTime: timeQuery,
+            isRealPlayer: true //only count real player
         };
 
         // var a = dbconfig.collection_players.find(query).count();
@@ -8203,88 +8217,109 @@ let dbPlayerInfo = {
     },
 
 
-    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, merchantTopupTypeId, userAgent) => {
-        return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
+    getOnlineTopupAnalysisDetailUserCount: (platformId, startDate, endDate, period, userAgent, merchantTopupTypeId, analysisCategory, merchantTypeId, merchantNo) => {
+        return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP})
+            .populate({path: "platformId", model: dbconfig.collection_platform}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {
                 if (!onlineTopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
-                let proms = [];
-                while (startDate.getTime() < endDate.getTime()) {
-                    let dayEndTime = getNextDateByPeriodAndDate(period, startDate);
-                    let startTime = startDate;
-                    let queryObj = {
-                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
-                        type: onlineTopupType._id,
-                        "data.topupType": parseInt(merchantTopupTypeId),
-                        "data.userAgent": userAgent,
+                let getMerchantListProm = Promise.resolve([]);
+                // only when analysis category is thirdPartyPlatform need get merchantList from pms
+                if(analysisCategory === 'thirdPartyPlatform')
+                    getMerchantListProm = pmsAPI.merchant_getMerchantList({
+                        platformId: onlineTopupType.platformId.platformId,
+                        queryId: serverInstance.getQueryId()
+                    });
+                return getMerchantListProm.then(
+                    responseData => {
+                        let merchantList = responseData.merchants || [];
+                        //  will find all merchantNo match merchantTypeId to query
+                        let merchantNoArray = merchantList.filter(merchant => merchant.merchantTypeId == merchantTypeId).map(merchant => merchant.merchantNo);
+                        let proms = [];
+                        while (startDate.getTime() < endDate.getTime()) {
+                            let dayEndTime = getNextDateByPeriodAndDate(period, startDate);
+                            let startTime = startDate;
+                            let queryObj = {
+                                createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                type: onlineTopupType._id,
+                                "data.topupType": parseInt(merchantTopupTypeId),
+                                "data.userAgent": parseInt(userAgent),
 
-                    };
-                    proms.push(dbconfig.collection_proposal.aggregate(
-                        {
-                            $match: queryObj
-                        }, {
-                            $group: {
+                            };
+
+                            let groupObj = {
                                 _id: "$data.topupType",
                                 userIds: {$addToSet: "$data.playerObjId"},
                                 receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
                                 successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
                                 count: {$sum: 1},
+                            };
+                            if(analysisCategory !== 'onlineTopupType') {
+                                queryObj = Object.assign({}, queryObj,{'data.merchantNo': {$in: merchantNoArray}});
+                                groupObj._id = null;
                             }
-                        }
-                        ).then(
-                        data => {
-                            return dbconfig.collection_proposal.aggregate(
+                            if(analysisCategory == 'merchantNo')
+                                queryObj = Object.assign({}, queryObj,{'data.merchantNo': merchantNo});
+                            // find data by date
+                            let prom = dbconfig.collection_proposal.aggregate(
                                 {
-                                    $match: {
-                                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
-                                        type: onlineTopupType._id,
-                                        status: "Success",
-                                        "data.topupType": parseInt(merchantTopupTypeId),
-                                        "data.userAgent": userAgent,
-                                    }
+                                    $match: queryObj
                                 }, {
-                                    $group: {
-                                        _id: "$data.topupType",
-                                        userIds: { $addToSet: "$data.playerObjId" },
-                                    }
+                                    $group: groupObj
                                 }
                             ).then(
-                                data1 => {
+                                data => {
+                                    // find success proposal count and unique user
                                     return dbconfig.collection_proposal.aggregate(
                                         {
-                                            $match: {
-                                                createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
-                                                type: onlineTopupType._id,
-                                                status: "Success",
-                                                $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
-                                            }
+                                            $match: Object.assign({}, queryObj,{status: "Success"})
                                         }, {
                                             $group: {
-                                                _id: null,
-                                                userIds: {$addToSet: "$data.playerObjId"},
-                                                receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                                _id: "$data.topupType",
+                                                userIds: { $addToSet: "$data.playerObjId" },
                                             }
                                         }
                                     ).then(
-                                        data2 => {
-                                            return {
-                                                date: startTime,
-                                                userCount: data && data[0] ? data[0].userIds.length : 0,
-                                                receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
-                                                successCount: data && data[0] ? data[0].successCount : 0,
-                                                totalCount: data && data[0] ? data[0].count : 0,
-                                                successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0,
-                                                totalUserCount: data2 && data2[0] ? data2[0].userIds.length : 0,
-                                                totalReceivedAmount: data2 && data2[0] ? data2[0].receivedAmount : 0,
-                                            }
+                                        data1 => {
+                                            // find current date all unique totalUserCount and totalReceivedAmount
+                                            return dbconfig.collection_proposal.aggregate(
+                                                {
+                                                    $match: {
+                                                        createTime: {$gte: new Date(startTime), $lt: new Date(dayEndTime)},
+                                                        type: onlineTopupType._id,
+                                                        status: "Success",
+                                                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                                    }
+                                                }, {
+                                                    $group: {
+                                                        _id: null,
+                                                        userIds: {$addToSet: "$data.playerObjId"},
+                                                        receivedAmount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                                    }
+                                                }
+                                            ).then(
+                                                data2 => {
+                                                    return {
+                                                        date: startTime,
+                                                        userCount: data && data[0] ? data[0].userIds.length : 0,
+                                                        receivedAmount: data && data[0] ? data[0].receivedAmount : 0,
+                                                        successCount: data && data[0] ? data[0].successCount : 0,
+                                                        totalCount: data && data[0] ? data[0].count : 0,
+                                                        successUserCount: data1 && data1[0] ? data1[0].userIds.length : 0,
+                                                        totalUserCount: data2 && data2[0] ? data2[0].userIds.length : 0,
+                                                        totalReceivedAmount: data2 && data2[0] ? data2[0].receivedAmount : 0,
+                                                    }
+                                                }
+                                            )
                                         }
-                                    )
-                                }
-                            );
-                        })
-                    );
-                    startDate = dayEndTime;
-                }
-                return Q.all(proms);
+                                    );
+                                });
+
+                            proms.push(prom);
+                            startDate = dayEndTime;
+                        }
+                        return Q.all(proms);
+                    }
+                )
             }
         )
     },
