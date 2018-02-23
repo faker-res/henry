@@ -532,10 +532,10 @@ function socketActionPlayer(socketIO, socket) {
          */
         countNewPlayerbyPlatform: function countNewPlayerbyPlatform(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.countNewPlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.countNewPlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
 
         countNewPlayerAllPlatform: function countNewPlayerAllPlatform(data) {
@@ -561,10 +561,10 @@ function socketActionPlayer(socketIO, socket) {
          */
         countActivePlayerbyPlatform: function countActivePlayerbyPlatform(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.countActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.countActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, false, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
 
         getOnlineTopupAnalysisDetailUserCount: function getOnlineTopupAnalysisDetailUserCount(data) {
@@ -572,7 +572,7 @@ function socketActionPlayer(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getOnlineTopupAnalysisDetailUserCount, [ObjectId(data.platformId), startTime, endTime, data.period, data.merchantTopupTypeId, data.userAgent], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getOnlineTopupAnalysisDetailUserCount, [ObjectId(data.platformId), startTime, endTime, data.period, data.userAgent, data.merchantTopupTypeId, data.analysisCategory, data.merchantTypeId, data.merchantNo], actionName, isValidData);
         },
 
         /**
@@ -581,10 +581,10 @@ function socketActionPlayer(socketIO, socket) {
          */
         countValidActivePlayerbyPlatform: function countValidActivePlayerbyPlatform(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.countValidActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.countValidActivePlayerbyPlatform, [ObjectId(data.platformId), startTime, endTime, data.period, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
 
         /**
@@ -740,10 +740,10 @@ function socketActionPlayer(socketIO, socket) {
          */
         getPlayerPhoneLocation: function getPlayerPhoneLocation(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date);
+            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date &&  typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPhoneLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPhoneLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date, null, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
 
         /**
@@ -752,20 +752,20 @@ function socketActionPlayer(socketIO, socket) {
          */
         getPlayerPhoneLocationInProvince: function getPlayerPhoneLocationInProvince(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date && data.phoneProvince);
+            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.player && data.date && data.phoneProvince &&  typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
             var endTime = data.endTime ? new Date(data.endTime) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPhoneLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date, data.phoneProvince], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPhoneLocation, [ObjectId(data.platform), startTime, endTime, data.player, data.date, data.phoneProvince, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
         /**
          * get player device data
          */
         getPlayerDeviceAnalysisData: function getPlayerDeviceAnalysisData(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.type);
+            var isValidData = Boolean(data && data.platformId && data.type && data.queryRequirement);
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime, data.queryRequirement], actionName, isValidData);
         },
         /**
          *  apply Manual TopUp

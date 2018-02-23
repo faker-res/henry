@@ -7,7 +7,7 @@ var playerConsumptionSummarySchema = new Schema({
     // platform Id
     platformId: {type: Schema.ObjectId, required: true, index: true},
     // game type
-    gameType: {type: String, required: true},
+    gameType: {type: String, required: true, index: true},
     //total amount for statistics
     amount: {type: Number, required: true, default: 0},
     //total valid amount for statistics
@@ -17,7 +17,7 @@ var playerConsumptionSummarySchema = new Schema({
     //summary day time at 0am
     summaryDay: {type: Date, required: true, index: true},
     // when this record was first created
-    createTime: {type: Date, default: Date.now},
+    createTime: {type: Date, default: Date.now, index: true},
     // when this record was made dirty
     dirtyDate: {type: Date, default: null},
     // list of ids of consumption records which correspond to this summary (for verification purposes)
