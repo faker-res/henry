@@ -3275,7 +3275,7 @@ var proposal = {
         return dbconfig.collection_proposal.find({
             status: constProposalStatus.PENDING,
             mainType: {$in: [constProposalMainType.PlayerWechatTopUp, constProposalMainType.ManualPlayerTopUp, constProposalMainType.PlayerAlipayTopUp]},
-            "data.validTime": {$lt: new Date()},
+            "data.expirationTime": {$lt: new Date()},
             "data.limitedOfferObjId": {$exists: true}
         })
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
