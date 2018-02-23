@@ -7,11 +7,11 @@ var gameProviderPlayerDaySummarySchema = new Schema({
     //platform id
     platformId: {type: Schema.ObjectId, required: true, index: true},
     //provider id
-    providerId: {type: Schema.ObjectId, required: true},
+    providerId: {type: Schema.ObjectId, required: true, index: true},
     // game Id
-    gameId: {type: Schema.ObjectId, required: true},
+    gameId: {type: Schema.ObjectId, required: true, index: true},
     // game type
-    gameType: {type: String, required: true},
+    gameType: {type: String, required: true, index: true},
     // time
     date: {type: Date, required: true, index: true},
     //total amount
