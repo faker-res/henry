@@ -17963,40 +17963,29 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.promoCodeNewRow = function (collection, type, data) {
+            vm.promoCodeNewRow = function (collection, type, data, isMultiple) {
                 let tableId = "#createPromoCodeTable" + type;
                 let date = (data && data.expirationTime$) ? new Date(data.expirationTime$) : utilService.setLocalDayEndTime(new Date());
-                // let p = Promise.resolve(collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: true}));
                 collection.push(data ? data : {disableWithdraw: false, isSharedWithXIMA: true, allowedSendSms: true});
 
-                // return p.then(
-                //     () => {
-                        let index = collection.length-1;
+                if (!isMultiple) {
+                    vm.endLoadWeekDay();
+                }
 
-                        let id = '#expDate' + type + '-' + index;
+                let index = collection.length-1;
+                let id = '#expDate' + type + '-' + index;
 
-                        // utilService.actionAfterLoaded(id, function () {
-                        //     collection[index].expirationTime = utilService.createDatePicker(id, {
-                        //         language: 'en',
-                        //         format: 'yyyy/MM/dd hh:mm:ss',
-                        //         startDate: utilService.setLocalDayStartTime(new Date())
-                        //     });
-                        //     collection[index].expirationTime.data('datetimepicker').setDate(date);
-                        // });
+                setTimeout( () => {
+                    collection[index].expirationTime = utilService.createDatePicker(id, {
+                        language: 'en',
+                        format: 'yyyy/MM/dd hh:mm:ss',
+                        startDate: utilService.setLocalDayStartTime(new Date())
+                    });
+                    collection[index].expirationTime.data('datetimepicker').setDate(date);
+                    vm.checkPlayerName(collection[index], tableId, index);
+                    return collection;
+                },0);
 
-
-                        setTimeout( () => {
-                            collection[index].expirationTime = utilService.createDatePicker(id, {
-                                language: 'en',
-                                format: 'yyyy/MM/dd hh:mm:ss',
-                                startDate: utilService.setLocalDayStartTime(new Date())
-                            });
-                            collection[index].expirationTime.data('datetimepicker').setDate(date);
-                            vm.checkPlayerName(collection[index], tableId, index);
-                            return collection;
-                        },0);
-                //     }
-                // );
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
@@ -18016,13 +18005,16 @@ define(['js/app'], function (myApp) {
                         delete newData.$$hashKey;
 
                         p = p.then(function () {
-                            return vm.promoCodeNewRow(col, type, newData);
+                            return vm.promoCodeNewRow(col, type, newData, true);
                         });
 
                     });
 
 
-                    return p.then(ret => $scope.safeApply());
+                    return p.then(ret => {
+                        vm.endLoadWeekDay();
+                        $scope.safeApply();
+                    });
                 } else {
                     let searchQ = {
                         platformObjId: vm.selectedPlatform.id,
