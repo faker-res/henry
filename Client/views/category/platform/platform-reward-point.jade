@@ -105,7 +105,7 @@ style.
                                 td(style="min-width:80px;")
                                     input.form-control(type='number' style="width:100%;" ng-model='val.index' ng-disabled='!val.isEditing')
                                 td(style="min-width:150px;")
-                                    select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in constPlayerRegistrationInterface" ng-disabled='!val.isEditing')
+                                    select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in vm.userAgentWithSelectAll" ng-disabled='!val.isEditing')
                                 td
                                     select.spicker.form-control(ng-model="val.target.targetDestination" multiple, data-container="body" data-width='100%' data-actions-box='true' ng-disabled='!val.isEditing')
                                         option(style="display: inline-block" value='') {{"ANY_PAGE" | translate}}
@@ -164,9 +164,9 @@ style.
                                 td(style="min-width:80px;")
                                     input.form-control(type='number' ng-model='val.index' ng-disabled='!val.isEditing')
                                 td(style="min-width:150px;")
-                                    select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in userAgentType" ng-disabled='!val.isEditing')
+                                    select.form-control(ng-model='val.userAgent' ng-options="+(i) as v | translate for (i,v) in vm.userAgentTypeWithSelectAll" ng-disabled='!val.isEditing')
                                 td(style="min-width:150px;")
-                                    select.form-control(ng-model='val.target.merchantTopupMainType' ng-options="+(i) as v | translate for (i,v) in topUpTypeList" ng-disabled='!val.isEditing')
+                                    select.form-control(ng-model='val.target.merchantTopupMainType' ng-options="+(i) as v | translate for (i,v) in vm.topupTypeListWithSelectAll" ng-disabled='!val.isEditing')
                                 td(style="min-width:140px;")
                                     select.form-control(ng-model='val.target.merchantTopupType' ng-options="+(i) as v | translate for (i,v) in merchantTopupTypeJson" ng-disabled='!val.isEditing')
                                         option(value='') {{'EMPTY'|translate}}
