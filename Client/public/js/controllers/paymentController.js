@@ -1077,7 +1077,7 @@ define(['js/app'], function (myApp) {
             })
         };
 
-        vm.loadMerchantGroupData = function (keepSelected) {
+        vm.loadMerchantGroupData = function (keepSelected, selectGroupId) {
             //init gametab start===============================
             vm.showMerchantCate = "include";
             vm.curGame = null;
@@ -1089,18 +1089,27 @@ define(['js/app'], function (myApp) {
                 vm.SelectedMerchantGroupNode = null;
             }
             console.log("getMerchants", vm.selectedPlatform.id);
-            return new Promise((resolve, reject) => {
-                socketService.$socket($scope.AppSocket, 'getPlatformMerchantGroup', {platform: vm.selectedPlatform.id}, function (data) {
-                    console.log('merchantgroup', data);
-                    //provider list init
-                    vm.platformMerchantGroupList = data && data.data ? data.data : [];
-                    vm.platformMerchantGroupListCheck = {};
-                    $.each(vm.platformMerchantGroupList, function (i, v) {
-                        vm.platformMerchantGroupListCheck[v._id] = true;
-                    })
-                    resolve([]);
+            socketService.$socket($scope.AppSocket, 'getPlatformMerchantGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                console.log('merchantgroup', data);
+                //provider list init
+                vm.platformMerchantGroupList = data && data.data ? data.data : [];
+                vm.platformMerchantGroupListCheck = {};
+                $.each(vm.platformMerchantGroupList, function (i, v) {
+                    vm.platformMerchantGroupListCheck[v._id] = true;
                 })
+                if(selectGroupId){
+                    vm.selectedMerchantGroup(selectGroupId);
+                }
             })
+        }
+
+        vm.selectedMerchantGroup = function(selectedMerchantGroupId){
+            let selectedNode = vm.platformMerchantGroupList.filter(item => {
+                return item._id == selectedMerchantGroupId;
+            })
+            if (selectedNode.length > 0) {
+                vm.merchantGroupClicked(0, selectedNode[0]);
+            }
         }
 
         vm.merchantGroupClicked = function (i, merchantGroup) {
@@ -1310,17 +1319,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
                 vm.curMerchant = null;
-                var p1 = new Promise((resolve, reject) => {
-                    resolve(vm.loadMerchantGroupData(true));
-                })
-                p1.then(data => {
-                    let selectedNode = vm.platformMerchantGroupList.filter(item => {
-                        return item._id == selectedMerchantGroupId;
-                    })
-                    if (selectedNode.length > 0) {
-                        vm.merchantGroupClicked(0, selectedNode[0]);
-                    }
-                });
+                vm.loadMerchantGroupData(true, selectedMerchantGroupId)
                 $scope.safeApply();
             }
         }
@@ -1379,17 +1378,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'updatePlatformMerchantGroup', sendData, success);
             function success(data) {
                 vm.curMerchant = null;
-                var p1 = new Promise((resolve, reject) => {
-                    resolve(vm.loadMerchantGroupData(true));
-                })
-                p1.then(data => {
-                    let selectedNode = vm.platformMerchantGroupList.filter(item => {
-                        return item._id == selectedMerchantGroupId;
-                    })
-                    if (selectedNode.length > 0) {
-                        vm.merchantGroupClicked(0, selectedNode[0]);
-                    }
-                });
+                vm.loadMerchantGroupData(true, selectedMerchantGroupId)
                 $scope.safeApply();
             }
         }
