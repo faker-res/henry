@@ -4720,7 +4720,7 @@ let dbPlayerReward = {
                 }
 
                 // Decide whether deduct player credit
-                if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
+                if (isUpdateValidCredit && playerData.platform.useProviderGroup && rewardAmount) {
                     // Decide whether player has enough free amount to apply
                     if (playerData.validCredit >= applyAmount) {
                         // Player has enough amount in validCredit
