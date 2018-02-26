@@ -842,14 +842,13 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let jblUrl = urls[2];
                 urls[2] = urls[0];
                 urls[0] = jblUrl;
-            } else if (platformId == '7') {
-                let xdlUrl = urls[3];
-                urls[3] = urls[0];
-                urls[0] = xdlUrl;
-            } else if (platformId == '2') {
+            } else if (platformId == '2' || platformId == '7') {
                 let bbetUrl = urls[4];
                 urls[4] = urls[0];
                 urls[0] = bbetUrl;
+                let xdlUrl = urls[3];
+                urls[3] = urls[1];
+                urls[1] = xdlUrl;
             }
 
             performPhoneCall();
