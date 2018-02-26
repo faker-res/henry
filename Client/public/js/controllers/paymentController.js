@@ -1430,8 +1430,7 @@ define(['js/app'], function (myApp) {
         vm.syncMerchantNoScript = function(){
           let sendData = {'platformId': vm.selectedPlatform.id}
           socketService.$socket($scope.AppSocket, 'syncMerchantNoScript', sendData, function (data) {
-            console.log(data);
-            if(data.length){
+            if(data.data.length){
               alert('同步完成');
             }
           });
