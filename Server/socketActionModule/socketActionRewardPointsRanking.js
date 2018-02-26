@@ -53,6 +53,12 @@ function socketActionRewardPointsRanking(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardPointsRanking.deleteRewardPointsRankingRandom, [data], actionName, isValidData);
         },
 
+        deleteMultipleRewardPointsRankingRandom: function deleteMultipleRewardPointsRankingRandom (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerObjIds && data.playerObjIds.length > 0);
+            socketUtil.emitter(self.socket, dbRewardPointsRanking.deleteMultipleRewardPointsRankingRandom, [data], actionName, isValidData);
+        },
+
         getRewardPointsRandomDataConfig: function getRewardPointsRandomDataConfig (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);

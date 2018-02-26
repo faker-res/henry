@@ -94,6 +94,14 @@ var dbRewardPointsRanking = {
         return dbConfig.collection_rewardPoints.remove({_id: ObjectId(data._id)});
     },
 
+    deleteMultipleRewardPointsRankingRandom: (data) => {
+        let deleteObjId = [];
+        for (let i = 0; i < data.playerObjIds.length; i++) {
+            deleteObjId[i] = ObjectId(data.playerObjIds[i]);
+        }
+        return dbConfig.collection_rewardPoints.remove({_id: {$in: deleteObjId}});
+    },
+
     getRewardPointsRandomDataConfig: (platformObjId) => {
         return dbConfig.collection_rewardPointsRandomDataConfig.findOne({
             platformObjId: platformObjId
