@@ -194,6 +194,7 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('playerDevice', true, 2, function () {
                             vm.queryPara.playerDevice.type = 'os';
                             vm.queryPara.playerDevice.queryRequirement = 'register';
+                            vm.queryPara.playerDevice.userType = 'all';
                             //vm.deviceAnalysisInit();
                         });
                         break;
@@ -211,6 +212,8 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('playerDomain', true, 2, function () {
                             //vm.domainAnalysisInit();
                         });
+                        vm.queryPara.playerDomain.userType = 'all';
+                        $scope.safeApply();
                         break;
                     case "PLAYER_RETENTION":
                         vm.initSearchParameter('playerRetention', null, 2, function () {
@@ -223,6 +226,7 @@ define(['js/app'], function (myApp) {
                             vm.playerRetentionInit(function () {
                                 //vm.getPlayerRetention();
                             });
+                            vm.queryPara.playerRetention.userType = "all";
                             $scope.safeApply();
                         });
                         break;
@@ -250,6 +254,9 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('clientSource', true, 3, function () {
                             //vm.initClientSourcePara(vm.getClientSourceData);
                         });
+                        vm.queryPara.clientSource.userType='all';
+                        $scope.safeApply();
+
                         break;
                     case "GAME_ANALYSIS":
                         // vm.getAllProvider();
@@ -1130,140 +1137,6 @@ define(['js/app'], function (myApp) {
                 }
                 vm.platformNewPlayerDataPeriodText = vm.queryPara.newPlayer.periodText;
                 console.log('vm.platformNewPlayerAnalysisData', vm.platformNewPlayerAnalysisData);
-                //var newPlayerObjData = {};
-                // for (var i = 0; i < newPlayerData.length; i++) {
-                //     switch (vm.queryPara.newPlayer.periodText) {
-                //         case 'day':
-                //             newPlayerObjData[newPlayerData[i]._id.date] = newPlayerData[i].number;
-                //             break;
-                //         case 'week':
-                //             newPlayerObjData[newPlayerData[i]._id.week] = newPlayerData[i].number;
-                //             break;
-                //         case 'month':
-                //             newPlayerObjData[newPlayerData[i]._id.year + '' + newPlayerData[i]._id.month] = newPlayerData[i].number;
-                //             break;
-                //     }
-                // }
-
-                // var newOptions = {
-                //     xaxis: {
-                //         tickLength: 0,
-                //         mode: "time",
-                //         minTickSize: [1, vm.queryPara.newPlayer.periodText],
-                //     }
-                // };
-                // var nowDate = new Date(sendData.startDate);
-
-                // var xText = '';
-                // switch (vm.queryPara.newPlayer.periodText) {
-                //     case 'day':
-                //         //         do {
-                //         //             var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
-                //         //             graphData.push([nowDate.getTime(), (newPlayerObjData[dateText] || 0)]);
-                //         //             nowDate.setDate(nowDate.getDate() + 1);
-                //         //         } while (nowDate <= sendData.endDate);
-                //         xText = 'DAY';
-                //         newOptions = {
-                //             xaxis: {
-                //                 tickLength: 0,
-                //                 mode: "time",
-                //                 minTickSize: [1, "day"],
-                //             }
-                //         };
-                //         break;
-                //     case 'week':
-                //         //         var k = 0;
-                //         //         do {
-                //         //             // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toISOString());
-                //         //             graphData.push([nowDate.getTime(), (newPlayerObjData[k] || 0)]);
-                //         //             nowDate.setDate(nowDate.getDate() + 7);
-                //         //             k++;
-                //         //         } while (nowDate <= sendData.endDate);
-                //         xText = 'WEEK';
-                //         newOptions = {
-                //             xaxis: {
-                //                 tickLength: 0,
-                //                 mode: "time",
-                //                 minTickSize: [6, "day"],
-                //             }
-                //         };
-                //         break;
-                //     case 'month' :
-                //         //         nowDate.setDate(1);
-                //         //         do {
-                //         //             var nowYear = nowDate.getFullYear();
-                //         //             var nowMonth = nowDate.getMonth() + 1;
-                //         //             console.log('nowMonth', nowYear + '' + nowMonth);
-                //         //             graphData.push([nowDate.getTime(), (newPlayerObjData[nowYear + '' + nowMonth] || 0)]);
-                //         //             nowDate.setMonth(nowDate.getMonth() + 1);
-                //         //
-                //         //         } while (nowDate <= sendData.endDate);
-                //         xText = 'MONTH';
-                //         newOptions = {
-                //             xaxis: {
-                //                 tickLength: 0,
-                //                 mode: "time",
-                //                 minTickSize: [1, "month"],
-                //             }
-                //         };
-                //         break;
-                // }
-
-                // newOptions.yaxes = [{
-                //     position: 'left',
-                //     axisLabel: $translate('AMOUNT'),
-                // }];
-                // newOptions.xaxes = [{
-                //     position: 'bottom',
-                //     axisLabel: $translate('PERIOD') + ' : ' + $translate(vm.queryPara.newPlayer.periodText.toUpperCase())
-                // }];
-                //
-                // newOptions.colors = ["#00afff", "#FF0000"];
-                // socketService.$plotLine(placeholder, [{label: $translate('New Players'), data: graphData},{label: $translate('average line'), data: averageData}], newOptions);
-                // $(placeholder).bind("plothover", function (event, pos, obj) {
-                //     var previousPoint;
-                //     if (!obj) {
-                //         $("#tooltip").hide();
-                //         previousPoint = null;
-                //         return;
-                //     } else {
-                //         if (previousPoint != obj.dataIndex) {
-                //             previousPoint = obj.dataIndex;
-                //
-                //             var x = obj.datapoint[0],
-                //                 y = obj.datapoint[1].toFixed(0);
-                //
-                //             var date = new Date(x);
-                //             var dateString = utilService.$getDateFromStdTimeFormat(date.toISOString())
-                //             // console.log('date', x, date);
-                //             $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.newPlayer.periodText) + " : " + dateString)
-                //                 .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                //                 .fadeIn(200);
-                //         }
-                //     }
-                // });
-
-                // $(".flot-x-axis .flot-tick-label.tickLabel").addClass("rotate330");
-
-                // var tableData = [];
-                // for (var i in graphData) {
-                //     var obj = {};
-                //     obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
-                //     obj.amount = graphData[i][1] || 0;
-                //     tableData.push(obj);
-                // }
-                // var dataOptions = {
-                //     data: tableData,
-                //     columns: [
-                //         {title: $translate(vm.queryPara.newPlayer.periodText), data: "date"},
-                //         {title: $translate('amount'), data: "amount"}
-                //     ],
-                //     "paging": false,
-                // };
-                // dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-                // var a = $('#newPlayerAnalysisTable').DataTable(dataOptions);
-                // a.columns.adjust().draw();
-
 
                 let calculatedNewPlayerData = vm.calculateLineDataAndAverage(vm.platformNewPlayerAnalysisData, 'players', 'New Players');
                 vm.platformNewPlayerAverage = calculatedNewPlayerData.average;
@@ -1400,67 +1273,6 @@ define(['js/app'], function (myApp) {
             vm.isShowLoadingSpinner('#activePlayerAnalysis', true);
             vm.isLoadingctivePlayer = true;
             socketService.$socket($scope.AppSocket, 'countActivePlayerbyPlatform', sendData, function success(data1) {
-
-                // console.log('received data', data1);
-                // var activePlayerData = data1 ? data1.data : [];
-                // var graphData = [];
-                // activePlayerData.forEach(item => {
-                //     graphData.push([new Date(item.date).getTime(), item.activePlayers]);
-                // })
-                //
-                // //draw graph
-                // socketService.$plotLine(placeholder, [{
-                //     label: $translate('Active Player'),
-                //     data: graphData
-                // }], {
-                //     xaxis: {
-                //         tickLength: 0,
-                //         mode: "time",
-                //         minTickSize: [1, "day"],
-                //     }
-                // });
-                // $(placeholder).bind("plothover", function (event, pos, obj) {
-                //     var previousPoint;
-                //     if (!obj) {
-                //         $("#tooltip").hide();
-                //         previousPoint = null;
-                //         return;
-                //     } else {
-                //         if (previousPoint != obj.dataIndex) {
-                //             previousPoint = obj.dataIndex;
-                //
-                //             var x = obj.datapoint[0],
-                //                 y = obj.datapoint[1].toFixed(0);
-                //
-                //             var date = new Date(x);
-                //             var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                //             // console.log('date', x, date);
-                //             $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')("Day") + " : " + dateString)
-                //                 .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                //                 .fadeIn(200);
-                //         }
-                //     }
-                // });
-                // //draw table
-                //
-                // var tableData = [];
-                // for (var i in graphData) {
-                //     var obj = {};
-                //     obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
-                //     obj.amount = graphData[i][1] || 0;
-                //     tableData.push(obj);
-                // }
-                // var dataOptions = {
-                //     data: tableData,
-                //     columns: [
-                //         {title: $translate(vm.queryPara.activePlayer.periodText), data: "date"},
-                //         {title: $translate('amount'), data: "amount"}
-                //     ],
-                //     "paging": false,
-                // };
-                // dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-                // var a = $('#activePlayerAnalysisTable').DataTable(dataOptions);
-                // a.columns.adjust().draw();
                 vm.platformActivePlayerDataPeriodText = vm.queryPara.activePlayer.periodText;
                 vm.platformActivePlayerAnalysisData = [];
                 Object.keys(data1.data).forEach(function(key) {
@@ -1579,143 +1391,6 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'countLoginPlayerbyPlatform', sendData, function success(data1) {
-
-
-                // var graphData = [];
-                // let averageData = [];
-                // let average = data1.data.length !== 0? Math.floor(data1.data.reduce((a, item) => a + item.number, 0) / data1.data.length) : 0;
-                // data1.data.map(item => {
-                //     var localTime = new Date(item._id.date);
-                //     graphData.push([localTime, item.number]);
-                //     averageData.push([localTime, average]);
-                // })
-
-                // var loginPlayerData = data1.data;
-                // var loginPlayerObjData = {};
-                // for (var i = 0; i < loginPlayerData.length; i++) {
-                //     switch (vm.queryPara.loginPlayer.periodText) {
-                //         case 'day':
-                //             loginPlayerObjData[loginPlayerData[i]._id.date] = loginPlayerData[i].number;
-                //             break;
-                //         case 'week':
-                //             loginPlayerObjData[loginPlayerData[i]._id.week] = loginPlayerData[i].number;
-                //             break;
-                //         case 'month':
-                //             loginPlayerObjData[loginPlayerData[i]._id.year + '' + loginPlayerData[i]._id.month] = loginPlayerData[i].number;
-                //             break;
-                //     }
-                // }
-                // var graphData = [];
-                // var newOptions = {};
-                // // var nowDate = new Date(sendData.startDate);
-                // var xText = '';
-                // switch (vm.queryPara.loginPlayer.periodText) {
-                //     case 'day':
-                //         //         do {
-                //         //             var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-                //         //             graphData.push([nowDate.getTime(), (loginPlayerObjData[dateText] || 0)]);
-                //         //             nowDate.setDate(nowDate.getDate() + 1);
-                //         //         } while (nowDate <= sendData.endDate);
-                //         xText = 'DAY';
-                //         newOptions = {
-                //             xaxis: {
-                //                 tickLength: 0,
-                //                 mode: "time",
-                //                 minTickSize: [1, "day"],
-                //             }
-                //         };
-                //         break;
-                //     case 'week':
-                //         //         var k = 0;
-                //         //         do {
-                //         //             graphData.push([nowDate.getTime(), (loginPlayerObjData[k] || 0)]);
-                //         //             nowDate.setDate(nowDate.getDate() + 7);
-                //         //             k++;
-                //         //         } while (nowDate <= sendData.endDate);
-                //         xText = 'WEEK';
-                //         newOptions = {
-                //             xaxis: {
-                //                 tickLength: 0,
-                //                 mode: "time",
-                //                 minTickSize: [6, "day"],
-                //             }
-                //         };
-                //         break;
-                //     case 'month' :
-                //         //         nowDate.setDate(1);
-                //         //         do {
-                //         //             var nowYear = nowDate.getFullYear();
-                //         //             var nowMonth = nowDate.getMonth() + 1;
-                //         //             console.log('nowMonth', nowYear + '' + nowMonth);
-                //         //             graphData.push([nowDate.getTime(), (loginPlayerObjData[nowYear + '' + nowMonth] || 0)]);
-                //         //             nowDate.setMonth(nowDate.getMonth() + 1);
-                //         //
-                //         //         } while (nowDate <= sendData.endDate);
-                //         xText = 'MONTH';
-                //         newOptions = {
-                //             xaxis: {
-                //                 tickLength: 0,
-                //                 mode: "time",
-                //                 minTickSize: [1, "month"],
-                //             }
-                //         };
-                //         break;
-                // }
-                // newOptions.yaxes = [{
-                //     position: 'left',
-                //     axisLabel: $translate('AMOUNT'),
-                // }];
-                // newOptions.xaxes = [{
-                //     position: 'bottom',
-                //     axisLabel: $translate('PERIOD') + ' : ' + $translate(xText),
-                // }];
-                // socketService.$plotLine(placeholder, [{
-                //     label: $translate('Login Player'),
-                //     data: graphData
-                // },{label: $translate('average line'), data: averageData}], newOptions);
-                // $(placeholder).bind("plothover", function (event, pos, obj) {
-                //     var previousPoint;
-                //     if (!obj) {
-                //         $("#tooltip").hide();
-                //         previousPoint = null;
-                //         return;
-                //     } else {
-                //         if (previousPoint != obj.dataIndex) {
-                //             previousPoint = obj.dataIndex;
-                //
-                //             var x = obj.datapoint[0],
-                //                 y = obj.datapoint[1].toFixed(0);
-                //
-                //             var date = new Date(x);
-                //             var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-                //             // console.log('date', x, date);
-                //             $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.loginPlayer.periodText) + " : " + dateString)
-                //                 .css({top: obj.pageY + 5, left: obj.pageX + 5})
-                //                 .fadeIn(200);
-                //         }
-                //     }
-                // });
-                // $(".flot-x-axis .flot-tick-label.tickLabel").addClass("rotate330");
-                //draw table
-
-                // var tableData = [];
-                // for (var i in graphData) {
-                //     var obj = {};
-                //     obj.date = utilService.$getTimeFromStdTimeFormat(graphData[i][0]).slice(0, 10);
-                //     obj.amount = graphData[i][1] || 0;
-                //     tableData.push(obj);
-                // }
-                // var dataOptions = {
-                //     data: tableData,
-                //     columns: [
-                //         {title: $translate(vm.queryPara.loginPlayer.periodText), data: "date"},
-                //         {title: $translate('amount'), data: "amount"}
-                //     ],
-                //     "paging": false,
-                // };
-                // dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-                // var a = $('#loginPlayerAnalysisTable').DataTable(dataOptions);
-                // a.columns.adjust().draw();
                 vm.platformLoginPlayerDataPeriodText = vm.queryPara.loginPlayer.periodText;
                 vm.platformLoginPlayerAnalysisData = data1.data.map(item => {
                     item.date = item._id.date;
@@ -2468,6 +2143,31 @@ define(['js/app'], function (myApp) {
                 queryRequirement: vm.queryPara.playerDevice.queryRequirement
             }
 
+            switch (vm.queryPara.playerDevice.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
             socketService.$socket($scope.AppSocket, 'getPlayerDeviceAnalysisData', sendData, function (data) {
                 vm.playerDeviceList = data.data;
                 console.log('device data', vm.playerDeviceList);
@@ -2510,6 +2210,31 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform._id,
                 startTime: vm.queryPara.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryPara.playerDomain.endTime.data('datetimepicker').getLocalDate(),
+            }
+
+            switch (vm.queryPara.playerDomain.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDomainAnalysisData', sendData, function (data) {
@@ -2598,6 +2323,32 @@ define(['js/app'], function (myApp) {
                 endTime: vm.queryPara.playerRetention.endTime,
                 playerType: vm.queryPara.playerRetention.playerType
             }
+
+            switch (vm.queryPara.playerRetention.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
             socketService.$socket($scope.AppSocket, 'getPlayerRetention', sendData, function (data) {
                 console.log("retention data", data);
                 vm.retentionData = data.data;
@@ -3350,6 +3101,33 @@ define(['js/app'], function (myApp) {
             sendObj.platformId = vm.selectedPlatform.platformId;
             sendObj.startDate = vm.queryPara.clientSource.startTime.data('datetimepicker').getLocalDate();
             sendObj.endDate = vm.queryPara.clientSource.endTime.data('datetimepicker').getLocalDate();
+
+            switch (vm.queryPara.clientSource.userType) {
+                case 'all':
+                    sendObj.isRealPlayer = true;
+                    sendObj.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendObj.isRealPlayer = true;
+                    sendObj.isTestPlayer = false;
+                    sendObj.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendObj.isRealPlayer = true;
+                    sendObj.isTestPlayer = false;
+                    sendObj.hasPartner = true;
+                    break;
+                case 'test':
+                    sendObj.isRealPlayer = false;
+                    sendObj.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendObj.hasPartner !== 'boolean'){
+                sendObj.hasPartner = null;
+            }
+
+
             socketService.$socket($scope.AppSocket, 'getClientSourceQuery', sendObj, function (data) {
                 console.log('data', data);
                 vm.clientSourceTblData = data.data || [];

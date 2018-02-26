@@ -1968,7 +1968,7 @@ var dbPlayerConsumptionRecord = {
                 if(gameProviderDetail && gameProviderDetail.length > 0){
                     gameProviderDetail.map(gameProvider => {
                         if(gameProvider){
-                            let playerConsumptionRecordData = dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProvider._id}).sort({createTime: -1}).limit(1).lean().then(
+                            let playerConsumptionRecordData = dbconfig.collection_playerConsumptionRecord.findOne({providerId: gameProvider._id, platformId: platformObjId}).sort({createTime: -1}).limit(1).lean().then(
                                 playerConsumption => {
                                     if(playerConsumption){
                                         return {gameProviderName: gameProvider.name || "", data: playerConsumption};

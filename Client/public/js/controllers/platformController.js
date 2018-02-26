@@ -298,11 +298,6 @@ define(['js/app'], function (myApp) {
                 // RESET_PASSWORD: 'resetPassword'
             };
 
-            vm.allAccountStatus = {
-                CREATED_ACCOUNT: 'createdAccount',
-                NOT_YET_CREATE_ACCOUNT: 'notYetCreateAccount',
-            };
-
             vm.constProposalStatus = {
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
@@ -699,6 +694,12 @@ define(['js/app'], function (myApp) {
                     vm.playerRewardPointsDailyConvertedPoints = 0;
                     vm.getPlayerRewardPointsDailyLimit();
                     vm.getPlayerRewardPointsDailyConvertedPoints();
+                    for(let index in vm.rewardPointsLvlConfig.params) {
+                        if(vm.rewardPointsLvlConfig.params[index].levelObjId == vm.selectedSinglePlayer.playerLevel._id) {
+                            vm.rewardPointToCreditManualRate = vm.rewardPointsLvlConfig.params[index].pointToCreditManualRate;
+                            break;
+                        }
+                    }
                 }
             };
 
@@ -967,7 +968,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getRewardPointsLvlConfig(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                         switch (vm.platformPageName) {
@@ -4637,7 +4638,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('COUNT'), data: "consumptionTimes"},
+                            {title: $translate('COUNT'), data: "count"},
                             //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
@@ -5109,6 +5110,14 @@ define(['js/app'], function (myApp) {
                             "orderable": false,
                             visible: vm.selectedPlatform.data.usePointSystem,
                             data: 'point$',
+                            render: function (data, type, row) {
+                                data = data || '0';
+                                return $('<a data-target="#modalPlayerRewardPointsLog" style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" type="button" ng-click="vm.initPlayerRewardPointLog()" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text((data))
+                                    .prop('outerHTML');
+                            },
                             "sClass": "alignRight",
                         },
                         {
@@ -9923,7 +9932,7 @@ define(['js/app'], function (myApp) {
                             },
                             {title: $translate('Total Amount'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('COUNT'), data: "consumptionTimes"},
+                            {title: $translate('COUNT'), data: "count"},
                             //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
@@ -12451,6 +12460,121 @@ define(['js/app'], function (myApp) {
                 $('#playerApiLogTbl').off('order.dt');
                 $('#playerApiLogTbl').on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'playerApiLog', vm.getPlayerApiLogData);
+                });
+
+                $scope.safeApply();
+            };
+
+            vm.initPlayerRewardPointLog = () => {
+                vm.playerRewardPointsLog = {};
+                utilService.actionAfterLoaded('#modalPlayerRewardPointsLog.in #playerRewardPointsLogTblPage', function () {
+                    vm.playerRewardPointsLog.pageObj = utilService.createPageForPagingTable("#playerRewardPointsLogTblPage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerRewardPointsLog", vm.getPlayerRewardPointsLogData);
+                    });
+                    vm.getPlayerRewardPointsLogData(true);
+                });
+            };
+
+            vm.getPlayerRewardPointsLogData = function (newSearch) {
+
+                let sendQuery = {
+                    playerName: vm.selectedSinglePlayer.name,
+                    index: newSearch ? 0 : vm.playerRewardPointsLog.index,
+                    limit: newSearch ? 10 : vm.playerRewardPointsLog.limit,
+                    sortCol: vm.playerRewardPointsLog.sortCol || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsLog', sendQuery, function (data) {
+                    console.log("getPlayerRewardPointsLog", data);
+                    let tblData = data && data.data ? data.data.data : [];
+                    let total = data.data ? data.data.total : 0;
+                    vm.playerRewardPointsLog.totalCount = total;
+                    vm.drawPlayerRewardPointsLogTable(newSearch, tblData, total);
+                });
+            };
+
+            vm.drawPlayerRewardPointsLogTable = function (newSearch, tblData, size) {
+                let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('Reward Point ID'),data: "pointLogId"},
+                        {title: $translate('Proposal Creator'), data: "creator"},
+                        {
+                            title: $translate('Reward Points Type'), data: "category",
+                            render: function (data, type, row) {
+                                return $translate($scope.constRewardPointsLogCategory[row.category]);
+                            }
+                        },
+                        {title: $translate('Reward Title'), data: "rewardTitle",
+                            render: function (data, type, row) {
+                                return row.rewardTitle ? row.rewardTitle : "-";
+                            }
+                        },
+                        {
+                            title: $translate('userAgent'), data: "userAgent",
+                            render: function (data, type, row) {
+                                return $translate($scope.constPlayerRegistrationInterface[row.userAgent]);
+                            }
+                        },
+                        {
+                            title: $translate('Proposal Status'), data: "status",
+                            render: function (data, type, row) {
+                                return $translate($scope.constRewardPointsLogStatus[row.status]);
+                            }
+                        },
+                        {title: $translate('Member Account'), data: "playerName"},
+                        {title: $translate('beforeChangeRewardPoint'), data: "oldPoints"},
+                        {title: $translate('afterChangeRewardPoint'), data: "newPoints"},
+                        {title: $translate('Reward Point Variable'), data: "amount",  bSortable: true},
+                        {
+                            title: $translate('dailyMaxRewardPoint'), data: "maxDayApplyAmount",
+                            render: function (data, type, row) {
+                                return row.currentDayAppliedAmount != null && row.maxDayApplyAmount ? row.currentDayAppliedAmount + "/" + row.maxDayApplyAmount : "-";
+                            }
+                        },
+                        {
+                            title: $translate('createTime'), data: "createTime",  bSortable: true,
+                            render: function (data, type, row) {
+                                return utilService.getFormatTime(data);
+                            }
+                        },
+                        {
+                            title: $translate('playerLevelName'), data: "playerLevelName",
+                            render: function (data, type, row) {
+                                return $translate(row.playerLevelName);
+                            }},
+                        {
+                            title: $translate('remark'), data: "remark",
+                            render: function (data, type, row) {
+                                return row.remark.replace('Proposal No', $translate('Proposal No'));
+                            }
+                        },
+                        {
+                            title: $translate('detail'),
+                            render: function (data, type, row) {
+                                var $a = $('<a>', {
+                                    'ng-click': "vm.prepareShowRewardPointsLogDetail(" + JSON.stringify(row) + ")"
+                                }).text($translate('detail'));
+                                // $compile($a.prop('outerHTML'))($scope);
+                                return $a.prop('outerHTML');
+                            },
+                            "fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+                                $compile(nTd)($scope)
+                            }
+                        },
+                    ],
+                    "paging": false,
+                });
+                let aTable = $("#playerRewardPointsLogTbl").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                vm.playerRewardPointsLog.pageObj.init({maxCount: size}, newSearch);
+                $('#playerRewardPointsLogTbl').resize();
+                $('#playerRewardPointsLogTbl').off('order.dt');
+                $('#playerRewardPointsLogTbl').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'playerRewardPointsLogTbl', vm.getPlayerRewardPointsLogData);
                 });
 
                 $scope.safeApply();
@@ -17126,6 +17250,7 @@ define(['js/app'], function (myApp) {
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
                     case 'rewardPointsRanking':
+                        vm.editFakeAcc = false;
                         vm.playerRankingRandom = [{}];
                         vm.playerRankingRandomClone = [{}];
                         vm.isEditRandomData = false;
@@ -17347,6 +17472,7 @@ define(['js/app'], function (myApp) {
                     // $('#promoCodeMonitorTableSpin').hide();
                     console.log('getRewardPointsRandom', data);
                     vm.playerRewardRankingRandom.totalCount = data.data.size;
+                    vm.playerRandomRankingData = data.data.data;
                     vm.drawPlayerRewardPointsRandomTable(
                         data.data.data.map((item,index) => {
                             if (sendData.sortCol.points == -1) {
@@ -17364,16 +17490,40 @@ define(['js/app'], function (myApp) {
                 }, true);
             }
 
+            vm.toggleDeleteFakeAcc = function (flag) {
+                vm.editFakeAcc = flag;
+                vm.drawPlayerRewardPointsRandomTable(
+                    vm.playerRandomRankingData
+                    , vm.playerRewardRankingRandom.totalCount, {}, false);
+                $scope.safeApply();
+            }
+
             vm.drawPlayerRewardPointsRandomTable = function (data, size, summary, newSearch) {
                 var tableOptions = {
                     data: data,
-                    "order": vm.playerRewardRankingRandom.aaSorting || [[3, 'desc']],
+                    "order": vm.playerRewardRankingRandom.aaSorting || [[4, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'points', 'aTargets': [3], bSortable: true},
+                        {'sortCol': 'points', 'aTargets': [4], bSortable: true},
                         // {'sortCol': 'playerName', 'aTargets': [1], bSortable: true},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            "title": $translate('Multiselect'),
+                            bSortable: false,
+                            sClass: "randomRankingSelected",
+                            render: function (data, type, row) {
+                                if (!row.playerObjId) {
+                                    var link = $('<input>', {
+                                        type: 'checkbox',
+                                        "data-proposalId": row._id,
+                                        class: "transform150"
+                                    })
+                                    return link.prop('outerHTML');
+                                } else return null;
+                            },
+                            visible: vm.editFakeAcc
+                        },
                         {
                             title: $translate('REWARD_POINTS_RANKING'),
                             data: "ranking",
@@ -17463,6 +17613,7 @@ define(['js/app'], function (myApp) {
                         },
                     ],
                     "paging": false,
+                    dom: "Z<'row'<'col-sm-12'tr>>",
                     fnRowCallback: vm.rewardRankingRandomRecord
                 }
                 tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
@@ -17470,6 +17621,35 @@ define(['js/app'], function (myApp) {
                 var rankingTbl = utilService.createDatatableWithFooter('#rewardRankingRandomTable', tableOptions, {});
                 // utilService.setDataTablePageInput('rewardRankingTable', rankingTbl, $translate);
 
+                var $checkAll = $(".dataTables_scrollHead thead .randomRankingSelected");
+                if ($checkAll.length == 1) {
+                    var $showBtn = $('<input>', {
+                        type: 'checkbox',
+                        class: "randomRankingSelected transform150 checkAllRandomData"
+                    });
+                    $checkAll.html($showBtn);
+                    $('.randomRankingSelected.checkAllRandomData').on('click', function () {
+                        var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+                        setCheckAllRandomData($checkAll.checked);
+                    })
+                }
+                function setCheckAllRandomData(flag) {
+                    var s = $("#rewardRankingRandomTable tbody td.randomRankingSelected input").each(function () {
+                        $(this).prop("checked", flag);
+                    });
+                    vm.updateMultiselectRanking();
+                }
+
+                function tableRowClicked(event) {
+                    if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
+                        var flagAllChecked = $("#rewardRankingRandomTable tbody td.randomRankingSelected input[type='checkbox']:not(:checked)");
+                        $('.randomRankingSelected.checkAllRandomData').prop('checked', flagAllChecked.length == 0);
+                        vm.updateMultiselectRanking();
+                    }
+                }
+
+                $('#rewardRankingRandomTable tbody').off('click', "**");
+                $('#rewardRankingRandomTable tbody').on('click', 'tr', tableRowClicked);
                 $('#rewardRankingRandomTable').off('order.dt');
                 // $('#rewardRankingTable').off();
                 $('#rewardRankingRandomTable').on('order.dt', function (event, a, b) {
@@ -17477,6 +17657,21 @@ define(['js/app'], function (myApp) {
                 });
                 $('#rewardRankingRandomTable').resize();
             }
+
+            vm.updateMultiselectRanking = function () {
+                var allClicked = $("#rewardRankingRandomTable tr input:checked[type='checkbox']");
+                vm.multiRandomRankingSelected = [];
+                if (allClicked.length > 0) {
+                    allClicked.each(function () {
+                        var id = $(this)[0].dataset.proposalid;
+                        if (id) {
+                            vm.multiRandomRankingSelected.push(id);
+                        }
+                    })
+                }
+                console.log(vm.multiRandomRankingSelected);
+                $scope.safeApply();
+            };
 
 
             vm.rewardRankingRandomRecord = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -17500,6 +17695,19 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'deleteRewardPointsRankingRandom', sendData, function (data) {
                     console.log('deleteRandomRanking', data);
+                    $scope.safeApply();
+                    vm.getPlayerRewardPointsRankingRandom(true);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.deleteMultipleRandomRanking = function () {
+                let sendData = {
+                    playerObjIds: vm.multiRandomRankingSelected
+                }
+                socketService.$socket($scope.AppSocket, 'deleteMultipleRewardPointsRankingRandom', sendData, function (data) {
+                    console.log('deleteMultipleRandomRanking', data);
                     $scope.safeApply();
                     vm.getPlayerRewardPointsRankingRandom(true);
                 }, function (err) {
@@ -17890,6 +18098,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsLogDetail = rewardPointsLog;
                         console.log(rewardPointsLog);
                         $('#modalRewardPointsLogDetail').modal();
+                        $scope.safeApply();
                     }
                 );
             };

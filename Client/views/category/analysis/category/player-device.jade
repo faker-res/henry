@@ -25,6 +25,13 @@
                     select.form-control(ng-model='vm.queryPara.playerDevice.queryRequirement')
                         option(value='register') {{'NEW_REGISTRATION' | translate}}
                         option(value='login') {{'Login' | translate}}
+                div
+                    label {{'USER_TYPE' | translate}}
+                    select.form-control(ng-model='vm.queryPara.playerDevice.userType')
+                        option(value='all') {{"REAL_PLAYER_ALL"|translate}}
+                        option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
+                        option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}
+                        option(value='test') {{"Test Player"|translate}}
                 //div
                 //    label {{"Start date"|translate}}
                 //    input.form-control(type='date', ng-model='vm.queryPara.playerDevice.startTime')
