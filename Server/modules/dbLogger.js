@@ -362,15 +362,18 @@ var dbLogger = {
                     channel: channel,
                     purpose: purpose,
                     status: status,
-                    error: error,
-                    recipientName: playerName
+                    error: error
                 };
 
+                //do not log recipientName if sms is use for creating demo account,
+                //an incorrect recipientName will be attached to the log if executed.
+                if (purpose !== constSMSPurpose.DEMO_PLAYER) {
+                    logData.recipientName = playerName;
+                }
+
                 if (playerData) {
-                    //do not log playername if sms is use for creating demo account,
-                    //an incorrect playerName will be attached to the log if executed.
                     if (purpose !== constSMSPurpose.DEMO_PLAYER && playerData.name)
-                        logData.recipientName = playerData.name || logData.recipientName;
+                        logData.recipientName = playerData.name || playerName;
 
                     if (purpose === constSMSPurpose.UPDATE_BANK_INFO && !playerData.bankAccount)
                         logData.purpose = constSMSPurpose.UPDATE_BANK_INFO_FIRST;
