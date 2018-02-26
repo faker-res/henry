@@ -5109,6 +5109,14 @@ define(['js/app'], function (myApp) {
                             "orderable": false,
                             visible: vm.selectedPlatform.data.usePointSystem,
                             data: 'point$',
+                            render: function (data, type, row) {
+                                data = data || '0';
+                                return $('<a data-target="#modalPlayerRewardPointsLog" style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" type="button" ng-click="vm.initPlayerRewardPointLog()" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text((data))
+                                    .prop('outerHTML');
+                            },
                             "sClass": "alignRight",
                         },
                         {
@@ -12456,6 +12464,121 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.initPlayerRewardPointLog = () => {
+                vm.playerRewardPointsLog = {};
+                utilService.actionAfterLoaded('#modalPlayerRewardPointsLog.in #playerRewardPointsLogTblPage', function () {
+                    vm.playerRewardPointsLog.pageObj = utilService.createPageForPagingTable("#playerRewardPointsLogTblPage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerRewardPointsLog", vm.getPlayerRewardPointsLogData);
+                    });
+                    vm.getPlayerRewardPointsLogData(true);
+                });
+            };
+
+            vm.getPlayerRewardPointsLogData = function (newSearch) {
+
+                let sendQuery = {
+                    playerName: vm.selectedSinglePlayer.name,
+                    index: newSearch ? 0 : vm.playerRewardPointsLog.index,
+                    limit: newSearch ? 10 : vm.playerRewardPointsLog.limit,
+                    sortCol: vm.playerRewardPointsLog.sortCol || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsLog', sendQuery, function (data) {
+                    console.log("getPlayerRewardPointsLog", data);
+                    let tblData = data && data.data ? data.data.data : [];
+                    let total = data.data ? data.data.total : 0;
+                    vm.playerRewardPointsLog.totalCount = total;
+                    vm.drawPlayerRewardPointsLogTable(newSearch, tblData, total);
+                });
+            };
+
+            vm.drawPlayerRewardPointsLogTable = function (newSearch, tblData, size) {
+                let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('Reward Point ID'),data: "pointLogId"},
+                        {title: $translate('Proposal Creator'), data: "creator"},
+                        {
+                            title: $translate('Reward Points Type'), data: "category",
+                            render: function (data, type, row) {
+                                return $translate($scope.constRewardPointsLogCategory[row.category]);
+                            }
+                        },
+                        {title: $translate('Reward Title'), data: "rewardTitle",
+                            render: function (data, type, row) {
+                                return row.rewardTitle ? row.rewardTitle : "-";
+                            }
+                        },
+                        {
+                            title: $translate('userAgent'), data: "userAgent",
+                            render: function (data, type, row) {
+                                return $translate($scope.constPlayerRegistrationInterface[row.userAgent]);
+                            }
+                        },
+                        {
+                            title: $translate('Proposal Status'), data: "status",
+                            render: function (data, type, row) {
+                                return $translate($scope.constRewardPointsLogStatus[row.status]);
+                            }
+                        },
+                        {title: $translate('Member Account'), data: "playerName"},
+                        {title: $translate('beforeChangeRewardPoint'), data: "oldPoints"},
+                        {title: $translate('afterChangeRewardPoint'), data: "newPoints"},
+                        {title: $translate('Reward Point Variable'), data: "amount",  bSortable: true},
+                        {
+                            title: $translate('dailyMaxRewardPoint'), data: "maxDayApplyAmount",
+                            render: function (data, type, row) {
+                                return row.currentDayAppliedAmount != null && row.maxDayApplyAmount ? row.currentDayAppliedAmount + "/" + row.maxDayApplyAmount : "-";
+                            }
+                        },
+                        {
+                            title: $translate('createTime'), data: "createTime",  bSortable: true,
+                            render: function (data, type, row) {
+                                return utilService.getFormatTime(data);
+                            }
+                        },
+                        {
+                            title: $translate('playerLevelName'), data: "playerLevelName",
+                            render: function (data, type, row) {
+                                return $translate(row.playerLevelName);
+                            }},
+                        {
+                            title: $translate('remark'), data: "remark",
+                            render: function (data, type, row) {
+                                return row.remark.replace('Proposal No', $translate('Proposal No'));
+                            }
+                        },
+                        {
+                            title: $translate('detail'),
+                            render: function (data, type, row) {
+                                var $a = $('<a>', {
+                                    'ng-click': "vm.prepareShowRewardPointsLogDetail(" + JSON.stringify(row) + ")"
+                                }).text($translate('detail'));
+                                // $compile($a.prop('outerHTML'))($scope);
+                                return $a.prop('outerHTML');
+                            },
+                            "fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+                                $compile(nTd)($scope)
+                            }
+                        },
+                    ],
+                    "paging": false,
+                });
+                let aTable = $("#playerRewardPointsLogTbl").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                vm.playerRewardPointsLog.pageObj.init({maxCount: size}, newSearch);
+                $('#playerRewardPointsLogTbl').resize();
+                $('#playerRewardPointsLogTbl').off('order.dt');
+                $('#playerRewardPointsLogTbl').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'playerRewardPointsLogTbl', vm.getPlayerRewardPointsLogData);
+                });
+
+                $scope.safeApply();
+            };
+
             vm.initPlayerManualTopUp = function () {
                 vm.getZoneList();
                 vm.provinceList = [];
@@ -17890,6 +18013,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardPointsLogDetail = rewardPointsLog;
                         console.log(rewardPointsLog);
                         $('#modalRewardPointsLogDetail').modal();
+                        $scope.safeApply();
                     }
                 );
             };
