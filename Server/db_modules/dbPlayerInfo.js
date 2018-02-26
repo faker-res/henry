@@ -641,7 +641,10 @@ let dbPlayerInfo = {
             country: data.country,
             longitude: data.longitude,
             latitude: data.latitude,
-            loginTime: data.registrationTime
+            loginTime: data.registrationTime,
+            isRealPlayer: data.isRealPlayer,
+            isTestPlayer: data.isTestPlayer,
+            partner: data.partner ? data.partner : null
         };
         var record = new dbconfig.collection_playerLoginRecord(recordData);
         record.save().then().catch(errorUtils.reportError);
@@ -4076,7 +4079,10 @@ let dbPlayerInfo = {
                                 platform: platformId,
                                 loginIP: playerData.lastLoginIp,
                                 clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
-                                userAgent: uaObj
+                                userAgent: uaObj,
+                                isRealPlayer: playerObj.isRealPlayer,
+                                isTestPlayer: playerObj.isTestPlayer,
+                                partner: playerObj.partner ? playerObj.partner : null
                             };
 
                             if (platformObj.usePointSystem) {
@@ -4357,7 +4363,10 @@ let dbPlayerInfo = {
                                 platform: platformId,
                                 loginIP: loginData.lastLoginIp,
                                 clientDomain: loginData.clientDomain ? loginData.clientDomain : "",
-                                userAgent: uaObj
+                                userAgent: uaObj,
+                                // isRealPlayer: playerObj.isRealPlayer,
+                                // isTestPlayer: playerObj.isTestPlayer,
+                                // partner: playerObj.partner ? playerObj.partner : null
                             };
                             Object.assign(recordData, geoInfo);
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
@@ -7137,46 +7146,6 @@ let dbPlayerInfo = {
             isRealPlayer: true //only count real player
         };
 
-        // var a = dbconfig.collection_players.find(query).count();
-        // var b = dbconfig.collection_players.aggregate([{
-        //     $match: query,
-        // }, {
-        //     $group: {
-        //         _id: "$domain",
-        //         num: {$sum: 1}
-        //     }
-        // }, {
-        //     $project: {
-        //         domain: "$_id",
-        //         num: "$num"
-        //     }
-        // }]);
-        // var partnerQuery = {platform: platform, registrationTime: timeQuery}
-        // var c = dbconfig.collection_players.aggregate(
-        //     {$match: partnerQuery},
-        //     {
-        //         $group: {
-        //             _id: "$partner",
-        //             num: {$sum: 1}
-        //         }
-        //     }
-        // );
-        // var topupQuery = {
-        //     platform: platform,
-        //     topUpTimes: {$gt: 0},
-        //     topUpSum: {$gt: 0},
-        //     registrationTime: timeQuery
-        // };
-        // var d = dbconfig.collection_players.find(topupQuery).count();
-        //
-        // let topUpMultipleTimesQuery = {
-        //     platform: platform,
-        //     topUpTimes: {$gt: 1},
-        //     topUpSum: {$gt: 0},
-        //     registrationTime: timeQuery
-        // }
-        //
-        // let e = dbconfig.collection_players.find(topUpMultipleTimesQuery).count();
         let f = dbconfig.collection_players.find(query)
             .populate({path: "partner", model: dbconfig.collection_partner})
             .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
@@ -7188,66 +7157,7 @@ let dbPlayerInfo = {
                 }
             }
         );
-        // var d = dbconfig.collection_players.find(query, {_id: 1}).lean().then(
-        //     players => {
-        //         if (players && players.length > 0) {
-        //             var playerIds = players.map(player => player._id);
-        //             return dbconfig.collection_playerTopUpRecord.aggregate(
-        //                 {
-        //                     $match: {
-        //                         playerId: {$in: playerIds},
-        //                         platformId: platform,
-        //                         amount: {$gt: 0}
-        //                     }
-        //                 },
-        //                 {
-        //                     $group: {
-        //                         _id: "$playerId"
-        //                     }
-        //                 }
-        //             ).then(
-        //                 topUpPlayers => {
-        //                     if (topUpPlayers) {
-        //                         return topUpPlayers.length;
-        //                     }
-        //                     else {
-        //                         return 0;
-        //                     }
-        //                 }
-        //             );
-        //         }
-        //         else {
-        //             return 0;
-        //         }
-        //     }
-        // );
         return Q.all([f, g]);
-        // return Q.all([a, b, c, d, e, f, g]).then(
-        //     data => {
-        //         retData = data;
-        //         var prop = [];
-        //         if (data && data[2]) {
-        //             data[2].map(item => {
-        //                 if (item._id) {
-        //                     prop.push(dbconfig.collection_partner.findOne({_id: item._id}));
-        //                 }
-        //             })
-        //         }
-        //         return Q.all(prop);
-        //     },
-        //     err => {
-        //         return err;
-        //     }
-        // ).then(partnerData => {
-        //     var partnerDataObj = {};
-        //     partnerData.map(item => {
-        //         partnerDataObj[item._id] = item;
-        //     })
-        //     retData[2].forEach(item => {
-        //         item.partner = partnerDataObj[item._id];
-        //     })
-        //     return retData;
-        // })
     },
 
     /*
@@ -7654,76 +7564,6 @@ let dbPlayerInfo = {
      * Get new player count 
      */
     countNewPlayerbyPlatform: function (platformId, startDate, endDate, isRealPlayer, isTestPlayer, hasPartner) {
-        // var options = {};
-        // switch (period) {
-        //     case 'day':
-        //         options.date = {$dateToString: {format: "%Y-%m-%d", date: "$registrationTime"}};
-        //         break;
-        //     case 'week':
-        //         options.week = {$floor: {$divide: [{$subtract: ["$registrationTime", startDate]}, 604800000]}};
-        //         break;
-        //     case 'month':
-        //     default:
-        //         options.year = {$year: "$registrationTime"};
-        //         options.month = {$month: "$registrationTime"};
-        // }
-        //
-        // var matchingCond = {
-        //     registrationTime: {$gte: startDate, $lt: endDate}
-        // }
-        // if (platformId != 'all') {
-        //     matchingCond.platform = platformId;
-        // }
-        // return dbconfig.collection_players.aggregate(
-        //     {
-        //         $match: matchingCond
-        //     },
-        //     {
-        //         $group: {_id: options, number: {$sum: 1}}
-        //     }).exec();
-
-
-        // var proms = [];
-        // var dayStartTime = startDate;
-        // var getNextDate;
-        // switch (period) {
-        //     case 'day':
-        //         getNextDate = function (date) {
-        //             var newDate = new Date(date);
-        //             return new Date(newDate.setDate(newDate.getDate() + 1));
-        //         }
-        //         break;
-        //     case 'week':
-        //         getNextDate = function (date) {
-        //             var newDate = new Date(date);
-        //             return new Date(newDate.setDate(newDate.getDate() + 7));
-        //         };
-        //         break;
-        //     case 'month':
-        //     default:
-        //         getNextDate = function (date) {
-        //             var newDate = new Date(date);
-        //             return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
-        //         }
-        // }
-        // while (dayStartTime.getTime() < endDate.getTime()) {
-        //     var dayEndTime = getNextDate.call(this, dayStartTime);
-        //     var matchObj = {registrationTime: {$gte: dayStartTime, $lt: dayEndTime}};
-        //     if (platformId != 'all') {
-        //         matchObj.platform = platformId;
-        //     }
-        //     proms.push(dbconfig.collection_players.find(matchObj).count());
-        //     dayStartTime = dayEndTime;
-        // }
-        //
-        // return Q.all(proms).then(data => {
-        //     var tempDate = startDate;
-        //     var res = data.map(dayData => {
-        //         var obj = {_id: {date: tempDate}, number: dayData}
-        //         tempDate = getNextDate(tempDate);
-        //         return obj;
-        //     });
-
         let query = {
             registrationTime: {$gte: startDate, $lt: endDate},
             isRealPlayer: isRealPlayer,
@@ -7743,8 +7583,6 @@ let dbPlayerInfo = {
             }
         }
         return dbconfig.collection_players.find(query);
-        //});
-
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
@@ -8073,27 +7911,6 @@ let dbPlayerInfo = {
      * Get active player count 
      */
     countActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isFilterValidPlayer, isRealPlayer, isTestPlayer, hasPartner) {
-        // var options = {};
-        // options.date = {$dateToString: {format: "%Y-%m-%d", date: "$date"}};
-        //
-        // return dbconfig.collection_platformDaySummary.aggregate(
-        //     {
-        //         $match: {
-        //             platformId: platformId,
-        //             date: {$gte: startDate, $lt: endDate}
-        //         }
-        //     },
-        //     {
-        //         $group: {_id: options, number: {$sum: "$activePlayers"}}
-        //     }
-        // ).exec();
-
-        // return dbconfig.collection_platformDaySummary.find(
-        //     {
-        //         platformId: platformId,
-        //         date: {$gte: startDate, $lt: endDate}
-        //     }
-        // ).exec();
         let result = {};
         return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).lean().then(
             (partnerLevelConfig) => {
@@ -9092,17 +8909,37 @@ let dbPlayerInfo = {
     /*
      * get Player Device Analysis Data
      */
-    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement) {
+    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement, isRealPlayer, isTestPlayer, hasPartner) {
+
         if(queryRequirement == "register"){
+            let matchObj = {
+                platform: platform,
+                registrationTime: {$gte: startTime, $lt: endTime},
+                isRealPlayer: isRealPlayer,
+                isTestPlayer: isTestPlayer,
+            };
+
+            if (hasPartner !== null){
+                if (hasPartner == true){
+                    matchObj.partner = {$type: "objectId"};
+                }else {
+                    matchObj['$or'] = [
+                        {partner: null},
+                        {partner: {$exists: false}}
+                    ]
+                }
+            }
+
             return dbconfig.collection_players.aggregate(
                 {
                     $unwind: "$userAgent",
                 },
                 {
-                    $match: {
-                        platform: platform,
-                        registrationTime: {$gte: startTime, $lt: endTime}
-                    }
+                    $match: matchObj
+                        // {
+                    //     platform: platform,
+                    //     registrationTime: {$gte: startTime, $lt: endTime}
+                    // }
                 },
                 {
                     $group: {
@@ -9122,15 +8959,49 @@ let dbPlayerInfo = {
                 }
             ).read("secondaryPreferred")
         }else{
+
+            let matchObj = {
+                platform: platform,
+                loginTime: {$gte: startTime, $lt: endTime}
+            };
+
+            if (hasPartner !== null){
+                if (hasPartner == true){
+                    matchObj.partner = {$type: "objectId"};
+                    matchObj.isRealPlayer = isRealPlayer;
+                    matchObj.isTestPlayer = isTestPlayer;
+                }else {
+                    matchObj['$and'] = [
+                        {$or: [ {partner: null}, {partner: {$exists: false}} ]},
+                        {$or: [{$and: [ {isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}, {$and: [ {isRealPlayer: isRealPlayer}, {isTestPlayer:isTestPlayer} ]} ]},
+                    ]
+                }
+            }
+            else{
+                if (isRealPlayer){
+                    // the old data which do not contain isTestPlayer & isRealPlayer are treated as individual UserType
+                    matchObj['$or'] = [
+                        {$and: [{isRealPlayer: isRealPlayer}, {isTestPlayer: isTestPlayer} ]},
+                        {$and: [{isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}
+                    ]
+                }
+                else {
+                    // for the case of testPlayer
+                    matchObj.isRealPlayer = isRealPlayer;
+                    matchObj.isTestPlayer = isTestPlayer;
+                }
+            }
+
             return dbconfig.collection_playerLoginRecord.aggregate(
                 {
                     $unwind: "$userAgent",
                 },
                 {
-                    $match: {
-                        platform: platform,
-                        loginTime: {$gte: startTime, $lt: endTime}
-                    }
+                    $match: matchObj
+                    //     {
+                    //     platform: platform,
+                    //     loginTime: {$gte: startTime, $lt: endTime}
+                    // }
                 },
                 {
                     $group: {
@@ -11304,6 +11175,7 @@ let dbPlayerInfo = {
     createPlayerClientSourceLog: function (data) {
         var domain = "";
         var url = data.sourceUrl;
+        let playerObj = null;
         //find & remove protocol (http, ftp, etc.) and get domain
         if (url.indexOf("://") > -1) {
             domain = url.split('/')[2];
@@ -11317,37 +11189,56 @@ let dbPlayerInfo = {
 
         let platformObjId;
 
-        dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
             function (platform) {
+                if (!platform) {
+                    return Promise.reject({
+                        message: "Platform not found.",
+                        error: error
+                    });
+                }
+
                 platformObjId = platform._id;
                 return dbconfig.collection_players.findOne(
                     {name: data.playerName, platform: platformObjId}
                 ).lean();
-            },
-            function (error) {
-                console.error({
-                    message: "Platform not found.",
-                    error: error
-                })
             }
         ).then(
             function (player) {
+                if (!player) {
+                    return Promise.reject({
+                        message: "Platform not found.",
+                        error: error
+                    });
+                }
+                playerObj = player;
                 let playerObjId = player._id;
-                dbconfig.collection_players.findOneAndUpdate(
+                return dbconfig.collection_players.findOneAndUpdate(
                     {_id: playerObjId, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl}
+                    {sourceUrl: data.sourceUrl},
+                    {new: true}
                 ).lean().exec();
-            },
-            function (error) {
-                console.error({
-                    message: "Platform not found.",
-                    error: error
-                })
+            }
+        ).then(
+            function () {
+                if (playerObj) {
+                    data.isRealPlayer = typeof playerObj.isRealPlayer === 'boolean' ? playerObj.isRealPlayer : true;
+                    data.isTestPlayer = typeof playerObj.isTestPlayer === 'boolean' ? playerObj.isTestPlayer : false;
+                    data.partner = playerObj.partner ? playerObj.partner : null;
+
+                    var newLog = new dbconfig.collection_playerClientSourceLog(data);
+                    return newLog.save();
+                }
+
             }
         );
 
-        var newLog = new dbconfig.collection_playerClientSourceLog(data);
-        return newLog.save();
+        // data.isRealPlayer = playerObj.isRealPlayer ? playerObj.isRealPlayer : true;
+        // data.isTestPlayer = playerObj.isTestPlayer ? playerObj.isTestPlayer : false;
+        // data.partner = playerObj.partner ? playerObj.partner : null;
+
+        // var newLog = new dbconfig.collection_playerClientSourceLog(data);
+        // return newLog.save();
     },
 
     getPlayerReferralList: function (playerId, startIndex, requestCount, sort, status) {

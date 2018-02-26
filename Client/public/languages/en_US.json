@@ -955,8 +955,8 @@
 
   "demoPlayer": "Demo Player",
   "ACCOUNT_STATUS": "Account Status",
-  "createdAccount": "Created account",
-  "notYetCreateAccount": "Not yet create account",
+  "CREATED_ACCOUNT": "Created account",
+  "NOT_YET_CREATE_ACCOUNT": "Not yet create account",
   "VERIFICATION_CODE": "Verification Code",
 
   "PLAYER_TOP_UP_RETURN_GROUP_REPORT": "Player Top Up Return Group Report",

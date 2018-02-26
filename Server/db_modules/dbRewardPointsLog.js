@@ -48,8 +48,22 @@ var dbRewardPointsLog = {
             creator: proposalData.creator.name
         };
         dbLogger.createRewardPointsLog(logData);
-    }
+    },
 
+    getPlayerRewardPointsLog: (playerName, index, limit, sortCol) => {
+        index = index || 0;
+        sortCol = sortCol || {createTime: -1};
+
+        let query = {
+            playerName: playerName,
+        };
+
+        let a = dbConfig.collection_rewardPointsLog.find(query).count();
+        let b = dbConfig.collection_rewardPointsLog.find(query).sort(sortCol).skip(index).limit(limit).lean();
+        return Promise.all([a, b]).then(data => {
+            return({total: data[0], data: data[1]});
+        });
+    },
 };
 
 module.exports = dbRewardPointsLog;

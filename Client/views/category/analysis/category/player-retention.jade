@@ -39,6 +39,13 @@
                             td
                                 a.fa.fa-plus-square(ng-click='vm.retentionAddDay()')
             div
+                label {{'USER_TYPE' | translate}}
+                select.form-control(ng-model='vm.queryPara.playerRetention.userType')
+                    option(value='all') {{"REAL_PLAYER_ALL"|translate}}
+                    option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
+                    option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}
+                    option(value='test') {{"Test Player"|translate}}
+            div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.getPlayerRetention()') {{'SEARCH' | translate}}
     .col-md-5
