@@ -11367,6 +11367,7 @@ let dbPlayerInfo = {
     createPlayerClientSourceLog: function (data) {
         var domain = "";
         var url = data.sourceUrl;
+        let playerObj = null;
         //find & remove protocol (http, ftp, etc.) and get domain
         if (url.indexOf("://") > -1) {
             domain = url.split('/')[2];
@@ -11380,37 +11381,56 @@ let dbPlayerInfo = {
 
         let platformObjId;
 
-        dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
             function (platform) {
+                if (!platform) {
+                    return Promise.reject({
+                        message: "Platform not found.",
+                        error: error
+                    });
+                }
+
                 platformObjId = platform._id;
                 return dbconfig.collection_players.findOne(
                     {name: data.playerName, platform: platformObjId}
                 ).lean();
-            },
-            function (error) {
-                console.error({
-                    message: "Platform not found.",
-                    error: error
-                })
             }
         ).then(
             function (player) {
+                if (!player) {
+                    return Promise.reject({
+                        message: "Platform not found.",
+                        error: error
+                    });
+                }
+                playerObj = player;
                 let playerObjId = player._id;
-                dbconfig.collection_players.findOneAndUpdate(
+                return dbconfig.collection_players.findOneAndUpdate(
                     {_id: playerObjId, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl}
+                    {sourceUrl: data.sourceUrl},
+                    {new: true}
                 ).lean().exec();
-            },
-            function (error) {
-                console.error({
-                    message: "Platform not found.",
-                    error: error
-                })
+            }
+        ).then(
+            function () {
+                if (playerObj) {
+                    data.isRealPlayer = typeof playerObj.isRealPlayer === 'boolean' ? playerObj.isRealPlayer : true;
+                    data.isTestPlayer = typeof playerObj.isTestPlayer === 'boolean' ? playerObj.isTestPlayer : false;
+                    data.partner = playerObj.partner ? playerObj.partner : null;
+
+                    var newLog = new dbconfig.collection_playerClientSourceLog(data);
+                    return newLog.save();
+                }
+
             }
         );
 
-        var newLog = new dbconfig.collection_playerClientSourceLog(data);
-        return newLog.save();
+        // data.isRealPlayer = playerObj.isRealPlayer ? playerObj.isRealPlayer : true;
+        // data.isTestPlayer = playerObj.isTestPlayer ? playerObj.isTestPlayer : false;
+        // data.partner = playerObj.partner ? playerObj.partner : null;
+
+        // var newLog = new dbconfig.collection_playerClientSourceLog(data);
+        // return newLog.save();
     },
 
     getPlayerReferralList: function (playerId, startIndex, requestCount, sort, status) {

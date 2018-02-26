@@ -160,6 +160,37 @@ var dbPlayerLoginRecord = {
                 platform: platformId,
                 loginTime: {$gte: dayStartTime, $lt: dayEndTime}
             };
+
+            if (typeof isRealPlayer === 'boolean' && typeof isTestPlayer === 'boolean') {
+
+                if (hasPartner !== null){
+                    if (hasPartner == true){
+                        matchObj.partner = {$type: "objectId"};
+                        matchObj.isRealPlayer = isRealPlayer;
+                        matchObj.isTestPlayer = isTestPlayer;
+                    }else {
+                        matchObj['$and'] = [
+                            {$or: [ {partner: null}, {partner: {$exists: false}} ]},
+                            {$or: [{$and: [ {isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}, {$and: [ {isRealPlayer: isRealPlayer}, {isTestPlayer:isTestPlayer} ]} ]},
+                        ]
+                    }
+                }
+                else{
+                    if (isRealPlayer){
+                        // the old data which do not contain isTestPlayer & isRealPlayer are treated as individual UserType
+                        matchObj['$or'] = [
+                            {$and: [{isRealPlayer: isRealPlayer}, {isTestPlayer: isTestPlayer} ]},
+                            {$and: [{isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}
+                        ]
+                    }
+                    else {
+                        // for the case of testPlayer
+                        matchObj.isRealPlayer = isRealPlayer;
+                        matchObj.isTestPlayer = isTestPlayer;
+                    }
+                }
+            }
+
             proms.push(
                dbconfig.collection_playerLoginRecord.distinct("player", matchObj)
             )
@@ -172,56 +203,19 @@ var dbPlayerLoginRecord = {
                 var i = 0;
                 var tempDate = startDate;
 
-                // if (typeof isRealPlayer === 'boolean' && typeof isTestPlayer === 'boolean'){
-                //     data.map(
-                //         dayData => {
-                //             let query = {
-                //                 _id: {$in: dayData.map(playerId => ObjectId(playerId))},
-                //                 isRealPlayer: isRealPlayer,
-                //                 isTestPlayer: isTestPlayer,
-                //             };
-                //
-                //             if (hasPartner !== null){
-                //                 if (hasPartner == true){
-                //                     query.partner = {$type: "objectId"};
-                //                 }else {
-                //                     query['$or'] = [
-                //                         {partner: null},
-                //                         {partner: {$exists: false}}
-                //                     ]
-                //                 }
-                //             }
-                //
-                //             prom.push(dbconfig.collection_players.find(query).lean().then(
-                //                 filteredData => {
-                //                     var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
-                //                     var obj = {
-                //                         _id: {date: date},
-                //                         number: filteredData.length
-                //                     }
-                //                     tempDate = getNextDate(tempDate);
-                //                     return obj;
-                //                 })
-                //             )
-                //         }
-                //     );
-                //     return Q.all(prom);
-                // }
-                // // for dashboard Controller
-                // else {
-                    var res = data.map(
-                        dayData => {
-                            var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
-                            var obj = {
-                                _id: {date: date},
-                                number: dayData.length
-                            }
-                            tempDate = getNextDate(tempDate);
-                            return obj;
+                var res = data.map(
+                    dayData => {
+                        var date = tempDate;//dbUtil.getLocalTimeString(dbUtil.getDayStartTime(tempDate), "YYYY-MM-DD");
+                        var obj = {
+                            _id: {date: date},
+                            number: dayData.length
                         }
-                    );
-                    return res;
-                // }
+                        tempDate = getNextDate(tempDate);
+                        return obj;
+                    }
+                );
+                return res;
+
             }
         );
 
@@ -322,7 +316,7 @@ var dbPlayerLoginRecord = {
      * getPlayerRetention
      * @param {String}  platform, country
      */
-    getPlayerRetention: function (platform, startTime, days, playerType, dayCount) {
+    getPlayerRetention: function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner) {
         var day0PlayerObj = {};
         var dayNPlayerObj = {};
         var day0PlayerArrayProm = [];
@@ -366,8 +360,21 @@ var dbPlayerLoginRecord = {
                         registrationTime: {
                             $gte: new Date(time0),
                             $lt: new Date(time1)
-                        }
+                        },
+                        isRealPlayer: isRealPlayer,
+                        isTestPlayer: isTestPlayer
                     };
+
+                    if (hasPartner !== null){
+                        if (hasPartner == true){
+                            queryObj.partner = {$type: "objectId"};
+                        }else {
+                            queryObj['$or'] = [
+                                {partner: null},
+                                {partner: {$exists: false}}
+                            ]
+                        }
+                    }
                     queryObj = Object.assign({}, queryObj, playerFilter);
 
                     var temp = dbconfig.collection_players.aggregate(
@@ -488,7 +495,8 @@ var dbPlayerLoginRecord = {
             });
     },
 
-    getClientSourceQuery: function (data) {
+    getClientSourceQuery: function (data, isRealPlayer, isTestPlayer, hasPartner) {
+
         var matchObj = {
             createTime: {
                 $gte: new Date(data.startDate),
@@ -496,6 +504,33 @@ var dbPlayerLoginRecord = {
             },
             platformId: data.platformId
         };
+
+        if (hasPartner !== null){
+            if (hasPartner == true){
+                matchObj.partner = {$type: "objectId"};
+                matchObj.isRealPlayer = isRealPlayer;
+                matchObj.isTestPlayer = isTestPlayer;
+            }else {
+                matchObj['$and'] = [
+                    {$or: [ {partner: null}, {partner: {$exists: false}} ]},
+                    {$or: [{$and: [ {isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}, {$and: [ {isRealPlayer: isRealPlayer}, {isTestPlayer:isTestPlayer} ]} ]},
+                ]
+            }
+        }
+        else{
+            if (isRealPlayer){
+                // the old data which do not contain isTestPlayer & isRealPlayer are treated as individual UserType
+                matchObj['$or'] = [
+                    {$and: [{isRealPlayer: isRealPlayer}, {isTestPlayer: isTestPlayer} ]},
+                    {$and: [{isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}
+                ]
+            }
+            else {
+                // for the case of testPlayer
+                matchObj.isRealPlayer = isRealPlayer;
+                matchObj.isTestPlayer = isTestPlayer;
+            }
+        }
         // if (data.clientType) {
         //     matchObj.clientType = data.clientType
         // }
@@ -503,9 +538,12 @@ var dbPlayerLoginRecord = {
             matchObj.accessType = { $regex : new RegExp(data.accessType, "i") }
         }
         else{
-            matchObj.$or = [];
-            matchObj.$or.push({"accessType": { $regex : /register/i }});
-            matchObj.$or.push({"accessType": { $regex : /login/i }});
+            if (!matchObj.$and){
+                matchObj.$and = [];
+            }
+            matchObj.$and.push({$or: [{"accessType": { $regex : /register/i }},{"accessType": { $regex : /login/i }} ]});
+            // matchObj.$or.push({"accessType": { $regex : /register/i }});
+            // matchObj.$or.push({"accessType": { $regex : /login/i }});
         }
 
         let count = dbconfig.collection_playerClientSourceLog.aggregate([

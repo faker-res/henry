@@ -108,9 +108,9 @@ function socketActionPartner(socketIO, socket) {
                     diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // + 1 to include end day
                 }
             }
-            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.days && diffDays);
+            var isValidData = Boolean(data && data.platform && data.startTime && data.endTime && data.days && diffDays && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platform), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         }
     };
     socketActionPartner.actions = this.actions;

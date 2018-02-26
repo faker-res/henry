@@ -49,8 +49,8 @@ function socketActionLogger(socketIO, socket) {
 
         getClientSourceQuery: function getClientSourceQuery(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate);
-            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getClientSourceQuery, [data], actionName, isValidData);
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getClientSourceQuery, [data, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
         getClientSourcePara: function getClientSourcePara(data) {
             var actionName = arguments.callee.name;
