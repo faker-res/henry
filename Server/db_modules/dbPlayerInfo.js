@@ -6150,6 +6150,9 @@ let dbPlayerInfo = {
         return playerProm.then(
             function (data) {
                 if (data) {
+                    if(data.isTestPlayer) {
+                        return Q.reject({name: "DataError", message: "Unable to check game credit for demo player"});
+                    }
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
