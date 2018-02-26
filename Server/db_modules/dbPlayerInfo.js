@@ -4666,6 +4666,12 @@ let dbPlayerInfo = {
 
         Q.all([prom0, prom1]).then(
             data => {
+                if(data && data[0] && data[0].isTestPlayer) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Unable to transfer credit for demo player"
+                    })
+                }
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
@@ -5149,6 +5155,12 @@ let dbPlayerInfo = {
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
+                if(data && data[0] && data[0].isTestPlayer) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Unable to transfer credit for demo player"
+                    })
+                }
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
                     gameProvider = data[1];
