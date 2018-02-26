@@ -17522,10 +17522,6 @@ define(['js/app'], function (myApp) {
                         $('.randomRankingSelected.checkAllRandomData').prop('checked', flagAllChecked.length == 0);
                         vm.updateMultiselectProposal();
                     }
-                    // if (event.target.tagName == 'A') {
-                    //     var data = vm.proposalTable.row(this).data();
-                    //     vm.proposalRowClicked(data);
-                    // }
                 }
 
                 $('#rewardRankingRandomTable tbody').off('click', "**");
