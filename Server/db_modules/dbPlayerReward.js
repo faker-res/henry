@@ -3638,6 +3638,7 @@ let dbPlayerReward = {
 
 
     },
+
     updatePromoCodesActive: (platformObjId, data) => {
         if (data.flag) {
             dbConfig.collection_promoCode.update({
