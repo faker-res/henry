@@ -1523,12 +1523,12 @@ var dbPlatform = {
         data.inputDevice ? query.inputDevice = data.inputDevice : "";
         data.purpose ? query.purpose = data.purpose : "";
         data.platformObjId ? query.platform = data.platformObjId : "";
+        data.accountStatus ? query.phoneStatus = data.accountStatus : "";
 
         // Strip any fields which have value `undefined`
         query = JSON.parse(JSON.stringify(query));
         addOptionalTimeLimitsToQuery(data, query, 'createTime');
         let smsLogCount = 0;
-        //console.log("query:", query);
         var a = dbconfig.collection_smsLog.find(query).sort(sortCol).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
         let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, {smsVerificationExpireTime: 1}).lean();
@@ -1563,26 +1563,29 @@ var dbPlatform = {
         ).then(
             (smsLogsWithCount) => {
                 // filter based on Demo Player Account Status: All, Created, Not Created
-                if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === '') {
-                    return {
-                        data: smsLogsWithCount,
-                        size: smsLogCount
-                    };
-                } else if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === 'createdAccount') {
-                    let smsResult = smsLogsWithCount.filter(sms => sms.tel.indexOf('******') > -1);
-                    smsLogCount = smsResult.length;
-                    return {
-                        data: smsResult,
-                        size: smsLogCount
-                    };
-                } else if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === 'notYetCreateAccount') {
-                    let smsResult = smsLogsWithCount.filter(sms => sms.tel.indexOf('******') === -1);
-                    smsLogCount = smsResult.length;
-                    return {
-                        data: smsResult,
-                        size: smsLogCount
-                    };
-                }
+                // if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === '') {
+                //     console.log('ALL===');
+                //     return {
+                //         data: smsLogsWithCount,
+                //         size: smsLogCount
+                //     };
+                // } else if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === 1) {
+                //     console.log('CREATED===');
+                //     let smsResult = smsLogsWithCount.filter(sms => sms.tel.indexOf('******') > -1);
+                //     smsLogCount = smsResult.length;
+                //     return {
+                //         data: smsResult,
+                //         size: smsLogCount
+                //     };
+                // } else if (data.purpose && data.accountStatus && data.purpose === 'demoPlayer' && data.accountStatus === 2) {
+                //     console.log('NOT_CREATED===');
+                //     let smsResult = smsLogsWithCount.filter(sms => sms.tel.indexOf('******') === -1);
+                //     smsLogCount = smsResult.length;
+                //     return {
+                //         data: smsResult,
+                //         size: smsLogCount
+                //     };
+                // }
 
                 return {
                     data: smsLogsWithCount,
@@ -1604,10 +1607,31 @@ var dbPlatform = {
         ).count().then(
             count => {
                 if (count > 0) {
+                    // if phone number already exist in real player, update phone status to 1
+                    dbconfig.collection_smsLog.findOneAndUpdate(
+                        {
+                            _id: sms._id
+                        },
+                        {
+                            phoneStatus: 1
+                            // $unset: {phoneStatus: ''}
+                        }
+                    ).exec();
+
                     //got matching phone number in db, thus need encode
                     sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 } else {
+                    // if phone number did not exist in real player, update phone status to 2
+                    dbconfig.collection_smsLog.findOneAndUpdate(
+                        {
+                            _id: sms._id
+                        },
+                        {
+                            phoneStatus: 2
+                            // $unset: {phoneStatus: ''}
+                        }
+                    ).exec();
                     //no match found, return without encode
                     return sms.tel;
                 }

@@ -298,11 +298,6 @@ define(['js/app'], function (myApp) {
                 // RESET_PASSWORD: 'resetPassword'
             };
 
-            vm.allAccountStatus = {
-                CREATED_ACCOUNT: 'createdAccount',
-                NOT_YET_CREATE_ACCOUNT: 'notYetCreateAccount',
-            };
-
             vm.constProposalStatus = {
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
