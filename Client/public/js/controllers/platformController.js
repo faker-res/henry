@@ -699,6 +699,12 @@ define(['js/app'], function (myApp) {
                     vm.playerRewardPointsDailyConvertedPoints = 0;
                     vm.getPlayerRewardPointsDailyLimit();
                     vm.getPlayerRewardPointsDailyConvertedPoints();
+                    for(let index in vm.rewardPointsLvlConfig.params) {
+                        if(vm.rewardPointsLvlConfig.params[index].levelObjId == vm.selectedSinglePlayer.playerLevel._id) {
+                            vm.rewardPointToCreditManualRate = vm.rewardPointsLvlConfig.params[index].pointToCreditManualRate;
+                            break;
+                        }
+                    }
                 }
             };
 
@@ -967,7 +973,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getRewardPointsLvlConfig(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                         switch (vm.platformPageName) {
