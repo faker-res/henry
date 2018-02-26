@@ -16942,6 +16942,9 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeUserGroupAdd = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
                 vm.promoCodeUserGroupPlayerAdd = false;
+                vm.promoCode1HasMoreThanOne = false;
+                vm.promoCode2HasMoreThanOne = false;
+                vm.promoCode3HasMoreThanOne = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -18033,6 +18036,12 @@ define(['js/app'], function (myApp) {
                         if (ret && ret.data && ret.data.length > 0) {
                             if (!data.skipCheck) {
                                 data.hasMoreThanOne = true;
+                                if (type){
+                                    if(type == 1){vm.promoCode1HasMoreThanOne = true;}
+                                    if(type == 2){vm.promoCode2HasMoreThanOne = true;}
+                                    if(type == 3){vm.promoCode3HasMoreThanOne = true;}
+                                }
+
                                 $scope.safeApply();
                             }
                         }
@@ -18061,17 +18070,23 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.generateAllPromoCode = function (col, type) {
+            vm.generateAllPromoCode = function (col, type, skipCheck) {
                 let p = Promise.resolve();
 
                 col.forEach((elem, index, arr) => {
                     if (!elem.code) {
                         p = p.then(function () {
+                            if (skipCheck){
+                                elem.skipCheck = true;
+                            }
                             return vm.generatePromoCode(col, index, elem, type);
                         });
                     }
                 });
 
+                vm.promoCode1HasMoreThanOne = false;
+                vm.promoCode2HasMoreThanOne = false;
+                vm.promoCode3HasMoreThanOne = false;
                 return p;
             };
 
