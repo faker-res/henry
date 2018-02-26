@@ -9474,6 +9474,12 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, gameProm]).then(
             data => {
+                //check if its a demo player
+                if(data && data[0] && data[0].isTestPlayer) {
+                    playerData = data[0];
+                    return dbPlayerInfo.getTestLoginURL(playerId, gameId, ip, lang, clientDomainName, clientType);
+                }
+
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
@@ -9654,7 +9660,11 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            () => {
+            data => {
+                if(playerData.isTestPlayer) {
+                    return data;
+                }
+
                 if (gameData && gameData.provider && gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
                 }
@@ -9676,6 +9686,9 @@ let dbPlayerInfo = {
             }
         ).then(
             loginData => {
+                if(playerData.isTestPlayer) {
+                    return loginData;
+                }
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
