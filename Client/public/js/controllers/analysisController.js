@@ -194,6 +194,7 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('playerDevice', true, 2, function () {
                             vm.queryPara.playerDevice.type = 'os';
                             vm.queryPara.playerDevice.queryRequirement = 'register';
+                            vm.queryPara.playerDevice.userType = 'all';
                             //vm.deviceAnalysisInit();
                         });
                         break;
@@ -211,6 +212,8 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('playerDomain', true, 2, function () {
                             //vm.domainAnalysisInit();
                         });
+                        vm.queryPara.playerDomain.userType = 'all';
+                        $scope.safeApply();
                         break;
                     case "PLAYER_RETENTION":
                         vm.initSearchParameter('playerRetention', null, 2, function () {
@@ -223,6 +226,7 @@ define(['js/app'], function (myApp) {
                             vm.playerRetentionInit(function () {
                                 //vm.getPlayerRetention();
                             });
+                            vm.queryPara.playerRetention.userType = "all";
                             $scope.safeApply();
                         });
                         break;
@@ -250,6 +254,9 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('clientSource', true, 3, function () {
                             //vm.initClientSourcePara(vm.getClientSourceData);
                         });
+                        vm.queryPara.clientSource.userType='all';
+                        $scope.safeApply();
+
                         break;
                     case "GAME_ANALYSIS":
                         // vm.getAllProvider();
@@ -2468,6 +2475,31 @@ define(['js/app'], function (myApp) {
                 queryRequirement: vm.queryPara.playerDevice.queryRequirement
             }
 
+            switch (vm.queryPara.playerDevice.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
             socketService.$socket($scope.AppSocket, 'getPlayerDeviceAnalysisData', sendData, function (data) {
                 vm.playerDeviceList = data.data;
                 console.log('device data', vm.playerDeviceList);
@@ -2510,6 +2542,31 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform._id,
                 startTime: vm.queryPara.playerDomain.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.queryPara.playerDomain.endTime.data('datetimepicker').getLocalDate(),
+            }
+
+            switch (vm.queryPara.playerDomain.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
             }
 
             socketService.$socket($scope.AppSocket, 'getPlayerDomainAnalysisData', sendData, function (data) {
@@ -2598,6 +2655,32 @@ define(['js/app'], function (myApp) {
                 endTime: vm.queryPara.playerRetention.endTime,
                 playerType: vm.queryPara.playerRetention.playerType
             }
+
+            switch (vm.queryPara.playerRetention.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
             socketService.$socket($scope.AppSocket, 'getPlayerRetention', sendData, function (data) {
                 console.log("retention data", data);
                 vm.retentionData = data.data;
@@ -3350,6 +3433,33 @@ define(['js/app'], function (myApp) {
             sendObj.platformId = vm.selectedPlatform.platformId;
             sendObj.startDate = vm.queryPara.clientSource.startTime.data('datetimepicker').getLocalDate();
             sendObj.endDate = vm.queryPara.clientSource.endTime.data('datetimepicker').getLocalDate();
+
+            switch (vm.queryPara.clientSource.userType) {
+                case 'all':
+                    sendObj.isRealPlayer = true;
+                    sendObj.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendObj.isRealPlayer = true;
+                    sendObj.isTestPlayer = false;
+                    sendObj.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendObj.isRealPlayer = true;
+                    sendObj.isTestPlayer = false;
+                    sendObj.hasPartner = true;
+                    break;
+                case 'test':
+                    sendObj.isRealPlayer = false;
+                    sendObj.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendObj.hasPartner !== 'boolean'){
+                sendObj.hasPartner = null;
+            }
+
+
             socketService.$socket($scope.AppSocket, 'getClientSourceQuery', sendObj, function (data) {
                 console.log('data', data);
                 vm.clientSourceTblData = data.data || [];

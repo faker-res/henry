@@ -33,6 +33,12 @@ var playerLoginRecordSchema = new Schema({
         os: {type: String},
         device: {type: String}
     },
+    // is test player
+    isTestPlayer: {type: Boolean, default: false},
+    //is real player
+    isRealPlayer: {type: Boolean, default: true, index: true},
+    //partnerId
+    partner: {type: Schema.ObjectId, ref: 'partner', index: true},
     //any additional data
     data: JSON
 });
