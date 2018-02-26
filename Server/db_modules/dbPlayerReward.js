@@ -3824,7 +3824,7 @@ let dbPlayerReward = {
             }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                bDirty: false,
+                //bDirty: false,
                 playerId: playerData._id,
             };
 
@@ -4600,6 +4600,7 @@ let dbPlayerReward = {
                         let applyRewardTimes = periodProps.length;
                         let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.amount, 0);
                         let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.validAmount, 0);
+                        let applyRewardAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         useTopUpAmount = 0;
                         useConsumptionAmount = 0;
                         //periodProps.reduce((sum, value) => sum + value, 1);
@@ -4631,7 +4632,7 @@ let dbPlayerReward = {
                                 });
                                 isUpdateMultiConsumptionRecord = true;
                                 useConsumptionAmount = selectedRewardParam.requiredConsumptionAmount;
-                                meetConsumptionCondition = consumptionAmount >= selectedRewardParam.requiredConsumptionAmount;
+                                meetConsumptionCondition = consumptionAmount - applyRewardAmount >= selectedRewardParam.requiredConsumptionAmount;
                             } else {
                                 meetConsumptionCondition = true;
                             }
@@ -4720,7 +4721,7 @@ let dbPlayerReward = {
                 }
 
                 // Decide whether deduct player credit
-                if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
+                if (isUpdateValidCredit && playerData.platform.useProviderGroup && rewardAmount) {
                     // Decide whether player has enough free amount to apply
                     if (playerData.validCredit >= applyAmount) {
                         // Player has enough amount in validCredit

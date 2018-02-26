@@ -763,10 +763,10 @@ function socketActionPlayer(socketIO, socket) {
          */
         getPlayerDeviceAnalysisData: function getPlayerDeviceAnalysisData(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.type && data.queryRequirement);
+            var isValidData = Boolean(data && data.platformId && data.type && data.queryRequirement && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime, data.queryRequirement], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime, data.queryRequirement, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
         /**
          *  apply Manual TopUp

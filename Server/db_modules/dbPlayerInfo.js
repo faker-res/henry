@@ -641,7 +641,10 @@ let dbPlayerInfo = {
             country: data.country,
             longitude: data.longitude,
             latitude: data.latitude,
-            loginTime: data.registrationTime
+            loginTime: data.registrationTime,
+            isRealPlayer: data.isRealPlayer,
+            isTestPlayer: data.isTestPlayer,
+            partner: data.partner ? data.partner : null
         };
         var record = new dbconfig.collection_playerLoginRecord(recordData);
         record.save().then().catch(errorUtils.reportError);
@@ -4076,7 +4079,10 @@ let dbPlayerInfo = {
                                 platform: platformId,
                                 loginIP: playerData.lastLoginIp,
                                 clientDomain: playerData.clientDomain ? playerData.clientDomain : "",
-                                userAgent: uaObj
+                                userAgent: uaObj,
+                                isRealPlayer: playerObj.isRealPlayer,
+                                isTestPlayer: playerObj.isTestPlayer,
+                                partner: playerObj.partner ? playerObj.partner : null
                             };
 
                             if (platformObj.usePointSystem) {
@@ -4357,7 +4363,10 @@ let dbPlayerInfo = {
                                 platform: platformId,
                                 loginIP: loginData.lastLoginIp,
                                 clientDomain: loginData.clientDomain ? loginData.clientDomain : "",
-                                userAgent: uaObj
+                                userAgent: uaObj,
+                                // isRealPlayer: playerObj.isRealPlayer,
+                                // isTestPlayer: playerObj.isTestPlayer,
+                                // partner: playerObj.partner ? playerObj.partner : null
                             };
                             Object.assign(recordData, geoInfo);
                             let record = new dbconfig.collection_playerLoginRecord(recordData);
@@ -9092,17 +9101,37 @@ let dbPlayerInfo = {
     /*
      * get Player Device Analysis Data
      */
-    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement) {
+    getPlayerDeviceAnalysisData: function (platform, type, startTime, endTime, queryRequirement, isRealPlayer, isTestPlayer, hasPartner) {
+
         if(queryRequirement == "register"){
+            let matchObj = {
+                platform: platform,
+                registrationTime: {$gte: startTime, $lt: endTime},
+                isRealPlayer: isRealPlayer,
+                isTestPlayer: isTestPlayer,
+            };
+
+            if (hasPartner !== null){
+                if (hasPartner == true){
+                    matchObj.partner = {$type: "objectId"};
+                }else {
+                    matchObj['$or'] = [
+                        {partner: null},
+                        {partner: {$exists: false}}
+                    ]
+                }
+            }
+
             return dbconfig.collection_players.aggregate(
                 {
                     $unwind: "$userAgent",
                 },
                 {
-                    $match: {
-                        platform: platform,
-                        registrationTime: {$gte: startTime, $lt: endTime}
-                    }
+                    $match: matchObj
+                        // {
+                    //     platform: platform,
+                    //     registrationTime: {$gte: startTime, $lt: endTime}
+                    // }
                 },
                 {
                     $group: {
@@ -9122,15 +9151,49 @@ let dbPlayerInfo = {
                 }
             ).read("secondaryPreferred")
         }else{
+
+            let matchObj = {
+                platform: platform,
+                loginTime: {$gte: startTime, $lt: endTime}
+            };
+
+            if (hasPartner !== null){
+                if (hasPartner == true){
+                    matchObj.partner = {$type: "objectId"};
+                    matchObj.isRealPlayer = isRealPlayer;
+                    matchObj.isTestPlayer = isTestPlayer;
+                }else {
+                    matchObj['$and'] = [
+                        {$or: [ {partner: null}, {partner: {$exists: false}} ]},
+                        {$or: [{$and: [ {isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}, {$and: [ {isRealPlayer: isRealPlayer}, {isTestPlayer:isTestPlayer} ]} ]},
+                    ]
+                }
+            }
+            else{
+                if (isRealPlayer){
+                    // the old data which do not contain isTestPlayer & isRealPlayer are treated as individual UserType
+                    matchObj['$or'] = [
+                        {$and: [{isRealPlayer: isRealPlayer}, {isTestPlayer: isTestPlayer} ]},
+                        {$and: [{isRealPlayer: {$exists: false}}, {isTestPlayer: {$exists: false}} ]}
+                    ]
+                }
+                else {
+                    // for the case of testPlayer
+                    matchObj.isRealPlayer = isRealPlayer;
+                    matchObj.isTestPlayer = isTestPlayer;
+                }
+            }
+
             return dbconfig.collection_playerLoginRecord.aggregate(
                 {
                     $unwind: "$userAgent",
                 },
                 {
-                    $match: {
-                        platform: platform,
-                        loginTime: {$gte: startTime, $lt: endTime}
-                    }
+                    $match: matchObj
+                    //     {
+                    //     platform: platform,
+                    //     loginTime: {$gte: startTime, $lt: endTime}
+                    // }
                 },
                 {
                     $group: {
@@ -11304,6 +11367,7 @@ let dbPlayerInfo = {
     createPlayerClientSourceLog: function (data) {
         var domain = "";
         var url = data.sourceUrl;
+        let playerObj = null;
         //find & remove protocol (http, ftp, etc.) and get domain
         if (url.indexOf("://") > -1) {
             domain = url.split('/')[2];
@@ -11317,37 +11381,56 @@ let dbPlayerInfo = {
 
         let platformObjId;
 
-        dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: data.platformId}).lean().then(
             function (platform) {
+                if (!platform) {
+                    return Promise.reject({
+                        message: "Platform not found.",
+                        error: error
+                    });
+                }
+
                 platformObjId = platform._id;
                 return dbconfig.collection_players.findOne(
                     {name: data.playerName, platform: platformObjId}
                 ).lean();
-            },
-            function (error) {
-                console.error({
-                    message: "Platform not found.",
-                    error: error
-                })
             }
         ).then(
             function (player) {
+                if (!player) {
+                    return Promise.reject({
+                        message: "Platform not found.",
+                        error: error
+                    });
+                }
+                playerObj = player;
                 let playerObjId = player._id;
-                dbconfig.collection_players.findOneAndUpdate(
+                return dbconfig.collection_players.findOneAndUpdate(
                     {_id: playerObjId, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl}
+                    {sourceUrl: data.sourceUrl},
+                    {new: true}
                 ).lean().exec();
-            },
-            function (error) {
-                console.error({
-                    message: "Platform not found.",
-                    error: error
-                })
+            }
+        ).then(
+            function () {
+                if (playerObj) {
+                    data.isRealPlayer = typeof playerObj.isRealPlayer === 'boolean' ? playerObj.isRealPlayer : true;
+                    data.isTestPlayer = typeof playerObj.isTestPlayer === 'boolean' ? playerObj.isTestPlayer : false;
+                    data.partner = playerObj.partner ? playerObj.partner : null;
+
+                    var newLog = new dbconfig.collection_playerClientSourceLog(data);
+                    return newLog.save();
+                }
+
             }
         );
 
-        var newLog = new dbconfig.collection_playerClientSourceLog(data);
-        return newLog.save();
+        // data.isRealPlayer = playerObj.isRealPlayer ? playerObj.isRealPlayer : true;
+        // data.isTestPlayer = playerObj.isTestPlayer ? playerObj.isTestPlayer : false;
+        // data.partner = playerObj.partner ? playerObj.partner : null;
+
+        // var newLog = new dbconfig.collection_playerClientSourceLog(data);
+        // return newLog.save();
     },
 
     getPlayerReferralList: function (playerId, startIndex, requestCount, sort, status) {

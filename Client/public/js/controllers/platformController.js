@@ -298,11 +298,6 @@ define(['js/app'], function (myApp) {
                 // RESET_PASSWORD: 'resetPassword'
             };
 
-            vm.allAccountStatus = {
-                CREATED_ACCOUNT: 'createdAccount',
-                NOT_YET_CREATE_ACCOUNT: 'notYetCreateAccount',
-            };
-
             vm.constProposalStatus = {
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
@@ -699,6 +694,12 @@ define(['js/app'], function (myApp) {
                     vm.playerRewardPointsDailyConvertedPoints = 0;
                     vm.getPlayerRewardPointsDailyLimit();
                     vm.getPlayerRewardPointsDailyConvertedPoints();
+                    for(let index in vm.rewardPointsLvlConfig.params) {
+                        if(vm.rewardPointsLvlConfig.params[index].levelObjId == vm.selectedSinglePlayer.playerLevel._id) {
+                            vm.rewardPointToCreditManualRate = vm.rewardPointsLvlConfig.params[index].pointToCreditManualRate;
+                            break;
+                        }
+                    }
                 }
             };
 
@@ -967,7 +968,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getRewardPointsLvlConfig(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                         switch (vm.platformPageName) {
@@ -4637,7 +4638,7 @@ define(['js/app'], function (myApp) {
                             {title: $translate('bonusAmount'), data: "bonusAmount$", sClass: 'sumFloat textRight'},
                             {title: $translate('Total Amount'), data: "amount$", sClass: 'sumFloat textRight'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('COUNT'), data: "consumptionTimes"},
+                            {title: $translate('COUNT'), data: "count"},
                             //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "canConsumptionReturn$"},
                         ],
                         "paging": false,
@@ -9931,7 +9932,7 @@ define(['js/app'], function (myApp) {
                             },
                             {title: $translate('Total Amount'), data: "amount$", bSortable: true, sClass: 'alignRight sumFloat'},
                             {title: $translate('REMARK'), data: "remark$"},
-                            {title: $translate('COUNT'), data: "consumptionTimes"},
+                            {title: $translate('COUNT'), data: "count"},
                             //{title: $translate('CONSUMPTION_RETURN_ABILITY'), data: "bDirty$"},
                             // {
                             //     title: $translate('commissionAmount'),
@@ -17249,6 +17250,7 @@ define(['js/app'], function (myApp) {
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
                     case 'rewardPointsRanking':
+                        vm.editFakeAcc = false;
                         vm.playerRankingRandom = [{}];
                         vm.playerRankingRandomClone = [{}];
                         vm.isEditRandomData = false;
@@ -17470,6 +17472,7 @@ define(['js/app'], function (myApp) {
                     // $('#promoCodeMonitorTableSpin').hide();
                     console.log('getRewardPointsRandom', data);
                     vm.playerRewardRankingRandom.totalCount = data.data.size;
+                    vm.playerRandomRankingData = data.data.data;
                     vm.drawPlayerRewardPointsRandomTable(
                         data.data.data.map((item,index) => {
                             if (sendData.sortCol.points == -1) {
@@ -17487,16 +17490,40 @@ define(['js/app'], function (myApp) {
                 }, true);
             }
 
+            vm.toggleDeleteFakeAcc = function (flag) {
+                vm.editFakeAcc = flag;
+                vm.drawPlayerRewardPointsRandomTable(
+                    vm.playerRandomRankingData
+                    , vm.playerRewardRankingRandom.totalCount, {}, false);
+                $scope.safeApply();
+            }
+
             vm.drawPlayerRewardPointsRandomTable = function (data, size, summary, newSearch) {
                 var tableOptions = {
                     data: data,
-                    "order": vm.playerRewardRankingRandom.aaSorting || [[3, 'desc']],
+                    "order": vm.playerRewardRankingRandom.aaSorting || [[4, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'points', 'aTargets': [3], bSortable: true},
+                        {'sortCol': 'points', 'aTargets': [4], bSortable: true},
                         // {'sortCol': 'playerName', 'aTargets': [1], bSortable: true},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
+                        {
+                            "title": $translate('Multiselect'),
+                            bSortable: false,
+                            sClass: "randomRankingSelected",
+                            render: function (data, type, row) {
+                                if (!row.playerObjId) {
+                                    var link = $('<input>', {
+                                        type: 'checkbox',
+                                        "data-proposalId": row._id,
+                                        class: "transform150"
+                                    })
+                                    return link.prop('outerHTML');
+                                } else return null;
+                            },
+                            visible: vm.editFakeAcc
+                        },
                         {
                             title: $translate('REWARD_POINTS_RANKING'),
                             data: "ranking",
@@ -17586,6 +17613,7 @@ define(['js/app'], function (myApp) {
                         },
                     ],
                     "paging": false,
+                    dom: "Z<'row'<'col-sm-12'tr>>",
                     fnRowCallback: vm.rewardRankingRandomRecord
                 }
                 tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
@@ -17593,6 +17621,35 @@ define(['js/app'], function (myApp) {
                 var rankingTbl = utilService.createDatatableWithFooter('#rewardRankingRandomTable', tableOptions, {});
                 // utilService.setDataTablePageInput('rewardRankingTable', rankingTbl, $translate);
 
+                var $checkAll = $(".dataTables_scrollHead thead .randomRankingSelected");
+                if ($checkAll.length == 1) {
+                    var $showBtn = $('<input>', {
+                        type: 'checkbox',
+                        class: "randomRankingSelected transform150 checkAllRandomData"
+                    });
+                    $checkAll.html($showBtn);
+                    $('.randomRankingSelected.checkAllRandomData').on('click', function () {
+                        var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+                        setCheckAllRandomData($checkAll.checked);
+                    })
+                }
+                function setCheckAllRandomData(flag) {
+                    var s = $("#rewardRankingRandomTable tbody td.randomRankingSelected input").each(function () {
+                        $(this).prop("checked", flag);
+                    });
+                    vm.updateMultiselectRanking();
+                }
+
+                function tableRowClicked(event) {
+                    if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
+                        var flagAllChecked = $("#rewardRankingRandomTable tbody td.randomRankingSelected input[type='checkbox']:not(:checked)");
+                        $('.randomRankingSelected.checkAllRandomData').prop('checked', flagAllChecked.length == 0);
+                        vm.updateMultiselectRanking();
+                    }
+                }
+
+                $('#rewardRankingRandomTable tbody').off('click', "**");
+                $('#rewardRankingRandomTable tbody').on('click', 'tr', tableRowClicked);
                 $('#rewardRankingRandomTable').off('order.dt');
                 // $('#rewardRankingTable').off();
                 $('#rewardRankingRandomTable').on('order.dt', function (event, a, b) {
@@ -17600,6 +17657,21 @@ define(['js/app'], function (myApp) {
                 });
                 $('#rewardRankingRandomTable').resize();
             }
+
+            vm.updateMultiselectRanking = function () {
+                var allClicked = $("#rewardRankingRandomTable tr input:checked[type='checkbox']");
+                vm.multiRandomRankingSelected = [];
+                if (allClicked.length > 0) {
+                    allClicked.each(function () {
+                        var id = $(this)[0].dataset.proposalid;
+                        if (id) {
+                            vm.multiRandomRankingSelected.push(id);
+                        }
+                    })
+                }
+                console.log(vm.multiRandomRankingSelected);
+                $scope.safeApply();
+            };
 
 
             vm.rewardRankingRandomRecord = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -17623,6 +17695,19 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'deleteRewardPointsRankingRandom', sendData, function (data) {
                     console.log('deleteRandomRanking', data);
+                    $scope.safeApply();
+                    vm.getPlayerRewardPointsRankingRandom(true);
+                }, function (err) {
+                    console.error(err);
+                }, true);
+            }
+
+            vm.deleteMultipleRandomRanking = function () {
+                let sendData = {
+                    playerObjIds: vm.multiRandomRankingSelected
+                }
+                socketService.$socket($scope.AppSocket, 'deleteMultipleRewardPointsRankingRandom', sendData, function (data) {
+                    console.log('deleteMultipleRandomRanking', data);
                     $scope.safeApply();
                     vm.getPlayerRewardPointsRankingRandom(true);
                 }, function (err) {

@@ -36,7 +36,7 @@ let dbPromoCode = {
                 let promoCodeObj = promoCodeData[i];
                 if (promoCodeObj.code.toString() === promoCode) {
                     if (amount && typeof amount === "number") {
-                        if (amount >= promoCodeObj.minTopUpAmount) {
+                        if (amount >= promoCodeObj.minTopUpAmount || !promoCodeObj.minTopUpAmount) {
                             return true;
                         } else {
                             return Promise.reject({
