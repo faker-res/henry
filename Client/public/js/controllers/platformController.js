@@ -17513,14 +17513,14 @@ define(['js/app'], function (myApp) {
                     var s = $("#rewardRankingRandomTable tbody td.randomRankingSelected input").each(function () {
                         $(this).prop("checked", flag);
                     });
-                    vm.updateMultiselectProposal();
+                    vm.updateMultiselectRanking();
                 }
 
                 function tableRowClicked(event) {
                     if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
                         var flagAllChecked = $("#rewardRankingRandomTable tbody td.randomRankingSelected input[type='checkbox']:not(:checked)");
                         $('.randomRankingSelected.checkAllRandomData').prop('checked', flagAllChecked.length == 0);
-                        vm.updateMultiselectProposal();
+                        vm.updateMultiselectRanking();
                     }
                 }
 
@@ -17534,7 +17534,7 @@ define(['js/app'], function (myApp) {
                 $('#rewardRankingRandomTable').resize();
             }
 
-            vm.updateMultiselectProposal = function () {
+            vm.updateMultiselectRanking = function () {
                 var allClicked = $("#rewardRankingRandomTable tr input:checked[type='checkbox']");
                 vm.multiRandomRankingSelected = [];
                 if (allClicked.length > 0) {
