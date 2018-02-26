@@ -2163,7 +2163,7 @@ var proposalExecutor = {
             },
 
             executePlayerTopUpReturnGroup: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
