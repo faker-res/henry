@@ -4842,7 +4842,9 @@ define(['js/app'], function (myApp) {
                         }
                     });
                 }
-                table.draw();
+                if(table){
+                    table.draw();
+                }
             };
 
             // Multiply by this to convert hours to seconds
