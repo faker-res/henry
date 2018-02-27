@@ -3113,7 +3113,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (bValid) {
-                if (!bValid) {
+                if (!bValid && !ifAdmin) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "NotValid",
