@@ -2872,12 +2872,8 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data.length > 0) {
-                    deferred.reject({
-                        name: "DataError",
-                        message: "Not Valid for the reward."
-                    });
+                    deferred.resolve(false);
                     return true;
-
                 } else {
                     if (!playerData.platform.canMultiReward && playerData.platform.useLockedCredit) {
                         return dbRewardTask.getPlayerCurRewardTask(playerData._id);
