@@ -23988,7 +23988,17 @@ define(['js/app'], function (myApp) {
                                         permission: changeObj,
                                         remark: $remark.val()
                                     }, function (data) {
-                                        vm.batchPermitModifySucc = true;
+                                        let errorList = data.data;
+                                        errorList = errorList.filter(item=>{
+                                            return (typeof item === 'string');
+                                        })
+
+                                        if(errorList < 1){
+                                            vm.batchPermitModifySucc = true;
+                                        }else{
+                                            vm.errorListMsg = errorList.join(',');
+                                        }
+
                                         vm.getPlatformPlayersData();
                                     }, null, true);
 

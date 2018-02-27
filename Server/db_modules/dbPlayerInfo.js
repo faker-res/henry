@@ -1673,8 +1673,10 @@ let dbPlayerInfo = {
         }
         let players = query.playerNames;
         let proms = [];
+        let errorList = [];
         players.forEach(item => {
-            let playerQuery = {'name': item, 'platform': query.platformObjId};
+            let playerName = item.trim() || '';
+            let playerQuery = {'name': playerName, 'platform': query.platformObjId};
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
                 function (suc) {
                     var oldData = {};
@@ -1698,7 +1700,8 @@ let dbPlayerInfo = {
                     } else return true;
                 },
                 function (error) {
-                    return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+                    errorList.push(error.query.name);
+                    return error.query.name
                 }
             )
             proms.push(prom)
