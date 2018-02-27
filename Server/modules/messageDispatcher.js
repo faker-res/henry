@@ -1,6 +1,8 @@
 "use strict";
 
 const Q = require("q");
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const dbconfig = require("./dbproperties.js");
 const dbPlayerMail = require("../db_modules/dbPlayerMail");
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
@@ -183,7 +185,7 @@ const messageDispatcher = {
     renderTemplateAndSendMessage: function (messageTemplate, metaData) {
         const renderedSubject = typeof messageTemplate.subject === 'string' && renderTemplate(messageTemplate.subject, metaData);
         const contentIsHTML = isHTML(messageTemplate.content);
-        if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
+        // if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
             messageTemplate.content = messageTemplate.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
         if (metaData.proposalData) {
             if(metaData.proposalData.createTime)
