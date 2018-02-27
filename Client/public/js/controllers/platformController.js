@@ -18270,10 +18270,11 @@ define(['js/app'], function (myApp) {
                             sendData.smsContent = sendData.promoCodeType.smsContent;
 
                             console.log('sendData', sendData);
-
                             return $scope.$socketPromise('generatePromoCode', {
                                 platformObjId: vm.selectedPlatform.id,
-                                newPromoCodeEntry: sendData
+                                newPromoCodeEntry: sendData,
+                                adminName: authService.adminName,
+                                adminId: authService.adminId
                             }).then(ret => {
                                 col[index].code = ret.data;
                                 $scope.safeApply();
