@@ -2402,7 +2402,7 @@ let dbPlayerReward = {
                 if (newPromoCodeEntry.allowedSendSms) {
                     SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
                 }
-                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
+                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
                 return newPromoCode.code;
             }
         )
