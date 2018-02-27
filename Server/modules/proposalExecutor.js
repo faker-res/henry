@@ -1640,7 +1640,13 @@ var proposalExecutor = {
                         {new: false}
                     ).then(
                         (data) => {
-                            sendMessageToPlayer(proposalData,constMessageType.PLAYER_LEVEL_MIGRATION_SUCCESS,{});
+                            let messageType;
+                            if (proposalData.data && proposalData.data.upOrDown == "LEVEL_UP") {
+                                messageType = constMessageType.PLAYER_LEVEL_UP_MIGRATION_SUCCESS;
+                            } else {
+                                messageType = constMessageType.PLAYER_LEVEL_DOWN_MIGRATION_SUCCESS;
+                            }
+                            sendMessageToPlayer(proposalData,messageType,{});
                             deferred.resolve(data);
                     }, deferred.reject
                     );

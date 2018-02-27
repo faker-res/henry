@@ -18721,6 +18721,10 @@ define(['js/app'], function (myApp) {
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
+                        },
+                        {
+                            title: $translate('CREATED_BY'),
+                            data: "adminName"
                         }
                     ],
                     "paging": false,
