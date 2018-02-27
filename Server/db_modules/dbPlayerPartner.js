@@ -307,7 +307,6 @@ let dbPlayerPartner = {
         let verificationSmsDetail;
         let smsLogDetail;
         newPhoneNumber = newPhoneNumber || "";
-
         // 1. Get current platform detail
         return dbConfig.collection_platform.findOne({
             platformId: platformId,
@@ -564,6 +563,9 @@ let dbPlayerPartner = {
                             playerName: player.name,
                             updateData: {
                                 phoneNumber: updatePhoneNumber
+                            },
+                            curData: {
+                                phoneNumber: dbUtility.encodePhoneNum(curPhoneNumber)
                             }
 
                         };
