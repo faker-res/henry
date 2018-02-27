@@ -674,10 +674,13 @@ let dbPlayerReward = {
                         let startTimeSetHours = currentTime.setHours(startTimeInt,0,0);
                         let countdownToStartTime = parseInt((startTimeSetHours - new Date().getTime()) / 1000);
 
+                        let eventStartTime = ('00' + appearPeriod.startTime).slice(-2).concat(':00');
+                        let eventEndTime = ('00' + appearPeriod.endTime).slice(-2).concat(':00');
+
                         openData = {
                             id: openID,
-                            startTime: appearPeriod.startTime,
-                            endTime: appearPeriod.endTime,
+                            startTime: eventStartTime,
+                            endTime: eventEndTime,
                             timeLeft: countdownToStartTime,
                             status: 0,
                             condition: {
@@ -701,10 +704,13 @@ let dbPlayerReward = {
                         openID++;
                         openID = ('000' + openID).slice(-3);
 
+                        let eventStartTime = ('00' + appearPeriod.startTime).slice(-2).concat(':00');
+                        let eventEndTime = ('00' + appearPeriod.endTime).slice(-2).concat(':00');
+
                         openData = {
                             id: openID,
-                            startTime: appearPeriod.startTime,
-                            endTime: appearPeriod.endTime,
+                            startTime: eventStartTime,
+                            endTime: eventEndTime,
                             status: 1,
                             condition: {
                                 availableDeposit: totalValidTopup,
@@ -742,10 +748,13 @@ let dbPlayerReward = {
                             getID++;
                             getID = ('000' + getID).slice(-3);
 
+                            let eventStartTime = ('00' + appearPeriod.startTime).slice(-2).concat(':00');
+                            let eventEndTime = ('00' + appearPeriod.endTime).slice(-2).concat(':00');
+
                             getData = {
                                 id: getID,
-                                startTime: appearPeriod.startTime,
-                                endTime: appearPeriod.endTime,
+                                startTime: eventStartTime,
+                                endTime: eventEndTime,
                                 status: 2,
                                 amountList: listValidRewardAmount,
                                 condition: {
@@ -782,10 +791,13 @@ let dbPlayerReward = {
                             giveupID++;
                             giveupID = ('000' + giveupID).slice(-3);
 
+                            let eventStartTime = ('00' + appearPeriod.startTime).slice(-2).concat(':00');
+                            let eventEndTime = ('00' + appearPeriod.endTime).slice(-2).concat(':00');
+
                             giveupData = {
                                 id: giveupID,
-                                startTime: appearPeriod.startTime,
-                                endTime: appearPeriod.endTime,
+                                startTime: eventStartTime,
+                                endTime: eventEndTime,
                                 status: 3,
                                 condition: {
                                     availableDeposit: totalValidTopup,
@@ -2390,7 +2402,7 @@ let dbPlayerReward = {
                 if (newPromoCodeEntry.allowedSendSms) {
                     SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
                 }
-                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
+                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
                 return newPromoCode.code;
             }
         )
