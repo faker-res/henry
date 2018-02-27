@@ -2862,7 +2862,7 @@ let dbPlayerInfo = {
                     type: proposalType,
                     status: {
                         $in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
-                            constProposalStatus.APPROVED, constProposalStatus.REJECTED]
+                            constProposalStatus.APPROVED]
                     }
                 }).lean();
 
@@ -3314,7 +3314,7 @@ let dbPlayerInfo = {
                         },
                         "data.periodType": rewardData.periodType,
                         "data.playerObjId": playerData._id,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.REJECTED]}
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     });
                 } else {
                     return deferred.resolve(false);
