@@ -27,6 +27,7 @@ const constProposalUserType = require('../const/constProposalUserType');
 const constSettlementPeriod = require('../const/constSettlementPeriod');
 
 const dbOps = require("../db_common/dbOperations");
+const dbPropUtil = require("../db_common/dbProposalUtility");
 
 var dbPlayerConsumptionWeekSummary = {
 
@@ -326,13 +327,13 @@ var dbPlayerConsumptionWeekSummary = {
                                         }
                                     };
 
-                                    if(adminId && adminName){
+                                    if (adminId && adminName) {
                                         proposalData.creator = {
                                             name: adminName,
                                             type: 'admin',
                                             id: adminId
                                         }
-                                    }else if (userAgent) {
+                                    } else if (userAgent) {
                                         // userAgent no null means is not system
                                         proposalData.inputDevice = dbutility.getInputDevice(userAgent);
                                         proposalData.creator = {
@@ -341,7 +342,82 @@ var dbPlayerConsumptionWeekSummary = {
                                             id: playerData.playerId
                                         }
                                     }
-                                    proms.push(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData));
+
+                                    let postProm = Promise.resolve();
+
+                                    if (platformData.useProviderGroup) {
+                                        let proposalQ = {
+                                            createTime: {$gte: startTime, $lt: endTime},
+                                            'data.platformId': platformId,
+                                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                        };
+
+                                        let doneXIMAConsumption = {};
+
+                                        postProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
+                                            props => {
+                                                if (props && props.length > 0) {
+                                                    props.map(prop => {
+                                                        Object.keys(prop.data.returnDetail).forEach(el => {
+                                                            doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
+                                                                ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                                                : doneXIMAConsumption[el] = prop.data.returnDetail[el];
+                                                        })
+                                                    })
+                                                }
+
+                                                return dbconfig.collection_playerConsumptionRecord.aggregate(
+                                                    {
+                                                        $match: {
+                                                            platformId: platformId,
+                                                            createTime: {
+                                                                $gte: startTime,
+                                                                $lt: endTime
+                                                            },
+                                                            playerId: playerData._id
+                                                        }
+                                                    },
+                                                    {
+                                                        $group: {
+                                                            _id: "$gameType",
+                                                            validAmount: {$sum: "$validAmount"}
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        ).then(
+                                            rec => {
+                                                let totalConsumptionRec = rec && rec.length > 0 ? rec.reduce((a, b) => a + b.validAmount, 0) : 0;
+                                                let totalConsumptionSummary = proposalData.data.consumeValidAmount + proposalData.data.totalNonXIMAAmt;
+
+                                                if (totalConsumptionRec != totalConsumptionSummary) {
+                                                    // Recalculate consumption return amount
+                                                    rec.forEach(el => {
+                                                        // Offset consumption return dirty amount
+                                                        let consumedValidAmount = 0;
+                                                        let curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+
+                                                        if (doneXIMAConsumption["GameType:" + el._id]) {
+                                                            consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
+                                                        }
+
+                                                        let consumpDiff = el.validAmount - curValidAmt - consumedValidAmount;
+                                                        let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
+
+                                                        proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
+                                                        proposalData.data.rewardAmount += consumpDiff * returnRatio;
+                                                        proposalData.data.spendingAmount += consumpDiff * returnRatio;
+
+                                                        proposalData.data.consumeValidAmount += consumpDiff;
+                                                    });
+                                                }
+                                            }
+                                        ).then(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData))
+                                    } else {
+                                        postProm = dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
+                                    }
+
+                                    proms.push(postProm);
                                     //only if proposal is created then add summary ids
                                     processedSummaries = processedSummaries.concat(thisPlayersConsumptionSummaries);
                                 }
@@ -767,8 +843,44 @@ var dbPlayerConsumptionWeekSummary = {
 
         let gameTypesProm = dbGameType.getAllGameTypes();
 
-        return Q.all([summaryProm, playerLevelProm, gameTypesProm]).spread(
-            function (consumptionSummaries, playerData, allGameTypes) {
+        let doneXIMAConsumption = {};
+        let proposalQ = {
+            createTime: summaryDay,
+            'data.platformId': platformId,
+            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+        };
+        let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
+            props => {
+                if (props && props.length > 0) {
+                    props.map(prop => {
+                        Object.keys(prop.data.returnDetail).forEach(el => {
+                            doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
+                                ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
+                                : doneXIMAConsumption[el] = prop.data.returnDetail[el];
+                        })
+                    })
+                }
+
+                return dbconfig.collection_playerConsumptionRecord.aggregate(
+                    {
+                        $match: {
+                            platformId: platformId,
+                            createTime: summaryDay,
+                            playerId: playerId
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$gameType",
+                            validAmount: {$sum: "$validAmount"}
+                        }
+                    }
+                )
+            }
+        );
+
+        return Q.all([summaryProm, playerLevelProm, gameTypesProm, consumptionRecProm]).spread(
+            function (consumptionSummaries, playerData, allGameTypes, consumptionRecSumm) {
                 // Why is it that sometimes playerData is not found?
                 // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
 
@@ -835,6 +947,30 @@ var dbPlayerConsumptionWeekSummary = {
                         }
                     }
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
+
+                    let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
+
+                    // Offset dirty consumption amount
+                    totalConsumptionRec -= doneXIMAConsumption;
+
+                    if (totalConsumptionRec != res.totalConsumptionAmount) {
+                        // Recalculate consumption return amount
+                        let totalAmtDiff = 0;
+
+                        consumptionRecSumm.forEach(el => {
+                            // Offset consumption return dirty amount
+                            el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
+
+                            let consumpDiff = el.validAmount - res[el._id].consumptionAmount;
+                            res[el._id].consumptionAmount += consumpDiff;
+                            res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
+
+                            totalAmtDiff += consumpDiff * res[el._id].ratio;
+                        });
+
+                        res.totalAmount += totalAmtDiff;
+                    }
+
                     if (bDetail) {
                         res.playerId = playerData.playerId;
                         res.playerName = playerData.name;
