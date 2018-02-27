@@ -4835,7 +4835,10 @@ define(['js/app'], function (myApp) {
                             if (rowData.lastAccessTime) {
                                 rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
                             }
-                            table.row.add(rowData);
+                            if(table){
+                                table.row.add(rowData);
+                            }
+
                         }
                     });
                 }
