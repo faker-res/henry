@@ -4820,7 +4820,9 @@ define(['js/app'], function (myApp) {
 
             // Clears the table data and shows the provided data instead, without re-creating the table object itself.
             var setTableData = function (table, data) {
-                table.clear();
+                if(table){
+                    table.clear();
+                }
                 if (data) {
                     data.forEach(function (rowData) {
                         if (rowData) {
