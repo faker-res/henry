@@ -3288,6 +3288,7 @@
   "ONLINE": "在线充值",
   "Execute All": "执行全部",
   "Player Reward Points Log": "玩家积分变化记录",
-  "deleteMultipleFakeData": "批量删除假数据"
+  "deleteMultipleFakeData": "批量删除假数据",
+  "PLAYER_LOGIN_DEVICE_ANALYSIS": "玩家登入设备"
 
 }
