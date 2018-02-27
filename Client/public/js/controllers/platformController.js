@@ -23663,7 +23663,7 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;"
-                                    + "; vm.permissionChangeMark();",
+                                    + ";",
 
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
@@ -23920,7 +23920,9 @@ define(['js/app'], function (myApp) {
                                         $("#playerPermissionTable .permitOff." + key).addClass('hide');
                                     }
                                 });
-                                showPopover(that, '#playerPermissionPopover', row);
+
+                                vm.permissionChangeMark();
+                                showPopover(that, '#playerBatchPermissionPopover', row);
                                 $scope.safeApply();
 
                             },
