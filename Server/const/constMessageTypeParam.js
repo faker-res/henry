@@ -156,8 +156,17 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.data.promoCodeName' , description:'promoCodeName'}
         ]
     },
-    PLAYER_LEVEL_MIGRATION_SUCCESS:{
-        name:"PlayerLevelMigrationSuccess",
+    PLAYER_LEVEL_UP_MIGRATION_SUCCESS:{
+        name:"PlayerLevelUpMigrationSuccess",
+        params:[
+            {parameterName:'proposalData.data.levelOldName' , description:'LEVEL_BEFORE'},
+            {parameterName:'proposalData.data.levelName' , description:'LEVEL_AFTER'},
+            {parameterName:'executeTime' , description:'executeTime'},
+            {parameterName:'proposalData.proposalId' , description:'proposalId'}
+        ]
+    },
+    PLAYER_LEVEL_DOWN_MIGRATION_SUCCESS:{
+        name:"PlayerLevelDownMigrationSuccess",
         params:[
             {parameterName:'proposalData.data.levelOldName' , description:'LEVEL_BEFORE'},
             {parameterName:'proposalData.data.levelName' , description:'LEVEL_AFTER'},

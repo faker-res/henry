@@ -26,7 +26,8 @@ const constMessageType = {
     PLAYER_FREE_TRIAL_REWARD_GROUP_SUCCESS: "PlayerFreeTrialRewardGroupSuccess",
     PLAYER_REGISTER_INTENTION_SUCCESS: "PlayerRegisterIntentionSuccess",
     PLAYER_PROMO_CODE_REWARD_SUCCESS: "PlayerPromoCodeRewardSuccess",
-    PLAYER_LEVEL_MIGRATION_SUCCESS: "PlayerLevelMigrationSuccess",
+    PLAYER_LEVEL_UP_MIGRATION_SUCCESS: "PlayerLevelUpMigrationSuccess",
+    PLAYER_LEVEL_DOWN_MIGRATION_SUCCESS: "PlayerLevelDownMigrationSuccess",
     PLAYER_LEVEL_UP_SUCCESS: "PlayerLevelUpSuccess"
 
 /* OLD MESSAGE TYPE
