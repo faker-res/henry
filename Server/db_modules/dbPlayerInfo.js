@@ -11238,7 +11238,7 @@ let dbPlayerInfo = {
                 playerObj = player;
                 let playerObjId = player._id;
                 //update player source url if it's register type
-                if( accessType == "register" ){
+                if( data.accessType == "register" ){
                     return dbconfig.collection_players.findOneAndUpdate(
                         {_id: playerObjId, platform: platformObjId},
                         {sourceUrl: data.sourceUrl},
