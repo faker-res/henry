@@ -4820,7 +4820,9 @@ define(['js/app'], function (myApp) {
 
             // Clears the table data and shows the provided data instead, without re-creating the table object itself.
             var setTableData = function (table, data) {
-                table.clear();
+                if(table){
+                    table.clear();
+                }
                 if (data) {
                     data.forEach(function (rowData) {
                         if (rowData) {
@@ -4833,11 +4835,16 @@ define(['js/app'], function (myApp) {
                             if (rowData.lastAccessTime) {
                                 rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
                             }
-                            table.row.add(rowData);
+                            if(table){
+                                table.row.add(rowData);
+                            }
+
                         }
                     });
                 }
-                table.draw();
+                if(table){
+                    table.draw();
+                }
             };
 
             // Multiply by this to convert hours to seconds
@@ -18270,10 +18277,11 @@ define(['js/app'], function (myApp) {
                             sendData.smsContent = sendData.promoCodeType.smsContent;
 
                             console.log('sendData', sendData);
-
                             return $scope.$socketPromise('generatePromoCode', {
                                 platformObjId: vm.selectedPlatform.id,
-                                newPromoCodeEntry: sendData
+                                newPromoCodeEntry: sendData,
+                                adminName: authService.adminName,
+                                adminId: authService.adminId
                             }).then(ret => {
                                 col[index].code = ret.data;
                                 $scope.safeApply();
