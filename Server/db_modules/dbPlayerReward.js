@@ -2390,7 +2390,8 @@ let dbPlayerReward = {
                     newPromoCodeEntry.playerObjId = playerData._id;
                     newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
-
+                    newPromoCodeEntry.adminId = adminObjId;
+                    newPromoCodeEntry.adminName = adminName;
                     return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
                 }
                 else {
