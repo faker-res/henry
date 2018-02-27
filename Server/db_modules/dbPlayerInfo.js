@@ -11237,11 +11237,17 @@ let dbPlayerInfo = {
                 }
                 playerObj = player;
                 let playerObjId = player._id;
-                return dbconfig.collection_players.findOneAndUpdate(
-                    {_id: playerObjId, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl},
-                    {new: true}
-                ).lean().exec();
+                //update player source url if it's register type
+                if( accessType == "register" ){
+                    return dbconfig.collection_players.findOneAndUpdate(
+                        {_id: playerObjId, platform: platformObjId},
+                        {sourceUrl: data.sourceUrl},
+                        {new: true}
+                    ).lean();
+                }
+                else{
+                    return playerObj;
+                }
             }
         ).then(
             function () {
