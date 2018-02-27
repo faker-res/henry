@@ -81,20 +81,21 @@ define(['js/app'], function (myApp) {
                             }],
                         }
 
-                        socketService.$socket($scope.AppSocket, 'getApiLoggerAllServiceName', {service: 'player'},
-                            function success(data) {
-                                console.log('get func name', data);
-                                vm.apiRespServiceNames = data.data || [];
-                                if (vm.apiRespServiceNames.length > 0) {
-                                    vm.queryPara.allApiResponseTime.service = vm.apiRespServiceNames[0];
-                                    vm.updateApiResponseFuncNames(vm.queryPara.allApiResponseTime.service, function (data1) {
-                                        console.log('vm.apiRespFuncNames', vm.apiRespFuncNames);
-                                        vm.queryPara.allApiResponseTime.funcName = vm.apiRespFuncNames[0];
-                                        vm.plotAllPlatformApiResponseTime();
-                                        $scope.safeApply();
-                                    });
-                                }
-                            });
+                        //todo:: need to optimize this part 
+                        // socketService.$socket($scope.AppSocket, 'getApiLoggerAllServiceName', {service: 'player'},
+                        //     function success(data) {
+                        //         console.log('get func name', data);
+                        //         vm.apiRespServiceNames = data.data || [];
+                        //         if (vm.apiRespServiceNames.length > 0) {
+                        //             vm.queryPara.allApiResponseTime.service = vm.apiRespServiceNames[0];
+                        //             vm.updateApiResponseFuncNames(vm.queryPara.allApiResponseTime.service, function (data1) {
+                        //                 console.log('vm.apiRespFuncNames', vm.apiRespFuncNames);
+                        //                 vm.queryPara.allApiResponseTime.funcName = vm.apiRespFuncNames[0];
+                        //                 vm.plotAllPlatformApiResponseTime();
+                        //                 $scope.safeApply();
+                        //             });
+                        //         }
+                        //     });
 
                         vm.plotAllPlatformActivePlayerPie();
                         vm.plotAllPlatformNewPlayerPie();
@@ -180,7 +181,7 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('reward', 'day', 3);
                         vm.rewardAnalysisInit(vm.plotRewardLine);
                         break;
-                    case "PLAYER_DEVICE_ANALYSIS":
+                    case "PLAYER_LOGIN_DEVICE_ANALYSIS":
                         vm.newOptions = {
                             xaxes: [{
                                 position: 'bottom',

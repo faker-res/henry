@@ -1,7 +1,7 @@
 .section
     .row
         .titlePic
-            .title {{"PLAYER_DEVICE_ANALYSIS" | translate}}
+            .title {{"PLAYER_LOGIN_DEVICE_ANALYSIS" | translate}}
                 .pull-right
                     a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#playerDeviceAnalysis","playerDevice")')
                         text.pull-left.margin-right-5 {{vm.optionText.playerDevice | translate}}
@@ -51,4 +51,4 @@
                 .panel.panel-default
                     #bar-all-playerDevice.barChart
                     //label {{vm.allPlatformTopUpPie}}
-p(ng-init="vm.loadPageFunc('PLAYER_DEVICE_ANALYSIS')")
+p(ng-init="vm.loadPageFunc('PLAYER_LOGIN_DEVICE_ANALYSIS')")

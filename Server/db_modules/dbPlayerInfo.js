@@ -2862,7 +2862,7 @@ let dbPlayerInfo = {
                     type: proposalType,
                     status: {
                         $in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
-                            constProposalStatus.APPROVED]
+                            constProposalStatus.APPROVED, constProposalStatus.REJECTED]
                     }
                 }).lean();
 
@@ -2872,12 +2872,8 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data.length > 0) {
-                    deferred.reject({
-                        name: "DataError",
-                        message: "Not Valid for the reward."
-                    });
+                    deferred.resolve(false);
                     return true;
-
                 } else {
                     if (!playerData.platform.canMultiReward && playerData.platform.useLockedCredit) {
                         return dbRewardTask.getPlayerCurRewardTask(playerData._id);
@@ -3113,7 +3109,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (bValid) {
-                if (!bValid) {
+                if (!bValid && !ifAdmin) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "NotValid",
@@ -3314,7 +3310,7 @@ let dbPlayerInfo = {
                         },
                         "data.periodType": rewardData.periodType,
                         "data.playerObjId": playerData._id,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.REJECTED]}
                     });
                 } else {
                     return deferred.resolve(false);
@@ -11241,11 +11237,17 @@ let dbPlayerInfo = {
                 }
                 playerObj = player;
                 let playerObjId = player._id;
-                return dbconfig.collection_players.findOneAndUpdate(
-                    {_id: playerObjId, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl},
-                    {new: true}
-                ).lean().exec();
+                //update player source url if it's register type
+                if( accessType == "register" ){
+                    return dbconfig.collection_players.findOneAndUpdate(
+                        {_id: playerObjId, platform: platformObjId},
+                        {sourceUrl: data.sourceUrl},
+                        {new: true}
+                    ).lean();
+                }
+                else{
+                    return playerObj;
+                }
             }
         ).then(
             function () {
