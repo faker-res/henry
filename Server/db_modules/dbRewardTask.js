@@ -228,7 +228,9 @@ const dbRewardTask = {
                         }
                     };
 
-                    if (proposalData.data.isDynamicRewardAmount === false) {
+                    // Added special handling for promo code type 1 - not deducting apply amount
+                    if (proposalData.data.isDynamicRewardAmount === false
+                        || (proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 1)) {
                         consumptionAmt = rewardData.requiredUnlockAmount;
                     } else {
                         consumptionAmt = rewardData.requiredUnlockAmount - rewardData.applyAmount;

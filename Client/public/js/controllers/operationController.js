@@ -425,7 +425,7 @@ define(['js/app'], function (myApp) {
 
             if (vm.allProposalType.length != vm.proposalTypeSelected.length) {
                 vm.allProposalType.filter(item => {
-                    if (vm.proposalTypeSelected.indexOf(item.name) > -1) {
+                    if (vm.proposalTypeSelected.indexOf(item.name) > -1 && proposalTypeNames.indexOf(item.name) < 0) {
                         proposalTypeNames.push(item.name);
                     }
                 });

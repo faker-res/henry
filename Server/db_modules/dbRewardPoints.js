@@ -927,7 +927,7 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice) {
         return false;
     }
 
-    if (event.userAgent && Number(event.userAgent) !== Number(inputDevice)) {
+    if (event.userAgent && event.userAgent !== -1 && Number(event.userAgent) !== Number(inputDevice)) {
         return false;
     }
 
@@ -948,10 +948,10 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
     if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date())
         return false;
     // check userAgent
-    if (event.userAgent && topupProposalData.data.userAgent && Number(event.userAgent) !== Number(topupProposalData.data.userAgent))
+    if (event.userAgent && event.userAgent !== -1 && topupProposalData.data.userAgent && Number(event.userAgent) !== Number(topupProposalData.data.userAgent))
         return false;
     // check merchantTopupMainType
-    if (event.target && event.target.merchantTopupMainType &&
+    if (event.target && event.target.merchantTopupMainType !== -1 && event.target.merchantTopupMainType &&
         Number(event.target.merchantTopupMainType) !== Number(topupMainType))
         return false;
     // check merchantTopupType
@@ -1246,18 +1246,18 @@ function buildTodayTopupAmountQuery(event, topupProposalData) {
         createTime: {$gte: today.startTime, $lte: today.endTime}
     };
 
-    if(event.userAgent)
+    if(event.userAgent && event.userAgent !== -1)
         relevantTopupMatchQuery.userAgent = event.userAgent.toString();
 
-    if (event.target && event.target.merchantTopupMainType) {
+    if (event.target && event.target.merchantTopupMainType !== -1 && event.target.merchantTopupMainType) {
         relevantTopupMatchQuery.topUpType = event.target.merchantTopupMainType.toString();
         switch (event.target.merchantTopupMainType) {
             case constPlayerTopUpType.MANUAL:
-                relevantTopupMatchQuery.depositMethod = event.target.depositMethod.toString();
-                relevantTopupMatchQuery.bankCardType = event.target.bankType.toString();
+                if(event.target.depositMethod) relevantTopupMatchQuery.depositMethod = event.target.depositMethod.toString();
+                if(event.target.bankType) relevantTopupMatchQuery.bankCardType = event.target.bankType.toString();
                 break;
             case constPlayerTopUpType.ONLINE:
-                relevantTopupMatchQuery.merchantTopUpType = event.target.merchantTopupType.toString();
+                if(event.target.merchantTopupType) relevantTopupMatchQuery.merchantTopUpType = event.target.merchantTopupType.toString();
                 break;
             case constPlayerTopUpType.ALIPAY:
                 break;
@@ -1265,8 +1265,20 @@ function buildTodayTopupAmountQuery(event, topupProposalData) {
                 break;
             case constPlayerTopUpType.QUICKPAY:
                 break;
-
         }
+    } else if(event.target && event.target.merchantTopupMainType === -1) {
+        // Accept all topupType, if have select other option still match
+        // MANUAL
+        let manualTopupOrObj = {topUpType: constPlayerTopUpType.MANUAL.toString()};
+        if(event.target.depositMethod) manualTopupOrObj.depositMethod = event.target.depositMethod.toString();
+        if(event.target.bankType) manualTopupOrObj.bankCardType = event.target.bankType.toString();
+        // ONLINE
+        let onlineTopupOrObj = {topUpType: constPlayerTopUpType.ONLINE.toString()};
+        if(event.target.merchantTopupType) onlineTopupOrObj.merchantTopUpType = event.target.merchantTopupType.toString();
+        // ALIPAY && WECHAT && QUICKPAY
+        let otherTopupOrObj = {topUpType: {$in: [constPlayerTopUpType.ALIPAY.toString(), constPlayerTopUpType.WECHAT.toString(), constPlayerTopUpType.QUICKPAY.toString()]}};
+
+        relevantTopupMatchQuery.$or = [manualTopupOrObj, onlineTopupOrObj, otherTopupOrObj];
     }
     return relevantTopupMatchQuery;
 }
