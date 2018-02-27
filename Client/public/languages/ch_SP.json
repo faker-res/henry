@@ -3287,6 +3287,10 @@
   "NEW_REGISTRATION": "新开户",
   "ONLINE": "在线充值",
   "Player Reward Points Log": "玩家积分变化记录",
-  "deleteMultipleFakeData": "批量删除假数据"
+  "deleteMultipleFakeData": "批量删除假数据",
+  "LEVEL_BEFORE": "等级（前）",
+  "LEVEL_AFTER": "等级（后）",
+  "PlayerLevelMigrationSuccess": "玩家升降级（成功）",
+  "PlayerLevelUpSuccess": "升级优惠（成功）"
 
 }

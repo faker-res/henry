@@ -155,6 +155,25 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
             {parameterName:'proposalData.data.promoCodeName' , description:'promoCodeName'}
         ]
+    },
+    PLAYER_LEVEL_MIGRATION_SUCCESS:{
+        name:"PlayerLevelMigrationSuccess",
+        params:[
+            {parameterName:'proposalData.data.levelOldName' , description:'LEVEL_BEFORE'},
+            {parameterName:'proposalData.data.levelName' , description:'LEVEL_AFTER'},
+            {parameterName:'executeTime' , description:'executeTime'},
+            {parameterName:'proposalData.proposalId' , description:'proposalId'}
+        ]
+    },
+    PLAYER_LEVEL_UP_SUCCESS:{
+        name:"PlayerLevelUpSuccess",
+        params:[
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.data.providerGroup' , description:'providerGroup'},
+            {parameterName:'proposalData.data.requiredUnlockAmount' , description:'Spending times on reward'},
+            {parameterName:'proposalData.proposalId' , description:'proposalId'},
+            {parameterName:'executeTime' , description:'executeTime'}
+        ]
     }
 
 };
