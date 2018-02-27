@@ -4820,7 +4820,9 @@ define(['js/app'], function (myApp) {
 
             // Clears the table data and shows the provided data instead, without re-creating the table object itself.
             var setTableData = function (table, data) {
-                table.clear();
+                if(table){
+                    table.clear();
+                }
                 if (data) {
                     data.forEach(function (rowData) {
                         if (rowData) {
@@ -17066,6 +17068,9 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeUserGroupAdd = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
                 vm.promoCodeUserGroupPlayerAdd = false;
+                vm.promoCode1HasMoreThanOne = false;
+                vm.promoCode2HasMoreThanOne = false;
+                vm.promoCode3HasMoreThanOne = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -17233,11 +17238,14 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case 'loginRewardPoints':
+                        vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
                         vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
+                        vm.userAgentTypeWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.userAgentType);
+                        vm.topupTypeListWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.topUpTypeList);
                         vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
                         break;
@@ -17939,7 +17947,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
-                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true};
+                // userAgent -1 means accept all userAgent
+                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true, userAgent: -1};
                 vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
             };
 
@@ -18242,6 +18251,12 @@ define(['js/app'], function (myApp) {
                         if (ret && ret.data && ret.data.length > 0) {
                             if (!data.skipCheck) {
                                 data.hasMoreThanOne = true;
+                                if (type){
+                                    if(type == 1){vm.promoCode1HasMoreThanOne = true;}
+                                    if(type == 2){vm.promoCode2HasMoreThanOne = true;}
+                                    if(type == 3){vm.promoCode3HasMoreThanOne = true;}
+                                }
+
                                 $scope.safeApply();
                             }
                         }
@@ -18270,17 +18285,23 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.generateAllPromoCode = function (col, type) {
+            vm.generateAllPromoCode = function (col, type, skipCheck) {
                 let p = Promise.resolve();
 
                 col.forEach((elem, index, arr) => {
                     if (!elem.code) {
                         p = p.then(function () {
+                            if (skipCheck){
+                                elem.skipCheck = true;
+                            }
                             return vm.generatePromoCode(col, index, elem, type);
                         });
                     }
                 });
 
+                vm.promoCode1HasMoreThanOne = false;
+                vm.promoCode2HasMoreThanOne = false;
+                vm.promoCode3HasMoreThanOne = false;
                 return p;
             };
 
