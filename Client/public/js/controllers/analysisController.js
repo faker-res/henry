@@ -181,7 +181,7 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('reward', 'day', 3);
                         vm.rewardAnalysisInit(vm.plotRewardLine);
                         break;
-                    case "PLAYER_DEVICE_ANALYSIS":
+                    case "PLAYER_LOGIN_DEVICE_ANALYSIS":
                         vm.newOptions = {
                             xaxes: [{
                                 position: 'bottom',
