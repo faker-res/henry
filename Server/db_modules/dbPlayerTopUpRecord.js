@@ -1017,7 +1017,7 @@ var dbPlayerTopUpRecord = {
                     minTopUpAmount = player.platform.minTopUpAmount || 0;
                 }
 
-                if (inputData.amount < minTopUpAmount) {
+                if (inputData.amount < minTopUpAmount && !adminId) {
                     return Q.reject({
                         status: constServerCode.PLAYER_TOP_UP_FAIL,
                         name: "DataError",
@@ -1777,7 +1777,7 @@ var dbPlayerTopUpRecord = {
                     if (entryType === "ADMIN") {
                         minTopUpAmount = 1;
                     }
-                    if (amount < minTopUpAmount) {
+                    if (amount < minTopUpAmount && !adminId) {
                         return Q.reject({
                             status: constServerCode.PLAYER_TOP_UP_FAIL,
                             name: "DataError",
@@ -2112,7 +2112,7 @@ var dbPlayerTopUpRecord = {
 
                     if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                         let minTopUpAmount = player.platform.minTopUpAmount || 0;
-                        if (amount < minTopUpAmount) {
+                        if (amount < minTopUpAmount && !adminId) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_TOP_UP_FAIL,
                                 name: "DataError",
