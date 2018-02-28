@@ -1337,12 +1337,19 @@ define(['js/app'], function (myApp) {
             let activePlayerData = andArraysForValidActivePlayer(previousPeriodPlayerData, currentPeriodPlayerData);
             let growPlayerData = difArraysForValidActivePlayer(previousPeriodPlayerData, currentPeriodPlayerData);
 
+            // DEFINE of
+            // Active: player active in both period (previous period & current period)
+            // Grow: player active in current period, but not active in previous period
+            // Lost: player active in previous period, but not active in current period
+
+            //  Active
             let activeNewPlayer = activePlayerData.filter(player =>
                 new Date(player._id.registrationTime).getTime() >= previousPeriodDate.getTime() &&
                 new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
             let activeOldPlayer = activePlayerData.filter(player =>
                 new Date(player._id.registrationTime).getTime() < previousPeriodDate.getTime() ||
                 new Date(player._id.registrationTime).getTime() >= currentPeriodDate.getTime());
+            // Grow
             let growPreviousPeriodNewPlayer = growPlayerData.filter(player =>
                 new Date(player._id.registrationTime).getTime() >= previousPeriodDate.getTime() &&
                 new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
@@ -1351,6 +1358,7 @@ define(['js/app'], function (myApp) {
                 new Date(player._id.registrationTime).getTime() < nextPeriodDate.getTime());
             let growOldPlayer = growPlayerData.filter(player =>
                 new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
+            // Lost
             let lostPreviousPeriodNewPlayer = lostPlayerData.filter(player =>
                 new Date(player._id.registrationTime).getTime() >= previousPeriodDate.getTime() &&
                 new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
@@ -1451,7 +1459,7 @@ define(['js/app'], function (myApp) {
                     calculatedLostOldPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'lostOldPlayer'),
                 };
                 vm.plotLineByElementId("#line-validActivePlayer", calculatedValidActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
-                /**************************Calculate validActivePlayerGrowAndLost lineGraph Data************************************/
+                /**********Calculate validActivePlayerGrowAndLost lineGraph Data**************/
                 let totalGrow = [];
                 let totalLost = [];
                 let totalNetGrow = [];
@@ -1461,7 +1469,6 @@ define(['js/app'], function (myApp) {
                     totalNetGrow.push([new Date(data.date), data.totalNetGrow]);
                 });
                 let validActivePlayerGrowAndLostLineData =[{label: $translate('totalGrow'), data: totalGrow}, {label: $translate('totalLost'), data: totalLost}, {label: $translate('totalNetGrow'), data: totalNetGrow}];
-
                 vm.plotLineByElementId("#line-validActivePlayerGrowAndLost", validActivePlayerGrowAndLostLineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
                 vm.isShowLoadingSpinner('#validActivePlayerAnalysis', false);
                 vm.isLoadingValidActivePlayer = false;
