@@ -260,7 +260,7 @@ var proposalExecutor = {
         refundPlayerApplyAmountIfNeeded: function (proposalData, reason) {
             return Q.resolve().then(
                 () => {
-                    if (proposalData && proposalData.data && proposalData.data.applyAmount && (proposalData.data.useLockedCredit || proposalData.data.providerGroup)) {
+                    if (proposalData && proposalData.data && proposalData.data.applyAmount && (proposalData.data.useLockedCredit || proposalData.data.isGroupReward)) {
                         // We should give a refund
                         return proposalExecutor.refundPlayer(proposalData, proposalData.data.applyAmount, reason);
                     }
