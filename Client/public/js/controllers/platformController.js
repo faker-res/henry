@@ -18217,6 +18217,10 @@ define(['js/app'], function (myApp) {
                 },0);
 
             };
+            vm.cancelPromoCode = function (col, index) {
+                col[index].cancel = true;
+                $scope.safeApply();
+            };
 
             vm.generatePromoCode = function (col, index, data, type) {
                 let sendData = Object.assign({}, data);
@@ -18260,7 +18264,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
-                        if (!data.hasMoreThanOne || data.skipCheck) {
+                        if ( !data.hasMoreThanOne || (data.skipCheck && !data.cancel) ) {
                             sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
                             let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
 
@@ -18301,7 +18305,7 @@ define(['js/app'], function (myApp) {
 
                 return p.then( () => {
                     if (col && col.length > 0) {
-                        if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code).length > 0) {
+                        if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
                             if (type) {
                                 if (type == 1) {
                                     vm.promoCode1HasMoreThanOne = true;
