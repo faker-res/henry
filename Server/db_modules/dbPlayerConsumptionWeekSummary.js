@@ -362,7 +362,11 @@ var dbPlayerConsumptionWeekSummary = {
                                                             doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
                                                                 ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
                                                                 : doneXIMAConsumption[el] = prop.data.returnDetail[el];
-                                                        })
+
+                                                            if (prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
+                                                                doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                                            }
+                                                        });
                                                     })
                                                 }
 
@@ -858,8 +862,12 @@ var dbPlayerConsumptionWeekSummary = {
                             doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
                                 ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
                                 : doneXIMAConsumption[el] = prop.data.returnDetail[el];
-                        })
-                    })
+
+                            if (prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
+                                doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                            }
+                        });
+                    });
                 }
 
                 return dbconfig.collection_playerConsumptionRecord.aggregate(
@@ -954,10 +962,6 @@ var dbPlayerConsumptionWeekSummary = {
                     if (totalConsumptionRec != res.totalConsumptionAmount) {
                         // Recalculate consumption return amount
                         let totalAmtDiff = 0;
-
-                        console.log('consumptionRecSumm', consumptionRecSumm);
-                        console.log('doneXIMAConsumption', doneXIMAConsumption);
-                        console.log('res', res);
 
                         consumptionRecSumm.forEach(el => {
                             // Offset consumption return dirty amount
