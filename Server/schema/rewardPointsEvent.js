@@ -29,7 +29,9 @@ var rewardPointsEvent = new Schema({
 
     status: {type: Boolean, default: false},
     // event details base on category
-    target: {type: JSON, default: {}}
+    target: {type: JSON, default: {}},
+    // player level
+    level: {type: Schema.ObjectId, ref: 'playerLevel', index: true}
 });
 
 module.exports = rewardPointsEvent;
