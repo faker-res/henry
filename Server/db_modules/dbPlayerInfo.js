@@ -7939,10 +7939,12 @@ let dbPlayerInfo = {
                 let activePlayerValue;
                 let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
                 let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
+                let date = new Date(dayStartTime); // for active valid player need get earlier 1 period
                 switch (period) {
                     case 'day':
                         // topupCollectionName = 'collection_playerTopUpDaySummary';
                         // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
+                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 1));
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
@@ -7950,6 +7952,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
+                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 7));
                         activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
@@ -7957,6 +7960,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
+                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 15));
                         activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
@@ -7964,6 +7968,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
+                        if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 1)).setDate(1));
                         activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
@@ -7972,6 +7977,7 @@ let dbPlayerInfo = {
                         break;
                     case 'season':
                     default:
+                        if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 3)).setDate(1));
                         activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
@@ -7985,7 +7991,7 @@ let dbPlayerInfo = {
                 while (start.getTime() <= end.getTime()) {
                     let dayStartTime = start;
                     let dayEndTime = getNextDateByPeriodAndDate(period, dayStartTime);
-                    result[dayStartTime] = 0;
+                    result[dayStartTime] = isFilterValidPlayer ? [] : 0;
                     chain = chain.then(
                         () => {
                             let stream = dbconfig[topupCollectionName].aggregate([
@@ -8028,7 +8034,10 @@ let dbPlayerInfo = {
                                             });
                                         },
                                         processResponse: function (response) {
-                                            result[dayStartTime] = result[dayStartTime] ? result[dayStartTime] + response.data : response.data;
+                                            if(isFilterValidPlayer)
+                                                result[dayStartTime] = result[dayStartTime] ? result[dayStartTime].concat(response.data) : response.data;
+                                            else
+                                                result[dayStartTime] = result[dayStartTime] ? result[dayStartTime] + response.data : response.data;
                                         }
                                     }
                                 );
@@ -8191,33 +8200,38 @@ let dbPlayerInfo = {
                         else {
                             var filterRecords = records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue);
                         }
+                        let returnData;
 
                         if (hasPartner != null){
                             if (hasPartner == true){
 
-                                return filterRecords.filter(records => {
+                                returnData = filterRecords.filter(records => {
                                     if (!records._id.partner){
                                         return false
                                     }
                                     else{
                                         return records._id.isRealPlayer == isRealPlayer && records._id.isTestPlayer == isTestPlayer
                                     }
-                                }).length;
+                                });
 
                             }else {
 
-                                return filterRecords.filter(records =>
+                                returnData = filterRecords.filter(records =>
                                     records._id.isRealPlayer == isRealPlayer &&
                                     records._id.isTestPlayer == isTestPlayer &&
-                                    (records._id.partner == null || records._id.partner == 'undefined')).length;
+                                    (records._id.partner == null || records._id.partner == 'undefined'));
                             }
                         }else{
 
-                            return filterRecords.filter(records =>
+                            returnData = filterRecords.filter(records =>
                                 records._id.isRealPlayer == isRealPlayer &&
                                 records._id.isTestPlayer == isTestPlayer
-                            ).length;
+                            );
                         }
+                        if (isFilterValidPlayer)
+                            return returnData;
+                        else
+                            return returnData.length
                     }
                 )
             }

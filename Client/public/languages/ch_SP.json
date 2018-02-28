@@ -3294,6 +3294,17 @@
   "LEVEL_AFTER": "等级（后）",
   "PlayerLevelUpMigrationSuccess": "玩家升级（成功）",
   "PlayerLevelDownMigrationSuccess": "玩家降级（成功）",
-  "PlayerLevelUpSuccess": "升级优惠（成功）"
+  "PlayerLevelUpSuccess": "升级优惠（成功）",
+  "active": "活跃",
+  "(previous period new player)": "（周期1新开户）",
+  "grow": "增长",
+  "(current period new player)": "（周期2新开户）",
+  "(old player)": "（老玩家）",
+  "lost": "流失",
+  "order": "顺序",
+  "average ratio": "平均占比",
+  "totalGrow": "总增长",
+  "totalLost": "总流失",
+  "totalNetGrow": "总增长 - 总流失"
 
 }
