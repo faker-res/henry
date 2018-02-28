@@ -2470,6 +2470,8 @@ let dbPlayerReward = {
     saveDelayDurationGroup: (platformObjId, data) => {
         let saveObj = {consumptionTimeConfig: data};
 
+        console.log("saveDelayDurationGroup platform update:", saveObj);
+
         return dbConfig.collection_platform.findOneAndUpdate({
             _id: platformObjId
         }, saveObj);
