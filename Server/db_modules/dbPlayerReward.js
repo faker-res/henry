@@ -398,7 +398,9 @@ let dbPlayerReward = {
     },
 
     getRandBonusInfo: (playerId, rewardCode, platformId) => {
-        let player, platform, playerLevel, firstProm, event, intervalTime;
+        let player, platform, playerLevel, firstProm, event, intervalTime, timeSet;
+        let allTimeSet = [];
+        let displayTimeSet = [];
         let gradeList = [];
         let Open = [];
         let get = [];
@@ -406,6 +408,17 @@ let dbPlayerReward = {
         let bonusList = [];
         let currentTime = new Date();
         let gameProviderGroupName = null;
+
+        // display all period start time for current day in ascending order
+        function orderedTimeSet(startTime) {
+            let startTimeInt = parseInt(startTime);
+            allTimeSet.push(startTimeInt);
+            allTimeSet.sort(function(a, b) {return a - b});
+            displayTimeSet = allTimeSet.map(time => {
+                return ('00' + time).slice(-2).concat(':00');
+            });
+            timeSet = [...displayTimeSet].join("/");
+        }
 
         // display all reward param for each player level
         function addParamToGradeList(gradeListData, playerLevelData) {
@@ -440,6 +453,7 @@ let dbPlayerReward = {
                 return false;
             }
 
+            orderedTimeSet(openData.startTime);
             Open.push(openData);
         }
 
@@ -456,6 +470,7 @@ let dbPlayerReward = {
                 return false;
             }
 
+            orderedTimeSet(giveupData.startTime);
             giveup.push(giveupData);
         }
 
@@ -826,6 +841,7 @@ let dbPlayerReward = {
                 lockedGroup: gameProviderGroupName,
                 currentGradeId: playerLevel.value,
                 currentGradeName: playerLevel.name,
+                time: timeSet,
                 gradeList: gradeList,
                 open: Open,
                 get: get,
