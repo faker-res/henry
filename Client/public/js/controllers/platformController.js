@@ -18256,12 +18256,6 @@ define(['js/app'], function (myApp) {
                         if (ret && ret.data && ret.data.length > 0) {
                             if (!data.skipCheck) {
                                 data.hasMoreThanOne = true;
-                                if (type){
-                                    if(type == 1){vm.promoCode1HasMoreThanOne = true;}
-                                    if(type == 2){vm.promoCode2HasMoreThanOne = true;}
-                                    if(type == 3){vm.promoCode3HasMoreThanOne = true;}
-                                }
-
                                 $scope.safeApply();
                             }
                         }
@@ -18305,10 +18299,29 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
-                vm.promoCode1HasMoreThanOne = false;
-                vm.promoCode2HasMoreThanOne = false;
-                vm.promoCode3HasMoreThanOne = false;
-                return p;
+                return p.then( () => {
+                    if (col && col.length > 0) {
+                        if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code).length > 0) {
+                            if (type) {
+                                if (type == 1) {
+                                    vm.promoCode1HasMoreThanOne = true;
+                                }
+                                if (type == 2) {
+                                    vm.promoCode2HasMoreThanOne = true;
+                                }
+                                if (type == 3) {
+                                    vm.promoCode3HasMoreThanOne = true;
+                                }
+                            }
+                        } else {
+                            vm.promoCode1HasMoreThanOne = false;
+                            vm.promoCode2HasMoreThanOne = false;
+                            vm.promoCode3HasMoreThanOne = false;
+                        }
+                        $scope.safeApply();
+                    }
+                });
+
             };
 
             vm.getPromoCodeHistory = function (isNewSearch, type) {
