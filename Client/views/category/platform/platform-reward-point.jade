@@ -236,7 +236,7 @@ style.
                                 td(style="min-width:150px;")
                                     select.form-control(ng-model="val.level" ng-disabled='!val.isEditing')
                                         option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
-                                td(style="min-width:120px;")
+                                td(style="min-width:190px;")
                                     select.form-control(ng-model='val.period' ng-change='vm.rewardPointsEventPeriodChange(idx,val)' ng-options="+(i) as v | translate for (i,v) in constRewardPointsIntervalPeriod" ng-disabled='!val.isEditing' required)
                                     br(ng-if="val.period==6")
                                     div.dateTimePicker(id="rewardPointsEventStartDate-{{idx}}" style="display: inline-block" ng-if="val.period==6")
