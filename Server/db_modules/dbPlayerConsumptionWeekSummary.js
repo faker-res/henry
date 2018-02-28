@@ -847,6 +847,7 @@ var dbPlayerConsumptionWeekSummary = {
         let proposalQ = {
             createTime: summaryDay,
             'data.platformId': platformId,
+            'data.playerObjId': playerId,
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
         };
         let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
@@ -950,12 +951,13 @@ var dbPlayerConsumptionWeekSummary = {
 
                     let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
 
-                    // Offset dirty consumption amount
-                    totalConsumptionRec -= doneXIMAConsumption;
-
                     if (totalConsumptionRec != res.totalConsumptionAmount) {
                         // Recalculate consumption return amount
                         let totalAmtDiff = 0;
+
+                        console.log('consumptionRecSumm', consumptionRecSumm);
+                        console.log('doneXIMAConsumption', doneXIMAConsumption);
+                        console.log('res', res);
 
                         consumptionRecSumm.forEach(el => {
                             // Offset consumption return dirty amount
