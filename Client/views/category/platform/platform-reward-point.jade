@@ -233,7 +233,7 @@ style.
                         tbody
                             tr(ng-repeat="(idx,val) in vm.rewardPointsEvent | orderBy: 'index'" ng-class="{'bg-secondary': !val.status}")
                                 td(style="min-width:70px;") {{'gameRewardPoints' | translate}}
-                                td(style="min-width:80px;")
+                                td(style="min-width:150px;")
                                     select.form-control(ng-model="val.level" ng-disabled='!val.isEditing')
                                         option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
                                 td(style="min-width:190px;")
