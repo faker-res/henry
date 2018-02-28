@@ -847,6 +847,7 @@ var dbPlayerConsumptionWeekSummary = {
         let proposalQ = {
             createTime: summaryDay,
             'data.platformId': platformId,
+            'data.playerObjId': playerId,
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
         };
         let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
