@@ -362,7 +362,11 @@ var dbPlayerConsumptionWeekSummary = {
                                                             doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
                                                                 ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
                                                                 : doneXIMAConsumption[el] = prop.data.returnDetail[el];
-                                                        })
+
+                                                            if (prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
+                                                                doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                                                            }
+                                                        });
                                                     })
                                                 }
 
@@ -847,6 +851,7 @@ var dbPlayerConsumptionWeekSummary = {
         let proposalQ = {
             createTime: summaryDay,
             'data.platformId': platformId,
+            'data.playerObjId': playerId,
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
         };
         let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
@@ -857,8 +862,12 @@ var dbPlayerConsumptionWeekSummary = {
                             doneXIMAConsumption[el] && doneXIMAConsumption[el].consumeValidAmount
                                 ? doneXIMAConsumption[el].consumeValidAmount += prop.data.returnDetail[el].consumeValidAmount
                                 : doneXIMAConsumption[el] = prop.data.returnDetail[el];
-                        })
-                    })
+
+                            if (prop.data.nonXIMADetail[el] && prop.data.nonXIMADetail[el].nonXIMAAmt) {
+                                doneXIMAConsumption[el].consumeValidAmount += prop.data.nonXIMADetail[el].nonXIMAAmt;
+                            }
+                        });
+                    });
                 }
 
                 return dbconfig.collection_playerConsumptionRecord.aggregate(
@@ -949,9 +958,6 @@ var dbPlayerConsumptionWeekSummary = {
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
 
                     let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
-
-                    // Offset dirty consumption amount
-                    totalConsumptionRec -= doneXIMAConsumption;
 
                     if (totalConsumptionRec != res.totalConsumptionAmount) {
                         // Recalculate consumption return amount
