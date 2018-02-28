@@ -955,10 +955,6 @@ var dbPlayerConsumptionWeekSummary = {
                         // Recalculate consumption return amount
                         let totalAmtDiff = 0;
 
-                        console.log('consumptionRecSumm', consumptionRecSumm);
-                        console.log('doneXIMAConsumption', doneXIMAConsumption);
-                        console.log('res', res);
-
                         consumptionRecSumm.forEach(el => {
                             // Offset consumption return dirty amount
                             el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
