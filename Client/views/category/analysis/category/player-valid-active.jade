@@ -45,18 +45,116 @@
                         thead
                             tr
                                 th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "date" ? "-date":"date"') {{ vm.platformValidActivePlayerDataPeriodText | translate}}
-                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "number" ? "-number":"number"') {{ "amount" | translate}}
+                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "totalPlayerCount" ? "-totalPlayerCount":"totalPlayerCount"') {{ "amount" | translate}}
+                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "activeNewPlayer.length" ? "-activeNewPlayer.length":"activeNewPlayer.length"')
+                                    span {{ "active" | translate}}
+                                    br
+                                    span {{ "(previous period new player)" | translate}}
+                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "activeOldPlayer.length" ? "-activeOldPlayer.length":"activeOldPlayer.length"')
+                                    span {{ "active" | translate}}
+                                    br
+                                    span {{ "(old player)" | translate}}
+                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "growPreviousPeriodNewPlayer.length" ? "-growPreviousPeriodNewPlayer.length":"growPreviousPeriodNewPlayer.length"')
+                                    span {{ "grow" | translate}}
+                                    br
+                                    span {{ "(previous period new player)" | translate}}
+                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "growCurrentPeriodNewPlayer.length" ? "-growCurrentPeriodNewPlayer.length":"growCurrentPeriodNewPlayer.length"')
+                                    span {{ "grow" | translate}}
+                                    br
+                                    span {{ "(current period new player)" | translate}}
+                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "growOldPlayer.length" ? "-growOldPlayer.length":"growOldPlayer.length"')
+                                    span {{ "grow" | translate}}
+                                    br
+                                    span {{ "(old player)" | translate}}
+                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "lostPreviousPeriodNewPlayer.length" ? "-lostPreviousPeriodNewPlayer.length":"lostPreviousPeriodNewPlayer.length"')
+                                    span {{ "lost" | translate}}
+                                    br
+                                    span {{ "(previous period new player)" | translate}}
+                                th(ng-click='vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort = vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort == "lostOldPlayer.length" ? "-lostOldPlayer.length":"lostOldPlayer.length"')
+                                    span {{ "lost" | translate}}
+                                    br
+                                    span {{ "(old player)" | translate}}
                         tbody
-                            tr(ng-repeat='(i, v) in vm.platformValidActivePlayerAnalysisData | orderBy: vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort')
+                            tr
                                 td
-                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                    span {{ "average ratio" | translate }}
                                 td
-                                    span {{ v.number }}
+                                    span 100 %
+                                td
+                                    span {{ vm.platformValidActivePlayerAverageRatio.calculatedActiveNewPlayerRatio }} %
+                                td
+                                    span {{ vm.platformValidActivePlayerAverageRatio.calculatedActiveOldPlayerRatio }} %
+                                td
+                                    span {{ vm.platformValidActivePlayerAverageRatio.calculatedGrowPreviousPeriodNewPlayerRatio }} %
+                                td
+                                    span {{ vm.platformValidActivePlayerAverageRatio.calculatedGrowCurrentPeriodNewPlayerRatio }} %
+                                td
+                                    span {{ vm.platformValidActivePlayerAverageRatio.calculatedGrowOldPlayerRatio }} %
+                                td
+                                    span {{ vm.platformValidActivePlayerAverageRatio.calculatedLostPreviousPeriodNewPlayerRatio }} %
+                                td
+                                    span {{ vm.platformValidActivePlayerAverageRatio.calculatedLostOldPlayerRatio }} %
                             tr
                                 td
                                     span {{ "average value" | translate }}
                                 td
-                                    span {{ vm.platformValidActivePlayerAverage }}
+                                    span {{ vm.platformValidActivePlayerAverage.calculatedValidActivePlayerData }}
+                                td
+                                    span {{ vm.platformValidActivePlayerAverage.calculatedActiveNewPlayerData }}
+                                td
+                                    span {{ vm.platformValidActivePlayerAverage.calculatedActiveOldPlayerData }}
+                                td
+                                    span {{ vm.platformValidActivePlayerAverage.calculatedGrowPreviousPeriodNewPlayerData }}
+                                td
+                                    span {{ vm.platformValidActivePlayerAverage.calculatedGrowCurrentPeriodNewPlayerData }}
+                                td
+                                    span {{ vm.platformValidActivePlayerAverage.calculatedGrowOldPlayerData }}
+                                td
+                                    span {{ vm.platformValidActivePlayerAverage.calculatedLostPreviousPeriodNewPlayerData }}
+                                td
+                                    span {{ vm.platformValidActivePlayerAverage.calculatedLostOldPlayerData }}
+                            tr(ng-repeat='(i, v) in vm.platformValidActivePlayerAnalysisCalculatedData | orderBy: vm.platformValidActivePlayerAnalysisSort.validActivePlayerSort')
+                                td(style='width:80px')
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td(style='width:40px')
+                                    span {{ v.totalPlayerCount }}
+                                td(ng-click='vm.platformValidActivePlayerAnalysisDetailData=v.activeNewPlayer')
+                                    a {{ v.activeNewPlayer.length }}
+                                td
+                                    span {{ v.activeOldPlayer.length }}
+                                td(ng-click='vm.platformValidActivePlayerAnalysisDetailData=v.growPreviousPeriodNewPlayer')
+                                    a {{ v.growPreviousPeriodNewPlayer.length }}
+                                td(ng-click='vm.platformValidActivePlayerAnalysisDetailData=v.growCurrentPeriodNewPlayer')
+                                    a {{ v.growCurrentPeriodNewPlayer.length }}
+                                td(ng-click='vm.platformValidActivePlayerAnalysisDetailData=v.growOldPlayer')
+                                    a {{ v.growOldPlayer.length }}
+                                td(ng-click='vm.platformValidActivePlayerAnalysisDetailData=v.lostPreviousPeriodNewPlayer')
+                                    a {{ v.lostPreviousPeriodNewPlayer.length }}
+                                td(ng-click='vm.platformValidActivePlayerAnalysisDetailData=v.lostOldPlayer')
+                                    a {{ v.lostOldPlayer.length }}
+
+        .row(ng-if='vm.platformValidActivePlayerAnalysisDetailData')
+            .col-md-12
+                button.btn.btn-primary.common-button.pull-right(ng-click='vm.platformValidActivePlayerAnalysisDetailTableIsHide = !vm.platformValidActivePlayerAnalysisDetailTableIsHide') {{ vm.platformValidActivePlayerAnalysisDetailTableIsHide ? "expand" : "collapse" | translate}}
+            .col-md-12(ng-hide='vm.platformValidActivePlayerAnalysisDetailTableIsHide')
+                table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                    thead
+                        tr
+                            th {{ 'order' | translate }}
+                            th {{ 'ACCOUNT' | translate }}
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.platformValidActivePlayerAnalysisDetailData')
+                            td
+                                span {{ $index + 1 }}
+                            td
+                                span {{ v._id.name | translate }}
+        .row
+            .col-md-12
+                .graph
+                    .panel.panel-default
+                        #line-validActivePlayerGrowAndLost.lineChart.graphDiv
+
+
 
 
 p(ng-init="vm.loadPageFunc('VALID_ACTIVE_PLAYER')")
