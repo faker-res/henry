@@ -41,6 +41,7 @@ let PlayerServiceImplement = function () {
                 }
             }
             data.loginIps = [data.lastLoginIp];
+            let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
             var uaString = conn.upgradeReq.headers['user-agent'];
             var ua = uaParser(uaString);
             var md = new mobileDetect(uaString);
@@ -107,12 +108,12 @@ let PlayerServiceImplement = function () {
 
                     console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
                     if(data && data.realName && data.realName != "" && data.partnerName && data.partnerName != ""){
-                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then();
+                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS, inputDevice).then();
                     }else{
                         dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
                             isUpdateData=> {
                                 if (!(isUpdateData[0] && isUpdateData[0]._id)) {
-                                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY).catch(errorUtils.reportError);
+                                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
                                 }
                             }
                         );
@@ -161,7 +162,7 @@ let PlayerServiceImplement = function () {
                     console.log("createPlayerRegistrationIntentRecordAPI FAIL", data, err);
                     if (err && err.status != constServerCode.USERNAME_ALREADY_EXIST) {
                         if(data && data.partnerName && data.partnerName != ""){
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL, ).then();
                         }else{
                             dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                         }

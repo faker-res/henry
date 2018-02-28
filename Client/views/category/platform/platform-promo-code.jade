@@ -268,7 +268,7 @@
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
                     br
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode3, 3)", , ng-if = "!vm.promoCode3HasMoreThanOne")
+                        button.btn.btn-primary.common-button(ng-click="vm.generateAllPromoCode(vm.newPromoCode3, 3)", ng-if = "!vm.promoCode3HasMoreThanOne")
                             text {{'GENERATE_ALL' | translate}}
                             img.img-create
                         button.btn.btn-primary.common-button(ng-click = "vm.generateAllPromoCode(vm.newPromoCode3, 3, true)", ng-if = "vm.promoCode3HasMoreThanOne" )

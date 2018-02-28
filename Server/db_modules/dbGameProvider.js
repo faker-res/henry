@@ -58,6 +58,9 @@ var dbGameProvider = {
             {$pull: {gameProviders: gameProviderObjId}, $unset: {'gameProviderInfo': String(gameProviderObjId)}},
             {multi: true}
         );
+
+        console.log("delGameProvider platform update:", {$pull: {gameProviders: gameProviderObjId}, $unset: {'gameProviderInfo': String(gameProviderObjId)}});
+
         //remove all provider games
         var gameProm = dbconfig.collection_game.find({provider: gameProviderObjId}).then(
             games => {

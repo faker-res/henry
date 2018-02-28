@@ -272,6 +272,8 @@ var dbPlatform = {
             delete updateData.gameProviderNickNames;
         }
 
+        console.log("updatePlatform platform update:", updateData);
+
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 console.log("updatePlatform", data, query, updateData);
@@ -469,6 +471,8 @@ var dbPlatform = {
      * @param are _id of department and _id of platform
      */
     updateDepartmentToPlatformById: function (platformObjId, departmentId) {
+        console.log("updateDepartmentToPlatformById platform update:", {department: departmentId});
+
         return dbconfig.collection_platform.update(
             {
                 _id: platformObjId
@@ -483,6 +487,7 @@ var dbPlatform = {
      * @param platformObjId
      */
     removeDepartmentFromPlatformById: function (platformObjId) {
+        console.log("removeDepartmentFromPlatformById platform update:", {department: null});
 
         return dbconfig.collection_platform.update(
             {
@@ -556,6 +561,11 @@ var dbPlatform = {
         nickNameUpdate[nickNameUpdatePath] = localProviderNickName;
         nickNameUpdate[prefixUpdatePath] = localProviderPrefix;
 
+        console.log("addOrRenameProviderInPlatformById platform update:", {
+            $addToSet: {gameProviders: {$each: [providerObjId]}},
+            $set: nickNameUpdate
+        });
+
         return dbconfig.collection_platform.findOneAndUpdate(
             {
                 _id: platformObjId
@@ -571,6 +581,11 @@ var dbPlatform = {
         let statusUpdatePath = "gameProviderInfo." + providerObjId + ".isEnable";
         let statusUpdate = {};
         statusUpdate[statusUpdatePath] = isEnable;
+
+        console.log("updateProviderFromPlatformById platform update:", {
+            $addToSet: {gameProviders: {$each: [providerObjId]}},
+            $set: statusUpdate
+        });
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
@@ -633,6 +648,11 @@ var dbPlatform = {
         ).then(
             function (data) {
                 if (data) {
+
+                    console.log("removeProviderFromPlatformById platform update:", {
+                        $pull: {gameProviders: providerObjId},
+                        $unset: {'gameProviderInfo': '' + providerObjId}
+                    });
 
                     return dbconfig.collection_platform.findOneAndUpdate(
                         {
@@ -1765,6 +1785,8 @@ var dbPlatform = {
     },
 
     updateAutoApprovalConfig: function (query, updateData) {
+        console.log("updateAutoApprovalConfig platform update:", updateData);
+
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true});
     },
     generateObjectId: function () {
@@ -2450,6 +2472,12 @@ var dbPlatform = {
      * Update the promoCode setting in Platform
      */
     updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime, promoCodeIsActive) {
+        console.log("updatePromoCodeSetting platform update:", {
+            promoCodeStartTime: promoCodeStartTime,
+            promoCodeEndTime: promoCodeEndTime,
+            promoCodeIsActive: promoCodeIsActive
+        });
+
         return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
             {
                 promoCodeStartTime: promoCodeStartTime,
