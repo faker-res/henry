@@ -69,17 +69,19 @@ let dbRewardPoints = {
         let relevantEvents = [];
         let rewardPointsConfig;
 
-        let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategory(playerData.platform, constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
+        let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategoryWithPopulatePlayerLevel(playerData.platform, constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
         let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerData._id, playerData);
         let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(playerData.platform);
+        let getplayerLevelProm = getPlayerLevelValue(playerData._id);
 
-        return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm]).then(
+        return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getplayerLevelProm]).then(
             data => {
                 let events = data[0];
                 let playerRewardPoints = data[1];
                 rewardPointsConfig = data[2];
+                let playerLevelData = data[3];
 
-                relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice));
+                relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData));
 
                 if (!relevantEvents || relevantEvents.length < 1) {
                     // return Promise.reject({
@@ -147,16 +149,19 @@ let dbRewardPoints = {
                     let relevantEvents = [];
                     let rewardPointsConfig;
 
-                    let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategory(topupProposalData.data.platformId, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
+                    let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategoryWithPopulatePlayerLevel(topupProposalData.data.platformId, constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
                     let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(topupProposalData.data.playerObjId);
                     let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(topupProposalData.data.platformId);
+                    let getplayerLevelProm = getPlayerLevelValue(topupProposalData.data.playerObjId);
 
-                    return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm]).then(
+                    return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getplayerLevelProm]).then(
                         data => {
                             let events = data[0];
                             let playerRewardPoints = data[1];
                             rewardPointsConfig = data[2];
-                            relevantEvents = events.filter(event => isRelevantTopupEvent(event, topupMainType, topupProposalData));
+                            let playerLevelData = data[3];
+
+                            relevantEvents = events.filter(event => isRelevantTopupEvent(event, topupMainType, topupProposalData, playerLevelData));
                             if (!relevantEvents || relevantEvents.length < 1) {
                                 relevantEvents = [];
                             }
@@ -254,11 +259,12 @@ let dbRewardPoints = {
                     return Promise.resolve();
                 }
 
-                let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategory(platform._id, constRewardPointsTaskCategory.GAME_REWARD_POINTS);
+                let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategoryWithPopulatePlayerLevel(platform._id, constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                 let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(consumptionRecord.playerId);
                 let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
+                let getplayerLevelProm = getPlayerLevelValue(consumptionRecord.playerId);
 
-                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm]);
+                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getplayerLevelProm]);
             }
         ).then(
             data => {
@@ -269,8 +275,9 @@ let dbRewardPoints = {
                 let events = data[0];
                 let playerRewardPoints = data[1];
                 rewardPointsConfig = data[2];
+                let playerLevelData = data[3];
 
-                relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord));
+                relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData));
 
                 let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
 
@@ -910,7 +917,7 @@ module.exports = dbRewardPoints;
 // else, it will act as private function of this model
 
 
-function isRelevantLoginEventByProvider(event, provider, inputDevice) {
+function isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData) {
     // if 'OR' flag added in, this part of the code need some adjustment
     let eventTargetDestination = [];
 
@@ -927,7 +934,12 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice) {
         return false;
     }
 
-    if (event.userAgent && Number(event.userAgent) !== Number(inputDevice)) {
+    if (event.userAgent && event.userAgent !== -1 && Number(event.userAgent) !== Number(inputDevice)) {
+        return false;
+    }
+
+    // check player level whether achieve reward event level setting
+    if (playerLevelData && playerLevelData.playerLevel && event && event.level && (playerLevelData.playerLevel.value < event.level.value)) {
         return false;
     }
 
@@ -938,7 +950,7 @@ function isRelevantLoginEventByProvider(event, provider, inputDevice) {
     return provider ? eventTargetDestination.indexOf(provider.toString()) !== -1 || eventTargetDestination.includes('') : eventTargetDestination.length === 0 || eventTargetDestination.includes('');
 }
 
-function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
+function isRelevantTopupEvent(event, topupMainType, topupProposalData, playerLevelData) {
     if (!event.status) {
         return false
     }
@@ -948,10 +960,10 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
     if (event.customPeriodStartTime && new Date(event.customPeriodStartTime) > new Date())
         return false;
     // check userAgent
-    if (event.userAgent && topupProposalData.data.userAgent && Number(event.userAgent) !== Number(topupProposalData.data.userAgent))
+    if (event.userAgent && event.userAgent !== -1 && topupProposalData.data.userAgent && Number(event.userAgent) !== Number(topupProposalData.data.userAgent))
         return false;
     // check merchantTopupMainType
-    if (event.target && event.target.merchantTopupMainType &&
+    if (event.target && event.target.merchantTopupMainType !== -1 && event.target.merchantTopupMainType &&
         Number(event.target.merchantTopupMainType) !== Number(topupMainType))
         return false;
     // check merchantTopupType
@@ -969,11 +981,15 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData) {
         event.target && event.target.bankType &&
         Number(event.target.bankType) !== Number(topupProposalData.data.bankTypeId))
         return false;
+    // check player level whether achieve reward event level setting
+    if (playerLevelData && playerLevelData.playerLevel && event && event.level && (playerLevelData.playerLevel.value < event.level.value)) {
+        return false;
+    }
 
     return true;
 }
 
-function isRelevantGameEvent(event, consumptionRecord) {
+function isRelevantGameEvent(event, consumptionRecord, playerLevelData) {
     if (!event) {
         return false;
     }
@@ -1004,6 +1020,11 @@ function isRelevantGameEvent(event, consumptionRecord) {
         if (!consumptionRecord.betType || relevantBetType.indexOf(consumptionRecord.betType.toString()) < 0) {
             return false;
         }
+    }
+
+    // check player level whether achieve reward event level setting
+    if (playerLevelData && playerLevelData.playerLevel && event && event.level && (playerLevelData.playerLevel.value < event.level.value)) {
+        return false;
     }
 
     return true;
@@ -1246,18 +1267,18 @@ function buildTodayTopupAmountQuery(event, topupProposalData) {
         createTime: {$gte: today.startTime, $lte: today.endTime}
     };
 
-    if(event.userAgent)
+    if(event.userAgent && event.userAgent !== -1)
         relevantTopupMatchQuery.userAgent = event.userAgent.toString();
 
-    if (event.target && event.target.merchantTopupMainType) {
+    if (event.target && event.target.merchantTopupMainType !== -1 && event.target.merchantTopupMainType) {
         relevantTopupMatchQuery.topUpType = event.target.merchantTopupMainType.toString();
         switch (event.target.merchantTopupMainType) {
             case constPlayerTopUpType.MANUAL:
-                relevantTopupMatchQuery.depositMethod = event.target.depositMethod.toString();
-                relevantTopupMatchQuery.bankCardType = event.target.bankType.toString();
+                if(event.target.depositMethod) relevantTopupMatchQuery.depositMethod = event.target.depositMethod.toString();
+                if(event.target.bankType) relevantTopupMatchQuery.bankCardType = event.target.bankType.toString();
                 break;
             case constPlayerTopUpType.ONLINE:
-                relevantTopupMatchQuery.merchantTopUpType = event.target.merchantTopupType.toString();
+                if(event.target.merchantTopupType) relevantTopupMatchQuery.merchantTopUpType = event.target.merchantTopupType.toString();
                 break;
             case constPlayerTopUpType.ALIPAY:
                 break;
@@ -1265,8 +1286,20 @@ function buildTodayTopupAmountQuery(event, topupProposalData) {
                 break;
             case constPlayerTopUpType.QUICKPAY:
                 break;
-
         }
+    } else if(event.target && event.target.merchantTopupMainType === -1) {
+        // Accept all topupType, if have select other option still match
+        // MANUAL
+        let manualTopupOrObj = {topUpType: constPlayerTopUpType.MANUAL.toString()};
+        if(event.target.depositMethod) manualTopupOrObj.depositMethod = event.target.depositMethod.toString();
+        if(event.target.bankType) manualTopupOrObj.bankCardType = event.target.bankType.toString();
+        // ONLINE
+        let onlineTopupOrObj = {topUpType: constPlayerTopUpType.ONLINE.toString()};
+        if(event.target.merchantTopupType) onlineTopupOrObj.merchantTopUpType = event.target.merchantTopupType.toString();
+        // ALIPAY && WECHAT && QUICKPAY
+        let otherTopupOrObj = {topUpType: {$in: [constPlayerTopUpType.ALIPAY.toString(), constPlayerTopUpType.WECHAT.toString(), constPlayerTopUpType.QUICKPAY.toString()]}};
+
+        relevantTopupMatchQuery.$or = [manualTopupOrObj, onlineTopupOrObj, otherTopupOrObj];
     }
     return relevantTopupMatchQuery;
 }
@@ -1346,4 +1379,10 @@ function getTodayLastRewardPointEventLog(pointObjId) {
         },
         createTime: {$gte: new Date(todayStartTime)}
     }).sort({createTime: -1}).limit(1).lean();
+}
+
+function getPlayerLevelValue(playerObjId) {
+    return dbConfig.collection_players.findOne({
+        _id: playerObjId
+    },{"playerLevel":1}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
 }

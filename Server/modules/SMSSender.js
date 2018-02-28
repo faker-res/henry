@@ -43,7 +43,7 @@ const SMSSender = {
                     ).then(
                         template => {
                             if (template && template.content) {
-                                if(template.type === constMessageType.UPDATE_PASSWORD)
+                                // if(template.type === constMessageType.UPDATE_PASSWORD)
                                     template.content = template.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
                                 if(proposalData){
                                     if(proposalData.createTime)

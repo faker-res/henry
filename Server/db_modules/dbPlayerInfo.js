@@ -2872,12 +2872,8 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data.length > 0) {
-                    deferred.reject({
-                        name: "DataError",
-                        message: "Not Valid for the reward."
-                    });
+                    deferred.resolve(false);
                     return true;
-
                 } else {
                     if (!playerData.platform.canMultiReward && playerData.platform.useLockedCredit) {
                         return dbRewardTask.getPlayerCurRewardTask(playerData._id);
@@ -3113,7 +3109,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (bValid) {
-                if (!bValid) {
+                if (!bValid && !ifAdmin) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "NotValid",
@@ -4666,6 +4662,12 @@ let dbPlayerInfo = {
 
         Q.all([prom0, prom1]).then(
             data => {
+                if(data && data[0] && data[0].isTestPlayer) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Unable to transfer credit for demo player"
+                    })
+                }
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
@@ -5149,6 +5151,12 @@ let dbPlayerInfo = {
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
+                if(data && data[0] && data[0].isTestPlayer) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Unable to transfer credit for demo player"
+                    })
+                }
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
                     gameProvider = data[1];
@@ -6150,6 +6158,9 @@ let dbPlayerInfo = {
         return playerProm.then(
             function (data) {
                 if (data) {
+                    if(data.isTestPlayer) {
+                        return Q.reject({name: "DataError", message: "Unable to check game credit for demo player"});
+                    }
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
@@ -9282,6 +9293,12 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, gameProm]).then(
             data => {
+                //check if its a demo player
+                if(data && data[0] && data[0].isTestPlayer) {
+                    playerData = data[0];
+                    return dbPlayerInfo.getTestLoginURL(playerId, gameId, ip, lang, clientDomainName, clientType);
+                }
+
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
@@ -9462,7 +9479,11 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            () => {
+            data => {
+                if(playerData.isTestPlayer) {
+                    return data;
+                }
+
                 if (gameData && gameData.provider && gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
                 }
@@ -9484,6 +9505,9 @@ let dbPlayerInfo = {
             }
         ).then(
             loginData => {
+                if(playerData.isTestPlayer) {
+                    return loginData;
+                }
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
@@ -11213,11 +11237,17 @@ let dbPlayerInfo = {
                 }
                 playerObj = player;
                 let playerObjId = player._id;
-                return dbconfig.collection_players.findOneAndUpdate(
-                    {_id: playerObjId, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl},
-                    {new: true}
-                ).lean().exec();
+                //update player source url if it's register type
+                if( data.accessType == "register" ){
+                    return dbconfig.collection_players.findOneAndUpdate(
+                        {_id: playerObjId, platform: platformObjId},
+                        {sourceUrl: data.sourceUrl},
+                        {new: true}
+                    ).lean();
+                }
+                else{
+                    return playerObj;
+                }
             }
         ).then(
             function () {
