@@ -25,14 +25,14 @@ var dbPlayerRegistrationIntentRecord = {
      * create top up intent record
      * @param {Json} data
      */
-    createPlayerRegistrationIntentRecordAPI: function (data, status) {
+    createPlayerRegistrationIntentRecordAPI: function (data, status, inputDevice) {
         if (data && data.platformId) {
             return dbconfig.collection_platform.findOne({platformId: data.platformId}).then(
                 function (plat) {
                     if (plat && plat._id) {
                         data.platformId = plat.platformId;
                         data.platform = plat._id;
-                        return dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, status);
+                        return dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, status, inputDevice);
                     } else {
                         return Q.reject({name: "DataError", message: "Platform does not exist"});
                     }
@@ -67,7 +67,7 @@ var dbPlayerRegistrationIntentRecord = {
         }
     },
 
-    createPlayerRegistrationIntentRecord: function (data, status) {
+    createPlayerRegistrationIntentRecord: function (data, status, inputDevice) {
         if(data){
             let proposalData = {
                 creator: data.adminInfo || {
@@ -86,7 +86,8 @@ var dbPlayerRegistrationIntentRecord = {
                 data: data,
                 entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                 userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
-                status: status
+                status: status,
+                inputDevice: inputDevice? inputDevice: 0
             };
 
             //data.ipArea = geoip('210.21.84.23');
