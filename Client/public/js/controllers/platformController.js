@@ -17953,7 +17953,7 @@ define(['js/app'], function (myApp) {
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
                 // userAgent -1 means accept all userAgent
-                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true, userAgent: -1};
+                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true, userAgent: -1, level: vm.allPlayerLvl.sort((a,b) => a.value > b.value)[0]._id};
                 vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
             };
 
