@@ -2390,7 +2390,8 @@ let dbPlayerReward = {
                     newPromoCodeEntry.playerObjId = playerData._id;
                     newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
-
+                    newPromoCodeEntry.adminId = adminObjId;
+                    newPromoCodeEntry.adminName = adminName;
                     return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
                 }
                 else {
@@ -3655,7 +3656,7 @@ let dbPlayerReward = {
         if (data.flag) {
             dbConfig.collection_promoCode.update({
                 platformObjId: platformObjId,
-                createTime: {$not: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}},
+                acceptedTime: {$not: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}},
                 isActive: true
             }, {
                 $set: {
@@ -3668,7 +3669,7 @@ let dbPlayerReward = {
 
         return dbConfig.collection_promoCode.update({
             platformObjId: platformObjId,
-            createTime: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}
+            acceptedTime: {$gte: new Date(data.startAcceptedTime), $lt: new Date(data.endAcceptedTime)}
         }, {
             $set: {
                 isActive: data.flag

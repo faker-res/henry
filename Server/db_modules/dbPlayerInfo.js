@@ -2872,12 +2872,8 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data.length > 0) {
-                    deferred.reject({
-                        name: "DataError",
-                        message: "Not Valid for the reward."
-                    });
+                    deferred.resolve(false);
                     return true;
-
                 } else {
                     if (!playerData.platform.canMultiReward && playerData.platform.useLockedCredit) {
                         return dbRewardTask.getPlayerCurRewardTask(playerData._id);
@@ -11241,11 +11237,17 @@ let dbPlayerInfo = {
                 }
                 playerObj = player;
                 let playerObjId = player._id;
-                return dbconfig.collection_players.findOneAndUpdate(
-                    {_id: playerObjId, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl},
-                    {new: true}
-                ).lean().exec();
+                //update player source url if it's register type
+                if( data.accessType == "register" ){
+                    return dbconfig.collection_players.findOneAndUpdate(
+                        {_id: playerObjId, platform: platformObjId},
+                        {sourceUrl: data.sourceUrl},
+                        {new: true}
+                    ).lean();
+                }
+                else{
+                    return playerObj;
+                }
             }
         ).then(
             function () {

@@ -3293,7 +3293,8 @@
   "PLAYER_LOGIN_DEVICE_ANALYSIS": "玩家登入设备",
   "LEVEL_BEFORE": "等级（前）",
   "LEVEL_AFTER": "等级（后）",
-  "PlayerLevelMigrationSuccess": "玩家升降级（成功）",
+  "PlayerLevelUpMigrationSuccess": "玩家升级（成功）",
+  "PlayerLevelDownMigrationSuccess": "玩家降级（成功）",
   "PlayerLevelUpSuccess": "升级优惠（成功）"
 
 }

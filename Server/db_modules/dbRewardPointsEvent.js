@@ -24,6 +24,13 @@ let dbRewardPointsEvent = {
         }).lean().sort({ index: 1 });
     },
 
+    getRewardPointsEventByCategoryWithPopulatePlayerLevel: (platformObjId, rewardPointsEventCategory) => {
+        return dbConfig.collection_rewardPointsEvent.find({
+            platformObjId: platformObjId,
+            category: rewardPointsEventCategory
+        }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({ index: 1 });
+    },
+
     createRewardPointsEvent: (data) => {
         let rewardPoints = new dbConfig.collection_rewardPointsEvent(data);
         return rewardPoints.save();
