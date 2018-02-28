@@ -917,7 +917,7 @@
                             .form-group-col-md-6
                                 label {{'CREDIT' | translate}}
                                 text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
-                                input.form-control(type='number', min=1, ng-model='vm.playerManualTopUp.amount', required)
+                                input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
@@ -974,7 +974,7 @@
                                 .control-label
                                 label {{'CREDIT' | translate}}
                                 text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
-                                input.form-control(type='number', min='1', ng-model='vm.playerAlipayTopUp.amount', required)
+                                input.form-control(type='number', min=0, ng-model='vm.playerAlipayTopUp.amount', required)
                             .form-group.col-md-6
                                 .control-label
                                 label {{'Alipay' | translate}}
@@ -1030,7 +1030,7 @@
                                 .control-label
                                 label {{'CREDIT' | translate}}
                                 text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
-                                input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerWechatPayTopUp.amount', required)
+                                input.form-control(type='number', min=0, ng-model='vm.playerWechatPayTopUp.amount', required)
                             .form-group.col-md-6
                                 .control-label
                                 label {{'WechatPay' | translate}}
