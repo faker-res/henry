@@ -674,10 +674,13 @@ let dbPlayerReward = {
                         let startTimeSetHours = currentTime.setHours(startTimeInt,0,0);
                         let countdownToStartTime = parseInt((startTimeSetHours - new Date().getTime()) / 1000);
 
+                        let eventStartTime = ('00' + appearPeriod.startTime).slice(-2).concat(':00');
+                        let eventEndTime = ('00' + appearPeriod.endTime).slice(-2).concat(':00');
+
                         openData = {
                             id: openID,
-                            startTime: appearPeriod.startTime,
-                            endTime: appearPeriod.endTime,
+                            startTime: eventStartTime,
+                            endTime: eventEndTime,
                             timeLeft: countdownToStartTime,
                             status: 0,
                             condition: {
@@ -701,10 +704,13 @@ let dbPlayerReward = {
                         openID++;
                         openID = ('000' + openID).slice(-3);
 
+                        let eventStartTime = ('00' + appearPeriod.startTime).slice(-2).concat(':00');
+                        let eventEndTime = ('00' + appearPeriod.endTime).slice(-2).concat(':00');
+
                         openData = {
                             id: openID,
-                            startTime: appearPeriod.startTime,
-                            endTime: appearPeriod.endTime,
+                            startTime: eventStartTime,
+                            endTime: eventEndTime,
                             status: 1,
                             condition: {
                                 availableDeposit: totalValidTopup,
@@ -742,10 +748,13 @@ let dbPlayerReward = {
                             getID++;
                             getID = ('000' + getID).slice(-3);
 
+                            let eventStartTime = ('00' + appearPeriod.startTime).slice(-2).concat(':00');
+                            let eventEndTime = ('00' + appearPeriod.endTime).slice(-2).concat(':00');
+
                             getData = {
                                 id: getID,
-                                startTime: appearPeriod.startTime,
-                                endTime: appearPeriod.endTime,
+                                startTime: eventStartTime,
+                                endTime: eventEndTime,
                                 status: 2,
                                 amountList: listValidRewardAmount,
                                 condition: {
@@ -782,10 +791,13 @@ let dbPlayerReward = {
                             giveupID++;
                             giveupID = ('000' + giveupID).slice(-3);
 
+                            let eventStartTime = ('00' + appearPeriod.startTime).slice(-2).concat(':00');
+                            let eventEndTime = ('00' + appearPeriod.endTime).slice(-2).concat(':00');
+
                             giveupData = {
                                 id: giveupID,
-                                startTime: appearPeriod.startTime,
-                                endTime: appearPeriod.endTime,
+                                startTime: eventStartTime,
+                                endTime: eventEndTime,
                                 status: 3,
                                 condition: {
                                     availableDeposit: totalValidTopup,
@@ -2378,7 +2390,8 @@ let dbPlayerReward = {
                     newPromoCodeEntry.playerObjId = playerData._id;
                     newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
-
+                    newPromoCodeEntry.adminId = adminObjId;
+                    newPromoCodeEntry.adminName = adminName;
                     return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
                 }
                 else {
@@ -2390,7 +2403,7 @@ let dbPlayerReward = {
                 if (newPromoCodeEntry.allowedSendSms) {
                     SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
                 }
-                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
+                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
                 return newPromoCode.code;
             }
         )
@@ -3638,6 +3651,7 @@ let dbPlayerReward = {
 
 
     },
+
     updatePromoCodesActive: (platformObjId, data) => {
         if (data.flag) {
             dbConfig.collection_promoCode.update({
@@ -3824,7 +3838,7 @@ let dbPlayerReward = {
             }
             let consumptionMatchQuery = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                bDirty: false,
+                //bDirty: false,
                 playerId: playerData._id,
             };
 
@@ -4600,6 +4614,7 @@ let dbPlayerReward = {
                         let applyRewardTimes = periodProps.length;
                         let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.amount, 0);
                         let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.validAmount, 0);
+                        let applyRewardAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         useTopUpAmount = 0;
                         useConsumptionAmount = 0;
                         //periodProps.reduce((sum, value) => sum + value, 1);
@@ -4631,7 +4646,7 @@ let dbPlayerReward = {
                                 });
                                 isUpdateMultiConsumptionRecord = true;
                                 useConsumptionAmount = selectedRewardParam.requiredConsumptionAmount;
-                                meetConsumptionCondition = consumptionAmount >= selectedRewardParam.requiredConsumptionAmount;
+                                meetConsumptionCondition = consumptionAmount - applyRewardAmount >= selectedRewardParam.requiredConsumptionAmount;
                             } else {
                                 meetConsumptionCondition = true;
                             }
@@ -4720,7 +4735,7 @@ let dbPlayerReward = {
                 }
 
                 // Decide whether deduct player credit
-                if (isUpdateValidCredit && playerData.platform.useProviderGroup && rewardAmount) {
+                if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
                     // Decide whether player has enough free amount to apply
                     if (playerData.validCredit >= applyAmount) {
                         // Player has enough amount in validCredit

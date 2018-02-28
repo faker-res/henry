@@ -18,7 +18,13 @@ var playerClientSourceLogSchema = new Schema ({
     //access type
     accessType: String,
     // Date of action
-    createTime: {type: Date, default: Date.now, index: true}
+    createTime: {type: Date, default: Date.now, index: true},
+    // is test player
+    isTestPlayer: {type: Boolean, default: false},
+    //is real player
+    isRealPlayer: {type: Boolean, default: true, index: true},
+    //partnerId
+    partner: {type: Schema.ObjectId, ref: 'partner', index: true},
 });
 
 module.exports = playerClientSourceLogSchema;

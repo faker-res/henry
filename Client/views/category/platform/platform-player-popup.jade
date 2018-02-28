@@ -792,6 +792,19 @@
                     table#playerApiLogTbl.common-table.display(style='min-width:100%')
                     #playerApiLogTblPage.height30
 
+#modalPlayerRewardPointsLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Player Reward Points Log" | translate}} : {{vm.selectedSinglePlayer.name}}
+            .modal-body
+                div
+                    label {{"Total" | translate}} {{vm.playerRewardPointsLog.totalCount}} {{"records" | translate}}
+                    table#playerRewardPointsLogTbl.common-table.display(style='min-width:100%')
+                    #playerRewardPointsLogTblPage.height30
+
+
 
 #modalAddPlayerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')
@@ -904,7 +917,7 @@
                             .form-group-col-md-6
                                 label {{'CREDIT' | translate}}
                                 text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
-                                input.form-control(type='number', min=1, ng-model='vm.playerManualTopUp.amount', required)
+                                input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
@@ -961,7 +974,7 @@
                                 .control-label
                                 label {{'CREDIT' | translate}}
                                 text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
-                                input.form-control(type='number', min='1', ng-model='vm.playerAlipayTopUp.amount', required)
+                                input.form-control(type='number', min=0, ng-model='vm.playerAlipayTopUp.amount', required)
                             .form-group.col-md-6
                                 .control-label
                                 label {{'Alipay' | translate}}
@@ -1017,7 +1030,7 @@
                                 .control-label
                                 label {{'CREDIT' | translate}}
                                 text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
-                                input.form-control(type='number', min='{{vm.selectedPlatform.data.minTopUpAmount || 0}}', ng-model='vm.playerWechatPayTopUp.amount', required)
+                                input.form-control(type='number', min=0, ng-model='vm.playerWechatPayTopUp.amount', required)
                             .form-group.col-md-6
                                 .control-label
                                 label {{'WechatPay' | translate}}
@@ -1511,10 +1524,11 @@
                             table.col-md-12.paddingTbl.text-center.datatable-sm
                                 tbody
                                     tr
-                                        td.col-md-3.oblique {{'BEFORE_REWARD_POINTS_CONVERT' | translate}}
-                                        td.col-md-3.oblique {{'REWARD_POINTS_CONVERT_AMOUNT' | translate}}
-                                        td.col-md-3.oblique.strong(style='color:red') {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
-                                        td.col-md-3.oblique {{'AFTER_REWARD_POINTS_CONVERT' | translate}}
+                                        td.col-md-3 {{'BEFORE_REWARD_POINTS_CONVERT' | translate}}
+                                        td.col-md-3 {{'REWARD_POINTS_CONVERT_AMOUNT' | translate}}
+                                            span(ng-if="vm.rewardPointToCreditManualRate") &nbsp;({{vm.rewardPointToCreditManualRate}} : 1)
+                                        td.col-md-3.strong(style='color:red') {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
+                                        td.col-md-3 {{'AFTER_REWARD_POINTS_CONVERT' | translate}}
                                     tr
                                         td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
@@ -1578,3 +1592,89 @@
                                             text(class='{{v.newData[k] ? "text-primary" : "text-danger"}}') {{v.newData[k]}}
                             .col-md-2.text-center {{v.admin.adminName || ' '}}
                             .col-md-3.text-center {{v.remark}}
+
+#modalRewardPointsLogDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label(style="font-size: 1.5em;") {{ 'Reward Points' | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#detail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                div
+                                    .titleBackground.margin-bottom-5.text-center {{'Basic' | translate}}
+                                    .label-value
+                                        label {{'TITLE' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.rewardPointsLogDetail.category | translate}}
+                                    .label-value
+                                        label {{'STATUS' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.rewardPointsLogDetail.status | translate}}
+                                    .label-value
+                                        label {{'PROPOSAL_NO' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.rewardPointsLogDetail.proposalId || 'none' | translate}}
+                                    .label-value
+                                        label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.dateReformat(vm.rewardPointsLogDetail.createTime)}}
+
+                                    div(style='min-height:30px')
+                                        hr
+                                div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
+                                    label {{'UPDATE_DETAIL' | translate}}
+                                    div(ng-switch-default)
+                                        table.table(style='width:100%')
+                                            tr
+                                                td {{ 'Reward Point ID' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.pointLogId }}
+                                            tr
+                                                td {{ 'Member Account' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.playerName }}
+                                            tr
+                                                td {{ 'Player Level' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.playerLevelName | translate }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.currentDayAppliedAmount != null')
+                                                td {{ 'dailyMaxRewardPoint' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.currentDayAppliedAmount}} / {{vm.rewardPointsLogDetail.maxDayApplyAmount}}
+                                            tr
+                                                td {{ 'rewardPointsCategory' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.category | translate}}
+                                            tr
+                                                td {{ 'rewardPoints' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.amount }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardPeriod')
+                                                td {{ 'eventRefreshPeriod' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardPeriod }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardTitle')
+                                                td {{ 'rewardTitle' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardTitle }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.rewardContent')
+                                                td {{ 'rewardContent' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.rewardContent }}
+                                            tr
+                                                td {{ 'remark' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.remark }}
+                                            tr(ng-if='vm.rewardPointsLogDetail.proposal && vm.rewardPointsLogDetail.proposal.data.exchangeRatio')
+                                                td {{ 'exchangeRatio' | translate}}
+                                                td {{ vm.rewardPointsLogDetail.proposal.data.exchangeRatio }}
+                                            tr(ng-repeat='(i,v) in vm.rewardPointsLogDetail.rewardTarget' ng-switch='i')
+                                                td {{ i | translate}}
+                                                td(ng-switch-when='merchantTopupMainType') {{ vm.topUpTypeList[v] | translate}}
+                                                td(ng-switch-when='merchantTopupType') {{ vm.merchantTopupTypeJson[v] | translate}}
+                                                td(ng-switch-when='depositMethod') {{ depositMethod[v] | translate}}
+                                                td(ng-switch-when='bankType') {{ vm.allBankTypeList[v] | translate}}
+                                                td(ng-switch-default) {{ v }}
+
+
+
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+

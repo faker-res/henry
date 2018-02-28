@@ -1,7 +1,7 @@
 .section
     .row
         .titlePic
-            .title {{"PLAYER_DEVICE_ANALYSIS" | translate}}
+            .title {{"PLAYER_LOGIN_DEVICE_ANALYSIS" | translate}}
                 .pull-right
                     a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#playerDeviceAnalysis","playerDevice")')
                         text.pull-left.margin-right-5 {{vm.optionText.playerDevice | translate}}
@@ -25,6 +25,13 @@
                     select.form-control(ng-model='vm.queryPara.playerDevice.queryRequirement')
                         option(value='register') {{'NEW_REGISTRATION' | translate}}
                         option(value='login') {{'Login' | translate}}
+                div
+                    label {{'USER_TYPE' | translate}}
+                    select.form-control(ng-model='vm.queryPara.playerDevice.userType')
+                        option(value='all') {{"REAL_PLAYER_ALL"|translate}}
+                        option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
+                        option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}
+                        option(value='test') {{"Test Player"|translate}}
                 //div
                 //    label {{"Start date"|translate}}
                 //    input.form-control(type='date', ng-model='vm.queryPara.playerDevice.startTime')
@@ -44,4 +51,4 @@
                 .panel.panel-default
                     #bar-all-playerDevice.barChart
                     //label {{vm.allPlatformTopUpPie}}
-p(ng-init="vm.loadPageFunc('PLAYER_DEVICE_ANALYSIS')")
+p(ng-init="vm.loadPageFunc('PLAYER_LOGIN_DEVICE_ANALYSIS')")

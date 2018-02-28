@@ -11,6 +11,7 @@ var dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 var dbGameProviderPlayerDaySummary = require('./../db_modules/dbGameProviderPlayerDaySummary');
 let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbApiLog = require('./../db_modules/dbApiLog');
+let dbRewardPointsLog = require('./../db_modules/dbRewardPointsLog');
 var socketUtil = require('./../modules/socketutility');
 var utility = require('./../modules/encrypt');
 var constPlayerStatus = require('./../const/constPlayerStatus');
@@ -762,10 +763,10 @@ function socketActionPlayer(socketIO, socket) {
          */
         getPlayerDeviceAnalysisData: function getPlayerDeviceAnalysisData(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.type && data.queryRequirement);
+            var isValidData = Boolean(data && data.platformId && data.type && data.queryRequirement && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean');
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime, data.queryRequirement], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDeviceAnalysisData, [ObjectId(data.platformId), data.type, startTime, endTime, data.queryRequirement, data.isRealPlayer, data.isTestPlayer, data.hasPartner], actionName, isValidData);
         },
         /**
          *  apply Manual TopUp
@@ -994,6 +995,12 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerObjId && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbApiLog.getPlayerApiLog, [data.playerObjId, data.startDate, data.endDate, data.action, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        getPlayerRewardPointsLog: function getPlayerRewardPointsLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerName);
+            socketUtil.emitter(self.socket, dbRewardPointsLog.getPlayerRewardPointsLog, [data.playerName, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         transferAllPlayersCreditFromProvider: function transferAllPlayersCreditFromProvider(data) {

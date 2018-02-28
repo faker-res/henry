@@ -51,6 +51,9 @@ var playerSchema = new Schema({
         PlayerFreeTrialRewardGroupSuccess: {type: Boolean, default: true},
         PlayerRegisterIntentionSuccess: {type: Boolean, default: true},
         PlayerPromoCodeRewardSuccess: {type: Boolean, default: true},
+        PlayerLevelUpMigrationSuccess: {type: Boolean, default: true},
+        PlayerLevelDownMigrationSuccess: {type: Boolean, default: true},
+        PlayerLevelUpSuccess: {type: Boolean, default: true},
     },
     //store player's icon
     icon: {type: String, default: ""},

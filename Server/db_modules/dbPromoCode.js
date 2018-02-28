@@ -34,9 +34,9 @@ let dbPromoCode = {
 
             for (let i = 0; i < promoCodeData.length; i++) {
                 let promoCodeObj = promoCodeData[i];
-                if (promoCodeObj.code.toString() === promoCode) {
+                if (promoCodeObj.code.toString() == promoCode) {
                     if (amount && typeof amount === "number") {
-                        if (amount >= promoCodeObj.minTopUpAmount) {
+                        if (amount >= promoCodeObj.minTopUpAmount || !promoCodeObj.minTopUpAmount) {
                             return true;
                         } else {
                             return Promise.reject({

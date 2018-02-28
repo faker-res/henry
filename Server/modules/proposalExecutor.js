@@ -260,7 +260,7 @@ var proposalExecutor = {
         refundPlayerApplyAmountIfNeeded: function (proposalData, reason) {
             return Q.resolve().then(
                 () => {
-                    if (proposalData && proposalData.data && proposalData.data.applyAmount && (proposalData.data.useLockedCredit || proposalData.data.providerGroup)) {
+                    if (proposalData && proposalData.data && proposalData.data.applyAmount && (proposalData.data.useLockedCredit || proposalData.data.isGroupReward)) {
                         // We should give a refund
                         return proposalExecutor.refundPlayer(proposalData, proposalData.data.applyAmount, reason);
                     }
@@ -1618,6 +1618,7 @@ var proposalExecutor = {
                     }
                     else {
                         changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformObjId, proposalData.data.rewardAmount, constProposalType.PLAYER_LEVEL_UP, proposalData.data).then(deferred.resolve, deferred.reject);
+                        sendMessageToPlayer(proposalData,constMessageType.PLAYER_LEVEL_UP_SUCCESS,{});
                     }
                 }
                 else {
@@ -1637,7 +1638,19 @@ var proposalExecutor = {
                         {_id: proposalData.data.playerObjId, platform: proposalData.data.platformObjId},
                         {playerLevel: proposalData.data.levelObjId},
                         {new: false}
-                    ).then(deferred.resolve, deferred.reject);
+                    ).then(
+                        (data) => {
+                            let messageType;
+                            if (proposalData.data && proposalData.data.upOrDown == "LEVEL_UP") {
+                                messageType = constMessageType.PLAYER_LEVEL_UP_MIGRATION_SUCCESS;
+                            } else {
+                                messageType = constMessageType.PLAYER_LEVEL_DOWN_MIGRATION_SUCCESS;
+                            }
+                            sendMessageToPlayer(proposalData,messageType,{});
+                            deferred.resolve(data);
+                    }, deferred.reject
+                    );
+
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player level migration proposal data"});
@@ -2163,7 +2176,7 @@ var proposalExecutor = {
             },
 
             executePlayerTopUpReturnGroup: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
@@ -3257,7 +3270,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
     //type that need to add 'Success' status
     let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
-        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP
     ];
 
     // type reference to constMessageType or constMessageTypeParam.name
@@ -3265,13 +3278,33 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
     if(needSendMessageRewardTypes.indexOf(type)!==-1){
          messageType = type + 'Success';
     }
-    
-    SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
-    // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
-    // Changing into async function
-    //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
-    //send message if there is any template created for this reward
-    return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj).catch(err=>{console.error(err)});
+
+    let providerProm = Promise.resolve();
+    if (messageType == messageType.PLAYER_LEVEL_UP_SUCCESS && proposalData && proposalData.data && proposalData.data.providerGroup) {
+        providerProm = dbconfig.collection_gameProviderGroup.findOne({
+            _id:ObjectId(proposalData.data.providerGroup)
+        });
+    }
+    providerProm.then(
+        providerData => {
+            if (messageType == constMessageType.PLAYER_LEVEL_UP_SUCCESS) {
+                if (providerData && providerData.name) {
+                    proposalData.data.providerGroup = providerData.name;
+                } else {
+                    proposalData.data.providerGroup = '自由额度';
+                }
+                if (proposalData && proposalData.data && !proposalData.data.requiredUnlockAmount) {
+                    proposalData.data.requiredUnlockAmount = 0;
+                }
+            }
+
+            SMSSender.sendByPlayerObjId(proposalData.data.playerObjId, messageType, proposalData);
+            // Currently can't see it's dependable when provider group is off, and maybe causing manual reward task can't be proporly executed
+            // Changing into async function
+            //dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData).catch(errorUtils.reportError);
+            //send message if there is any template created for this reward
+            return messageDispatcher.dispatchMessagesForPlayerProposal(proposalData, messageType, metaDataObj).catch(err=>{console.error(err)});
+        })
 
 }
 function createRewardLogForProposal(rewardTypeName, proposalData) {
