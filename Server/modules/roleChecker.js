@@ -561,11 +561,12 @@ var roleChecker = {
                 Bonus: ['getAnalysisBonusRequestList','getAnalysisSingleBonusRequestList'],
                 ApiResponseTime: ['getApiLoggerAllServiceName', 'getApiLoggerAllFunctionNameOfService', 'getApiResponseTimeQuery'],
                 ConsumptionInterval: ['getConsumptionIntervalData'],
-                ClientSource: [],
-                LoginPlayer: [],
-                ValidActivePlayer: [],
-                OnlineTopupSuccessRate: [],
-                TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform']
+                ClientSource: ['getClientSourceQuery'],
+                LoginPlayer: ['countLoginPlayerbyPlatform'],
+                ValidActivePlayer: ['countValidActivePlayerbyPlatform'],
+                OnlineTopupSuccessRate: ['getOnlineTopupAnalysisByPlatform'],
+                TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform'],
+                PlayerDomain: ['getPlayerDomainAnalysisData']
             }
         },
         Report: {

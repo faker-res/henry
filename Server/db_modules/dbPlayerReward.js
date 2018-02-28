@@ -2406,7 +2406,8 @@ let dbPlayerReward = {
                     newPromoCodeEntry.playerObjId = playerData._id;
                     newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
-
+                    newPromoCodeEntry.adminId = adminObjId;
+                    newPromoCodeEntry.adminName = adminName;
                     return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
                 }
                 else {
@@ -2418,7 +2419,7 @@ let dbPlayerReward = {
                 if (newPromoCodeEntry.allowedSendSms) {
                     SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
                 }
-                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName);
+                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
                 return newPromoCode.code;
             }
         )
@@ -3666,6 +3667,7 @@ let dbPlayerReward = {
 
 
     },
+
     updatePromoCodesActive: (platformObjId, data) => {
         if (data.flag) {
             dbConfig.collection_promoCode.update({

@@ -4820,7 +4820,9 @@ define(['js/app'], function (myApp) {
 
             // Clears the table data and shows the provided data instead, without re-creating the table object itself.
             var setTableData = function (table, data) {
-                table.clear();
+                if(table){
+                    table.clear();
+                }
                 if (data) {
                     data.forEach(function (rowData) {
                         if (rowData) {
@@ -4833,11 +4835,16 @@ define(['js/app'], function (myApp) {
                             if (rowData.lastAccessTime) {
                                 rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
                             }
-                            table.row.add(rowData);
+                            if(table){
+                                table.row.add(rowData);
+                            }
+
                         }
                     });
                 }
-                table.draw();
+                if(table){
+                    table.draw();
+                }
             };
 
             // Multiply by this to convert hours to seconds
@@ -17946,7 +17953,7 @@ define(['js/app'], function (myApp) {
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
                 // userAgent -1 means accept all userAgent
-                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true, userAgent: -1};
+                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true, userAgent: -1, level: vm.allPlayerLvl.sort((a,b) => a.value > b.value)[0]._id};
                 vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
             };
 
@@ -18270,10 +18277,11 @@ define(['js/app'], function (myApp) {
                             sendData.smsContent = sendData.promoCodeType.smsContent;
 
                             console.log('sendData', sendData);
-
                             return $scope.$socketPromise('generatePromoCode', {
                                 platformObjId: vm.selectedPlatform.id,
-                                newPromoCodeEntry: sendData
+                                newPromoCodeEntry: sendData,
+                                adminName: authService.adminName,
+                                adminId: authService.adminId
                             }).then(ret => {
                                 col[index].code = ret.data;
                                 $scope.safeApply();
@@ -18713,6 +18721,10 @@ define(['js/app'], function (myApp) {
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
+                        },
+                        {
+                            title: $translate('CREATED_BY'),
+                            data: "adminName"
                         }
                     ],
                     "paging": false,
@@ -23682,7 +23694,7 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;"
-                                    + "; vm.permissionChangeMark();",
+                                    + ";",
 
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
@@ -23939,7 +23951,9 @@ define(['js/app'], function (myApp) {
                                         $("#playerPermissionTable .permitOff." + key).addClass('hide');
                                     }
                                 });
-                                showPopover(that, '#playerPermissionPopover', row);
+
+                                vm.permissionChangeMark();
+                                showPopover(that, '#playerBatchPermissionPopover', row);
                                 $scope.safeApply();
 
                             },
