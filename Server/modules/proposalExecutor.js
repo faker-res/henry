@@ -2772,7 +2772,11 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                pmsAPI.payment_modifyManualTopupRequest({
+                    requestId: proposalData.data.requestId,
+                    operationType: constManualTopupOperationType.CANCEL,
+                    data: null
+                }).then(
                     deferred.resolve, deferred.reject
                 );
                 //deferred.resolve("Proposal is rejected")
@@ -2794,7 +2798,11 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                pmsAPI.payment_modifyManualTopupRequest({
+                    requestId: proposalData.data.requestId,
+                    operationType: constManualTopupOperationType.CANCEL,
+                    data: null
+                }).then(
                     deferred.resolve, deferred.reject
                 );
             },
@@ -2815,7 +2823,11 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                pmsAPI.payment_modifyManualTopupRequest({
+                    requestId: proposalData.data.requestId,
+                    operationType: constManualTopupOperationType.CANCEL,
+                    data: null
+                }).then(
                     deferred.resolve, deferred.reject
                 );
                 //deferred.resolve("Proposal is rejected")

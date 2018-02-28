@@ -3545,7 +3545,11 @@ define(['js/app'], function (myApp) {
 
                     var tableData = vm.newPlayerListRecords.map(
                         record => {
-                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            if (record.status == vm.constProposalStatus.NOVERIFY && record.data && record.data.registrationTime) {
+                                record.createTime =  vm.dateReformat(record.data.registrationTime);
+                            } else {
+                                record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            }
                             //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             if (record.status) {
                                 if (record.status == vm.constProposalStatus.SUCCESS) {

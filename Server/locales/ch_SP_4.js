@@ -227,7 +227,9 @@ var simplifiedChinese = {
     "Connection failed": "连接失败",
     "PlayerPromoCodeReward": "优惠代码",
     "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。",
-    "This IP address has applied for max reward times in event period": "此IP已经达到了该优惠周期内的申请上限"
+    "This IP address has applied for max reward times in event period": "此IP已经达到了该优惠周期内的申请上限",
+    "Player reach participate limit": "玩家已达参加次数上限",
+    "Player does not have enough consumption": "玩家没有足够的投注额",
     //todo::add missing messages here
 
     /*
