@@ -53,7 +53,7 @@ const messageDispatcher = {
         );
     },
 
-    dispatchMessagesForPromoCode: function (platformObjId, metaData, adminName) {
+    dispatchMessagesForPromoCode: function (platformObjId, metaData, adminName, adminObjId) {
         let providerNameList = [];
         const playerId = metaData.playerObjId;
         // Fetch any data which might be used in the template
@@ -66,8 +66,9 @@ const messageDispatcher = {
                 metaData.senderType = 'admin';
                 metaData.senderName = adminName ? adminName: "";
                 metaData.platformId = platformObjId;
+                if(adminObjId)
+                    metaData.senderId = adminObjId;
                 const platformId = platformObjId;
-
                 let proms = [];
                 let providerProm = [];
                 let gameProviderProm;
@@ -227,7 +228,7 @@ const messageDispatcher = {
                 platformId: metaData.platformId,
                 senderType: metaData.senderType,
                 senderId: metaData.senderId,
-                //senderName: metaData.senderName,
+                senderName: metaData.senderName,
                 recipientType: metaData.recipientType,
                 recipientId: metaData.recipientId,
                 // playerId: metaData.player._id,
@@ -238,6 +239,8 @@ const messageDispatcher = {
                 function (data) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
+                        data = data.toObject(); //mongoose object to javascript object
+                        delete data.senderName; // hide admin name
                         wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "player", "notifyNewMail", data);
                     }
                     return data;

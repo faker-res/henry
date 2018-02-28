@@ -1017,7 +1017,7 @@ var dbPlayerTopUpRecord = {
                     minTopUpAmount = player.platform.minTopUpAmount || 0;
                 }
 
-                if (inputData.amount < minTopUpAmount) {
+                if (inputData.amount < minTopUpAmount && entryType != "ADMIN") {
                     return Q.reject({
                         status: constServerCode.PLAYER_TOP_UP_FAIL,
                         name: "DataError",
@@ -1681,14 +1681,15 @@ var dbPlayerTopUpRecord = {
             data => {
                 if (data) {
                     player = data;
-                    //check if player is valid for first top up
-                    if (period == 1) {
-                        return dbPlayerInfo.isValidForFirstTopUpReward(player._id, player.platform);
-                    } else if (period == 2 || period == 3) {
-                        return dbPlayerInfo.isValidForFirstTopUpRewardPeriod(player, {periodType: (period - 1)});
-                    } else {
-                        return Q.reject({name: "DataError", message: "Unhandled reward period data."})
-                    }
+                    //skip the check here
+                    // if (period == 1) {
+                    //     return dbPlayerInfo.isValidForFirstTopUpReward(player._id, player.platform);
+                    // } else if (period == 2 || period == 3) {
+                    //     return dbPlayerInfo.isValidForFirstTopUpRewardPeriod(player, {periodType: (period - 1)});
+                    // } else {
+                    //     return Q.reject({name: "DataError", message: "Unhandled reward period data."})
+                    // }
+                    return true;
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find player"})
@@ -1776,7 +1777,7 @@ var dbPlayerTopUpRecord = {
                     if (entryType === "ADMIN") {
                         minTopUpAmount = 1;
                     }
-                    if (amount < minTopUpAmount) {
+                    if (amount < minTopUpAmount && !adminId) {
                         return Q.reject({
                             status: constServerCode.PLAYER_TOP_UP_FAIL,
                             name: "DataError",
@@ -2111,7 +2112,7 @@ var dbPlayerTopUpRecord = {
 
                     if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                         let minTopUpAmount = player.platform.minTopUpAmount || 0;
-                        if (amount < minTopUpAmount) {
+                        if (amount < minTopUpAmount && entryType != "ADMIN") {
                             return Q.reject({
                                 status: constServerCode.PLAYER_TOP_UP_FAIL,
                                 name: "DataError",

@@ -36,9 +36,9 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'REWARD_ANALYSIS' | translate}}
                 //li(ng-click='vm.loadPage("PLAYER_ANALYSIS")')
                     a  {{'PLAYER_ANALYSIS' | translate}}
-                li(ng-if="checkViewPermission('Analysis','Analysis','Device')",ng-click='vm.loadPage("PLAYER_DEVICE_ANALYSIS")')
-                    a  {{'PLAYER_DEVICE_ANALYSIS' | translate}}
-                li(ng-if="checkViewPermission('Analysis','Analysis','Domain')",ng-click='vm.loadPage("PLAYER_DOMAIN_ANALYSIS")')
+                li(ng-if="checkViewPermission('Analysis','Analysis','Device')",ng-click='vm.loadPage("PLAYER_LOGIN_DEVICE_ANALYSIS")')
+                    a  {{'PLAYER_LOGIN_DEVICE_ANALYSIS' | translate}}
+                li(ng-if="checkViewPermission('Analysis','Analysis','PlayerDomain')",ng-click='vm.loadPage("PLAYER_DOMAIN_ANALYSIS")')
                     a  {{'PLAYER_DOMAIN_ANALYSIS' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','PlayerRetention')",ng-click='vm.loadPage("PLAYER_RETENTION")')
                     a  {{'PLAYER_RETENTION' | translate}}
@@ -54,11 +54,11 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'CONSUMPTION_INTERVAL' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','OnlineTopupSuccessRate')",ng-click='vm.loadPage("ONLINE_TOPUP_SUCCESS_RATE")')
                     a  {{'ONLINE_TOPUP_SUCCESS_RATE' | translate}}
-                li(ng-if="checkViewPermission('Analysis','Analysis','topUp')",ng-click='vm.loadPage("TOPUPMANUAL")')
+                li(ng-if="checkViewPermission('Analysis','Analysis','TopUp')",ng-click='vm.loadPage("TOPUPMANUAL")')
                     a  {{'TOPUPMANUAL' | translate}}
-                li(ng-if="checkViewPermission('Analysis','Analysis','topUp')",ng-click='vm.loadPage("PlayerAlipayTopUp")')
+                li(ng-if="checkViewPermission('Analysis','Analysis','TopUp')",ng-click='vm.loadPage("PlayerAlipayTopUp")')
                     a  {{'PlayerAlipayTopUp' | translate}}
-                li(ng-if="checkViewPermission('Analysis','Analysis','topUp')",ng-click='vm.loadPage("PlayerWechatTopUp")')
+                li(ng-if="checkViewPermission('Analysis','Analysis','TopUp')",ng-click='vm.loadPage("PlayerWechatTopUp")')
                     a  {{'PlayerWechatTopUp' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','TopupMethodRate')",ng-click='vm.loadPage("TOPUP_METHOD_RATE")')
                     a  {{'TOPUP_METHOD_RATE' | translate}}
@@ -91,7 +91,7 @@ div(ng-if="checkViewPermission('Analysis')")
                 include category/reward-analysis
             div(ng-if='vm.showPageName=="PLAYER_ANALYSIS"')
                 include category/player-analysis
-            div(ng-if='vm.showPageName=="PLAYER_DEVICE_ANALYSIS"')
+            div(ng-if='vm.showPageName=="PLAYER_LOGIN_DEVICE_ANALYSIS"')
                 include category/player-device
             div(ng-if='vm.showPageName=="PLAYER_DOMAIN_ANALYSIS"')
                 include category/player-domain

@@ -2862,7 +2862,7 @@ let dbPlayerInfo = {
                     type: proposalType,
                     status: {
                         $in: [constProposalStatus.PENDING, constProposalStatus.SUCCESS,
-                            constProposalStatus.APPROVED]
+                            constProposalStatus.APPROVED, constProposalStatus.REJECTED]
                     }
                 }).lean();
 
@@ -2872,12 +2872,8 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data.length > 0) {
-                    deferred.reject({
-                        name: "DataError",
-                        message: "Not Valid for the reward."
-                    });
+                    deferred.resolve(false);
                     return true;
-
                 } else {
                     if (!playerData.platform.canMultiReward && playerData.platform.useLockedCredit) {
                         return dbRewardTask.getPlayerCurRewardTask(playerData._id);
@@ -3113,7 +3109,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (bValid) {
-                if (!bValid) {
+                if (!bValid && !ifAdmin) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD,
                         name: "NotValid",
@@ -3314,7 +3310,7 @@ let dbPlayerInfo = {
                         },
                         "data.periodType": rewardData.periodType,
                         "data.playerObjId": playerData._id,
-                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.REJECTED]}
                     });
                 } else {
                     return deferred.resolve(false);
@@ -4666,6 +4662,12 @@ let dbPlayerInfo = {
 
         Q.all([prom0, prom1]).then(
             data => {
+                if(data && data[0] && data[0].isTestPlayer) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Unable to transfer credit for demo player"
+                    })
+                }
                 if (data && data[0] && data[1]) {
                     playerData = data[0];
                     providerData = data[1];
@@ -5149,6 +5151,12 @@ let dbPlayerInfo = {
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         Q.all([prom0, prom1]).then(
             function (data) {
+                if(data && data[0] && data[0].isTestPlayer) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Unable to transfer credit for demo player"
+                    })
+                }
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
                     gameProvider = data[1];
@@ -6150,6 +6158,9 @@ let dbPlayerInfo = {
         return playerProm.then(
             function (data) {
                 if (data) {
+                    if(data.isTestPlayer) {
+                        return Q.reject({name: "DataError", message: "Unable to check game credit for demo player"});
+                    }
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
@@ -7924,10 +7935,12 @@ let dbPlayerInfo = {
                 let activePlayerValue;
                 let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
                 let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
+                let date = new Date(dayStartTime); // for active valid player need get earlier 1 period
                 switch (period) {
                     case 'day':
                         // topupCollectionName = 'collection_playerTopUpDaySummary';
                         // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
+                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 1));
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
@@ -7935,6 +7948,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
+                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 7));
                         activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
@@ -7942,6 +7956,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
+                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 15));
                         activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
@@ -7949,6 +7964,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
+                        if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 1)).setDate(1));
                         activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
@@ -7957,6 +7973,7 @@ let dbPlayerInfo = {
                         break;
                     case 'season':
                     default:
+                        if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 3)).setDate(1));
                         activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
@@ -7970,7 +7987,7 @@ let dbPlayerInfo = {
                 while (start.getTime() <= end.getTime()) {
                     let dayStartTime = start;
                     let dayEndTime = getNextDateByPeriodAndDate(period, dayStartTime);
-                    result[dayStartTime] = 0;
+                    result[dayStartTime] = isFilterValidPlayer ? [] : 0;
                     chain = chain.then(
                         () => {
                             let stream = dbconfig[topupCollectionName].aggregate([
@@ -8013,7 +8030,10 @@ let dbPlayerInfo = {
                                             });
                                         },
                                         processResponse: function (response) {
-                                            result[dayStartTime] = result[dayStartTime] ? result[dayStartTime] + response.data : response.data;
+                                            if(isFilterValidPlayer)
+                                                result[dayStartTime] = result[dayStartTime] ? result[dayStartTime].concat(response.data) : response.data;
+                                            else
+                                                result[dayStartTime] = result[dayStartTime] ? result[dayStartTime] + response.data : response.data;
                                         }
                                     }
                                 );
@@ -8176,33 +8196,38 @@ let dbPlayerInfo = {
                         else {
                             var filterRecords = records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue);
                         }
+                        let returnData;
 
                         if (hasPartner != null){
                             if (hasPartner == true){
 
-                                return filterRecords.filter(records => {
+                                returnData = filterRecords.filter(records => {
                                     if (!records._id.partner){
                                         return false
                                     }
                                     else{
                                         return records._id.isRealPlayer == isRealPlayer && records._id.isTestPlayer == isTestPlayer
                                     }
-                                }).length;
+                                });
 
                             }else {
 
-                                return filterRecords.filter(records =>
+                                returnData = filterRecords.filter(records =>
                                     records._id.isRealPlayer == isRealPlayer &&
                                     records._id.isTestPlayer == isTestPlayer &&
-                                    (records._id.partner == null || records._id.partner == 'undefined')).length;
+                                    (records._id.partner == null || records._id.partner == 'undefined'));
                             }
                         }else{
 
-                            return filterRecords.filter(records =>
+                            returnData = filterRecords.filter(records =>
                                 records._id.isRealPlayer == isRealPlayer &&
                                 records._id.isTestPlayer == isTestPlayer
-                            ).length;
+                            );
                         }
+                        if (isFilterValidPlayer)
+                            return returnData;
+                        else
+                            return returnData.length
                     }
                 )
             }
@@ -9282,6 +9307,12 @@ let dbPlayerInfo = {
 
         return Promise.all([playerProm, gameProm]).then(
             data => {
+                //check if its a demo player
+                if(data && data[0] && data[0].isTestPlayer) {
+                    playerData = data[0];
+                    return dbPlayerInfo.getTestLoginURL(playerId, gameId, ip, lang, clientDomainName, clientType);
+                }
+
                 if (data && data[0] && data[1] && data[1].provider) {
                     playerData = data[0];
                     gameData = data[1];
@@ -9462,7 +9493,11 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            () => {
+            data => {
+                if(playerData.isTestPlayer) {
+                    return data;
+                }
+
                 if (gameData && gameData.provider && gameData.provider._id && playerData && playerData.platform && playerData.platform.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerData, gameData.provider._id, inputDevice).catch(errorUtils.reportError);
                 }
@@ -9484,6 +9519,9 @@ let dbPlayerInfo = {
             }
         ).then(
             loginData => {
+                if(playerData.isTestPlayer) {
+                    return loginData;
+                }
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
             }
@@ -9669,13 +9707,13 @@ let dbPlayerInfo = {
                 if (paymentData) {
                     var resData = [];
                     if (merchantUse == 1 && paymentData.merchants) {
-                        if (playerData.merchantGroup && playerData.merchantGroup.merchants && playerData.merchantGroup.merchants.length > 0) {
-                            playerData.merchantGroup.merchants.forEach(
+                        if (playerData.merchantGroup && playerData.merchantGroup.merchantNames && playerData.merchantGroup.merchantNames.length > 0) {
+                            playerData.merchantGroup.merchantNames.forEach(
                                 merchant => {
                                     let maxDeposit = 0;
                                     for (let i = 0; i < paymentData.merchants.length; i++) {
                                         let status = 2;
-                                        if (paymentData.merchants[i].merchantNo == merchant) {
+                                        if (paymentData.merchants[i].name == merchant) {
                                             status = 1;
                                         }
 
@@ -9696,7 +9734,8 @@ let dbPlayerInfo = {
                                                 }
                                             }
                                         });
-                                        if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                        if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
+                                            console.log(paymentData.merchants[i])
                                             resData.push({
                                                 type: paymentData.merchants[i].topupType,
                                                 status: status,
@@ -11213,11 +11252,17 @@ let dbPlayerInfo = {
                 }
                 playerObj = player;
                 let playerObjId = player._id;
-                return dbconfig.collection_players.findOneAndUpdate(
-                    {_id: playerObjId, platform: platformObjId},
-                    {sourceUrl: data.sourceUrl},
-                    {new: true}
-                ).lean().exec();
+                //update player source url if it's register type
+                if( data.accessType == "register" ){
+                    return dbconfig.collection_players.findOneAndUpdate(
+                        {_id: playerObjId, platform: platformObjId},
+                        {sourceUrl: data.sourceUrl},
+                        {new: true}
+                    ).lean();
+                }
+                else{
+                    return playerObj;
+                }
             }
         ).then(
             function () {
