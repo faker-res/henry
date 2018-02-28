@@ -950,9 +950,6 @@ var dbPlayerConsumptionWeekSummary = {
 
                     let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
 
-                    // Offset dirty consumption amount
-                    totalConsumptionRec -= doneXIMAConsumption;
-
                     if (totalConsumptionRec != res.totalConsumptionAmount) {
                         // Recalculate consumption return amount
                         let totalAmtDiff = 0;
