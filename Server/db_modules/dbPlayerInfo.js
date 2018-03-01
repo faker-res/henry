@@ -1220,7 +1220,7 @@ let dbPlayerInfo = {
 
     createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-        let platform;
+        let platform, defaultCredit;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -1234,6 +1234,7 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
                 platform = platformData;
+                defaultCredit = platform.demoPlayerDefaultCredit || 0;
 
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
                 promArr.push(demoNameProm);
@@ -1302,6 +1303,7 @@ let dbPlayerInfo = {
                     platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
+                    validCredit: defaultCredit,
                     isTestPlayer: true,
                     isRealPlayer: false
                 };
