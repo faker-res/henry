@@ -1683,21 +1683,18 @@ let dbPlayerInfo = {
                     for (var i in permission) {
                         if (suc.permission[i] != permission[i]) {
                             oldData[i] = suc.permission[i];
-                        } else {
-                            delete permission[i];
                         }
                     }
-                    if (Object.keys(oldData).length !== 0) {
-                        var newLog = new dbconfig.collection_playerPermissionLog({
-                            admin: admin,
-                            platform: playerQuery.platform,
-                            player: suc._id,
-                            remark: remark,
-                            oldData: oldData,
-                            newData: permission,
-                        });
-                        return newLog.save();
-                    } else return true;
+                    
+                    var newLog = new dbconfig.collection_playerPermissionLog({
+                        admin: admin,
+                        platform: playerQuery.platform,
+                        player: suc._id,
+                        remark: remark,
+                        oldData: oldData,
+                        newData: permission,
+                    });
+                    return newLog.save();
                 },
                 function (error) {
                     errorList.push(error.query.name);
