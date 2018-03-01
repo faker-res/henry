@@ -12,6 +12,7 @@ let constProposalStatus = require('../const/constProposalStatus');
 let constMessageType = require('../const/constMessageType');
 let queryPhoneLocation = require('query-mobile-phone-area');
 let constRegistrationIntentRecordStatus = require("../const/constRegistrationIntentRecordStatus.js");
+let constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 const request = require('request');
 var geoip = require('geoip-lite');
 let Q = require("q");
@@ -32,6 +33,9 @@ var dbPlayerRegistrationIntentRecord = {
                     if (plat && plat._id) {
                         data.platformId = plat.platformId;
                         data.platform = plat._id;
+                        if (!inputDevice) {
+                            inputDevice = constPlayerRegistrationInterface.BACKSTAGE
+                        }
                         return dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, status, inputDevice);
                     } else {
                         return Q.reject({name: "DataError", message: "Platform does not exist"});
