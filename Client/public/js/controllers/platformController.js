@@ -968,7 +968,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getRewardPointsLvlConfig(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                         switch (vm.platformPageName) {
@@ -3545,7 +3545,11 @@ define(['js/app'], function (myApp) {
 
                     var tableData = vm.newPlayerListRecords.map(
                         record => {
-                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            if (record.status == vm.constProposalStatus.NOVERIFY && record.data && record.data.registrationTime) {
+                                record.createTime =  vm.dateReformat(record.data.registrationTime);
+                            } else {
+                                record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            }
                             //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             if (record.status) {
                                 if (record.status == vm.constProposalStatus.SUCCESS) {
@@ -4820,7 +4824,9 @@ define(['js/app'], function (myApp) {
 
             // Clears the table data and shows the provided data instead, without re-creating the table object itself.
             var setTableData = function (table, data) {
-                table.clear();
+                if(table){
+                    table.clear();
+                }
                 if (data) {
                     data.forEach(function (rowData) {
                         if (rowData) {
@@ -4833,11 +4839,16 @@ define(['js/app'], function (myApp) {
                             if (rowData.lastAccessTime) {
                                 rowData.lastAccessTime = utilService.getFormatTime(rowData.lastAccessTime)
                             }
-                            table.row.add(rowData);
+                            if(table){
+                                table.row.add(rowData);
+                            }
+
                         }
                     });
                 }
-                table.draw();
+                if(table){
+                    table.draw();
+                }
             };
 
             // Multiply by this to convert hours to seconds
@@ -17066,6 +17077,9 @@ define(['js/app'], function (myApp) {
                 vm.promoCodeUserGroupAdd = false;
                 vm.promoCodeUserGroupPlayerEdit = false;
                 vm.promoCodeUserGroupPlayerAdd = false;
+                vm.promoCode1HasMoreThanOne = false;
+                vm.promoCode2HasMoreThanOne = false;
+                vm.promoCode3HasMoreThanOne = false;
 
                 vm.newPromoCode1 = [];
                 vm.newPromoCode2 = [];
@@ -17233,11 +17247,14 @@ define(['js/app'], function (myApp) {
                         );
                         break;
                     case 'loginRewardPoints':
+                        vm.userAgentWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.constPlayerRegistrationInterface);
                         vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);
                         break;
                     case 'topupRewardPoints':
                         vm.topupRewardPoints = [];
+                        vm.userAgentTypeWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.userAgentType);
+                        vm.topupTypeListWithSelectAll = $.extend({}, {'-1': 'All Selected'}, $scope.topUpTypeList);
                         vm.getAllGameProviders(vm.selectedPlatform.id);
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);
                         break;
@@ -17939,7 +17956,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
-                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true};
+                // userAgent -1 means accept all userAgent
+                let defaultEvent = {category:rewardPointsEventCategory, isEditing: true, userAgent: -1, level: vm.allPlayerLvl.sort((a,b) => a.value > b.value)[0]._id};
                 vm.rewardPointsEvent.push( Object.assign(defaultEvent, otherEventParam));
             };
 
@@ -18203,6 +18221,10 @@ define(['js/app'], function (myApp) {
                 },0);
 
             };
+            vm.cancelPromoCode = function (col, index) {
+                col[index].cancel = true;
+                $scope.safeApply();
+            };
 
             vm.generatePromoCode = function (col, index, data, type) {
                 let sendData = Object.assign({}, data);
@@ -18246,7 +18268,7 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
-                        if (!data.hasMoreThanOne || data.skipCheck) {
+                        if ( !data.hasMoreThanOne || (data.skipCheck && !data.cancel) ) {
                             sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
                             let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
 
@@ -18257,10 +18279,11 @@ define(['js/app'], function (myApp) {
                             sendData.smsContent = sendData.promoCodeType.smsContent;
 
                             console.log('sendData', sendData);
-
                             return $scope.$socketPromise('generatePromoCode', {
                                 platformObjId: vm.selectedPlatform.id,
-                                newPromoCodeEntry: sendData
+                                newPromoCodeEntry: sendData,
+                                adminName: authService.adminName,
+                                adminId: authService.adminId
                             }).then(ret => {
                                 col[index].code = ret.data;
                                 $scope.safeApply();
@@ -18270,18 +18293,43 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.generateAllPromoCode = function (col, type) {
+            vm.generateAllPromoCode = function (col, type, skipCheck) {
                 let p = Promise.resolve();
 
                 col.forEach((elem, index, arr) => {
                     if (!elem.code) {
                         p = p.then(function () {
+                            if (skipCheck){
+                                elem.skipCheck = true;
+                            }
                             return vm.generatePromoCode(col, index, elem, type);
                         });
                     }
                 });
 
-                return p;
+                return p.then( () => {
+                    if (col && col.length > 0) {
+                        if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
+                            if (type) {
+                                if (type == 1) {
+                                    vm.promoCode1HasMoreThanOne = true;
+                                }
+                                if (type == 2) {
+                                    vm.promoCode2HasMoreThanOne = true;
+                                }
+                                if (type == 3) {
+                                    vm.promoCode3HasMoreThanOne = true;
+                                }
+                            }
+                        } else {
+                            vm.promoCode1HasMoreThanOne = false;
+                            vm.promoCode2HasMoreThanOne = false;
+                            vm.promoCode3HasMoreThanOne = false;
+                        }
+                        $scope.safeApply();
+                    }
+                });
+
             };
 
             vm.getPromoCodeHistory = function (isNewSearch, type) {
@@ -18694,6 +18742,10 @@ define(['js/app'], function (myApp) {
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
+                        },
+                        {
+                            title: $translate('CREATED_BY'),
+                            data: "adminName"
                         }
                     ],
                     "paging": false,
@@ -23663,7 +23715,7 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;"
-                                    + "; vm.permissionChangeMark();",
+                                    + ";",
 
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
@@ -23920,7 +23972,9 @@ define(['js/app'], function (myApp) {
                                         $("#playerPermissionTable .permitOff." + key).addClass('hide');
                                     }
                                 });
-                                showPopover(that, '#playerPermissionPopover', row);
+
+                                vm.permissionChangeMark();
+                                showPopover(that, '#playerBatchPermissionPopover', row);
                                 $scope.safeApply();
 
                             },

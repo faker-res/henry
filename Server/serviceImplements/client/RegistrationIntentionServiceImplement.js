@@ -5,6 +5,7 @@ const constServerCode = require('./../../const/constServerCode');
 const localization = require('../../modules/localization').localization;
 const constMessageClientTypes = require('./../../const/constMessageClientTypes');
 const constProposalStatus = require('./../../const/constProposalStatus');
+const dbUtility = require('./../../modules/dbutility');
 
 var RegistrationIntentionServiceImplement = function () {
     RegistrationIntentionService.call(this);
@@ -22,9 +23,10 @@ var RegistrationIntentionServiceImplement = function () {
         }
         delete data.password;
         delete data.confirmPassword;
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         WebSocketUtil.responsePromise(
             conn, wsFunc, data, dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI,
-            [data, constProposalStatus.PENDING], isValidData, true, false, true
+            [data, constProposalStatus.PENDING, inputDevice], isValidData, true, false, true
         ).then(
             function (res) {
                 if (!conn.captchaCode || (conn.captchaCode && (conn.captchaCode == data.captcha))) {
