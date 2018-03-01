@@ -413,15 +413,20 @@ var dbPlayerConsumptionWeekSummary = {
                                                         let consumpDiff = el.validAmount - curValidAmt - consumedValidAmount;
                                                         let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
-                                                        proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
+                                                        if (proposalData.data.returnDetail["GameType:" + el._id]) {
+                                                            proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
+                                                        }
+
                                                         proposalData.data.rewardAmount += consumpDiff * returnRatio;
                                                         proposalData.data.spendingAmount += consumpDiff * returnRatio;
 
                                                         proposalData.data.consumeValidAmount += consumpDiff;
                                                     });
                                                 }
+
+                                                return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                             }
-                                        ).then(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData))
+                                        )
                                     } else {
                                         postProm = dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                     }
