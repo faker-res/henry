@@ -184,6 +184,8 @@ let dbPlayerCredibility = {
     },
 
     updatePlayerValueConfig: (platformObjId, config) => {
+        console.log("updatePlayerValueConfig platform update:", {playerValueConfig: config});
+
         return dbconfig.collection_platform.findOneAndUpdate({_id: ObjectId(platformObjId)}, {playerValueConfig: config}).lean();
     },
 
