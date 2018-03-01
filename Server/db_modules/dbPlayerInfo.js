@@ -1673,32 +1673,32 @@ let dbPlayerInfo = {
         }
         let players = query.playerNames;
         let proms = [];
+        let errorList = [];
         players.forEach(item => {
-            let playerQuery = {'name': item, 'platform': query.platformObjId};
+            let playerName = item.trim() || '';
+            let playerQuery = {'name': playerName, 'platform': query.platformObjId};
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
                 function (suc) {
                     var oldData = {};
                     for (var i in permission) {
                         if (suc.permission[i] != permission[i]) {
                             oldData[i] = suc.permission[i];
-                        } else {
-                            delete permission[i];
                         }
                     }
-                    if (Object.keys(oldData).length !== 0) {
-                        var newLog = new dbconfig.collection_playerPermissionLog({
-                            admin: admin,
-                            platform: playerQuery.platform,
-                            player: suc._id,
-                            remark: remark,
-                            oldData: oldData,
-                            newData: permission,
-                        });
-                        return newLog.save();
-                    } else return true;
+                    
+                    var newLog = new dbconfig.collection_playerPermissionLog({
+                        admin: admin,
+                        platform: playerQuery.platform,
+                        player: suc._id,
+                        remark: remark,
+                        oldData: oldData,
+                        newData: permission,
+                    });
+                    return newLog.save();
                 },
                 function (error) {
-                    return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+                    errorList.push(error.query.name);
+                    return error.query.name
                 }
             )
             proms.push(prom)
