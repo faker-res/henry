@@ -522,6 +522,7 @@
   "Edit": "编辑",
   "CreateTrial": "创建试玩玩家",
   "DemoPlayerPrefix": "试玩帐号F开头后的字母",
+  "DEMO_PLAYER_DEFAULT_CREDIT": "试玩预设额度（如需发起转入）",
   "AdvancedSearch": "高级搜索",
   "EditContact": "编辑联系",
   "PaymentInformation": "支付资料",
