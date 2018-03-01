@@ -541,38 +541,79 @@ let dbRewardPoints = {
     getLoginRewardPoints: function (playerId, platformId) {
         let returnData;
         let playerObjId;
+        let rewardPointsEvent = [];
+        let platformObjData = [];
+        let platformDataProm = [];
+        let rewardPointEventProm = [];
         if (playerId) {
             return dbConfig.collection_players.findOne({playerId: playerId}).lean().then(
                 playerData => {
                     if (playerData) {
                         playerObjId = playerData._id;
-                        return dbConfig.collection_rewardPointsEvent.find({
+                        platformDataProm = dbConfig.collection_platform.find({_id: playerData.platform}).lean().exec();
+                        rewardPointEventProm = dbConfig.collection_rewardPointsEvent.find({
                             platformObjId: playerData.platform,
                             category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS
-                        }).lean().sort({index: 1});
+                        }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+                        return Promise.all([rewardPointEventProm,platformDataProm])
                     } else {
                         return Promise.reject({name: "DataError", message: "Cannot find player"});
                     }
                 }
             ).then(
-                rewardPointsEvent => {
-                    if (rewardPointsEvent && rewardPointsEvent.length > 0) {
-                        let noProgress = {
-                            isApplicable: false,
-                            isApplied: false,
-                            count: 0
-                        };
-                        returnData = rewardPointsEvent;
-                        for (let i = 0; i < returnData.length; i++) {
-                            returnData[i].progress = noProgress;
-                            if (returnData[i].period) {
-                                let periodTime = getEventPeriodTime(returnData[i]);
-                                returnData[i].startTime = periodTime.startTime;
-                                returnData[i].endTime = periodTime.endTime;
-                            }
-                        }
-                        return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
-                    }
+                data => {
+                        Object.assign(rewardPointsEvent, data[0]);
+                        Object.assign(platformObjData, data[1]);
+                        return dbConfig.collection_gameProvider.find({}).lean().then(
+                            gameProviderObj => {
+                                if (!gameProviderObj) {
+                                    return Promise.reject({name: "DataError", message: "Cannot find game provider"});
+                                }
+
+                                if (rewardPointsEvent && rewardPointsEvent.length > 0) {
+
+                                    rewardPointsEvent.map(event => {
+                                        let providerName = [];
+
+                                        if (event.target.targetDestination && event.target.targetDestination.length > 0) {
+
+                                            event.target.targetDestination.forEach(item => {
+                                                if (platformObjData[0] && platformObjData[0].gameProviderInfo && platformObjData[0].gameProviderInfo[item] && platformObjData[0].gameProviderInfo[item].localNickName) {
+                                                    providerName.push(platformObjData[0].gameProviderInfo[item].localNickName);
+                                                }
+                                                else {
+                                                    gameProviderObj.forEach(gameItem => {
+                                                        if (item == gameItem._id.toString()) {
+                                                            providerName.push(gameItem.name);
+                                                        }
+                                                    });
+                                                }
+                                            })
+                                        }
+                                        event.target.targetDestination = providerName;
+                                        if (event.level && event.level.value){
+                                            event.level = event.level.value;
+                                        }
+                                    
+                                    });
+
+                                    let noProgress = {
+                                        isApplicable: false,
+                                        isApplied: false,
+                                        count: 0
+                                    };
+                                    returnData = rewardPointsEvent;
+                                    for (let i = 0; i < returnData.length; i++) {
+                                        returnData[i].progress = noProgress;
+                                        if (returnData[i].period) {
+                                            let periodTime = getEventPeriodTime(returnData[i]);
+                                            returnData[i].startTime = periodTime.startTime;
+                                            returnData[i].endTime = periodTime.endTime;
+                                        }
+                                    }
+                                    return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
+                                }
+                            })
                 }
             ).then(
                 rewardPointsData => {
@@ -606,100 +647,182 @@ let dbRewardPoints = {
             );
         }
         if (platformId && !playerId) {
-            return dbConfig.collection_platform.findOne({platformId: platformId}).then(
+
+            return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
                 platformData => {
                     if (!platformData || !platformData._id) {
                         return Promise.reject({name: "DataError", message: "Cannot find platform"});
                     }
+                    Object.assign(platformObjData, platformData);
                     return dbConfig.collection_rewardPointsEvent.find({
                         platformObjId: platformData._id,
                         category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS
-                    }).lean().sort({index: 1});
+                    }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
                 }
             ).then(
-                rewardPointsEvent => {
-                    if (rewardPointsEvent && rewardPointsEvent.length > 0) {
-                        let noProgress = {
-                            isApplicable: false,
-                            isApplied: false,
-                            count: 0
-                        };
-                        returnData = rewardPointsEvent;
-                        for (let i = 0; i < returnData.length; i++) {
-                            returnData[i].progress = noProgress;
-                            if (returnData[i].period) {
-                                let periodTime = getEventPeriodTime(returnData[i]);
-                                returnData[i].startTime = periodTime.startTime;
-                                returnData[i].endTime = periodTime.endTime;
+                rewardPointsObj => {
+                    Object.assign(rewardPointsEvent, rewardPointsObj);
+                    return dbConfig.collection_gameProvider.find({_id: {$in: platformObjData.gameProviders}}).lean().then(
+                        gameProviderObj => {
+                            if (!gameProviderObj) {
+                                return Promise.reject({name: "DataError", message: "Cannot find game provider"});
+                            }
+
+                            if (rewardPointsEvent && rewardPointsEvent.length > 0) {
+
+                                rewardPointsEvent.map(event => {
+                                    let providerName = [];
+                                    let providerId = [];
+                                    if (event.target.targetDestination && event.target.targetDestination.length > 0) {
+
+                                            event.target.targetDestination.forEach(item => {
+                                                if (platformObjData.gameProviderInfo && platformObjData.gameProviderInfo[item] && platformObjData.gameProviderInfo[item].localNickName) {
+                                                    providerName.push(platformObjData.gameProviderInfo[item].localNickName);
+                                                }
+                                                else {
+                                                    gameProviderObj.forEach(gameItem => {
+                                                        if (item == gameItem._id.toString()) {
+                                                            providerName.push(gameItem.name);
+                                                        }
+                                                    });
+
+                                                }
+
+                                            })
+                                    }
+                                    event.target.targetDestination = providerName;
+                                    if (event.level && event.level.value){
+                                        event.level = event.level.value;
+                                    }
+
+                                });
+
+                                let noProgress = {
+                                    isApplicable: false,
+                                    isApplied: false,
+                                    count: 0
+                                };
+                                returnData = rewardPointsEvent;
+                                for (let i = 0; i < returnData.length; i++) {
+                                    returnData[i].progress = noProgress;
+                                    if (returnData[i].period) {
+                                        let periodTime = getEventPeriodTime(returnData[i]);
+                                        returnData[i].startTime = periodTime.startTime;
+                                        returnData[i].endTime = periodTime.endTime;
+                                    }
+                                }
+                                for (let i = 0; i < returnData.length; i++) {
+                                    returnData[i].eventObjId = returnData[i]._id;
+                                    delete returnData[i]._id;
+                                    delete returnData[i].__v;
+                                    delete returnData[i].platformObjId;
+                                    delete returnData[i].category;
+                                    delete returnData[i].customPeriodStartTime;
+                                    delete returnData[i].customPeriodEndTime;
+                                }
+                                return returnData;
                             }
                         }
-                        for (let i = 0; i < returnData.length; i++) {
-                            returnData[i].eventObjId = returnData[i]._id;
-                            delete returnData[i]._id;
-                            delete returnData[i].__v;
-                            delete returnData[i].platformObjId;
-                            delete returnData[i].category;
-                            delete returnData[i].customPeriodStartTime;
-                            delete returnData[i].customPeriodEndTime;
-                        }
-                        return returnData;
-                    }
-                }
-            )
+                    )
+                })
         }
     },
 
     getGameRewardPoints: function (playerId, platformId) {
         let returnData;
         let playerObjId;
+        let platformDataProm = [];
+        let rewardPointEventProm = [];
+        let rewardPointsEvent = [];
+        let platformObjData = [];
         if (playerId) {
             return dbConfig.collection_players.findOne({playerId: playerId}).lean().then(
                 playerData => {
                     if (playerData) {
                         playerObjId = playerData._id;
-                        return dbConfig.collection_rewardPointsEvent.find({
+                        platformDataProm = dbConfig.collection_platform.find({_id: playerData.platform}).lean().exec();
+                        rewardPointEventProm = dbConfig.collection_rewardPointsEvent.find({
                             platformObjId: playerData.platform,
                             category: constRewardPointsTaskCategory.GAME_REWARD_POINTS
-                        }).lean().sort({index: 1});
+                        }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+                        return Promise.all([rewardPointEventProm,platformDataProm])
                     } else {
                         return Promise.reject({name: "DataError", message: "Cannot find player"});
                     }
                 }
             ).then(
-                rewardPointsEvent => {
-                    if (rewardPointsEvent && rewardPointsEvent.length > 0) {
-                        returnData = rewardPointsEvent;
-                        for (let i = 0; i < returnData.length; i++) {
-                            let noProgress = {
-                                isApplicable: false,
-                                isApplied: false,
-                                count: 0
-                            };
-                            returnData[i].progress = noProgress;
-                            if (returnData[i].period) {
-                                let periodTime = getEventPeriodTime(returnData[i]);
-                                returnData[i].startTime = periodTime.startTime;
-                                returnData[i].endTime = periodTime.endTime;
+                data => {
+                    Object.assign(rewardPointsEvent, data[0]);
+                    Object.assign(platformObjData, data[1]);
+
+                    return dbConfig.collection_gameProvider.find({}).lean().then(
+                        gameProviderObj => {
+                            if (!gameProviderObj) {
+                                return Promise.reject({name: "DataError", message: "Cannot find game provider"});
                             }
-                            Object.keys(returnData[i].target).forEach(
-                                key => {
-                                    if (!returnData[i].target[key]) {
-                                        delete returnData[i].target[key];
+
+                            if (rewardPointsEvent && rewardPointsEvent.length > 0) {
+
+                                rewardPointsEvent.map(event => {
+                                    let providerName = [];
+
+                                    if (event.target.targetDestination && event.target.targetDestination.length > 0) {
+
+                                        event.target.targetDestination.forEach(item => {
+                                            if (platformObjData[0] && platformObjData[0].gameProviderInfo && platformObjData[0].gameProviderInfo[item] && platformObjData[0].gameProviderInfo[item].localNickName) {
+                                                providerName.push(platformObjData[0].gameProviderInfo[item].localNickName);
+                                            }
+                                            else {
+                                                gameProviderObj.forEach(gameItem => {
+                                                    if (item == gameItem._id.toString()) {
+                                                        providerName.push(gameItem.name);
+                                                    }
+                                                });
+
+                                            }
+
+                                        })
+                                    }
+                                    event.target.targetDestination = providerName;
+                                    if (event.level && event.level.value){
+                                        event.level = event.level.value;
+                                    }
+                                
+                                });
+
+                                returnData = rewardPointsEvent;
+                                for (let i = 0; i < returnData.length; i++) {
+                                    let noProgress = {
+                                        isApplicable: false,
+                                        isApplied: false,
+                                        count: 0
+                                    };
+                                    returnData[i].progress = noProgress;
+                                    if (returnData[i].period) {
+                                        let periodTime = getEventPeriodTime(returnData[i]);
+                                        returnData[i].startTime = periodTime.startTime;
+                                        returnData[i].endTime = periodTime.endTime;
+                                    }
+                                    Object.keys(returnData[i].target).forEach(
+                                        key => {
+                                            if (!returnData[i].target[key]) {
+                                                delete returnData[i].target[key];
+                                            }
+                                        }
+                                    );
+                                    if (returnData[i].target.singleConsumptionAmount && returnData[i].target.dailyConsumptionCount) {
+                                        returnData[i].progress.todayConsumptionCount = 1;
+                                    }
+                                    else if (returnData[i].target.dailyValidConsumptionAmount) {
+                                        returnData[i].progress.todayConsumptionAmountProgress = 0;
+                                    }
+                                    else if (returnData[i].target.dailyWinGameCount) {
+                                        returnData[i].progress.todayWinCount = 1;
                                     }
                                 }
-                            );
-                            if (returnData[i].target.singleConsumptionAmount && returnData[i].target.dailyConsumptionCount) {
-                                returnData[i].progress.todayConsumptionCount = 1;
+                                return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
                             }
-                            else if (returnData[i].target.dailyValidConsumptionAmount) {
-                                returnData[i].progress.todayConsumptionAmountProgress = 0;
-                            }
-                            else if (returnData[i].target.dailyWinGameCount) {
-                                returnData[i].progress.todayWinCount = 1;
-                            }
-                        }
-                        return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
-                    }
+                        })
                 }
             ).then(
                 rewardPointsData => {
@@ -733,62 +856,103 @@ let dbRewardPoints = {
             );
         }
         if (platformId && !playerId) {
-            return dbConfig.collection_platform.findOne({platformId: platformId}).then(
+            let platformObjData = [];
+            let rewardPointsEvent = [];
+
+            return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
                 platformData => {
                     if (!platformData || !platformData._id) {
                         return Promise.reject({name: "DataError", message: "Cannot find platform"});
                     }
+                    Object.assign(platformObjData,platformData);
                     return dbConfig.collection_rewardPointsEvent.find({
                         platformObjId: platformData._id,
                         category: constRewardPointsTaskCategory.GAME_REWARD_POINTS
-                    }).lean().sort({index: 1});
+                    }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
                 }
             ).then(
-                rewardPointsEvent => {
-                    if (rewardPointsEvent && rewardPointsEvent.length > 0) {
-                        returnData = rewardPointsEvent;
-                        for (let i = 0; i < returnData.length; i++) {
-                            let noProgress = {
-                                isApplicable: false,
-                                isApplied: false,
-                                count: 0
-                            };
-                            returnData[i].progress = noProgress;
-                            if (returnData[i].period) {
-                                let periodTime = getEventPeriodTime(returnData[i]);
-                                returnData[i].startTime = periodTime.startTime;
-                                returnData[i].endTime = periodTime.endTime;
+                rewardPointsObj => {
+
+                    Object.assign(rewardPointsEvent, rewardPointsObj);
+                    return dbConfig.collection_gameProvider.find({_id: {$in: platformObjData.gameProviders}}).lean().then(
+                        gameProviderObj => {
+                            if (!gameProviderObj){
+                                return Promise.reject({name: "DataError", message: "Cannot find game provider"});
                             }
-                            Object.keys(returnData[i].target).forEach(
-                                key => {
-                                    if (!returnData[i].target[key]) {
-                                        delete returnData[i].target[key];
+
+                            if (rewardPointsEvent && rewardPointsEvent.length > 0) {
+
+                                rewardPointsEvent.map(event => {
+                                    let providerName = [];
+                                    let providerId = [];
+                                    if (event.target.targetDestination && event.target.targetDestination.length > 0) {
+
+                                        event.target.targetDestination.forEach(item => {
+                                            if (platformObjData.gameProviderInfo && platformObjData.gameProviderInfo[item] && platformObjData.gameProviderInfo[item].localNickName) {
+                                                providerName.push(platformObjData.gameProviderInfo[item].localNickName);
+                                            }
+                                            else {
+                                                gameProviderObj.forEach(gameItem => {
+                                                    if (item == gameItem._id.toString()) {
+                                                        providerName.push(gameItem.name);
+                                                    }
+                                                });
+
+                                            }
+
+                                        })
                                     }
+                                    event.target.targetDestination = providerName;
+                                    if (event.level && event.level.value){
+                                        event.level = event.level.value;
+                                    }
+                                });
+
+                                returnData = rewardPointsEvent;
+                                for (let i = 0; i < returnData.length; i++) {
+                                    let noProgress = {
+                                        isApplicable: false,
+                                        isApplied: false,
+                                        count: 0
+                                    };
+                                    returnData[i].progress = noProgress;
+                                    if (returnData[i].period) {
+                                        let periodTime = getEventPeriodTime(returnData[i]);
+                                        returnData[i].startTime = periodTime.startTime;
+                                        returnData[i].endTime = periodTime.endTime;
+                                    }
+                                    Object.keys(returnData[i].target).forEach(
+                                        key => {
+                                            if (!returnData[i].target[key]) {
+                                                delete returnData[i].target[key];
+                                            }
+                                        }
+                                    );
+
+                                    if (returnData[i].target.singleConsumptionAmount && returnData[i].target.dailyConsumptionCount) {
+                                        returnData[i].progress.todayConsumptionCount = 1;
+                                    }
+                                    else if (returnData[i].target.dailyValidConsumptionAmount) {
+                                        returnData[i].progress.todayConsumptionAmountProgress = 0;
+                                    }
+                                    else if (returnData[i].target.dailyWinGameCount) {
+                                        returnData[i].progress.todayWinCount = 1;
+                                    }
+
                                 }
-                            );
-
-                            if (returnData[i].target.singleConsumptionAmount && returnData[i].target.dailyConsumptionCount) {
-                                returnData[i].progress.todayConsumptionCount = 1;
+                                for (let i = 0; i < returnData.length; i++) {
+                                    returnData[i].eventObjId = returnData[i]._id;
+                                    delete returnData[i]._id;
+                                    delete returnData[i].__v;
+                                    delete returnData[i].platformObjId;
+                                    delete returnData[i].category;
+                                    delete returnData[i].customPeriodStartTime;
+                                    delete returnData[i].customPeriodEndTime;
+                                }
+                                return returnData;
                             }
-                            else if (returnData[i].target.dailyValidConsumptionAmount) {
-                                returnData[i].progress.todayConsumptionAmountProgress = 0;
-                            }
-                            else if (returnData[i].target.dailyWinGameCount) {
-                                returnData[i].progress.todayWinCount = 1;
-                            }
-
                         }
-                        for (let i = 0; i < returnData.length; i++) {
-                            returnData[i].eventObjId = returnData[i]._id;
-                            delete returnData[i]._id;
-                            delete returnData[i].__v;
-                            delete returnData[i].platformObjId;
-                            delete returnData[i].category;
-                            delete returnData[i].customPeriodStartTime;
-                            delete returnData[i].customPeriodEndTime;
-                        }
-                        return returnData;
-                    }
+                    );
                 }
             )
         }
@@ -797,38 +961,78 @@ let dbRewardPoints = {
     getTopUpRewardPointsEvent: function (playerId, platformId) {
         let returnData;
         let playerObjId;
+        let rewardPointsEvent = [];
+        let platformObjData = [];
+        let platformDataProm = [];
+        let rewardPointEventProm = [];
         if (playerId) {
             return dbConfig.collection_players.findOne({playerId: playerId}).lean().then(
                 playerData => {
                     if (playerData) {
                         playerObjId = playerData._id;
-                        return dbConfig.collection_rewardPointsEvent.find({
+                        platformDataProm = dbConfig.collection_platform.find({_id: playerData.platform}).lean().exec();
+                        rewardPointEventProm = dbConfig.collection_rewardPointsEvent.find({
                             platformObjId: playerData.platform,
                             category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS
-                        }).lean().sort({index: 1});
+                        }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+                        return Promise.all([rewardPointEventProm,platformDataProm])
                     } else {
                         return Promise.reject({name: "DataError", message: "Cannot find player"});
                     }
                 }
             ).then(
-                rewardPointsEvent => {
-                    if (rewardPointsEvent && rewardPointsEvent.length > 0) {
-                        let noProgress = {
-                            isApplicable: false,
-                            isApplied: false,
-                            count: 0
-                        };
-                        returnData = rewardPointsEvent;
-                        for (let i = 0; i < returnData.length; i++) {
-                            returnData[i].progress = noProgress;
-                            if (returnData[i].period) {
-                                let periodTime = getEventPeriodTime(returnData[i]);
-                                returnData[i].startTime = periodTime.startTime;
-                                returnData[i].endTime = periodTime.endTime;
+                data => {
+                    Object.assign(rewardPointsEvent, data[0]);
+                    Object.assign(platformObjData, data[1]);
+                    return dbConfig.collection_gameProvider.find({}).lean().then(
+                        gameProviderObj => {
+                            if (!gameProviderObj) {
+                                return Promise.reject({name: "DataError", message: "Cannot find game provider"});
                             }
-                        }
-                        return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
-                    }
+
+                            if (rewardPointsEvent && rewardPointsEvent.length > 0) {
+
+                                rewardPointsEvent.map(event => {
+                                    let providerName = [];
+
+                                    if (event.target.targetDestination && event.target.targetDestination.length > 0) {
+
+                                        event.target.targetDestination.forEach(item => {
+                                            if (platformObjData[0] && platformObjData[0].gameProviderInfo && platformObjData[0].gameProviderInfo[item] && platformObjData[0].gameProviderInfo[item].localNickName) {
+                                                providerName.push(platformObjData[0].gameProviderInfo[item].localNickName);
+                                            }
+                                            else {
+                                                gameProviderObj.forEach(gameItem => {
+                                                    if (item == gameItem._id.toString()) {
+                                                        providerName.push(gameItem.name);
+                                                    }
+                                                });
+                                            }
+                                        })
+                                    }
+                                    event.target.targetDestination = providerName;
+                                    if (event.level && event.level.value){
+                                        event.level = event.level.value;
+                                    }
+                                });
+
+                                let noProgress = {
+                                    isApplicable: false,
+                                    isApplied: false,
+                                    count: 0
+                                };
+                                returnData = rewardPointsEvent;
+                                for (let i = 0; i < returnData.length; i++) {
+                                    returnData[i].progress = noProgress;
+                                    if (returnData[i].period) {
+                                        let periodTime = getEventPeriodTime(returnData[i]);
+                                        returnData[i].startTime = periodTime.startTime;
+                                        returnData[i].endTime = periodTime.endTime;
+                                    }
+                                }
+                                return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
+                            }
+                        })
                 }
             ).then(
                 rewardPointsData => {
@@ -862,44 +1066,77 @@ let dbRewardPoints = {
             );
         }
         if (platformId && !playerId) {
-            return dbConfig.collection_platform.findOne({platformId: platformId}).then(
+            return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
                 platformData => {
                     if (!platformData || !platformData._id) {
                         return Promise.reject({name: "DataError", message: "Cannot find platform"});
                     }
+                    Object.assign(platformObjData, platformData);
                     return dbConfig.collection_rewardPointsEvent.find({
                         platformObjId: platformData._id,
                         category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS
-                    }).lean().sort({index: 1});
+                    }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
                 }
             ).then(
-                rewardPointsEvent => {
-                    if (rewardPointsEvent && rewardPointsEvent.length > 0) {
-                        let noProgress = {
-                            isApplicable: false,
-                            isApplied: false,
-                            count: 0
-                        };
-                        returnData = rewardPointsEvent;
-                        for (let i = 0; i < returnData.length; i++) {
-                            returnData[i].progress = noProgress;
-                            if (returnData[i].period) {
-                                let periodTime = getEventPeriodTime(returnData[i]);
-                                returnData[i].startTime = periodTime.startTime;
-                                returnData[i].endTime = periodTime.endTime;
+                rewardPointsObj => {
+                    Object.assign(rewardPointsEvent, rewardPointsObj);
+                    return dbConfig.collection_gameProvider.find({_id: {$in: platformObjData.gameProviders}}).lean().then(
+                        gameProviderObj => {
+                            if (!gameProviderObj) {
+                                return Promise.reject({name: "DataError", message: "Cannot find game provider"});
                             }
-                        }
-                        for (let i = 0; i < returnData.length; i++) {
-                            returnData[i].eventObjId = returnData[i]._id;
-                            delete returnData[i]._id;
-                            delete returnData[i].__v;
-                            delete returnData[i].platformObjId;
-                            delete returnData[i].category;
-                            delete returnData[i].customPeriodStartTime;
-                            delete returnData[i].customPeriodEndTime;
-                        }
-                        return returnData;
-                    }
+                            if (rewardPointsEvent && rewardPointsEvent.length > 0) {
+
+                                rewardPointsEvent.map(event => {
+                                    let providerName = [];
+                                    let providerId = [];
+                                    if (event.target.targetDestination && event.target.targetDestination.length > 0) {
+
+                                        event.target.targetDestination.forEach(item => {
+                                            if (platformObjData.gameProviderInfo && platformObjData.gameProviderInfo[item] && platformObjData.gameProviderInfo[item].localNickName) {
+                                                providerName.push(platformObjData.gameProviderInfo[item].localNickName);
+                                            }
+                                            else {
+                                                gameProviderObj.forEach(gameItem => {
+                                                    if (item == gameItem._id.toString()) {
+                                                        providerName.push(gameItem.name);
+                                                    }
+                                                });
+                                            }
+                                        })
+                                    }
+                                    event.target.targetDestination = providerName;
+                                    if (event.level && event.level.value){
+                                        event.level = event.level.value;
+                                    }
+                                });
+
+                                let noProgress = {
+                                    isApplicable: false,
+                                    isApplied: false,
+                                    count: 0
+                                };
+                                returnData = rewardPointsEvent;
+                                for (let i = 0; i < returnData.length; i++) {
+                                    returnData[i].progress = noProgress;
+                                    if (returnData[i].period) {
+                                        let periodTime = getEventPeriodTime(returnData[i]);
+                                        returnData[i].startTime = periodTime.startTime;
+                                        returnData[i].endTime = periodTime.endTime;
+                                    }
+                                }
+                                for (let i = 0; i < returnData.length; i++) {
+                                    returnData[i].eventObjId = returnData[i]._id;
+                                    delete returnData[i]._id;
+                                    delete returnData[i].__v;
+                                    delete returnData[i].platformObjId;
+                                    delete returnData[i].category;
+                                    delete returnData[i].customPeriodStartTime;
+                                    delete returnData[i].customPeriodEndTime;
+                                }
+                                return returnData;
+                            }
+                        })
                 }
             )
         }
