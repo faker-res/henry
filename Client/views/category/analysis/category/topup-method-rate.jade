@@ -22,7 +22,7 @@
                 .endTime
             div
                 label &nbsp;
-                button.btn.btn-primary.common-button(ng-click='vm.drawTopupMethodLine(); vm.drawTopupMethodCountLine();') {{'SEARCH' | translate}}
+                button.btn.btn-primary.common-button(ng-click='vm.drawTopupMethodLine(); vm.drawTopupMethodCountLine(); vm.drawTopupMethodSuccessHeadCountLine();') {{'SEARCH' | translate}}
 
         label.text-primary {{'TopupAmount' | translate}} VS {{vm.queryPara.topupMethod.periodText | translate}}
         .row
@@ -47,6 +47,17 @@
                 .graph
                     .panel.panel-default
                         #line-topupMethodCount.lineChart.graphDiv(style='height: 600px;')
+
+    #topupMethodSuccessHeadCountAnalysis
+        label.text-primary {{'DEPOSIT_SUCCESS_HEAD_COUNT' | translate}} VS {{vm.queryPara.topupMethod.periodText | translate}}
+        .row
+            .col-md-6
+                .graph
+                    table#topupMethodSuccessHeadCountAnalysisTable.display.tableDiv(style='min-width:100%')
+            .col-md-6
+                .graph
+                    .panel.panel-default
+                        #line-topupMethodSuccessHeadCount.lineChart.graphDiv(style='height: 600px;')
 
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")

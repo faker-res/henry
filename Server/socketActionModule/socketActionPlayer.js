@@ -652,6 +652,18 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Get total head count of totalrecord by topup method success and platform
+         * @param {json} data - data contains platformId, startDate, endDate and period
+         */
+        getTopUpMethodSuccessHeadCountByPlatform: function getTopUpMethodSuccessHeadCountByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.getTopUpMethodSuccessHeadCountByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+        },
+
+        /**
          * Get new player count for all the platforms within the time frame
          * @param {json} data - data contains start time , end time
          */
