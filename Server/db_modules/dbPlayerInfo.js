@@ -4793,6 +4793,12 @@ let dbPlayerInfo = {
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
+                    if(playerData.isTestPlayer) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Unable to transfer credit for demo player"
+                        })
+                    }
                     // Check player have enough credit
                     if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
                         || amount == 0) {
@@ -5123,23 +5129,23 @@ let dbPlayerInfo = {
      * @param {objectId} providerId
      * @param {Number} amount
      */
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, isBatch) {
-        isBatch = isBatch === true;
-        let updateBatchStatus = function (isBatch) {    //uses platform parameter to pass in platformObjId
-            if (isBatch) {
-                let incrementObj = {};
-                if (playerObj) {
-                    incrementObj["batchCreditTransferOutStatus." + playerObj.platform._id + ".processedAmount"] = 1;
-                } else {
-                    incrementObj["batchCreditTransferOutStatus." + platform + ".processedAmount"] = 1;
-                }
-                if (gameProvider) {
-                    dbconfig.collection_gameProvider.findOneAndUpdate({_id: gameProvider._id}, {$inc: incrementObj}).exec();
-                } else {
-                    dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
-                }
-            }
-        };
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+        // isBatch = isBatch === true;
+        // let updateBatchStatus = function (isBatch) {    //uses platform parameter to pass in platformObjId
+        //     if (isBatch) {
+        //         let incrementObj = {};
+        //         if (playerObj) {
+        //             incrementObj["batchCreditTransferOutStatus." + playerObj.platform._id + ".processedAmount"] = 1;
+        //         } else {
+        //             incrementObj["batchCreditTransferOutStatus." + platform + ".processedAmount"] = 1;
+        //         }
+        //         if (gameProvider) {
+        //             dbconfig.collection_gameProvider.findOneAndUpdate({_id: gameProvider._id}, {$inc: incrementObj}).exec();
+        //         } else {
+        //             dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
+        //         }
+        //     }
+        // };
         var deferred = Q.defer();
         let playerObj;
         let gameProvider;
@@ -5185,7 +5191,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                updateBatchStatus(isBatch);
+                // updateBatchStatus(isBatch);
                 deferred.resolve(data);
             },
             function (err) {
@@ -5195,11 +5201,31 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
-                updateBatchStatus(isBatch);
+                // updateBatchStatus(isBatch);
                 deferred.reject(err);
             }
         );
         return deferred.promise;
+    },
+
+    transferPlayerCreditFromProviderSettlement: function (playerId, platformObjId, providerId, credit, adminName) {
+        let updateBatchStatus = function() {
+            let incrementObj = {};
+            incrementObj["batchCreditTransferOutStatus." + platformObjId + ".processedAmount"] = 1;
+            dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
+        };
+
+        return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platformObjId, providerId, credit, adminName).then(
+            data => {
+                updateBatchStatus();
+                return Promise.resolve(data);
+            },
+            err => {
+                errorUtils.reportError(err);
+                updateBatchStatus();
+                return Promise.resolve();
+            }
+        );
     },
 
     /**
@@ -5245,6 +5271,12 @@ let dbPlayerInfo = {
                         if (bResolve) {
                             return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
                                 playerData => {
+                                    if(playerData.isTestPlayer) {
+                                        deferred.reject({
+                                            name: "DataError",
+                                            message: "Unable to transfer credit for demo player"
+                                        })
+                                    }
                                     deferred.resolve(
                                         {
                                             playerId: playerId,
@@ -6158,9 +6190,6 @@ let dbPlayerInfo = {
         return playerProm.then(
             function (data) {
                 if (data) {
-                    if(data.isTestPlayer) {
-                        return Q.reject({name: "DataError", message: "Unable to check game credit for demo player"});
-                    }
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
