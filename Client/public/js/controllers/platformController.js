@@ -3545,7 +3545,11 @@ define(['js/app'], function (myApp) {
 
                     var tableData = vm.newPlayerListRecords.map(
                         record => {
-                            record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            if (record.status == vm.constProposalStatus.NOVERIFY && record.data && record.data.registrationTime) {
+                                record.createTime =  vm.dateReformat(record.data.registrationTime);
+                            } else {
+                                record.createTime = record.createTime ? vm.dateReformat(record.createTime) : "";
+                            }
                             //record.statusName = record.status ? $translate(record.status) + " （" + record.$playerCurrentCount + "/" + record.$playerAllCount + ")" : "";
                             if (record.status) {
                                 if (record.status == vm.constProposalStatus.SUCCESS) {
@@ -18217,6 +18221,10 @@ define(['js/app'], function (myApp) {
                 },0);
 
             };
+            vm.cancelPromoCode = function (col, index) {
+                col[index].cancel = true;
+                $scope.safeApply();
+            };
 
             vm.generatePromoCode = function (col, index, data, type) {
                 let sendData = Object.assign({}, data);
@@ -18256,17 +18264,11 @@ define(['js/app'], function (myApp) {
                         if (ret && ret.data && ret.data.length > 0) {
                             if (!data.skipCheck) {
                                 data.hasMoreThanOne = true;
-                                if (type){
-                                    if(type == 1){vm.promoCode1HasMoreThanOne = true;}
-                                    if(type == 2){vm.promoCode2HasMoreThanOne = true;}
-                                    if(type == 3){vm.promoCode3HasMoreThanOne = true;}
-                                }
-
                                 $scope.safeApply();
                             }
                         }
 
-                        if (!data.hasMoreThanOne || data.skipCheck) {
+                        if ( !data.hasMoreThanOne || (data.skipCheck && !data.cancel) ) {
                             sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
                             let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
 
@@ -18305,10 +18307,29 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
-                vm.promoCode1HasMoreThanOne = false;
-                vm.promoCode2HasMoreThanOne = false;
-                vm.promoCode3HasMoreThanOne = false;
-                return p;
+                return p.then( () => {
+                    if (col && col.length > 0) {
+                        if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
+                            if (type) {
+                                if (type == 1) {
+                                    vm.promoCode1HasMoreThanOne = true;
+                                }
+                                if (type == 2) {
+                                    vm.promoCode2HasMoreThanOne = true;
+                                }
+                                if (type == 3) {
+                                    vm.promoCode3HasMoreThanOne = true;
+                                }
+                            }
+                        } else {
+                            vm.promoCode1HasMoreThanOne = false;
+                            vm.promoCode2HasMoreThanOne = false;
+                            vm.promoCode3HasMoreThanOne = false;
+                        }
+                        $scope.safeApply();
+                    }
+                });
+
             };
 
             vm.getPromoCodeHistory = function (isNewSearch, type) {

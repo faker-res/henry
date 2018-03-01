@@ -259,7 +259,7 @@ var SettlementServiceImplement = function () {
         var isValidData = Boolean(data && data.playerId && data.providerId && data.platformObjId && data.adminName);
         data.credit = -1;
         isValidData = data.credit == 0 ? false : isValidData;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditFromProvider, [data.playerId, data.platformObjId, data.providerId, data.credit, data.adminName, null, null, null, data.isBatch], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditFromProviderSettlement, [data.playerId, data.platformObjId, data.providerId, data.credit, data.adminName], isValidData);
     };
 
     this.performUnlockPlatformProviderGroup.onRequest = function (wsFunc, conn, data) {

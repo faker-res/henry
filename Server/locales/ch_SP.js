@@ -254,6 +254,11 @@ var simplifiedChinese = {
     "Demo player registration limit exceeded 5 times in 1 hour (same IP Address)": "该玩家IP地址已在1小时内达申请上限（5）次，请稍后再次尝试。",
     "Demo player registration limit exceeded 5 times in 1 hour (same Phone Number)": "该玩家手机号码已在1小时内达申请上限（5）次，请稍后再次尝试。",
     "Demo player cannot perform this action": "试玩帐号无法进行此动作",
+    "Player reach participate limit": "玩家已达参加次数上限",
+    "Player does not have enough consumption": "玩家没有足够的投注额",
+    "Unable to check game credit for demo player": "试玩玩家无法查看额度",
+    "Unable to transfer credit for demo player": "试玩玩家无法转入转出",
+    "Unable to get login URL for demo player": "试玩玩家无法获取登入链接"
     //todo::add missing messages here
 
     /*
