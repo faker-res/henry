@@ -5202,7 +5202,6 @@ let dbPlayerInfo = {
                 } else {
                     deferred.reject(err);
                 }
-                deferred.reject(err);
             }
         );
         return deferred.promise;
