@@ -14,8 +14,10 @@ console.log("Settlement schedule start");
 /* This function is executed every minute */
 var minuteJob = new CronJob('0 * * * * *', function () {
     //create daily settlement cronJob for each game provider
+    console.log('settlement cron job start');
     var processProviders = () => dbGameProvider.getAllGameProviders().then(
         function(providers){
+            console.log('settlement cron job done getAllGameProviders');
             if( providers ){
                 return promiseUtils.each(providers, function (providerData) {
                     //start daily settlement for platform

@@ -349,6 +349,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         let proposalQ = {
                                             createTime: {$gte: startTime, $lt: endTime},
                                             'data.platformId': platformId,
+                                            'data.playerObjId': playerData._id,
                                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                                         };
 
@@ -399,7 +400,11 @@ var dbPlayerConsumptionWeekSummary = {
                                                     rec.forEach(el => {
                                                         // Offset consumption return dirty amount
                                                         let consumedValidAmount = 0;
-                                                        let curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+                                                        let curValidAmt = 0;
+
+                                                        if (proposalData.data.returnDetail["GameType:" + el._id]) {
+                                                            curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+                                                        }
 
                                                         if (doneXIMAConsumption["GameType:" + el._id]) {
                                                             consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
@@ -408,15 +413,20 @@ var dbPlayerConsumptionWeekSummary = {
                                                         let consumpDiff = el.validAmount - curValidAmt - consumedValidAmount;
                                                         let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
-                                                        proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
+                                                        if (proposalData.data.returnDetail["GameType:" + el._id]) {
+                                                            proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
+                                                        }
+
                                                         proposalData.data.rewardAmount += consumpDiff * returnRatio;
                                                         proposalData.data.spendingAmount += consumpDiff * returnRatio;
 
                                                         proposalData.data.consumeValidAmount += consumpDiff;
                                                     });
                                                 }
+
+                                                return dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                             }
-                                        ).then(dbProposal.createProposalWithTypeId(proposalTypeId, proposalData))
+                                        )
                                     } else {
                                         postProm = dbProposal.createProposalWithTypeId(proposalTypeId, proposalData);
                                     }
