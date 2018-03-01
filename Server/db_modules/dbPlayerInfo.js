@@ -5195,7 +5195,13 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
-                updateBatchStatus(isBatch);
+                if(isBatch) {
+                    updateBatchStatus(isBatch);
+                    errorUtils.reportError(err);
+                    deferred.resolve();
+                } else {
+                    deferred.reject(err);
+                }
                 deferred.reject(err);
             }
         );
