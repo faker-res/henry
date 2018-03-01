@@ -550,7 +550,7 @@ let dbRewardPoints = {
                 playerData => {
                     if (playerData) {
                         playerObjId = playerData._id;
-                        platformDataProm = dbConfig.collection_platform.find({_id: playerData.platform}).lean().exec();
+                        platformDataProm = dbConfig.collection_platform.findOne({_id: playerData.platform}).lean().exec();
                         rewardPointEventProm = dbConfig.collection_rewardPointsEvent.find({
                             platformObjId: playerData.platform,
                             category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS
@@ -740,7 +740,7 @@ let dbRewardPoints = {
                 playerData => {
                     if (playerData) {
                         playerObjId = playerData._id;
-                        platformDataProm = dbConfig.collection_platform.find({_id: playerData.platform}).lean().exec();
+                        platformDataProm = dbConfig.collection_platform.findOne({_id: playerData.platform}).lean().exec();
                         rewardPointEventProm = dbConfig.collection_rewardPointsEvent.find({
                             platformObjId: playerData.platform,
                             category: constRewardPointsTaskCategory.GAME_REWARD_POINTS
@@ -970,7 +970,7 @@ let dbRewardPoints = {
                 playerData => {
                     if (playerData) {
                         playerObjId = playerData._id;
-                        platformDataProm = dbConfig.collection_platform.find({_id: playerData.platform}).lean().exec();
+                        platformDataProm = dbConfig.collection_platform.findOne({_id: playerData.platform}).lean().exec();
                         rewardPointEventProm = dbConfig.collection_rewardPointsEvent.find({
                             platformObjId: playerData.platform,
                             category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS
