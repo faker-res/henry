@@ -5202,6 +5202,18 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
+    transferPlayerCreditFromProviderSettlement: function (playerId, platformObjId, providerId, credit, adminName) {
+        return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platformObjId, providerId, credit, adminName, null, null, null, true).then(
+            data => {
+                return Promise.resolve(data);
+            },
+            err => {
+                errorUtils.reportError(err);
+                return Promise.resolve();
+            }
+        );
+    },
+
     /**
      * TODO:: Need to choose which reward task to add player credit
      * Transfer credit from game provider
