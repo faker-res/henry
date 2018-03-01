@@ -349,6 +349,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         let proposalQ = {
                                             createTime: {$gte: startTime, $lt: endTime},
                                             'data.platformId': platformId,
+                                            'data.playerObjId': playerData._id,
                                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                                         };
 
