@@ -4793,6 +4793,12 @@ let dbPlayerInfo = {
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
+                    if(playerData.isTestPlayer) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Unable to transfer credit for demo player"
+                        })
+                    }
                     // Check player have enough credit
                     if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
                         || amount == 0) {
@@ -5265,6 +5271,12 @@ let dbPlayerInfo = {
                         if (bResolve) {
                             return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
                                 playerData => {
+                                    if(playerData.isTestPlayer) {
+                                        deferred.reject({
+                                            name: "DataError",
+                                            message: "Unable to transfer credit for demo player"
+                                        })
+                                    }
                                     deferred.resolve(
                                         {
                                             playerId: playerId,
@@ -6178,9 +6190,6 @@ let dbPlayerInfo = {
         return playerProm.then(
             function (data) {
                 if (data) {
-                    if(data.isTestPlayer) {
-                        return Q.reject({name: "DataError", message: "Unable to check game credit for demo player"});
-                    }
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
