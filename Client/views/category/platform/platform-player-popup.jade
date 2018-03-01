@@ -980,7 +980,7 @@
                                 label {{'Alipay' | translate}}
                                 select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc | orderBy : "accountNumber"', value='{{v}}') {{v.accountNumber}} {{v.name}}({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc | orderBy : "accountNumber"', value='{{v}}') {{v.accountNumber}} {{v.name}}({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'alipayName' | translate}}
