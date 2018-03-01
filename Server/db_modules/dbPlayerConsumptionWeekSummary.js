@@ -399,7 +399,11 @@ var dbPlayerConsumptionWeekSummary = {
                                                     rec.forEach(el => {
                                                         // Offset consumption return dirty amount
                                                         let consumedValidAmount = 0;
-                                                        let curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+                                                        let curValidAmt = 0;
+
+                                                        if (proposalData.data.returnDetail["GameType:" + el._id]) {
+                                                            curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+                                                        }
 
                                                         if (doneXIMAConsumption["GameType:" + el._id]) {
                                                             consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
