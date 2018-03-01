@@ -5195,16 +5195,23 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
-                if(isBatch) {
-                    updateBatchStatus(isBatch);
-                    errorUtils.reportError(err);
-                    deferred.resolve();
-                } else {
-                    deferred.reject(err);
-                }
+                updateBatchStatus(isBatch);
+                deferred.reject(err);
             }
         );
         return deferred.promise;
+    },
+
+    transferPlayerCreditFromProviderSettlement: function (playerId, platformObjId, providerId, credit, adminName) {
+        return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platformObjId, providerId, credit, adminName, null, null, null, true).then(
+            data => {
+                return Promise.resolve(data);
+            },
+            err => {
+                errorUtils.reportError(err);
+                return Promise.resolve();
+            }
+        );
     },
 
     /**
