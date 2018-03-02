@@ -486,13 +486,25 @@ var dbPlayerConsumptionWeekSummary = {
                                                         summaryDay: summary.summaryDay,
                                                         bDirty: summary.bDirty
                                                     }
-                                                ).then(
+                                                ).lean().then(
                                                     summaryData => {
                                                         if (summaryData) {
-                                                            summaryData.amount += summary.amount;
-                                                            summaryData.validAmount += summary.validAmount;
-                                                            summaryData.consumptionRecords.concat(summary.consumptionRecords);
-                                                            return summaryData.save();
+                                                            // summaryData.amount += summary.amount;
+                                                            // summaryData.validAmount += summary.validAmount;
+                                                            // summaryData.consumptionRecords.concat(summary.consumptionRecords);
+                                                            return dbconfig.collection_playerConsumptionSummary.findOneAndUpdate(
+                                                                {
+                                                                    _id: summaryData._id,
+                                                                    platformId: summaryData.platformId,
+                                                                    playerId: summaryData.playerId,
+                                                                    gameType: summaryData.gameType,
+                                                                    summaryDay: summaryData.summaryDay,
+                                                                    bDirty: true
+                                                                },
+                                                                {
+                                                                    $inc: {amount: summary.amount, validAmount: summary.validAmount},
+                                                                }
+                                                            );
                                                         }
                                                         else {
                                                             var dirtySummary = new dbconfig.collection_playerConsumptionSummary(summary);

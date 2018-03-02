@@ -1332,10 +1332,10 @@ define(['js/app'], function (myApp) {
             });
             let mNameCount = 0;
             let mLeftCount = 0;
+            let curMerchantsGroup = vm.SelectedMerchantGroupNode;
             removeGroup.forEach(mItem => {
 
                 /* current merchantName And merchantNo */
-                let curMerchantsGroup = vm.SelectedMerchantGroupNode;
                 curMerchantsGroup.merchants.forEach(currentMechant => {
 
                     /*  find total merchantName with same merchantNo */
@@ -1357,6 +1357,18 @@ define(['js/app'], function (myApp) {
                     merchantNames.push(mItem.name);
                 });
             })
+
+            // if this merchantNames not in list ,should be remove too.
+            curMerchantsGroup.merchantNames.forEach(cItem=>{
+                let isExist = vm.allMerchantList.filter(merchantData=>{
+                    if(merchantData.name == cItem){
+                        return cItem;
+                    }
+                })
+                if(isExist.length == 0){
+                    merchantNames.push(cItem);
+                }
+            });
 
             if (!merchantNumbers.length && !merchantNames.length) {
                 socketService.showErrorMessage($translate("There is no merchant group to be remove"));
