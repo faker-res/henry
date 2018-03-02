@@ -9416,6 +9416,7 @@ let dbPlayerInfo = {
                 } else {
                     playerData = data[0];
                     playerData.isTestPlayer = true;
+                    console.log('get test login url', playerId);
                     return dbPlayerInfo.getTestLoginURL(playerId, gameId, ip, lang, clientDomainName, clientType);
                 }
 
@@ -9600,6 +9601,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log('res data', data);
+
                 if(playerData.isTestPlayer) {
                     return data;
                 }
