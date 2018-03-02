@@ -399,28 +399,27 @@ var dbPlayerConsumptionWeekSummary = {
                                                     // Recalculate consumption return amount
                                                     rec.forEach(el => {
                                                         // Offset consumption return dirty amount
-                                                        let consumedValidAmount = 0;
-                                                        let curValidAmt = 0;
+                                                        // Skip when return amount is 0
+                                                        if (proposalData.data.returnDetail["GameType:" + el._id] && proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount) {
+                                                            let consumedValidAmount = 0;
+                                                            let curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
 
-                                                        if (proposalData.data.returnDetail["GameType:" + el._id]) {
-                                                            curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+                                                            if (doneXIMAConsumption["GameType:" + el._id]) {
+                                                                consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
+                                                            }
+
+                                                            let consumpDiff = el.validAmount - curValidAmt - consumedValidAmount;
+                                                            let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
+
+                                                            if (proposalData.data.returnDetail["GameType:" + el._id]) {
+                                                                proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
+                                                            }
+
+                                                            proposalData.data.rewardAmount += consumpDiff * returnRatio;
+                                                            proposalData.data.spendingAmount += consumpDiff * returnRatio;
+
+                                                            proposalData.data.consumeValidAmount += consumpDiff;
                                                         }
-
-                                                        if (doneXIMAConsumption["GameType:" + el._id]) {
-                                                            consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
-                                                        }
-
-                                                        let consumpDiff = el.validAmount - curValidAmt - consumedValidAmount;
-                                                        let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
-
-                                                        if (proposalData.data.returnDetail["GameType:" + el._id]) {
-                                                            proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
-                                                        }
-
-                                                        proposalData.data.rewardAmount += consumpDiff * returnRatio;
-                                                        proposalData.data.spendingAmount += consumpDiff * returnRatio;
-
-                                                        proposalData.data.consumeValidAmount += consumpDiff;
                                                     });
                                                 }
 
