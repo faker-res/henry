@@ -271,7 +271,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         ratio = 0;
                                     }
 
-                                    if (consumptionSummary && playerLevel && ratio >= 0) {
+                                    if (consumptionSummary && playerLevel && ratio > 0) {
                                         let consumeValidAmount = consumptionSummary.validAmount || 0;
                                         let nonXIMAAmt = consumptionSummary.nonXIMAAmt || 0;
                                         returnAmount += consumeValidAmount * ratio;
