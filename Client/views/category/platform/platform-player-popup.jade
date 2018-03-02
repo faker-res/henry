@@ -916,7 +916,7 @@
                         form(name='form_manual_topup', style="border-radius:0 4px 4px 4px;box-shadow:none;").well
                             .form-group-col-md-6
                                 label {{'CREDIT' | translate}}
-                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
                                 input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
@@ -973,7 +973,7 @@
                             .form-group.col-md-12
                                 .control-label
                                 label {{'CREDIT' | translate}}
-                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
                                 input.form-control(type='number', min=0, ng-model='vm.playerAlipayTopUp.amount', required)
                             .form-group.col-md-6
                                 .control-label
@@ -1029,7 +1029,7 @@
                             .form-group.col-md-12
                                 .control-label
                                 label {{'CREDIT' | translate}}
-                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
                                 input.form-control(type='number', min=0, ng-model='vm.playerWechatPayTopUp.amount', required)
                             .form-group.col-md-6
                                 .control-label
