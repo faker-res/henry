@@ -300,9 +300,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "TOPUP_METHOD_RATE":
                         vm.initSearchParameter('topupMethod', 'day', 3, function () {
-                            vm.drawTopupMethodLine();
-                            vm.drawTopupMethodCountLine();
-                            vm.drawTopupMethodSuccessHeadCountLine();
+                            //vm.drawTopupMethodLine();
+                            //vm.drawTopupMethodCountLine();
+                            //vm.drawTopupMethodSuccessHeadCountLine();
                         });
                         break;
                 }
@@ -1051,6 +1051,9 @@ define(['js/app'], function (myApp) {
 
             var dataOptions = {
                 data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
                 columns: [
                     {title: $translate(vm.queryPara.topupMethod.periodText), data: "date"},
                     {title: $translate('MANUAL_TOP_UP'), data: "MANUAL"},
