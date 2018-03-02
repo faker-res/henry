@@ -2711,7 +2711,7 @@ let dbPlayerReward = {
         )
     },
 
-    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime) => {
+    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name) => {
         let monitorObjs;
         let promoCodeQuery = {
             'data.platformId': platformObjId,
@@ -2720,6 +2720,10 @@ let dbPlayerReward = {
             // We only want type 3 promo code
             "data.promoCodeTypeValue": 3
         };
+
+        if (promoCodeType3Name) {
+            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeType3Name
+        }
 
         return dbProposalUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_PROMO_CODE_REWARD, promoCodeQuery).then(
             promoCodeData => {
