@@ -18226,6 +18226,12 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.deletePromoCode = function (col, index) {
+                if (col && col.length > 1) {
+                    col.splice(index, 1);
+                }
+            };
+
             vm.generatePromoCode = function (col, index, data, type) {
                 let sendData = Object.assign({}, data);
 

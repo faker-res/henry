@@ -84,6 +84,8 @@
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel", ng-click='vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
                                         text {{'GENERATE' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode1 && vm.newPromoCode1.length > 1)", ng-click='vm.deletePromoCode(vm.newPromoCode1, $index);')
+                                        text {{'CANCEL' | translate}}
                                     text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel") * more than 1?
                                     wbr
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
@@ -166,6 +168,8 @@
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel", ng-click='vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
                                         text {{'GENERATE' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode2 && vm.newPromoCode2.length > 1)", ng-click='vm.deletePromoCode(vm.newPromoCode2, $index);')
+                                        text {{'CANCEL' | translate}}
                                     text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel") * more than 1?
                                     wbr
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
@@ -253,6 +257,8 @@
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel", ng-click='vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
                                         text {{'GENERATE' | translate}}
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode3 && vm.newPromoCode3.length > 1)", ng-click='vm.deletePromoCode(vm.newPromoCode3, $index);')
+                                        text {{'CANCEL' | translate}}
                                     text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel") * more than 1?
                                     wbr
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
