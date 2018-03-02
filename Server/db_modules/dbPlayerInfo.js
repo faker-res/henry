@@ -9413,11 +9413,6 @@ let dbPlayerInfo = {
                 if(data && data[0] && data[0].isTestPlayer) {
                     playerData = data[0];
                     return dbPlayerInfo.getTestLoginURL(playerId, gameId, ip, lang, clientDomainName, clientType);
-                } else {
-                    playerData = data[0];
-                    playerData.isTestPlayer = true;
-                    console.log('get test login url', playerId);
-                    return dbPlayerInfo.getTestLoginURL(playerId, gameId, ip, lang, clientDomainName, clientType);
                 }
 
                 if (data && data[0] && data[1] && data[1].provider) {
@@ -9601,8 +9596,6 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log('res data', data);
-
                 if(playerData.isTestPlayer) {
                     return data;
                 }
