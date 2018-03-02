@@ -1220,7 +1220,7 @@ let dbPlayerInfo = {
 
     createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-        let platform;
+        let platform, defaultCredit;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -1234,6 +1234,7 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
                 platform = platformData;
+                defaultCredit = platform.demoPlayerDefaultCredit || 0;
 
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
                 promArr.push(demoNameProm);
@@ -1302,6 +1303,7 @@ let dbPlayerInfo = {
                     platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
+                    validCredit: defaultCredit,
                     isTestPlayer: true,
                     isRealPlayer: false
                 };
@@ -1673,32 +1675,32 @@ let dbPlayerInfo = {
         }
         let players = query.playerNames;
         let proms = [];
+        let errorList = [];
         players.forEach(item => {
-            let playerQuery = {'name': item, 'platform': query.platformObjId};
+            let playerName = item.trim() || '';
+            let playerQuery = {'name': playerName, 'platform': query.platformObjId};
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
                 function (suc) {
                     var oldData = {};
                     for (var i in permission) {
                         if (suc.permission[i] != permission[i]) {
                             oldData[i] = suc.permission[i];
-                        } else {
-                            delete permission[i];
                         }
                     }
-                    if (Object.keys(oldData).length !== 0) {
-                        var newLog = new dbconfig.collection_playerPermissionLog({
-                            admin: admin,
-                            platform: playerQuery.platform,
-                            player: suc._id,
-                            remark: remark,
-                            oldData: oldData,
-                            newData: permission,
-                        });
-                        return newLog.save();
-                    } else return true;
+                    
+                    var newLog = new dbconfig.collection_playerPermissionLog({
+                        admin: admin,
+                        platform: playerQuery.platform,
+                        player: suc._id,
+                        remark: remark,
+                        oldData: oldData,
+                        newData: permission,
+                    });
+                    return newLog.save();
                 },
                 function (error) {
-                    return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+                    errorList.push(error.query.name);
+                    return error.query.name
                 }
             )
             proms.push(prom)
@@ -4793,6 +4795,12 @@ let dbPlayerInfo = {
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
+                    if(playerData.isTestPlayer) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Unable to transfer credit for demo player"
+                        })
+                    }
                     // Check player have enough credit
                     if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
                         || amount == 0) {
@@ -5265,6 +5273,12 @@ let dbPlayerInfo = {
                         if (bResolve) {
                             return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
                                 playerData => {
+                                    if(playerData.isTestPlayer) {
+                                        deferred.reject({
+                                            name: "DataError",
+                                            message: "Unable to transfer credit for demo player"
+                                        })
+                                    }
                                     deferred.resolve(
                                         {
                                             playerId: playerId,
@@ -6178,9 +6192,6 @@ let dbPlayerInfo = {
         return playerProm.then(
             function (data) {
                 if (data) {
-                    if(data.isTestPlayer) {
-                        return Q.reject({name: "DataError", message: "Unable to check game credit for demo player"});
-                    }
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
@@ -7938,6 +7949,77 @@ let dbPlayerInfo = {
 
     },
 
+    getTopUpMethodSuccessHeadCountByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType", "playerId": "$playerId"}
+                    }
+                }, {
+                    $group: {
+                        "_id": "$_id.topUpType",
+                        "count": {"$sum": 1}
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id ? getKey(constPlayerTopUpType,Number(i._id)) : ""}, number: i.count ? i.count : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+    },
     /* 
      * Get active player count 
      */
