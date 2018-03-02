@@ -226,11 +226,12 @@ var dbPlatformMerchantGroup = {
     },
 
     deleteMerchant: function (merchantNo) {
-        return dbconfig.collection_platformMerchantGroup.update(
-            {},
-            {$pull: {merchants: {$in: [merchantNo]}}},
-            {multi: true}
-        );
+        // return dbconfig.collection_platformMerchantGroup.update(
+        //     {},
+        //     {$pull: {merchants: {$in: [merchantNo]}}},
+        //     {multi: true}
+        // );
+        return Promise.resolve(true);
     },
 
     syncMerchantGroupData: function (platformObjId) {

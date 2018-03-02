@@ -12837,13 +12837,13 @@ let dbPlayerInfo = {
                         _id: "$gameId",
                         gameId: {"$first": "$gameId"},
                         providerId: {"$first": "$providerId"},
-                        count: {$sum: 1},
+                        count: {$sum: {$cond: ["$count", "$count", 1]}},
                         amount: {$sum: "$amount"},
                         validAmount: {$sum: "$validAmount"},
                         bonusAmount: {$sum: "$bonusAmount"}
                     }
                 }
-            ]).allowDiskUse(true);
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let topUpProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -12865,7 +12865,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
 
             let bonusProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -12886,7 +12886,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
 
             let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -12906,7 +12906,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
 
             let rewardProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -12927,7 +12927,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
 
             let playerQuery = {_id: playerObjId};
             if (query.playerLevel) {

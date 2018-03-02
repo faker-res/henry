@@ -18226,6 +18226,12 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.deletePromoCode = function (col, index) {
+                if (col && col.length > 1) {
+                    col.splice(index, 1);
+                }
+            };
+
             vm.generatePromoCode = function (col, index, data, type) {
                 let sendData = Object.assign({}, data);
 
@@ -18915,6 +18921,7 @@ define(['js/app'], function (myApp) {
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
+                    promoCodeType3Name: vm.promoCodeMonitor.promoCodeType3Name || '',
                     platformObjId: vm.promoCodeMonitor.platformId,
                     index: vm.promoCodeMonitor.index || 0,
                     limit: vm.promoCodeMonitor.limit || 10,
