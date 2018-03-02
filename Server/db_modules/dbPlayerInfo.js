@@ -12837,7 +12837,7 @@ let dbPlayerInfo = {
                         _id: "$gameId",
                         gameId: {"$first": "$gameId"},
                         providerId: {"$first": "$providerId"},
-                        count: {$sum: 1},
+                        count: {$sum: "$count"},
                         amount: {$sum: "$amount"},
                         validAmount: {$sum: "$validAmount"},
                         bonusAmount: {$sum: "$bonusAmount"}
