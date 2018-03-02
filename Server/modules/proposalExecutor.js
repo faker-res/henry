@@ -172,6 +172,8 @@ var proposalExecutor = {
             this.executions.executePlayerLoseReturnRewardGroup.des = "Player Lose Return Group Reward";
             this.executions.executePlayerConsumptionRewardGroup.des = "Player Consumption Group Reward";
             this.executions.executePlayerFreeTrialRewardGroup.des = "Player Free Trial Reward Group";
+            this.executions.executePlayerAddRewardPoints.des = "Player Add Reward Points";
+            this.executions.executePlayerMinusRewardPoints.des = "Player Minus Reward Points";
             this.executions.executePlayerConvertRewardPoints.des = "Player Convert Reward Points";
 
             this.rejections.rejectProposal.des = "Reject proposal";
@@ -229,7 +231,9 @@ var proposalExecutor = {
             this.rejections.rejectPlayerLoseReturnRewardGroup.des = "Reject Player Lose Return Group Reward";
             this.rejections.rejectPlayerConsumptionRewardGroup.des = "Reject Player Consumption Group Reward";
             this.rejections.rejectPlayerFreeTrialRewardGroup.des = "Reject Player Free Trial Reward Group";
-            this.rejections.rejectPlayerConvertRewardPoints.des = "Player Convert Reward Points";
+            this.rejections.rejectPlayerAddRewardPoints.des = "Reject Player Add Reward Points";
+            this.rejections.rejectPlayerMinusRewardPoints.des = "Reject Player Minus Reward Points";
+            this.rejections.rejectPlayerConvertRewardPoints.des = "Reject Player Convert Reward Points";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2445,6 +2449,46 @@ var proposalExecutor = {
                 }
             },
 
+            executePlayerAddRewardPoints: function (proposalData, deferred) {
+                if(proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && Number.isInteger(proposalData.data.updateAmount) && proposalData.data.category) {
+                    let playerObjId = proposalData.data.playerObjId;
+                    let platformObjId = proposalData.data.platformObjId;
+                    let updateAmount = proposalData.data.updateAmount;
+                    let category = proposalData.data.category;
+                    let remark = proposalData.data.remark;
+                    let userAgent = proposalData.data.userAgent;
+                    let adminName = proposalData.data.adminName;
+
+                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent, adminName).then(
+                        data => {
+                            deferred.resolve(data);
+                        }
+                    );
+                } else {
+                    deferred.reject({name: "DataError", message: "Incorrect player add reward points proposal data"});
+                }
+            },
+
+            executePlayerMinusRewardPoints: function (proposalData, deferred) {
+                if(proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && Number.isInteger(proposalData.data.updateAmount) && proposalData.data.category) {
+                    let playerObjId = proposalData.data.playerObjId;
+                    let platformObjId = proposalData.data.platformObjId;
+                    let updateAmount = proposalData.data.updateAmount;
+                    let category = proposalData.data.category;
+                    let remark = proposalData.data.remark;
+                    let userAgent = proposalData.data.userAgent;
+                    let adminName = proposalData.data.adminName;
+
+                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent, adminName).then(
+                        data => {
+                            deferred.resolve(data);
+                        }
+                    );
+                } else {
+                    deferred.reject({name: "DataError", message: "Incorrect player minus reward points proposal data"});
+                }
+            },
+
             executePlayerConvertRewardPoints: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.playerRewardPointsObjId) {
                     let isPeriodPointConversion = proposalData.creator.type == 'system';
@@ -3097,6 +3141,14 @@ var proposalExecutor = {
             },
 
             rejectPlayerFreeTrialRewardGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerAddRewardPoints: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerMinusRewardPoints: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
