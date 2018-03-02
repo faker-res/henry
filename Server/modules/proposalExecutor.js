@@ -2742,13 +2742,25 @@ var proposalExecutor = {
                                             gameType: summary.gameType,
                                             summaryDay: summary.summaryDay,
                                             bDirty: false
-                                        }).then(
+                                        }).lean().then(
                                             cleanRecord => {
                                                 if (cleanRecord) {
                                                     //recover amount
-                                                    cleanRecord.amount = cleanRecord.amount + summary.amount;
-                                                    cleanRecord.validAmount = cleanRecord.validAmount + summary.validAmount;
-                                                    return cleanRecord.save().then(
+                                                    // cleanRecord.amount = cleanRecord.amount + summary.amount;
+                                                    // cleanRecord.validAmount = cleanRecord.validAmount + summary.validAmount;
+                                                    return dbconfig.collection_playerConsumptionSummary.findOneAndUpdate(
+                                                        {
+                                                            _id: cleanRecord._id,
+                                                            platformId: cleanRecord.platformId,
+                                                            playerId: cleanRecord.playerId,
+                                                            gameType: cleanRecord.gameType,
+                                                            summaryDay: cleanRecord.summaryDay,
+                                                            bDirty: false
+                                                        },
+                                                        {
+                                                            $inc: {amount: summary.amount, validAmount: summary.validAmount},
+                                                        }
+                                                    ).then(
                                                         () => dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id})
                                                     );
                                                 }

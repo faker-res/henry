@@ -300,8 +300,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case "TOPUP_METHOD_RATE":
                         vm.initSearchParameter('topupMethod', 'day', 3, function () {
-                            vm.drawTopupMethodLine();
-                            vm.drawTopupMethodCountLine();
+                            //vm.drawTopupMethodLine();
+                            //vm.drawTopupMethodCountLine();
+                            //vm.drawTopupMethodSuccessHeadCountLine();
                         });
                         break;
                 }
@@ -927,6 +928,29 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.drawTopupMethodSuccessHeadCountLine = function () {
+            vm.isShowLoadingSpinner('#topupMethodSuccessHeadCountAnalysis', true);
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.topupMethod.periodText,
+                startDate: vm.queryPara.topupMethod.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.topupMethod.endTime.data('datetimepicker').getLocalDate(),
+            }
+            socketService.$socket($scope.AppSocket, 'getTopUpMethodSuccessHeadCountByPlatform', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.topupMethodSuccessHeadCountData = data.data;
+                    console.log('vm.topupMethodSuccessHeadCountData', vm.topupMethodSuccessHeadCountData);
+                    vm.isShowLoadingSpinner('#topupMethodSuccessHeadCountAnalysis', false);
+
+                    vm.drawTopupMethodPie(vm.topupMethodSuccessHeadCountData, "#topupMethodSuccessHeadCountAnalysis");
+                    vm.drawTopupMethodTable(vm.topupMethodSuccessHeadCountData, "#topupMethodSuccessHeadCountAnalysisTable");
+                })
+            }, function (data) {
+                vm.isShowLoadingSpinner('#topupMethodSuccessHeadCountAnalysis', false);
+                console.log("topup method success data not", data);
+            });
+        }
+
         vm.drawTopupMethodPie = function (srcData, pieChartName) {
             let placeholder = pieChartName + ' div.graphDiv';
             let finalizedPieData = [];
@@ -1027,6 +1051,9 @@ define(['js/app'], function (myApp) {
 
             var dataOptions = {
                 data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
                 columns: [
                     {title: $translate(vm.queryPara.topupMethod.periodText), data: "date"},
                     {title: $translate('MANUAL_TOP_UP'), data: "MANUAL"},

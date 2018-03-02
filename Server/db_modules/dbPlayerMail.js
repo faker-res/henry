@@ -141,10 +141,28 @@ const dbPlayerMail = {
      * @param {String} playerId - playerId
      */
     getPlayerMailsByPlayerId: function (playerId) {
-        return dbconfig.collection_players.findOne({playerId: playerId}).then(
-            function (data) {
-                if (data) {
-                    return dbconfig.collection_playerMail.find({recipientId: data._id, bDelete: false}).lean().then(
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+            playerData => {
+                if (playerData) {
+                    let mailQ = {
+                        recipientId: playerData._id,
+                        bDelete: false
+                    };
+
+                    if (playerData.platform.unreadMailMaxDuration) {
+                        let duration = playerData.platform.unreadMailMaxDuration;
+                        let todayDate = new Date();
+                        // get today end time
+                        let todayEndDate = new Date(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0).getTime() + 24 * 3600 * 1000);
+
+                        let endDate = todayEndDate.toISOString();
+                        let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
+
+                        mailQ.createTime = {$gte: startDate, $lt: endDate};
+                    }
+
+                    return dbconfig.collection_playerMail.find(mailQ).lean().then(
                         playerMailData => {
                             if(playerMailData && playerMailData.length > 0){
                                 playerMailData.map(playerMail => {
@@ -159,7 +177,7 @@ const dbPlayerMail = {
 
                                         return playerMail;
                                     }
-                                })
+                                });
 
                                 return playerMailData;
                             }
@@ -167,11 +185,11 @@ const dbPlayerMail = {
                     );
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Player is not found"});
+                    return Promise.reject({name: "DataError", message: "Player is not found"});
                 }
             },
             function (error) {
-                return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
+                return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
             }
         );
     },
