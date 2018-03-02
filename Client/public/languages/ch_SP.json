@@ -2643,6 +2643,7 @@
   "LOBBY_NAME":"大厅名",
   "DEPOSIT_COUNT": "存款笔数",
   "TOTAL_DEPOSIT": "存款总金额",
+  "DEPOSIT_SUCCESS_HEAD_COUNT": "成功存款人数",
   "WITHDRAW_COUNT": "提款笔数",
   "WITHDRAW_AMOUNT":"提款金额",
   "PROMOTION":"促销优惠",
