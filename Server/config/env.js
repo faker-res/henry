@@ -8,8 +8,7 @@ var localConfig = {
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@localhost:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@localhost:27017/playerdb/',
-        logsDBUrl: 'localhost:27017/logsdb',
-        logs2DBUrl: 'localhost:27017/logs2db'
+        logsDBUrl: 'localhost:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
@@ -33,8 +32,7 @@ var devConfig = {
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
-        logsDBUrl: 'ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:27017/logsdb',
-        logs2DBUrl: 'ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:27017/logs2db'
+        logsDBUrl: 'ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com',
@@ -56,8 +54,7 @@ var settleConfig = {
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@54.179.178.19:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@54.179.178.19:27017/playerdb/',
-        logsDBUrl: '54.179.178.19:27017/logsdb',
-        logs2DBUrl: '54.179.178.19:27017/logs2db'
+        logsDBUrl: '54.179.178.19:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'ec2-54-169-3-146.ap-southeast-1.compute.amazonaws.com',
@@ -78,8 +75,7 @@ var qaConfig = {
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-254-216-189.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-254-216-189.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
-        logsDBUrl: 'ec2-54-254-216-189.ap-southeast-1.compute.amazonaws.com:27017/logsdb',
-        logs2DBUrl: 'ec2-54-254-216-189.ap-southeast-1.compute.amazonaws.com:27017/logs2db'
+        logsDBUrl: 'ec2-54-254-216-189.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'ec2-54-169-3-146.ap-southeast-1.compute.amazonaws.com',
@@ -100,8 +96,7 @@ var testAPIConfig = {
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com:27017/playerdb/',
-        logsDBUrl: 'ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com:27017/logsdb',
-        logs2DBUrl: 'ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com:27017/logs2db'
+        logsDBUrl: 'ec2-54-169-224-43.ap-southeast-1.compute.amazonaws.com:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
@@ -141,8 +136,7 @@ var prodConfig = {
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@10.167.11.108:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@10.167.11.108:27017/playerdb/',
-        logsDBUrl: 'logsinonet:passwordsinonet@10.167.11.108:27017/logsdb',
-        logs2DBUrl: 'logsinonet:passwordsinonet@10.167.11.108:27017/logs2db'
+        logsDBUrl: 'logsinonet:passwordsinonet@10.167.11.108:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
@@ -163,8 +157,7 @@ var botConfig = {
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@54.169.235.54:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@54.169.235.54:27017/playerdb/',
-        logsDBUrl: 'logsinonet:passwordsinonet@54.169.235.54:27017/logsdb',
-        logs2DBUrl: 'logsinonet:passwordsinonet@54.169.235.54:27017/logs2db'
+        logsDBUrl: 'logsinonet:passwordsinonet@54.169.235.54:27017/logsdb'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : '54.169.235.54',

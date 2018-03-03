@@ -15,7 +15,6 @@ var dbConnections = require('./dbConnections');
 var db_admin = dbConnections.admindb;
 var db_player = dbConnections.playerdb;
 var dbLogs = dbConnections.logsdb;
-const dbLogs2 = dbConnections.logs2db;
 
 /////////////////////////Schemas/////////////////////////////////////
 
@@ -357,10 +356,6 @@ var dataMigrationErrorLogSchema = require('./../schema/logs/dataMigrationErrorLo
 var dataMigrationErrorLogModel = dbLogs.model('dataMigrationErrorLog', dataMigrationErrorLogSchema, 'dataMigrationErrorLog');
 
 
-// Logs 2
-let promoCodeActiveTimeSchema = require('./../schema/logs2/promoCodeActiveTime');
-let promoCodeActiveTimeModel = dbLogs2.model('promoCodeActiveTime', promoCodeActiveTimeSchema, 'promoCodeActiveTime');
-
 /////////////////////////collections/////////////////////////////////////
 var dbProperties = {
     //collection_counter: counterModel,
@@ -494,10 +489,6 @@ var dbProperties = {
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
-
-    // Logs 2
-    collection_promoCodeActiveTime: promoCodeActiveTimeModel,
-
     //unique
     collection_playerName: playerNameModal,
     collection_consumptionOrderNumModal: consumptionOrderNumModal,
