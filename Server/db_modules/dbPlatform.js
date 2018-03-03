@@ -1494,30 +1494,32 @@ var dbPlatform = {
     },
 
     searchSMSLog: function (data, index, limit) {
-        index = index || 0;
-        limit = limit || constSystemParam.MAX_RECORD_NUM;
-        var query = {
-            status: data.status === 'all' ? undefined : data.status,
-            playerId: data.playerId || undefined,
-            partnerId: data.partnerId || undefined,
-            type: {$nin: ["registration"]}
-        };
-        if (data.isAdmin && !data.isSystem) {
-            query.adminName = {$exists: true, $ne: null};
-        } else if (data.isSystem && !data.isAdmin) {
-            query.adminName = {$eq: null};
-        }
-
-        // Strip any fields which have value `undefined`
-        query = JSON.parse(JSON.stringify(query));
-        addOptionalTimeLimitsToQuery(data, query, 'createTime');
-        var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
-        var b = dbconfig.collection_smsLog.find(query).count();
-        return Q.all([a, b]).then(
-            result => {
-                return {data: result[0], size: result[1]};
+        if (data && (data.playerId || data.partnerId)) {
+            index = index || 0;
+            limit = limit || constSystemParam.MAX_RECORD_NUM;
+            var query = {
+                status: data.status === 'all' ? undefined : data.status,
+                playerId: data.playerId || undefined,
+                partnerId: data.partnerId || undefined,
+                type: {$nin: ["registration"]}
+            };
+            if (data.isAdmin && !data.isSystem) {
+                query.adminName = {$exists: true, $ne: null};
+            } else if (data.isSystem && !data.isAdmin) {
+                query.adminName = {$eq: null};
             }
-        )
+
+            // Strip any fields which have value `undefined`
+            query = JSON.parse(JSON.stringify(query));
+            addOptionalTimeLimitsToQuery(data, query, 'createTime');
+            var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
+            var b = dbconfig.collection_smsLog.find(query).count();
+            return Q.all([a, b]).then(
+                result => {
+                    return {data: result[0], size: result[1]};
+                }
+            )
+        }
     },
     vertificationSMS: function (data, index, limit) {
         var sortCol = data.sortCol || {createTime: -1};
