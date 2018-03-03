@@ -219,7 +219,19 @@ let dbPlayerInfo = {
      */
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
-        return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, constPlayerRegistrationInterface.BACKSTAGE, adminName);
+        let proposalType = updateAmount >= 0 ? constProposalType.PLAYER_ADD_REWARD_POINTS : constProposalType.PLAYER_MINUS_REWARD_POINTS;
+        let proposalData = {
+            data: {
+                playerObjId: playerObjId,
+                platformObjId: platformObjId,
+                updateAmount: updateAmount,
+                category: category,
+                remark: remark,
+                userAgent: constPlayerRegistrationInterface.BACKSTAGE,
+                adminName: adminName
+            }
+        };
+        dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData);
     },
 
     /**

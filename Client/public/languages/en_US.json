@@ -1274,6 +1274,8 @@
   "singleConsumptionAmountGreaterThan": "Single Consumption Amount Greater Than",
   "dailyValidConsumptionAmount": "Daily Valid Consumption Amount",
   "dailyWinGameCount": "Daily Win Game Count",
+  "PlayerAddRewardPoints": "Player Add Reward Points",
+  "PlayerMinusRewardPoints": "Player Minus Reward Points",
   "PlayerConvertRewardPoints": "Player Convert Reward Points",
   "convertCredit": "Convert Credit",
   "convertedRewardPoints": "Converted Reward Points",
