@@ -150,44 +150,6 @@ let dbPlayerLevelInfo = {
                 // ,{path: "platform", model: dbconfig.collection_platform, select: ["playerLevelUpPeriod","playerLevelDownPeriod"]}]
             ).lean();
 
-        // let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
-        //     {
-        //         $match: {
-        //             platformId: ObjectId(platformObjId),
-        //             createTime: {
-        //                 $gte: new Date(startTime),
-        //                 $lt: new Date(endTime)
-        //             },
-        //             playerId: ObjectId(playerObjId)
-        //         }
-        //     },
-        //     {
-        //         $group: {
-        //             _id: "$playerId",
-        //             amount: {$sum: "$amount"}
-        //         }
-        //     }
-        // );
-        //
-        // let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
-        //     {
-        //         $match: {
-        //             platformId: ObjectId(platformObjId),
-        //             createTime: {
-        //                 $gte: new Date(startTime),
-        //                 $lt: new Date(endTime)
-        //             },
-        //             playerId: ObjectId(playerObjId)
-        //         }
-        //     },
-        //     {
-        //         $group: {
-        //             _id: "$playerId",
-        //             validAmount: {$sum: "$validAmount"}
-        //         }
-        //     }
-        // );
-
         let topUpProm = dbconfig.collection_playerTopUpRecord.find(
             {
                 platformId: ObjectId(platformObjId),
@@ -208,7 +170,7 @@ let dbPlayerLevelInfo = {
                 },
                 playerId: ObjectId(playerObjId)
             }
-        ).sort({createTime: 1}).lean();
+        ).lean();
 
         let promArr = [playerProm, topUpProm, consumptionProm];
 
