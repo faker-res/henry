@@ -4,6 +4,7 @@ var env = require('./../config/env').config();
 var admindb = 'mongodb://' + env.db.adminDBUrl;
 var playerdb = 'mongodb://' + env.db.playerDBUrl;
 var logsdb = 'mongodb://' + env.db.logsDBUrl;
+const logs2db = 'mongodb://' + env.db.logs2DBUrl;
 
 function createConnection(dbURL, callback) {
     // Database connect options
@@ -64,6 +65,7 @@ function createConnection(dbURL, callback) {
 var db_admin = createConnection(admindb);
 var db_player = createConnection(playerdb);
 var db_logs = createConnection(logsdb);
+const db_logs2 = createConnection(logs2db);
 
 var counterSchema = require('./../schema/counter');
 var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -72,6 +74,7 @@ var dbConnections = {
     admindb: db_admin,
     playerdb: db_player,
     logsdb: db_logs,
+    logs2db: db_logs2,
     counterModel: counterModel
 };
 
