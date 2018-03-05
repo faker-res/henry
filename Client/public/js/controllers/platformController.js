@@ -10833,23 +10833,25 @@ define(['js/app'], function (myApp) {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
 
-                //console.log("requestData:", requestData);
+                console.log("searchSMSLog requestData:", requestData);
                 $scope.$socketPromise('searchSMSLog', requestData).then(result => {
-                    vm.smsLog.searchResults = result.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        if (item.status == "failure" && item.error && item.error.status == 430) {
-                            item.error = $translate('RESPONSE_TIMEOUT');
-                            item.status$ = $translate('unknown');
-                        } else {
-                            item.status$ = $translate(item.status);
-                        }
-                        return item;
-                    });
-                    vm.smsLog.totalCount = result.data.size;
-                    vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        console.log("searchSMSLog result", result);
+                        vm.smsLog.searchResults = result.data.data.map(item => {
+                            item.createTime$ = vm.dateReformat(item.createTime);
+                            if (item.status == "failure" && item.error && item.error.status == 430) {
+                                item.error = $translate('RESPONSE_TIMEOUT');
+                                item.status$ = $translate('unknown');
+                            } else {
+                                item.status$ = $translate(item.status);
+                            }
+                            return item;
+                        });
+                        vm.smsLog.totalCount = result.data.size;
+                        vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
+                    })
                 }).catch(console.error);
-            }
+            };
 
             vm.initGameCreditLog = function () {
                 vm.gameCreditLog = vm.gameCreditLog || {index: 0, limit: 20, pageSize: 20};
