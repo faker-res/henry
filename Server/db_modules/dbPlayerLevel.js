@@ -192,7 +192,7 @@ let dbPlayerLevelInfo = {
                     $gte: lvlDownPeriod.startTime,
                     $lt: lvlDownPeriod.endTime
                 },
-            }).sort({createTime: 1}).lean();
+            }).lean();
             promArr.push(lvlDownProposalProm);
         }
 
