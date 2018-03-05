@@ -224,9 +224,9 @@ let dbPlayerLevelInfo = {
 
                     if (parentPeriod == "WEEK") {
                         periodTimeParent = dbUtil.getLastWeekSGTimeByDate(endTime);
-                        if (platformPeriod == constPlayerLevelUpPeriod.MONTH && periodTimeParent.endTime < endTime) {
+                        if (platformPeriod == constPlayerLevelUpPeriod.MONTH && periodTimeParent.endTime < new Date(endTime)) {
                             periodTimeParent.startTime = periodTimeParent.endTime;
-                            periodTimeParent.endTime = endTime;
+                            periodTimeParent.endTime = new Date(endTime);
                         }
                     } else {
                         periodTimeParent = dbUtil.getLastMonthSGTime();
@@ -289,21 +289,17 @@ let dbPlayerLevelInfo = {
                     let recordSum = 0;
                     if (recordPeriod == "WEEK") {
                         periodTime = dbUtil.getLastWeekSGTimeByDate(endTime);
+                        if (platformPeriod == constPlayerLevelUpPeriod.MONTH && periodTime.endTime < new Date(endTime)) {
+                            periodTime.startTime = periodTime.endTime;
+                            periodTime.endTime = new Date(endTime);
+                        }
                     } else {
                         periodTime = dbUtil.getYesterdaySGTimeByDate(endTime);
                     }
 
-                    if (recordPeriod == "WEEK" && platformPeriod == constPlayerLevelUpPeriod.MONTH && periodTime.endTime < endTime) {
-                        for (let c = 0; c < queryRecord.length; c++) {
-                            if (queryRecord[c].createTime >= periodTime.endTime && queryRecord[c].createTime < endTime) {
-                                recordSum += queryRecord[c][queryAmountField];
-                            }
-                        }
-                    } else {
-                        for (let c = 0; c < queryRecord.length; c++) {
-                            if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
-                                recordSum += queryRecord[c][queryAmountField];
-                            }
+                    for (let c = 0; c < queryRecord.length; c++) {
+                        if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
+                            recordSum += queryRecord[c][queryAmountField];
                         }
                     }
                     return recordSum;
