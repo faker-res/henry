@@ -26,7 +26,25 @@ var dbPlatformMerchantGroup = {
      * @param {Json}  query - queryData
      * @param {Json}  updateData -  updateData
      */
-    updatePlatformMerchantGroup: function (query, updateData) {
+    updatePlatformMerchantGroup: function (query, data) {
+        let updateData = {};
+        let merchantNo = data.data.merchantNo ? data.data.merchantNo : [];
+        let merchantNames = data.data.merchantNames ? data.data.merchantNames : [];
+        if (data.type == 'addToSet') {
+            updateData = {
+                '$addToSet': {
+                    merchants: {$each: merchantNo},
+                    merchantNames: {$each: merchantNames}
+                }
+            }
+        } else if (data.type == 'pull') {
+            updateData = {
+                '$pull': {
+                    merchants: {$in: merchantNo},
+                    merchantNames: {$in: merchantNames},
+                }
+            }
+        }
         return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
 
@@ -36,13 +54,15 @@ var dbPlatformMerchantGroup = {
      */
     getPlatformMerchantGroup: function (platformId) {
         return dbPlatformMerchantGroup.syncMerchantGroupData(platformId).then(
-            data => dbconfig.collection_platformMerchantGroup.aggregate(
-                {
-                    $match: {
-                        platform: platformId
+            data => {
+                return dbconfig.collection_platformMerchantGroup.aggregate(
+                    {
+                        $match: {
+                            platform: platformId
+                        }
                     }
-                }
-            ),
+                )
+            },
             error => {
                 return dbconfig.collection_platformMerchantGroup.aggregate(
                     {
@@ -153,10 +173,10 @@ var dbPlatformMerchantGroup = {
             }
         ).then(
             data=> {
-                var merchantsArr = data.merchants || [];
+                var merchantsArr = data.merchantNames || [];
                 for (let i = 0; i < allMerchants.length; i++) {
 
-                    if (merchantsArr.indexOf(allMerchants[i].merchantNo) != -1) {
+                    if (merchantsArr.indexOf(allMerchants[i].name) != -1) {
                         allMerchants[i].isIncluded = true;
                     } else {
                         allMerchants[i].isIncluded = false;
@@ -206,11 +226,12 @@ var dbPlatformMerchantGroup = {
     },
 
     deleteMerchant: function (merchantNo) {
-        return dbconfig.collection_platformMerchantGroup.update(
-            {},
-            {$pull: {merchants: {$in: [merchantNo]}}},
-            {multi: true}
-        );
+        // return dbconfig.collection_platformMerchantGroup.update(
+        //     {},
+        //     {$pull: {merchants: {$in: [merchantNo]}}},
+        //     {multi: true}
+        // );
+        return Promise.resolve(true);
     },
 
     syncMerchantGroupData: function (platformObjId) {
@@ -289,8 +310,50 @@ var dbPlatformMerchantGroup = {
             result.merchants = data[0].merchants.concat(data[1].data).concat(data[2].data).concat(data[3].data);
           return result
         })
+    },
+    syncMerchantNoScript:function(platformObjId){
+        var allMerchants = [];
+        return dbconfig.collection_platform.findOne({'_id': platformObjId}).then(
+            platformData => {
+                return pmsAPI.merchant_getMerchantList(
+                    {
+                        platformId: platformData.platformId,
+                        queryId: serverInstance.getQueryId()
+                    })
+            }
+        ).then(
+            data => {
+                allMerchants = data.merchants || [];
+                return dbconfig.collection_platformMerchantGroup.find({platform: platformObjId})
+            }
+        ).then(data => {
+            let merchantGroupData = data && data ? data : [];
+            let proms = [];
+            merchantGroupData.forEach(item => {
+                let merchantNames = [];
+                allMerchants.forEach(merchant => {
+                    if (item.merchants.includes(merchant.merchantNo)) {
+                        merchantNames.push(merchant.name);
+                    }
+                })
+                console.log(merchantNames);
+                let query = {'groupId': item.groupId, 'platform': platformObjId};
+                let updateData = {
+                    '$addToSet': {
+                        'merchantNames': {$each: merchantNames}
+                    }
+                }
+                let prom = dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {
+                    upsert: true,
+                    new: true
+                });
+                proms.push(prom)
+            })
+            return Promise.all(proms).then(result => {
+                return result;
+            })
+        })
     }
-
 };
 
 module.exports = dbPlatformMerchantGroup;

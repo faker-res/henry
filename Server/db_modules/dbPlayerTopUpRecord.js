@@ -1017,7 +1017,7 @@ var dbPlayerTopUpRecord = {
                     minTopUpAmount = player.platform.minTopUpAmount || 0;
                 }
 
-                if (inputData.amount < minTopUpAmount) {
+                if (inputData.amount < minTopUpAmount && entryType != "ADMIN") {
                     return Q.reject({
                         status: constServerCode.PLAYER_TOP_UP_FAIL,
                         name: "DataError",
@@ -1283,12 +1283,16 @@ var dbPlayerTopUpRecord = {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
-
-                        return pmsAPI.payment_modifyManualTopupRequest({
-                            requestId: proposalData.data.requestId,
-                            operationType: constManualTopupOperationType.CANCEL,
-                            data: null
-                        });
+                        if( adminName ){
+                            return pmsAPI.payment_modifyManualTopupRequest({
+                                requestId: proposalData.data.requestId,
+                                operationType: constManualTopupOperationType.CANCEL,
+                                data: null
+                            });
+                        }
+                        else{
+                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
+                        }
                     }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
@@ -1333,7 +1337,16 @@ var dbPlayerTopUpRecord = {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
-                        return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
+                        if( adminName ){
+                            return pmsAPI.payment_modifyManualTopupRequest({
+                                requestId: proposalData.data.requestId,
+                                operationType: constManualTopupOperationType.CANCEL,
+                                data: null
+                            });
+                        }
+                        else{
+                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
+                        }
                     }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
@@ -1379,7 +1392,16 @@ var dbPlayerTopUpRecord = {
                     if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
 
-                        return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
+                        if( adminName ){
+                            return pmsAPI.payment_modifyManualTopupRequest({
+                                requestId: proposalData.data.requestId,
+                                operationType: constManualTopupOperationType.CANCEL,
+                                data: null
+                            });
+                        }
+                        else{
+                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
+                        }
                     }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
@@ -1777,7 +1799,7 @@ var dbPlayerTopUpRecord = {
                     if (entryType === "ADMIN") {
                         minTopUpAmount = 1;
                     }
-                    if (amount < minTopUpAmount) {
+                    if (amount < minTopUpAmount && !adminId) {
                         return Q.reject({
                             status: constServerCode.PLAYER_TOP_UP_FAIL,
                             name: "DataError",
@@ -2112,7 +2134,7 @@ var dbPlayerTopUpRecord = {
 
                     if (player && player.platform && player.wechatPayGroup && player.wechatPayGroup.wechats && player.wechatPayGroup.wechats.length > 0) {
                         let minTopUpAmount = player.platform.minTopUpAmount || 0;
-                        if (amount < minTopUpAmount) {
+                        if (amount < minTopUpAmount && entryType != "ADMIN") {
                             return Q.reject({
                                 status: constServerCode.PLAYER_TOP_UP_FAIL,
                                 name: "DataError",

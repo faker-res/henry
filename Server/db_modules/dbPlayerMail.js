@@ -141,10 +141,28 @@ const dbPlayerMail = {
      * @param {String} playerId - playerId
      */
     getPlayerMailsByPlayerId: function (playerId) {
-        return dbconfig.collection_players.findOne({playerId: playerId}).then(
-            function (data) {
-                if (data) {
-                    return dbconfig.collection_playerMail.find({recipientId: data._id, bDelete: false}).lean().then(
+        return dbconfig.collection_players.findOne({playerId: playerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+            playerData => {
+                if (playerData) {
+                    let mailQ = {
+                        recipientId: playerData._id,
+                        bDelete: false
+                    };
+
+                    if (playerData.platform.unreadMailMaxDuration) {
+                        let duration = playerData.platform.unreadMailMaxDuration;
+                        let todayDate = new Date();
+                        // get today end time
+                        let todayEndDate = new Date(new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0).getTime() + 24 * 3600 * 1000);
+
+                        let endDate = todayEndDate.toISOString();
+                        let startDate = new Date(new Date(todayEndDate.setMonth(todayEndDate.getMonth() - duration))).toISOString();
+
+                        mailQ.createTime = {$gte: startDate, $lt: endDate};
+                    }
+
+                    return dbconfig.collection_playerMail.find(mailQ).lean().then(
                         playerMailData => {
                             if(playerMailData && playerMailData.length > 0){
                                 playerMailData.map(playerMail => {
@@ -159,7 +177,7 @@ const dbPlayerMail = {
 
                                         return playerMail;
                                     }
-                                })
+                                });
 
                                 return playerMailData;
                             }
@@ -167,11 +185,11 @@ const dbPlayerMail = {
                     );
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Player is not found"});
+                    return Promise.reject({name: "DataError", message: "Player is not found"});
                 }
             },
             function (error) {
-                return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
+                return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
             }
         );
     },
@@ -269,6 +287,7 @@ const dbPlayerMail = {
         let template = null;
         let lastMinuteHistory = null;
         let platform;
+        let isFailedSms = false;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
 
 
@@ -408,6 +427,10 @@ const dbPlayerMail = {
                     );
                 }
                 return smsData;
+            },
+            error => {
+                isFailedSms = true;
+                return Promise.reject(error)
             }
         ).then(
             retData => {
@@ -471,6 +494,77 @@ const dbPlayerMail = {
                 }
 
                 return true;
+            },
+            error => {
+                if (isFailedSms && purpose && purpose == constSMSPurpose.REGISTRATION) {
+                    if (inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined") {
+                        return dbUtility.getGeoIp(inputData.lastLoginIp).then(
+                            ipData => {
+                                if (ipData) {
+                                    inputData.ipArea = ipData;
+                                }
+
+                                if (inputData) {
+                                    if (inputData.playerId) {
+                                        delete inputData.playerId;
+                                    }
+                                    //inputData = inputData || {};
+                                    inputData.smsCode = code;
+
+                                    if (inputData.phoneNumber) {
+                                        var queryRes = queryPhoneLocation(inputData.phoneNumber);
+                                        if (queryRes) {
+                                            inputData.phoneProvince = queryRes.province;
+                                            inputData.phoneCity = queryRes.city;
+                                            inputData.phoneType = queryRes.type;
+                                        }
+
+                                        if (inputData.password) {
+                                            delete inputData.password;
+                                        }
+
+                                        if (inputData.confirmPass) {
+                                            delete inputData.confirmPass;
+                                        }
+
+                                        let proposalData = {
+                                            creator: inputData.adminInfo || {
+                                                type: 'player',
+                                                name: inputData.name,
+                                                id: inputData.playerId ? inputData.playerId : ""
+                                            }
+                                        };
+
+                                        let newProposal = {
+                                            creator: proposalData.creator,
+                                            data: inputData,
+                                            entryType: inputData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                                            userType: inputData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                                            inputDevice: inputDevice ? inputDevice : 0,
+                                            status: constProposalStatus.PENDING
+                                        };
+
+                                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                                    }
+
+                                    let newIntentData = {
+                                        data: inputData,
+                                        status: constRegistrationIntentRecordStatus.VERIFICATION_CODE,
+                                        name: inputData.name
+                                    };
+                                    let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                                    newRecord.save().then(data => {
+                                        return true;
+                                    });
+                                }
+                                return Promise.reject(error);
+                            }
+                        );
+                    }
+
+                }
+
+                return Promise.reject(error);
             }
         );
     },
