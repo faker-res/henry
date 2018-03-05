@@ -15,7 +15,7 @@ let dbPromoCode = {
                     platformObjId: platformObjId,
                     // code: promoCode,
                     expirationTime: {$gt: new Date()},
-                    isActive: {$ne: true},
+                    // isActive: {$ne: true},
                     status: constPromoCodeStatus.AVAILABLE
                 };
 
