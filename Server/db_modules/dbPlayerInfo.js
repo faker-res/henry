@@ -235,6 +235,25 @@ let dbPlayerInfo = {
     },
 
     /**
+     * Get player reward points conversion rate
+     */
+    getPlayerRewardPointsConversionRate: function (platformObjId, playerLevel) {
+        return dbconfig.collection_rewardPointsLvlConfig.findOne({
+            platformObjId: platformObjId
+        }).lean().then(
+            data => {
+                let conversionRate = null;
+                for (let i = 0; i < data.params.length; i++) {
+                    if (data.params[i].levelObjId.toString() === playerLevel.toString()) {
+                        conversionRate = data.params[i].pointToCreditManualRate;
+                        return conversionRate;
+                    }
+                }
+            }
+        )
+    },
+
+    /**
      * Get player reward points daily limit
      */
     getPlayerRewardPointsDailyLimit: function (platformObjId, playerLevel) {
