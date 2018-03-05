@@ -3857,7 +3857,7 @@ let dbPlayerReward = {
                 let dayOfHour = moment(new Date()).tz('Asia/Singapore').hours();
                 eventData.condition.rewardAppearPeriod.forEach(appearPeriod => {
                     if (appearPeriod.startDate <= todayWeekOfDay && appearPeriod.startTime <= dayOfHour &&
-                        appearPeriod.endDate >= todayWeekOfDay && appearPeriod.endTime > dayOfHour
+                        appearPeriod.endDate >= todayWeekOfDay && appearPeriod.endTime >= dayOfHour
                     ) {
                         isValid = true;
 
