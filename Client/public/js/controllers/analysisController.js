@@ -3409,13 +3409,16 @@ define(['js/app'], function (myApp) {
                             let webSuccessRateAverage = vm.calculateAverageDataWithDecimalPlace(vm.platformTopUpAnalysisData, 'web', 'successRate');
                             let H5SuccessRateAverage = vm.calculateAverageDataWithDecimalPlace(vm.platformTopUpAnalysisData, 'H5','successRate');
                             let AppSuccessRateAverage = vm.calculateAverageDataWithDecimalPlace(vm.platformTopUpAnalysisData, 'App','successRate');
+                            let webTotalCountAverage = vm.calculateAverageData(vm.platformTopUpAnalysisData, 'web', 'count');
+                            let H5TotalCountAverage = vm.calculateAverageData(vm.platformTopUpAnalysisData, 'H5','count');
+                            let AppTotalCountAverage = vm.calculateAverageData(vm.platformTopUpAnalysisData, 'App','count');
                             vm.platformTopUpSuccessRateAverage = {
                                 web: $noRoundTwoDecimalPlaces(webSuccessRateAverage),
                                 H5: $noRoundTwoDecimalPlaces(H5SuccessRateAverage),
                                 App: $noRoundTwoDecimalPlaces(AppSuccessRateAverage),
-                                webRateCount: vm.fractionFormatter(webSuccessRateAverage/100),
-                                H5RateCount: vm.fractionFormatter(H5SuccessRateAverage/100),
-                                AppRateCount: vm.fractionFormatter(AppSuccessRateAverage/100)
+                                webTotalCount: webTotalCountAverage,
+                                H5TotalCount: H5TotalCountAverage,
+                                AppTotalCount: AppTotalCountAverage
                             };
                         }
 
@@ -3435,23 +3438,23 @@ define(['js/app'], function (myApp) {
             vm.platformTopupTableSort[type] = vm.platformTopupTableSort[type] === sortField ? '-'+sortField : sortField;
         };
 
-        vm.fractionFormatter = function (value) {
-            if (value == undefined || value == null || isNaN(value))
-                return 0;
-
-            var parts = value.toFixed(2).split('.');
-            if (parts.length == 1)
-                return parts;
-            else if (parts.length == 2) {
-                var wholeNum = parts[0];
-                var decimal = parts[1];
-
-                return parseFloat(decimal)
-
-            } else {
-                return 0;
-            }
-        }
+        // vm.fractionFormatter = function (value) {
+        //     if (value == undefined || value == null || isNaN(value))
+        //         return 0;
+        //
+        //     var parts = value.toFixed(2).split('.');
+        //     if (parts.length == 1)
+        //         return parts;
+        //     else if (parts.length == 2) {
+        //         var wholeNum = parts[0];
+        //         var decimal = parts[1];
+        //
+        //         return parseFloat(decimal)
+        //
+        //     } else {
+        //         return 0;
+        //     }
+        // }
         // top up manual end
 
         //client source start =======================================
