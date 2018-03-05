@@ -3437,24 +3437,6 @@ define(['js/app'], function (myApp) {
         vm.topupTypeDataSort = (type, sortField) => {
             vm.platformTopupTableSort[type] = vm.platformTopupTableSort[type] === sortField ? '-'+sortField : sortField;
         };
-
-        // vm.fractionFormatter = function (value) {
-        //     if (value == undefined || value == null || isNaN(value))
-        //         return 0;
-        //
-        //     var parts = value.toFixed(2).split('.');
-        //     if (parts.length == 1)
-        //         return parts;
-        //     else if (parts.length == 2) {
-        //         var wholeNum = parts[0];
-        //         var decimal = parts[1];
-        //
-        //         return parseFloat(decimal)
-        //
-        //     } else {
-        //         return 0;
-        //     }
-        // }
         // top up manual end
 
         //client source start =======================================
