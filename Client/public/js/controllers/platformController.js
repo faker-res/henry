@@ -692,14 +692,10 @@ define(['js/app'], function (myApp) {
                 if (tabName === 'convert') {
                     vm.playerRewardPointsDailyLimit = 0;
                     vm.playerRewardPointsDailyConvertedPoints = 0;
+                    vm.playerRewardPointsConversionRate = 0;
                     vm.getPlayerRewardPointsDailyLimit();
                     vm.getPlayerRewardPointsDailyConvertedPoints();
-                    for(let index in vm.rewardPointsLvlConfig.params) {
-                        if(vm.rewardPointsLvlConfig.params[index].levelObjId == vm.selectedSinglePlayer.playerLevel._id) {
-                            vm.rewardPointToCreditManualRate = vm.rewardPointsLvlConfig.params[index].pointToCreditManualRate;
-                            break;
-                        }
-                    }
+                    vm.getPlayerRewardPointsConversionRate();
                 }
             };
 
@@ -968,7 +964,7 @@ define(['js/app'], function (myApp) {
                     });
                 })
 
-                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getRewardPointsLvlConfig(), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
+                Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
                         // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                         switch (vm.platformPageName) {
@@ -8975,6 +8971,18 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
                     vm.advancedPlayerQuery();
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getPlayerRewardPointsConversionRate = function () {
+                let sendData = {
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    playerLevel: vm.isOneSelectedPlayer().playerLevel._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsConversionRate', sendData, function (data) {
+                    vm.playerRewardPointsConversionRate = data.data;
                     $scope.safeApply();
                 });
             };
