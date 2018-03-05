@@ -909,8 +909,10 @@ var dbPlayerConsumptionWeekSummary = {
             }
         );
 
-        return Q.all([summaryProm, playerLevelProm, gameTypesProm, consumptionRecProm]).spread(
-            function (consumptionSummaries, playerData, allGameTypes, consumptionRecSumm) {
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformId}).lean();
+
+        return Q.all([summaryProm, playerLevelProm, gameTypesProm, consumptionRecProm, platformProm]).spread(
+            function (consumptionSummaries, playerData, allGameTypes, consumptionRecSumm, platformData) {
                 // Why is it that sometimes playerData is not found?
                 // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
 
@@ -978,24 +980,26 @@ var dbPlayerConsumptionWeekSummary = {
                     }
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
 
-                    let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
+                    if (platformData.useProviderGroup) {
+                        let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
 
-                    if (totalConsumptionRec != res.totalConsumptionAmount) {
-                        // Recalculate consumption return amount
-                        let totalAmtDiff = 0;
+                        if (totalConsumptionRec != res.totalConsumptionAmount) {
+                            // Recalculate consumption return amount
+                            let totalAmtDiff = 0;
 
-                        consumptionRecSumm.forEach(el => {
-                            // Offset consumption return dirty amount
-                            el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
+                            consumptionRecSumm.forEach(el => {
+                                // Offset consumption return dirty amount
+                                el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
 
-                            let consumpDiff = el.validAmount - res[el._id].consumptionAmount;
-                            res[el._id].consumptionAmount += consumpDiff;
-                            res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
+                                let consumpDiff = el.validAmount - res[el._id].consumptionAmount;
+                                res[el._id].consumptionAmount += consumpDiff;
+                                res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
 
-                            totalAmtDiff += consumpDiff * res[el._id].ratio;
-                        });
+                                totalAmtDiff += consumpDiff * res[el._id].ratio;
+                            });
 
-                        res.totalAmount += totalAmtDiff;
+                            res.totalAmount += totalAmtDiff;
+                        }
                     }
 
                     if (bDetail) {
