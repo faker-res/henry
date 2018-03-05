@@ -224,6 +224,10 @@ let dbPlayerLevelInfo = {
 
                     if (parentPeriod == "WEEK") {
                         periodTimeParent = dbUtil.getLastWeekSGTimeByDate(endTime);
+                        if (platformPeriod == constPlayerLevelUpPeriod.MONTH && periodTimeParent.endTime < endTime) {
+                            periodTimeParent.startTime = periodTimeParent.endTime;
+                            periodTimeParent.endTime = endTime;
+                        }
                     } else {
                         periodTimeParent = dbUtil.getLastMonthSGTime();
                     }
