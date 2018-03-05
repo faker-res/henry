@@ -351,7 +351,7 @@ var dbPlayerConsumptionWeekSummary = {
                                             'data.platformId': platformId,
                                             'data.playerObjId': playerData._id,
                                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                            'data.bConsumptionReturnRequest': {$exists: true},
+                                            'data.bConsumptionReturnRequest': true,
                                         };
 
                                         let doneXIMAConsumption = {};
@@ -875,7 +875,7 @@ var dbPlayerConsumptionWeekSummary = {
             'data.platformId': platformId,
             'data.playerObjId': playerId,
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            'data.bConsumptionReturnRequest': {$exists: true},
+            'data.bConsumptionReturnRequest': true,
         };
         let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
             props => {
