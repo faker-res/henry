@@ -8982,8 +8982,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsConversionRate', sendData, function (data) {
-                    vm.playerRewardPointsConversionRate = data.data;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {vm.playerRewardPointsConversionRate = data.data;});
                 });
             };
 
@@ -8994,8 +8993,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyLimit', sendData, function (data) {
-                    vm.playerRewardPointsDailyLimit = data.data;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {vm.playerRewardPointsDailyLimit = data.data;});
                 });
             };
 
@@ -9005,8 +9003,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyConvertedPoints', sendData, function (data) {
-                    vm.playerRewardPointsDailyConvertedPoints = data.data;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {vm.playerRewardPointsDailyConvertedPoints = data.data;});
                 });
             };
 
