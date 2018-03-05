@@ -289,9 +289,17 @@ let dbPlayerLevelInfo = {
                         periodTime = dbUtil.getYesterdaySGTimeByDate(endTime);
                     }
 
-                    for (let c = 0; c < queryRecord.length; c++) {
-                        if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
-                            recordSum += queryRecord[c][queryAmountField];
+                    if (recordPeriod == "WEEK" && platformPeriod == constPlayerLevelUpPeriod.MONTH && periodTime.endTime < endTime) {
+                        for (let c = 0; c < queryRecord.length; c++) {
+                            if (queryRecord[c].createTime >= periodTime.endTime && queryRecord[c].createTime < endTime) {
+                                recordSum += queryRecord[c][queryAmountField];
+                            }
+                        }
+                    } else {
+                        for (let c = 0; c < queryRecord.length; c++) {
+                            if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
+                                recordSum += queryRecord[c][queryAmountField];
+                            }
                         }
                     }
                     return recordSum;
