@@ -22,7 +22,7 @@
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.drawPlayerTopUp(vm.showPageName)') {{'SEARCH' | translate}}
-        .row
+        .row(ng-if = "vm.showPageName == 'TOPUPMANUAL' ")
             .col-md-6
                 label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
@@ -46,8 +46,52 @@
                                 td
                                     span {{ "average value" | translate }}
                                 td
-                                    span {{ vm.platformTopUpAmountAverage }}
-        .row
+                                    span {{ vm.platformManualTopUpAmountAverage }}
+
+        .row(ng-if = "vm.showPageName != 'TOPUPMANUAL' ")
+            .col-md-12
+                label &nbsp;
+                label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.topupTypeDataSort('amountSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.topupTypeDataSort('amountSort','totalSum')") {{"Credit_Amount"| translate}}
+                                th(ng-click="vm.topupTypeDataSort('amountSort','web.amount')") {{'WEB'}}
+                                th(ng-click="vm.topupTypeDataSort('amountSort','H5.amount')") {{'H5'}}
+                                th(ng-click="vm.topupTypeDataSort('amountSort','App.amount')") {{'APP'}}
+                                th(ng-click="vm.topupTypeDataSort('amountSort','backStage.amount')") {{'Backstage'| translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopupTableSort.amountSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.totalSum }}
+                                td
+                                    span {{ v.web.amount }}
+                                td
+                                    span {{ v.H5.amount }}
+                                td
+                                    span {{ v.App.amount }}
+                                td
+                                    span {{ v.backStage.amount }}
+
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformTopUpAmountAverage.average }}
+                                td
+                                    span {{ vm.platformTopUpAmountAverage.web }}
+                                td
+                                    span {{ vm.platformTopUpAmountAverage.H5 }}
+                                td
+                                    span {{ vm.platformTopUpAmountAverage.App }}
+                                td
+                                    span {{ vm.platformTopUpAmountAverage.backStage }}
+
+        .row(ng-if = "vm.showPageName == 'TOPUPMANUAL' ")
             .col-md-6
                 label.text-primary {{vm.queryPara.topUp.countTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
@@ -72,5 +116,145 @@
                                     span {{ "average value" | translate }}
                                 td
                                     span {{ vm.platformTopUpCountAverage }}
+
+        .row(ng-if = "vm.showPageName != 'TOPUPMANUAL' ")
+            .col-md-12
+                label &nbsp;
+                label.text-primary {{vm.queryPara.topUp.countTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.topupTypeDataSort('countSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.topupTypeDataSort('countSort','totalSuccessCount')") {{ "COUNT" | translate}}
+                                th(ng-click="vm.topupTypeDataSort('countSort','web.count')") {{'WEB'}}
+                                th(ng-click="vm.topupTypeDataSort('countSort','H5.count')") {{'H5'}}
+                                th(ng-click="vm.topupTypeDataSort('countSort','App.count')") {{'APP'}}
+                                th(ng-click="vm.topupTypeDataSort('countSort','backStage.count')") {{'Backstage'| translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopupTableSort.countSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.totalSuccessCount }}
+                                td
+                                    span {{ v.web.successCount }}
+                                td
+                                    span {{ v.H5.successCount }}
+                                td
+                                    span {{ v.App.successCount }}
+                                td
+                                    span {{ v.backStage.successCount }}
+
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformTopUpCountAverage.average }}
+                                td
+                                    span {{ vm.platformTopUpCountAverage.web }}
+                                td
+                                    span {{ vm.platformTopUpCountAverage.H5 }}
+                                td
+                                    span {{ vm.platformTopUpCountAverage.App }}
+                                td
+                                    span {{ vm.platformTopUpCountAverage.backStage }}
+
+        .row(ng-if = "vm.showPageName != 'TOPUPMANUAL' ")
+            .col-md-12
+                label &nbsp;
+                label.text-primary {{vm.queryPara.topUp.headCountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.topupTypeDataSort('headCountSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.topupTypeDataSort('headCountSort','totalHeadCount')") {{ "HEAD_COUNT" | translate}}
+                                th(ng-click="vm.topupTypeDataSort('headCountSort','web.headCount')") {{'WEB'}}
+                                th(ng-click="vm.topupTypeDataSort('headCountSort','H5.headCount')") {{'H5'}}
+                                th(ng-click="vm.topupTypeDataSort('headCountSort','App.headCount')") {{'APP'}}
+                                th(ng-click="vm.topupTypeDataSort('headCountSort','backStage.headCount')") {{'Backstage'| translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopupTableSort.headCountSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.totalHeadCount }}
+                                td
+                                    span {{ v.web.headCount }}
+                                td
+                                    span {{ v.H5.headCount }}
+                                td
+                                    span {{ v.App.headCount }}
+                                td
+                                    span {{ v.backStage.headCount }}
+
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformTopUpHeadCountAverage.average }}
+                                td
+                                    span {{ vm.platformTopUpHeadCountAverage.web }}
+                                td
+                                    span {{ vm.platformTopUpHeadCountAverage.H5 }}
+                                td
+                                    span {{ vm.platformTopUpHeadCountAverage.App }}
+                                td
+                                    span {{ vm.platformTopUpHeadCountAverage.backStage }}
+
+        .row(ng-if = "vm.showPageName != 'TOPUPMANUAL' ")
+            .col-md-6
+                label.text-primary {{vm.queryPara.topUp.successRateTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-topUpSuccessRate.lineChart.graphDiv(style='height:100px')
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.topupTypeDataSort('rateSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.topupTypeDataSort('rateSort','web.successRate')") {{'WEB'}}
+                                th(ng-click="vm.topupTypeDataSort('rateSort','web.successRate')") {{'WEB'}}{{'successRate'| translate}}
+                                th(ng-click="vm.topupTypeDataSort('rateSort','H5.successRate')") {{'H5'}}
+                                th(ng-click="vm.topupTypeDataSort('rateSort','H5.successRate')") {{'H5'}}{{'successRate'| translate}}
+                                th(ng-click="vm.topupTypeDataSort('rateSort','App.successRate')") {{'APP'}}
+                                th(ng-click="vm.topupTypeDataSort('rateSort','App.successRate')") {{'APP'}}{{'successRate'| translate}}
+
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopupTableSort.rateSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{v.web.successCount }} / {{ v.web.count }}
+                                td
+                                    span {{v.web.successRate}} %
+                                td
+                                    span {{v.H5.successCount}} / {{ v.H5.count }}
+                                td
+                                    span {{v.H5.successRate}} %
+                                td
+                                    span {{v.App.successCount}} / {{ v.App.count }}
+                                td
+                                    span {{v.App.successRate}} %
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.platformTopUpSuccessRateAverage.webRateCount }} / 100
+                                td
+                                    span {{ vm.platformTopUpSuccessRateAverage.web }} %
+                                td
+                                    span {{ vm.platformTopUpSuccessRateAverage.H5RateCount }} / 100
+                                td
+                                    span {{ vm.platformTopUpSuccessRateAverage.H5 }} %
+                                td
+                                    span {{ vm.platformTopUpSuccessRateAverage.AppRateCount }} / 100
+                                td
+                                    span {{ vm.platformTopUpSuccessRateAverage.App }} %
+
+
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")
