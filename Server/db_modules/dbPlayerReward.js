@@ -2408,11 +2408,24 @@ let dbPlayerReward = {
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                     newPromoCodeEntry.adminId = adminObjId;
                     newPromoCodeEntry.adminName = adminName;
-                    return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
+
+                    return dbConfig.collection_promoCodeActiveTime.findOne({
+                        platform: platformObjId,
+                        startTime: {$lt: new Date()},
+                        endTime: {$gt: new Date()}
+                    }).lean();
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid player data"});
                 }
+            }
+        ).then(
+            activeTimeRes => {
+                if (activeTimeRes) {
+                    newPromoCodeEntry.isActive = true;
+                }
+
+                return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
             }
         ).then(
             newPromoCode => {
@@ -3687,6 +3700,12 @@ let dbPlayerReward = {
             }, {
                 multi: true
             }).exec().catch(errorUtils.reportError);
+
+            dbConfig.collection_promoCodeActiveTime({
+                platform: platformObjId,
+                startTime: new Date(data.startAcceptedTime),
+                endTime: new Date(data.endAcceptedTime)
+            }).save().catch(errorUtils.reportError);
         }
 
         return dbConfig.collection_promoCode.update({

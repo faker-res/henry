@@ -295,6 +295,8 @@ let playerStateSchema = require('./../schema/logs/playerState');
 let playerStateModel = dbLogs.model('playerState', playerStateSchema, 'playerState');
 let rewardTaskGroupSchema = require('./../schema/logs/rewardTaskGroup');
 let rewardTaskGroupModel = dbLogs.model('rewardTaskGroup', rewardTaskGroupSchema, 'rewardTaskGroup');
+let promoCodeActiveTimeSchema = require('./../schema/logs/promoCodeActiveTime');
+let promoCodeActiveTimeModel = dbLogs.model('promoCodeActiveTime', promoCodeActiveTimeSchema, 'promoCodeActiveTime');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -477,6 +479,7 @@ var dbProperties = {
     collection_partnerStatusChangeLog: partnerStatusChangeLogModal,
     collection_apiLog: apiLogModel,
     collection_promoCode: promoCodeModel,
+    collection_promoCodeActiveTime: promoCodeActiveTimeModel,
     collection_playerState: playerStateModel,
     collection_playerCredibilityUpdateLog: playerCredibilityUpdateLogModel,
     collection_playerTopUpGroupUpdateLog: playerTopUpGroupUpdateLogModel,
