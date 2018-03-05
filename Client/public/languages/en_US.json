@@ -18,6 +18,7 @@
   "SETTLEMENT_HISTORY": "Settlement History",
 
   "DemoPlayerPrefix": "Demo Player Prefix after 'F'",
+  "DEMO_PLAYER_DEFAULT_CREDIT": "Demo Player Default Credit (if need transfer in)",
   "LIVE800 COMPANYID": "Live800 Company ID (Use comma for multiple ID)",
   "LIVE800 COMPANYID Without Desc": "Live800 Company ID",
   "LIVE800 ACC": "Live800 Account (Use comma for multiple accounts)",
@@ -1273,6 +1274,8 @@
   "singleConsumptionAmountGreaterThan": "Single Consumption Amount Greater Than",
   "dailyValidConsumptionAmount": "Daily Valid Consumption Amount",
   "dailyWinGameCount": "Daily Win Game Count",
+  "PlayerAddRewardPoints": "Player Add Reward Points",
+  "PlayerMinusRewardPoints": "Player Minus Reward Points",
   "PlayerConvertRewardPoints": "Player Convert Reward Points",
   "convertCredit": "Convert Credit",
   "convertedRewardPoints": "Converted Reward Points",

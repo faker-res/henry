@@ -50,7 +50,7 @@ var proposal = {
 
     /**
      * Create a new proposal with type name
-     * @param {string} platformId -
+     * @param {string} platformObjId -
      * @param {string} typeName - Type name
      * @param {Object} proposalData - The data of the proposal
      */
@@ -378,7 +378,7 @@ var proposal = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] != null) {
-                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints){
+                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints && proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS){
                         dbRewardPointsLog.createRewardPointsLogByProposalData(data[0]);
                     }
 

@@ -103,6 +103,15 @@ function socketActionPlayer(socketIO, socket) {
         },
 
         /**
+         * Get player reward points conversion rate
+         */
+        getPlayerRewardPointsConversionRate: function getPlayerRewardPointsConversionRate(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.playerLevel);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerRewardPointsConversionRate, [data.platformObjId, data.playerLevel], actionName, isValidData);
+        },
+
+        /**
          * Get player reward points daily limit
          */
         getPlayerRewardPointsDailyLimit: function getPlayerRewardPointsDailyLimit(data) {
@@ -649,6 +658,18 @@ function socketActionPlayer(socketIO, socket) {
             var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
             var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.getTopUpMethodCountByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
+        },
+
+        /**
+         * Get total head count of totalrecord by topup method success and platform
+         * @param {json} data - data contains platformId, startDate, endDate and period
+         */
+        getTopUpMethodSuccessHeadCountByPlatform: function getTopUpMethodSuccessHeadCountByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.period);
+            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
+            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.getTopUpMethodSuccessHeadCountByPlatform, [ObjectId(data.platformId), startTime, endTime, data.period], actionName, isValidData);
         },
 
         /**
