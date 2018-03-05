@@ -2790,7 +2790,7 @@ let dbPlayerReward = {
                     proms.push(
                         getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
                             res => {
-                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].bonusAmount : 0;
+                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].validAmount : 0;
 
                                 return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
                             }
