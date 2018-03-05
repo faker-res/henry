@@ -59,6 +59,8 @@ const constProposalMainType = {
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
 
     //REWARD POINTS
+    "PlayerAddRewardPoints": constMainType.REWARD_POINTS,
+    "PlayerMinusRewardPoints": constMainType.REWARD_POINTS,
     "PlayerConvertRewardPoints": constMainType.REWARD_POINTS,
 
     //UPDATE_PLAYER
