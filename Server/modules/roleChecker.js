@@ -275,7 +275,7 @@ var roleChecker = {
                 CreditAdjustment: ['createUpdatePlayerCreditProposal'],
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 RewardPointsChange: ['createPlayerRewardPointsRecord', 'updatePlayerRewardPointsRecord'],
-                RewardPointsConvert: ['getPlayerRewardPointsDailyLimit', 'getPlayerRewardPointsDailyConvertedPoints', 'convertRewardPointsToCredit'],
+                RewardPointsConvert: ['getPlayerRewardPointsConversionRate', 'getPlayerRewardPointsDailyLimit', 'getPlayerRewardPointsDailyConvertedPoints', 'convertRewardPointsToCredit'],
                 PlayerExpenses: ['getPlayerConsumptionRecords', 'getPlayerTotalConsumptionForTimeFrame', 'playerPurchase'],
                 AddRewardTask: ['createPlayerRewardTask'],
                 applyReward: ['applyPreviousConsecutiveLoginReward'],

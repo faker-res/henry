@@ -692,14 +692,10 @@ define(['js/app'], function (myApp) {
                 if (tabName === 'convert') {
                     vm.playerRewardPointsDailyLimit = 0;
                     vm.playerRewardPointsDailyConvertedPoints = 0;
+                    vm.playerRewardPointsConversionRate = 0;
                     vm.getPlayerRewardPointsDailyLimit();
                     vm.getPlayerRewardPointsDailyConvertedPoints();
-                    for(let index in vm.rewardPointsLvlConfig.params) {
-                        if(vm.rewardPointsLvlConfig.params[index].levelObjId == vm.selectedSinglePlayer.playerLevel._id) {
-                            vm.rewardPointToCreditManualRate = vm.rewardPointsLvlConfig.params[index].pointToCreditManualRate;
-                            break;
-                        }
-                    }
+                    vm.getPlayerRewardPointsConversionRate();
                 }
             };
 
@@ -8979,6 +8975,17 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.getPlayerRewardPointsConversionRate = function () {
+                let sendData = {
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    playerLevel: vm.isOneSelectedPlayer().playerLevel._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsConversionRate', sendData, function (data) {
+                    $scope.$evalAsync(() => {vm.playerRewardPointsConversionRate = data.data;});
+                });
+            };
+
             vm.getPlayerRewardPointsDailyLimit = function () {
                 let sendData = {
                     platformObjId: vm.isOneSelectedPlayer().platform,
@@ -8986,8 +8993,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyLimit', sendData, function (data) {
-                    vm.playerRewardPointsDailyLimit = data.data;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {vm.playerRewardPointsDailyLimit = data.data;});
                 });
             };
 
@@ -8997,8 +9003,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyConvertedPoints', sendData, function (data) {
-                    vm.playerRewardPointsDailyConvertedPoints = data.data;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {vm.playerRewardPointsDailyConvertedPoints = data.data;});
                 });
             };
 
