@@ -607,7 +607,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         20: "2000",
         21: "2100",
         22: "2200",
-        23: "2300"
+        23: "2300",
+        24: "2400"
     };
 
     $scope.loseValueType = {
