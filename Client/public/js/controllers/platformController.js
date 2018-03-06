@@ -165,7 +165,10 @@ define(['js/app'], function (myApp) {
                 PLAYER_RANDOM_REWARD_GROUP: "PlayerRandomRewardGroup",
                 PLAYER_CONSUMPTION_REWARD_GROUP: "PlayerConsumptionRewardGroup",
                 PLAYER_FREE_TRIAL_REWARD_GROUP: "PlayerFreeTrialRewardGroup",
-                PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints"
+                PLAYER_ADD_REWARD_POINTS: "PlayerAddRewardPoints",
+                PLAYER_MINUS_REWARD_POINTS: "PlayerMinusRewardPoints",
+                PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints",
+                PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints"
             };
 
             vm.inputDevice = {
