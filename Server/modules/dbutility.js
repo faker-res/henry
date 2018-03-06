@@ -528,7 +528,7 @@ var dbUtility = {
      */
     getDayTime: function (inputDate) {
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf("day").toDate();
-        var endTime = moment(inputDate).tz('Asia/Singapore').add(1, 'day').toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').endOf("day").toDate();
         return {
             startTime: startTime,
             endTime: endTime
@@ -543,7 +543,7 @@ var dbUtility = {
         inputDate = new Date(inputDate);
         inputDate.setDate(inputDate.getDate() -1);
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf("week").add(1, 'day').toDate();
-        var endTime = moment(inputDate).tz('Asia/Singapore').add(1, 'day').add(1, 'week').toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').startOf("week").add(1, 'day').add(1, 'week').toDate();
         return {
             startTime: startTime,
             endTime: endTime
@@ -583,6 +583,15 @@ var dbUtility = {
     getMonthSGTIme: function (inputDate) {
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
         var endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getQuarterSGTime: function (inputDate) {
+        var startTime = moment(inputDate).tz('Asia/Singapore').startOf('quarter').toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').endOf('quarter').toDate();
         return {
             startTime: startTime,
             endTime: endTime
