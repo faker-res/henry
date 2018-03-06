@@ -19434,7 +19434,7 @@ define(['js/app'], function (myApp) {
             }
             vm.configAddPlayerLevelValid = function () {
                 //up level condition check
-                // var upLevelConditionValid = true;
+                var upLevelConditionValid = true;
                 var obj = vm.newPlayerLvl.levelUpConfig[0];
                 // if (!obj.topupLimit) {
                 //     upLevelConditionValid = false;
