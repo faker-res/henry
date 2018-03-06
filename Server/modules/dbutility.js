@@ -91,39 +91,10 @@ var dbUtility = {
     },
 
     /**
-     * Get past day time frame based on SGT
-     */
-    getYesterdaySGTimeByDate: function (date) {
-        var endTime = moment(date).tz('Asia/Singapore').startOf('day').toDate();
-        var startTime = moment(endTime).subtract(1, 'days').toDate();
-
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-    },
-
-    /**
      * Get current day time frame based on SGT
      */
     getTodaySGTime: function () {
         var startTime = moment().tz('Asia/Singapore').startOf('day').toDate();
-        var endTime = moment(startTime).add(1, 'days').toDate();
-
-        //console.log("Today startTime:", startTime);
-        //console.log("Today endTime:  ", endTime);
-
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-    },
-
-    /**
-     * Get current day time frame based on SGT
-     */
-    getTodaySGTimeByDate: function (date) {
-        var startTime = moment(date).tz('Asia/Singapore').startOf('day').toDate();
         var endTime = moment(startTime).add(1, 'days').toDate();
 
         //console.log("Today startTime:", startTime);
@@ -172,35 +143,12 @@ var dbUtility = {
         return mondayThisWeek.toDate();
     },
 
-    getPreviousSGMondayByDate: function (date) {
-        // Get midnight on the morning of this week's Monday.
-        // (That could be tomorrow if today is Sunday!)
-        var mondayThisWeek = moment(date).tz('Asia/Singapore').startOf('day').day("Monday");
-
-        // If this week's Monday is in the future, return the Monday of the week before
-        if (mondayThisWeek.toDate().getTime() > Date.now()) {
-            mondayThisWeek.subtract(7, 'days');
-        }
-
-        return mondayThisWeek.toDate();
-    },
-
     getLastWeekSGTime: function () {
         var endTime = dbUtility.getPreviousSGMonday();
         var startTime = moment(endTime).subtract(1, 'week').toDate();
 
         //console.log("Last week startTime:", startTime);
         //console.log("Last week endTime:  ", endTime);
-
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-    },
-
-    getLastWeekSGTimeByDate: function (date) {
-        var endTime = dbUtility.getPreviousSGMondayByDate(date);
-        var startTime = moment(endTime).subtract(1, 'week').toDate();
 
         return {
             startTime: startTime,

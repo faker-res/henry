@@ -21,7 +21,7 @@ function socketActionPlayerLevel(socketIO, socket) {
         createPlayerLevel: function createPlayerLevel(data) {
             var actionName = arguments.callee.name;
             // @todo data.levelUpConfig and data.levelDownConfig should be arrays with valid items inside them
-            var isValidData = Boolean(data && data.platform && data.name && data.value >= 0);
+            var isValidData = Boolean(data && data.platform && data.name && data.value);
             socketUtil.emitter(self.socket, dbPlayerLevel.createPlayerLevel, [data], actionName, isValidData);
         },
         /**
