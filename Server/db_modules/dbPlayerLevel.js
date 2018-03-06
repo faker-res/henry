@@ -224,10 +224,6 @@ let dbPlayerLevelInfo = {
 
                     if (parentPeriod == "WEEK") {
                         periodTimeParent = dbUtil.getLastWeekSGTimeByDate(endTime);
-                        if (platformPeriod == constPlayerLevelUpPeriod.MONTH && periodTimeParent.endTime < endTime) {
-                            periodTimeParent.startTime = periodTimeParent.endTime;
-                            periodTimeParent.endTime = endTime;
-                        }
                     } else {
                         periodTimeParent = dbUtil.getLastMonthSGTime();
                     }
@@ -293,17 +289,9 @@ let dbPlayerLevelInfo = {
                         periodTime = dbUtil.getYesterdaySGTimeByDate(endTime);
                     }
 
-                    if (recordPeriod == "WEEK" && platformPeriod == constPlayerLevelUpPeriod.MONTH && periodTime.endTime < endTime) {
-                        for (let c = 0; c < queryRecord.length; c++) {
-                            if (queryRecord[c].createTime >= periodTime.endTime && queryRecord[c].createTime < endTime) {
-                                recordSum += queryRecord[c][queryAmountField];
-                            }
-                        }
-                    } else {
-                        for (let c = 0; c < queryRecord.length; c++) {
-                            if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
-                                recordSum += queryRecord[c][queryAmountField];
-                            }
+                    for (let c = 0; c < queryRecord.length; c++) {
+                        if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
+                            recordSum += queryRecord[c][queryAmountField];
                         }
                     }
                     return recordSum;
