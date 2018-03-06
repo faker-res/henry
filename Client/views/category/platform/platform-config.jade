@@ -90,7 +90,7 @@
                                         th(rowspan='2', ng-if='vm.configTableEdit')
                                         th(rowspan='2') {{"LEVEL" | translate}}
                                         th(rowspan='2') {{"VALUE" | translate}}
-                                        th(rowspan='2', ng-if='vm.configTableEdit')
+                                        th(rowspan='2', ng-if='vm.configTableEdit || vm.configTableAdd')
                                         th(colspan='2') {{"TOP_UP" | translate}}
                                         th(colspan='2') {{"CONSUMPTION" |  translate}}
                                         //th(colspan='{{vm.allGameTypeslength}}') {{"CONSUMPTION" | translate}}
@@ -214,20 +214,24 @@
                                             text &nbsp;
                                 thead(ng-if='vm.configTableAdd')
                                     tr.stronger-top.stronger-bottom
-                                        td.static(colspan='10')
+                                        td.static(colspan='12')
                                             label {{"createPlayerLevel" | translate}}
                                     +playerLevelConfigHeader
                                 tbody(ng-if='vm.configTableAdd')
                                     tr.stronger-top
-                                        td(rowspan='4')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input#newPlayerLevelFirstInput.form-control(type='text', ng-model='vm.newPlayerLvl.name', placeholder="{{'NAME' | translate}}", required)
-                                        td(rowspan='4')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.value', required, disabled)
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
+                                            a.fa.fa-plus-circle(ng-click='vm.newPlayerLevelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
+                                            br
+                                            label(ng-if='vm.newPlayerLevelUpConfig.length > 1') {{"OR" | translate}}
                                         td.static(colspan='5')
                                             text {{"Level Up Conditions" | translate}}
-                                        td(rowspan='4')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', min=0, ng-model='vm.newPlayerLvl.reward.bonusCredit', required)
-                                        td(rowspan='4')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             //input(type='checkbox', ng-model='vm.newPlayerLvl.reward.isRewardTask', required)
                                             div(ng-if='vm.selectedPlatform.data.useProviderGroup')
                                                 select(ng-model='vm.newPlayerLvl.reward.providerGroup')
@@ -236,32 +240,32 @@
 
                                             div(ng-if='!vm.selectedPlatform.data.useProviderGroup')
                                                 text {{"LOCAL_CREDIT" | translate}}
-                                        td(rowspan='4')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockTimes')
-                                    tr
+                                    tr(ng-repeat='(j,levelConfig) in vm.newPlayerLevelUpConfig')
                                         td
-                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelUpConfig[0].topupLimit', required)
+                                            input.form-control(type='number', min='0', ng-model='levelConfig.topupLimit', required)
                                         td
-                                            text {{vm.newPlayerLvl.levelUpConfig[0].topupPeriod | translate}}
-                                            //select.form-control(ng-model='vm.newPlayerLvl.levelUpConfig[0].topupPeriod', required)
-                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            select.form-control(ng-model='levelConfig.topupPeriod', required, style='text-align-last: center;')
+                                                option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
-                                            input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelUpConfig[0].consumptionLimit', required)
+                                            input.form-control(type='number', min='0', ng-model='levelConfig.consumptionLimit', required)
                                         td
-                                            text {{vm.newPlayerLvl.levelUpConfig[0].consumptionPeriod | translate}}
-                                            //select.form-control(ng-model='vm.newPlayerLvl.levelUpConfig[0].consumptionPeriod', required)
-                                            //    option(ng-repeat='(i,j) in vm.playerLvlPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
+                                            select.form-control(ng-model='levelConfig.consumptionPeriod', required, style='text-align-last: center;')
+                                                option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
-                                            input(type='checkbox', ng-model='vm.newPlayerLvl.levelUpConfig[0].andConditions')
+                                            input(type='checkbox', ng-model='levelConfig.andConditions')
                                         //td(ng-repeat='(key,title) in vm.allGameTypes')
                                             input.form-control(type='number', ng-model='vm.newPlayerLvl.consumption[key]')
                                         //td
                                             text {{level.reward}}
                                         //-td
                                     tr
+                                        td
                                         td.static(colspan='5')
                                             text {{"Level Down Conditions" | translate}}
                                     tr
+                                        td
                                         td
                                             //input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].topupMinimum', ng-change="vm.playerLvlDownChange(-1,j,'topupMinimum')", required)
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].topupMinimum', required)
@@ -281,7 +285,7 @@
                                         td
                                             input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI();')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI(); vm.initPlayerLevelPeriod();')
                             text {{'ADD_LEVEL' | translate}}
                             img.img-create
                         button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod()')
