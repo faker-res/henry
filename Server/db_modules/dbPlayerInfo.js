@@ -8075,7 +8075,7 @@ let dbPlayerInfo = {
                     case 'day':
                         // topupCollectionName = 'collection_playerTopUpDaySummary';
                         // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
-                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 1));
+                        // if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 1));
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
@@ -8083,7 +8083,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
-                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 7));
+                        // if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 7));
                         activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
@@ -8091,7 +8091,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
-                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 15));
+                        // if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 15));
                         activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
@@ -8099,7 +8099,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
-                        if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 1)).setDate(1));
+                        // if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 1)).setDate(1));
                         activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
@@ -8108,7 +8108,7 @@ let dbPlayerInfo = {
                         break;
                     case 'season':
                     default:
-                        if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 3)).setDate(1));
+                        // if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 3)).setDate(1));
                         activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
@@ -8295,7 +8295,7 @@ let dbPlayerInfo = {
     },
 
     countValidActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
-        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, false, isRealPlayer, isTestPlayer, hasPartner);
+        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true, isRealPlayer, isTestPlayer, hasPartner);
     },
 
     getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerConsumptionAmount, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs, isRealPlayer, isTestPlayer, hasPartner) {
