@@ -210,6 +210,15 @@ var dbUtility = {
         };
     },
 
+    getCurrentSeasonSGTime: function () {
+        var startTime = moment().tz('Asia/Singapore').startOf('quarter').toDate();
+        var endTime = moment().tz('Asia/Singapore').endOf('quarter').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getCurrentYearSGTime: function () {
         var startTime = moment().tz('Asia/Singapore').startOf('year').toDate();
         var endTime = moment().tz('Asia/Singapore').endOf('year').toDate();
