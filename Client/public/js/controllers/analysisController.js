@@ -1391,7 +1391,8 @@ define(['js/app'], function (myApp) {
                 new Date(player._id.registrationTime).getTime() >= previousPeriodDate.getTime() &&
                 new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
             let lostOldPlayer = lostPlayerData.filter(player =>
-                new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
+                new Date(player._id.registrationTime).getTime() < previousPeriodDate.getTime() ||
+                new Date(player._id.registrationTime).getTime() >= currentPeriodDate.getTime());
 
             let totalGrow = growPreviousPeriodNewPlayer.length + growCurrentPeriodNewPlayer.length + growOldPlayer.length;
             let totalLost = lostPreviousPeriodNewPlayer.length + lostOldPlayer.length;
