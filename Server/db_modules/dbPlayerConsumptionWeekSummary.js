@@ -404,22 +404,22 @@ var dbPlayerConsumptionWeekSummary = {
                                                         if (proposalData.data.returnDetail["GameType:" + el._id] && proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount) {
                                                             let consumedValidAmount = 0;
                                                             let curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+                                                            let curNonXIMAAmt = proposalData.data.nonXIMADetail["GameType:" + el._id].nonXIMAAmt;
 
                                                             if (doneXIMAConsumption["GameType:" + el._id]) {
                                                                 consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
                                                             }
 
-                                                            let consumpDiff = el.validAmount - curValidAmt - consumedValidAmount;
+                                                            let consumpDiff = el.validAmount - curValidAmt - curNonXIMAAmt - consumedValidAmount;
                                                             let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
-                                                            if (proposalData.data.returnDetail["GameType:" + el._id]) {
+                                                            // Offset if it matters
+                                                            if (consumpDiff > 0.01) {
                                                                 proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
+                                                                proposalData.data.rewardAmount += consumpDiff * returnRatio;
+                                                                proposalData.data.spendingAmount += consumpDiff * returnRatio;
+                                                                proposalData.data.consumeValidAmount += consumpDiff;
                                                             }
-
-                                                            proposalData.data.rewardAmount += consumpDiff * returnRatio;
-                                                            proposalData.data.spendingAmount += consumpDiff * returnRatio;
-
-                                                            proposalData.data.consumeValidAmount += consumpDiff;
                                                         }
                                                     });
                                                 }
