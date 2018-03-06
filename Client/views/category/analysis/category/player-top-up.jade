@@ -56,12 +56,12 @@
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
                             tr
-                                th(ng-click="vm.topupTypeDataSort('amountSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
-                                th(ng-click="vm.topupTypeDataSort('amountSort','totalSum')") {{"Credit_Amount"| translate}}
-                                th(ng-click="vm.topupTypeDataSort('amountSort','web.amount')") {{'WEB'}}
-                                th(ng-click="vm.topupTypeDataSort('amountSort','H5.amount')") {{'H5'}}
-                                th(ng-click="vm.topupTypeDataSort('amountSort','App.amount')") {{'APP'}}
-                                th(ng-click="vm.topupTypeDataSort('amountSort','backStage.amount')") {{'Backstage'| translate}}
+                                th(ng-click="vm.typeDataSort('amountSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.typeDataSort('amountSort','totalSum')") {{"Credit_Amount"| translate}}
+                                th(ng-click="vm.typeDataSort('amountSort','web.amount')") {{'WEB'}}
+                                th(ng-click="vm.typeDataSort('amountSort','H5.amount')") {{'H5'}}
+                                th(ng-click="vm.typeDataSort('amountSort','App.amount')") {{'APP'}}
+                                th(ng-click="vm.typeDataSort('amountSort','backStage.amount')") {{'Backstage'| translate}}
                         tbody
                             tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopupTableSort.amountSort')
                                 td
@@ -125,12 +125,12 @@
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
                             tr
-                                th(ng-click="vm.topupTypeDataSort('countSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
-                                th(ng-click="vm.topupTypeDataSort('countSort','totalSuccessCount')") {{ "COUNT" | translate}}
-                                th(ng-click="vm.topupTypeDataSort('countSort','web.count')") {{'WEB'}}
-                                th(ng-click="vm.topupTypeDataSort('countSort','H5.count')") {{'H5'}}
-                                th(ng-click="vm.topupTypeDataSort('countSort','App.count')") {{'APP'}}
-                                th(ng-click="vm.topupTypeDataSort('countSort','backStage.count')") {{'Backstage'| translate}}
+                                th(ng-click="vm.typeDataSort('countSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.typeDataSort('countSort','totalSuccessCount')") {{ "COUNT" | translate}}
+                                th(ng-click="vm.typeDataSort('countSort','web.count')") {{'WEB'}}
+                                th(ng-click="vm.typeDataSort('countSort','H5.count')") {{'H5'}}
+                                th(ng-click="vm.typeDataSort('countSort','App.count')") {{'APP'}}
+                                th(ng-click="vm.typeDataSort('countSort','backStage.count')") {{'Backstage'| translate}}
                         tbody
                             tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopupTableSort.countSort')
                                 td
@@ -168,12 +168,12 @@
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
                             tr
-                                th(ng-click="vm.topupTypeDataSort('headCountSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
-                                th(ng-click="vm.topupTypeDataSort('headCountSort','totalHeadCount')") {{ "HEAD_COUNT" | translate}}
-                                th(ng-click="vm.topupTypeDataSort('headCountSort','web.headCount')") {{'WEB'}}
-                                th(ng-click="vm.topupTypeDataSort('headCountSort','H5.headCount')") {{'H5'}}
-                                th(ng-click="vm.topupTypeDataSort('headCountSort','App.headCount')") {{'APP'}}
-                                th(ng-click="vm.topupTypeDataSort('headCountSort','backStage.headCount')") {{'Backstage'| translate}}
+                                th(ng-click="vm.typeDataSort('headCountSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.typeDataSort('headCountSort','totalHeadCount')") {{ "HEAD_COUNT" | translate}}
+                                th(ng-click="vm.typeDataSort('headCountSort','web.headCount')") {{'WEB'}}
+                                th(ng-click="vm.typeDataSort('headCountSort','H5.headCount')") {{'H5'}}
+                                th(ng-click="vm.typeDataSort('headCountSort','App.headCount')") {{'APP'}}
+                                th(ng-click="vm.typeDataSort('headCountSort','backStage.headCount')") {{'Backstage'| translate}}
                         tbody
                             tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopupTableSort.headCountSort')
                                 td
@@ -215,13 +215,13 @@
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
                             tr
-                                th(ng-click="vm.topupTypeDataSort('rateSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
-                                th(ng-click="vm.topupTypeDataSort('rateSort','web.successRate')") {{'WEB'}}
-                                th(ng-click="vm.topupTypeDataSort('rateSort','web.successRate')") {{'WEB'}}{{'successRate'| translate}}
-                                th(ng-click="vm.topupTypeDataSort('rateSort','H5.successRate')") {{'H5'}}
-                                th(ng-click="vm.topupTypeDataSort('rateSort','H5.successRate')") {{'H5'}}{{'successRate'| translate}}
-                                th(ng-click="vm.topupTypeDataSort('rateSort','App.successRate')") {{'APP'}}
-                                th(ng-click="vm.topupTypeDataSort('rateSort','App.successRate')") {{'APP'}}{{'successRate'| translate}}
+                                th(ng-click="vm.typeDataSort('rateSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.typeDataSort('rateSort','web.successRate')") {{'WEB'}}
+                                th(ng-click="vm.typeDataSort('rateSort','web.successRate')") {{'WEB'}}{{'successRate'| translate}}
+                                th(ng-click="vm.typeDataSort('rateSort','H5.successRate')") {{'H5'}}
+                                th(ng-click="vm.typeDataSort('rateSort','H5.successRate')") {{'H5'}}{{'successRate'| translate}}
+                                th(ng-click="vm.typeDataSort('rateSort','App.successRate')") {{'APP'}}
+                                th(ng-click="vm.typeDataSort('rateSort','App.successRate')") {{'APP'}}{{'successRate'| translate}}
 
                         tbody
                             tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopupTableSort.rateSort')
