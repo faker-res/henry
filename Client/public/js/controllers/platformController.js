@@ -18303,28 +18303,30 @@ define(['js/app'], function (myApp) {
                             }
                         }
 
-                        if ( !data.hasMoreThanOne || (data.skipCheck && !data.cancel) || !data.isBlockPromoCodeUser ) {
-                            sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
-                            let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
+                        if ( !data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
+                            if(data && !data.isBlockPromoCodeUser) {
+                                sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                                let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
 
-                            sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
-                            sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
-                            sendData.platformObjId = vm.selectedPlatform.id;
-                            sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
-                            sendData.smsContent = sendData.promoCodeType.smsContent;
+                                sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
+                                sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
+                                sendData.platformObjId = vm.selectedPlatform.id;
+                                sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
+                                sendData.smsContent = sendData.promoCodeType.smsContent;
 
-                            delete sendData.isBlockPromoCodeUser;
+                                delete sendData.isBlockPromoCodeUser;
 
-                            console.log('sendData', sendData);
-                            return $scope.$socketPromise('generatePromoCode', {
-                                platformObjId: vm.selectedPlatform.id,
-                                newPromoCodeEntry: sendData,
-                                adminName: authService.adminName,
-                                adminId: authService.adminId
-                            }).then(ret => {
-                                col[index].code = ret.data;
-                                $scope.safeApply();
-                            });
+                                console.log('sendData', sendData);
+                                return $scope.$socketPromise('generatePromoCode', {
+                                    platformObjId: vm.selectedPlatform.id,
+                                    newPromoCodeEntry: sendData,
+                                    adminName: authService.adminName,
+                                    adminId: authService.adminId
+                                }).then(ret => {
+                                    col[index].code = ret.data;
+                                    $scope.safeApply();
+                                });
+                            }
                         }
                     });
                 }
