@@ -902,6 +902,8 @@
   "COLOR_CODE":"Color Code",
   "INLINE_EDIT":"Inline Edit",
   "ADD_GROUP":"Add Group",
+  "BLOCK_GROUP": "Block Group",
+  "BLOCK": "Block",
 
   "phoneNumFilter": "Phone Number Filter",
   "FILTER_ALL_PLATFORM": "Filter All Platform",
