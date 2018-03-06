@@ -1451,57 +1451,56 @@ define(['js/app'], function (myApp) {
             vm.isLoadingValidActivePlayer = true;
 
             socketService.$socket($scope.AppSocket, 'countValidActivePlayerbyPlatform', sendData, function success(data1) {
-                $scope.$evalAsync(() => {
-                    vm.platformValidActivePlayerDataPeriodText = vm.queryPara.validActivePlayer.periodText;
-                    vm.platformValidActivePlayerAnalysisData = [];
-                    Object.keys(data1.data).forEach(function(key) {
-                        vm.platformValidActivePlayerAnalysisData.push({date: new Date(key), playerData: data1.data[key]});
-                    });
+                vm.platformValidActivePlayerDataPeriodText = vm.queryPara.validActivePlayer.periodText;
+                vm.platformValidActivePlayerAnalysisData = [];
+                Object.keys(data1.data).forEach(function(key) {
+                    vm.platformValidActivePlayerAnalysisData.push({date: new Date(key), playerData: data1.data[key]});
+                });
 
-                    vm.platformValidActivePlayerAnalysisCalculatedData = [];
-                    for(let i = 1; i < vm.platformValidActivePlayerAnalysisData.length-1; i++){
-                        vm.platformValidActivePlayerAnalysisCalculatedData.push(
-                            vm.compareValidActivePlayerDataBetweenPeriod(vm.platformValidActivePlayerAnalysisData[i-1], vm.platformValidActivePlayerAnalysisData[i], vm.platformValidActivePlayerDataPeriodText)
-                        );
-                    };
-                    console.log('vm.platformValidActivePlayerAnalysisData', vm.platformValidActivePlayerAnalysisData);
-                    console.log('vm.platformValidActivePlayerAnalysisCalculatedData', vm.platformValidActivePlayerAnalysisCalculatedData);
-                    let calculatedValidActivePlayerData = vm.calculateLineDataAndAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'totalPlayerCount', 'ValidActivePlayer');
-                    vm.platformValidActivePlayerAverage = {
-                        calculatedValidActivePlayerData: calculatedValidActivePlayerData.average,
-                        calculatedActiveNewPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'activeNewPlayer'),
-                        calculatedActiveOldPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'activeOldPlayer'),
-                        calculatedGrowPreviousPeriodNewPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'growPreviousPeriodNewPlayer'),
-                        calculatedGrowCurrentPeriodNewPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'growCurrentPeriodNewPlayer'),
-                        calculatedGrowOldPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'growOldPlayer'),
-                        calculatedLostPreviousPeriodNewPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'lostPreviousPeriodNewPlayer'),
-                        calculatedLostOldPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'lostOldPlayer'),
-                    };
-                    let totalActivePlayerValidPlayer = vm.platformValidActivePlayerAnalysisCalculatedData.reduce((a, data) => a + data.totalPlayerCount,0);
-                    vm.platformValidActivePlayerAverageRatio = {
-                        calculatedActiveNewPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'activeNewPlayer'),
-                        calculatedActiveOldPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'activeOldPlayer'),
-                        calculatedGrowPreviousPeriodNewPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'growPreviousPeriodNewPlayer'),
-                        calculatedGrowCurrentPeriodNewPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'growCurrentPeriodNewPlayer'),
-                        calculatedGrowOldPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'growOldPlayer'),
-                        calculatedLostPreviousPeriodNewPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'lostPreviousPeriodNewPlayer'),
-                        calculatedLostOldPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'lostOldPlayer'),
-                    };
-                    vm.plotLineByElementId("#line-validActivePlayer", calculatedValidActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
-                    /**********Calculate validActivePlayerGrowAndLost lineGraph Data**************/
-                    let totalGrow = [];
-                    let totalLost = [];
-                    let totalNetGrow = [];
-                    vm.platformValidActivePlayerAnalysisCalculatedData.forEach(data => {
-                        totalGrow.push([new Date(data.date), data.totalGrow]);
-                        totalLost.push([new Date(data.date), data.totalLost]);
-                        totalNetGrow.push([new Date(data.date), data.totalNetGrow]);
-                    });
-                    let validActivePlayerGrowAndLostLineData =[{label: $translate('totalGrow'), data: totalGrow}, {label: $translate('totalLost'), data: totalLost}, {label: $translate('totalNetGrow'), data: totalNetGrow}];
-                    vm.plotLineByElementId("#line-validActivePlayerGrowAndLost", validActivePlayerGrowAndLostLineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
-                    vm.isShowLoadingSpinner('#validActivePlayerAnalysis', false);
-                    vm.isLoadingValidActivePlayer = false;
-                })
+                vm.platformValidActivePlayerAnalysisCalculatedData = [];
+                for(let i = 1; i < vm.platformValidActivePlayerAnalysisData.length-1; i++){
+                    vm.platformValidActivePlayerAnalysisCalculatedData.push(
+                        vm.compareValidActivePlayerDataBetweenPeriod(vm.platformValidActivePlayerAnalysisData[i-1], vm.platformValidActivePlayerAnalysisData[i], vm.platformValidActivePlayerDataPeriodText)
+                    );
+                };
+                console.log('vm.platformValidActivePlayerAnalysisData', vm.platformValidActivePlayerAnalysisData);
+                console.log('vm.platformValidActivePlayerAnalysisCalculatedData', vm.platformValidActivePlayerAnalysisCalculatedData);
+                let calculatedValidActivePlayerData = vm.calculateLineDataAndAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'totalPlayerCount', 'ValidActivePlayer');
+                vm.platformValidActivePlayerAverage = {
+                    calculatedValidActivePlayerData: calculatedValidActivePlayerData.average,
+                    calculatedActiveNewPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'activeNewPlayer'),
+                    calculatedActiveOldPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'activeOldPlayer'),
+                    calculatedGrowPreviousPeriodNewPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'growPreviousPeriodNewPlayer'),
+                    calculatedGrowCurrentPeriodNewPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'growCurrentPeriodNewPlayer'),
+                    calculatedGrowOldPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'growOldPlayer'),
+                    calculatedLostPreviousPeriodNewPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'lostPreviousPeriodNewPlayer'),
+                    calculatedLostOldPlayerData: vm.calculateDataAverage(vm.platformValidActivePlayerAnalysisCalculatedData, 'lostOldPlayer'),
+                };
+                let totalActivePlayerValidPlayer = vm.platformValidActivePlayerAnalysisCalculatedData.reduce((a, data) => a + data.totalPlayerCount,0);
+                vm.platformValidActivePlayerAverageRatio = {
+                    calculatedActiveNewPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'activeNewPlayer'),
+                    calculatedActiveOldPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'activeOldPlayer'),
+                    calculatedGrowPreviousPeriodNewPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'growPreviousPeriodNewPlayer'),
+                    calculatedGrowCurrentPeriodNewPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'growCurrentPeriodNewPlayer'),
+                    calculatedGrowOldPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'growOldPlayer'),
+                    calculatedLostPreviousPeriodNewPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'lostPreviousPeriodNewPlayer'),
+                    calculatedLostOldPlayerRatio: vm.calculateValidActivePlayerDataRatio(totalActivePlayerValidPlayer, vm.platformValidActivePlayerAnalysisCalculatedData, 'lostOldPlayer'),
+                };
+                vm.plotLineByElementId("#line-validActivePlayer", calculatedValidActivePlayerData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
+                /**********Calculate validActivePlayerGrowAndLost lineGraph Data**************/
+                let totalGrow = [];
+                let totalLost = [];
+                let totalNetGrow = [];
+                vm.platformValidActivePlayerAnalysisCalculatedData.forEach(data => {
+                    totalGrow.push([new Date(data.date), data.totalGrow]);
+                    totalLost.push([new Date(data.date), data.totalLost]);
+                    totalNetGrow.push([new Date(data.date), data.totalNetGrow]);
+                });
+                let validActivePlayerGrowAndLostLineData =[{label: $translate('totalGrow'), data: totalGrow}, {label: $translate('totalLost'), data: totalLost}, {label: $translate('totalNetGrow'), data: totalNetGrow}];
+                vm.plotLineByElementId("#line-validActivePlayerGrowAndLost", validActivePlayerGrowAndLostLineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
+                vm.isShowLoadingSpinner('#validActivePlayerAnalysis', false);
+                vm.isLoadingValidActivePlayer = false;
+                $scope.safeApply();
             },() => {
                 vm.isShowLoadingSpinner('#activePlayerAnalysis', false);
                 vm.isLoadingValidActivePlayer = false;
