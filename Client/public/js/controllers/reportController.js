@@ -6105,7 +6105,7 @@ define(['js/app'], function (myApp) {
                 language: 'en',
                 format: 'yyyy/MM/dd hh:mm:ss'
             });
-            obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayEndTime()));
+            obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayStartTime()));
         }
 
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
