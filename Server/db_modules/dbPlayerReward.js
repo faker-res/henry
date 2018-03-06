@@ -2408,11 +2408,24 @@ let dbPlayerReward = {
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                     newPromoCodeEntry.adminId = adminObjId;
                     newPromoCodeEntry.adminName = adminName;
-                    return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
+
+                    return dbConfig.collection_promoCodeActiveTime.findOne({
+                        platform: platformObjId,
+                        startTime: {$lt: new Date()},
+                        endTime: {$gt: new Date()}
+                    }).lean();
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid player data"});
                 }
+            }
+        ).then(
+            activeTimeRes => {
+                if (activeTimeRes) {
+                    newPromoCodeEntry.isActive = true;
+                }
+
+                return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
             }
         ).then(
             newPromoCode => {
@@ -2711,7 +2724,7 @@ let dbPlayerReward = {
         )
     },
 
-    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime) => {
+    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name) => {
         let monitorObjs;
         let promoCodeQuery = {
             'data.platformId': platformObjId,
@@ -2720,6 +2733,10 @@ let dbPlayerReward = {
             // We only want type 3 promo code
             "data.promoCodeTypeValue": 3
         };
+
+        if (promoCodeType3Name) {
+            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeType3Name
+        }
 
         return dbProposalUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_PROMO_CODE_REWARD, promoCodeQuery).then(
             promoCodeData => {
@@ -2773,7 +2790,7 @@ let dbPlayerReward = {
                     proms.push(
                         getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
                             res => {
-                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].bonusAmount : 0;
+                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].validAmount : 0;
 
                                 return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
                             }
@@ -3683,6 +3700,12 @@ let dbPlayerReward = {
             }, {
                 multi: true
             }).exec().catch(errorUtils.reportError);
+
+            dbConfig.collection_promoCodeActiveTime({
+                platform: platformObjId,
+                startTime: new Date(data.startAcceptedTime),
+                endTime: new Date(data.endAcceptedTime)
+            }).save().catch(errorUtils.reportError);
         }
 
         return dbConfig.collection_promoCode.update({

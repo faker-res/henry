@@ -11,3 +11,5 @@ style.
                 table#batchPlayerDataTable(style="width:100%")
                 .well(ng-show='vm.batchPermitModifySucc')
                     label.text-success {{'SUCCESS' | translate}}
+                .well(ng-if='vm.errorListMsg')
+                    label.text-danger {{vm.errorListMsg}} {{'Update' | translate}}{{'FAIL' | translate}}

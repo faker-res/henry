@@ -219,7 +219,38 @@ let dbPlayerInfo = {
      */
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
-        return dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, constPlayerRegistrationInterface.BACKSTAGE, adminName);
+        let proposalType = updateAmount >= 0 ? constProposalType.PLAYER_ADD_REWARD_POINTS : constProposalType.PLAYER_MINUS_REWARD_POINTS;
+        let proposalData = {
+            data: {
+                playerObjId: playerObjId,
+                platformObjId: platformObjId,
+                updateAmount: updateAmount,
+                category: category,
+                remark: remark,
+                userAgent: constPlayerRegistrationInterface.BACKSTAGE,
+                adminName: adminName
+            }
+        };
+        dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData);
+    },
+
+    /**
+     * Get player reward points conversion rate
+     */
+    getPlayerRewardPointsConversionRate: function (platformObjId, playerLevel) {
+        return dbconfig.collection_rewardPointsLvlConfig.findOne({
+            platformObjId: platformObjId
+        }).lean().then(
+            data => {
+                let conversionRate = null;
+                for (let i = 0; i < data.params.length; i++) {
+                    if (data.params[i].levelObjId.toString() === playerLevel.toString()) {
+                        conversionRate = data.params[i].pointToCreditManualRate;
+                        return conversionRate;
+                    }
+                }
+            }
+        )
     },
 
     /**
@@ -1220,7 +1251,7 @@ let dbPlayerInfo = {
 
     createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-        let platform;
+        let platform, defaultCredit;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -1234,6 +1265,7 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Platform does not exist"});
                 }
                 platform = platformData;
+                defaultCredit = platform.demoPlayerDefaultCredit || 0;
 
                 let demoNameProm = generateDemoPlayerName(platform.demoPlayerPrefix, platform._id);
                 promArr.push(demoNameProm);
@@ -1302,6 +1334,7 @@ let dbPlayerInfo = {
                     platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
+                    validCredit: defaultCredit,
                     isTestPlayer: true,
                     isRealPlayer: false
                 };
@@ -1673,32 +1706,32 @@ let dbPlayerInfo = {
         }
         let players = query.playerNames;
         let proms = [];
+        let errorList = [];
         players.forEach(item => {
-            let playerQuery = {'name': item, 'platform': query.platformObjId};
+            let playerName = item.trim() || '';
+            let playerQuery = {'name': playerName, 'platform': query.platformObjId};
             let prom = dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, playerQuery, updateObj, constShardKeys.collection_players, false).then(
                 function (suc) {
                     var oldData = {};
                     for (var i in permission) {
                         if (suc.permission[i] != permission[i]) {
                             oldData[i] = suc.permission[i];
-                        } else {
-                            delete permission[i];
                         }
                     }
-                    if (Object.keys(oldData).length !== 0) {
-                        var newLog = new dbconfig.collection_playerPermissionLog({
-                            admin: admin,
-                            platform: playerQuery.platform,
-                            player: suc._id,
-                            remark: remark,
-                            oldData: oldData,
-                            newData: permission,
-                        });
-                        return newLog.save();
-                    } else return true;
+                    
+                    var newLog = new dbconfig.collection_playerPermissionLog({
+                        admin: admin,
+                        platform: playerQuery.platform,
+                        player: suc._id,
+                        remark: remark,
+                        oldData: oldData,
+                        newData: permission,
+                    });
+                    return newLog.save();
                 },
                 function (error) {
-                    return Q.reject({name: "DBError", message: "Error updating player permission.", error: error});
+                    errorList.push(error.query.name);
+                    return error.query.name
                 }
             )
             proms.push(prom)
@@ -4793,6 +4826,12 @@ let dbPlayerInfo = {
             function (playerData1) {
                 if (playerData1) {
                     playerData = playerData1;
+                    if(playerData.isTestPlayer) {
+                        deferred.reject({
+                            name: "DataError",
+                            message: "Unable to transfer credit for demo player"
+                        })
+                    }
                     // Check player have enough credit
                     if ((parseFloat(playerData1.validCredit.toFixed(2)) + playerData1.lockedCredit) < 1
                         || amount == 0) {
@@ -5123,23 +5162,23 @@ let dbPlayerInfo = {
      * @param {objectId} providerId
      * @param {Number} amount
      */
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, isBatch) {
-        isBatch = isBatch === true;
-        let updateBatchStatus = function (isBatch) {    //uses platform parameter to pass in platformObjId
-            if (isBatch) {
-                let incrementObj = {};
-                if (playerObj) {
-                    incrementObj["batchCreditTransferOutStatus." + playerObj.platform._id + ".processedAmount"] = 1;
-                } else {
-                    incrementObj["batchCreditTransferOutStatus." + platform + ".processedAmount"] = 1;
-                }
-                if (gameProvider) {
-                    dbconfig.collection_gameProvider.findOneAndUpdate({_id: gameProvider._id}, {$inc: incrementObj}).exec();
-                } else {
-                    dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
-                }
-            }
-        };
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+        // isBatch = isBatch === true;
+        // let updateBatchStatus = function (isBatch) {    //uses platform parameter to pass in platformObjId
+        //     if (isBatch) {
+        //         let incrementObj = {};
+        //         if (playerObj) {
+        //             incrementObj["batchCreditTransferOutStatus." + playerObj.platform._id + ".processedAmount"] = 1;
+        //         } else {
+        //             incrementObj["batchCreditTransferOutStatus." + platform + ".processedAmount"] = 1;
+        //         }
+        //         if (gameProvider) {
+        //             dbconfig.collection_gameProvider.findOneAndUpdate({_id: gameProvider._id}, {$inc: incrementObj}).exec();
+        //         } else {
+        //             dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
+        //         }
+        //     }
+        // };
         var deferred = Q.defer();
         let playerObj;
         let gameProvider;
@@ -5185,7 +5224,7 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                updateBatchStatus(isBatch);
+                // updateBatchStatus(isBatch);
                 deferred.resolve(data);
             },
             function (err) {
@@ -5195,11 +5234,31 @@ let dbPlayerInfo = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, platformObjId, platformId, "transferOut", "unknown",
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
-                updateBatchStatus(isBatch);
+                // updateBatchStatus(isBatch);
                 deferred.reject(err);
             }
         );
         return deferred.promise;
+    },
+
+    transferPlayerCreditFromProviderSettlement: function (playerId, platformObjId, providerId, credit, adminName) {
+        let updateBatchStatus = function() {
+            let incrementObj = {};
+            incrementObj["batchCreditTransferOutStatus." + platformObjId + ".processedAmount"] = 1;
+            dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
+        };
+
+        return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platformObjId, providerId, credit, adminName).then(
+            data => {
+                updateBatchStatus();
+                return Promise.resolve(data);
+            },
+            err => {
+                errorUtils.reportError(err);
+                updateBatchStatus();
+                return Promise.resolve();
+            }
+        );
     },
 
     /**
@@ -5245,6 +5304,12 @@ let dbPlayerInfo = {
                         if (bResolve) {
                             return dbconfig.collection_players.findOne({_id: playerObjId}).lean().then(
                                 playerData => {
+                                    if(playerData.isTestPlayer) {
+                                        deferred.reject({
+                                            name: "DataError",
+                                            message: "Unable to transfer credit for demo player"
+                                        })
+                                    }
                                     deferred.resolve(
                                         {
                                             playerId: playerId,
@@ -6158,9 +6223,6 @@ let dbPlayerInfo = {
         return playerProm.then(
             function (data) {
                 if (data) {
-                    if(data.isTestPlayer) {
-                        return Q.reject({name: "DataError", message: "Unable to check game credit for demo player"});
-                    }
                     return cpmsAPI.player_queryCredit(
                         {
                             username: data.name,
@@ -7918,14 +7980,86 @@ let dbPlayerInfo = {
 
     },
 
+    getTopUpMethodSuccessHeadCountByPlatform: function (platformId, startDate, endDate, period) {
+        var proms = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime}
+            };
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+
+            proms.push(dbconfig.collection_playerTopUpRecord.aggregate(
+                {$match: matchObj}, {
+                    $group: {
+                        _id: {"topUpType": "$topUpType", "playerId": "$playerId"}
+                    }
+                }, {
+                    $group: {
+                        "_id": "$_id.topUpType",
+                        "count": {"$sum": 1}
+                    }
+                }).read("secondaryPreferred"))
+            dayStartTime = dayEndTime;
+        }
+        return Q.all(proms).then(data => {
+            var tempDate = startDate;
+            var res = data.map(item => {
+                if(item){
+                    let obj = [];
+                    if(item.length > 0){
+                        item.forEach(i => {
+                            if(i){
+                                obj.push({_id: {date: tempDate, topUpType: i._id ? getKey(constPlayerTopUpType,Number(i._id)) : ""}, number: i.count ? i.count : 0})
+                            }
+                        })
+                    }else{
+                        obj.push({_id: {date: tempDate, topUpType: ""}, number: 0})
+                    }
+
+                    tempDate = getNextDate(tempDate);
+                    return obj;
+                }
+            });
+
+            return res;
+        });
+    },
     /* 
      * Get active player count 
      */
     countActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isFilterValidPlayer, isRealPlayer, isTestPlayer, hasPartner) {
         let result = {};
+
         return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).lean().then(
             (partnerLevelConfig) => {
-                if (!partnerLevelConfig) Q.reject({name: "DataError", errorMessage: "partnerLevelConfig no found"});
+                if (!partnerLevelConfig) Promise.reject({name: "DataError", errorMessage: "partnerLevelConfig no found"});
 
                 let dayStartTime = startDate;
                 let activePlayerTopUpTimes;
@@ -7935,12 +8069,13 @@ let dbPlayerInfo = {
                 let activePlayerValue;
                 let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
                 let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
+
                 let date = new Date(dayStartTime); // for active valid player need get earlier 1 period
                 switch (period) {
                     case 'day':
                         // topupCollectionName = 'collection_playerTopUpDaySummary';
                         // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
-                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 1));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getDayTime(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
@@ -7948,7 +8083,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
-                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 7));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getWeekTime(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
@@ -7956,7 +8091,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
-                        if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 15));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getBiWeekSGTIme(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
@@ -7964,7 +8099,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
-                        if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 1)).setDate(1));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getMonthSGTIme(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
@@ -7973,7 +8108,7 @@ let dbPlayerInfo = {
                         break;
                     case 'season':
                     default:
-                        if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 3)).setDate(1));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getQuarterSGTime(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
@@ -12735,13 +12870,13 @@ let dbPlayerInfo = {
                         _id: "$gameId",
                         gameId: {"$first": "$gameId"},
                         providerId: {"$first": "$providerId"},
-                        count: {$sum: 1},
+                        count: {$sum: {$cond: ["$count", "$count", 1]}},
                         amount: {$sum: "$amount"},
                         validAmount: {$sum: "$validAmount"},
                         bonusAmount: {$sum: "$bonusAmount"}
                     }
                 }
-            ]).allowDiskUse(true);
+            ]).allowDiskUse(true).read("secondaryPreferred");
 
             let topUpProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -12763,7 +12898,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
 
             let bonusProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -12784,7 +12919,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.amount"}
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
 
             let consumptionReturnProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -12804,7 +12939,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
 
             let rewardProm = dbconfig.collection_proposal.aggregate([
                 {
@@ -12825,7 +12960,7 @@ let dbPlayerInfo = {
                         "amount": {"$sum": "$data.rewardAmount"}
                     }
                 }
-            ]);
+            ]).read("secondaryPreferred");
 
             let playerQuery = {_id: playerObjId};
             if (query.playerLevel) {
