@@ -6672,36 +6672,38 @@ let dbPlayerInfo = {
                                 periodMatch = dbUtility.isFirstDayOfMonthSG();
                             }
                             if (periodMatch) {
-                                const topupPeriod = conditionSet.topupPeriod;
-                                const topupField = topupFieldsByPeriod[topupPeriod];
-                                let playersTopupForPeriod = playerObj[topupField];
-                                if (playersTopupForPeriod === undefined) {
-                                    playersTopupForPeriod = 0;
-                                }
-                                let failsTopupRequirements = playersTopupForPeriod < conditionSet.topupMinimum;
-
-                                const consumptionPeriod = conditionSet.consumptionPeriod;
-                                const consumptionField = consumptionFieldsByPeriod[consumptionPeriod];
-                                let playersConsumptionForPeriod = playerObj[consumptionField];
-                                if (playersConsumptionForPeriod === undefined) {
-                                    playersConsumptionForPeriod = 0;
-                                }
-                                let failsConsumptionRequirements = playersConsumptionForPeriod < conditionSet.consumptionMinimum;
-
-                                if (topupField === undefined || consumptionField === undefined) {
-                                    console.warn("Invalid topup period '" + topupPeriod + "' or consumption period '" + consumptionPeriod + "' in playerLevel with id: " + level._id);
-                                }
-
-                                const failsEnoughConditions =
-                                    conditionSet.andConditions
-                                        ? failsTopupRequirements || failsConsumptionRequirements
-                                        : failsTopupRequirements && failsConsumptionRequirements;
+                                // const topupPeriod = conditionSet.topupPeriod;
+                                // const topupField = topupFieldsByPeriod[topupPeriod];
+                                // let playersTopupForPeriod = playerObj[topupField];
+                                // if (playersTopupForPeriod === undefined) {
+                                //     playersTopupForPeriod = 0;
+                                // }
+                                // let failsTopupRequirements = playersTopupForPeriod < conditionSet.topupMinimum;
+                                //
+                                // const consumptionPeriod = conditionSet.consumptionPeriod;
+                                // const consumptionField = consumptionFieldsByPeriod[consumptionPeriod];
+                                // let playersConsumptionForPeriod = playerObj[consumptionField];
+                                // if (playersConsumptionForPeriod === undefined) {
+                                //     playersConsumptionForPeriod = 0;
+                                // }
+                                // let failsConsumptionRequirements = playersConsumptionForPeriod < conditionSet.consumptionMinimum;
+                                //
+                                // if (topupField === undefined || consumptionField === undefined) {
+                                //     console.warn("Invalid topup period '" + topupPeriod + "' or consumption period '" + consumptionPeriod + "' in playerLevel with id: " + level._id);
+                                // }
+                                //
+                                // const failsEnoughConditions =
+                                //     conditionSet.andConditions
+                                //         ? failsTopupRequirements || failsConsumptionRequirements
+                                //         : failsTopupRequirements && failsConsumptionRequirements;
 
                                 // const failsEnoughConditions = failsTopupRequirements || failsConsumptionRequirements;
-                                if (failsEnoughConditions) {
-                                    levelObjId = previousLevel._id;
-                                    levelDownObj = previousLevel;
-                                }
+                                // if (failsEnoughConditions) {
+                                //     levelObjId = previousLevel._id;
+                                //     levelDownObj = previousLevel;
+                                // }
+                                levelObjId = previousLevel._id;
+                                levelDownObj = previousLevel;
                             }
                         }
                     }
@@ -6979,32 +6981,16 @@ let dbPlayerInfo = {
                                                }
                                            );
                                        } else {
-                                           return Promise.reject({
-                                               name: "DBError",
-                                               message: "top up or consumption summary does not match record"
-                                           })
+                                           if (checkLevelUp) {
+                                               return Promise.reject({
+                                                   name: "DBError",
+                                                   message: "top up or consumption summary does not match record"
+                                               })
+                                           }
                                        }
                                    }
                                );
                            });
-
-
-                        // If there is a reward for this level, give it to the player
-                        // if (levelUpObj && levelUpObj.reward && levelUpObj.reward.bonusCredit) {
-                        //     //console.log(`Giving the player credit: ${levelUpObj.reward.bonusCredit}`);
-                        //     var proposalData = {
-                        //         rewardAmount: levelUpObj.reward.bonusCredit,
-                        //         isRewardTask: levelUpObj.reward.isRewardTask,
-                        //         levelValue: levelUpObj.value,
-                        //         levelName: levelUpObj.name,
-                        //         levelOldName: playerObj.playerLevel.name,
-                        //         playerObjId: playerObj._id,
-                        //         playerName: playerObj.name,
-                        //         playerId: playerObj.playerId,
-                        //         platformObjId: playerObj.platform
-                        //     };
-                        //     return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposalData});
-                        // }
 
 
                     }
