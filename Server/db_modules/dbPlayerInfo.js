@@ -8075,7 +8075,7 @@ let dbPlayerInfo = {
                     case 'day':
                         // topupCollectionName = 'collection_playerTopUpDaySummary';
                         // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
-                        // if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 1));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getDayTime(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
@@ -8083,7 +8083,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
-                        // if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 7));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getWeekTime(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.weeklyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
@@ -8091,7 +8091,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
-                        // if(isFilterValidPlayer) dayStartTime = new Date(date.setDate(date.getDate() - 15));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getBiWeekSGTIme(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.halfMonthActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
@@ -8099,7 +8099,7 @@ let dbPlayerInfo = {
                         activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
-                        // if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 1)).setDate(1));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getMonthSGTIme(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.monthlyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
@@ -8108,7 +8108,7 @@ let dbPlayerInfo = {
                         break;
                     case 'season':
                     default:
-                        // if(isFilterValidPlayer) dayStartTime = new Date(new Date(date.setMonth(date.getMonth() - 3)).setDate(1));
+                        if(isFilterValidPlayer) dayStartTime = dbUtility.getQuarterSGTime(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.seasonActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
