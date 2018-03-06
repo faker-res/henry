@@ -8056,9 +8056,10 @@ let dbPlayerInfo = {
      */
     countActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isFilterValidPlayer, isRealPlayer, isTestPlayer, hasPartner) {
         let result = {};
+
         return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).lean().then(
             (partnerLevelConfig) => {
-                if (!partnerLevelConfig) Q.reject({name: "DataError", errorMessage: "partnerLevelConfig no found"});
+                if (!partnerLevelConfig) Promise.reject({name: "DataError", errorMessage: "partnerLevelConfig no found"});
 
                 let dayStartTime = startDate;
                 let activePlayerTopUpTimes;
@@ -8068,6 +8069,7 @@ let dbPlayerInfo = {
                 let activePlayerValue;
                 let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
                 let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
+
                 let date = new Date(dayStartTime); // for active valid player need get earlier 1 period
                 switch (period) {
                     case 'day':
@@ -8293,7 +8295,7 @@ let dbPlayerInfo = {
     },
 
     countValidActivePlayerbyPlatform: function (platformId, startDate, endDate, period, isRealPlayer, isTestPlayer, hasPartner) {
-        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, true, isRealPlayer, isTestPlayer, hasPartner);
+        return dbPlayerInfo.countActivePlayerbyPlatform(platformId, startDate, endDate, period, false, isRealPlayer, isTestPlayer, hasPartner);
     },
 
     getConsumptionActivePlayerAfterTopupQueryMatch: function (platformId, dayStartTime, dayEndTime, activePlayerConsumptionTimes, activePlayerConsumptionAmount, activePlayerValue, partnerLevelConfig, consumptionCollectionName, isFilterValidPlayer, playerObjs, isRealPlayer, isTestPlayer, hasPartner) {
