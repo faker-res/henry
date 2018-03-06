@@ -223,7 +223,7 @@ let dbPlayerLevelInfo = {
                     let queryAmountField = bTopUp? "amount": "validAmount";
 
                     if (parentPeriod == "WEEK") {
-                        periodTimeParent = dbUtil.getLastWeekSGTimeByDate(endTime);
+                        periodTimeParent = dbUtil.getLastWeekSGTime();
                     } else {
                         periodTimeParent = dbUtil.getLastMonthSGTime();
                     }
