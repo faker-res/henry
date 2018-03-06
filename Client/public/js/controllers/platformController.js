@@ -692,14 +692,10 @@ define(['js/app'], function (myApp) {
                 if (tabName === 'convert') {
                     vm.playerRewardPointsDailyLimit = 0;
                     vm.playerRewardPointsDailyConvertedPoints = 0;
+                    vm.playerRewardPointsConversionRate = 0;
                     vm.getPlayerRewardPointsDailyLimit();
                     vm.getPlayerRewardPointsDailyConvertedPoints();
-                    for(let index in vm.rewardPointsLvlConfig.params) {
-                        if(vm.rewardPointsLvlConfig.params[index].levelObjId == vm.selectedSinglePlayer.playerLevel._id) {
-                            vm.rewardPointToCreditManualRate = vm.rewardPointsLvlConfig.params[index].pointToCreditManualRate;
-                            break;
-                        }
-                    }
+                    vm.getPlayerRewardPointsConversionRate();
                 }
             };
 
@@ -8979,6 +8975,17 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.getPlayerRewardPointsConversionRate = function () {
+                let sendData = {
+                    platformObjId: vm.isOneSelectedPlayer().platform,
+                    playerLevel: vm.isOneSelectedPlayer().playerLevel._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsConversionRate', sendData, function (data) {
+                    $scope.$evalAsync(() => {vm.playerRewardPointsConversionRate = data.data;});
+                });
+            };
+
             vm.getPlayerRewardPointsDailyLimit = function () {
                 let sendData = {
                     platformObjId: vm.isOneSelectedPlayer().platform,
@@ -8986,8 +8993,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyLimit', sendData, function (data) {
-                    vm.playerRewardPointsDailyLimit = data.data;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {vm.playerRewardPointsDailyLimit = data.data;});
                 });
             };
 
@@ -8997,8 +9003,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyConvertedPoints', sendData, function (data) {
-                    vm.playerRewardPointsDailyConvertedPoints = data.data;
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {vm.playerRewardPointsDailyConvertedPoints = data.data;});
                 });
             };
 
@@ -10833,23 +10838,25 @@ define(['js/app'], function (myApp) {
                     requestData.playerId = vm.selectedSinglePlayer.playerId;
                 }
 
-                //console.log("requestData:", requestData);
+                console.log("searchSMSLog requestData:", requestData);
                 $scope.$socketPromise('searchSMSLog', requestData).then(result => {
-                    vm.smsLog.searchResults = result.data.data.map(item => {
-                        item.createTime$ = vm.dateReformat(item.createTime);
-                        if (item.status == "failure" && item.error && item.error.status == 430) {
-                            item.error = $translate('RESPONSE_TIMEOUT');
-                            item.status$ = $translate('unknown');
-                        } else {
-                            item.status$ = $translate(item.status);
-                        }
-                        return item;
-                    });
-                    vm.smsLog.totalCount = result.data.size;
-                    vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        console.log("searchSMSLog result", result);
+                        vm.smsLog.searchResults = result.data.data.map(item => {
+                            item.createTime$ = vm.dateReformat(item.createTime);
+                            if (item.status == "failure" && item.error && item.error.status == 430) {
+                                item.error = $translate('RESPONSE_TIMEOUT');
+                                item.status$ = $translate('unknown');
+                            } else {
+                                item.status$ = $translate(item.status);
+                            }
+                            return item;
+                        });
+                        vm.smsLog.totalCount = result.data.size;
+                        vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
+                    })
                 }).catch(console.error);
-            }
+            };
 
             vm.initGameCreditLog = function () {
                 vm.gameCreditLog = vm.gameCreditLog || {index: 0, limit: 20, pageSize: 20};
@@ -18226,6 +18233,12 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.deletePromoCode = function (col, index) {
+                if (col && col.length > 1) {
+                    col.splice(index, 1);
+                }
+            };
+
             vm.generatePromoCode = function (col, index, data, type) {
                 let sendData = Object.assign({}, data);
 
@@ -18915,6 +18928,7 @@ define(['js/app'], function (myApp) {
                 let sendObj = {
                     startAcceptedTime: vm.promoCodeMonitor.startAcceptedTime.data('datetimepicker').getLocalDate(),
                     endAcceptedTime: vm.promoCodeMonitor.endAcceptedTime.data('datetimepicker').getLocalDate(),
+                    promoCodeType3Name: vm.promoCodeMonitor.promoCodeType3Name || '',
                     platformObjId: vm.promoCodeMonitor.platformId,
                     index: vm.promoCodeMonitor.index || 0,
                     limit: vm.promoCodeMonitor.limit || 10,
@@ -24040,7 +24054,17 @@ define(['js/app'], function (myApp) {
                                         permission: changeObj,
                                         remark: $remark.val()
                                     }, function (data) {
-                                        vm.batchPermitModifySucc = true;
+                                        let errorList = data.data;
+                                        errorList = errorList.filter(item=>{
+                                            return (typeof item === 'string');
+                                        })
+
+                                        if(errorList < 1){
+                                            vm.batchPermitModifySucc = true;
+                                        }else{
+                                            vm.errorListMsg = errorList.join(',');
+                                        }
+
                                         vm.getPlatformPlayersData();
                                     }, null, true);
 

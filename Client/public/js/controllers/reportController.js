@@ -5811,7 +5811,7 @@ define(['js/app'], function (myApp) {
             var endTime = vm.generalRewardProposalQuery.endTime.data('datetimepicker').getLocalDate();
 
             var sendData = {
-                platformId: vm.curPlatformId,
+                platformId: vm.curPlatformId || vm.selectedPlatform._id,
                 startTime: startTime,
                 endTime: endTime,
                 type: vm.rewardTypeName,

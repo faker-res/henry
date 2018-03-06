@@ -271,7 +271,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         ratio = 0;
                                     }
 
-                                    if (consumptionSummary && playerLevel && ratio >= 0) {
+                                    if (consumptionSummary && playerLevel && ratio > 0) {
                                         let consumeValidAmount = consumptionSummary.validAmount || 0;
                                         let nonXIMAAmt = consumptionSummary.nonXIMAAmt || 0;
                                         returnAmount += consumeValidAmount * ratio;
@@ -351,6 +351,7 @@ var dbPlayerConsumptionWeekSummary = {
                                             'data.platformId': platformId,
                                             'data.playerObjId': playerData._id,
                                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                            'data.bConsumptionReturnRequest': true,
                                         };
 
                                         let doneXIMAConsumption = {};
@@ -399,28 +400,27 @@ var dbPlayerConsumptionWeekSummary = {
                                                     // Recalculate consumption return amount
                                                     rec.forEach(el => {
                                                         // Offset consumption return dirty amount
-                                                        let consumedValidAmount = 0;
-                                                        let curValidAmt = 0;
+                                                        // Skip when return amount is 0
+                                                        if (proposalData.data.returnDetail["GameType:" + el._id] && proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount) {
+                                                            let consumedValidAmount = 0;
+                                                            let curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
 
-                                                        if (proposalData.data.returnDetail["GameType:" + el._id]) {
-                                                            curValidAmt = proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount;
+                                                            if (doneXIMAConsumption["GameType:" + el._id]) {
+                                                                consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
+                                                            }
+
+                                                            let consumpDiff = el.validAmount - curValidAmt - consumedValidAmount;
+                                                            let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
+
+                                                            if (proposalData.data.returnDetail["GameType:" + el._id]) {
+                                                                proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
+                                                            }
+
+                                                            proposalData.data.rewardAmount += consumpDiff * returnRatio;
+                                                            proposalData.data.spendingAmount += consumpDiff * returnRatio;
+
+                                                            proposalData.data.consumeValidAmount += consumpDiff;
                                                         }
-
-                                                        if (doneXIMAConsumption["GameType:" + el._id]) {
-                                                            consumedValidAmount = doneXIMAConsumption["GameType:" + el._id].consumeValidAmount;
-                                                        }
-
-                                                        let consumpDiff = el.validAmount - curValidAmt - consumedValidAmount;
-                                                        let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
-
-                                                        if (proposalData.data.returnDetail["GameType:" + el._id]) {
-                                                            proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
-                                                        }
-
-                                                        proposalData.data.rewardAmount += consumpDiff * returnRatio;
-                                                        proposalData.data.spendingAmount += consumpDiff * returnRatio;
-
-                                                        proposalData.data.consumeValidAmount += consumpDiff;
                                                     });
                                                 }
 
@@ -486,13 +486,25 @@ var dbPlayerConsumptionWeekSummary = {
                                                         summaryDay: summary.summaryDay,
                                                         bDirty: summary.bDirty
                                                     }
-                                                ).then(
+                                                ).lean().then(
                                                     summaryData => {
                                                         if (summaryData) {
-                                                            summaryData.amount += summary.amount;
-                                                            summaryData.validAmount += summary.validAmount;
-                                                            summaryData.consumptionRecords.concat(summary.consumptionRecords);
-                                                            return summaryData.save();
+                                                            // summaryData.amount += summary.amount;
+                                                            // summaryData.validAmount += summary.validAmount;
+                                                            // summaryData.consumptionRecords.concat(summary.consumptionRecords);
+                                                            return dbconfig.collection_playerConsumptionSummary.findOneAndUpdate(
+                                                                {
+                                                                    _id: summaryData._id,
+                                                                    platformId: summaryData.platformId,
+                                                                    playerId: summaryData.playerId,
+                                                                    gameType: summaryData.gameType,
+                                                                    summaryDay: summaryData.summaryDay,
+                                                                    bDirty: true
+                                                                },
+                                                                {
+                                                                    $inc: {amount: summary.amount, validAmount: summary.validAmount},
+                                                                }
+                                                            );
                                                         }
                                                         else {
                                                             var dirtySummary = new dbconfig.collection_playerConsumptionSummary(summary);
@@ -863,6 +875,7 @@ var dbPlayerConsumptionWeekSummary = {
             'data.platformId': platformId,
             'data.playerObjId': playerId,
             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            'data.bConsumptionReturnRequest': true,
         };
         let consumptionRecProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ).then(
             props => {
@@ -898,8 +911,10 @@ var dbPlayerConsumptionWeekSummary = {
             }
         );
 
-        return Q.all([summaryProm, playerLevelProm, gameTypesProm, consumptionRecProm]).spread(
-            function (consumptionSummaries, playerData, allGameTypes, consumptionRecSumm) {
+        let platformProm = dbconfig.collection_platform.findOne({_id: platformId}).lean();
+
+        return Q.all([summaryProm, playerLevelProm, gameTypesProm, consumptionRecProm, platformProm]).spread(
+            function (consumptionSummaries, playerData, allGameTypes, consumptionRecSumm, platformData) {
                 // Why is it that sometimes playerData is not found?
                 // Perhaps the player was requested because he had consumption records, but the player himself has been removed from the system
 
@@ -967,24 +982,26 @@ var dbPlayerConsumptionWeekSummary = {
                     }
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
 
-                    let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
+                    if (platformData.useProviderGroup) {
+                        let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
 
-                    if (totalConsumptionRec != res.totalConsumptionAmount) {
-                        // Recalculate consumption return amount
-                        let totalAmtDiff = 0;
+                        if (totalConsumptionRec != res.totalConsumptionAmount) {
+                            // Recalculate consumption return amount
+                            let totalAmtDiff = 0;
 
-                        consumptionRecSumm.forEach(el => {
-                            // Offset consumption return dirty amount
-                            el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
+                            consumptionRecSumm.forEach(el => {
+                                // Offset consumption return dirty amount
+                                el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
 
-                            let consumpDiff = el.validAmount - res[el._id].consumptionAmount;
-                            res[el._id].consumptionAmount += consumpDiff;
-                            res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
+                                let consumpDiff = el.validAmount - res[el._id].consumptionAmount;
+                                res[el._id].consumptionAmount += consumpDiff;
+                                res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
 
-                            totalAmtDiff += consumpDiff * res[el._id].ratio;
-                        });
+                                totalAmtDiff += consumpDiff * res[el._id].ratio;
+                            });
 
-                        res.totalAmount += totalAmtDiff;
+                            res.totalAmount += totalAmtDiff;
+                        }
                     }
 
                     if (bDetail) {
