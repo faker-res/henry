@@ -19436,11 +19436,11 @@ define(['js/app'], function (myApp) {
                 //up level condition check
                 var upLevelConditionValid = true;
                 var obj = vm.newPlayerLvl.levelUpConfig[0];
-                // if (!obj.topupLimit) {
-                //     upLevelConditionValid = false;
-                // } else if (!obj.consumptionLimit) {
-                //     upLevelConditionValid = false;
-                // }
+                if (obj.topupLimit == undefined) {
+                    upLevelConditionValid = false;
+                } else if (obj.consumptionLimit == undefined) {
+                    upLevelConditionValid = false;
+                }
                 //down level condition check
                 var downLevelConditionValid = true;
                 var obj = vm.newPlayerLvl.levelDownConfig[0];
