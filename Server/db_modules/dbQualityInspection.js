@@ -1220,8 +1220,13 @@ var dbQualityInspection = {
         data.totalTimeoutRate = totalTimeoutRate;
         return dbconfig.collection_admin.findOne(query).then(
           item=>{
-              let cs = item ? item._id:null;
-              return cs
+              if(item){
+                  let cs = item ? item._id:null;
+                  return cs
+              }else{
+                  return Q.reject({name: "DataError", message: "Cannot find related Customer Services Employee"});
+              }
+
         })
         .then(udata=>{
             return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
@@ -1362,8 +1367,8 @@ var dbQualityInspection = {
                             let startTime = new Date(result.storeTime);
                             let endTime = new Date();
                             endTime = dbUtility.getISODayEndTime(startTime);
-    
-                            proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));    
+
+                            proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));
                         }
                     });
                     return Q.all(proms).then(data => {
