@@ -1544,7 +1544,7 @@ define(['js/app'], function (myApp) {
                 vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
                 vm.generalRewardProposalQuery.totalCount = 0;
                 utilService.actionAfterLoaded("#generalRewardProposalTablePage", function () {
-                    vm.commonInitTime(vm.generalRewardProposalQuery, '#generalRewardProposalQuery');
+                    vm.commonInitTime(vm.generalRewardProposalQuery, '#generalRewardProposalQuery', true);
                     vm.generalRewardProposalQuery.pageObj = utilService.createPageForPagingTable("#generalRewardProposalTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "generalRewardProposalQuery", vm.generalRewardProposalSearch)
                     });
@@ -1555,7 +1555,7 @@ define(['js/app'], function (myApp) {
                 vm.generalRewardTaskQuery = {};
                 vm.generalRewardTaskQuery.totalCount = 0;
                 utilService.actionAfterLoaded("#generalRewardTaskTablePage", function () {
-                    vm.commonInitTime(vm.generalRewardTaskQuery, '#generalRewardTaskQuery');
+                    vm.commonInitTime(vm.generalRewardTaskQuery, '#generalRewardTaskQuery', true);
                     vm.generalRewardTaskQuery.pageObj = utilService.createPageForPagingTable("#generalRewardTaskTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "generalRewardTaskQuery", vm.searchGeneralRewardTask)
                     });
@@ -5809,7 +5809,9 @@ define(['js/app'], function (myApp) {
 
             var startTime = vm.generalRewardProposalQuery.startTime.data('datetimepicker').getLocalDate();
             var endTime = vm.generalRewardProposalQuery.endTime.data('datetimepicker').getLocalDate();
-
+            vm["#generalRewardProposalQuery"] = {};
+            vm["#generalRewardProposalQuery"].startTime = startTime;
+            vm["#generalRewardProposalQuery"].endTime = endTime;
             var sendData = {
                 platformId: vm.curPlatformId || vm.selectedPlatform._id,
                 startTime: startTime,
@@ -5889,11 +5891,17 @@ define(['js/app'], function (myApp) {
             console.log("vm.generalRewardTaskQuery", vm.generalRewardTaskQuery);
             vm.generalRewardTaskQuery = vm.generalRewardTaskQuery || {};
 
+            let startTime = vm.generalRewardTaskQuery.startTime.data('datetimepicker').getLocalDate();
+            let endTime = vm.generalRewardTaskQuery.endTime.data('datetimepicker').getLocalDate();
+            vm["#generalRewardTaskQuery"] = {};
+            vm["#generalRewardTaskQuery"].startTime = startTime;
+            vm["#generalRewardTaskQuery"].endTime = endTime;
+
             var deferred = Q.defer();
             var query = {
                 platformId: vm.curPlatformId,
-                startTime: vm.generalRewardTaskQuery.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.generalRewardTaskQuery.endTime.data('datetimepicker').getLocalDate(),
+                startTime: startTime,
+                endTime: endTime,
                 type: vm.currentRewardTaskName,//'FIRST_TOP_UP'
                 index: newSearch ? 0 : vm.generalRewardTaskQuery.index,
                 limit: newSearch ? 10 : vm.generalRewardTaskQuery.limit,
@@ -6094,21 +6102,28 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
-        vm.commonInitTime = function (obj, queryId) {
+        vm.commonInitTime = function (obj, queryId, reuseDateTime=false) {
             if (!obj) return;
-            obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
-            var lastMonth = utilService.setNDaysAgo(new Date(), 1);
-            var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
-            obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
 
+            let startTime, endTime;
+            if(reuseDateTime === true && vm[queryId]) {
+                startTime = vm[queryId].startTime;
+                endTime = vm[queryId].endTime;
+            } else {
+                let lastMonth = utilService.setNDaysAgo(new Date(), 1);
+                startTime = utilService.setThisDayStartTime(new Date(lastMonth));
+                endTime = (obj == vm.generalRewardProposalQuery || obj == vm.generalRewardTaskQuery)
+                    ? utilService.getTodayStartTime() : utilService.getTodayEndTime();
+            }
+
+            obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
+            obj.startTime.data('datetimepicker').setLocalDate(new Date(startTime));
             obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
                 language: 'en',
                 format: 'yyyy/MM/dd hh:mm:ss'
             });
-            let endTime = (obj == vm.generalRewardProposalQuery || obj == vm.generalRewardTaskQuery)
-                ? utilService.getTodayStartTime() : utilService.getTodayEndTime();
             obj.endTime.data('datetimepicker').setLocalDate(new Date(endTime));
-        }
+        };
 
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
             var isChange = false;
