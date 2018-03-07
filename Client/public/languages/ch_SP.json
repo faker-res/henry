@@ -3314,6 +3314,8 @@
   "average ratio": "平均占比",
   "totalGrow": "总增长",
   "totalLost": "总流失",
-  "totalNetGrow": "总增长 - 总流失"
+  "totalNetGrow": "总增长 - 总流失",
+  "two period at the same time, system will force player to auto level up, batch level settlement will not provide": "同时设置两个周期，系统将强制玩家瞬间自动升级，并无法提供批量结算升级。",
+  "player level up period different": "玩家升级多个周期"
 
 }

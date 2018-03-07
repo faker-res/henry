@@ -164,14 +164,14 @@
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.topupLimit | number : 2}}
                                         td
                                             text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.topupPeriod | translate}}
-                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', required, style='text-align-last: center;')
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.topupPeriod', ng-change= 'vm.diffLevelUpPeriod(oneConfig.topupPeriod)', required, style='text-align-last: center;')
                                                 option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionLimit | number : 2}}
                                         td
                                             text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
-                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', required, style='text-align-last: center;')
+                                            select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', ng-change= 'vm.diffLevelUpPeriod(oneConfig.consumptionPeriod)', required, style='text-align-last: center;')
                                                 option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input(type='checkbox', ng-model='oneConfig.andConditions', ng-disabled='!vm.configTableEdit')
@@ -246,12 +246,12 @@
                                         td
                                             input.form-control(type='number', min='0', ng-model='levelConfig.topupLimit', required)
                                         td
-                                            select.form-control(ng-model='levelConfig.topupPeriod', required, style='text-align-last: center;')
+                                            select.form-control(ng-model='levelConfig.topupPeriod', ng-change = 'vm.diffLevelUpPeriod(levelConfig.topupPeriod)', required, style='text-align-last: center;')
                                                 option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input.form-control(type='number', min='0', ng-model='levelConfig.consumptionLimit', required)
                                         td
-                                            select.form-control(ng-model='levelConfig.consumptionPeriod', required, style='text-align-last: center;')
+                                            select.form-control(ng-model='levelConfig.consumptionPeriod', ng-change = 'vm.diffLevelUpPeriod(levelConfig.consumptionPeriod)', required, style='text-align-last: center;')
                                                 option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
                                             input(type='checkbox', ng-model='levelConfig.andConditions')
@@ -1355,6 +1355,23 @@
                     label {{"PREVIEW" | translate}}
                     .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
                         .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+#modalLevelUpPeriod.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"player level up period different" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"two period at the same time, system will force player to auto level up, batch level settlement will not provide"|translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal') {{"CONFIRM" | translate}}
+                //button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
 #modalUnlockProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content
