@@ -2535,13 +2535,22 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                return dbConfig.collection_promoCode.find({
-                    platformObjId: playerData.platform,
-                    playerObjId: playerObj._id,
-                    status: constPromoCodeStatus.AVAILABLE
-                }).populate({
-                    path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
-                }).lean();
+
+                return dbPlayerUtil.setPlayerState(playerObj._id, "ApplyPromoCode");
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    return dbConfig.collection_promoCode.find({
+                        platformObjId: playerObj.platform,
+                        playerObjId: playerObj._id,
+                        status: constPromoCodeStatus.AVAILABLE
+                    }).populate({
+                        path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
+                    }).lean();
+                } else {
+                    return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                }
             }
         ).then(
             promoCodeObjs => {
