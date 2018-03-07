@@ -1357,6 +1357,7 @@
   "already exist in group": "已存在于",
   ", Are you sure you want to move player to group": "，请问是否移动至",
   "Send all unaccepted promo code to members?": "是否发送给所有尚未领取优惠的会员？",
+  "Send unaccepted promo code to members?": "是否发送给尚未领取优惠的会员？",
   "Send Promo Code SMS": "发送优惠代码短信",
   "PROMO_CODE_ANALYSIS": "优惠代码分析",
   "promoCodeAnalysis": "优惠代码分析",
