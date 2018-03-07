@@ -292,12 +292,24 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('topUp', 'day', 3, function () {
                             //vm.drawPlayerTopUp('PlayerAlipayTopUp');
                         });
+                        vm.platformTopupTableSort = {
+                            amountSort: 'date',
+                            countSort: 'date',
+                            headCountSort: 'date',
+                            rateSort: 'date'
+                        }
                         break;
                     case "PlayerWechatTopUp":
                         vm.platformTopUpAnalysisSort = {};
                         vm.initSearchParameter('topUp', 'day', 3, function () {
                            // vm.drawPlayerTopUp('PlayerWechatTopUp');
                         });
+                        vm.platformTopupTableSort = {
+                            amountSort: 'date',
+                            countSort: 'date',
+                            headCountSort: 'date',
+                            rateSort: 'date'
+                        }
                         break;
                     case "TOPUP_METHOD_RATE":
                         vm.initSearchParameter('topupMethod', 'day', 3, function () {
@@ -581,6 +593,42 @@ define(['js/app'], function (myApp) {
                 })
             });
         }
+
+        vm.calculateAverageData = (data, key1, key2) => {
+            let average = null;
+            if (key2) {
+                average = data.length !== 0 ? Math.floor(data.reduce((a, item) => a + (Number.isFinite(item[key1][key2]) ? item[key1][key2] : 0), 0) / data.length) : 0;
+            }else{
+                average = data.length !== 0 ? Math.floor(data.reduce((a, item) => a + (Number.isFinite(item[key1]) ? item[key1] : 0), 0) / data.length) : 0;
+            }
+
+            return average
+        };
+
+        vm.generateLineData = (data, label, key1, key2) => {
+            var graphData = {};
+
+            data.forEach(item => {
+                for (let i = 0; i < label.length; i++){
+                    if (!graphData[label[i]]){
+                        graphData[label[i]]=[];
+                    }
+                    graphData[label[i]].push([item.date, Number.isFinite(item[key1[i]][key2]) ? item[key1[i]][key2] : 0]);
+                }
+            })
+            return [label,graphData];
+        };
+
+        vm.calculateAverageDataWithDecimalPlace = (data, key1, key2) => {
+            let average = null;
+            if (key2) {
+                average = data.length !== 0 ? $noRoundTwoDecimalPlaces(data.reduce((a, item) => a + (Number.isFinite(item[key1][key2]) ? item[key1][key2] : 0), 0) / data.length) : 0;
+            }else{
+                average = data.length !== 0 ? $noRoundTwoDecimalPlaces(data.reduce((a, item) => a + (Number.isFinite(item[key1]) ? item[key1] : 0), 0) / data.length) : 0;
+            }
+
+            return average
+        };
 
         // platform overview end =================================================
 
@@ -1197,7 +1245,6 @@ define(['js/app'], function (myApp) {
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
         };
-
         vm.calculateLineDataAndAverageForDecimalPlaces = (data, key, label) => {
             var graphData = [];
             let averageData = [];
@@ -3173,18 +3220,26 @@ define(['js/app'], function (myApp) {
         // top up manual
         vm.drawPlayerTopUp = function (type) {
             var opt = '';
+            let socketName = null;
             if (type == 'TOPUPMANUAL') {
                 opt = 'MANUAL';
                 vm.queryPara.topUp.amountTag = 'TOPUPMANUAL_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPMANUAL_COUNT';
+                socketName = 'getManualTopUpAnalysisList';
             } else if (type == 'PlayerAlipayTopUp') {
-                opt = 'ALIPAY';
+                opt = type;
                 vm.queryPara.topUp.amountTag = 'TOPUPALIPAY_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPALIPAY_COUNT';
+                vm.queryPara.topUp.headCountTag = 'TOPUPALIPAY_HEADCOUNT';
+                vm.queryPara.topUp.successRateTag = 'TOPUPALIPAY_SUCCESSRATE';
+                socketName = 'getTopupAnalysisByPlatform';
             } else if (type == 'PlayerWechatTopUp'){
-                opt = 'WECHAT';
+                opt = type;
                 vm.queryPara.topUp.amountTag = 'TOPUPWECHAT_AMOUNT';
                 vm.queryPara.topUp.countTag = 'TOPUPWECHAT_COUNT';
+                vm.queryPara.topUp.headCountTag = 'TOPUPWECHAT_HEADCOUNT';
+                vm.queryPara.topUp.successRateTag = 'TOPUPWECHAT_SUCCESSRATE';
+                socketName = 'getTopupAnalysisByPlatform';
             }else {
 
             }
@@ -3195,57 +3250,170 @@ define(['js/app'], function (myApp) {
 
             var sendData = {
                 platformId: vm.selectedPlatform._id,
-                type: opt,
                 startDate: startDate,
                 endDate: endDate,
+                type: opt
             };
 
-            socketService.$socket($scope.AppSocket, 'getTopUpAnalysisList', sendData, function (data) {
+            if (type != 'TOPUPMANUAL'){
+                sendData.period = vm.queryPara.topUp.periodText;
+            }
+
+            vm.platformTopUpDataPeriodText = vm.queryPara.topUp.periodText;
+
+            socketService.$socket($scope.AppSocket, socketName, sendData, function (data) {
 
                 $scope.$evalAsync(() => {
-                    let periodDateData = [];
-                    while (startDate.getTime() <= endDate.getTime()) {
-                        let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.topUp.periodText, startDate);
-                        periodDateData.push(startDate);
-                        startDate = dayEndTime;
-                    }
 
-                    vm.platformTopUpData = data.data;
-                    vm.platformTopUpAnalysisData = [];
+                    if (type == 'TOPUPMANUAL') {
+                        let periodDateData = [];
+                        while (startDate.getTime() <= endDate.getTime()) {
+                            let dayEndTime = vm.getNextDateByPeriodAndDate(vm.queryPara.topUp.periodText, startDate);
+                            periodDateData.push(startDate);
+                            startDate = dayEndTime;
+                        }
 
-                    for (let i = 0; i < periodDateData.length; i++) {
-                        let topUpWithinPeriod = vm.platformTopUpData.filter(item => new Date(item.createTime).getTime() > periodDateData[i].getTime() && new Date(item.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.topUp.periodText, periodDateData[i]));
-                        vm.platformTopUpAnalysisData.push({
-                            date: periodDateData[i],
-                            topUpData: topUpWithinPeriod,
+                        vm.platformTopUpData = data.data;
+                        vm.platformTopUpAnalysisData = [];
+
+                        for (let i = 0; i < periodDateData.length; i++) {
+                            let topUpWithinPeriod = vm.platformTopUpData.filter(item => new Date(item.createTime).getTime() > periodDateData[i].getTime() && new Date(item.createTime).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.topUp.periodText, periodDateData[i]));
+                            vm.platformTopUpAnalysisData.push({
+                                date: periodDateData[i],
+                                topUpData: topUpWithinPeriod,
+                            });
+                        }
+
+                        console.log('vm.platformTopUpAnalysisData', vm.platformTopUpAnalysisData);
+
+                        vm.platformTopUpAnalysisAmount = [];
+                        vm.platformTopUpAnalysisData.forEach(item => {
+
+                            let totalAmount = item.topUpData.length > 0 ? item.topUpData.reduce((a, b) => a + (b.amount ? b.amount : 0), 0) : 0;
+
+                            vm.platformTopUpAnalysisAmount.push({
+                                date: item.date,
+                                amount: totalAmount
+                            });
+
                         });
+
+                        let calculatedTopUpData = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisAmount, 'amount', vm.queryPara.topUp.amountTag);
+                        vm.platformManualTopUpAmountAverage = calculatedTopUpData.average;
+                        vm.plotLineByElementId("#line-topUpAmount", calculatedTopUpData.lineData, $translate(vm.queryPara.topUp.amountTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+
+                        let calculatedTopUpCount = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisData, 'topUpData', vm.queryPara.topUp.countTag);
+                        vm.platformTopUpCountAverage = calculatedTopUpCount.average;
+                        vm.plotLineByElementId("#line-topUpCount", calculatedTopUpCount.lineData, $translate(vm.queryPara.topUp.countTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+
                     }
-                    vm.platformTopUpDataPeriodText = vm.queryPara.topUp.periodText;
-                    console.log('vm.platformTopUpAnalysisData', vm.platformTopUpAnalysisData);
+                    else {
+                        if (data.data && data.data.length > 0) {
 
-                    vm.platformTopUpAnalysisAmount = [];
-                    vm.platformTopUpAnalysisData.forEach(item => {
+                            let returnData = data.data;
+                            let index = null;
 
-                        let totalAmount = item.topUpData.length > 0 ? item.topUpData.reduce((a, b) => a + (b.amount ? b.amount : 0), 0) : 0;
+                            vm.platformTopUpAnalysisData = [];
 
-                        vm.platformTopUpAnalysisAmount.push({
-                            date: item.date,
-                            amount: totalAmount
-                        });
+                            returnData.forEach(item => {
+                                let backStageData= { amount: 0, successCount: 0, headCount: 0, count: 0, successRate: 0};
+                                let webData = {amount: 0, successCount: 0, headCount: 0, count: 0, successRate: 0};
+                                let H5Data = {amount: 0, successCount: 0, headCount: 0, count: 0, successRate: 0};
+                                let AppData = {amount: 0, successCount: 0, headCount: 0, count: 0, successRate: 0};
+                                let defaultData = [backStageData, webData, H5Data, AppData];
 
-                    });
+                                if (item.data && item.data.length > 0) {
 
-                    let calculatedTopUpData = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisAmount, 'amount', vm.queryPara.topUp.amountTag);
-                    vm.platformTopUpAmountAverage = calculatedTopUpData.average;
-                    vm.plotLineByElementId("#line-topUpAmount", calculatedTopUpData.lineData, $translate(  vm.queryPara.topUp.amountTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+                                    item.data.forEach(inputDeviceData => {
 
-                    let calculatedTopUpCount = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisData, 'topUpData',  vm.queryPara.topUp.countTag);
-                    vm.platformTopUpCountAverage = calculatedTopUpCount.average;
-                    vm.plotLineByElementId("#line-topUpCount", calculatedTopUpCount.lineData, $translate( vm.queryPara.topUp.countTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+                                        if (inputDeviceData._id == 3){
+                                            index = parseInt(inputDeviceData._id - 1);
+                                        }else if (inputDeviceData._id == 5){
+                                            index = parseInt(inputDeviceData._id - 2);
+                                        }else{
+                                            index = parseInt(inputDeviceData._id);
+                                        }
+                                        defaultData[index].amount = inputDeviceData.amount ? inputDeviceData.amount : 0;
+                                        defaultData[index].successCount = inputDeviceData.successCount ? inputDeviceData.successCount : 0;
+                                        defaultData[index].count = inputDeviceData.count ? inputDeviceData.count : 0;
+                                        defaultData[index].successRate = inputDeviceData.successCount/inputDeviceData.count == 'NaN' ? 0 : $noRoundTwoDecimalPlaces(inputDeviceData.successCount/inputDeviceData.count*100);
+                                        defaultData[index].headCount = inputDeviceData.userIds ? inputDeviceData.userIds.filter(a => a != 0).length : 0;
+
+                                    })
+                                }
+
+                                vm.platformTopUpAnalysisData.push({
+                                    date: new Date(item.date),
+                                    totalSuccessCount: defaultData[0].successCount + defaultData[1].successCount + defaultData[2].successCount + defaultData[3].successCount,
+                                    totalHeadCount: defaultData[0].headCount + defaultData[1].headCount + defaultData[2].headCount + defaultData[3].headCount,
+                                    totalSum: defaultData[0].amount + defaultData[1].amount + defaultData[2].amount + defaultData[3].amount,
+                                    backStage: defaultData[0],
+                                    web: defaultData[1],
+                                    H5: defaultData[2],
+                                    App: defaultData[3],
+                                })
+                            });
+
+                            vm.platformTopUpCountAverage = {
+                                average: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'totalSuccessCount'),
+                                web: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'web', 'successCount'),
+                                H5: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'H5', 'successCount'),
+                                App: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'App', 'successCount'),
+                                backStage: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'backStage', 'successCount')
+                            };
+
+                            vm.platformTopUpAmountAverage = {
+                                average: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'totalSum'),
+                                web: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'web', 'amount'),
+                                H5: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'H5', 'amount'),
+                                App: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'App', 'amount'),
+                                backStage: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'backStage', 'amount')
+                            };
+
+                            vm.platformTopUpHeadCountAverage = {
+                                average: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'totalHeadCount'),
+                                web: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'web', 'headCount'),
+                                H5: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'H5', 'headCount'),
+                                App: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'App', 'headCount'),
+                                backStage: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'backStage', 'headCount')
+                            };
+
+                            vm.platformTopUpSuccessRateAverage = {
+                                web: $noRoundTwoDecimalPlaces(vm.calculateAverageDataWithDecimalPlace(vm.platformTopUpAnalysisData, 'web', 'successRate')),
+                                H5: $noRoundTwoDecimalPlaces(vm.calculateAverageDataWithDecimalPlace(vm.platformTopUpAnalysisData, 'H5', 'successRate')),
+                                App: $noRoundTwoDecimalPlaces(vm.calculateAverageDataWithDecimalPlace(vm.platformTopUpAnalysisData, 'App', 'successRate')),
+                                webTotalCount: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'web', 'count'),
+                                H5TotalCount: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'H5', 'count'),
+                                AppTotalCount: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'App', 'count')
+                            };
+
+
+                            let returnedLineData = vm.generateLineData(vm.platformTopUpAnalysisData, ['WEB', 'H5', 'APP'], ['web', 'H5', 'App'], 'successRate');
+                            if (returnedLineData) {
+                                let lineData = [];
+                                for (let i = 0; i < returnedLineData[0].length; i++) {
+                                    lineData.push({
+                                        label: returnedLineData[0][i] + $translate('successRate'),
+                                        data: returnedLineData[1][returnedLineData[0][i]]
+                                    })
+                                }
+
+                                vm.plotLineByElementId("#line-topUpSuccessRate", lineData, $translate('PERCENTAGE'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+
+                            }
+                        }
+                    }
                     vm.isShowLoadingSpinner('#topUpAnalysis', false);
+
                 });
+
             });
-        }
+        };
+
+        vm.typeDataSort = (type, sortField) => {
+            vm.platformTopupTableSort[type] = vm.platformTopupTableSort[type] === sortField ? '-'+sortField : sortField;
+        };
+
         // top up manual end
 
         //client source start =======================================

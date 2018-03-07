@@ -1045,8 +1045,8 @@
                                 .control-label
                                 label {{'QRMode' | translate}}
                                 select.form-control(ng-model='vm.playerWechatPayTopUp.notUseQR')
+                                    option(value="true") {{'CS_QR' | translate}}
                                     option(value="") {{'Settlement_QR' | translate}}
-                                    option(value=true) {{'CS_QR' | translate}}
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayAccount' | translate}}

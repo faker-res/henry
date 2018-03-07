@@ -78,6 +78,13 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.savePromoCodeUserGroup, [ObjectId(data.platformObjId), isDelete ? data.deleteData : data.groupData, isDelete], actionName, isValidData);
         },
 
+        saveBlockPromoCodeUserGroup: function saveBlockPromoCodeUserGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && (data.groupData || data.deleteData));
+            let isDelete = Boolean(data.deleteData);
+            socketUtil.emitter(self.socket, dbPlayerReward.saveBlockPromoCodeUserGroup, [ObjectId(data.platformObjId), isDelete ? data.deleteData : data.groupData, isDelete], actionName, isValidData);
+        },
+
         saveDelayDurationGroup: function saveDelayDurationGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && (data.groupData));
@@ -88,6 +95,18 @@ function socketActionPromoCode(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbPlayerReward.getPromoCodeUserGroup, [ObjectId(data.platformObjId)], actionName, isValidData);
+        },
+
+        getBlockPromoCodeUserGroup: function getBlockPromoCodeUserGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getBlockPromoCodeUserGroup, [ObjectId(data.platformObjId)], actionName, isValidData);
+        },
+
+        getAllPromoCodeUserGroup: function getAllPromoCodeUserGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerReward.getAllPromoCodeUserGroup, [ObjectId(data.platformObjId)], actionName, isValidData);
         },
 
         getDelayDurationGroup: function getDelayDurationGroup(data) {
