@@ -795,7 +795,6 @@ let dbRewardPoints = {
                                     if (event.level && event.level.value){
                                         event.level = event.level.value;
                                     }
-
                                 });
 
                                 returnData = rewardPointsEvent;
