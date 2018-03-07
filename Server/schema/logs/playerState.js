@@ -11,7 +11,9 @@ let playerStateSchema = new Schema({
     // last apply levelup reward
     lastApplyLevelUpReward: {type: Date, default: new Date()},
     // Last wechat top up
-    lastWechatTopUp: {type: Date, default: new Date()}
+    lastWechatTopUp: {type: Date, default: new Date()},
+    // Last generate promo code reward
+    lastGeneratePromoCode: {type: Date, default: new Date()},
 });
 
 module.exports = playerStateSchema;
