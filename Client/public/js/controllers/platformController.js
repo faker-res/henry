@@ -19413,18 +19413,18 @@ define(['js/app'], function (myApp) {
 
             vm.initNewPlayerLvl = function () {
                 var period = vm.playerLvlPeriod.NONE;
+                vm.newPlayerLevelUpConfig = [{
+                    topupLimit: 1,
+                    topupPeriod: vm.playerLevelPeriod.levelUpPeriodName,
+                    consumptionLimit: 1,
+                    consumptionPeriod: vm.playerLevelPeriod.levelUpPeriodName,
+                    andConditions: true
+                }];
+
                 vm.newPlayerLvl = {
                     name: "请更改名称",
                     value: vm.allPlayerLvl.length,
-                    levelUpConfig: [{
-                        topupLimit: 1,
-                        // topupPeriod: period,
-                        topupPeriod: vm.playerLevelPeriod.levelUpPeriodName,
-                        consumptionLimit: 1,
-                        // consumptionPeriod: period,
-                        consumptionPeriod: vm.playerLevelPeriod.levelUpPeriodName,
-                        andConditions: true
-                    }],
+                    levelUpConfig: vm.newPlayerLevelUpConfig,
                     levelDownConfig: [{
                         // topupMinimum: 1,
                         // topupPeriod: period,
@@ -19439,11 +19439,11 @@ define(['js/app'], function (myApp) {
                 //up level condition check
                 var upLevelConditionValid = true;
                 var obj = vm.newPlayerLvl.levelUpConfig[0];
-                // if (!obj.topupLimit) {
-                //     upLevelConditionValid = false;
-                // } else if (!obj.consumptionLimit) {
-                //     upLevelConditionValid = false;
-                // }
+                if (obj.topupLimit == undefined) {
+                    upLevelConditionValid = false;
+                } else if (obj.consumptionLimit == undefined) {
+                    upLevelConditionValid = false;
+                }
                 //down level condition check
                 var downLevelConditionValid = true;
                 var obj = vm.newPlayerLvl.levelDownConfig[0];

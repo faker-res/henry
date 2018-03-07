@@ -1391,14 +1391,15 @@ define(['js/app'], function (myApp) {
                 new Date(player._id.registrationTime).getTime() >= previousPeriodDate.getTime() &&
                 new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
             let lostOldPlayer = lostPlayerData.filter(player =>
-                new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
+                new Date(player._id.registrationTime).getTime() < previousPeriodDate.getTime() ||
+                new Date(player._id.registrationTime).getTime() >= currentPeriodDate.getTime());
 
             let totalGrow = growPreviousPeriodNewPlayer.length + growCurrentPeriodNewPlayer.length + growOldPlayer.length;
             let totalLost = lostPreviousPeriodNewPlayer.length + lostOldPlayer.length;
             let totalNetGrow = totalGrow - totalLost;
             return {
-                date: currentPeriodDate,
-                totalPlayerCount: currentPeriodPlayerData.length,
+                date: previousPeriodDate,
+                totalPlayerCount: previousPeriodPlayerData.length,
                 activeNewPlayer: activeNewPlayer,
                 activeOldPlayer: activeOldPlayer,
                 growPreviousPeriodNewPlayer: growPreviousPeriodNewPlayer,
@@ -1459,9 +1460,9 @@ define(['js/app'], function (myApp) {
                     });
 
                     vm.platformValidActivePlayerAnalysisCalculatedData = [];
-                    for(let i = 1; i < vm.platformValidActivePlayerAnalysisData.length-1; i++){
+                    for(let i = vm.platformValidActivePlayerAnalysisData.length; i > 1; i--){
                         vm.platformValidActivePlayerAnalysisCalculatedData.push(
-                            vm.compareValidActivePlayerDataBetweenPeriod(vm.platformValidActivePlayerAnalysisData[i-1], vm.platformValidActivePlayerAnalysisData[i], vm.platformValidActivePlayerDataPeriodText)
+                            vm.compareValidActivePlayerDataBetweenPeriod(vm.platformValidActivePlayerAnalysisData[i - 2], vm.platformValidActivePlayerAnalysisData[i - 1], vm.platformValidActivePlayerDataPeriodText)
                         );
                     };
                     console.log('vm.platformValidActivePlayerAnalysisData', vm.platformValidActivePlayerAnalysisData);
