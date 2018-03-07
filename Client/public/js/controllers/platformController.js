@@ -18428,77 +18428,89 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.sendSMSByPromoCode = function (promoCode) {
-                let item = promoCode ? promoCode : vm.selectedPromoCode;
+            vm.sendSMSByPromoCode = function (promoCode, isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo.modalTitle = $translate("Send Promo Code SMS");
+                    vm.modalYesNo.modalText = $translate("Send unaccepted promo code to members?");
+                    vm.modalYesNo.actionYes = () => vm.sendSMSByPromoCode(promoCode, true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    let item = promoCode ? promoCode : vm.selectedPromoCode;
 
-                // Translate sms content
-                Object.keys($scope.constPromoCodeLegend).forEach(e => {
-                    let indexCode = $scope.constPromoCodeLegend[e];
-                    let codePositionIndex = item.smsContent.indexOf("(" + indexCode + ")");
-                    let contentToReplace = "";
+                    // Translate sms content
+                    Object.keys($scope.constPromoCodeLegend).forEach(e => {
+                        let indexCode = $scope.constPromoCodeLegend[e];
+                        let codePositionIndex = item.smsContent.indexOf("(" + indexCode + ")");
+                        let contentToReplace = "";
 
-                    switch (indexCode) {
-                        case "X":
-                            contentToReplace = item.amount;
-                            break;
-                        case "D":
-                            contentToReplace = item.minTopUpAmount;
-                            break;
-                        case "Y":
-                            contentToReplace = item.requiredConsumption;
-                            break;
-                        case "Z":
-                            contentToReplace = vm.dateReformat(item.expirationTime);
-                            break;
-                        case "P":
-                            if (vm.selectedPlatform.data.useProviderGroup) {
-                                contentToReplace = [];
-                                item.allowedProviders[0].providers.map(e => {
-                                    if (vm.platformProviderList.find(g => String(g._id) == String(e))) {
-                                        contentToReplace.push(vm.platformProviderList.find(g => String(g._id) == String(e)).name)
+                        switch (indexCode) {
+                            case "X":
+                                contentToReplace = item.amount;
+                                break;
+                            case "D":
+                                contentToReplace = item.minTopUpAmount;
+                                break;
+                            case "Y":
+                                contentToReplace = item.requiredConsumption;
+                                break;
+                            case "Z":
+                                contentToReplace = vm.dateReformat(item.expirationTime);
+                                break;
+                            case "P":
+                                if (vm.selectedPlatform.data.useProviderGroup) {
+                                    if(item.allowedProviders && item.allowedProviders.length > 0){
+                                        contentToReplace = [];
+                                        item.allowedProviders[0].providers.map(e => {
+                                            if (vm.platformProviderList.find(g => String(g._id) == String(e))) {
+                                                contentToReplace.push(vm.platformProviderList.find(g => String(g._id) == String(e)).name)
+                                            }
+                                        })
+                                    }else if(item.allowedProviders$){
+                                        contentToReplace = item.allowedProviders$;
                                     }
-                                })
-                            } else {
-                                contentToReplace = item.allowedProviders.map(f => f.name);
-                            }
-                            break;
-                        case "Q":
-                            contentToReplace = item.code;
-                            break;
-                        case "M":
-                            contentToReplace = item.maxRewardAmount;
-                            break;
-                        default:
-                            break;
-                    }
+                                } else {
+                                    contentToReplace = item.allowedProviders.map(f => f.name);
+                                }
+                                break;
+                            case "Q":
+                                contentToReplace = item.code;
+                                break;
+                            case "M":
+                                contentToReplace = item.maxRewardAmount;
+                                break;
+                            default:
+                                break;
+                        }
 
-                    if (codePositionIndex > -1) {
-                        item.smsContent = item.smsContent.substr(0, codePositionIndex) + contentToReplace + item.smsContent.substr(codePositionIndex + 3);
-                    }
-                })
+                        if (codePositionIndex > -1) {
+                            item.smsContent = item.smsContent.substr(0, codePositionIndex) + contentToReplace + item.smsContent.substr(codePositionIndex + 3);
+                        }
+                    })
 
-                let sendObj = {
-                    platformId: item.platformObjId,
-                    adminName: 'admin',
-                    playerId: item.playerObjId._id,
-                    title: 'Test Title',
-                    content: item.smsContent
-                };
+                    let sendObj = {
+                        platformId: item.platformObjId,
+                        adminName: 'admin',
+                        playerId: item.playerObjId._id,
+                        title: 'Test Title',
+                        content: item.smsContent
+                    };
 
-                let smsObj = {
-                    playerId: item.playerObjId.playerId,
-                    platformId: item.platformObjId,
-                    channel: 2,
-                    message: item.smsContent
-                };
+                    let smsObj = {
+                        playerId: item.playerObjId.playerId,
+                        platformId: item.platformObjId,
+                        channel: 2,
+                        message: item.smsContent
+                    };
 
-                socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToPlayer', sendObj, function (data) {
-                    console.log('sendPlayerMailFromAdminToPlayer', data);
-                });
+                    socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToPlayer', sendObj, function (data) {
+                        console.log('sendPlayerMailFromAdminToPlayer', data);
+                    });
 
-                socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', smsObj, function (data) {
-                    console.log('sendSMSToPlayer', data);
-                });
+                    socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', smsObj, function (data) {
+                        console.log('sendSMSToPlayer', data);
+                    });
+                }
             };
 
             vm.sendSMSByPromoCodeBatch = function (isConfirm) {
@@ -18511,7 +18523,7 @@ define(['js/app'], function (myApp) {
                 else {
                     vm.promoCodeQuery.result.map(e => {
                         if (e.status == 1) {
-                            vm.sendSMSByPromoCode(e);
+                            vm.sendSMSByPromoCode(e, isConfirm);
                         }
                     })
                 }
