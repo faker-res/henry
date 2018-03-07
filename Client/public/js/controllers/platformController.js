@@ -19413,18 +19413,18 @@ define(['js/app'], function (myApp) {
 
             vm.initNewPlayerLvl = function () {
                 var period = vm.playerLvlPeriod.NONE;
+                vm.newPlayerLevelUpConfig = [{
+                    topupLimit: 1,
+                    topupPeriod: vm.playerLevelPeriod.levelUpPeriodName,
+                    consumptionLimit: 1,
+                    consumptionPeriod: vm.playerLevelPeriod.levelUpPeriodName,
+                    andConditions: true
+                }];
+
                 vm.newPlayerLvl = {
                     name: "请更改名称",
                     value: vm.allPlayerLvl.length,
-                    levelUpConfig: [{
-                        topupLimit: 1,
-                        // topupPeriod: period,
-                        topupPeriod: vm.playerLevelPeriod.levelUpPeriodName,
-                        consumptionLimit: 1,
-                        // consumptionPeriod: period,
-                        consumptionPeriod: vm.playerLevelPeriod.levelUpPeriodName,
-                        andConditions: true
-                    }],
+                    levelUpConfig: vm.newPlayerLevelUpConfig,
                     levelDownConfig: [{
                         // topupMinimum: 1,
                         // topupPeriod: period,
