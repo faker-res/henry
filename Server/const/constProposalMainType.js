@@ -62,6 +62,7 @@ const constProposalMainType = {
     "PlayerAddRewardPoints": constMainType.REWARD_POINTS,
     "PlayerMinusRewardPoints": constMainType.REWARD_POINTS,
     "PlayerConvertRewardPoints": constMainType.REWARD_POINTS,
+    "PlayerAutoConvertRewardPoints": constMainType.REWARD_POINTS,
 
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,

@@ -2496,6 +2496,34 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
+    saveBlockPromoCodeUserGroup: (platformObjId, data, isDelete) => {
+        let saveArr = [];
+
+        if (isDelete) {
+            return dbConfig.collection_promoCodeUserGroup.remove({_id: data});
+        } else {
+            if (data && data.length > 0) {
+                data.map(grp => {
+                    grp.platformObjId = platformObjId;
+
+                    let saveObj = {
+                        platformObjId: grp.platformObjId,
+                        name: grp.name,
+                        color: grp.color,
+                        playerNames: grp.playerNames || [],
+                        isBlockPromoCodeUser: true
+                    };
+
+                    saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                        name: grp.name
+                    }, saveObj, {upsert: true}));
+                });
+            }
+        }
+
+        return Promise.all(saveArr);
+    },
+
     saveDelayDurationGroup: (platformObjId, data) => {
         let saveObj = {consumptionTimeConfig: data};
 
@@ -2507,7 +2535,9 @@ let dbPlayerReward = {
 
     },
 
-    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: {$ne: true}}).lean(),
+    getBlockPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: true}).lean(),
+    getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
     applyPromoCode: (playerId, promoCode, adminInfo) => {
