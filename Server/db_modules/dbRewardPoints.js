@@ -4,6 +4,7 @@ let dbRewardPointsLvlConfig = require('./../db_modules/dbRewardPointsLvlConfig')
 let dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 let dbGameProvider = require('./../db_modules/dbGameProvider');
 let dbRewardPointsEvent = require('./../db_modules/dbRewardPointsEvent');
+let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbUtility = require('./../modules/dbutility');
 let errorUtils = require('./../modules/errorUtils');
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
@@ -1146,7 +1147,7 @@ let dbRewardPoints = {
     },
 
     getPointRule: function (playerId, platformId) {
-        let player, platform, platformObjId, firstProm, lists;
+        let player, platform, platformObjId, firstProm, lists, dailyConvertedPoints, rewardPoints, rewardPointsObjId;
         let intervalPeriod = null;
         let list = [];
 
@@ -1162,6 +1163,7 @@ let dbRewardPoints = {
         if (playerId) {
             let playerProm = dbConfig.collection_players.findOne({playerId})
                 .populate({path: "platform", model: dbConfig.collection_platform})
+                .populate({path: "rewardPointsObjId", model: dbConfig.collection_rewardPoints})
                 .lean().then(
                     playerData => {
                         if (!playerData) {
@@ -1170,6 +1172,8 @@ let dbRewardPoints = {
                         player = playerData;
                         platform = playerData.platform;
                         platformObjId = playerData.platform._id;
+                        rewardPoints = playerData.rewardPointsObjId.points;
+                        rewardPointsObjId = playerData.rewardPointsObjId._id;
                     }
                 );
             firstProm = playerProm;
@@ -1187,11 +1191,13 @@ let dbRewardPoints = {
         }
 
         return firstProm.then(() => {
-            return Q.all([dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platformObjId), dbPlayerLevel.getPlayerLevel({platform: platformObjId}), dbGameProvider.getPlatformProviderGroup(platformObjId)]).then(
+            return Q.all([dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platformObjId), dbPlayerLevel.getPlayerLevel({platform: platformObjId}),
+                dbGameProvider.getPlatformProviderGroup(platformObjId), dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(rewardPointsObjId)]).then(
                 data => {
                     let rewardPointsLvlConfig = data[0];
                     let allPlayerLvl = data[1];
                     let platformProviderGroup = data[2];
+                    dailyConvertedPoints = data[3];
 
                     let playerLevelId, playerLevelName, dailyMaxPoints, pointToCreditManualRate, pointToCreditManualMaxPoints;
                     let pointToCreditAutoRate, pointToCreditAutoMaxPoints, spendingAmountOnReward, providerGroupId, providerGroupName;
@@ -1245,6 +1251,8 @@ let dbRewardPoints = {
                     });
 
                     let outputObject = {
+                        preDailyExchangedPoint: dailyConvertedPoints,
+                        userCurrentPoint: rewardPoints,
                         refreshPeriod: intervalPeriod,
                         list: list
                     };
