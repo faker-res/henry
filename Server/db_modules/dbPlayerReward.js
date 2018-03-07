@@ -3901,7 +3901,6 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
-            eventData.condition.isSharedWithXIMA = !eventData.condition.useConsumptionRecord;
             if (eventData.condition.rewardAppearPeriod) {
                 let isValid = false;
                 let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
