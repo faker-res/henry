@@ -175,6 +175,7 @@ var proposalExecutor = {
             this.executions.executePlayerAddRewardPoints.des = "Player Add Reward Points";
             this.executions.executePlayerMinusRewardPoints.des = "Player Minus Reward Points";
             this.executions.executePlayerConvertRewardPoints.des = "Player Convert Reward Points";
+            this.executions.executePlayerAutoConvertRewardPoints.des = "Player Auto Convert Reward Points";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -234,6 +235,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerAddRewardPoints.des = "Reject Player Add Reward Points";
             this.rejections.rejectPlayerMinusRewardPoints.des = "Reject Player Minus Reward Points";
             this.rejections.rejectPlayerConvertRewardPoints.des = "Reject Player Convert Reward Points";
+            this.rejections.rejectPlayerAutoConvertRewardPoints.des = "Reject Player Auto Convert Reward Points";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2521,6 +2523,36 @@ var proposalExecutor = {
                     deferred.reject({name: "DataError", message: "Incorrect player convert reward points proposal data"});
                 }
             },
+
+            executePlayerAutoConvertRewardPoints: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.playerRewardPointsObjId) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        platformId: proposalData.data.platformObjId,
+                        type: constRewardType.PLAYER_PERIOD_POINT_CONVERSION,
+                        rewardType: constRewardType.PLAYER_PERIOD_POINT_CONVERSION,
+                        currentAmount: proposalData.data.convertCredit,
+                        initAmount: proposalData.data.convertCredit,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        providerGroup: proposalData.data.providerGroup,
+                        applyAmount: 0,
+                        data: {
+                            category: constRewardPointsLogCategory.PERIOD_POINT_CONVERSION,
+                            convertedRewardPointsAmount: proposalData.data.convertedRewardPoints,
+                            rewardPointsObjId: proposalData.data.playerRewardPointsObjId
+                        },
+                    };
+                    let deferred1 = Q.defer();
+                    createRewardPointsTaskForProposal(proposalData, taskData, deferred1, constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS, proposalData);
+                    deferred1.promise.then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player auto convert reward points proposal data"});
+                }
+            },
         },
 
         /**
@@ -3165,6 +3197,11 @@ var proposalExecutor = {
             },
 
             rejectPlayerConvertRewardPoints: function (proposalData, deferred) {
+                dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerAutoConvertRewardPoints: function (proposalData, deferred) {
                 dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
                 deferred.resolve("Proposal is rejected");
             },
