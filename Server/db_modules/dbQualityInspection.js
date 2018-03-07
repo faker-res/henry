@@ -1367,7 +1367,6 @@ var dbQualityInspection = {
                             let startTime = new Date(result.storeTime);
                             let endTime = new Date();
                             endTime = dbUtility.getISODayEndTime(startTime);
-
                             proms.push(dbQualityInspection.calEvaluationProgress(startTime, endTime, live800CompanyId, result.totalRecord));
                         }
                     });
