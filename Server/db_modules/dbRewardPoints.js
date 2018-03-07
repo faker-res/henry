@@ -1,12 +1,15 @@
 let Q = require("q");
 let dbConfig = require('./../modules/dbproperties');
 let dbRewardPointsLvlConfig = require('./../db_modules/dbRewardPointsLvlConfig');
+let dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
+let dbGameProvider = require('./../db_modules/dbGameProvider');
 let dbRewardPointsEvent = require('./../db_modules/dbRewardPointsEvent');
 let dbUtility = require('./../modules/dbutility');
 let errorUtils = require('./../modules/errorUtils');
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
 const constRewardPointsLogCategory = require('../const/constRewardPointsLogCategory');
 const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
+const constRewardPointsPeriod = require("../const/constRewardPointsPeriod");
 const constPlayerTopUpType = require('../const/constPlayerTopUpType');
 
 let dbRewardPoints = {
@@ -1140,6 +1143,115 @@ let dbRewardPoints = {
                 }
             )
         }
+    },
+
+    getPointRule: function (playerId, platformId) {
+        let player, platform, platformObjId, firstProm, lists;
+        let intervalPeriod = null;
+        let list = [];
+
+        // display all point rule for each player level
+        function addParamToList(listData) {
+            if (!listData) {
+                return false;
+            }
+
+            list.push(listData);
+        }
+
+        if (playerId) {
+            let playerProm = dbConfig.collection_players.findOne({playerId})
+                .populate({path: "platform", model: dbConfig.collection_platform})
+                .lean().then(
+                    playerData => {
+                        if (!playerData) {
+                            return Promise.reject({name: "DataError", message: "Invalid player data"});
+                        }
+                        player = playerData;
+                        platform = playerData.platform;
+                        platformObjId = playerData.platform._id;
+                    }
+                );
+            firstProm = playerProm;
+        } else {
+            let platformProm = dbConfig.collection_platform.findOne({platformId}).lean().then(
+                platformData => {
+                    if (!platformData) {
+                        return Promise.reject({name: "DataError", message: "Invalid player data"});
+                    }
+                    platform = platformData;
+                    platformObjId = platformData._id;
+                }
+            );
+            firstProm = platformProm;
+        }
+
+        return firstProm.then(() => {
+            return Q.all([dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platformObjId), dbPlayerLevel.getPlayerLevel({platform: platformObjId}), dbGameProvider.getPlatformProviderGroup(platformObjId)]).then(
+                data => {
+                    let rewardPointsLvlConfig = data[0];
+                    let allPlayerLvl = data[1];
+                    let platformProviderGroup = data[2];
+
+                    let playerLevelId, playerLevelName, dailyMaxPoints, pointToCreditManualRate, pointToCreditManualMaxPoints;
+                    let pointToCreditAutoRate, pointToCreditAutoMaxPoints, spendingAmountOnReward, providerGroupId, providerGroupName;
+
+                    // check is all player level already set rewardPointsLvlConfig
+                    allPlayerLvl.forEach((playerLvl) => {
+                        rewardPointsLvlConfig = rewardPointsLvlConfig ? rewardPointsLvlConfig : {};
+                        rewardPointsLvlConfig.params = rewardPointsLvlConfig.params ? rewardPointsLvlConfig.params : [];
+                        playerLevelId = playerLvl.value;
+                        playerLevelName = playerLvl.name;
+
+                        rewardPointsLvlConfig.params.forEach((param) => {
+                            if (param.levelObjId.toString() === playerLvl._id.toString()) {
+                                dailyMaxPoints = param.dailyMaxPoints;
+                                pointToCreditManualRate = param.pointToCreditManualRate;
+                                pointToCreditManualMaxPoints = param.pointToCreditManualMaxPoints;
+                                pointToCreditAutoRate = param.pointToCreditAutoRate;
+                                pointToCreditAutoMaxPoints = param.pointToCreditAutoMaxPoints;
+                                spendingAmountOnReward = param.spendingAmountOnReward;
+
+                                platformProviderGroup.forEach((provider) => {
+                                    if (provider._id.toString() === param.providerGroup.toString()) {
+                                        providerGroupId = provider.providerGroupId;
+                                        providerGroupName = provider.name;
+                                    }
+                                });
+                            }
+                        });
+
+                        // find refreshPeriod
+                        intervalPeriod = rewardPointsLvlConfig.intervalPeriod;
+                        for (let key in constRewardPointsPeriod) {
+                            if (constRewardPointsPeriod[key] === intervalPeriod) {
+                                intervalPeriod = key;
+                            }
+                        }
+
+                        lists = {
+                            gradeId: playerLevelId,
+                            gradeName: playerLevelName,
+                            dailyGetMaxPoint: dailyMaxPoints,
+                            preExchangeRate: pointToCreditManualRate,
+                            preDailyExchangeMaxPoint: pointToCreditManualMaxPoints,
+                            endExchangeRate: pointToCreditAutoRate,
+                            endExchangeMaxPoint: pointToCreditAutoMaxPoints,
+                            requestedValidBetTimes: spendingAmountOnReward,
+                            lockedGroupId: providerGroupId,
+                            lockedGroupName: providerGroupName,
+                        };
+                        addParamToList(lists);
+                    });
+
+                    let outputObject = {
+                        refreshPeriod: intervalPeriod,
+                        list: list
+                    };
+                    return outputObject;
+                }
+            );
+        })
     },
 
     // this function might need to move to dbRewardPointLog
