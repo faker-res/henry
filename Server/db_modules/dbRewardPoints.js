@@ -15,6 +15,7 @@ const constPlayerTopUpType = require('../const/constPlayerTopUpType');
 const constRewardPointsEventPeriod = require('../const/constRewardPointsEventPeriod');
 const constRewardPointsUserAgent = require("../const/constRewardPointsUserAgent");
 const constRewardPointsEventTopupType = require("../const/constRewardPointsEventTopupType");
+const constRewardPointsTopupEventUserAgent = require("../const/constRewardPointsTopupEventUserAgent");
 
 let dbRewardPoints = {
 
@@ -1904,7 +1905,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                 rewards = {
                     "id": reward._id,
                     "refreshPeriod": rewardPeriod,
-                    "device": constRewardPointsUserAgent[reward.userAgent.toString()],
+                    "device": constRewardPointsTopupEventUserAgent[reward.userAgent.toString()],
                     "depositType": reward.target && reward.target.merchantTopupMainType ? constRewardPointsEventTopupType[reward.target.merchantTopupMainType] : "",
                     "onlineTopupType": reward.target && reward.target.merchantTopUpType ? reward.target.merchantTopUpType : "",
                     "manualTopupType": reward.target && reward.target.depositMethod ? reward.target.depositMethod : "",
