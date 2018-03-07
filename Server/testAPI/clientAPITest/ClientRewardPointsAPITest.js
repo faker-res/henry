@@ -80,6 +80,13 @@
         this.rewardPointsService.getRewardPointsRanking.once(callback);
     };
 
+    proto.getPointRule = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.getPointRule.request(data);
+        this.rewardPointsService.getPointRule.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardPointsAPITest;
     } else {

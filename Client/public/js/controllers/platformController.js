@@ -12732,7 +12732,7 @@ define(['js/app'], function (myApp) {
 
             // Player WechatPay TopUp
             vm.initPlayerWechatPayTopUp = function () {
-                vm.playerWechatPayTopUp = {submitted: false};
+                vm.playerWechatPayTopUp = {submitted: false, notUseQR: "true"};
                 vm.existingWechatPayTopup = null;
                 socketService.$socket($scope.AppSocket, 'getWechatPayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
                     data => {
@@ -18213,7 +18213,7 @@ define(['js/app'], function (myApp) {
                 let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
                 let isBlockPlayer;
 
-                if (playerNameList && playerNameList.length > 0) {
+                if (playerNameList && playerNameList.length > 0 && el.playerName.indexOf("\n") < 0) {
                     vm.userGroupAllConfig.map(e => {
                         playerNameList.map(playerName => {
                             if (e.playerNames.indexOf(playerName.trim()) > -1) {

@@ -2396,6 +2396,7 @@ let dbPlayerReward = {
     },
 
     generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
+        let player;
         // Check if player exist
         return dbConfig.collection_players.findOne({
             platform: platformObjId,
@@ -2403,7 +2404,18 @@ let dbPlayerReward = {
         }).lean().then(
             playerData => {
                 if (playerData) {
-                    newPromoCodeEntry.playerObjId = playerData._id;
+                    player = playerData;
+
+                    return dbPlayerUtil.setPlayerState(player._id, "GeneratePromoCode");
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    newPromoCodeEntry.playerObjId = player._id;
                     newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                     newPromoCodeEntry.adminId = adminObjId;
@@ -2414,9 +2426,6 @@ let dbPlayerReward = {
                         startTime: {$lt: new Date()},
                         endTime: {$gt: new Date()}
                     }).lean();
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Invalid player data"});
                 }
             }
         ).then(
@@ -2429,11 +2438,14 @@ let dbPlayerReward = {
             }
         ).then(
             newPromoCode => {
-                if (newPromoCodeEntry.allowedSendSms) {
-                    SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                if (newPromoCode) {
+                    if (newPromoCodeEntry.allowedSendSms) {
+                        SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                    }
+                    messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
+                    return newPromoCode.code;
                 }
-                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
-                return newPromoCode.code;
+
             }
         )
     },
@@ -2553,13 +2565,22 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                return dbConfig.collection_promoCode.find({
-                    platformObjId: playerData.platform,
-                    playerObjId: playerObj._id,
-                    status: constPromoCodeStatus.AVAILABLE
-                }).populate({
-                    path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
-                }).lean();
+
+                return dbPlayerUtil.setPlayerState(playerObj._id, "ApplyPromoCode");
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    return dbConfig.collection_promoCode.find({
+                        platformObjId: playerObj.platform,
+                        playerObjId: playerObj._id,
+                        status: constPromoCodeStatus.AVAILABLE
+                    }).populate({
+                        path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
+                    }).lean();
+                } else {
+                    return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                }
             }
         ).then(
             promoCodeObjs => {
