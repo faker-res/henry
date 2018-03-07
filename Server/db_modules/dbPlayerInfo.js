@@ -7798,7 +7798,7 @@ let dbPlayerInfo = {
         }
         return dbconfig.collection_providerDaySummary.find(query);
     },
-    getTopUpByPlatform: function (platformId, startDate, endDate, type) {
+    getManualTopUpByPlatform: function (platformId, startDate, endDate, type) {
         var queryObj = {
             topUpType: constPlayerTopUpType[type],
             createTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
