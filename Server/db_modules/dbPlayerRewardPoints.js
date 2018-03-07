@@ -454,7 +454,7 @@ let dbPlayerRewardPoints = {
                             platformData = player.platform;
                             return dbConfig.collection_proposalType.findOne({
                                 platformId: platformData._id,
-                                name: constProposalType.PLAYER_CONVERT_REWARD_POINTS
+                                name: constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS
                             }).lean();
                         }
                     ).then(

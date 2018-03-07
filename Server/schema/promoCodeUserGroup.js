@@ -9,7 +9,9 @@ let promoCodeUserGroupSchema = new Schema({
     // promo code type
     color: {type: String, required: true},
     // sms content
-    playerNames: [{type: String}]
+    playerNames: [{type: String}],
+    // block promo code user
+    isBlockPromoCodeUser: {type: Boolean, default: false}
 });
 
 module.exports = promoCodeUserGroupSchema;
