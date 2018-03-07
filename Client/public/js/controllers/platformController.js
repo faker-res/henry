@@ -11660,6 +11660,34 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.isAutoCheckLevelUpChangeble = function () {
+                let isEditable = true;
+                for (let i = 0; i < Object.keys(vm.playerLvlData).length; i++) {
+                    let levelUpConfig = vm.playerLvlData[Object.keys(vm.playerLvlData)[i]].levelUpConfig;
+                    for (let j = 0; j < levelUpConfig.length; j++) {
+                        if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
+                            || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                            isEditable = false;
+                            break;
+                        }
+                    }
+                    if (isEditable == false) {
+                        break;
+                    }
+                }
+                return isEditable;
+            }
+            vm.autoCheckLevelUpPopUp = function () {
+                if (!vm.isAutoCheckLevelUpChangeble()) {
+                    vm.autoCheckPlayerLevelUp = true;
+                    $("#modalLevelUpPeriod").modal('show');
+                    $("#modalLevelUpPeriod").on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+                }
+            }
+
+
 
             vm.selectReward = function($event){
                 $event.stopPropagation();
