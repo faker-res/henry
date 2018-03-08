@@ -11640,15 +11640,54 @@ define(['js/app'], function (myApp) {
                 })
             }
 
-        vm.showUnlockProviderModal = function () {
-            if (vm.platformBasic.useProviderGroup == false && vm.selectedPlatform.data.useProviderGroup == true) {
-                $("#modalUnlockProvider").modal('show');
-                $("#modalUnlockProvider").on('shown.bs.modal', function (e) {
-                    $scope.safeApply();
-                })
+            vm.showUnlockProviderModal = function () {
+                if (vm.platformBasic.useProviderGroup == false && vm.selectedPlatform.data.useProviderGroup == true) {
+                    $("#modalUnlockProvider").modal('show');
+                    $("#modalUnlockProvider").on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+                }
+
+            };
+
+            vm.diffLevelUpPeriod = function (childPeriod) {
+                if (vm.allPlayerLevelUpPeriod[childPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod && !vm.autoCheckPlayerLevelUp) {
+                    vm.autoCheckPlayerLevelUp = true;
+                    $("#modalLevelUpPeriod").modal('show');
+                    $("#modalLevelUpPeriod").on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+                }
             }
 
-        };
+            vm.isAutoCheckLevelUpChangeble = function () {
+                let isEditable = true;
+                for (let i = 0; i < Object.keys(vm.playerLvlData).length; i++) {
+                    let levelUpConfig = vm.playerLvlData[Object.keys(vm.playerLvlData)[i]].levelUpConfig;
+                    for (let j = 0; j < levelUpConfig.length; j++) {
+                        if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
+                            || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                            isEditable = false;
+                            break;
+                        }
+                    }
+                    if (isEditable == false) {
+                        break;
+                    }
+                }
+                return isEditable;
+            }
+            vm.autoCheckLevelUpPopUp = function () {
+                if (!vm.isAutoCheckLevelUpChangeble()) {
+                    vm.autoCheckPlayerLevelUp = true;
+                    $("#modalLevelUpPeriod").modal('show');
+                    $("#modalLevelUpPeriod").on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+                }
+            }
+
+
 
             vm.selectReward = function($event){
                 $event.stopPropagation();
@@ -12721,7 +12760,7 @@ define(['js/app'], function (myApp) {
 
             // Player WechatPay TopUp
             vm.initPlayerWechatPayTopUp = function () {
-                vm.playerWechatPayTopUp = {submitted: false};
+                vm.playerWechatPayTopUp = {submitted: false, notUseQR: "true"};
                 vm.existingWechatPayTopup = null;
                 socketService.$socket($scope.AppSocket, 'getWechatPayTopUpRequestList', {playerId: vm.selectedSinglePlayer.playerId},
                     data => {
@@ -18428,77 +18467,89 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.sendSMSByPromoCode = function (promoCode) {
-                let item = promoCode ? promoCode : vm.selectedPromoCode;
+            vm.sendSMSByPromoCode = function (promoCode, isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo.modalTitle = $translate("Send Promo Code SMS");
+                    vm.modalYesNo.modalText = $translate("Send unaccepted promo code to members?");
+                    vm.modalYesNo.actionYes = () => vm.sendSMSByPromoCode(promoCode, true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    let item = promoCode ? promoCode : vm.selectedPromoCode;
 
-                // Translate sms content
-                Object.keys($scope.constPromoCodeLegend).forEach(e => {
-                    let indexCode = $scope.constPromoCodeLegend[e];
-                    let codePositionIndex = item.smsContent.indexOf("(" + indexCode + ")");
-                    let contentToReplace = "";
+                    // Translate sms content
+                    Object.keys($scope.constPromoCodeLegend).forEach(e => {
+                        let indexCode = $scope.constPromoCodeLegend[e];
+                        let codePositionIndex = item.smsContent.indexOf("(" + indexCode + ")");
+                        let contentToReplace = "";
 
-                    switch (indexCode) {
-                        case "X":
-                            contentToReplace = item.amount;
-                            break;
-                        case "D":
-                            contentToReplace = item.minTopUpAmount;
-                            break;
-                        case "Y":
-                            contentToReplace = item.requiredConsumption;
-                            break;
-                        case "Z":
-                            contentToReplace = vm.dateReformat(item.expirationTime);
-                            break;
-                        case "P":
-                            if (vm.selectedPlatform.data.useProviderGroup) {
-                                contentToReplace = [];
-                                item.allowedProviders[0].providers.map(e => {
-                                    if (vm.platformProviderList.find(g => String(g._id) == String(e))) {
-                                        contentToReplace.push(vm.platformProviderList.find(g => String(g._id) == String(e)).name)
+                        switch (indexCode) {
+                            case "X":
+                                contentToReplace = item.amount;
+                                break;
+                            case "D":
+                                contentToReplace = item.minTopUpAmount;
+                                break;
+                            case "Y":
+                                contentToReplace = item.requiredConsumption;
+                                break;
+                            case "Z":
+                                contentToReplace = vm.dateReformat(item.expirationTime);
+                                break;
+                            case "P":
+                                if (vm.selectedPlatform.data.useProviderGroup) {
+                                    if(item.allowedProviders && item.allowedProviders.length > 0){
+                                        contentToReplace = [];
+                                        item.allowedProviders[0].providers.map(e => {
+                                            if (vm.platformProviderList.find(g => String(g._id) == String(e))) {
+                                                contentToReplace.push(vm.platformProviderList.find(g => String(g._id) == String(e)).name)
+                                            }
+                                        })
+                                    }else if(item.allowedProviders$){
+                                        contentToReplace = item.allowedProviders$;
                                     }
-                                })
-                            } else {
-                                contentToReplace = item.allowedProviders.map(f => f.name);
-                            }
-                            break;
-                        case "Q":
-                            contentToReplace = item.code;
-                            break;
-                        case "M":
-                            contentToReplace = item.maxRewardAmount;
-                            break;
-                        default:
-                            break;
-                    }
+                                } else {
+                                    contentToReplace = item.allowedProviders.map(f => f.name);
+                                }
+                                break;
+                            case "Q":
+                                contentToReplace = item.code;
+                                break;
+                            case "M":
+                                contentToReplace = item.maxRewardAmount;
+                                break;
+                            default:
+                                break;
+                        }
 
-                    if (codePositionIndex > -1) {
-                        item.smsContent = item.smsContent.substr(0, codePositionIndex) + contentToReplace + item.smsContent.substr(codePositionIndex + 3);
-                    }
-                })
+                        if (codePositionIndex > -1) {
+                            item.smsContent = item.smsContent.substr(0, codePositionIndex) + contentToReplace + item.smsContent.substr(codePositionIndex + 3);
+                        }
+                    })
 
-                let sendObj = {
-                    platformId: item.platformObjId,
-                    adminName: 'admin',
-                    playerId: item.playerObjId._id,
-                    title: 'Test Title',
-                    content: item.smsContent
-                };
+                    let sendObj = {
+                        platformId: item.platformObjId,
+                        adminName: 'admin',
+                        playerId: item.playerObjId._id,
+                        title: 'Test Title',
+                        content: item.smsContent
+                    };
 
-                let smsObj = {
-                    playerId: item.playerObjId.playerId,
-                    platformId: item.platformObjId,
-                    channel: 2,
-                    message: item.smsContent
-                };
+                    let smsObj = {
+                        playerId: item.playerObjId.playerId,
+                        platformId: item.platformObjId,
+                        channel: 2,
+                        message: item.smsContent
+                    };
 
-                socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToPlayer', sendObj, function (data) {
-                    console.log('sendPlayerMailFromAdminToPlayer', data);
-                });
+                    socketService.$socket($scope.AppSocket, 'sendPlayerMailFromAdminToPlayer', sendObj, function (data) {
+                        console.log('sendPlayerMailFromAdminToPlayer', data);
+                    });
 
-                socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', smsObj, function (data) {
-                    console.log('sendSMSToPlayer', data);
-                });
+                    socketService.$socket($scope.AppSocket, 'sendSMSToPlayer', smsObj, function (data) {
+                        console.log('sendSMSToPlayer', data);
+                    });
+                }
             };
 
             vm.sendSMSByPromoCodeBatch = function (isConfirm) {
@@ -18511,7 +18562,7 @@ define(['js/app'], function (myApp) {
                 else {
                     vm.promoCodeQuery.result.map(e => {
                         if (e.status == 1) {
-                            vm.sendSMSByPromoCode(e);
+                            vm.sendSMSByPromoCode(e, isConfirm);
                         }
                     })
                 }
@@ -19360,7 +19411,7 @@ define(['js/app'], function (myApp) {
                         $translate(", Are you sure you want to move player to group"), vm.newUserBlockPromoCodeUserGroup.newGroup.name, "?"];
                     vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
                     vm.modalYesNo.modalText = message.join(" ");
-                    vm.modalYesNo.actionYes = () => vm.addUserToBlockPromoCodeGroup(vm.newUserPromoCodeUserGroup.name, true);
+                    vm.modalYesNo.actionYes = () => vm.addUserToBlockPromoCodeGroup(vm.newUserBlockPromoCodeUserGroup.name, true);
                     $('#modalYesNo').modal();
                 } else {
                     if (isSkipCheck) {
@@ -19449,6 +19500,7 @@ define(['js/app'], function (myApp) {
                     .then(function (data) {
                         vm.playerLevelPeriod = {};
                         vm.allPlayerLvl = data.data;
+                        vm.platformBatchLevelUp = true;
                         vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
                         vm.manualPlayerLevelUp = vm.selectedPlatform.data.manualPlayerLevelUp;
                         vm.playerLevelPeriod.playerLevelUpPeriod = vm.selectedPlatform.data.playerLevelUpPeriod ? vm.selectedPlatform.data.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
@@ -20289,9 +20341,32 @@ define(['js/app'], function (myApp) {
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
                 vm.newPlayerLvl.platform = vm.selectedPlatform.id;
+                let levelUpConfig = vm.newPlayerLvl.levelUpConfig;
+                for (let j = 0; j < levelUpConfig.length; j++) {
+                    if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
+                        || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                        vm.platformBatchLevelUp = false;
+                        break;
+                    }
+                }
                 $scope.$socketPromise('createPlayerLevel', sendData)
                     .done(function (data) {
-                        vm.configTabClicked('player');
+                        if (!vm.platformBatchLevelUp) {
+                            let updateData = {
+                                query: {_id: vm.selectedPlatform.id},
+                                updateData: {
+                                    platformBatchLevelUp: vm.platformBatchLevelUp,
+                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
+                                }
+                            }
+                            socketService.$socket($scope.AppSocket, 'updatePlatform', updateData, function (data) {
+                                vm.loadPlatformData({loadAll: false});
+                                vm.configTabClicked('player');
+
+                            });
+                        } else {
+                            vm.configTabClicked('player');
+                        }
                     });
             }
             vm.submitAddPartnerLvl = function () {
@@ -20352,6 +20427,7 @@ define(['js/app'], function (myApp) {
                         if (vm.configTableEdit) {
                             vm.allPlayerLvl = vm.allPlayerLvlBeforeEdit;
                         }
+                        vm.autoCheckPlayerLevelUp = vm.selectedPlatform.data.autoCheckPlayerLevelUp;
                         break;
                     case 'announcement':
                         // If cancelling an edit, we should restore the state before the edit
@@ -20367,11 +20443,27 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'player':
                         console.log('vm.playerLvlData', vm.playerLvlData);
+
+                        for (let i = 0; i < Object.keys(vm.playerLvlData).length; i++) {
+                            let levelUpConfig = vm.playerLvlData[Object.keys(vm.playerLvlData)[i]].levelUpConfig;
+                            for (let j = 0; j < levelUpConfig.length; j++) {
+                                if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
+                                    || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                                    vm.platformBatchLevelUp = false;
+                                    break;
+                                }
+                            }
+                            if (vm.platformBatchLevelUp == false) {
+                                break;
+                            }
+                        }
+
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
-                            playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod
+                            playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
+                            platformBatchLevelUp: vm.platformBatchLevelUp
                         });
                         if (vm.allPlayerLvlReordered) {
                             // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
@@ -20546,6 +20638,7 @@ define(['js/app'], function (myApp) {
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
+                        platformBatchLevelUp: srcData.platformBatchLevelUp,
                         playerLevelUpPeriod: srcData.playerLevelUpPeriod,
                         playerLevelDownPeriod: srcData.playerLevelDownPeriod,
                         requireLogInCaptcha: srcData.requireLogInCaptcha,
@@ -20838,7 +20931,35 @@ define(['js/app'], function (myApp) {
 
                                 // Ensure level values are in continuous sequence, refresh UI at the end.
                                 vm.getAllPlayerLevels().done(
-                                    () => vm.ensurePlayerLevelOrder()
+                                    () => {
+                                        vm.ensurePlayerLevelOrder();
+                                        if (!vm.selectedPlatform.data.platformBatchLevelUp) {
+                                            for (let i = 0; i < Object.keys(vm.playerLvlData).length; i++) {
+                                                let levelUpConfig = vm.playerLvlData[Object.keys(vm.playerLvlData)[i]].levelUpConfig;
+                                                for (let j = 0; j < levelUpConfig.length; j++) {
+                                                    if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
+                                                        || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                                                        vm.platformBatchLevelUp = false;
+                                                        break;
+                                                    }
+                                                }
+                                                if (vm.platformBatchLevelUp == false) {
+                                                    break;
+                                                }
+                                            }
+
+                                            let updateData = {
+                                                query: {_id: vm.selectedPlatform.id},
+                                                updateData: {
+                                                    platformBatchLevelUp: vm.platformBatchLevelUp,
+                                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
+                                                }
+                                            }
+                                            socketService.$socket($scope.AppSocket, 'updatePlatform', updateData, function (data) {
+                                                vm.loadPlatformData({loadAll: false});
+                                            });
+                                        }
+                                    }
                                 );
                                 $scope.safeApply();
                             });
