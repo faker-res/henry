@@ -647,6 +647,30 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getOnlineTopupAnalysisByPlatform', sendData, data => {
                 console.log('data.data', data.data);
                 vm.platformOnlineTopupAnalysisData = data.data[0];
+
+                for (let i = 0; i < vm.platformOnlineTopupAnalysisData.length; i++) {
+                    for (let j = 0; j < vm.platformOnlineTopupAnalysisData[i].length; j++) {
+                        for (let k = vm.platformOnlineTopupAnalysisData[i][j].length - 1; k >= 0; k--) {
+                            let analysisData =  vm.platformOnlineTopupAnalysisData[i][j][k];
+                            if (typeof analysisData._id == "string") {
+                                for (let l = vm.platformOnlineTopupAnalysisData[i][j].length - 1; l >= 0; l--) {
+                                    let analysisData2 = vm.platformOnlineTopupAnalysisData[i][j][l];
+                                    if (Number(analysisData._id) == analysisData2._id && typeof analysisData2._id == 'number') {
+                                        analysisData.amount += analysisData2.amount;
+                                        analysisData.count += analysisData2.count;
+                                        analysisData.successCount += analysisData2.successCount;
+                                        analysisData.successUserCount += analysisData2.successUserCount;
+                                        analysisData.userCount += analysisData2.userCount;
+                                        vm.platformOnlineTopupAnalysisData[i][j].splice(l,1);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
                 vm.platformOnlineTopupAnalysisDataTotalUserCount = data.data[1].totalUserCount;
                 vm.platformOnlineTopupAnalysisTotalUserCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[1].userAgentUserCount,0);
                 let totalSuccessCount = vm.platformOnlineTopupAnalysisData.reduce((a, data) =>  a + data[0].reduce((b, data1) => b + data1.successCount, 0), 0);

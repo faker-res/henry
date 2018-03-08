@@ -3675,7 +3675,7 @@ var proposal = {
                             //get success proposal count group by topupType, filter repeat user
                             return dbconfig.collection_proposal.aggregate(
                                 {
-                                    $match: Object.assign({}, matchObj,{status: "Success"})
+                                    $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}})
                                 }, {
                                     $group: {
                                         _id: "$data.topupType",
@@ -3720,7 +3720,7 @@ var proposal = {
                                                     // get success proposal count group by merchantNo, filter repeat user
                                                     return dbconfig.collection_proposal.aggregate(
                                                         {
-                                                            $match: Object.assign({}, matchObj,{status: "Success", 'data.topupType': onlineTopupTypeData._id})
+                                                            $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}, 'data.topupType': onlineTopupTypeData._id})
                                                         }, {
                                                             $group: {
                                                                 _id: "$data.merchantNo",
