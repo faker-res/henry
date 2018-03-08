@@ -794,7 +794,7 @@ var dbUtility = {
         geoip2wsCity(ip, function (err, data) {
             if (err) {
                 console.error("getGeoIp:", err);
-                deferred.reject(err);
+                deferred.resolve(null);
             }
             else {
                 if (!data.city) {
