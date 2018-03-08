@@ -423,9 +423,7 @@ const dbPlayerMail = {
                             }
                             return smsData;
                         },
-                        error => {
-                            return smsData;
-                        }
+                        error =>  smsData
                     );
                 }
                 return smsData;
