@@ -378,7 +378,9 @@ var proposal = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] != null) {
-                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints && proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS){
+                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints
+                        && (proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS
+                            || proposalTypeData.name === constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS)){
                         dbRewardPointsLog.createRewardPointsLogByProposalData(data[0]);
                     }
 
@@ -3803,6 +3805,77 @@ var proposal = {
                         )
                     }
                 );
+            }
+        )
+    },
+
+    getTopupAnalysisByPlatform: (platformId, startDate, endDate, type, period) => {
+
+        return dbconfig.collection_proposalType.findOne({platformId: platformId, name: type}).read("secondaryPreferred").lean().then(
+            (TopupType) => {
+                if (!TopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+
+                let proms = [];
+                let dayStartTime = startDate;
+                let getNextDate;
+                switch (period) {
+                    case 'day':
+                        getNextDate = function (date) {
+                            let newDate = new Date(date);
+                            return new Date(newDate.setDate(newDate.getDate() + 1));
+                        }
+                        break;
+                    case 'week':
+                        getNextDate = function (date) {
+                            let newDate = new Date(date);
+                            return new Date(newDate.setDate(newDate.getDate() + 7));
+                        }
+                        break;
+                    case 'month':
+                    default:
+                        getNextDate = function (date) {
+                            let newDate = new Date(date);
+                            return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                        }
+                }
+                while (dayStartTime.getTime() < endDate.getTime()) {
+                    var dayEndTime = getNextDate.call(this, dayStartTime);
+
+                    let matchObj = {
+                        createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                        type: TopupType._id,
+                        inputDevice: {$in: [0,1,3,5]},
+                    };
+
+                    let groupByObj = {
+                        _id: "$inputDevice",
+                        userIds: {$addToSet: {$cond: [{$eq: ["$status", 'Success']}, '$data.playerObjId', 0]}}, // remove duplicate player
+                        amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}}, // total topup amount with status: success
+                        count: {$sum: 1}, // total number of proposal
+                        successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}}, // total number of proposal with status: success
+                    };
+
+                    proms.push( dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: matchObj
+                        }, {
+                            $group: groupByObj
+                        }
+                    ).read("secondaryPreferred"));
+                    dayStartTime = dayEndTime;
+                }
+                return Q.all(proms).then(data => {
+                    if (data && data.length > 0) {
+                        let tempDate = startDate;
+                        let res = data.map(item => {
+                            let obj = {date: tempDate, data: item}
+                            tempDate = getNextDate(tempDate);
+                            return obj;
+                        });
+                        return res;
+                    }
+                });
+
             }
         )
     }
