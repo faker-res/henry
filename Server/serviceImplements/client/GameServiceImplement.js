@@ -44,7 +44,7 @@ var GameServiceImplement = function () {
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.getGameListAPI, [pass, data.startIndex, data.requestCount, conn.playerId], true, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.getGameListAPI, [pass, data.startIndex, data.requestCount, conn.playerId, data.platformId], true, false, false, true);
     };
 
     this.getGameGroupInfo.expectsData = 'code: String, platformId: String';
