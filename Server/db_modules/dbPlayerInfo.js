@@ -8214,6 +8214,7 @@ let dbPlayerInfo = {
                     let dayStartTime = start;
                     let dayEndTime = getNextDateByPeriodAndDate(period, dayStartTime);
                     result[dayStartTime] = isFilterValidPlayer ? [] : 0;
+
                     chain = chain.then(
                         () => {
                             let stream = dbconfig[topupCollectionName].aggregate([
@@ -8230,13 +8231,14 @@ let dbPlayerInfo = {
                                         "times": {"$sum": '$times'}
                                     }
                                 }
-                            ]).read("secondaryPreferred").cursor({batchSize: 1000}).allowDiskUse(true).exec();
+                            ]).read("secondaryPreferred").cursor({batchSize: 100}).allowDiskUse(true).exec();
                             let balancer = new SettlementBalancer();
+
                             return balancer.initConns().then(function () {
                                 return balancer.processStream(
                                     {
                                         stream: stream,
-                                        batchSize: 100,
+                                        batchSize: 10,
                                         makeRequest: function (playerObjs, request) {
                                             request("player", "getConsumptionActivePlayerAfterTopupQueryMatch", {
                                                 platformId: platformId,
