@@ -1200,7 +1200,9 @@ let dbRewardPoints = {
                     let rewardPointsLvlConfig = data[0];
                     let allPlayerLvl = data[1];
                     let platformProviderGroup = data[2];
-                    dailyConvertedPoints = data[3];
+                    if (player) { // only display if found player data
+                        dailyConvertedPoints = data[3];
+                    }
 
                     let playerLevelId, playerLevelName, dailyMaxPoints, pointToCreditManualRate, pointToCreditManualMaxPoints;
                     let pointToCreditAutoRate, pointToCreditAutoMaxPoints, spendingAmountOnReward, providerGroupId, providerGroupName;
