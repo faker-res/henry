@@ -1338,7 +1338,9 @@ define(['js/app'], function (myApp) {
                         data: leftAxis.data,
                         bars: {
                             show: true,
-                            align: "center"
+                            align: "center",
+                            barWidth: 24 * 60 * 60 * 600,
+                            lineWidth: 1
                         }
                     },
                     {
