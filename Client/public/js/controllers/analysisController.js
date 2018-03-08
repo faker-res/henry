@@ -1306,6 +1306,52 @@ define(['js/app'], function (myApp) {
                 }
             });
         };
+        vm.plotComboLineBarByElementId = (elementId, data, xLabel) => {
+            if (data && data.length > 0) {
+                let leftAxis = data[0];
+                let rightAxis = data[1];
+
+                let yLabelLeft = leftAxis.label;
+                let yLabelRight = rightAxis.label;
+
+                let newOptions = {
+                    xaxis: {
+                        axisLabel: xLabel,
+                        axisLabelUseCanvas: true,
+                        tickLength: 0,
+                        mode: "time",
+                        minTickSize: [1, vm.queryPara.newPlayer.periodText],
+                    },
+                    yaxes: [{
+                        axisLabel: yLabelLeft,
+                        axisLabelUseCanvas: true
+                    }, {
+                        position: "right",
+                        axisLabel: yLabelRight,
+                        axisLabelUseCanvas: true
+                    }]
+                };
+
+                let dataSet = [
+                    {
+                        label: yLabelLeft,
+                        data: leftAxis.data,
+                        bars: {
+                            show: true,
+                            align: "center"
+                        }
+                    },
+                    {
+                        label: yLabelRight,
+                        data: rightAxis.data,
+                        yaxis: 2
+                    }
+                ];
+
+                $.plot(elementId, dataSet, newOptions);
+            }
+        };
+
         // new player end   =============================================
 
         // active Player start= =========================================
@@ -1540,13 +1586,40 @@ define(['js/app'], function (myApp) {
                     let totalGrow = [];
                     let totalLost = [];
                     let totalNetGrow = [];
+
+                    let totalNewActivePlayer = [];
+                    let totalOldActivePlayer = [];
+
                     vm.platformValidActivePlayerAnalysisCalculatedData.forEach(data => {
                         totalGrow.push([new Date(data.date), data.totalGrow]);
                         totalLost.push([new Date(data.date), data.totalLost]);
                         totalNetGrow.push([new Date(data.date), data.totalNetGrow]);
+
+                        totalNewActivePlayer.push([new Date(data.date), data.activeNewPlayer.length]);
+                        totalOldActivePlayer.push([new Date(data.date), data.activeOldPlayer.length]);
                     });
-                    let validActivePlayerGrowAndLostLineData =[{label: $translate('totalGrow'), data: totalGrow}, {label: $translate('totalLost'), data: totalLost}, {label: $translate('totalNetGrow'), data: totalNetGrow}];
-                    vm.plotLineByElementId("#line-validActivePlayerGrowAndLost", validActivePlayerGrowAndLostLineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()));
+                    let validActivePlayerGrowAndLostLineData = [
+                        {label: $translate('totalGrow'), data: totalGrow},
+                        {label: $translate('totalLost'), data: totalLost},
+                        {label: $translate('totalNetGrow'), data: totalNetGrow}
+                    ];
+
+                    let validActivePlayerComboData = [
+                        {label: $translate('active') + $translate('(old player)') + $translate("HEAD_COUNT"), data: totalOldActivePlayer},
+                        {label: $translate('active') + $translate('(previous period new player)') + $translate("HEAD_COUNT"), data: totalNewActivePlayer},
+                    ];
+
+                    vm.plotLineByElementId(
+                        "#line-validActivePlayerGrowAndLost",
+                        validActivePlayerGrowAndLostLineData,
+                        $translate('AMOUNT'),
+                        $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase())
+                    );
+                    vm.plotComboLineBarByElementId(
+                        "#line-validActivePlayerCombo",
+                        validActivePlayerComboData,
+                        $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase())
+                    );
                     vm.isShowLoadingSpinner('#validActivePlayerAnalysis', false);
                     vm.isLoadingValidActivePlayer = false;
                 })
