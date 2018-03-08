@@ -6820,6 +6820,8 @@ let dbPlayerInfo = {
                                        let consumptionSummary = recordData[1];
                                        let topUpSumPeriod = {};
                                        let consumptionSumPeriod = {};
+                                       let levelUpErrorCode = "";
+                                       let levelUpErrorMsg = "";
 
                                        function countRecordSumWholePeriod(recordPeriod, bTopUp) {
                                            let queryRecord = bTopUp ? topUpSummary : consumptionSummary;
@@ -6844,6 +6846,7 @@ let dbPlayerInfo = {
                                        }
 
                                        if (checkLevelUp) {
+                                           let checkLevelUpEnd = false;
                                            for (let a = 0; a < levelUpObjArr.length; a++) {
                                                const conditionSets = levelUpObjArr[a].levelUpConfig;
 
@@ -6869,6 +6872,23 @@ let dbPlayerInfo = {
                                                        levelUpObjArr[a].isChecked = true;
                                                        isCheckedLvlUp = true;
                                                        levelUpObj = levelUpObjArr[a];
+                                                   } else {
+                                                       if (!checkLevelUpEnd) {
+                                                           if (!meetsEnoughConditions) {
+                                                               levelUpErrorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
+                                                               levelUpErrorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
+                                                           }
+                                                           if (!meetsConsumptionCondition && meetsTopupCondition) {
+                                                               levelUpErrorCode = constServerCode.NO_REACH_CONSUMPTION;
+                                                               levelUpErrorMsg = 'NO_REACH_CONSUMPTION';
+                                                           }
+                                                           if (!meetsTopupCondition && meetsConsumptionCondition) {
+                                                               levelUpErrorCode = constServerCode.NO_REACH_TOPUP;
+                                                               levelUpErrorMsg = 'NO_REACH_TOPUP';
+                                                           }
+
+                                                       }
+                                                       checkLevelUpEnd = true;
                                                    }
                                                }
                                            }
@@ -6982,9 +7002,10 @@ let dbPlayerInfo = {
                                            );
                                        } else {
                                            if (checkLevelUp) {
-                                               return Promise.reject({
-                                                   name: "DBError",
-                                                   message: "top up or consumption summary does not match record"
+                                               return Q.reject({
+                                                   status: levelUpErrorCode,
+                                                   name: "DataError",
+                                                   message: levelUpErrorMsg,
                                                })
                                            }
                                        }
