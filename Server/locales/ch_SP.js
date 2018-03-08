@@ -259,7 +259,8 @@ var simplifiedChinese = {
     "Player does not have enough consumption": "玩家没有足够的投注额",
     "Unable to check game credit for demo player": "试玩玩家无法查看额度",
     "Unable to transfer credit for demo player": "试玩玩家无法转入转出",
-    "Unable to get login URL for demo player": "试玩玩家无法获取登入链接"
+    "Unable to get login URL for demo player": "试玩玩家无法获取登入链接",
+    "LOCAL_CREDIT": "自由额度",
     //todo::add missing messages here
 
     /*
