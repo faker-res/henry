@@ -1571,9 +1571,7 @@ define(['js/app'], function (myApp) {
                     vm.plotComboLineBarByElementId(
                         "#line-validActivePlayerCombo",
                         validActivePlayerComboData,
-                        $translate('AMOUNT'),
-                        $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase()),
-                        $translate('active') + $translate('(previous period new player)') + $translate("HEAD_COUNT")
+                        $translate('PERIOD') + ' : ' + $translate(vm.queryPara.validActivePlayer.periodText.toUpperCase())
                     );
                     vm.isShowLoadingSpinner('#validActivePlayerAnalysis', false);
                     vm.isLoadingValidActivePlayer = false;
