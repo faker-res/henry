@@ -7,6 +7,7 @@ let dbRewardPointsEvent = require('./../db_modules/dbRewardPointsEvent');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbUtility = require('./../modules/dbutility');
 let errorUtils = require('./../modules/errorUtils');
+let localization = require("../modules/localization");
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
 const constRewardPointsLogCategory = require('../const/constRewardPointsLogCategory');
 const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
@@ -1215,7 +1216,7 @@ let dbRewardPoints = {
                         playerLevelName = playerLvl.name;
 
                         rewardPointsLvlConfig.params.forEach((param) => {
-                            if (param.levelObjId.toString() === playerLvl._id.toString()) {
+                            if (param && playerLvl && param.levelObjId && playerLvl._id && param.levelObjId.toString() === playerLvl._id.toString()) {
                                 dailyMaxPoints = param.dailyMaxPoints;
                                 pointToCreditManualRate = param.pointToCreditManualRate;
                                 pointToCreditManualMaxPoints = param.pointToCreditManualMaxPoints;
@@ -1223,8 +1224,13 @@ let dbRewardPoints = {
                                 pointToCreditAutoMaxPoints = param.pointToCreditAutoMaxPoints;
                                 spendingAmountOnReward = param.spendingAmountOnReward;
 
+                                if (param && !param.providerGroup) {
+                                    providerGroupId = "";
+                                    providerGroupName = localization.localization.translate("LOCAL_CREDIT");
+                                }
+
                                 platformProviderGroup.forEach((provider) => {
-                                    if (provider._id.toString() === param.providerGroup.toString()) {
+                                    if (provider && param && provider._id && param.providerGroup && provider._id.toString() === param.providerGroup.toString()) {
                                         providerGroupId = provider.providerGroupId;
                                         providerGroupName = provider.name;
                                     }
