@@ -6820,6 +6820,8 @@ let dbPlayerInfo = {
                                        let consumptionSummary = recordData[1];
                                        let topUpSumPeriod = {};
                                        let consumptionSumPeriod = {};
+                                       let levelUpErrorCode = "";
+                                       let levelUpErrorMsg = "";
 
                                        function countRecordSumWholePeriod(recordPeriod, bTopUp) {
                                            let queryRecord = bTopUp ? topUpSummary : consumptionSummary;
@@ -6844,6 +6846,7 @@ let dbPlayerInfo = {
                                        }
 
                                        if (checkLevelUp) {
+                                           let checkLevelUpEnd = false;
                                            for (let a = 0; a < levelUpObjArr.length; a++) {
                                                const conditionSets = levelUpObjArr[a].levelUpConfig;
 
@@ -6869,6 +6872,23 @@ let dbPlayerInfo = {
                                                        levelUpObjArr[a].isChecked = true;
                                                        isCheckedLvlUp = true;
                                                        levelUpObj = levelUpObjArr[a];
+                                                   } else {
+                                                       if (!checkLevelUpEnd) {
+                                                           if (!meetsEnoughConditions) {
+                                                               levelUpErrorCode = constServerCode.NO_REACH_TOPUP_CONSUMPTION;
+                                                               levelUpErrorMsg = 'NO_REACH_TOPUP_CONSUMPTION';
+                                                           }
+                                                           if (!meetsConsumptionCondition && meetsTopupCondition) {
+                                                               levelUpErrorCode = constServerCode.NO_REACH_CONSUMPTION;
+                                                               levelUpErrorMsg = 'NO_REACH_CONSUMPTION';
+                                                           }
+                                                           if (!meetsTopupCondition && meetsConsumptionCondition) {
+                                                               levelUpErrorCode = constServerCode.NO_REACH_TOPUP;
+                                                               levelUpErrorMsg = 'NO_REACH_TOPUP';
+                                                           }
+
+                                                       }
+                                                       checkLevelUpEnd = true;
                                                    }
                                                }
                                            }
@@ -6982,9 +7002,10 @@ let dbPlayerInfo = {
                                            );
                                        } else {
                                            if (checkLevelUp) {
-                                               return Promise.reject({
-                                                   name: "DBError",
-                                                   message: "top up or consumption summary does not match record"
+                                               return Q.reject({
+                                                   status: levelUpErrorCode,
+                                                   name: "DataError",
+                                                   message: levelUpErrorMsg,
                                                })
                                            }
                                        }
@@ -8141,7 +8162,7 @@ let dbPlayerInfo = {
                 let activePlayerTopUpAmount;
                 let activePlayerConsumptionTimes;
                 let activePlayerConsumptionAmount;
-                let activePlayerValue;
+                let activePlayerValue = 0;
                 let topupCollectionName = 'collection_playerTopUpDaySummary';//'collection_playerTopUpWeekSummary';
                 let consumptionCollectionName = 'collection_playerConsumptionDaySummary';//'collection_playerConsumptionWeekSummary';
 
@@ -8155,7 +8176,6 @@ let dbPlayerInfo = {
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.dailyActivePlayerConsumptionTimes;
                         activePlayerConsumptionAmount = partnerLevelConfig.dailyActivePlayerConsumptionAmount;
-                        activePlayerValue = partnerLevelConfig.dailyActivePlayerValue;
                         break;
                     case 'week':
                         if(isFilterValidPlayer) dayStartTime = dbUtility.getWeekTime(date).startTime;
@@ -8163,7 +8183,6 @@ let dbPlayerInfo = {
                         activePlayerTopUpAmount = partnerLevelConfig.weeklyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.weeklyActivePlayerConsumptionTimes;
                         activePlayerConsumptionAmount = partnerLevelConfig.weeklyActivePlayerConsumptionAmount;
-                        activePlayerValue = partnerLevelConfig.weeklyActivePlayerValue;
                         break;
                     case 'biweekly':
                         if(isFilterValidPlayer) dayStartTime = dbUtility.getBiWeekSGTIme(date).startTime;
@@ -8171,7 +8190,6 @@ let dbPlayerInfo = {
                         activePlayerTopUpAmount = partnerLevelConfig.halfMonthActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.halfMonthActivePlayerConsumptionTimes;
                         activePlayerConsumptionAmount = partnerLevelConfig.halfMonthActivePlayerConsumptionAmount;
-                        activePlayerValue = partnerLevelConfig.halfMonthActivePlayerValue;
                         break;
                     case 'month':
                         if(isFilterValidPlayer) dayStartTime = dbUtility.getMonthSGTIme(date).startTime;
@@ -8179,7 +8197,6 @@ let dbPlayerInfo = {
                         activePlayerTopUpAmount = partnerLevelConfig.monthlyActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.monthlyActivePlayerConsumptionTimes;
                         activePlayerConsumptionAmount = partnerLevelConfig.monthlyActivePlayerConsumptionAmount;
-                        activePlayerValue = partnerLevelConfig.monthlyActivePlayerValue;
                         break;
                     case 'season':
                     default:
@@ -8188,7 +8205,6 @@ let dbPlayerInfo = {
                         activePlayerTopUpAmount = partnerLevelConfig.seasonActivePlayerTopUpAmount;
                         activePlayerConsumptionTimes = partnerLevelConfig.seasonActivePlayerConsumptionTimes;
                         activePlayerConsumptionAmount = partnerLevelConfig.seasonActivePlayerConsumptionAmount;
-                        activePlayerValue = partnerLevelConfig.seasonActivePlayerValue;
                 }
 
                 let chain = Promise.resolve();
@@ -8214,13 +8230,13 @@ let dbPlayerInfo = {
                                         "times": {"$sum": '$times'}
                                     }
                                 }
-                            ]).read("secondaryPreferred").cursor({batchSize: 10000}).allowDiskUse(true).exec();
+                            ]).read("secondaryPreferred").cursor({batchSize: 1000}).allowDiskUse(true).exec();
                             let balancer = new SettlementBalancer();
                             return balancer.initConns().then(function () {
                                 return balancer.processStream(
                                     {
                                         stream: stream,
-                                        batchSize: constSystemParam.BATCH_SIZE,
+                                        batchSize: 100,
                                         makeRequest: function (playerObjs, request) {
                                             request("player", "getConsumptionActivePlayerAfterTopupQueryMatch", {
                                                 platformId: platformId,
