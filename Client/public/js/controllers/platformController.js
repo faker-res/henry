@@ -19411,7 +19411,7 @@ define(['js/app'], function (myApp) {
                         $translate(", Are you sure you want to move player to group"), vm.newUserBlockPromoCodeUserGroup.newGroup.name, "?"];
                     vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
                     vm.modalYesNo.modalText = message.join(" ");
-                    vm.modalYesNo.actionYes = () => vm.addUserToBlockPromoCodeGroup(vm.newUserPromoCodeUserGroup.name, true);
+                    vm.modalYesNo.actionYes = () => vm.addUserToBlockPromoCodeGroup(vm.newUserBlockPromoCodeUserGroup.name, true);
                     $('#modalYesNo').modal();
                 } else {
                     if (isSkipCheck) {
