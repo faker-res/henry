@@ -3320,6 +3320,7 @@
   "totalGrow": "总增长",
   "totalLost": "总流失",
   "totalNetGrow": "总增长 - 总流失",
+  "Cannot find related Customer Services Employee": "找不到相关客服人员",
   "two period at the same time, system will force player to auto level up, batch level settlement will not provide": "同时设置两个周期，系统将强制玩家瞬间自动升级，并无法提供批量结算升级。",
   "player level up period different": "玩家升级多个周期",
   "Redemption succeeded": "兑换成功",
@@ -3333,6 +3334,7 @@
   "has been returned to your account": "已返回帐户",
   "has exceed the redemption limit": "超出单日兑换上限",
   "reward points is not enough for redemption": "欲兑换的点数不足最低金额 (1) 元",
-  "daily reward point redemption limit is reach": "今日已达兑换上限"
+  "daily reward point redemption limit is reach": "今日已达兑换上限",
+  "player level up period different": "玩家升级多个周期"
 
 }

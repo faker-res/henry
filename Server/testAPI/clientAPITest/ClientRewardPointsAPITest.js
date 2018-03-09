@@ -93,6 +93,14 @@
         this.rewardPointsService.applyPointToCredit.request(data);
         this.rewardPointsService.applyPointToCredit.once(callback);
     };
+    
+    proto.getMissonList = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.getMissonList.request(data);
+        this.rewardPointsService.getMissonList.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardPointsAPITest;
     } else {

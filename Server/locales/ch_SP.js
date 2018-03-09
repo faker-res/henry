@@ -260,7 +260,8 @@ var simplifiedChinese = {
     "Unable to check game credit for demo player": "试玩玩家无法查看额度",
     "Unable to transfer credit for demo player": "试玩玩家无法转入转出",
     "Unable to get login URL for demo player": "试玩玩家无法获取登入链接",
-    "Redemption failed, the points to be redeemed are less than the minimum credit (1)": "兑换失败，欲兑换的点数不足最低金额 （1） 元"
+    "Redemption failed, the points to be redeemed are less than the minimum credit (1)": "兑换失败，欲兑换的点数不足最低金额 （1） 元",
+    "LOCAL_CREDIT": "自由额度",
     //todo::add missing messages here
 
     /*

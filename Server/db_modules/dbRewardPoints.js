@@ -7,11 +7,16 @@ let dbRewardPointsEvent = require('./../db_modules/dbRewardPointsEvent');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbUtility = require('./../modules/dbutility');
 let errorUtils = require('./../modules/errorUtils');
+let localization = require("../modules/localization");
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
 const constRewardPointsLogCategory = require('../const/constRewardPointsLogCategory');
 const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
 const constRewardPointsPeriod = require("../const/constRewardPointsPeriod");
 const constPlayerTopUpType = require('../const/constPlayerTopUpType');
+const constRewardPointsEventPeriod = require('../const/constRewardPointsEventPeriod');
+const constRewardPointsUserAgent = require("../const/constRewardPointsUserAgent");
+const constRewardPointsEventTopupType = require("../const/constRewardPointsEventTopupType");
+const constRewardPointsTopupEventUserAgent = require("../const/constRewardPointsTopupEventUserAgent");
 
 let dbRewardPoints = {
 
@@ -791,7 +796,6 @@ let dbRewardPoints = {
                                     if (event.level && event.level.value){
                                         event.level = event.level.value;
                                     }
-                                
                                 });
 
                                 returnData = rewardPointsEvent;
@@ -1197,7 +1201,9 @@ let dbRewardPoints = {
                     let rewardPointsLvlConfig = data[0];
                     let allPlayerLvl = data[1];
                     let platformProviderGroup = data[2];
-                    dailyConvertedPoints = data[3];
+                    if (player) { // only display if found player data
+                        dailyConvertedPoints = data[3];
+                    }
 
                     let playerLevelId, playerLevelName, dailyMaxPoints, pointToCreditManualRate, pointToCreditManualMaxPoints;
                     let pointToCreditAutoRate, pointToCreditAutoMaxPoints, spendingAmountOnReward, providerGroupId, providerGroupName;
@@ -1210,7 +1216,7 @@ let dbRewardPoints = {
                         playerLevelName = playerLvl.name;
 
                         rewardPointsLvlConfig.params.forEach((param) => {
-                            if (param.levelObjId.toString() === playerLvl._id.toString()) {
+                            if (param && playerLvl && param.levelObjId && playerLvl._id && param.levelObjId.toString() === playerLvl._id.toString()) {
                                 dailyMaxPoints = param.dailyMaxPoints;
                                 pointToCreditManualRate = param.pointToCreditManualRate;
                                 pointToCreditManualMaxPoints = param.pointToCreditManualMaxPoints;
@@ -1218,8 +1224,13 @@ let dbRewardPoints = {
                                 pointToCreditAutoMaxPoints = param.pointToCreditAutoMaxPoints;
                                 spendingAmountOnReward = param.spendingAmountOnReward;
 
+                                if (param && !param.providerGroup) {
+                                    providerGroupId = "";
+                                    providerGroupName = localization.localization.translate("LOCAL_CREDIT");
+                                }
+
                                 platformProviderGroup.forEach((provider) => {
-                                    if (provider._id.toString() === param.providerGroup.toString()) {
+                                    if (provider && param && provider._id && param.providerGroup && provider._id.toString() === param.providerGroup.toString()) {
                                         providerGroupId = provider.providerGroupId;
                                         providerGroupName = provider.name;
                                     }
@@ -1265,6 +1276,98 @@ let dbRewardPoints = {
     // this function might need to move to dbRewardPointLog
     createRewardPointsLog: function (logDetails) {
         return dbConfig.collection_rewardPointsLog(logDetails).save();
+    },
+
+    getMissonList: function (playerId, platformId) {
+        let returnData;
+        let platformData = null;
+        let loginRewardPointEvent = [];
+        let topupRewardPointEvent = [];
+        let gameRewardPointEvent = [];
+        let gameProvider = [];
+        let rewardPointRecord = [];
+        let rewardPointsRanking = [];
+
+        if (!playerId) {
+            return Promise.reject({name: "DataError", message: "用户未登录"});
+        }
+
+        return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformRecord => {
+                if (platformRecord) {
+                    platformData = platformRecord;
+                    return dbConfig.collection_players.findOne({
+                        playerId: playerId,
+                        platform: platformRecord._id
+                    })
+                } else {
+                    return Promise.reject({name: "DataError", message: "Platform Not Found"});
+                }
+            })
+            .then(playerRecord => {
+                if(playerRecord && playerRecord._id) {
+                    let limit = 10;
+                    let sortCol = {points: -1, lastUpdate: 1};
+
+                    let loginRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
+                        platformObjId: platformData._id,
+                        category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS
+                    }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+
+                    let topupRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
+                        platformObjId: platformData._id,
+                        category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS
+                    }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+
+                    let gameRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
+                        platformObjId: platformData._id,
+                        category: constRewardPointsTaskCategory.GAME_REWARD_POINTS
+                    }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+
+                    let gameProviderProm = dbConfig.collection_gameProvider.find({}).lean();
+
+                    let rewardPointsProm = dbConfig.collection_rewardPoints.findOne({playerObjId: playerRecord._id}).lean();
+
+                    let rewardPointsRankingProm = dbConfig.collection_rewardPoints.find({
+                        platformObjId: platformData._id
+                    }, {
+                        playerName: 1,
+                        playerLevel: 1,
+                        points: 1,
+                        _id: 0
+                    }).sort(sortCol).limit(limit)
+                        .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+
+                    return Promise.all([loginRewardPointProm, topupRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsProm, rewardPointsRankingProm])
+                } else {
+                    return Promise.reject({name: "DataError", message: "Player Not Found"});
+                }
+            })
+            .then(data => {
+                if(data){
+                    loginRewardPointEvent = data[0] ? data[0] : [];
+                    topupRewardPointEvent = data[1] ? data[1] : [];
+                    gameRewardPointEvent = data[2] ? data[2] : [];
+                    gameProvider = data[3] ? data[3] : [];
+                    rewardPointRecord = data[4] ? data[4] : [];
+                    rewardPointsRanking = data[5] ? data[5] : [];
+
+                    let loginRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, rewardPointRecord);
+                    let topupRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, rewardPointRecord);
+                    let gameRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, rewardPointRecord);
+                    let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking);
+
+                    returnData = {
+                        "loginPointList": loginRewardPointListArr,
+                        "rechargePointList": topupRewardPointListArr,
+                        "gamePointList": gameRewardPointListArr,
+                        "pointRanking": rewardPointsRankingListArr
+                    }
+                }
+
+                return returnData;
+
+            })
     }
 };
 
@@ -1742,4 +1845,158 @@ function getPlayerLevelValue(playerObjId) {
     return dbConfig.collection_players.findOne({
         _id: playerObjId
     },{"playerLevel":1}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
+}
+
+function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoints) {
+    let rewardPointListArr = [];
+
+    rewardPointEvent.forEach(reward => {
+        let rewardStartTime;
+        let rewardEndTime;
+        let rewardPeriod;
+        let currentGoal = 0;
+        let level = "";
+        let rewards = {};
+
+        if (reward.period) {
+            let periodTime = getEventPeriodTime(reward.period);
+            rewardStartTime = periodTime.startTime;
+            rewardEndTime = periodTime.endTime;
+            rewardPeriod = constRewardPointsEventPeriod[reward.period];
+        }
+
+        if (reward.level) {
+            level = reward.level.value;
+        }
+
+        if (rewardPoints && rewardPoints.progress && rewardPoints.progress.length > 0) {
+            rewardPoints.progress.filter(item => {
+                if (item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() === reward._id.toString()
+                    && item.lastUpdateTime >= rewardStartTime && item.lastUpdateTime <= rewardEndTime) {
+                    currentGoal = item.count;
+                }
+            });
+        }
+
+        switch (category) {
+            case constRewardPointsTaskCategory.LOGIN_REWARD_POINTS: {
+                let providerIds = [];
+                if (reward.target && reward.target.targetDestination && reward.target.targetDestination.length > 0) {
+                    reward.target.targetDestination.forEach(item => {
+                        if (gameProvider && gameProvider.length > 0) {
+                            gameProvider.forEach(gameItem => {
+                                if (item == gameItem._id.toString()) {
+                                    providerIds.push(gameItem.providerId);
+                                }
+                            });
+                        }
+                    })
+                }
+
+                rewards = {
+                    "id": reward._id,
+                    "refreshPeriod": rewardPeriod,
+                    "device": constRewardPointsUserAgent[reward.userAgent.toString()],
+                    "title": reward.rewardTitle,
+                    "content": reward.rewardContent,
+                    "gradeLimit": level,
+                    "point": reward.rewardPoints,
+                    "status": reward.status ? 1 : 0,
+                    "providerId": providerIds,
+                    "goal": reward.consecutiveCount,
+                    "currentGoal": currentGoal
+                }
+                break;
+            }
+            case constRewardPointsTaskCategory.TOPUP_REWARD_POINTS: {
+                rewards = {
+                    "id": reward._id,
+                    "refreshPeriod": rewardPeriod,
+                    "device": constRewardPointsTopupEventUserAgent[reward.userAgent.toString()],
+                    "depositType": reward.target && reward.target.merchantTopupMainType ? constRewardPointsEventTopupType[reward.target.merchantTopupMainType] : "",
+                    "onlineTopupType": reward.target && reward.target.merchantTopUpType ? reward.target.merchantTopUpType : "",
+                    "manualTopupType": reward.target && reward.target.depositMethod ? reward.target.depositMethod : "",
+                    "bankCardType": reward.target && reward.target.bankType ? reward.target.bankType : "",
+                    "dailyRequestDeposit": reward.target && reward.target.dailyTopupAmount ? reward.target.dailyTopupAmount : 0,
+                    "title": reward.rewardTitle,
+                    "content": reward.rewardContent,
+                    "gradeLimit": level,
+                    "point": reward.rewardPoints,
+                    "status": reward.status ? 1 : 0,
+                    "goal": reward.consecutiveCount,
+                    "currentGoal": currentGoal
+                }
+                break;
+            }
+            case constRewardPointsTaskCategory.GAME_REWARD_POINTS: {
+                let providerId = "";
+                let dailyRequestBetCountsAndAmount = [];
+                if (reward.target && reward.target.targetDestination) {
+                    if (gameProvider && gameProvider.length > 0) {
+                        gameProvider.forEach(gameItem => {
+                            if (reward.target.targetDestination == gameItem._id.toString()) {
+                                providerId = gameItem.providerId;
+                            }
+                        });
+                    }
+                }
+
+                if(reward.target && (reward.target.dailyConsumptionCount || reward.target.singleConsumptionAmount)) {
+                    dailyRequestBetCountsAndAmount.push(reward.target.dailyConsumptionCount ? reward.target.dailyConsumptionCount : 0);
+                    dailyRequestBetCountsAndAmount.push(reward.target.singleConsumptionAmount ? reward.target.singleConsumptionAmount : 0);
+                }
+
+                rewards = {
+                    "id": reward._id,
+                    "refreshPeriod": rewardPeriod,
+                    "device": constRewardPointsUserAgent[reward.userAgent.toString()],
+                    "gameType": reward.target && reward.target.gameType ? reward.target.gameType : "",
+                    "betDetail": reward.target && reward.target.betType ? reward.target.betType : "",
+                    "title": reward.rewardTitle,
+                    "content": reward.rewardContent,
+                    "gradeLimit": level,
+                    "point": reward.rewardPoints,
+                    "status": reward.status ? 1 : 0,
+                    "dailyRequestBetCountsAndAmount": dailyRequestBetCountsAndAmount,
+                    "dailyBetConsumption": reward.target && reward.target.dailyValidConsumptionAmount ? reward.target.dailyValidConsumptionAmount : 0,
+                    "dailyWinBetCounts": reward.target && reward.target.dailyWinGameCount ? reward.target.dailyWinGameCount : 0,
+                    "providerId": providerId,
+                    "goal": reward.consecutiveCount,
+                    "currentGoal": currentGoal
+                }
+                break;
+            }
+        }
+        rewardPointListArr.push(rewards);
+    });
+
+    return rewardPointListArr;
+}
+
+function getRewardPointsRanking(rewardPoints) {
+    let rewardPointsRankingListArr = [];
+
+    if(rewardPoints && rewardPoints.length > 0) {
+        rewardPoints.forEach(rank => {
+            //censor playerName start
+            let censoredName, front, censor = "***", rear, level = "";
+            front = rank.playerName.substr(0,2);    // extract first char
+            rear = rank.playerName.substr(5);       // extract all AFTER the 5th char (exclusive of the 5th, inclusive of the 6th)
+            censoredName = front + censor + rear;   // concat all
+            censoredName = censoredName.substr(0, rank.playerName.length); // extract original playerName's length, to maintain actual length
+            rank.playerName = censoredName;
+            //censor playerName end
+            if(rank.playerLevel && rank.playerLevel.name) {
+                level = rank.playerLevel.name;
+            }
+            let ranks = {
+                "account": rank.playerName,
+                "grade": level,
+                "totalPoint": rank.points
+            }
+            rewardPointsRankingListArr.push(ranks);
+        });
+    }
+
+    return rewardPointsRankingListArr;
 }

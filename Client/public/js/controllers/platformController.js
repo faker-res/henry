@@ -11660,6 +11660,34 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.isAutoCheckLevelUpChangeble = function () {
+                let isEditable = true;
+                for (let i = 0; i < Object.keys(vm.playerLvlData).length; i++) {
+                    let levelUpConfig = vm.playerLvlData[Object.keys(vm.playerLvlData)[i]].levelUpConfig;
+                    for (let j = 0; j < levelUpConfig.length; j++) {
+                        if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
+                            || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                            isEditable = false;
+                            break;
+                        }
+                    }
+                    if (isEditable == false) {
+                        break;
+                    }
+                }
+                return isEditable;
+            }
+            vm.autoCheckLevelUpPopUp = function () {
+                if (!vm.isAutoCheckLevelUpChangeble()) {
+                    vm.autoCheckPlayerLevelUp = true;
+                    $("#modalLevelUpPeriod").modal('show');
+                    $("#modalLevelUpPeriod").on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+                }
+            }
+
+
 
             vm.selectReward = function($event){
                 $event.stopPropagation();
@@ -19269,6 +19297,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                    vm.saveUserFromGroupToGroup(1, vm.userGroupAllConfig, vm.userGroupBlockConfig)
                 }
             };
 
@@ -19288,8 +19317,44 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', deleteData);
                 } else {
                     socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData);
+                    vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
                 }
             };
+
+            vm.saveUserFromGroupToGroup = function(type, originalConfig, currentConfig) {
+                if (originalConfig && originalConfig.length > 0 && currentConfig && currentConfig.length > 0) {
+                    let sendData = {
+                        platformObjId: vm.selectedPlatform.id,
+                        groupData: currentConfig
+                    };
+                    originalConfig.forEach(originalItem => {
+                        currentConfig.forEach(currentItem => {
+                            if (originalItem.name == currentItem.name) {
+                                let countOriginalPlayer = 0;
+                                let countCurrentPlayer = 0;
+
+                                if (originalItem.playerNames) {
+                                    countOriginalPlayer = originalItem.playerNames.length;
+                                }
+
+                                if (currentItem.playerNames) {
+                                    countCurrentPlayer = currentItem.playerNames.length;
+                                }
+
+                                if (countOriginalPlayer !== countCurrentPlayer) {
+                                    if(type == 1) { //Type 1 represent move user from block promo group to promo group
+                                        socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData);
+                                    }
+                                    else if(type == 2) { //Type 2 represent move user from promo group to block promo group
+                                        socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                                    }
+                                }
+
+                            }
+                        })
+                    });
+                }
+            }
 
             vm.saveDelayDurationGroup = function (isDelete, index) {
                 console.log('durationGroupConfig', vm.durationGroupConfig);
@@ -19341,6 +19406,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addUserToPromoCodeGroup = function (data, isSkipCheck) {
+                vm.isMoveUserFromGroupToGroup = false;
                 if (vm.searchPromoCodeUserGroup(data, true) && !isSkipCheck) {
                     vm.newUserPromoCodeUserGroup.newGroup = vm.selectedPromoCodeUserGroup;
 
@@ -19355,18 +19421,35 @@ define(['js/app'], function (myApp) {
                     if (isSkipCheck) {
                         vm.newUserPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserPromoCodeUserGroup.oldGroup.playerNames.indexOf(data), 1);
                         vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(data);
-                        vm.newUserPromoCodeUserGroup = null;
+                        if (!vm.isMoveUserFromGroupToGroup)
+                        {
+                            vm.newUserPromoCodeUserGroup.name = null;
+                        }
                     } else {
-                        vm.countNewLinesInString = (vm.newUserPromoCodeUserGroup.name.match(/\n/g) || []).length;
-                        console.log('vm.countNewLinesInString', vm.countNewLinesInString);
+                        vm.newUserBlockPromoCodeUserGroup = {};
+                        if (vm.searchBlockPromoCodeUserGroup(data, true) && !isSkipCheck) {
+                            vm.newUserBlockPromoCodeUserGroup.newGroup = vm.selectedBlockPromoCodeUserGroup;
+                            vm.newUserPromoCodeUserGroup.newGroup = vm.selectedPromoCodeUserGroup;
 
-                        vm.splitNewLine = vm.newUserPromoCodeUserGroup.name.split("\n");
-                        console.log('vm.splitNewLine', vm.splitNewLine);
+                            let message = [
+                                vm.newUserPromoCodeUserGroup.name, $translate("already exist in group"), vm.newUserBlockPromoCodeUserGroup.oldGroup.name,
+                                $translate(", Are you sure you want to move player to group"), vm.newUserPromoCodeUserGroup.newGroup.name, "?"];
+                            vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
+                            vm.modalYesNo.modalText = message.join(" ");
+                            vm.modalYesNo.actionYes = () => vm.addUserFromGroupToGroup(vm.newUserPromoCodeUserGroup.name, 1);
+                            $('#modalYesNo').modal();
+                        } else {
+                            vm.countNewLinesInString = (vm.newUserPromoCodeUserGroup.name.match(/\n/g) || []).length;
+                            console.log('vm.countNewLinesInString', vm.countNewLinesInString);
 
-                        for (var i = 0; i < vm.splitNewLine.length; i++) {
-                            console.log(vm.splitNewLine[i]);
-                            vm.selectedPromoCodeUserGroup.playerNames.push(vm.splitNewLine[i].trim());
-                            vm.newUserPromoCodeUserGroup = null;
+                            vm.splitNewLine = vm.newUserPromoCodeUserGroup.name.split("\n");
+                            console.log('vm.splitNewLine', vm.splitNewLine);
+
+                            for (var i = 0; i < vm.splitNewLine.length; i++) {
+                                console.log(vm.splitNewLine[i]);
+                                vm.selectedPromoCodeUserGroup.playerNames.push(vm.splitNewLine[i].trim());
+                                vm.newUserPromoCodeUserGroup = null;
+                            }
                         }
                     }
 
@@ -19375,6 +19458,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.addUserToBlockPromoCodeGroup = function (data, isSkipCheck) {
+                vm.isMoveUserFromGroupToGroup = false;
                 if (vm.searchBlockPromoCodeUserGroup(data, true) && !isSkipCheck) {
                     vm.newUserBlockPromoCodeUserGroup.newGroup = vm.selectedBlockPromoCodeUserGroup;
 
@@ -19383,28 +19467,62 @@ define(['js/app'], function (myApp) {
                         $translate(", Are you sure you want to move player to group"), vm.newUserBlockPromoCodeUserGroup.newGroup.name, "?"];
                     vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
                     vm.modalYesNo.modalText = message.join(" ");
-                    vm.modalYesNo.actionYes = () => vm.addUserToBlockPromoCodeGroup(vm.newUserPromoCodeUserGroup.name, true);
+                    vm.modalYesNo.actionYes = () => vm.addUserToBlockPromoCodeGroup(vm.newUserBlockPromoCodeUserGroup.name, true);
                     $('#modalYesNo').modal();
                 } else {
                     if (isSkipCheck) {
                         vm.newUserBlockPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserBlockPromoCodeUserGroup.oldGroup.playerNames.indexOf(data), 1);
                         vm.newUserBlockPromoCodeUserGroup.newGroup.playerNames.push(data);
-                        vm.newUserBlockPromoCodeUserGroup = null;
+                        if (!vm.isMoveUserFromGroupToGroup)
+                        {
+                            vm.newUserBlockPromoCodeUserGroup.name = null;
+                        }
                     } else {
-                        vm.countBlockUserNewLinesInString = (vm.newUserBlockPromoCodeUserGroup.name.match(/\n/g) || []).length;
-                        console.log('vm.countBlockUserNewLinesInString', vm.countBlockUserNewLinesInString);
+                        vm.newUserPromoCodeUserGroup = {};
+                        if (vm.searchPromoCodeUserGroup(data, true) && !isSkipCheck) {
+                            vm.newUserPromoCodeUserGroup.newGroup = vm.selectedPromoCodeUserGroup;
+                            vm.newUserBlockPromoCodeUserGroup.newGroup = vm.selectedBlockPromoCodeUserGroup;
 
-                        vm.splitBlockUserNewLine = vm.newUserBlockPromoCodeUserGroup.name.split("\n");
-                        console.log('vm.splitBlockUserNewLine', vm.splitBlockUserNewLine);
+                            let message = [
+                                vm.newUserBlockPromoCodeUserGroup.name, $translate("already exist in group"), vm.newUserPromoCodeUserGroup.oldGroup.name,
+                                $translate(", Are you sure you want to move player to group"), vm.newUserBlockPromoCodeUserGroup.newGroup.name, "?"];
+                            vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
+                            vm.modalYesNo.modalText = message.join(" ");
+                            vm.modalYesNo.actionYes = () => vm.addUserFromGroupToGroup(vm.newUserBlockPromoCodeUserGroup.name, 2);
+                            $('#modalYesNo').modal();
+                        } else {
+                            vm.countBlockUserNewLinesInString = (vm.newUserBlockPromoCodeUserGroup.name.match(/\n/g) || []).length;
+                            console.log('vm.countBlockUserNewLinesInString', vm.countBlockUserNewLinesInString);
 
-                        for (var i = 0; i < vm.splitBlockUserNewLine.length; i++) {
-                            console.log(vm.splitBlockUserNewLine[i]);
-                            vm.selectedBlockPromoCodeUserGroup.playerNames.push(vm.splitBlockUserNewLine[i].trim());
-                            vm.newUserBlockPromoCodeUserGroup = null;
+                            vm.splitBlockUserNewLine = vm.newUserBlockPromoCodeUserGroup.name.split("\n");
+                            console.log('vm.splitBlockUserNewLine', vm.splitBlockUserNewLine);
+
+                            for (var i = 0; i < vm.splitBlockUserNewLine.length; i++) {
+                                console.log(vm.splitBlockUserNewLine[i]);
+                                vm.selectedBlockPromoCodeUserGroup.playerNames.push(vm.splitBlockUserNewLine[i].trim());
+                                vm.newUserBlockPromoCodeUserGroup = null;
+                            }
                         }
                     }
 
                     data = null;
+                }
+            };
+
+            vm.addUserFromGroupToGroup = function (data, type) {
+                //type 1 - represent move user from block promo code group to promo code group
+                //type 2 - represent move user from promo code group to block promo code group
+                if(type == 1) {
+                    vm.newUserBlockPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserBlockPromoCodeUserGroup.oldGroup.playerNames.indexOf(data), 1);
+                    vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(data);
+                    vm.newUserPromoCodeUserGroup.name = null;
+                    vm.isMoveUserFromGroupToGroup = true;
+                }
+                else if(type == 2) {
+                    vm.newUserPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserPromoCodeUserGroup.oldGroup.playerNames.indexOf(data), 1);
+                    vm.newUserBlockPromoCodeUserGroup.newGroup.playerNames.push(data);
+                    vm.newUserBlockPromoCodeUserGroup.name = null;
+                    vm.isMoveUserFromGroupToGroup = true;
                 }
             };
 
