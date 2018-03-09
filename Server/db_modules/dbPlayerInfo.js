@@ -8169,8 +8169,6 @@ let dbPlayerInfo = {
                 let date = new Date(dayStartTime); // for active valid player need get earlier 1 period
                 switch (period) {
                     case 'day':
-                        // topupCollectionName = 'collection_playerTopUpDaySummary';
-                        // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
                         if(isFilterValidPlayer) dayStartTime = dbUtility.getDayTime(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
@@ -8397,20 +8395,25 @@ let dbPlayerInfo = {
             platformId: ObjectId(platformId),
             date: {$gte: new Date(dayStartTime), $lt: new Date(dayEndTime)}
         };
+
         return dbconfig[consumptionCollectionName].aggregate([
             {$match: matchObj},
             {$group: {_id: "$playerId", "amount": {"$sum": '$amount'}, "times": {"$sum": '$times'}}}
         ]).read("secondaryPreferred").then(
             records => {
                 records = records.filter(records => records.times >= activePlayerConsumptionTimes && records.amount >= activePlayerConsumptionAmount);
+
                 return dbconfig.collection_players.populate(records, {
                     path: '_id',
-                    model: dbconfig.collection_players
+                    model: dbconfig.collection_players,
+                    select: "valueScore topUpTimes topUpSum consumptionTimes consumptionSum partner isRealPlayer isTestPlayer"
                 }).then(
                     (records) => {
-                        if (isFilterValidPlayer) {
+                        let filteredRecords = [];
+                        let returnData = [];
 
-                            var filterRecords = records.filter(records =>
+                        if (isFilterValidPlayer) {
+                            filteredRecords = records.filter(records =>
                                 records._id &&
                                 records._id.valueScore !== undefined &&
                                 records._id.valueScore >= activePlayerValue &&
@@ -8420,38 +8423,38 @@ let dbPlayerInfo = {
                                 records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes &&
                                 records._id.consumptionSum >= partnerLevelConfig.validPlayerConsumptionAmount
                             );
+                        } else {
+                            filteredRecords = records.filter(records =>
+                                records._id &&
+                                records._id.valueScore !== undefined &&
+                                records._id.valueScore >= activePlayerValue
+                            );
                         }
-                        else {
-                            var filterRecords = records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue);
-                        }
-                        let returnData;
 
-                        if (hasPartner != null){
-                            if (hasPartner == true){
-
-                                returnData = filterRecords.filter(records => {
-                                    if (!records._id.partner){
+                        if (hasPartner != null) {
+                            if (hasPartner == true) {
+                                returnData = filteredRecords.filter(records => {
+                                    if (!records._id.partner) {
                                         return false
-                                    }
-                                    else{
+                                    } else {
                                         return records._id.isRealPlayer == isRealPlayer && records._id.isTestPlayer == isTestPlayer
                                     }
                                 });
 
-                            }else {
-
-                                returnData = filterRecords.filter(records =>
+                            } else {
+                                returnData = filteredRecords.filter(records =>
                                     records._id.isRealPlayer == isRealPlayer &&
                                     records._id.isTestPlayer == isTestPlayer &&
                                     (records._id.partner == null || records._id.partner == 'undefined'));
                             }
-                        }else{
+                        } else {
 
-                            returnData = filterRecords.filter(records =>
+                            returnData = filteredRecords.filter(records =>
                                 records._id.isRealPlayer == isRealPlayer &&
                                 records._id.isTestPlayer == isTestPlayer
                             );
                         }
+
                         if (isFilterValidPlayer)
                             return returnData;
                         else
