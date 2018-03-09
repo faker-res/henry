@@ -2371,7 +2371,12 @@ let dbPlayerReward = {
         } else {
             promoCodeSMSContent.forEach(entry => {
                 upsertProm.push(dbConfig.collection_promoCodeType.findOneAndUpdate(
-                    {platformObjId: platformObjId, name: entry.name, type: entry.type},
+                    {
+                        platformObjId: platformObjId,
+                        name: entry.name,
+                        type: entry.type,
+                        deleteFlag: false
+                    },
                     entry,
                     {upsert: true, setDefaultsOnInsert: true}
                 ));
