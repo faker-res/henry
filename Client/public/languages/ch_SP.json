@@ -1330,6 +1330,8 @@
   "ADD_GROUP": "添加群组",
   "DELETE_GROUP": "删除群组",
   "Are you sure you want to delete group": "你确定要删除群组",
+  "BLOCK_GROUP": "封锁群组",
+  "BLOCK": "封锁",
   "COLOR_CODE": "颜色代码",
   "INLINE_EDIT": "同行编辑",
   "ACTIVATE_PROMO_CODE": "展示已使用代码",
@@ -1358,6 +1360,7 @@
   "already exist in group": "已存在于",
   ", Are you sure you want to move player to group": "，请问是否移动至",
   "Send all unaccepted promo code to members?": "是否发送给所有尚未领取优惠的会员？",
+  "Send unaccepted promo code to members?": "是否发送给尚未领取优惠的会员？",
   "Send Promo Code SMS": "发送优惠代码短信",
   "PROMO_CODE_ANALYSIS": "优惠代码分析",
   "promoCodeAnalysis": "优惠代码分析",
@@ -1770,6 +1773,7 @@
   "Delay": "延期",
   "OS": "操作系统",
   "NetPay": "网银支付",
+  "JDWAP": "京东wap",
   "WechatQR": "微信扫码",
   "AlipayQR": "支付宝扫码",
   "WechatApp": "微信App支付",
@@ -2958,6 +2962,7 @@
   "PlayerAddRewardPoints": "积分增加",
   "PlayerMinusRewardPoints": "积分扣除",
   "PlayerConvertRewardPoints": "提前积分兑换",
+  "PlayerAutoConvertRewardPoints": "到期积分兑换",
   "convertCredit": "兑换到的真钱",
   "convertedRewardPoints": "兑换消耗的积分",
   "afterRewardPoints": "兑换后积分",
@@ -3319,6 +3324,8 @@
   "average ratio": "平均占比",
   "totalGrow": "总增长",
   "totalLost": "总流失",
-  "totalNetGrow": "总增长 - 总流失"
-
+  "totalNetGrow": "总增长 - 总流失",
+  "Cannot find related Customer Services Employee": "找不到相关客服人员",
+  "two period at the same time, system will force player to auto level up, batch level settlement will not provide": "同时设置两个周期，系统将强制玩家瞬间自动升级，并无法提供批量结算升级。",
+  "player level up period different": "玩家升级多个周期"
 }

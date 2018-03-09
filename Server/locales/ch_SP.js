@@ -16,6 +16,7 @@ var simplifiedChinese = {
     "Incomplete input data": "不完整的输入数据",
     "Token is not authenticated": "令牌未经过身份验证",
     "Player ip doesn't match!": "玩家IP不匹配",
+    "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
@@ -258,7 +259,8 @@ var simplifiedChinese = {
     "Player does not have enough consumption": "玩家没有足够的投注额",
     "Unable to check game credit for demo player": "试玩玩家无法查看额度",
     "Unable to transfer credit for demo player": "试玩玩家无法转入转出",
-    "Unable to get login URL for demo player": "试玩玩家无法获取登入链接"
+    "Unable to get login URL for demo player": "试玩玩家无法获取登入链接",
+    "LOCAL_CREDIT": "自由额度",
     //todo::add missing messages here
 
     /*

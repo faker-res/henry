@@ -378,7 +378,9 @@ var proposal = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] != null) {
-                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints && proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS){
+                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints
+                        && (proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS
+                            || proposalTypeData.name === constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS)){
                         dbRewardPointsLog.createRewardPointsLogByProposalData(data[0]);
                     }
 
@@ -3051,7 +3053,7 @@ var proposal = {
                     obj.summary = {
                         amount: parseFloat(temp.sum1 + temp.sum2 + temp.sum3).toFixed(2),
                         // applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)
-                        applyAmount: parseFloat(temp.sum3 + temp.sumApplyAmount).toFixed(2) // the one that use for 'total' on the page
+                        applyAmount: parseFloat(temp.sum2).toFixed(2) // the one that use for 'total' on the page
                     };
                     deferred.resolve(obj);
                 } else {
@@ -3649,15 +3651,15 @@ var proposal = {
                         createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                         type: onlineTopupType._id,
                         "data.userAgent": i,
-                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                     };
 
                     let groupByObj = {
                         _id: "$data.topupType",
                         userIds: { $addToSet: "$data.playerObjId" },
-                        amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                        amount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, '$data.amount', 0]}},
                         count: {$sum: 1},
-                        successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
+                        successCount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, 1, 0]}},
                     };
 
 
@@ -3785,7 +3787,7 @@ var proposal = {
                                     createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                                     type: onlineTopupType._id,
                                     status: "Success",
-                                    $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                    $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                                 }
                             }, {
                                 $group: {
@@ -3852,10 +3854,10 @@ var proposal = {
 
                     let groupByObj = {
                         _id: "$inputDevice",
-                        userIds: {$addToSet: {$cond: [{$eq: ["$status", 'Success']}, '$data.playerObjId', 0]}}, // remove duplicate player
-                        amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}}, // total topup amount with status: success
+                        userIds: {$addToSet: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, '$data.playerObjId', 0]}}, // remove duplicate player
+                        amount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, '$data.amount', 0]}}, // total topup amount with status: success
                         count: {$sum: 1}, // total number of proposal
-                        successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}}, // total number of proposal with status: success
+                        successCount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, 1, 0]}}, // total number of proposal with status: success
                     };
 
                     proms.push(dbconfig.collection_proposal.aggregate(
