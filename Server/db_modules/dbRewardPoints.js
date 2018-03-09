@@ -7,6 +7,7 @@ let dbRewardPointsEvent = require('./../db_modules/dbRewardPointsEvent');
 let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbUtility = require('./../modules/dbutility');
 let errorUtils = require('./../modules/errorUtils');
+let localization = require("../modules/localization");
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
 const constRewardPointsLogCategory = require('../const/constRewardPointsLogCategory');
 const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
@@ -1215,7 +1216,7 @@ let dbRewardPoints = {
                         playerLevelName = playerLvl.name;
 
                         rewardPointsLvlConfig.params.forEach((param) => {
-                            if (param.levelObjId.toString() === playerLvl._id.toString()) {
+                            if (param && playerLvl && param.levelObjId && playerLvl._id && param.levelObjId.toString() === playerLvl._id.toString()) {
                                 dailyMaxPoints = param.dailyMaxPoints;
                                 pointToCreditManualRate = param.pointToCreditManualRate;
                                 pointToCreditManualMaxPoints = param.pointToCreditManualMaxPoints;
@@ -1223,8 +1224,13 @@ let dbRewardPoints = {
                                 pointToCreditAutoMaxPoints = param.pointToCreditAutoMaxPoints;
                                 spendingAmountOnReward = param.spendingAmountOnReward;
 
+                                if (param && !param.providerGroup) {
+                                    providerGroupId = "";
+                                    providerGroupName = localization.localization.translate("LOCAL_CREDIT");
+                                }
+
                                 platformProviderGroup.forEach((provider) => {
-                                    if (provider._id.toString() === param.providerGroup.toString()) {
+                                    if (provider && param && provider._id && param.providerGroup && provider._id.toString() === param.providerGroup.toString()) {
                                         providerGroupId = provider.providerGroupId;
                                         providerGroupName = provider.name;
                                     }
@@ -1295,7 +1301,7 @@ let dbRewardPoints = {
                         platform: platformRecord._id
                     })
                 } else {
-                    return Promise.reject({name: "DataError", message: "Player Not Found"});
+                    return Promise.reject({name: "DataError", message: "Platform Not Found"});
                 }
             })
             .then(playerRecord => {
@@ -1330,11 +1336,11 @@ let dbRewardPoints = {
                         points: 1,
                         _id: 0
                     }).sort(sortCol).limit(limit)
-                        .populate({path: "playerLevel", model: dbConfig.collection_playerLevel, select: 'name'}).lean();
+                        .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
 
                     return Promise.all([loginRewardPointProm, topupRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsProm, rewardPointsRankingProm])
                 } else {
-                    return Promise.reject({name: "DataError", message: "Platform Not Found"});
+                    return Promise.reject({name: "DataError", message: "Player Not Found"});
                 }
             })
             .then(data => {
@@ -1973,17 +1979,19 @@ function getRewardPointsRanking(rewardPoints) {
     if(rewardPoints && rewardPoints.length > 0) {
         rewardPoints.forEach(rank => {
             //censor playerName start
-            let censoredName, front, censor = "***", rear;
+            let censoredName, front, censor = "***", rear, level = "";
             front = rank.playerName.substr(0,2);    // extract first char
             rear = rank.playerName.substr(5);       // extract all AFTER the 5th char (exclusive of the 5th, inclusive of the 6th)
             censoredName = front + censor + rear;   // concat all
             censoredName = censoredName.substr(0, rank.playerName.length); // extract original playerName's length, to maintain actual length
             rank.playerName = censoredName;
             //censor playerName end
-            rank.playerLevel = rank.playerLevel.name;
+            if(rank.playerLevel && rank.playerLevel.name) {
+                level = rank.playerLevel.name;
+            }
             let ranks = {
                 "account": rank.playerName,
-                "playerLevel": rank.playerLevel,
+                "grade": level,
                 "totalPoint": rank.points
             }
             rewardPointsRankingListArr.push(ranks);
