@@ -19380,6 +19380,9 @@ define(['js/app'], function (myApp) {
 
             vm.searchPromoCodeUserGroup = function (s, isRet) {
                 let exists = false;
+                if (!isRet) {
+                    vm.newUserPromoCodeUserGroup = {};
+                }
 
                 vm.userGroupConfig.map(e => {
                     e.playerNames.map(el => {
@@ -19399,6 +19402,9 @@ define(['js/app'], function (myApp) {
 
             vm.searchBlockPromoCodeUserGroup = function (s, isRet) {
                 let exists = false;
+                if (!isRet) {
+                    vm.newUserBlockPromoCodeUserGroup = {};
+                }
 
                 vm.userGroupBlockConfig.map(e => {
                     e.playerNames.map(el => {
