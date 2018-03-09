@@ -5,7 +5,8 @@
 const constPromoCodeStatus = {
     AVAILABLE: 1,
     ACCEPTED: 2,
-    EXPIRED: 3
+    EXPIRED: 3,
+    DISABLE: 5
 };
 
 module.exports = constPromoCodeStatus;

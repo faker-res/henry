@@ -18887,6 +18887,11 @@ define(['js/app'], function (myApp) {
                         $(nRow).find('td').css('background-color', 'rgba(197, 181, 43, 100)');
                         break;
                     }
+                    case (aData.status == 5): {
+                        $(nRow).find('td').css('background-color', 'rgba(138, 138, 138, 100)');
+                        $(nRow).find('td').css('text-decoration', 'line-through');
+                        break;
+                    }
                     default: {
                         // $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
                         break;
@@ -18981,6 +18986,18 @@ define(['js/app'], function (myApp) {
                 $(tblId).resize();
 
                 $scope.safeApply();
+            };
+
+            vm.disablePromoCode = function () {
+                let sendData = {
+                    playerId: vm.selectedPromoCode.playerObjId.playerId,
+                    promoCode: vm.selectedPromoCode.code
+                };
+
+                socketService.$socket($scope.AppSocket, 'disablePromoCode', sendData, function (data) {
+                    console.log('disablePromoCode', data);
+                    vm.getPromoCodeHistory(true);
+                });
             };
 
             vm.applyPromoCode = function () {
