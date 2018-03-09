@@ -2370,6 +2370,8 @@ let dbPlayerReward = {
             }));
         } else {
             promoCodeSMSContent.forEach(entry => {
+                delete entry._id;
+
                 upsertProm.push(dbConfig.collection_promoCodeType.findOneAndUpdate(
                     {
                         platformObjId: platformObjId,
