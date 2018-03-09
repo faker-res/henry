@@ -3809,11 +3809,16 @@ var proposal = {
 
     getTopupAnalysisByPlatform: (platformId, startDate, endDate, type, period) => {
 
-        return dbconfig.collection_proposalType.findOne({platformId: platformId, name: type}).read("secondaryPreferred").lean().then(
+        return dbconfig.collection_proposalType.findOne({
+            platformId: platformId,
+            name: type
+        }).read("secondaryPreferred").lean().then(
             (TopupType) => {
                 if (!TopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
 
                 let proms = [];
+                let bankProms = [];
+                let methodProms = [];
                 let dayStartTime = startDate;
                 let getNextDate;
                 switch (period) {
@@ -3842,7 +3847,7 @@ var proposal = {
                     let matchObj = {
                         createTime: {$gte: dayStartTime, $lt: dayEndTime},
                         type: TopupType._id,
-                        inputDevice: {$in: [0,1,3,5]},
+                        inputDevice: {$in: [0, 1, 3, 5]},
                     };
 
                     let groupByObj = {
@@ -3853,19 +3858,78 @@ var proposal = {
                         successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}}, // total number of proposal with status: success
                     };
 
-                    proms.push( dbconfig.collection_proposal.aggregate(
+                    proms.push(dbconfig.collection_proposal.aggregate(
                         {
                             $match: matchObj
                         }, {
                             $group: groupByObj
                         }
                     ).read("secondaryPreferred"));
+
+                    if (type == 'ManualPlayerTopUp') {
+
+                        bankProms.push(dbconfig.collection_proposal.aggregate(
+                            {
+                                $match: {
+                                    createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                                    type: TopupType._id,
+                                }
+                            }, {
+                                $group: {
+                                    _id: "$data.bankTypeId",
+                                    amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                }
+                            }
+                        ).read("secondaryPreferred"));
+
+
+                        methodProms.push(dbconfig.collection_proposal.aggregate(
+                            {
+                                $match: {
+                                    createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                                    type: TopupType._id,
+                                }
+                            }, {
+                                $group: {
+                                    _id: "$data.depositMethod",
+                                    amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                }
+                            }
+                        ).read("secondaryPreferred"));
+
+                    }
                     dayStartTime = dayEndTime;
                 }
-                return Q.all(proms).then(data => {
-                    if (data && data.length > 0) {
+
+                return Q.all([Q.all(proms), Q.all(bankProms), Q.all(methodProms)]).then(data => {
+
+                    if (type == 'ManualPlayerTopUp') {
+                        if (!data && data[0] && data[1] && data[2]) {
+                            return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
+                        }
+                        let result = [];
                         let tempDate = startDate;
-                        let res = data.map(item => {
+
+                        data.forEach(topUpDetail => {
+
+                            let res = topUpDetail.map(item => {
+                                let obj = {date: tempDate, data: item}
+                                tempDate = getNextDate(tempDate);
+                                return obj;
+                            });
+                            result.push(res);
+                            tempDate = startDate;
+                        })
+                        return result
+                    }
+                    else {
+                        if (!data[0]) {
+                            return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
+                        }
+
+                        let tempDate = startDate;
+
+                        let res = data[0].map(item => {
                             let obj = {date: tempDate, data: item}
                             tempDate = getNextDate(tempDate);
                             return obj;
@@ -3876,7 +3940,7 @@ var proposal = {
 
             }
         )
-    }
+    },
 
 };
 
