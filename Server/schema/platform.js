@@ -121,6 +121,8 @@ var platformSchema = new Schema({
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
     // manual check player level up (perform by player)
     manualPlayerLevelUp: {type: Boolean, default: false},
+    // enable or disable platform manual batch level up
+    platformBatchLevelUp: {type: Boolean, default: true},
     // player level up period (default 3 = monthly)
     playerLevelUpPeriod: {type: Number, default: 3},
     // player level down period (default 3 = monthly)
@@ -219,6 +221,8 @@ var platformSchema = new Schema({
     qiDepartment : [{type: Schema.ObjectId, ref: 'department', default: null}],
     // Demo Player Prefix Code
     demoPlayerPrefix: {type:String},
+    // Demo Player Default Credit
+    demoPlayerDefaultCredit: {type: Number, min: 0, default: 0},
     // manual audit for player first time withdrawal
     manualAuditFirstWithdrawal: {type: Boolean, default: true},
     // manual audit once after player change bank detail

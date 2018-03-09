@@ -272,6 +272,8 @@ var dbPlatform = {
             delete updateData.gameProviderNickNames;
         }
 
+        console.log("updatePlatform platform update:", updateData);
+
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true}).then(
             data => {
                 console.log("updatePlatform", data, query, updateData);
@@ -469,6 +471,8 @@ var dbPlatform = {
      * @param are _id of department and _id of platform
      */
     updateDepartmentToPlatformById: function (platformObjId, departmentId) {
+        console.log("updateDepartmentToPlatformById platform update:", {department: departmentId});
+
         return dbconfig.collection_platform.update(
             {
                 _id: platformObjId
@@ -483,6 +487,7 @@ var dbPlatform = {
      * @param platformObjId
      */
     removeDepartmentFromPlatformById: function (platformObjId) {
+        console.log("removeDepartmentFromPlatformById platform update:", {department: null});
 
         return dbconfig.collection_platform.update(
             {
@@ -556,6 +561,11 @@ var dbPlatform = {
         nickNameUpdate[nickNameUpdatePath] = localProviderNickName;
         nickNameUpdate[prefixUpdatePath] = localProviderPrefix;
 
+        console.log("addOrRenameProviderInPlatformById platform update:", {
+            $addToSet: {gameProviders: {$each: [providerObjId]}},
+            $set: nickNameUpdate
+        });
+
         return dbconfig.collection_platform.findOneAndUpdate(
             {
                 _id: platformObjId
@@ -571,6 +581,11 @@ var dbPlatform = {
         let statusUpdatePath = "gameProviderInfo." + providerObjId + ".isEnable";
         let statusUpdate = {};
         statusUpdate[statusUpdatePath] = isEnable;
+
+        console.log("updateProviderFromPlatformById platform update:", {
+            $addToSet: {gameProviders: {$each: [providerObjId]}},
+            $set: statusUpdate
+        });
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
@@ -633,6 +648,11 @@ var dbPlatform = {
         ).then(
             function (data) {
                 if (data) {
+
+                    console.log("removeProviderFromPlatformById platform update:", {
+                        $pull: {gameProviders: providerObjId},
+                        $unset: {'gameProviderInfo': '' + providerObjId}
+                    });
 
                     return dbconfig.collection_platform.findOneAndUpdate(
                         {
@@ -1304,7 +1324,7 @@ var dbPlatform = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 100,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "checkPlayerLevelDownForPlayers", {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
@@ -1474,30 +1494,32 @@ var dbPlatform = {
     },
 
     searchSMSLog: function (data, index, limit) {
-        index = index || 0;
-        limit = limit || constSystemParam.MAX_RECORD_NUM;
-        var query = {
-            status: data.status === 'all' ? undefined : data.status,
-            playerId: data.playerId || undefined,
-            partnerId: data.partnerId || undefined,
-            type: {$nin: ["registration"]}
-        };
-        if (data.isAdmin && !data.isSystem) {
-            query.adminName = {$exists: true, $ne: null};
-        } else if (data.isSystem && !data.isAdmin) {
-            query.adminName = {$eq: null};
-        }
-
-        // Strip any fields which have value `undefined`
-        query = JSON.parse(JSON.stringify(query));
-        addOptionalTimeLimitsToQuery(data, query, 'createTime');
-        var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
-        var b = dbconfig.collection_smsLog.find(query).count();
-        return Q.all([a, b]).then(
-            result => {
-                return {data: result[0], size: result[1]};
+        if (data && (data.playerId || data.partnerId)) {
+            index = index || 0;
+            limit = limit || constSystemParam.MAX_RECORD_NUM;
+            var query = {
+                status: data.status === 'all' ? undefined : data.status,
+                playerId: data.playerId || undefined,
+                partnerId: data.partnerId || undefined,
+                type: {$nin: ["registration"]}
+            };
+            if (data.isAdmin && !data.isSystem) {
+                query.adminName = {$exists: true, $ne: null};
+            } else if (data.isSystem && !data.isAdmin) {
+                query.adminName = {$eq: null};
             }
-        )
+
+            // Strip any fields which have value `undefined`
+            query = JSON.parse(JSON.stringify(query));
+            addOptionalTimeLimitsToQuery(data, query, 'createTime');
+            var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
+            var b = dbconfig.collection_smsLog.find(query).count();
+            return Q.all([a, b]).then(
+                result => {
+                    return {data: result[0], size: result[1]};
+                }
+            )
+        }
     },
     vertificationSMS: function (data, index, limit) {
         var sortCol = data.sortCol || {createTime: -1};
@@ -1765,6 +1787,8 @@ var dbPlatform = {
     },
 
     updateAutoApprovalConfig: function (query, updateData) {
+        console.log("updateAutoApprovalConfig platform update:", updateData);
+
         return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true});
     },
     generateObjectId: function () {
@@ -2450,6 +2474,12 @@ var dbPlatform = {
      * Update the promoCode setting in Platform
      */
     updatePromoCodeSetting: function (platformObjId, promoCodeStartTime, promoCodeEndTime, promoCodeIsActive) {
+        console.log("updatePromoCodeSetting platform update:", {
+            promoCodeStartTime: promoCodeStartTime,
+            promoCodeEndTime: promoCodeEndTime,
+            promoCodeIsActive: promoCodeIsActive
+        });
+
         return dbconfig.collection_platform.findOneAndUpdate({_id: platformObjId},
             {
                 promoCodeStartTime: promoCodeStartTime,

@@ -40,6 +40,7 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
+let dbOperation = require("../db_common/dbOperations");
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
@@ -172,7 +173,10 @@ var proposalExecutor = {
             this.executions.executePlayerLoseReturnRewardGroup.des = "Player Lose Return Group Reward";
             this.executions.executePlayerConsumptionRewardGroup.des = "Player Consumption Group Reward";
             this.executions.executePlayerFreeTrialRewardGroup.des = "Player Free Trial Reward Group";
+            this.executions.executePlayerAddRewardPoints.des = "Player Add Reward Points";
+            this.executions.executePlayerMinusRewardPoints.des = "Player Minus Reward Points";
             this.executions.executePlayerConvertRewardPoints.des = "Player Convert Reward Points";
+            this.executions.executePlayerAutoConvertRewardPoints.des = "Player Auto Convert Reward Points";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -229,7 +233,10 @@ var proposalExecutor = {
             this.rejections.rejectPlayerLoseReturnRewardGroup.des = "Reject Player Lose Return Group Reward";
             this.rejections.rejectPlayerConsumptionRewardGroup.des = "Reject Player Consumption Group Reward";
             this.rejections.rejectPlayerFreeTrialRewardGroup.des = "Reject Player Free Trial Reward Group";
-            this.rejections.rejectPlayerConvertRewardPoints.des = "Player Convert Reward Points";
+            this.rejections.rejectPlayerAddRewardPoints.des = "Reject Player Add Reward Points";
+            this.rejections.rejectPlayerMinusRewardPoints.des = "Reject Player Minus Reward Points";
+            this.rejections.rejectPlayerConvertRewardPoints.des = "Reject Player Convert Reward Points";
+            this.rejections.rejectPlayerAutoConvertRewardPoints.des = "Reject Player Auto Convert Reward Points";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1462,9 +1469,7 @@ var proposalExecutor = {
                                         dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.rewardAmount).catch(errorUtils.reportError);
                                     }
                                     sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
-                                    return dbconfig.collection_playerConsumptionSummary.remove(
-                                        {_id: {$in: proposalData.data.summaryIds}}
-                                    ).catch(errorUtils.reportError);
+                                    dbOperation.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: proposalData.data.summaryIds}}).catch(errorUtils.reportError);
                                 }
                             ).then(deferred.resolve, deferred.reject);
                         }
@@ -2445,6 +2450,46 @@ var proposalExecutor = {
                 }
             },
 
+            executePlayerAddRewardPoints: function (proposalData, deferred) {
+                if(proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && Number.isInteger(proposalData.data.updateAmount) && proposalData.data.category) {
+                    let playerObjId = proposalData.data.playerObjId;
+                    let platformObjId = proposalData.data.platformObjId;
+                    let updateAmount = proposalData.data.updateAmount;
+                    let category = proposalData.data.category;
+                    let remark = proposalData.data.remark;
+                    let userAgent = proposalData.data.userAgent;
+                    let adminName = proposalData.data.adminName;
+
+                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent, adminName).then(
+                        data => {
+                            deferred.resolve(data);
+                        }
+                    );
+                } else {
+                    deferred.reject({name: "DataError", message: "Incorrect player add reward points proposal data"});
+                }
+            },
+
+            executePlayerMinusRewardPoints: function (proposalData, deferred) {
+                if(proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && Number.isInteger(proposalData.data.updateAmount) && proposalData.data.category) {
+                    let playerObjId = proposalData.data.playerObjId;
+                    let platformObjId = proposalData.data.platformObjId;
+                    let updateAmount = proposalData.data.updateAmount;
+                    let category = proposalData.data.category;
+                    let remark = proposalData.data.remark;
+                    let userAgent = proposalData.data.userAgent;
+                    let adminName = proposalData.data.adminName;
+
+                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent, adminName).then(
+                        data => {
+                            deferred.resolve(data);
+                        }
+                    );
+                } else {
+                    deferred.reject({name: "DataError", message: "Incorrect player minus reward points proposal data"});
+                }
+            },
+
             executePlayerConvertRewardPoints: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.playerRewardPointsObjId) {
                     let isPeriodPointConversion = proposalData.creator.type == 'system';
@@ -2475,6 +2520,36 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect player convert reward points proposal data"});
+                }
+            },
+
+            executePlayerAutoConvertRewardPoints: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.playerRewardPointsObjId) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        platformId: proposalData.data.platformObjId,
+                        type: constRewardType.PLAYER_PERIOD_POINT_CONVERSION,
+                        rewardType: constRewardType.PLAYER_PERIOD_POINT_CONVERSION,
+                        currentAmount: proposalData.data.convertCredit,
+                        initAmount: proposalData.data.convertCredit,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        providerGroup: proposalData.data.providerGroup,
+                        applyAmount: 0,
+                        data: {
+                            category: constRewardPointsLogCategory.PERIOD_POINT_CONVERSION,
+                            convertedRewardPointsAmount: proposalData.data.convertedRewardPoints,
+                            rewardPointsObjId: proposalData.data.playerRewardPointsObjId
+                        },
+                    };
+                    let deferred1 = Q.defer();
+                    createRewardPointsTaskForProposal(proposalData, taskData, deferred1, constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS, proposalData);
+                    deferred1.promise.then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player auto convert reward points proposal data"});
                 }
             },
         },
@@ -2698,13 +2773,25 @@ var proposalExecutor = {
                                             gameType: summary.gameType,
                                             summaryDay: summary.summaryDay,
                                             bDirty: false
-                                        }).then(
+                                        }).lean().then(
                                             cleanRecord => {
                                                 if (cleanRecord) {
                                                     //recover amount
-                                                    cleanRecord.amount = cleanRecord.amount + summary.amount;
-                                                    cleanRecord.validAmount = cleanRecord.validAmount + summary.validAmount;
-                                                    return cleanRecord.save().then(
+                                                    // cleanRecord.amount = cleanRecord.amount + summary.amount;
+                                                    // cleanRecord.validAmount = cleanRecord.validAmount + summary.validAmount;
+                                                    return dbconfig.collection_playerConsumptionSummary.findOneAndUpdate(
+                                                        {
+                                                            _id: cleanRecord._id,
+                                                            platformId: cleanRecord.platformId,
+                                                            playerId: cleanRecord.playerId,
+                                                            gameType: cleanRecord.gameType,
+                                                            summaryDay: cleanRecord.summaryDay,
+                                                            bDirty: false
+                                                        },
+                                                        {
+                                                            $inc: {amount: summary.amount, validAmount: summary.validAmount},
+                                                        }
+                                                    ).then(
                                                         () => dbconfig.collection_playerConsumptionSummary.remove({_id: summary._id})
                                                     );
                                                 }
@@ -2772,7 +2859,11 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                pmsAPI.payment_modifyManualTopupRequest({
+                    requestId: proposalData.data.requestId,
+                    operationType: constManualTopupOperationType.CANCEL,
+                    data: null
+                }).then(
                     deferred.resolve, deferred.reject
                 );
                 //deferred.resolve("Proposal is rejected")
@@ -2794,7 +2885,11 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                pmsAPI.payment_modifyManualTopupRequest({
+                    requestId: proposalData.data.requestId,
+                    operationType: constManualTopupOperationType.CANCEL,
+                    data: null
+                }).then(
                     deferred.resolve, deferred.reject
                 );
             },
@@ -2815,7 +2910,11 @@ var proposalExecutor = {
                 //         }
                 //     );
                 // }
-                pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
+                pmsAPI.payment_modifyManualTopupRequest({
+                    requestId: proposalData.data.requestId,
+                    operationType: constManualTopupOperationType.CANCEL,
+                    data: null
+                }).then(
                     deferred.resolve, deferred.reject
                 );
                 //deferred.resolve("Proposal is rejected")
@@ -3088,7 +3187,20 @@ var proposalExecutor = {
                 deferred.resolve("Proposal is rejected");
             },
 
+            rejectPlayerAddRewardPoints: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerMinusRewardPoints: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
             rejectPlayerConvertRewardPoints: function (proposalData, deferred) {
+                dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerAutoConvertRewardPoints: function (proposalData, deferred) {
                 dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
                 deferred.resolve("Proposal is rejected");
             },

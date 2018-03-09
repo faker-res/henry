@@ -31,6 +31,7 @@ const dbPlayerUtility = {
         let updateQChild = {};
         updateQChild[stateName] = true;
         let updateQ = {$currentDate: updateQChild};
+        let offSetTime = new Date() - 1000;
 
         return dbconfig.collection_playerState.findOne({player: playerObjId}).lean().then(
             stateRec => {
@@ -38,7 +39,12 @@ const dbPlayerUtility = {
                     return new dbconfig.collection_playerState(matchQ).save();
                 } else {
                     if (stateRec[stateName]) {
-                        matchQ[stateName] = {$lt: new Date() - 1000};
+                        // Double layer time verification
+                        if (stateRec[stateName].getTime() > offSetTime) {
+                            return false;
+                        } else {
+                            matchQ[stateName] = {$lt: offSetTime};
+                        }
                     }
 
                     return dbconfig.collection_playerState.findOneAndUpdate(matchQ, updateQ, {new: true});

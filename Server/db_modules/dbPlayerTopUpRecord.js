@@ -1283,12 +1283,16 @@ var dbPlayerTopUpRecord = {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
-
-                        return pmsAPI.payment_modifyManualTopupRequest({
-                            requestId: proposalData.data.requestId,
-                            operationType: constManualTopupOperationType.CANCEL,
-                            data: null
-                        });
+                        if( adminName ){
+                            return pmsAPI.payment_modifyManualTopupRequest({
+                                requestId: proposalData.data.requestId,
+                                operationType: constManualTopupOperationType.CANCEL,
+                                data: null
+                            });
+                        }
+                        else{
+                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
+                        }
                     }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
@@ -1333,7 +1337,16 @@ var dbPlayerTopUpRecord = {
                 if (proposalData) {
                     if (proposalData.data && proposalData.data.playerId == playerId && proposalData.data.requestId) {
                         proposal = proposalData;
-                        return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
+                        if( adminName ){
+                            return pmsAPI.payment_modifyManualTopupRequest({
+                                requestId: proposalData.data.requestId,
+                                operationType: constManualTopupOperationType.CANCEL,
+                                data: null
+                            });
+                        }
+                        else{
+                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
+                        }
                     }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});
@@ -1379,7 +1392,16 @@ var dbPlayerTopUpRecord = {
                     if (proposalData.data && proposalData.data.playerId == playerId) {
                         proposal = proposalData;
 
-                        return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalId});
+                        if( adminName ){
+                            return pmsAPI.payment_modifyManualTopupRequest({
+                                requestId: proposalData.data.requestId,
+                                operationType: constManualTopupOperationType.CANCEL,
+                                data: null
+                            });
+                        }
+                        else{
+                            return pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId})
+                        }
                     }
                     else {
                         return Q.reject({name: "DBError", message: 'Invalid proposal'});

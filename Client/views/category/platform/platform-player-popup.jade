@@ -916,13 +916,13 @@
                         form(name='form_manual_topup', style="border-radius:0 4px 4px 4px;box-shadow:none;").well
                             .form-group-col-md-6
                                 label {{'CREDIT' | translate}}
-                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
                                 input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{v.status | translate}}</b>
+                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{(v.status == "DISABLED"?"Disable":v.status) | translate}}</b>
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod', ng-change='vm.selectedDepositMethod(vm.playerManualTopUp.depositMethod)')
@@ -973,7 +973,7 @@
                             .form-group.col-md-12
                                 .control-label
                                 label {{'CREDIT' | translate}}
-                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
                                 input.form-control(type='number', min=0, ng-model='vm.playerAlipayTopUp.amount', required)
                             .form-group.col-md-6
                                 .control-label
@@ -1029,14 +1029,14 @@
                             .form-group.col-md-12
                                 .control-label
                                 label {{'CREDIT' | translate}}
-                                text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
                                 input.form-control(type='number', min=0, ng-model='vm.playerWechatPayTopUp.amount', required)
                             .form-group.col-md-6
                                 .control-label
                                 label {{'WechatPay' | translate}}
                                 select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc | orderBy : "nickName"', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{v.state | translate}})
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc | orderBy : "nickName"', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayName' | translate}}
@@ -1045,8 +1045,8 @@
                                 .control-label
                                 label {{'QRMode' | translate}}
                                 select.form-control(ng-model='vm.playerWechatPayTopUp.notUseQR')
+                                    option(value="true") {{'CS_QR' | translate}}
                                     option(value="") {{'Settlement_QR' | translate}}
-                                    option(value=true) {{'CS_QR' | translate}}
                             .form-group.col-md-6
                                 .control-label
                                 label {{'wechatPayAccount' | translate}}
@@ -1526,7 +1526,7 @@
                                     tr
                                         td.col-md-3 {{'BEFORE_REWARD_POINTS_CONVERT' | translate}}
                                         td.col-md-3 {{'REWARD_POINTS_CONVERT_AMOUNT' | translate}}
-                                            span(ng-if="vm.rewardPointToCreditManualRate") &nbsp;({{vm.rewardPointToCreditManualRate}} : 1)
+                                            span(ng-if="vm.playerRewardPointsConversionRate") &nbsp;({{vm.playerRewardPointsConversionRate}} : 1)
                                         td.col-md-3.strong(style='color:red') {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
                                         td.col-md-3 {{'AFTER_REWARD_POINTS_CONVERT' | translate}}
                                     tr

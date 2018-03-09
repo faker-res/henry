@@ -307,6 +307,8 @@
                 "getTopUpRewardPointsEvent",
                 "getRewardPointsRanking",
                 "getGameRewardPoints",
+                "getPointRule",
+                "getMissonList",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

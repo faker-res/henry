@@ -17,6 +17,7 @@ var simplifiedChinese = {
     "Incomplete input data": "不完整的输入数据",
     "Token is not authenticated": "令牌未经过身份验证",
     "Player ip doesn't match!": "玩家IP不匹配",
+    "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
@@ -227,7 +228,9 @@ var simplifiedChinese = {
     "Connection failed": "连接失败",
     "PlayerPromoCodeReward": "优惠代码",
     "Player do not have permission to apply consumption return": "您的洗码功能暂时无法使用，详情请联系客服。",
-    "This IP address has applied for max reward times in event period": "此IP已经达到了该优惠周期内的申请上限"
+    "This IP address has applied for max reward times in event period": "此IP已经达到了该优惠周期内的申请上限",
+    "Player reach participate limit": "玩家已达参加次数上限",
+    "Player does not have enough consumption": "玩家没有足够的投注额",
     //todo::add missing messages here
 
     /*

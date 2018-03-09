@@ -486,7 +486,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         '10': 'WXWAP',
         '11': 'ALIWAP',
         '12': 'QQWAP',
-        '13': 'PCard'
+        '13': 'PCard',
+        '14': 'JDWAP'
     };
     $scope.depositMethod = {
         1: "网银转账(Online Transfer)",
@@ -607,7 +608,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         20: "2000",
         21: "2100",
         22: "2200",
-        23: "2300"
+        23: "2300",
+        24: "2400"
     };
 
     $scope.loseValueType = {
@@ -836,7 +838,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             // let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
 
             let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action", "http://jinbailicro.tel400.me/cti/previewcallout.action",
-                "http://xindelitz.tel400.me/cti/previewcallout.action", "http://bbet8.tel400.me/cti/previewcallout.action"];
+                "http://xindelitz.tel400.me/cti/previewcallout.action", "http://bbet8.tel400.me/cti/previewcallout.action", "http://b8a.tel400.me/cti/previewcallout.action"];
 
             if (platformId == '6') {
                 let jblUrl = urls[2];
@@ -849,6 +851,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let xdlUrl = urls[3];
                 urls[3] = urls[1];
                 urls[1] = xdlUrl;
+            } else if (platformId == '8') {
+                let jshUrl = urls[5];
+                urls[5] = urls[0];
+                urls[0] = jshUrl;
             }
 
             performPhoneCall();
@@ -1460,5 +1466,5 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))
-  
+
 });

@@ -398,7 +398,9 @@ let dbPlayerReward = {
     },
 
     getRandBonusInfo: (playerId, rewardCode, platformId) => {
-        let player, platform, playerLevel, firstProm, event, intervalTime;
+        let player, platform, playerLevel, firstProm, event, intervalTime, timeSet;
+        let allTimeSet = [];
+        let displayTimeSet = [];
         let gradeList = [];
         let Open = [];
         let get = [];
@@ -406,6 +408,17 @@ let dbPlayerReward = {
         let bonusList = [];
         let currentTime = new Date();
         let gameProviderGroupName = null;
+
+        // display all period start time for current day in ascending order
+        function orderedTimeSet(startTime) {
+            let startTimeInt = parseInt(startTime);
+            allTimeSet.push(startTimeInt);
+            allTimeSet.sort(function(a, b) {return a - b});
+            displayTimeSet = allTimeSet.map(time => {
+                return ('00' + time).slice(-2).concat(':00');
+            });
+            timeSet = [...displayTimeSet].join("/");
+        }
 
         // display all reward param for each player level
         function addParamToGradeList(gradeListData, playerLevelData) {
@@ -440,6 +453,7 @@ let dbPlayerReward = {
                 return false;
             }
 
+            orderedTimeSet(openData.startTime);
             Open.push(openData);
         }
 
@@ -456,6 +470,7 @@ let dbPlayerReward = {
                 return false;
             }
 
+            orderedTimeSet(giveupData.startTime);
             giveup.push(giveupData);
         }
 
@@ -826,6 +841,7 @@ let dbPlayerReward = {
                 lockedGroup: gameProviderGroupName,
                 currentGradeId: playerLevel.value,
                 currentGradeName: playerLevel.name,
+                time: timeSet,
                 gradeList: gradeList,
                 open: Open,
                 get: get,
@@ -2380,6 +2396,7 @@ let dbPlayerReward = {
     },
 
     generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
+        let player;
         // Check if player exist
         return dbConfig.collection_players.findOne({
             platform: platformObjId,
@@ -2387,24 +2404,48 @@ let dbPlayerReward = {
         }).lean().then(
             playerData => {
                 if (playerData) {
-                    newPromoCodeEntry.playerObjId = playerData._id;
+                    player = playerData;
+
+                    return dbPlayerUtil.setPlayerState(player._id, "GeneratePromoCode");
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    newPromoCodeEntry.playerObjId = player._id;
                     newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(1000, 9999);
                     newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
                     newPromoCodeEntry.adminId = adminObjId;
                     newPromoCodeEntry.adminName = adminName;
-                    return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
-                }
-                else {
-                    return Q.reject({name: "DataError", message: "Invalid player data"});
+
+                    return dbConfig.collection_promoCodeActiveTime.findOne({
+                        platform: platformObjId,
+                        startTime: {$lt: new Date()},
+                        endTime: {$gt: new Date()}
+                    }).lean();
                 }
             }
         ).then(
-            newPromoCode => {
-                if (newPromoCodeEntry.allowedSendSms) {
-                    SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+            activeTimeRes => {
+                if (activeTimeRes) {
+                    newPromoCodeEntry.isActive = true;
                 }
-                messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
-                return newPromoCode.code;
+
+                return new dbConfig.collection_promoCode(newPromoCodeEntry).save();
+            }
+        ).then(
+            newPromoCode => {
+                if (newPromoCode) {
+                    if (newPromoCodeEntry.allowedSendSms) {
+                        SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName);
+                    }
+                    messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
+                    return newPromoCode.code;
+                }
+
             }
         )
     },
@@ -2467,8 +2508,38 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
+    saveBlockPromoCodeUserGroup: (platformObjId, data, isDelete) => {
+        let saveArr = [];
+
+        if (isDelete) {
+            return dbConfig.collection_promoCodeUserGroup.remove({_id: data});
+        } else {
+            if (data && data.length > 0) {
+                data.map(grp => {
+                    grp.platformObjId = platformObjId;
+
+                    let saveObj = {
+                        platformObjId: grp.platformObjId,
+                        name: grp.name,
+                        color: grp.color,
+                        playerNames: grp.playerNames || [],
+                        isBlockPromoCodeUser: true
+                    };
+
+                    saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                        name: grp.name
+                    }, saveObj, {upsert: true}));
+                });
+            }
+        }
+
+        return Promise.all(saveArr);
+    },
+
     saveDelayDurationGroup: (platformObjId, data) => {
         let saveObj = {consumptionTimeConfig: data};
+
+        console.log("saveDelayDurationGroup platform update:", saveObj);
 
         return dbConfig.collection_platform.findOneAndUpdate({
             _id: platformObjId
@@ -2476,7 +2547,9 @@ let dbPlayerReward = {
 
     },
 
-    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
+    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: {$ne: true}}).lean(),
+    getBlockPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: true}).lean(),
+    getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
     applyPromoCode: (playerId, promoCode, adminInfo) => {
@@ -2492,13 +2565,22 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
-                return dbConfig.collection_promoCode.find({
-                    platformObjId: playerData.platform,
-                    playerObjId: playerObj._id,
-                    status: constPromoCodeStatus.AVAILABLE
-                }).populate({
-                    path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
-                }).lean();
+
+                return dbPlayerUtil.setPlayerState(playerObj._id, "ApplyPromoCode");
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    return dbConfig.collection_promoCode.find({
+                        platformObjId: playerObj.platform,
+                        playerObjId: playerObj._id,
+                        status: constPromoCodeStatus.AVAILABLE
+                    }).populate({
+                        path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
+                    }).lean();
+                } else {
+                    return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
+                }
             }
         ).then(
             promoCodeObjs => {
@@ -2693,7 +2775,7 @@ let dbPlayerReward = {
         )
     },
 
-    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime) => {
+    getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name) => {
         let monitorObjs;
         let promoCodeQuery = {
             'data.platformId': platformObjId,
@@ -2702,6 +2784,10 @@ let dbPlayerReward = {
             // We only want type 3 promo code
             "data.promoCodeTypeValue": 3
         };
+
+        if (promoCodeType3Name) {
+            promoCodeQuery["data.PROMO_CODE_TYPE"] = promoCodeType3Name
+        }
 
         return dbProposalUtil.getProposalDataOfType(platformObjId, constProposalType.PLAYER_PROMO_CODE_REWARD, promoCodeQuery).then(
             promoCodeData => {
@@ -2755,7 +2841,7 @@ let dbPlayerReward = {
                     proms.push(
                         getPlayerConsumptionSummary(elem.platformObjId, elem.playerObjId, elem.acceptedTime, elem.nextWithdrawTime).then(
                             res => {
-                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].bonusAmount : 0;
+                                monitorObjs[index].consumptionBeforeWithdraw = res && res[0] ? res[0].validAmount : 0;
 
                                 return dbPlayerUtil.getPlayerCreditByObjId(elem.playerObjId);
                             }
@@ -3665,6 +3751,12 @@ let dbPlayerReward = {
             }, {
                 multi: true
             }).exec().catch(errorUtils.reportError);
+
+            dbConfig.collection_promoCodeActiveTime({
+                platform: platformObjId,
+                startTime: new Date(data.startAcceptedTime),
+                endTime: new Date(data.endAcceptedTime)
+            }).save().catch(errorUtils.reportError);
         }
 
         return dbConfig.collection_promoCode.update({
@@ -3809,7 +3901,6 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
-            eventData.condition.isSharedWithXIMA = !eventData.condition.useConsumptionRecord;
             if (eventData.condition.rewardAppearPeriod) {
                 let isValid = false;
                 let todayWeekOfDay = moment(new Date()).tz('Asia/Singapore').day();
