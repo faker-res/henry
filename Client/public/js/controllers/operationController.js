@@ -1017,7 +1017,7 @@ define(['js/app'], function (myApp) {
                         ? $noRoundTwoDecimalPlaces(parseFloat(v.data.negativeProfitAmount)).toString()
                         : $translate("N/A"));
                     if (v.data.updateAmount != null) {
-                        $noRoundTwoDecimalPlaces(parseFloat(v.data.updateAmount)).toString()
+                        v.creditAmount$ = $noRoundTwoDecimalPlaces(parseFloat(v.data.updateAmount)).toString()
                     }
                     if (v.mainType == "PlayerBonus" && v.data.bankTypeId) {
                         v.bankType$ = vm.allBankTypeList[v.data.bankTypeId]
