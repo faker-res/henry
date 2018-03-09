@@ -1008,7 +1008,7 @@ define(['js/app'], function (myApp) {
                     v.expirationTime$ = v.createTime == v.expirationTime ? 0 : new Date(v.expirationTime) - Date.now();
                     v.lockUser$ = $translate(v.isLocked);
                     v.creditAmount$ = (v.data.amount != null)
-                        ? parseFloat(v.data.amount).toFixed(2)
+                        ? $noRoundTwoDecimalPlaces(parseFloat(v.data.amount)).toString()
                         : (v.data.rewardAmount != null
                         ? parseFloat(v.data.rewardAmount).toFixed(2)
                         : v.data.commissionAmount != null
