@@ -1010,14 +1010,14 @@ define(['js/app'], function (myApp) {
                     v.creditAmount$ = (v.data.amount != null)
                         ? $noRoundTwoDecimalPlaces(parseFloat(v.data.amount)).toString()
                         : (v.data.rewardAmount != null
-                        ? parseFloat(v.data.rewardAmount).toFixed(2)
+                        ? $noRoundTwoDecimalPlaces(parseFloat(v.data.rewardAmount)).toString()
                         : v.data.commissionAmount != null
-                        ? parseFloat(v.data.commissionAmount).toFixed(2)
+                        ? $noRoundTwoDecimalPlaces(parseFloat(v.data.commissionAmount)).toString()
                         : v.data.negativeProfitAmount != null
-                        ? parseFloat(v.data.negativeProfitAmount).toFixed(2)
+                        ? $noRoundTwoDecimalPlaces(parseFloat(v.data.negativeProfitAmount)).toString()
                         : $translate("N/A"));
                     if (v.data.updateAmount != null) {
-                        v.creditAmount$ = parseFloat(v.data.updateAmount).toFixed(2);
+                        $noRoundTwoDecimalPlaces(parseFloat(v.data.updateAmount)).toString()
                     }
                     if (v.mainType == "PlayerBonus" && v.data.bankTypeId) {
                         v.bankType$ = vm.allBankTypeList[v.data.bankTypeId]
