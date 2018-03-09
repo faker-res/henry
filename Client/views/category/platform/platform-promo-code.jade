@@ -51,11 +51,11 @@
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
                                 td
                                     input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                     text {{'Yes' | translate}}
@@ -138,9 +138,9 @@
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType2', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                     text {{'Yes' | translate}}
@@ -224,13 +224,13 @@
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType3', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
                                 td
                                     input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
                                     input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.isBlockPromoCodeUser")
                                     text {{'Yes' | translate}}
