@@ -308,6 +308,7 @@
                 "getRewardPointsRanking",
                 "getGameRewardPoints",
                 "getPointRule",
+                "applyPointToCredit",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

@@ -87,6 +87,12 @@
         this.rewardPointsService.getPointRule.once(callback);
     };
 
+    proto.applyPointToCredit = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.applyPointToCredit.request(data);
+        this.rewardPointsService.applyPointToCredit.once(callback);
+    };
     if (isNode) {
         module.exports = ClientRewardPointsAPITest;
     } else {
