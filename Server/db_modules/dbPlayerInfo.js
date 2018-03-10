@@ -8401,7 +8401,7 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.populate(records, {
                     path: '_id',
                     model: dbconfig.collection_players,
-                    select: "valueScore topUpTimes topUpSum consumptionTimes consumptionSum partner isRealPlayer isTestPlayer"
+                    select: "valueScore topUpTimes topUpSum consumptionTimes consumptionSum partner isRealPlayer isTestPlayer registrationTime"
                 }).then(
                     (records) => {
                         let filteredRecords = [];
