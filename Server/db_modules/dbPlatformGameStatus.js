@@ -87,7 +87,6 @@ var dbPlatformGameStatus = {
         var game = mongoose.Types.ObjectId(query.game);
         var platform = mongoose.Types.ObjectId(query.platform);
 
-        
         return dbconfig.collection_platformGameStatus.findOneAndUpdate(
             {game: game, platform: platform},
             data
