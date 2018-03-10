@@ -3950,7 +3950,7 @@ var proposal = {
                         let tempDate = startDate;
 
                         let res = data[0].map(item => {
-                            let obj = {date: tempDate, data: item,}
+                            let obj = {date: tempDate, data: item}
                             tempDate = getNextDate(tempDate);
                             return obj;
                         });
