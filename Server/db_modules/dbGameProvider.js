@@ -6,6 +6,7 @@ module.exports = new dbGameProviderFunc();
 
 var dbconfig = require('./../modules/dbproperties');
 var constServerCode = require('./../const/constServerCode');
+let constProviderStatus = require('./../const/constProviderStatus');
 var dbGame = require('./../db_modules/dbGame');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
@@ -293,6 +294,19 @@ var dbGameProvider = {
         ).then(
             data => {
                 if (data) {
+                    let platform = data;
+                    let forbiddenProviders = player && player.forbidProviders ? player.forbidProviders.map(providerId => String(providerId)) : [];
+                    let gameProviderInfo = platform.gameProviderInfo || {};
+                    let gameProviderInfoKeys = Object.keys(gameProviderInfo);
+
+                    for (let i = 0; i < gameProviderInfoKeys.length; i++) {
+                        let key = gameProviderInfoKeys[i];
+                        let provider = gameProviderInfo[key];
+                        if (provider && provider.isEnable === false) {
+                            forbiddenProviders.push(key);
+                        }
+                    }
+
                     //update nick name and prefix for this platform
                     for (let i = 0; i < data.gameProviders.length; i++) {
                         let thisProvider = data.gameProviders[i];
@@ -316,18 +330,11 @@ var dbGameProvider = {
                             (gameProvider) => {
                                 let gameProviderStatus = gameProvider.status;
                                 if (player && player.permission &&  player.permission.forbidPlayerFromEnteringGame) {
-                                    gameProviderStatus = 2;
+                                    gameProviderStatus = constProviderStatus.MAINTENANCE;
                                 }
 
-                                if (player && player.forbidProviders && player.forbidProviders.length > 0) {
-                                    let forbidProviders = player.forbidProviders;
-                                    for (let i = 0; i < forbidProviders.length; i++) {
-                                        let forbiddenProvider = forbidProviders[i];
-                                        if (String(gameProvider._id) === String(forbiddenProvider)) {
-                                            gameProviderStatus = 2;
-                                            break;
-                                        }
-                                    }
+                                if (forbiddenProviders.indexOf(String(gameProvider._id)) >= 0) {
+                                    gameProviderStatus = constProviderStatus.MAINTENANCE;
                                 }
 
                                 return {
