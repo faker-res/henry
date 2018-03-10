@@ -204,7 +204,7 @@ var dbGame = {
                 }
 
                 if (platform) {
-                    let gameProviderInfo = platform.gameProviderInfo;
+                    let gameProviderInfo = platform.gameProviderInfo || {};
                     let gameProviderInfoKeys = Object.keys(gameProviderInfo);
 
                     for (let i = 0; i < gameProviderInfoKeys.length; i++) {
