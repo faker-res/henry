@@ -41,6 +41,10 @@ let dbPlayerRewardPoints = {
         let playerLvlRewardPointsConfig = null;
         let playerRewardPoints = null;
         let rewardPointsProposalType = null;
+        let actualConvertRewardPointsAmount = 0;
+        let rewardPointsRemainder = 0;
+        let convertCredit = 0;
+        let limitReach = false;
         let adminInfo = '';
         if (adminId && adminName) {
             adminInfo = {
@@ -52,6 +56,7 @@ let dbPlayerRewardPoints = {
 
         if (convertRewardPointsAmount < 0) {
             return Q.reject({
+                status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                 name: "DataError",
                 message: "Convert reward points amount must greater than 0"
             });
@@ -64,9 +69,9 @@ let dbPlayerRewardPoints = {
                         playerInfo = playerData;
                         if (playerData.permission && playerData.permission.rewardPointsTask === false) {
                             return Q.reject({
-                                status: constServerCode.PLAYER_CONVERT_REWARD_POINTS_FAIL,
+                                status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                                 name: "DataError",
-                                message: "Player do not have permission for convert reward points to credit"
+                                errorMessage: "Player do not have permission for convert reward points to credit"
                             });
                         }
 
@@ -78,8 +83,9 @@ let dbPlayerRewardPoints = {
                     }
                     else {
                         return Q.reject({
+                            status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
-                            message: "Can not find player"
+                            errorMessage: "Can not find player"
                         });
                     }
                 }
@@ -91,8 +97,9 @@ let dbPlayerRewardPoints = {
                     }
                     else {
                         return Q.reject({
+                            status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
-                            message: "Can not find reward points proposal type"
+                            errorMessage: "Can not find reward points proposal type"
                         });
                     }
                 }
@@ -102,16 +109,18 @@ let dbPlayerRewardPoints = {
                         playerLvlRewardPointsConfig = rewardPointsLvlConfig.params.filter(playerLvlConfig => playerLvlConfig.levelObjId.toString() == playerInfo.playerLevel.toString())[0];
                         if (!playerLvlRewardPointsConfig) {
                             return Q.reject({
+                                status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                                 name: "DataError",
-                                message: "Can not match player level with reward points level config"
+                                errorMessage: "Can not match player level with reward points level config"
                             });
                         }
                         return dbRewardPoints.getPlayerRewardPoints(ObjectId(playerInfo._id));
                     }
                     else {
                         return Q.reject({
+                            status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
-                            message: "Can not find reward points config"
+                            errorMessage: "Can not find reward points config"
                         });
                     }
                 }
@@ -121,8 +130,9 @@ let dbPlayerRewardPoints = {
                         playerRewardPoints = rewardPoints;
                         if (playerRewardPoints.points < convertRewardPointsAmount) {
                             return Q.reject({
+                                status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                                 name: "DataError",
-                                message: "Player does not have enough reward points"
+                                errorMessage: "Player does not have enough reward points"
                             });
                         }
                         let todayTime = dbUtility.getTodaySGTime();
@@ -130,20 +140,41 @@ let dbPlayerRewardPoints = {
                     }
                     else {
                         return Q.reject({
+                            status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
-                            message: "Player does not have enough reward points"
+                            errorMessage: "Player does not have enough reward points"
                         });
                     }
                 }
             ).then(
                 todayConvertedRewardPoints => {
-                    if ((todayConvertedRewardPoints + convertRewardPointsAmount) > playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
+                    if (todayConvertedRewardPoints >= playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
                         return Q.reject({
+                            status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
-                            message: "Player convert amount reach daily reward points convert limit"
+                            errorMessage: "Redemption failed" + ", " + "daily reward point redemption limit is reach" + " (" + playerLvlRewardPointsConfig.pointToCreditManualMaxPoints + ") " + "reward points"
                         });
                     } else {
-                        let convertCredit = Math.floor(convertRewardPointsAmount / playerLvlRewardPointsConfig.pointToCreditManualRate);
+                        if (Number(todayConvertedRewardPoints) + Number(convertRewardPointsAmount) > playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
+                            //this variable store the remaining reward points left before reaching the daily limit
+                            let pointsLeftToReachQuota =  playerLvlRewardPointsConfig.pointToCreditManualMaxPoints - todayConvertedRewardPoints;
+                            actualConvertRewardPointsAmount = pointsLeftToReachQuota - (pointsLeftToReachQuota % playerLvlRewardPointsConfig.pointToCreditManualRate);
+                            limitReach = true;
+                        }else{
+                            actualConvertRewardPointsAmount = convertRewardPointsAmount - (convertRewardPointsAmount % playerLvlRewardPointsConfig.pointToCreditManualRate);
+                        }
+                        
+                        rewardPointsRemainder = convertRewardPointsAmount - actualConvertRewardPointsAmount;
+
+                        if(actualConvertRewardPointsAmount < playerLvlRewardPointsConfig.pointToCreditManualRate){
+                            return Q.reject({
+                                status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
+                                name: "DataError",
+                                errorMessage: "Redemption failed, the points to be redeemed are less than the minimum credit (1)"
+                            });
+                        }
+
+                        convertCredit = Math.floor(actualConvertRewardPointsAmount / playerLvlRewardPointsConfig.pointToCreditManualRate);
                         let spendingAmount = convertCredit * playerLvlRewardPointsConfig.spendingAmountOnReward;
                         let proposalData = {
                             type: rewardPointsProposalType._id,
@@ -161,8 +192,8 @@ let dbPlayerRewardPoints = {
                                 realName: playerInfo.realName,
                                 platformObjId: playerInfo.platform._id,
                                 beforeRewardPoints: playerRewardPoints.points,
-                                afterRewardPoints: playerRewardPoints.points - convertRewardPointsAmount,
-                                convertedRewardPoints: convertRewardPointsAmount,
+                                afterRewardPoints: playerRewardPoints.points - actualConvertRewardPointsAmount,
+                                convertedRewardPoints: actualConvertRewardPointsAmount,
                                 convertCredit: convertCredit,
                                 rewardAmount: convertCredit,
                                 spendingAmount: spendingAmount,
@@ -178,6 +209,22 @@ let dbPlayerRewardPoints = {
                             inputDevice: userAgent
                         };
                         return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
+                    }
+                }
+            ).then(
+                result => {
+                    if(typeof rewardPointsRemainder !== "undefined"){
+                        if(rewardPointsRemainder == 0){
+                            return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit"});
+                        }else{
+                            if(limitReach){
+                                return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
+                                    "Remaining" + "(" + rewardPointsRemainder + ") " + "reward points" + " " + "has exceed the redemption limit" + ", " + "has been returned to your account"});
+                            }
+
+                            return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
+                                "Remaining" + " (" + rewardPointsRemainder + ") " + "reward points" + " " + "not enough to redeem (1) credit" + ", " + "has been returned to your account"});
+                        }
                     }
                 }
             )

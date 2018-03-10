@@ -18548,7 +18548,7 @@ define(['js/app'], function (myApp) {
 
                     let smsObj = {
                         playerId: item.playerObjId.playerId,
-                        platformId: item.platformObjId,
+                        platformId: vm.selectedPlatform.data.platformId,
                         channel: 2,
                         message: item.smsContent
                     };
