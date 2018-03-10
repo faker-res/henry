@@ -554,7 +554,7 @@ var roleChecker = {
                 Reward: ['getPlatformRewardAnalysis'],
                 Device: ['getPlayerDeviceAnalysisData'],
                 Consumption: ['getPlayerConsumptionSumForAllPlatform'],
-                TopUp: ['getTopUpTotalAmountForAllPlatform','getTopUpAnalysisList'],
+                TopUp: ['getTopUpTotalAmountForAllPlatform','getTopupAnalysisByPlatform'],
                 NewPlayer: ['countNewPlayerbyPlatform', 'countNewPlayers'],
                 ActivePlayer: ['countActivePlayerbyPlatform', 'countActivePlayerALLPlatform'],
                 PlayerRetention: ['getPlayerRetention'],
