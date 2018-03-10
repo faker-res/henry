@@ -14066,7 +14066,8 @@ let dbPlayerInfo = {
         let playerDetails = {};
         let gameData = [];
         let usedTaskGroup = [];
-        return dbconfig.collection_players.findOne({_id: playerObjId}, {platform: 1, validCredit: 1, name: 1, _id: 0})
+        let playerForbidProvider = [];
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {platform: 1, validCredit: 1, name: 1, _id: 0, forbidProviders: 1})
             .populate({
                 path: "platform",
                 model: dbconfig.collection_platform,
@@ -14077,6 +14078,7 @@ let dbPlayerInfo = {
                     playerDetails.validCredit = playerData.validCredit;
                     playerDetails.platformId = playerData.platform.platformId;
                     playerDetails.platformObjId = playerData.platform._id;
+                    playerForbidProvider = playerData.forbidProviders ? playerData.forbidProviders.map(provider => String(provider)) : [];
                     returnData.credit = playerData.validCredit;
                     return dbconfig.collection_platform.findOne({_id: playerData.platform})
                         .populate({path: "paymentChannels", model: dbconfig.collection_paymentChannel})
@@ -14088,10 +14090,20 @@ let dbPlayerInfo = {
                     if (platformData && platformData.gameProviders.length > 0) {
                         for (let i = 0; i < platformData.gameProviders.length; i++) {
                             let nickName = "";
+                            let status = platformData.gameProviders[i].status;
                             if (platformData.gameProviderInfo) {
                                 for (let j = 0; j < Object.keys(platformData.gameProviderInfo).length; j++) {
                                     if (Object.keys(platformData.gameProviderInfo)[j].toString() == platformData.gameProviders[i]._id.toString()) {
-                                        nickName = platformData.gameProviderInfo[platformData.gameProviders[i]._id.toString()].localNickName;
+                                        let gameProviderId = platformData.gameProviders[i]._id.toString();
+                                        let platformProviderInfo = platformData.gameProviderInfo[gameProviderId];
+                                        nickName = platformProviderInfo.localNickName || nickName;
+                                        if (status === 1 && platformProviderInfo.isEnable === false) {
+                                            status = 2;
+                                        }
+
+                                        if (status === 1 && playerForbidProvider.indexOf(gameProviderId) >= 0) {
+                                            status = 2;
+                                        }
                                     }
                                 }
                             }
@@ -14100,7 +14112,7 @@ let dbPlayerInfo = {
                                 providerId: platformData.gameProviders[i].providerId,
                                 // nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                                 nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
-                                status: platformData.gameProviders[i].status
+                                status: status
                             };
                         }
                     }
