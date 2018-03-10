@@ -3819,9 +3819,10 @@ var proposal = {
                 if (!TopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
 
                 let proms = [];
+                let headCountFilterProms = [];
                 let bankProms = [];
                 let methodProms = [];
-                let dayStartTime = startDate;
+                let dayStartTime = new Date (startDate);
                 let getNextDate;
                 switch (period) {
                     case 'day':
@@ -3866,7 +3867,24 @@ var proposal = {
                         }, {
                             $group: groupByObj
                         }
-                    ).read("secondaryPreferred"));
+                    ).read("secondaryPreferred").then(data => {
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match:  Object.assign({}, matchObj,{status: "Success"})
+                                }, {
+                                    $group: {
+                                        _id: null,
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).read("secondaryPreferred").then( data1 => {
+                                let totalUser = {
+                                    totalUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
+                                };
+                                return [data, totalUser]
+                            })
+                        })
+                    );
 
                     if (type == 'ManualPlayerTopUp') {
 
@@ -3932,7 +3950,7 @@ var proposal = {
                         let tempDate = startDate;
 
                         let res = data[0].map(item => {
-                            let obj = {date: tempDate, data: item}
+                            let obj = {date: tempDate, data: item,}
                             tempDate = getNextDate(tempDate);
                             return obj;
                         });

@@ -23,9 +23,14 @@
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.drawPlayerTopUp(vm.showPageName)') {{'SEARCH' | translate}}
         .row
-            .col-md-12
-                label &nbsp;
+            .col-md-6
                 label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-topUpAmount.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
@@ -65,9 +70,13 @@
                                 td
                                     span {{ vm.platformTopUpAmountAverage.backStage }}
         .row
-            .col-md-12
-                label &nbsp;
+            .col-md-6
                 label.text-primary {{vm.queryPara.topUp.countTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-topUpCount.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
                 .graph
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
@@ -108,9 +117,13 @@
                                     span {{ vm.platformTopUpCountAverage.backStage }}
 
         .row
-            .col-md-12
-                label &nbsp;
+            .col-md-6
                 label.text-primary {{vm.queryPara.topUp.headCountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-topUpHeadCount.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
                 .graph
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
@@ -155,7 +168,7 @@
                 label.text-primary {{vm.queryPara.topUp.successRateTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
                     .panel.panel-default
-                        #line-topUpSuccessRate.lineChart.graphDiv(style='height:500px;margin:0 auto')
+                        #line-topUpSuccessRate.lineChart.graphDiv
             .col-md-6
                 label &nbsp;
                 .graph

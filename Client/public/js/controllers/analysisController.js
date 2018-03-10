@@ -3402,9 +3402,9 @@ define(['js/app'], function (myApp) {
                             let AppData = {amount: 0, successCount: 0, headCount: 0, count: 0, successRate: 0};
                             let defaultData = [backStageData, webData, H5Data, AppData];
 
-                            if (item.data && item.data.length > 0) {
+                            if (item.data[0] && item.data[0].length > 0) {
 
-                                item.data.forEach(inputDeviceData => {
+                                item.data[0].forEach(inputDeviceData => {
 
                                     if (inputDeviceData._id == 3){
                                         index = parseInt(inputDeviceData._id - 1);
@@ -3424,8 +3424,8 @@ define(['js/app'], function (myApp) {
 
                             vm.platformTopUpAnalysisData.push({
                                 date: new Date(item.date),
+                                totalHeadCount: item.data[1].totalUserCount,
                                 totalSuccessCount: defaultData[0].successCount + defaultData[1].successCount + defaultData[2].successCount + defaultData[3].successCount,
-                                totalHeadCount: defaultData[0].headCount + defaultData[1].headCount + defaultData[2].headCount + defaultData[3].headCount,
                                 totalSum: defaultData[0].amount + defaultData[1].amount + defaultData[2].amount + defaultData[3].amount,
                                 backStage: defaultData[0],
                                 web: defaultData[1],
@@ -3467,6 +3467,13 @@ define(['js/app'], function (myApp) {
                             AppTotalCount: vm.calculateAverageData(vm.platformTopUpAnalysisData, 'App', 'count')
                         };
 
+
+                        let calculatedTopUpAmount = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisData, 'totalSum', vm.queryPara.topUp.amountTag);
+                        vm.plotLineByElementId("#line-topUpAmount", calculatedTopUpAmount.lineData, $translate(vm.queryPara.topUp.amountTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+                        let calculatedTopUpCount = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisData, 'totalSuccessCount', vm.queryPara.topUp.countTag);
+                        vm.plotLineByElementId("#line-topUpCount", calculatedTopUpCount.lineData, $translate(vm.queryPara.topUp.countTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
+                        let calculatedTopUpHeadCount = vm.calculateLineDataAndAverage(vm.platformTopUpAnalysisData, 'totalHeadCount', vm.queryPara.topUp.headCountTag);
+                        vm.plotLineByElementId("#line-topUpHeadCount", calculatedTopUpHeadCount.lineData, $translate(vm.queryPara.topUp.headCountTag), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.topUp.periodText.toUpperCase()));
 
                         let returnedLineData = vm.generateLineData(vm.platformTopUpAnalysisData, ['WEB', 'H5', 'APP'], ['web', 'H5', 'App'], 'successRate');
                         if (returnedLineData) {
