@@ -1386,6 +1386,9 @@ let dbPlayerInfo = {
         dbconfig.collection_players.findOne(query).populate({
             path: "playerLevel",
             model: dbconfig.collection_playerLevel
+        }).populate({
+            path: "rewardPointsObjId",
+            model: dbconfig.collection_rewardPoints
         }).lean().then(
             function (data) {
                 data.fullPhoneNumber = data.phoneNumber;
@@ -1395,6 +1398,8 @@ let dbPlayerInfo = {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
+                apiData.userCurrentPoint = apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
+                apiData.rewardPointsObjId = apiData.rewardPointsObjId._id;
 
                 // if (data.realName) {
                 //     data.realName = dbUtility.encodeRealName(data.realName);
@@ -1419,7 +1424,8 @@ let dbPlayerInfo = {
                 b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({cityId: apiData.bankAccountCity}) : true;
                 c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: apiData.bankAccountDistrict}) : true;
                 var creditProm = dbPlayerInfo.getPlayerCredit(apiData.playerId);
-                return Q.all([a, b, c, creditProm]);
+                let rewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(apiData.rewardPointsObjId);
+                return Q.all([a, b, c, creditProm, rewardPointsProm]);
             },
             function (err) {
                 deferred.reject({name: "DBError", error: err, message: "Error in getting player platform Data"})
@@ -1433,6 +1439,7 @@ let dbPlayerInfo = {
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
                 apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
                 apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
                 deferred.resolve(apiData);
             },
             zoneError => {
