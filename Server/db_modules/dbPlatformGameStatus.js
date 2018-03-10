@@ -87,7 +87,7 @@ var dbPlatformGameStatus = {
         var game = mongoose.Types.ObjectId(query.game);
         var platform = mongoose.Types.ObjectId(query.platform);
 
-
+        
         return dbconfig.collection_platformGameStatus.findOneAndUpdate(
             {game: game, platform: platform},
             data
@@ -258,6 +258,18 @@ var dbPlatformGameStatus = {
         ).then(
             games => {
                 if (games && games.length > 0) {
+
+                    // display the status of collection_game with the status in collection_dbPlatformGameStatus
+                    games.map( game => {
+                        let filteredPlatformGame = platformGames.find( platformGame => {
+                            return platformGame.game.toString() == game._id.toString() && platformGame.status != game.status
+                        })
+
+                        if (filteredPlatformGame){
+                            return game.status = filteredPlatformGame.status
+                        }
+                    });
+
                     var platformGamesMap = {};
                     games = games.filter(game => game.status != 4);
                     platformGames.forEach(game => platformGamesMap[game.game] = game);
