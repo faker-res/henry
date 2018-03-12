@@ -252,7 +252,7 @@
                 .panel.panel-primary
                     .panel-body
                         Label {{"Are you sure to update"|translate}}&nbsp;
-                        span.strong.text-danger {{vm.curGame.name}}
+                        span.strong.text-danger {{"selected games" | translate}}
                         span &nbsp;from&nbsp;
                         //{{vm.gameStatus[vm.curGame._id]}}
                         span.strong(class='{{vm.getGameStatusClass(vm.gameStatus[vm.curGame._id])}}') {{vm.allGameStatusKeys[vm.gameStatus[vm.curGame._id]-1]}}
