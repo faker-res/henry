@@ -3896,11 +3896,13 @@ var proposal = {
                                 $match: {
                                     createTime: {$gte: dayStartTime, $lt: dayEndTime},
                                     type: TopupType._id,
+                                    $and: [{"data.depositMethod": {$exists: true}}, {"data.depositMethod": {$ne: ''}}, {"data.depositMethod": {$ne: null}} ],
+                                    status: 'Success'
                                 }
                             }, {
                                 $group: {
                                     _id: "$data.bankTypeId",
-                                    amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                    amount: {$sum: '$data.amount'},
                                 }
                             }
                         ).read("secondaryPreferred"));
@@ -3911,11 +3913,13 @@ var proposal = {
                                 $match: {
                                     createTime: {$gte: dayStartTime, $lt: dayEndTime},
                                     type: TopupType._id,
+                                    status: "Success",
+                                    $and: [{"data.depositMethod": {$exists: true}}, {"data.depositMethod": {$ne: ''}}, {"data.depositMethod": {$ne: null}} ]
                                 }
                             }, {
                                 $group: {
                                     _id: "$data.depositMethod",
-                                    amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                    amount: {$sum: '$data.amount'},
                                 }
                             }
                         ).read("secondaryPreferred"));
@@ -3927,7 +3931,7 @@ var proposal = {
                 return Q.all([Q.all(proms), Q.all(bankProms), Q.all(methodProms)]).then(data => {
 
                     if (type == 'ManualPlayerTopUp') {
-                        if (!data && data[0] && data[1] && data[2]) {
+                        if (!data && !data[0] && !data[1] && !data[2]) {
                             return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
                         }
                         let result = [];
