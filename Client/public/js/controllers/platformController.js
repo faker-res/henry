@@ -2898,9 +2898,16 @@ define(['js/app'], function (myApp) {
                     vm.newType = type;
                     $("#modalConfirmUpdateGame").modal();
                 } else {
+                    let sendGameId = [];
+                    vm.selectedGamesInGameGroup.forEach((game) => {
+                        if (game._id) {
+                            sendGameId.push(game._id);
+                        }
+                    })
+
                     var sendData = {
                         query: {
-                            game: vm.curGame._id, platform: vm.selectedPlatform.id
+                            game: sendGameId, platform: vm.selectedPlatform.id
                         },
                         updateData: {
                             status: type
@@ -3004,7 +3011,35 @@ define(['js/app'], function (myApp) {
                     title: $translate('Please confirm your action.'),
                     text: $translate("Are you sure to update") + " " + providerData.name + "(" + providerData.code + ") -> " + $translate(type) + " ?"
                 }).then(function () {
+
+                    if (type == "DISABLE") {
+                        let sendGameId = [];
+                        vm.includedGames.forEach((game) => {
+                            if (game._id) {
+                                sendGameId.push(game._id);
+                            }
+                        })
+
+                        var sendData = {
+                            query: {
+                                game: sendGameId, platform: vm.selectedPlatform.id
+                            },
+                            updateData: {
+                                status: vm.allGameStatusString.MAINTENANCE
+                            }
+                        }
+                        console.log("send", sendData);
+                        socketService.$socket($scope.AppSocket, 'updateGameStatusToPlatform', sendData, success);
+                        // $scope.safeApply();
+                    } else {
                         vm.submitProviderChange(type, vm.SelectedProvider);
+                    }
+                    function success(data) {
+                        console.log(data);
+                        vm.submitProviderChange(type, vm.SelectedProvider);
+                        vm.providerClicked('refresh', vm.SelectedProvider);
+                    }
+
                     }
                 );
             }
@@ -18479,6 +18514,7 @@ define(['js/app'], function (myApp) {
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                             item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            item.isForbidWithdraw = item.playerObjId && item.playerObjId.permission && item.playerObjId.permission.applyBonus ? $translate(!item.playerObjId.permission.applyBonus) : $translate("true");
 
                             return item;
                         }), vm.promoCodeQuery.totalCount, {}, isNewSearch
@@ -18490,6 +18526,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.sendSMSByPromoCode = function (promoCode, isConfirm) {
+                if (!vm.selectedPromoCode || vm.selectedPromoCode.status != 1) {
+                    return;
+                }
+
                 if (!isConfirm) {
                     vm.modalYesNo.modalTitle = $translate("Send Promo Code SMS");
                     vm.modalYesNo.modalText = $translate("Send unaccepted promo code to members?");
@@ -18821,6 +18861,10 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('SHARE_WITH_XIMA'),
                             data: "isSharedWithXIMA$"
+                        },
+                        {
+                            title: $translate('FORBID_WITHDRAW'),
+                            data: "isForbidWithdraw"
                         },
                         {
                             title: $translate('PROMO_DUE_DATE'),
