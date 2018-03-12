@@ -8401,7 +8401,7 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.populate(records, {
                     path: '_id',
                     model: dbconfig.collection_players,
-                    select: "valueScore topUpTimes topUpSum consumptionTimes consumptionSum partner isRealPlayer isTestPlayer"
+                    select: "valueScore topUpTimes topUpSum consumptionTimes consumptionSum partner isRealPlayer isTestPlayer registrationTime name"
                 }).then(
                     (records) => {
                         let filteredRecords = [];
@@ -10687,11 +10687,7 @@ let dbPlayerInfo = {
                                         playerId: player._id,
                                         platformId: player.platform._id,
                                         amount: {$gte: minTopUpRecordAmount},
-                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                        $or: [{bDirty: false}, {
-                                            bDirty: true,
-                                            usedType: constRewardType.PLAYER_TOP_UP_RETURN
-                                        }]
+                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
                                     }
                                 },
                                 {
