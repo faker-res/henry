@@ -850,7 +850,7 @@ var dbPlayerTopUpRecord = {
                     }else{
                         return Q.reject({
                             name: "DataError",
-                            message: "No Any MerchantNo Are Available , Please Change TopUp Method",
+                            message: "No Any MerchantNo Are Available, Please Change TopUp Method",
                             error: Error()
                         });
                     }

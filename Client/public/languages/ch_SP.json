@@ -3345,7 +3345,5 @@
   "Promo Min Top Up Amount is required": "最低存款(D) 是必填项",
   "Promo Consumption is required": "所需流水(Y) 是必填项",
   "Promo Max Top Up Amount is required": "优惠上限(M) 是必填项",
-  "Promo Reward % is required": "优惠% 是必填项",
-  "No Any MerchantNo Are Available , Please Change TopUp Method":"此在线充值类型无可用的商户号，请更换充值方式。"
-
+  "Promo Reward % is required": "优惠% 是必填项"
 }
