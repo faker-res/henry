@@ -5,6 +5,7 @@ const dbUtility = require('./../../modules/dbutility');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const dbRewardPointsRanking = require('./../../db_modules/dbRewardPointsRanking');
+const dbPlayerRewardPoints = require('./../../db_modules/dbPlayerRewardPoints');
 
 let RewardPointsServiceImplement = function () {
     RewardPointsService.call(this);
@@ -46,6 +47,21 @@ let RewardPointsServiceImplement = function () {
     this.getPointRule.onRequest = function (wsFunc, conn, data) {
         let isValidData = true;
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.getPointRule, [conn.playerId, data.platformId], isValidData, false, false, Boolean(data.platformId));
+    };
+
+
+    this.applyPointToCredit.expectsData = '';
+    this.applyPointToCredit.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.point)
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerRewardPoints.convertRewardPointsToCredit, [conn.playerId, data.point, "", inputDevice], isValidData, false, false, Boolean(data.platformId));
+    };
+
+    this.getMissonList.expectsData = '';
+    this.getMissonList.onRequest = function (wsFunc, conn, data) {
+        var isValidData = true;
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.getMissonList, [conn.playerId, data.platformId], isValidData, false, false, Boolean(data.platformId));
+
     };
 };
 

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
+const dbPromoCode = require('./../db_modules/dbPromoCode');
 
 const socketUtil = require('./../modules/socketutility');
 
@@ -67,7 +68,7 @@ function socketActionPromoCode(socketIO, socket) {
 
         generatePromoCode: function generatePromoCode(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry);
+            let isValidData = Boolean(data && data.platformObjId && data.newPromoCodeEntry && data.newPromoCodeEntry.promoCodeType);
             socketUtil.emitter(self.socket, dbPlayerReward.generatePromoCode, [ObjectId(data.platformObjId), data.newPromoCodeEntry, data.adminId, data.adminName], actionName, isValidData);
         },
 
@@ -143,6 +144,12 @@ function socketActionPromoCode(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.playerName && data.status);
             socketUtil.emitter(self.socket, dbPlayerReward.checkPlayerHasPromoCode, [data], actionName, isValidData);
+        },
+
+        disablePromoCode: function disablePromoCode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.playerId && data.promoCode);
+            socketUtil.emitter(self.socket, dbPromoCode.disablePromoCode, [data.playerId, data.promoCode], actionName, isValidData);
         },
     };
     socketActionPromoCode.actions = this.actions;

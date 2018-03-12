@@ -1067,13 +1067,6 @@ function socketActionPlayer(socketIO, socket) {
             var endDate = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbPlayerInfo.countBonusAmountALLPlatform,   [startDate, endDate, !data.sort], actionName, isValidData);
         },
-        getTopUpAnalysisList: function getTopUpAnalysisList(data){
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.type);
-            var startTime = data.startDate ? dbUtil.getDayStartTime(data.startDate) : new Date(0);
-            var endTime = data.endDate ? dbUtil.getDayEndTime(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbPlayerInfo.getTopUpByPlatform, [ObjectId(data.platformId), startTime, endTime, data.type], actionName, isValidData);
-        },
         updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerObjId && data.remarks);

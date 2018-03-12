@@ -73,7 +73,7 @@ div.row
         div.col-md-2
             .btn.btn-primary(ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
 
-div.row(ng-show='vm.conversationForm.length > 0', style='margin-top:20px;')
+div.row(style='margin-top:20px;')
     div.col-md-12
         div.col-md-2
             span(style="display:inline-block;") 每页显示
@@ -87,7 +87,7 @@ div.row(ng-show='vm.conversationForm.length > 0', style='margin-top:20px;')
             div(style='display:inline-block')
                 span(style="width:50px;display:inline-block;") 跳到
                 input.form-control(style='max-width:80px;display:inline-block;',type="number",ng-model="vm.pgn.currentPage",ng-init=1 ,ng-blur="vm.gotoPG((vm.pgn.currentPage),null)")
-                span(style="display:inline-block;") 页
+                span(style="display:inline-block;") / {{ vm.pgn.totalPage }} 页
             div(style='display:inline-block')
                 .btn.btn-primary(ng-click="vm.nextPG()") 下一页
             div(style='display:inline-block')

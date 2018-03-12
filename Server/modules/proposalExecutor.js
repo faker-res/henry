@@ -40,6 +40,7 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
+let dbOperation = require("../db_common/dbOperations");
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
@@ -1468,9 +1469,7 @@ var proposalExecutor = {
                                         dbConsumptionReturnWithdraw.addXimaWithdraw(proposalData.data.playerObjId, proposalData.data.rewardAmount).catch(errorUtils.reportError);
                                     }
                                     sendMessageToPlayer(proposalData,constRewardType.PLAYER_CONSUMPTION_RETURN,{});
-                                    dbconfig.collection_playerConsumptionSummary.remove(
-                                        {_id: {$in: proposalData.data.summaryIds}}
-                                    ).catch(errorUtils.reportError);
+                                    dbOperation.removeWithRetry(dbconfig.collection_playerConsumptionSummary, {_id: {$in: proposalData.data.summaryIds}}).catch(errorUtils.reportError);
                                 }
                             ).then(deferred.resolve, deferred.reject);
                         }

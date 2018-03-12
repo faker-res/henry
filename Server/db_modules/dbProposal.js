@@ -3053,7 +3053,7 @@ var proposal = {
                     obj.summary = {
                         amount: parseFloat(temp.sum1 + temp.sum2 + temp.sum3).toFixed(2),
                         // applyAmount: parseFloat(temp.sumApplyAmount).toFixed(2)
-                        applyAmount: parseFloat(temp.sum3 + temp.sumApplyAmount).toFixed(2) // the one that use for 'total' on the page
+                        applyAmount: parseFloat(temp.sum2).toFixed(2) // the one that use for 'total' on the page
                     };
                     deferred.resolve(obj);
                 } else {
@@ -3651,15 +3651,15 @@ var proposal = {
                         createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                         type: onlineTopupType._id,
                         "data.userAgent": i,
-                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                        $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                     };
 
                     let groupByObj = {
                         _id: "$data.topupType",
                         userIds: { $addToSet: "$data.playerObjId" },
-                        amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                        amount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, '$data.amount', 0]}},
                         count: {$sum: 1},
-                        successCount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, 1, 0]}},
+                        successCount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, 1, 0]}},
                     };
 
 
@@ -3675,7 +3675,7 @@ var proposal = {
                             //get success proposal count group by topupType, filter repeat user
                             return dbconfig.collection_proposal.aggregate(
                                 {
-                                    $match: Object.assign({}, matchObj,{status: "Success"})
+                                    $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}})
                                 }, {
                                     $group: {
                                         _id: "$data.topupType",
@@ -3720,7 +3720,7 @@ var proposal = {
                                                     // get success proposal count group by merchantNo, filter repeat user
                                                     return dbconfig.collection_proposal.aggregate(
                                                         {
-                                                            $match: Object.assign({}, matchObj,{status: "Success", 'data.topupType': onlineTopupTypeData._id})
+                                                            $match: Object.assign({}, matchObj,{status:{$in: ["Success", "Approved"]}, 'data.topupType': onlineTopupTypeData._id})
                                                         }, {
                                                             $group: {
                                                                 _id: "$data.merchantNo",
@@ -3787,7 +3787,7 @@ var proposal = {
                                     createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
                                     type: onlineTopupType._id,
                                     status: "Success",
-                                    $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}, {'data.topupType': {$type: 'number'}}],
+                                    $and: [{"data.topupType": {$exists: true}}, {'data.topupType':{$ne: ''}}/*, {'data.topupType': {$type: 'number'}}*/],
                                 }
                             }, {
                                 $group: {
@@ -3807,7 +3807,160 @@ var proposal = {
                 );
             }
         )
-    }
+    },
+
+    getTopupAnalysisByPlatform: (platformId, startDate, endDate, type, period) => {
+
+        return dbconfig.collection_proposalType.findOne({
+            platformId: platformId,
+            name: type
+        }).read("secondaryPreferred").lean().then(
+            (TopupType) => {
+                if (!TopupType) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+
+                let proms = [];
+                let headCountFilterProms = [];
+                let bankProms = [];
+                let methodProms = [];
+                let dayStartTime = new Date (startDate);
+                let getNextDate;
+                switch (period) {
+                    case 'day':
+                        getNextDate = function (date) {
+                            let newDate = new Date(date);
+                            return new Date(newDate.setDate(newDate.getDate() + 1));
+                        }
+                        break;
+                    case 'week':
+                        getNextDate = function (date) {
+                            let newDate = new Date(date);
+                            return new Date(newDate.setDate(newDate.getDate() + 7));
+                        }
+                        break;
+                    case 'month':
+                    default:
+                        getNextDate = function (date) {
+                            let newDate = new Date(date);
+                            return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                        }
+                }
+                while (dayStartTime.getTime() < endDate.getTime()) {
+                    var dayEndTime = getNextDate.call(this, dayStartTime);
+
+                    let matchObj = {
+                        createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                        type: TopupType._id,
+                        inputDevice: {$in: [0, 1, 3, 5]},
+                    };
+
+                    let groupByObj = {
+                        _id: "$inputDevice",
+                        userIds: {$addToSet: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, '$data.playerObjId', 0]}}, // remove duplicate player
+                        amount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, '$data.amount', 0]}}, // total topup amount with status: success
+                        count: {$sum: 1}, // total number of proposal
+                        successCount: {$sum: {$cond: [{$or: [{$eq: ["$status", 'Success']},{$eq: ["$status", 'Approved']}]}, 1, 0]}}, // total number of proposal with status: success
+                    };
+
+                    proms.push(dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: matchObj
+                        }, {
+                            $group: groupByObj
+                        }
+                    ).read("secondaryPreferred").then(data => {
+                            return dbconfig.collection_proposal.aggregate(
+                                {
+                                    $match:  Object.assign({}, matchObj,{status: "Success"})
+                                }, {
+                                    $group: {
+                                        _id: null,
+                                        userIds: { $addToSet: "$data.playerObjId" },
+                                    }
+                                }
+                            ).read("secondaryPreferred").then( data1 => {
+                                let totalUser = {
+                                    totalUserCount: data1 && data1[0] ? data1[0].userIds.length : 0
+                                };
+                                return [data, totalUser]
+                            })
+                        })
+                    );
+
+                    if (type == 'ManualPlayerTopUp') {
+
+                        bankProms.push(dbconfig.collection_proposal.aggregate(
+                            {
+                                $match: {
+                                    createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                                    type: TopupType._id,
+                                }
+                            }, {
+                                $group: {
+                                    _id: "$data.bankTypeId",
+                                    amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                }
+                            }
+                        ).read("secondaryPreferred"));
+
+
+                        methodProms.push(dbconfig.collection_proposal.aggregate(
+                            {
+                                $match: {
+                                    createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                                    type: TopupType._id,
+                                }
+                            }, {
+                                $group: {
+                                    _id: "$data.depositMethod",
+                                    amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                }
+                            }
+                        ).read("secondaryPreferred"));
+
+                    }
+                    dayStartTime = dayEndTime;
+                }
+
+                return Q.all([Q.all(proms), Q.all(bankProms), Q.all(methodProms)]).then(data => {
+
+                    if (type == 'ManualPlayerTopUp') {
+                        if (!data && data[0] && data[1] && data[2]) {
+                            return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
+                        }
+                        let result = [];
+                        let tempDate = startDate;
+
+                        data.forEach(topUpDetail => {
+
+                            let res = topUpDetail.map(item => {
+                                let obj = {date: tempDate, data: item}
+                                tempDate = getNextDate(tempDate);
+                                return obj;
+                            });
+                            result.push(res);
+                            tempDate = startDate;
+                        })
+                        return result
+                    }
+                    else {
+                        if (!data[0]) {
+                            return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
+                        }
+
+                        let tempDate = startDate;
+
+                        let res = data[0].map(item => {
+                            let obj = {date: tempDate, data: item}
+                            tempDate = getNextDate(tempDate);
+                            return obj;
+                        });
+                        return res;
+                    }
+                });
+
+            }
+        )
+    },
 
 };
 
