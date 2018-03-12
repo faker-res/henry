@@ -64,6 +64,7 @@ const constSMSPurpose = require("../const/constSMSPurpose");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
+const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
 
 // db_common
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
@@ -221,6 +222,7 @@ let dbPlayerInfo = {
      */
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
+        let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
         let proposalType = updateAmount >= 0 ? constProposalType.PLAYER_ADD_REWARD_POINTS : constProposalType.PLAYER_MINUS_REWARD_POINTS;
         let proposalData = {
             data: {
@@ -229,11 +231,21 @@ let dbPlayerInfo = {
                 updateAmount: updateAmount,
                 category: category,
                 remark: remark,
-                userAgent: constPlayerRegistrationInterface.BACKSTAGE,
+                userAgent: userAgent,
                 adminName: adminName
             }
         };
-        dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData);
+        return dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData).then(
+            data => {
+                if (proposalType == constProposalType.PLAYER_MINUS_REWARD_POINTS) {
+                    //status is here to ensure reward points log status is set to PROCESSED, if proposal is auto approved.
+                    let status = data.status === constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
+                    remark = remark ? remark + " Proposal No: " + data.proposalId : "Proposal No: " + data.proposalId;
+                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent,
+                        adminName, status, null, null, null, data.proposalId);
+                }
+            }
+        );
     },
 
     /**

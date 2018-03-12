@@ -30,10 +30,16 @@ var dbRewardPointsLog = {
 
     createRewardPointsLogByProposalData: (proposalData) => {
         let isPeriodPointConversion = proposalData.creator.type == 'system';
-        proposalData.data.remark = proposalData.data.remark ? proposalData.data.remark + " Proposal No: " + proposalData.proposalId : "Proposal No: " + proposalData.proposalId;
+        proposalData.data.category = proposalData.data.hasOwnProperty('category')
+            ? proposalData.data.category : isPeriodPointConversion
+                ? constRewardPointsLogCategory.PERIOD_POINT_CONVERSION : constRewardPointsLogCategory.EARLY_POINT_CONVERSION;
+        proposalData.data.remark = proposalData.data.remark
+            ? proposalData.data.remark + " Proposal No: " + proposalData.proposalId : "Proposal No: " + proposalData.proposalId;
+        proposalData.data.convertedRewardPoints = proposalData.data.convertedRewardPoints || 0;
+
         let logData = {
             rewardPointsObjId: proposalData.data.playerRewardPointsObjId,
-            category: isPeriodPointConversion ? constRewardPointsLogCategory.PERIOD_POINT_CONVERSION : constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
+            category: proposalData.data.category,
             oldPoints: proposalData.data.beforeRewardPoints,
             newPoints: proposalData.data.afterRewardPoints,
             playerName: proposalData.data.playerName,

@@ -2471,20 +2471,9 @@ var proposalExecutor = {
             },
 
             executePlayerMinusRewardPoints: function (proposalData, deferred) {
-                if(proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && Number.isInteger(proposalData.data.updateAmount) && proposalData.data.category) {
-                    let playerObjId = proposalData.data.playerObjId;
-                    let platformObjId = proposalData.data.platformObjId;
-                    let updateAmount = proposalData.data.updateAmount;
-                    let category = proposalData.data.category;
-                    let remark = proposalData.data.remark;
-                    let userAgent = proposalData.data.userAgent;
-                    let adminName = proposalData.data.adminName;
-
-                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent, adminName).then(
-                        data => {
-                            deferred.resolve(data);
-                        }
-                    );
+                if(proposalData.proposalId) {
+                    dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.PROCESSED, null);
+                    deferred.resolve(true);
                 } else {
                     deferred.reject({name: "DataError", message: "Incorrect player minus reward points proposal data"});
                 }
@@ -3192,7 +3181,21 @@ var proposalExecutor = {
             },
 
             rejectPlayerMinusRewardPoints: function (proposalData, deferred) {
-                deferred.resolve("Proposal is rejected");
+                let playerObjId = proposalData.data.playerObjId;
+                let platformObjId = proposalData.data.platformObjId;
+                let category = constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED;
+                let remark = proposalData.data.remark + " Proposal No: " + proposalData.proposalId;
+                let userAgent = proposalData.data.userAgent;
+                let adminName = proposalData.data.adminName;
+                let updateAmount = Math.abs(proposalData.data.updateAmount);
+
+                dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
+                dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent,
+                    adminName, constRewardPointsLogStatus.PROCESSED, null, null, null, proposalData.proposalId).then(
+                    () => {
+                        deferred.resolve("Proposal is rejected");
+                    }
+                );
             },
 
             rejectPlayerConvertRewardPoints: function (proposalData, deferred) {
