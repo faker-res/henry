@@ -839,18 +839,18 @@ var dbPlayerTopUpRecord = {
                         ip: ip,
                         topupType: topupRequest.topupType,
                         amount: topupRequest.amount,
-                        groupMerchantList: player.merchantGroup.merchants,
                         merchantUseType: merchantUseType,
                         clientType: clientType
                     };
                     // console.log("requestData:", requestData);
-                    let isMerchantValid = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
-                    if(isMerchantValid){
+                    let groupMerchantList = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
+                    if(groupMerchantList.length > 0){
+                        requestData.groupMerchantList = isMerchantValid;
                         return pmsAPI.payment_requestOnlineMerchant(requestData);
                     }else{
                         return Q.reject({
                             name: "DataError",
-                            message: "Failure with requestOnlineMerchant",
+                            message: "No Any MerchantNo Are Available , Please Change TopUp Method",
                             error: Error()
                         });
                     }
@@ -951,21 +951,16 @@ var dbPlayerTopUpRecord = {
         // );
     },
     isMerchantValid: function(playerMerchantNames, merchantGroup, topupType, clientType){
-        let isMatchType = 0;
-        let isMatchDevice = 0;
-        let result = false;
+        let availableMerchant = [];
         playerMerchantNames.forEach(name=>{
             merchantGroup.merchants.forEach(item=>{
                 if(item.name == name && item.topupType == topupType && item.targetDevices == clientType){
-                    isMatchType += 1;
-                    isMatchDevice += 1;
+                    availableMerchant.push(item.merchantNo);
                 }
             })
         })
-        if(isMatchType >= 1 && isMatchDevice >= 1){
-            result = true;
-        }
-        return result;
+
+        return availableMerchant;
     },
 
     /**
