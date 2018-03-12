@@ -1386,6 +1386,9 @@ let dbPlayerInfo = {
         dbconfig.collection_players.findOne(query).populate({
             path: "playerLevel",
             model: dbconfig.collection_playerLevel
+        }).populate({
+            path: "rewardPointsObjId",
+            model: dbconfig.collection_rewardPoints
         }).lean().then(
             function (data) {
                 data.fullPhoneNumber = data.phoneNumber;
@@ -1395,6 +1398,8 @@ let dbPlayerInfo = {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
+                apiData.userCurrentPoint = apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
+                apiData.rewardPointsObjId = apiData.rewardPointsObjId._id;
 
                 // if (data.realName) {
                 //     data.realName = dbUtility.encodeRealName(data.realName);
@@ -1419,7 +1424,8 @@ let dbPlayerInfo = {
                 b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({cityId: apiData.bankAccountCity}) : true;
                 c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: apiData.bankAccountDistrict}) : true;
                 var creditProm = dbPlayerInfo.getPlayerCredit(apiData.playerId);
-                return Q.all([a, b, c, creditProm]);
+                let rewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(apiData.rewardPointsObjId);
+                return Q.all([a, b, c, creditProm, rewardPointsProm]);
             },
             function (err) {
                 deferred.reject({name: "DBError", error: err, message: "Error in getting player platform Data"})
@@ -1433,6 +1439,7 @@ let dbPlayerInfo = {
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
                 apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
                 apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
                 deferred.resolve(apiData);
             },
             zoneError => {
@@ -7819,18 +7826,6 @@ let dbPlayerInfo = {
         }
         return dbconfig.collection_providerDaySummary.find(query);
     },
-    getManualTopUpByPlatform: function (platformId, startDate, endDate, type) {
-        var queryObj = {
-            topUpType: constPlayerTopUpType[type],
-            createTime: {$gte: new Date(startDate), $lt: new Date(endDate)}
-        };
-
-        if (platformId != 'all') {
-            queryObj.platformId = ObjectId(platformId);
-        }
-
-        return dbconfig.collection_playerTopUpRecord.find(queryObj);
-    },
     countTopUpByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
         var calculation = {$sum: "$amount"};
@@ -8169,8 +8164,6 @@ let dbPlayerInfo = {
                 let date = new Date(dayStartTime); // for active valid player need get earlier 1 period
                 switch (period) {
                     case 'day':
-                        // topupCollectionName = 'collection_playerTopUpDaySummary';
-                        // consumptionCollectionName = 'collection_playerConsumptionDaySummary';
                         if(isFilterValidPlayer) dayStartTime = dbUtility.getDayTime(date).startTime;
                         activePlayerTopUpTimes = partnerLevelConfig.dailyActivePlayerTopUpTimes;
                         activePlayerTopUpAmount = partnerLevelConfig.dailyActivePlayerTopUpAmount;
@@ -8397,20 +8390,25 @@ let dbPlayerInfo = {
             platformId: ObjectId(platformId),
             date: {$gte: new Date(dayStartTime), $lt: new Date(dayEndTime)}
         };
+
         return dbconfig[consumptionCollectionName].aggregate([
             {$match: matchObj},
             {$group: {_id: "$playerId", "amount": {"$sum": '$amount'}, "times": {"$sum": '$times'}}}
         ]).read("secondaryPreferred").then(
             records => {
                 records = records.filter(records => records.times >= activePlayerConsumptionTimes && records.amount >= activePlayerConsumptionAmount);
+
                 return dbconfig.collection_players.populate(records, {
                     path: '_id',
-                    model: dbconfig.collection_players
+                    model: dbconfig.collection_players,
+                    select: "valueScore topUpTimes topUpSum consumptionTimes consumptionSum partner isRealPlayer isTestPlayer registrationTime name"
                 }).then(
                     (records) => {
-                        if (isFilterValidPlayer) {
+                        let filteredRecords = [];
+                        let returnData = [];
 
-                            var filterRecords = records.filter(records =>
+                        if (isFilterValidPlayer) {
+                            filteredRecords = records.filter(records =>
                                 records._id &&
                                 records._id.valueScore !== undefined &&
                                 records._id.valueScore >= activePlayerValue &&
@@ -8420,38 +8418,38 @@ let dbPlayerInfo = {
                                 records._id.consumptionTimes >= partnerLevelConfig.validPlayerConsumptionTimes &&
                                 records._id.consumptionSum >= partnerLevelConfig.validPlayerConsumptionAmount
                             );
+                        } else {
+                            filteredRecords = records.filter(records =>
+                                records._id &&
+                                records._id.valueScore !== undefined &&
+                                records._id.valueScore >= activePlayerValue
+                            );
                         }
-                        else {
-                            var filterRecords = records.filter(records => records._id && records._id.valueScore !== undefined && records._id.valueScore >= activePlayerValue);
-                        }
-                        let returnData;
 
-                        if (hasPartner != null){
-                            if (hasPartner == true){
-
-                                returnData = filterRecords.filter(records => {
-                                    if (!records._id.partner){
+                        if (hasPartner != null) {
+                            if (hasPartner == true) {
+                                returnData = filteredRecords.filter(records => {
+                                    if (!records._id.partner) {
                                         return false
-                                    }
-                                    else{
+                                    } else {
                                         return records._id.isRealPlayer == isRealPlayer && records._id.isTestPlayer == isTestPlayer
                                     }
                                 });
 
-                            }else {
-
-                                returnData = filterRecords.filter(records =>
+                            } else {
+                                returnData = filteredRecords.filter(records =>
                                     records._id.isRealPlayer == isRealPlayer &&
                                     records._id.isTestPlayer == isTestPlayer &&
                                     (records._id.partner == null || records._id.partner == 'undefined'));
                             }
-                        }else{
+                        } else {
 
-                            returnData = filterRecords.filter(records =>
+                            returnData = filteredRecords.filter(records =>
                                 records._id.isRealPlayer == isRealPlayer &&
                                 records._id.isTestPlayer == isTestPlayer
                             );
                         }
+
                         if (isFilterValidPlayer)
                             return returnData;
                         else
@@ -10679,11 +10677,7 @@ let dbPlayerInfo = {
                                         playerId: player._id,
                                         platformId: player.platform._id,
                                         amount: {$gte: minTopUpRecordAmount},
-                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                        $or: [{bDirty: false}, {
-                                            bDirty: true,
-                                            usedType: constRewardType.PLAYER_TOP_UP_RETURN
-                                        }]
+                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
                                     }
                                 },
                                 {
@@ -14066,7 +14060,8 @@ let dbPlayerInfo = {
         let playerDetails = {};
         let gameData = [];
         let usedTaskGroup = [];
-        return dbconfig.collection_players.findOne({_id: playerObjId}, {platform: 1, validCredit: 1, name: 1, _id: 0})
+        let playerForbidProvider = [];
+        return dbconfig.collection_players.findOne({_id: playerObjId}, {platform: 1, validCredit: 1, name: 1, _id: 0, forbidProviders: 1})
             .populate({
                 path: "platform",
                 model: dbconfig.collection_platform,
@@ -14077,6 +14072,7 @@ let dbPlayerInfo = {
                     playerDetails.validCredit = playerData.validCredit;
                     playerDetails.platformId = playerData.platform.platformId;
                     playerDetails.platformObjId = playerData.platform._id;
+                    playerForbidProvider = playerData.forbidProviders ? playerData.forbidProviders.map(provider => String(provider)) : [];
                     returnData.credit = playerData.validCredit;
                     return dbconfig.collection_platform.findOne({_id: playerData.platform})
                         .populate({path: "paymentChannels", model: dbconfig.collection_paymentChannel})
@@ -14088,10 +14084,20 @@ let dbPlayerInfo = {
                     if (platformData && platformData.gameProviders.length > 0) {
                         for (let i = 0; i < platformData.gameProviders.length; i++) {
                             let nickName = "";
+                            let status = platformData.gameProviders[i].status;
                             if (platformData.gameProviderInfo) {
                                 for (let j = 0; j < Object.keys(platformData.gameProviderInfo).length; j++) {
                                     if (Object.keys(platformData.gameProviderInfo)[j].toString() == platformData.gameProviders[i]._id.toString()) {
-                                        nickName = platformData.gameProviderInfo[platformData.gameProviders[i]._id.toString()].localNickName;
+                                        let gameProviderId = platformData.gameProviders[i]._id.toString();
+                                        let platformProviderInfo = platformData.gameProviderInfo[gameProviderId];
+                                        nickName = platformProviderInfo.localNickName || nickName;
+                                        if (status === 1 && platformProviderInfo.isEnable === false) {
+                                            status = 2;
+                                        }
+
+                                        if (status === 1 && playerForbidProvider.indexOf(gameProviderId) >= 0) {
+                                            status = 2;
+                                        }
                                     }
                                 }
                             }
@@ -14100,7 +14106,7 @@ let dbPlayerInfo = {
                                 providerId: platformData.gameProviders[i].providerId,
                                 // nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                                 nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
-                                status: platformData.gameProviders[i].status
+                                status: status
                             };
                         }
                     }

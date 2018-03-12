@@ -90,10 +90,16 @@ var dbPlatformGameStatus = {
             element = mongoose.Types.ObjectId(element)
         });
 
+<<<<<<< HEAD
         return dbconfig.collection_platformGameStatus.update(
             {game: {$in: game}, platform: platform},
             data,
             {multi: true}
+=======
+        return dbconfig.collection_platformGameStatus.findOneAndUpdate(
+            {game: game, platform: platform},
+            data
+>>>>>>> upstream/develop-1.1
         ).exec();
     },
 
@@ -261,6 +267,18 @@ var dbPlatformGameStatus = {
         ).then(
             games => {
                 if (games && games.length > 0) {
+
+                    // display the status of collection_game with the status in collection_dbPlatformGameStatus
+                    games.map( game => {
+                        let filteredPlatformGame = platformGames.find( platformGame => {
+                            return platformGame.game.toString() == game._id.toString() && platformGame.status != game.status
+                        })
+
+                        if (filteredPlatformGame){
+                            return game.status = filteredPlatformGame.status
+                        }
+                    });
+
                     var platformGamesMap = {};
                     games = games.filter(game => game.status != 4);
                     platformGames.forEach(game => platformGamesMap[game.game] = game);

@@ -22,7 +22,7 @@
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.drawPlayerTopUp(vm.showPageName)') {{'SEARCH' | translate}}
-        .row(ng-if = "vm.showPageName == 'TOPUPMANUAL' ")
+        .row
             .col-md-6
                 label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
@@ -30,28 +30,7 @@
                         #line-topUpAmount.lineChart.graphDiv
             .col-md-6
                 label &nbsp;
-                .graph
-                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
-                        thead
-                            tr
-                                th(ng-click='vm.platformTopUpAnalysisSort.amountSort = vm.platformTopUpAnalysisSort.amountSort == "date" ? "-date":"date"') {{ vm.platformTopUpDataPeriodText | translate}}
-                                th(ng-click='vm.platformTopUpAnalysisSort.amountSort = vm.platformTopUpAnalysisSort.amountSort == "amount" ? "-amount":"amount"') {{"Credit_Amount"| translate}}
-                        tbody
-                            tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisAmount | orderBy: vm.platformTopUpAnalysisSort.amountSort')
-                                td
-                                    span {{ v.date | date:"yyyy-MM-dd" }}
-                                td
-                                    span {{ v.amount }}
-                            tr
-                                td
-                                    span {{ "average value" | translate }}
-                                td
-                                    span {{ vm.platformManualTopUpAmountAverage }}
-
-        .row(ng-if = "vm.showPageName != 'TOPUPMANUAL' ")
-            .col-md-12
-                label &nbsp;
-                label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
@@ -90,8 +69,7 @@
                                     span {{ vm.platformTopUpAmountAverage.App }}
                                 td
                                     span {{ vm.platformTopUpAmountAverage.backStage }}
-
-        .row(ng-if = "vm.showPageName == 'TOPUPMANUAL' ")
+        .row
             .col-md-6
                 label.text-primary {{vm.queryPara.topUp.countTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
@@ -99,28 +77,6 @@
                         #line-topUpCount.lineChart.graphDiv
             .col-md-6
                 label &nbsp;
-                .graph
-                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
-                        thead
-                            tr
-                                th(ng-click='vm.platformTopUpAnalysisSort.countSort = vm.platformTopUpAnalysisSort.countSort == "date" ? "-date":"date"') {{ vm.platformTopUpDataPeriodText | translate}}
-                                th(ng-click='vm.platformTopUpAnalysisSort.countSort = vm.platformTopUpAnalysisSort.countSort == "topUpData.length" ? "-topUpData.length":"topUpData.length"') {{ "COUNT" | translate}}
-                        tbody
-                            tr(ng-repeat='(i, v) in vm.platformTopUpAnalysisData | orderBy: vm.platformTopUpAnalysisSort.countSort')
-                                td
-                                    span {{ v.date | date:"yyyy-MM-dd" }}
-                                td
-                                    span {{ v.topUpData.length }}
-                            tr
-                                td
-                                    span {{ "average value" | translate }}
-                                td
-                                    span {{ vm.platformTopUpCountAverage }}
-
-        .row(ng-if = "vm.showPageName != 'TOPUPMANUAL' ")
-            .col-md-12
-                label &nbsp;
-                label.text-primary {{vm.queryPara.topUp.countTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
@@ -160,10 +116,14 @@
                                 td
                                     span {{ vm.platformTopUpCountAverage.backStage }}
 
-        .row(ng-if = "vm.showPageName != 'TOPUPMANUAL' ")
-            .col-md-12
-                label &nbsp;
+        .row
+            .col-md-6
                 label.text-primary {{vm.queryPara.topUp.headCountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #line-topUpHeadCount.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
                 .graph
                     table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
                         thead
@@ -203,12 +163,12 @@
                                 td
                                     span {{ vm.platformTopUpHeadCountAverage.backStage }}
 
-        .row(ng-if = "vm.showPageName != 'TOPUPMANUAL' ")
+        .row
             .col-md-6
                 label.text-primary {{vm.queryPara.topUp.successRateTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
                 .graph
                     .panel.panel-default
-                        #line-topUpSuccessRate.lineChart.graphDiv(style='height:100px')
+                        #line-topUpSuccessRate.lineChart.graphDiv
             .col-md-6
                 label &nbsp;
                 .graph
@@ -254,6 +214,89 @@
                                     span {{ vm.platformTopUpCountAverage.App }} / {{ vm.platformTopUpSuccessRateAverage.AppTotalCount}}
                                 td
                                     span {{ vm.platformTopUpSuccessRateAverage.App }} %
+        .row(ng-if = "vm.showPageName == 'TOPUPMANUAL' ")
+            .col-md-6
+                label.text-primary {{'BANK_RECEIVEDAMOUNT' | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .panel.panel-default(style='padding-bottom:5px')
+                    .pieChart
+                        #pie-all-bank-receivedAmount(style='height:500px;')
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.typeDataSort('bankSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.typeDataSort('bankSort','totalAmount')") {{"Credit_Amount"| translate}}
+                                th(ng-click="vm.typeDataSort('bankSort','bankInfo', i)", ng-repeat = '(i, v) in vm.selectedBank') {{ v }}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.manualTopUpBankInfo | orderBy: vm.platformTopupTableSort.bankSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.totalAmount}}
+                                td(ng-repeat='(a, b) in v.bankInfo')
+                                    span {{ b.amount }}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{vm.totalAverageAmount }}
+                                td(ng-repeat='(a, b) in vm.bankAverageAmount')
+                                    span {{b.number}}
+
+        .row(ng-if = "vm.showPageName == 'TOPUPMANUAL' ")
+            .col-md-6
+                label.text-primary {{'MANUALTOPUP_METHOD_RECEIVEDAMOUNT' | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .panel.panel-default(style='padding-bottom:5px')
+                    .pieChart
+                        #pie-all-methodAmount(style='height:500px;')
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.typeDataSort('methodSort','date')") {{ vm.platformTopUpDataPeriodText | translate}}
+                                th(ng-click="vm.typeDataSort('methodSort','totalSum')") {{"Credit_Amount"| translate}}
+                                th(ng-click="vm.typeDataSort('methodSort','Online.amount')") {{'Online' | translate}}
+                                th(ng-click="vm.typeDataSort('methodSort','ATM.amount')") {{'ATM' | translate}}
+                                th(ng-click="vm.typeDataSort('methodSort','Counter.amount')") {{'Counter' | translate}}
+                                th(ng-click="vm.typeDataSort('methodSort','AliPayTransfer.amount')") {{'AliPayTransfer' | translate}}
+                                th(ng-click="vm.typeDataSort('methodSort','weChatPayTransfer.amount')") {{'weChatPayTransfer' | translate}}
+
+
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.manualTopUpMethod | orderBy: vm.platformTopupTableSort.methodSort')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{v.totalSum}}
+                                td
+                                    span {{v.Online.amount}}
+                                td
+                                    span {{v.ATM.amount}}
+                                td
+                                    span {{v.Counter.amount}}
+                                td
+                                    span {{v.AliPayTransfer.amount}}
+                                td
+                                    span {{v.weChatPayTransfer.amount}}
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.manualTopUpMethodAmountAverage.average }}
+                                td
+                                    span {{ vm.manualTopUpMethodAmountAverage.Online }}
+                                td
+                                    span {{ vm.manualTopUpMethodAmountAverage.ATM }}
+                                td
+                                    span {{ vm.manualTopUpMethodAmountAverage.Counter }}
+                                td
+                                    span {{ vm.manualTopUpMethodAmountAverage.AliPayTransfer }}
+                                td
+                                    span {{ vm.manualTopUpMethodAmountAverage.weChatPayTransfer }}
 
 
 

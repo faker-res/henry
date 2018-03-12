@@ -87,6 +87,13 @@
         this.rewardPointsService.getPointRule.once(callback);
     };
 
+    proto.applyPointToCredit = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.applyPointToCredit.request(data);
+        this.rewardPointsService.applyPointToCredit.once(callback);
+    };
+    
     proto.getMissonList = function (callback, requestData) {
         let data = requestData || {};
 
