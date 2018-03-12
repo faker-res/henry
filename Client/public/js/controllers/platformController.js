@@ -18304,73 +18304,84 @@ define(['js/app'], function (myApp) {
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
-                let sendData = Object.assign({}, data);
+                if (data && data.playerName) {
+                    let sendData = Object.assign({}, data);
 
-                if (sendData.playerName.match(/\n/g)) {
-                    col.splice(index, 1);
-                    let playerArr = sendData.playerName.split(/\r?\n/);
-                    let p = Promise.resolve();
+                    if (sendData.playerName.match(/\n/g)) {
+                        col.splice(index, 1);
+                        let playerArr = sendData.playerName.split(/\r?\n/);
+                        let p = Promise.resolve();
 
-                    playerArr.forEach((el, ind) => {
-                        let newData = Object.assign({}, sendData);
-                        newData.playerName = el;
-                        newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
-                        newData.expirationTime$ = data.expirationTime.data('datetimepicker').getDate();
+                        playerArr.forEach((el, ind) => {
+                            let newData = Object.assign({}, sendData);
+                            newData.playerName = el;
+                            newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
+                            newData.expirationTime$ = data.expirationTime.data('datetimepicker').getDate();
 
-                        delete newData.$$hashKey;
+                            delete newData.$$hashKey;
 
-                        p = p.then(function () {
-                            return vm.promoCodeNewRow(col, type, newData, true);
+                            p = p.then(function () {
+                                return vm.promoCodeNewRow(col, type, newData, true);
+                            });
+
                         });
 
-                    });
 
+                        return p.then(ret => {
+                            vm.endLoadWeekDay();
+                            $scope.safeApply();
+                        });
+                    } else {
+                        let searchQ = {
+                            platformObjId: vm.selectedPlatform.id,
+                            playerName: data.playerName,
+                            status: 1
+                        };
 
-                    return p.then(ret => {
-                        vm.endLoadWeekDay();
-                        $scope.safeApply();
-                    });
-                } else {
-                    let searchQ = {
-                        platformObjId: vm.selectedPlatform.id,
-                        playerName: data.playerName,
-                        status: 1
-                    };
-
-                    return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
-                        if (ret && ret.data && ret.data.length > 0) {
-                            if (!data.skipCheck) {
-                                data.hasMoreThanOne = true;
-                                $scope.safeApply();
-                            }
-                        }
-
-                        if ( !data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                            if(data && !data.isBlockPromoCodeUser) {
-                                sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
-                                let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
-
-                                sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
-                                sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
-                                sendData.platformObjId = vm.selectedPlatform.id;
-                                sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
-                                sendData.smsContent = sendData.promoCodeType.smsContent;
-
-                                delete sendData.isBlockPromoCodeUser;
-
-                                console.log('sendData', sendData);
-                                return $scope.$socketPromise('generatePromoCode', {
-                                    platformObjId: vm.selectedPlatform.id,
-                                    newPromoCodeEntry: sendData,
-                                    adminName: authService.adminName,
-                                    adminId: authService.adminId
-                                }).then(ret => {
-                                    col[index].code = ret.data;
+                        return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
+                            if (ret && ret.data && ret.data.length > 0) {
+                                if (!data.skipCheck) {
+                                    data.hasMoreThanOne = true;
                                     $scope.safeApply();
-                                });
+                                }
                             }
-                        }
-                    });
+
+                            if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
+                                if (data && !data.isBlockPromoCodeUser) {
+
+                                    if (type != 2 && !data.minTopUpAmount) {
+                                        return socketService.showErrorMessage("ValidationError: Path `minTopUpAmount` is required.");
+                                    }
+                                    else if (type == 3 && !data.maxRewardAmount) {
+                                        return socketService.showErrorMessage("ValidationError: Path `maxRewardAmount` is required.");
+                                    }
+                                    else {
+                                        sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
+
+                                        sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
+                                        sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
+                                        sendData.platformObjId = vm.selectedPlatform.id;
+                                        sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
+                                        sendData.smsContent = sendData.promoCodeType.smsContent;
+
+                                        delete sendData.isBlockPromoCodeUser;
+
+                                        console.log('sendData', sendData);
+                                        return $scope.$socketPromise('generatePromoCode', {
+                                            platformObjId: vm.selectedPlatform.id,
+                                            newPromoCodeEntry: sendData,
+                                            adminName: authService.adminName,
+                                            adminId: authService.adminId
+                                        }).then(ret => {
+                                            col[index].code = ret.data;
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
             };
 
@@ -18887,6 +18898,11 @@ define(['js/app'], function (myApp) {
                         $(nRow).find('td').css('background-color', 'rgba(197, 181, 43, 100)');
                         break;
                     }
+                    case (aData.status == 5): {
+                        $(nRow).find('td').css('background-color', 'rgba(138, 138, 138, 100)');
+                        $(nRow).find('td').css('text-decoration', 'line-through');
+                        break;
+                    }
                     default: {
                         // $(nRow).css('background-color', 'rgba(255, 255, 255, 100)');
                         break;
@@ -18981,6 +18997,18 @@ define(['js/app'], function (myApp) {
                 $(tblId).resize();
 
                 $scope.safeApply();
+            };
+
+            vm.disablePromoCode = function () {
+                let sendData = {
+                    playerId: vm.selectedPromoCode.playerObjId.playerId,
+                    promoCode: vm.selectedPromoCode.code
+                };
+
+                socketService.$socket($scope.AppSocket, 'disablePromoCode', sendData, function (data) {
+                    console.log('disablePromoCode', data);
+                    vm.getPromoCodeHistory(true);
+                });
             };
 
             vm.applyPromoCode = function () {
@@ -19369,6 +19397,9 @@ define(['js/app'], function (myApp) {
 
             vm.searchPromoCodeUserGroup = function (s, isRet) {
                 let exists = false;
+                if (!isRet) {
+                    vm.newUserPromoCodeUserGroup = {};
+                }
 
                 vm.userGroupConfig.map(e => {
                     e.playerNames.map(el => {
@@ -19388,6 +19419,9 @@ define(['js/app'], function (myApp) {
 
             vm.searchBlockPromoCodeUserGroup = function (s, isRet) {
                 let exists = false;
+                if (!isRet) {
+                    vm.newUserBlockPromoCodeUserGroup = {};
+                }
 
                 vm.userGroupBlockConfig.map(e => {
                     e.playerNames.map(el => {
