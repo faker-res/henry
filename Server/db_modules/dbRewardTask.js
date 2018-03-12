@@ -2075,9 +2075,11 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
             if (rewardTaskGroup) {
                 let consumptionOffset = isNaN(platform.autoApproveConsumptionOffset) ? 0 : platform.autoApproveConsumptionOffset;
 
-                let currentConsumption = rewardTaskGroup.curConsumption + consumptionRecord.validAmount + consumptionOffset;
+                // Deny happening of negative RTG curConsumption
+                let rtgConsumption = rewardTaskGroup.curConsumption > 0 ? rewardTaskGroup.curConsumption : 0;
+                let currentConsumption = rtgConsumption + consumptionRecord.validAmount + consumptionOffset;
                 let targetConsumption = rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt;
-                let currentDifference = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rewardTaskGroup.curConsumption;
+                let currentDifference = (rewardTaskGroup.targetConsumption + rewardTaskGroup.forbidXIMAAmt) - rtgConsumption;
 
                 // Check if consumption has reached
                 if (currentConsumption > targetConsumption) {
@@ -2087,7 +2089,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     // Case 2: 50 + 50 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 50 - 50 = 0
                     // Case 3: 50 + 55 + 5 >= 100, consumptionAmt = 100 - 50 = 50, remainingCurConsumption = 55 - 50 = 5, 5 will be increased to free amount consumption
 
-                    if (currentDifference < consumptionRecord.validAmount) {
+                    if (currentDifference < consumptionRecord.validAmount && currentDifference > 0) {
                         consumptionAmt = currentDifference;
                         remainingCurConsumption = consumptionRecord.validAmount - consumptionAmt;
                     }
