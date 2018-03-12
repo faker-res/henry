@@ -89,17 +89,11 @@ var dbPlatformGameStatus = {
         game.forEach((element)=> {
             element = mongoose.Types.ObjectId(element)
         });
-
-<<<<<<< HEAD
+        
         return dbconfig.collection_platformGameStatus.update(
             {game: {$in: game}, platform: platform},
             data,
             {multi: true}
-=======
-        return dbconfig.collection_platformGameStatus.findOneAndUpdate(
-            {game: game, platform: platform},
-            data
->>>>>>> upstream/develop-1.1
         ).exec();
     },
 
