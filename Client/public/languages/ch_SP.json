@@ -3343,6 +3343,11 @@
   "player level up period different": "玩家升级多个周期",
   "FORBID_WITHDRAW": "禁提",
   "PLAYER PROFIT AMOUNT": "玩家输赢金额",
-  "COMPANY_PROFIT_POINT": "公司营利点"
+  "COMPANY_PROFIT_POINT": "公司营利点",
+  "Promo Reward Amount is required": "优惠金額(X) 是必填项",
+  "Promo Min Top Up Amount is required": "最低存款(D) 是必填项",
+  "Promo Consumption is required": "所需流水(Y) 是必填项",
+  "Promo Max Top Up Amount is required": "优惠上限(M) 是必填项",
+  "Promo Reward % is required": "优惠% 是必填项"
 
 }
