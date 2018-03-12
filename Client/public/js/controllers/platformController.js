@@ -18479,6 +18479,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.sendSMSByPromoCode = function (promoCode, isConfirm) {
+                if (!vm.selectedPromoCode || vm.selectedPromoCode.status != 1) {
+                    return;
+                }
+
                 if (!isConfirm) {
                     vm.modalYesNo.modalTitle = $translate("Send Promo Code SMS");
                     vm.modalYesNo.modalText = $translate("Send unaccepted promo code to members?");
