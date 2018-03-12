@@ -18338,24 +18338,35 @@ define(['js/app'], function (myApp) {
                             status: 1
                         };
 
-                        return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
-                            if (ret && ret.data && ret.data.length > 0) {
-                                if (!data.skipCheck) {
-                                    data.hasMoreThanOne = true;
-                                    $scope.safeApply();
-                                }
+                        if (!data.amount) {
+                            if(type == 3) {
+                                return socketService.showErrorMessage($translate("Promo Reward % is required"));
                             }
-
-                            if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                                if (data && !data.isBlockPromoCodeUser) {
-
-                                    if (type != 2 && !data.minTopUpAmount) {
-                                        return socketService.showErrorMessage("ValidationError: Path `minTopUpAmount` is required.");
+                            else {
+                                return socketService.showErrorMessage($translate("Promo Reward Amount is required"));
+                            }
+                        }
+                        else if (type != 2 && !data.minTopUpAmount) {
+                            return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
+                        }
+                        else if (type == 3 && !data.maxRewardAmount) {
+                            return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
+                        }
+                        else if (!data.requiredConsumption) {
+                            return socketService.showErrorMessage($translate("Promo Consumption is required"));
+                        }
+                        else {
+                            return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
+                                if (ret && ret.data && ret.data.length > 0) {
+                                    if (!data.skipCheck) {
+                                        data.hasMoreThanOne = true;
+                                        $scope.safeApply();
                                     }
-                                    else if (type == 3 && !data.maxRewardAmount) {
-                                        return socketService.showErrorMessage("ValidationError: Path `maxRewardAmount` is required.");
-                                    }
-                                    else {
+                                }
+
+                                if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
+                                    if (data && !data.isBlockPromoCodeUser) {
+
                                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
                                         let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
 
@@ -18379,8 +18390,8 @@ define(['js/app'], function (myApp) {
                                         });
                                     }
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                 }
             };
@@ -18468,6 +18479,7 @@ define(['js/app'], function (myApp) {
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                             item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            item.isForbidWithdraw = item.playerObjId && item.playerObjId.permission && item.playerObjId.permission.applyBonus ? $translate(!item.playerObjId.permission.applyBonus) : $translate("true");
 
                             return item;
                         }), vm.promoCodeQuery.totalCount, {}, isNewSearch
@@ -18814,6 +18826,10 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('SHARE_WITH_XIMA'),
                             data: "isSharedWithXIMA$"
+                        },
+                        {
+                            title: $translate('FORBID_WITHDRAW'),
+                            data: "isForbidWithdraw"
                         },
                         {
                             title: $translate('PROMO_DUE_DATE'),

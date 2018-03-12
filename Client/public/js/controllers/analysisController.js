@@ -3429,20 +3429,20 @@ define(['js/app'], function (myApp) {
                             if (item.data[0] && item.data[0].length > 0) {
 
                                 item.data[0].forEach(inputDeviceData => {
-
-                                    if (inputDeviceData._id == 3){
-                                        index = parseInt(inputDeviceData._id - 1);
-                                    }else if (inputDeviceData._id == 5){
-                                        index = parseInt(inputDeviceData._id - 2);
-                                    }else{
-                                        index = parseInt(inputDeviceData._id);
+                                    if (inputDeviceData._id != null){
+                                        if (inputDeviceData._id == 3){
+                                            index = parseInt(inputDeviceData._id - 1);
+                                        }else if (inputDeviceData._id == 5){
+                                            index = parseInt(inputDeviceData._id - 2);
+                                        }else{
+                                            index = parseInt(inputDeviceData._id);
+                                        }
+                                        defaultData[index].amount = inputDeviceData.amount ? Math.floor(inputDeviceData.amount) : 0;
+                                        defaultData[index].successCount = inputDeviceData.successCount ? inputDeviceData.successCount : 0;
+                                        defaultData[index].count = inputDeviceData.count ? inputDeviceData.count : 0;
+                                        defaultData[index].successRate = inputDeviceData.successCount/inputDeviceData.count == 'NaN' ? 0 : $noRoundTwoDecimalPlaces(inputDeviceData.successCount/inputDeviceData.count*100);
+                                        defaultData[index].headCount = inputDeviceData.userIds ? inputDeviceData.userIds.filter(a => a != 0).length : 0;
                                     }
-                                    defaultData[index].amount = inputDeviceData.amount ? inputDeviceData.amount : 0;
-                                    defaultData[index].successCount = inputDeviceData.successCount ? inputDeviceData.successCount : 0;
-                                    defaultData[index].count = inputDeviceData.count ? inputDeviceData.count : 0;
-                                    defaultData[index].successRate = inputDeviceData.successCount/inputDeviceData.count == 'NaN' ? 0 : $noRoundTwoDecimalPlaces(inputDeviceData.successCount/inputDeviceData.count*100);
-                                    defaultData[index].headCount = inputDeviceData.userIds ? inputDeviceData.userIds.filter(a => a != 0).length : 0;
-
                                 })
                             }
 
@@ -3530,15 +3530,16 @@ define(['js/app'], function (myApp) {
                                                     bank.data.forEach(bankData =>
                                                     {
                                                         let bankTypeName = null;
-                                                        for (let i = 0; i < Object.keys(vm.allBankTypeList).length; i++){
-                                                            if (vm.allBankTypeList[i].id == bankData._id){
+                                                        for (let i = 0; i < Object.keys(vm.allBankTypeList).length; i++) {
+                                                            if (vm.allBankTypeList[i].id == bankData._id) {
                                                                 bankTypeName = vm.allBankTypeList[i].name;
                                                                 break;
-                                                            }else {
-                                                                bankTypeName = $translate('Unknown');
                                                             }
                                                         }
-                                                        Info.push({bank: bankTypeName, amount: bankData.amount});
+
+                                                        if (bankTypeName != null){
+                                                            Info.push({bank: bankTypeName, amount: bankData.amount ? Math.floor(bankData.amount) : 0 });
+                                                        }
 
                                                     })
                                                 }
@@ -3581,7 +3582,9 @@ define(['js/app'], function (myApp) {
                                 if (method.data && method.data.length > 0) {
 
                                     method.data.forEach(methodDetail => {
-                                        defaultData[parseFloat(methodDetail._id) - 1].amount = methodDetail.amount ? methodDetail.amount : 0;
+                                       if (methodDetail._id != null){
+                                            defaultData[parseInt(methodDetail._id, 10) - 1].amount = methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                       }
                                     })
                                 }
 

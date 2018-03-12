@@ -8401,7 +8401,7 @@ let dbPlayerInfo = {
                 return dbconfig.collection_players.populate(records, {
                     path: '_id',
                     model: dbconfig.collection_players,
-                    select: "valueScore topUpTimes topUpSum consumptionTimes consumptionSum partner isRealPlayer isTestPlayer"
+                    select: "valueScore topUpTimes topUpSum consumptionTimes consumptionSum partner isRealPlayer isTestPlayer registrationTime name"
                 }).then(
                     (records) => {
                         let filteredRecords = [];
@@ -9402,19 +9402,29 @@ let dbPlayerInfo = {
     getFavoriteGames: function (playerId) {
         var result = [];
 
-        function getDetailGame(gameId) {
+        function getDetailGame(gameId, platformId) {
             return dbconfig.collection_game.findOne({_id: gameId})
                 .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean()
                 .then(data => {
                     if (data) {
-                        data.isFavorite = true;
-                        if (data.provider && data.provider.providerId) {
-                            var providerShortId = data.provider.providerId;
-                            data.provider = providerShortId;
-                        } else {
-                            data.provider = 'unknown';
+                        // get the data from platformGameStatus to get the status information
+                        let queryObj = {
+                            game: data._id,
+                            platform: platformId
                         }
-                        return data;
+                        return dbconfig.collection_platformGameStatus.findOne(queryObj).lean().then( platformGame => {
+                            if (platformGame){
+                                data.isFavorite = true;
+                                data.status = platformGame.status;
+                                if (data.provider && data.provider.providerId) {
+                                    var providerShortId = data.provider.providerId;
+                                    data.provider = providerShortId;
+                                } else {
+                                    data.provider = 'unknown';
+                                }
+                                return data;
+                            }
+                        });
                     } else return null;
                 });
         }
@@ -9425,7 +9435,7 @@ let dbPlayerInfo = {
                     if (playerData.favoriteGames) {
                         playerData.favoriteGames.forEach(
                             gameId => {
-                                result.push(getDetailGame(gameId));
+                                result.push(getDetailGame(gameId, playerData.platform));
                             }
                         )
                     }
@@ -9962,11 +9972,14 @@ let dbPlayerInfo = {
                                         });
                                         if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             console.log(paymentData.merchants[i])
-                                            resData.push({
-                                                type: paymentData.merchants[i].topupType,
-                                                status: status,
-                                                maxDepositAmount: paymentData.merchants[i].permerchantLimits
-                                            });
+
+                                            if(playerData.forbidTopUpType && playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1){
+                                                resData.push({
+                                                    type: paymentData.merchants[i].topupType,
+                                                    status: status,
+                                                    maxDepositAmount: paymentData.merchants[i].permerchantLimits
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -10677,11 +10690,7 @@ let dbPlayerInfo = {
                                         playerId: player._id,
                                         platformId: player.platform._id,
                                         amount: {$gte: minTopUpRecordAmount},
-                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                        $or: [{bDirty: false}, {
-                                            bDirty: true,
-                                            usedType: constRewardType.PLAYER_TOP_UP_RETURN
-                                        }]
+                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
                                     }
                                 },
                                 {

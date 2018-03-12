@@ -1853,6 +1853,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
         let level = "";
         let rewards = {};
         let status = 0;
+        let providerIds = [];
 
         if (reward.period) {
             let periodTime = getRewardPointsPeriodTime(reward.period);
@@ -1883,7 +1884,6 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
 
         switch (category) {
             case constRewardPointsTaskCategory.LOGIN_REWARD_POINTS: {
-                let providerIds = [];
                 if (reward.target && reward.target.targetDestination && reward.target.targetDestination.length > 0) {
                     reward.target.targetDestination.forEach(item => {
                         if (gameProvider && gameProvider.length > 0) {
@@ -1932,13 +1932,12 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                 break;
             }
             case constRewardPointsTaskCategory.GAME_REWARD_POINTS: {
-                let providerId = "";
                 let dailyRequestBetCountsAndAmount = [];
                 if (reward.target && reward.target.targetDestination) {
                     if (gameProvider && gameProvider.length > 0) {
                         gameProvider.forEach(gameItem => {
                             if (reward.target.targetDestination == gameItem._id.toString()) {
-                                providerId = gameItem.providerId;
+                                providerIds.push(gameItem.providerId);
                             }
                         });
                     }
@@ -1963,7 +1962,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                     "dailyRequestBetCountsAndAmount": dailyRequestBetCountsAndAmount,
                     "dailyBetConsumption": reward.target && reward.target.dailyValidConsumptionAmount ? reward.target.dailyValidConsumptionAmount : 0,
                     "dailyWinBetCounts": reward.target && reward.target.dailyWinGameCount ? reward.target.dailyWinGameCount : 0,
-                    "providerId": providerId,
+                    "providerId": providerIds,
                     "goal": reward.consecutiveCount,
                     "currentGoal": currentGoal
                 }
