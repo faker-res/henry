@@ -159,8 +159,8 @@
                         th {{'TOTAL_CONSUMPTION' | translate}}
                         th {{'VALID_CONSUMPTION' | translate}}
                         th {{'TIMES_CONSUMED' | translate}}
-                        th {{'TOTAL_EARNING' | translate}}
-                        th {{'EARNING_RATIO' | translate}}
+                        th {{'PLAYER PROFIT AMOUNT' | translate}}
+                        th {{'COMPANY_PROFIT_POINT' | translate}}
                 tbody
                     tr
                         td {{vm.operationSummaryData.total_player}}
@@ -168,7 +168,7 @@
                         td {{vm.operationSummaryData.validAmount | number : 2}}
                         td {{vm.operationSummaryData.total_consumption}}
                         td {{vm.operationSummaryData.bonusAmount | number : 2}}
-                        td {{(vm.operationSummaryData.bonusAmount/vm.operationSummaryData.validAmount*100 || 0) | number : 2 }}%
+                        td {{(vm.operationSummaryData.bonusAmount/vm.operationSummaryData.validAmount*100 || 0) * -1 | number : 2 }}%
 
         div(ng-if='vm.showPageName=="PLAYER_EXPENSE_REPORT"')
             #playerExpenseReportQuery.block-query.col-md-12.well
