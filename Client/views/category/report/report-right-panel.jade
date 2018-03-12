@@ -167,7 +167,7 @@
                         td {{vm.operationSummaryData.total_amount | number : 2}}
                         td {{vm.operationSummaryData.validAmount | number : 2}}
                         td {{vm.operationSummaryData.total_consumption}}
-                        td {{vm.operationSummaryData.bonusAmount * -1 | number : 2}}
+                        td {{vm.operationSummaryData.bonusAmount | number : 2}}
                         td {{(vm.operationSummaryData.bonusAmount/vm.operationSummaryData.validAmount*100 || 0) * -1 | number : 2 }}%
 
         div(ng-if='vm.showPageName=="PLAYER_EXPENSE_REPORT"')
