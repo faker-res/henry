@@ -844,8 +844,8 @@ var dbPlayerTopUpRecord = {
                     };
                     // console.log("requestData:", requestData);
                     let groupMerchantList = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
-                    if(groupMerchantList.length > 0){
-                        requestData.groupMerchantList = isMerchantValid;
+                    if( groupMerchantList.length > 0){
+                        requestData.groupMerchantList = groupMerchantList;
                         return pmsAPI.payment_requestOnlineMerchant(requestData);
                     }else{
                         return Q.reject({
@@ -955,11 +955,11 @@ var dbPlayerTopUpRecord = {
         playerMerchantNames.forEach(name=>{
             merchantGroup.merchants.forEach(item=>{
                 if(item.name == name && item.topupType == topupType && item.targetDevices == clientType){
+                    console.log(item);
                     availableMerchant.push(item.merchantNo);
                 }
             })
         })
-
         return availableMerchant;
     },
 
