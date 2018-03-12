@@ -10,6 +10,7 @@ var dbProposal = require('./../db_modules/dbProposal');
 var constSystemParam = require('./../const/constSystemParam');
 var constServerCode = require('./../const/constServerCode');
 var constGameStatus = require('../const/constGameStatus');
+var constProviderStatus = require('../const/constProviderStatus');
 var constProposalEntryType = require('../const/constProposalEntryType');
 var constProposalUserType = require('../const/constProposalUserType');
 var constProposalType = require('../const/constProposalType');
@@ -156,37 +157,81 @@ var dbGame = {
      * Search the game information of the Game by  gameType or providerId
      * @param {String} query - Query data
      */
-    getGameListAPI: function (query, startIndex, count, playerId) {
-        var deferred = Q.defer();
+    getGameListAPI: function (query, startIndex, count, playerId, platformId) {
+        let providerProm = Promise.resolve();
         if (query && query.providerId) {
-            var providerObj = {providerId: query.providerId};
-            dbconfig.collection_gameProvider.findOne(providerObj).lean().then(
-                function (data) {
-                    if (data && data._id) {
-                        query.provider = data._id;
-                        delete query.providerId;
-                        deferred.resolve(dbGame.getGameList(query, startIndex, count, playerId));
-                    } else {
-                        deferred.reject({name: "DataError", message: "Cannot find Provider"})
-                    }
-                });
-        } else {
-            dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            let providerQuery = {providerId: query.providerId};
+            providerProm = dbconfig.collection_gameProvider.findOne(providerQuery).lean();
+        }
+
+        let platformProm = Promise.resolve();
+        if (platformId) {
+            platformProm = dbconfig.collection_platform.findOne(platformId).lean();
+        }
+
+        let playerProm = Promise.resolve();
+        if (playerId) {
+            playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate({
                 path: "platform",
                 model: dbconfig.collection_platform
-            }).lean().then(
-                playerData => {
-                    if (playerData && playerData.platform) {
-                        query.provider = {$in: playerData.platform.gameProviders};
-                    }
-                    deferred.resolve(dbGame.getGameList(query, startIndex, count, playerId));
-                }
-            )
+            }).lean();
         }
-        return deferred.promise;
+
+        return Promise.all([providerProm, platformProm, playerProm]).then(
+            data => {
+                let provider, platform, player;
+                if (!data) {
+                    return ;
+                }
+
+                if (data[0]) {
+                    provider = data[0];
+                }
+
+                if (data[1]) {
+                    platform = data[1];
+                }
+
+                if (data[2]) {
+                    player = data[2];
+                }
+
+                let bannedProvider = [];
+
+                if (player) {
+                    bannedProvider = player.forbidProviders;
+                    platform = player.platform;
+                }
+
+                if (platform) {
+                    let gameProviderInfo = platform.gameProviderInfo || {};
+                    let gameProviderInfoKeys = Object.keys(gameProviderInfo);
+
+                    for (let i = 0; i < gameProviderInfoKeys.length; i++) {
+                        let key = gameProviderInfoKeys[i];
+                        let provider = gameProviderInfo[key];
+                        if (provider && provider.isEnable === false) {
+                            bannedProvider.push(key);
+                        }
+                    }
+                }
+
+                if (provider) {
+                    query.provider = provider._id;
+                    delete query.providerId;
+                }
+
+                if (!query.provider) {
+                    query.provider = {$in: playerData.platform.gameProviders};
+                }
+
+                return dbGame.getGameList(query, startIndex, count, playerId, bannedProvider);
+            }
+        );
     },
 
-    getGameList: function (query, index, count, playerId) {
+    getGameList: function (query, index, count, playerId, bannedProvider) {
+        bannedProvider = bannedProvider || [];
         index = index || 0;
         count = count || constSystemParam.MAX_RECORD_NUM;
         query = query || {};
@@ -218,8 +263,28 @@ var dbGame = {
             )
             .then(
                 function (data) {
+                    let games = [];
                     if (data && data.length > 0) {
-                        data.forEach(game => game.provider = game.provider ? game.provider.providerId : null);
+                        games = data;
+
+                        for (let i = 0; i < games.length; i++) {
+                            let game = games[i];
+
+                            if (game.provider) {
+                                bannedProvider = bannedProvider.map(providerId => {
+                                    return String(providerId);
+                                });
+
+                                if (bannedProvider.indexOf(String(game.provider._id)) >= 0) {
+                                    game.provider.status = constProviderStatus.MAINTENANCE;
+                                }
+
+                                if (game.provider.status != constProviderStatus.NORMAL) {
+                                    game.status = constGameStatus.MAINTENANCE;
+                                }
+                            }
+                            game.provider = game.provider ? game.provider.providerId : null;
+                        }
                     }
                     var result = {
                         stats: {totalCount: sum, startIndex: index},
