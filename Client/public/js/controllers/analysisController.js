@@ -3520,8 +3520,7 @@ define(['js/app'], function (myApp) {
                                     $scope.$evalAsync(() => {
                                         if (data && data.data && data.data.data) {
                                             vm.allBankTypeList = {};
-                                            vm.manualTopUpBankInfo = [];
-                                            let selectedBank = [];
+                                            vm.manualTopUpBankInfo = [];                                    
                                             Object.assign(vm.allBankTypeList, data.data.data);
 
                                             bankData.forEach( bank => {
@@ -3583,7 +3582,7 @@ define(['js/app'], function (myApp) {
 
                                     method.data.forEach(methodDetail => {
                                        if (methodDetail._id != null){
-                                            defaultData[parseInt(methodDetail._id, 10) - 1].amount = methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                            defaultData[parseInt(methodDetail._id, 10) - 1].amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
                                        }
                                     })
                                 }
