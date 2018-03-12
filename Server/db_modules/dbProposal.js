@@ -3893,6 +3893,7 @@ var proposal = {
                                 $match: {
                                     createTime: {$gte: dayStartTime, $lt: dayEndTime},
                                     type: TopupType._id,
+                                    $and: [{"data.depositMethod": {$exists: true}}, {"data.depositMethod": {$ne: ''}}, {"data.depositMethod": {$ne: null}} ],
                                     status: 'Success'
                                 }
                             }, {
