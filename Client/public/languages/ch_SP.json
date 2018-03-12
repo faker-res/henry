@@ -3340,6 +3340,11 @@
   "has exceed the redemption limit": "超出单日兑换上限",
   "reward points is not enough for redemption": "欲兑换的点数不足最低金额 (1) 元",
   "daily reward point redemption limit is reach": "今日已达兑换上限",
-  "player level up period different": "玩家升级多个周期"
+  "player level up period different": "玩家升级多个周期",
+  "Promo Reward Amount is required": "优惠金額(X) 是必填项",
+  "Promo Min Top Up Amount is required": "最低存款(D) 是必填项",
+  "Promo Consumption is required": "所需流水(Y) 是必填项",
+  "Promo Max Top Up Amount is required": "优惠上限(M) 是必填项",
+  "Promo Reward % is required": "优惠% 是必填项"
 
 }
