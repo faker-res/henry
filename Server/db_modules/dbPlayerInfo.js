@@ -10682,11 +10682,7 @@ let dbPlayerInfo = {
                                         playerId: player._id,
                                         platformId: player.platform._id,
                                         amount: {$gte: minTopUpRecordAmount},
-                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime},
-                                        $or: [{bDirty: false}, {
-                                            bDirty: true,
-                                            usedType: constRewardType.PLAYER_TOP_UP_RETURN
-                                        }]
+                                        createTime: {$gte: yerTime.startTime, $lt: yerTime.endTime}
                                     }
                                 },
                                 {
