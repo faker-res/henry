@@ -84,13 +84,16 @@ var dbPlatformGameStatus = {
     },
 
     updatePlatformGameStatus: function (query, data) {
-        var game = mongoose.Types.ObjectId(query.game);
+        var game = query.game;
         var platform = mongoose.Types.ObjectId(query.platform);
+        game.forEach((element)=> {
+            element = mongoose.Types.ObjectId(element)
+        });
 
-
-        return dbconfig.collection_platformGameStatus.findOneAndUpdate(
-            {game: game, platform: platform},
-            data
+        return dbconfig.collection_platformGameStatus.update(
+            {game: {$in: game}, platform: platform},
+            data,
+            {multi: true}
         ).exec();
     },
 
