@@ -18826,9 +18826,9 @@ define(['js/app'], function (myApp) {
             vm.drawPromoCodeHistoryTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
-                    "order": vm.promoCodeQuery.aaSorting || [[11, 'desc']],
+                    "order": vm.promoCodeQuery.aaSorting || [[12, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [12]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
