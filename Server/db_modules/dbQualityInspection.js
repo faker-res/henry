@@ -5,8 +5,8 @@ var dbUtility = require('./../modules/dbutility');
 var mysql = require("mysql");
 const constQualityInspectionStatus = require('./../const/constQualityInspectionStatus');
 const constQualityInspectionRoleName = require('./../const/constQualityInspectionRoleName');
-// const jsdom = require("jsdom");
-// const { JSDOM } = jsdom;
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 const ObjectId = mongoose.Types.ObjectId;
 
 var dbQualityInspection = {
