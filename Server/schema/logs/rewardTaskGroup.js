@@ -50,7 +50,9 @@ let rewardTaskGroupSchema = new Schema({
     // 0 amount will not trigger this
     forbidWithdrawIfBalanceAfterUnlock: {type: Number, default: 0},
     //the last related proposal
-    lastProposalId: {type: Schema.Types.ObjectId}
+    lastProposalId: {type: Schema.Types.ObjectId},
+    // Admin name, that unlock this reward task group manually
+    unlockBy: {type: String},
 });
 
 rewardTaskGroupSchema.index({targetProviders: 1});

@@ -378,8 +378,11 @@ var proposal = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] != null) {
-                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints
-                        && (proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS
+                    if((data[0].mainType === constProposalMainType.PlayerAddRewardPoints
+                            || data[0].mainType === constProposalMainType.PlayerConvertRewardPoints
+                            || data[0].mainType === constProposalMainType.PlayerAutoConvertRewardPoints)
+                        && (proposalTypeData.name === constProposalType.PLAYER_ADD_REWARD_POINTS
+                            || proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS
                             || proposalTypeData.name === constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS)){
                         dbRewardPointsLog.createRewardPointsLogByProposalData(data[0]);
                     }
@@ -3893,6 +3896,7 @@ var proposal = {
                                 $match: {
                                     createTime: {$gte: dayStartTime, $lt: dayEndTime},
                                     type: TopupType._id,
+                                    $and: [{"data.depositMethod": {$exists: true}}, {"data.depositMethod": {$ne: ''}}, {"data.depositMethod": {$ne: null}} ],
                                     status: 'Success'
                                 }
                             }, {

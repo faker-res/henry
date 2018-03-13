@@ -177,15 +177,19 @@ let dbRewardTaskGroup = {
      * @param {ObjectId} rewardTaskGroupId
      * @param {Number} incRewardAmount
      * @param {Number} incConsumptionAmount
+     * @param {ObjectId} adminId
+     * @param {String} adminName
+     * @returns {Promise}
      */
-    unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount) => {
+    unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount, adminId, adminName) => {
         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
             _id: ObjectId(rewardTaskGroupId)
         }, {
             $inc: {
                 currentAmt: -incRewardAmount,
                 curConsumption: incConsumptionAmount
-            }
+            },
+            unlockBy: adminName
         }, {
             new: true
         }).then(

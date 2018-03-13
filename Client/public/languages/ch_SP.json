@@ -3000,6 +3000,9 @@
   "POINT_INCREMENT": "积分增加",
   "EARLY_POINT_CONVERSION": "提前积分兑换",
   "PERIOD_POINT_CONVERSION": "到期积分兑换",
+  "POINT_REDUCTION_CANCELLED": "积分扣除（取消退还）",
+  "EARLY_POINT_CONVERSION_CANCELLED": "提前积分兑换（取消退还）",
+  "PERIOD_POINT_CONVERSION_CANCELLED": "到期积分兑换（取消退还）",
   "beforeChangeRewardPoint": "变化前积分",
   "afterChangeRewardPoint": "变化后积分",
   "dailyMaxRewardPoint": "单日积分上限",
@@ -3328,6 +3331,7 @@
   "Cannot find related Customer Services Employee": "找不到相关客服人员",
   "two period at the same time, system will force player to auto level up, batch level settlement will not provide": "同时设置两个周期，系统将强制玩家瞬间自动升级，并无法提供批量结算升级。",
   "player level up period different": "玩家升级多个周期",
+  "selected games": "选中的游戏",
   "Redemption succeeded": "兑换成功",
   "Redemption failed": "兑换失败",
   "used": "已用",
@@ -3349,5 +3353,4 @@
   "Promo Consumption is required": "所需流水(Y) 是必填项",
   "Promo Max Top Up Amount is required": "优惠上限(M) 是必填项",
   "Promo Reward % is required": "优惠% 是必填项"
-
 }

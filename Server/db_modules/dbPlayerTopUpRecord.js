@@ -712,6 +712,7 @@ var dbPlayerTopUpRecord = {
         var proposal = null;
         var merchantResponse = null;
         var merchantResult = null;
+        let merchantGroupList = [];
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -723,8 +724,13 @@ var dbPlayerTopUpRecord = {
 
                     let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                     let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
-                    let proms = [firstTopUpProm, limitedOfferProm];
-
+                    let merchantGroupProm = () =>{ return pmsAPI.merchant_getMerchantList(
+                        {
+                            platformId: playerData.platform.platformId,
+                            queryId: serverInstance.getQueryId()
+                        }
+                    )};
+                    let proms = [firstTopUpProm, limitedOfferProm, merchantGroupProm()];
                     if (topupRequest.bonusCode) {
                         let bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
                         proms.push(bonusCodeCheckProm)
@@ -745,7 +751,8 @@ var dbPlayerTopUpRecord = {
                 let minTopUpAmount;
                 let isPlayerFirstTopUp = res[0];
                 let limitedOfferTopUp = res[1];
-                let bonusCodeValidity = res[2];
+                merchantGroupList = res[2];
+                let bonusCodeValidity = res[3];
 
                 if (isPlayerFirstTopUp) {
                     minTopUpAmount = 1;
@@ -832,12 +839,22 @@ var dbPlayerTopUpRecord = {
                         ip: ip,
                         topupType: topupRequest.topupType,
                         amount: topupRequest.amount,
-                        groupMerchantList: player.merchantGroup.merchants,
                         merchantUseType: merchantUseType,
                         clientType: clientType
                     };
                     // console.log("requestData:", requestData);
-                    return pmsAPI.payment_requestOnlineMerchant(requestData);
+                    let groupMerchantList = dbPlayerTopUpRecord.isMerchantValid(player.merchantGroup.merchantNames, merchantGroupList, topupRequest.topupType, clientType);
+                    if( groupMerchantList.length > 0){
+                        requestData.groupMerchantList = groupMerchantList;
+                        return pmsAPI.payment_requestOnlineMerchant(requestData);
+                    }else{
+                        return Q.reject({
+                            name: "DataError",
+                            message: "No Any MerchantNo Are Available, Please Change TopUp Method",
+                            error: Error()
+                        });
+                    }
+
                     //     .catch(
                     //     err => Q.reject({name: "DataError", message: "Failure with requestOnlineMerchant", error: err, requestData: requestData})
                     // );
@@ -933,7 +950,18 @@ var dbPlayerTopUpRecord = {
         //     err => Q.reject({name: "DBError", message: 'Error performing online top up proposal', error: err})
         // );
     },
-
+    isMerchantValid: function(playerMerchantNames, merchantGroup, topupType, clientType){
+        let availableMerchant = [];
+        playerMerchantNames.forEach(name=>{
+            merchantGroup.merchants.forEach(item=>{
+                if(item.name == name && item.topupType == topupType && item.targetDevices == clientType){
+                    console.log(item);
+                    availableMerchant.push(item.merchantNo);
+                }
+            })
+        })
+        return availableMerchant;
+    },
 
     /**
      * add manual topup records of the player
