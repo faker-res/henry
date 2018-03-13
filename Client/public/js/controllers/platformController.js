@@ -18381,13 +18381,13 @@ define(['js/app'], function (myApp) {
                                 return socketService.showErrorMessage($translate("Promo Reward Amount is required"));
                             }
                         }
-                        else if (type != 2 && !data.minTopUpAmount) {
+                        else if (type != 2 && !isNaN(data.minTopUpAmount)) {
                             return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
                         }
-                        else if (type == 3 && !data.maxRewardAmount) {
+                        else if (type == 3 && !isNaN(data.maxRewardAmount)) {
                             return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
                         }
-                        else if (!data.requiredConsumption) {
+                        else if (isNaN(data.requiredConsumption)) {
                             return socketService.showErrorMessage($translate("Promo Consumption is required"));
                         }
                         else {
