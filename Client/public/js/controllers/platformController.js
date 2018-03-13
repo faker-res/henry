@@ -18514,7 +18514,7 @@ define(['js/app'], function (myApp) {
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                             item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
-                            item.isForbidWithdraw = item.playerObjId && item.playerObjId.permission && item.playerObjId.permission.applyBonus ? $translate(!item.playerObjId.permission.applyBonus) : $translate("true");
+                            item.isForbidWithdraw = item.disableWithdraw? $translate("true") : $translate("false");
 
                             return item;
                         }), vm.promoCodeQuery.totalCount, {}, isNewSearch
