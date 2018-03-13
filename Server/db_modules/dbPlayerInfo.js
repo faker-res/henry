@@ -60,7 +60,6 @@ var SMSSender = require('../modules/SMSSender');
 var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
-const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
 const constSMSPurpose = require("../const/constSMSPurpose");
 
 // constants
