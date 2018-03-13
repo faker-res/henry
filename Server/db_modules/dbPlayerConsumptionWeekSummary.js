@@ -440,7 +440,20 @@ var dbPlayerConsumptionWeekSummary = {
                     );
 
                     if (proms.length > 0) {
-                        return Q.all(proms);
+                        return Q.all(proms).then(
+                            data => {
+                                return data;
+                            },
+                            err => {
+                                if(bRequest){
+                                    deferred.reject({
+                                        name: "DBError",
+                                        message: "Error creating player consumption return proposal",
+                                        error: err
+                                    });
+                                }
+                            }
+                        );
                     } else {
                         //todo::update the error message here for client
                         //no consumption return
