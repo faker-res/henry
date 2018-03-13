@@ -1250,12 +1250,14 @@
                                         tr
                                             th {{'GAMETYPE' | translate}}
                                             th {{'RATIO' | translate}}
+                                            th {{'totalNonXIMAAmt' | translate}}
                                             th {{'CONSUMPTIONAMOUNT' | translate}}
                                             th {{'RETURNAMOUNT' | translate}}
                                     tbody
                                         tr(ng-repeat='(i,v) in vm.playerApplyRewardShow.consumptionReturnData')
                                             td {{i}}
                                             td {{v.ratio}}
+                                            td {{v.nonXIMAAmt}}
                                             td {{v.consumptionAmount}}
                                             td {{v.returnAmount}}
                             .well(ng-show='vm.playerApplyEventResult.success')
