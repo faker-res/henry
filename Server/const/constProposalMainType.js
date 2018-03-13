@@ -6,7 +6,7 @@ const constMainType = {
     TOP_UP: "TopUp",
     BONUS: "PlayerBonus",
     REWARD: "Reward",
-    REWARD_POINTS: "Reward Points",
+    // REWARD_POINTS: "Reward Points",
     UPDATE_PLAYER: "UpdatePlayer",
     UPDATE_PARTNER: "UpdatePartner",
     INTENTION: "Intention",
@@ -58,12 +58,6 @@ const constProposalMainType = {
     "PlayerConsumptionRewardGroup": constMainType.REWARD,
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
 
-    //REWARD POINTS
-    "PlayerAddRewardPoints": constMainType.REWARD_POINTS,
-    "PlayerMinusRewardPoints": constMainType.REWARD_POINTS,
-    "PlayerConvertRewardPoints": constMainType.REWARD_POINTS,
-    "PlayerAutoConvertRewardPoints": constMainType.REWARD_POINTS,
-
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,
     "UpdatePlayerBankInfo": constMainType.UPDATE_PLAYER,
@@ -95,6 +89,10 @@ const constProposalMainType = {
     "PlayerConsumptionReturnFix": constMainType.OTHERS,
     "PartnerCommission": constMainType.OTHERS,
     "PlayerLimitedOfferIntention": constMainType.OTHERS,
+    "PlayerAddRewardPoints": constMainType.OTHERS,          //Reward Points
+    "PlayerMinusRewardPoints": constMainType.OTHERS,        //Reward Points
+    "PlayerConvertRewardPoints": constMainType.OTHERS,      //Reward Points
+    "PlayerAutoConvertRewardPoints": constMainType.OTHERS,  //Reward Points
 
 };
 

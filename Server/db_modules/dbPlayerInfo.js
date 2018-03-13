@@ -64,6 +64,7 @@ const constSMSPurpose = require("../const/constSMSPurpose");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
+const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
 
 // db_common
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
@@ -220,7 +221,9 @@ let dbPlayerInfo = {
      * Update player's reward points and create log
      */
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
+        updateAmount = isNaN(updateAmount) ? 0 : parseInt(updateAmount);
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
+        let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
         let proposalType = updateAmount >= 0 ? constProposalType.PLAYER_ADD_REWARD_POINTS : constProposalType.PLAYER_MINUS_REWARD_POINTS;
         let proposalData = {
             data: {
@@ -229,11 +232,37 @@ let dbPlayerInfo = {
                 updateAmount: updateAmount,
                 category: category,
                 remark: remark,
-                userAgent: constPlayerRegistrationInterface.BACKSTAGE,
+                userAgent: userAgent,
                 adminName: adminName
+            },
+            creator: {
+                name: adminName
             }
         };
-        dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData);
+
+        //if its add RP, get reward points for creation of proposal, RP log created along with proposal creation.
+        if (proposalType === constProposalType.PLAYER_ADD_REWARD_POINTS) {
+            dbRewardPoints.getPlayerRewardPoints(ObjectId(playerObjId)).then(
+                rewardPoints => {
+                    if (rewardPoints) {
+                        proposalData.data.beforeRewardPoints = rewardPoints.points;
+                        proposalData.data.afterRewardPoints = rewardPoints.points + updateAmount;
+                    }
+                }
+            );
+        }
+        return dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData).then(
+            data => {
+                //if its minus RP, call dbPlayerRewardPoints.changePlayerRewardPoint() to minus RP first, RP log created within the function.
+                if (proposalType === constProposalType.PLAYER_MINUS_REWARD_POINTS) {
+                    //status is here to ensure reward points log status is set to PROCESSED, if proposal is auto approved.
+                    let status = data.status === constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
+                    remark = remark ? remark + " Proposal No: " + data.proposalId : "Proposal No: " + data.proposalId;
+                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent,
+                        adminName, status, null, null, null, data.proposalId);
+                }
+            }
+        );
     },
 
     /**
