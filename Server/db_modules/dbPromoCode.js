@@ -57,6 +57,26 @@ let dbPromoCode = {
             });
         });
     },
+
+    disablePromoCode: function (playerId, promoCode) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            player => {
+                if (!player) {
+                    return;
+                }
+
+                return dbconfig.collection_promoCode.findOne({playerObjId: player._id, code: promoCode}).lean();
+            }
+        ).then(
+            promoCode => {
+                if (!promoCode) {
+                    return;
+                }
+
+                return dbconfig.collection_promoCode.findOneAndUpdate({_id: promoCode._id}, {status: constPromoCodeStatus.DISABLE}, {new: true}).lean();
+            }
+        );
+    },
 };
 
 module.exports = dbPromoCode;

@@ -2227,7 +2227,7 @@ define(['js/app'], function (myApp) {
                     item.amount$ = parseFloat(item.amount).toFixed(2);
                     item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
+                    item.operationPercent$ = parseFloat((item.bonusAmount / item.validAmount * 100) * -1).toFixed(2) + '%'
                     return item;
                 }),
                 aoColumnDefs: [
@@ -2265,12 +2265,12 @@ define(['js/app'], function (myApp) {
                         sClass: "sumFloat alignRight",
                     },
                     {
-                        title: $translate('EARNINGS'),
+                        title: $translate('PLAYER PROFIT AMOUNT'),
                         data: "bonusAmount$",
                         sClass: "sumFloat alignRight",
                     },
                     {
-                        title: $translate('EARNINGS_RATIO'),
+                        title: $translate('COMPANY_PROFIT_POINT'),
                         data: "operationPercent$",
                     },
                 ],
@@ -2337,7 +2337,7 @@ define(['js/app'], function (myApp) {
                     item.amount$ = parseFloat(item.amount).toFixed(2);
                     item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
+                    item.operationPercent$ = parseFloat((item.bonusAmount / item.validAmount * 100) * -1).toFixed(2) + '%'
                     return item;
                 }) : [];
                 vm.drawProviderGameTable(playerData, id, data.data.size, data.data.summary, newSearch);
@@ -2384,12 +2384,12 @@ define(['js/app'], function (myApp) {
                         data: "validAmount$"
                     },
                     {
-                        title: $translate('EARNINGS'),
+                        title: $translate('PLAYER PROFIT AMOUNT'),
                         data: "bonusAmount$",
                         sClass: "sumFloat alignRight",
                     },
                     {
-                        title: $translate('EARNINGS_RATIO'),
+                        title: $translate('COMPANY_PROFIT_POINT'),
                         data: "operationPercent$",
                     },
 
@@ -2503,7 +2503,7 @@ define(['js/app'], function (myApp) {
                     item.amount$ = parseFloat(item.amount).toFixed(2);
                     item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
+                    item.operationPercent$ = parseFloat((item.bonusAmount / item.validAmount * 100) * -1).toFixed(2) + '%'
                     return item;
                 }),
                 columns: [
@@ -2529,12 +2529,12 @@ define(['js/app'], function (myApp) {
                         data: "validAmount$"
                     },
                     {
-                        title: $translate('EARNINGS'),
+                        title: $translate('PLAYER PROFIT AMOUNT'),
                         data: "bonusAmount$",
                         sClass: "sumFloat alignRight",
                     },
                     {
-                        title: $translate('EARNINGS_RATIO'),
+                        title: $translate('COMPANY_PROFIT_POINT'),
                         data: "operationPercent$",
                     },
                 ],

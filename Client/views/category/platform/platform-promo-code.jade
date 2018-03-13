@@ -345,6 +345,9 @@
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'sendSMS')", ng-disabled="!vm.promoCodeQuery.totalCount", ng-click='vm.selectedPromoCode ? vm.sendSMSByPromoCode() : vm.sendSMSByPromoCodeBatch()')
                                 text {{"sendSMS" | translate}}
                                 img.img-edit
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'promoCode', 'applyPromoCode')", ng-disabled="vm.selectedPromoCode.status != 1", ng-click="vm.disablePromoCode()")
+                                text {{"DELETE" | translate}}
+                                img.img-edit
 
                 //Tab - Promo Code Monitor
                 div(ng-if='vm.selectedPromoCodeTab=="monitor" && checkViewPermission("Platform", "promoCode", "monitor")')
@@ -491,7 +494,7 @@
                 // Tab - Promo Code User Group
                 div(ng-if='vm.selectedPromoCodeTab=="userGroupConfig" && checkViewPermission("Platform", "promoCode", "userGroupConfig")')
                     div(style="margin-bottom:5px")
-                        input.form-control(type="text", ng-model="vm.spcug", placeholder="Search", ng-change="vm.searchPromoCodeUserGroup(vm.spcug)")
+                        input.form-control(type="text", ng-model="vm.spcug", placeholder="Search", ng-change="vm.searchPromoCodeUserGroup(vm.spcug);vm.searchBlockPromoCodeUserGroup(vm.spcug)")
                         br
                         // Group table
                         table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

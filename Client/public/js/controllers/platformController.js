@@ -2898,9 +2898,16 @@ define(['js/app'], function (myApp) {
                     vm.newType = type;
                     $("#modalConfirmUpdateGame").modal();
                 } else {
+                    let sendGameId = [];
+                    vm.selectedGamesInGameGroup.forEach((game) => {
+                        if (game._id) {
+                            sendGameId.push(game._id);
+                        }
+                    })
+
                     var sendData = {
                         query: {
-                            game: vm.curGame._id, platform: vm.selectedPlatform.id
+                            game: sendGameId, platform: vm.selectedPlatform.id
                         },
                         updateData: {
                             status: type
@@ -3004,7 +3011,35 @@ define(['js/app'], function (myApp) {
                     title: $translate('Please confirm your action.'),
                     text: $translate("Are you sure to update") + " " + providerData.name + "(" + providerData.code + ") -> " + $translate(type) + " ?"
                 }).then(function () {
+
+                    if (type == "DISABLE") {
+                        let sendGameId = [];
+                        vm.includedGames.forEach((game) => {
+                            if (game._id) {
+                                sendGameId.push(game._id);
+                            }
+                        })
+
+                        var sendData = {
+                            query: {
+                                game: sendGameId, platform: vm.selectedPlatform.id
+                            },
+                            updateData: {
+                                status: vm.allGameStatusString.MAINTENANCE
+                            }
+                        }
+                        console.log("send", sendData);
+                        socketService.$socket($scope.AppSocket, 'updateGameStatusToPlatform', sendData, success);
+                        // $scope.safeApply();
+                    } else {
                         vm.submitProviderChange(type, vm.SelectedProvider);
+                    }
+                    function success(data) {
+                        console.log(data);
+                        vm.submitProviderChange(type, vm.SelectedProvider);
+                        vm.providerClicked('refresh', vm.SelectedProvider);
+                    }
+
                     }
                 );
             }
@@ -18304,73 +18339,95 @@ define(['js/app'], function (myApp) {
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
-                let sendData = Object.assign({}, data);
+                if (data && data.playerName) {
+                    let sendData = Object.assign({}, data);
 
-                if (sendData.playerName.match(/\n/g)) {
-                    col.splice(index, 1);
-                    let playerArr = sendData.playerName.split(/\r?\n/);
-                    let p = Promise.resolve();
+                    if (sendData.playerName.match(/\n/g)) {
+                        col.splice(index, 1);
+                        let playerArr = sendData.playerName.split(/\r?\n/);
+                        let p = Promise.resolve();
 
-                    playerArr.forEach((el, ind) => {
-                        let newData = Object.assign({}, sendData);
-                        newData.playerName = el;
-                        newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
-                        newData.expirationTime$ = data.expirationTime.data('datetimepicker').getDate();
+                        playerArr.forEach((el, ind) => {
+                            let newData = Object.assign({}, sendData);
+                            newData.playerName = el;
+                            newData.expirationTime = vm.dateReformat(newData.expirationTime.data('datetimepicker').getLocalDate());
+                            newData.expirationTime$ = data.expirationTime.data('datetimepicker').getDate();
 
-                        delete newData.$$hashKey;
+                            delete newData.$$hashKey;
 
-                        p = p.then(function () {
-                            return vm.promoCodeNewRow(col, type, newData, true);
+                            p = p.then(function () {
+                                return vm.promoCodeNewRow(col, type, newData, true);
+                            });
+
                         });
 
-                    });
 
+                        return p.then(ret => {
+                            vm.endLoadWeekDay();
+                            $scope.safeApply();
+                        });
+                    } else {
+                        let searchQ = {
+                            platformObjId: vm.selectedPlatform.id,
+                            playerName: data.playerName,
+                            status: 1
+                        };
 
-                    return p.then(ret => {
-                        vm.endLoadWeekDay();
-                        $scope.safeApply();
-                    });
-                } else {
-                    let searchQ = {
-                        platformObjId: vm.selectedPlatform.id,
-                        playerName: data.playerName,
-                        status: 1
-                    };
-
-                    return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
-                        if (ret && ret.data && ret.data.length > 0) {
-                            if (!data.skipCheck) {
-                                data.hasMoreThanOne = true;
-                                $scope.safeApply();
+                        if (!data.amount) {
+                            if(type == 3) {
+                                return socketService.showErrorMessage($translate("Promo Reward % is required"));
+                            }
+                            else {
+                                return socketService.showErrorMessage($translate("Promo Reward Amount is required"));
                             }
                         }
-
-                        if ( !data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                            if(data && !data.isBlockPromoCodeUser) {
-                                sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
-                                let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
-
-                                sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
-                                sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
-                                sendData.platformObjId = vm.selectedPlatform.id;
-                                sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
-                                sendData.smsContent = sendData.promoCodeType.smsContent;
-
-                                delete sendData.isBlockPromoCodeUser;
-
-                                console.log('sendData', sendData);
-                                return $scope.$socketPromise('generatePromoCode', {
-                                    platformObjId: vm.selectedPlatform.id,
-                                    newPromoCodeEntry: sendData,
-                                    adminName: authService.adminName,
-                                    adminId: authService.adminId
-                                }).then(ret => {
-                                    col[index].code = ret.data;
-                                    $scope.safeApply();
-                                });
-                            }
+                        else if (type != 2 && isNaN(data.minTopUpAmount)) {
+                            return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
                         }
-                    });
+                        else if (type == 3 && isNaN(data.maxRewardAmount)) {
+                            return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
+                        }
+                        else if (isNaN(data.requiredConsumption)) {
+                            return socketService.showErrorMessage($translate("Promo Consumption is required"));
+                        }
+                        else {
+                            return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
+                                if (ret && ret.data && ret.data.length > 0) {
+                                    if (!data.skipCheck) {
+                                        data.hasMoreThanOne = true;
+                                        $scope.safeApply();
+                                    }
+                                }
+
+                                if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
+                                    if (data && !data.isBlockPromoCodeUser) {
+
+                                        sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
+                                        let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
+
+                                        sendData.expirationTime = vm.dateReformat(sendData.expirationTime.data('datetimepicker').getLocalDate());
+                                        sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
+                                        sendData.platformObjId = vm.selectedPlatform.id;
+                                        sendData.allowedProviders = sendData.allowedProviders && sendData.allowedProviders.length == usingGroup.length ? [] : sendData.allowedProviders;
+                                        sendData.smsContent = sendData.promoCodeType.smsContent;
+
+                                        delete sendData.isBlockPromoCodeUser;
+
+                                        console.log('sendData', sendData);
+                                        return $scope.$socketPromise('generatePromoCode', {
+                                            platformObjId: vm.selectedPlatform.id,
+                                            newPromoCodeEntry: sendData,
+                                            adminName: authService.adminName,
+                                            adminId: authService.adminId
+                                        }).then(ret => {
+                                            col[index].code = ret.data;
+                                            $scope.safeApply();
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
                 }
             };
 
@@ -18457,6 +18514,7 @@ define(['js/app'], function (myApp) {
                             item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                             item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
                             item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                            item.isForbidWithdraw = item.playerObjId && item.playerObjId.permission && item.playerObjId.permission.applyBonus ? $translate(!item.playerObjId.permission.applyBonus) : $translate("true");
 
                             return item;
                         }), vm.promoCodeQuery.totalCount, {}, isNewSearch
@@ -18468,6 +18526,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.sendSMSByPromoCode = function (promoCode, isConfirm) {
+                if (!vm.selectedPromoCode || vm.selectedPromoCode.status != 1) {
+                    return;
+                }
+
                 if (!isConfirm) {
                     vm.modalYesNo.modalTitle = $translate("Send Promo Code SMS");
                     vm.modalYesNo.modalText = $translate("Send unaccepted promo code to members?");
@@ -18537,7 +18599,7 @@ define(['js/app'], function (myApp) {
 
                     let smsObj = {
                         playerId: item.playerObjId.playerId,
-                        platformId: item.platformObjId,
+                        platformId: vm.selectedPlatform.data.platformId,
                         channel: 2,
                         message: item.smsContent
                     };
@@ -18801,6 +18863,10 @@ define(['js/app'], function (myApp) {
                             data: "isSharedWithXIMA$"
                         },
                         {
+                            title: $translate('FORBID_WITHDRAW'),
+                            data: "isForbidWithdraw"
+                        },
+                        {
                             title: $translate('PROMO_DUE_DATE'),
                             data: "expirationTime$"
                         },
@@ -18885,6 +18951,11 @@ define(['js/app'], function (myApp) {
                     }
                     case (aData.status == 2): {
                         $(nRow).find('td').css('background-color', 'rgba(197, 181, 43, 100)');
+                        break;
+                    }
+                    case (aData.status == 5): {
+                        $(nRow).find('td').css('background-color', 'rgba(138, 138, 138, 100)');
+                        $(nRow).find('td').css('text-decoration', 'line-through');
                         break;
                     }
                     default: {
@@ -18981,6 +19052,18 @@ define(['js/app'], function (myApp) {
                 $(tblId).resize();
 
                 $scope.safeApply();
+            };
+
+            vm.disablePromoCode = function () {
+                let sendData = {
+                    playerId: vm.selectedPromoCode.playerObjId.playerId,
+                    promoCode: vm.selectedPromoCode.code
+                };
+
+                socketService.$socket($scope.AppSocket, 'disablePromoCode', sendData, function (data) {
+                    console.log('disablePromoCode', data);
+                    vm.getPromoCodeHistory(true);
+                });
             };
 
             vm.applyPromoCode = function () {
@@ -19369,6 +19452,9 @@ define(['js/app'], function (myApp) {
 
             vm.searchPromoCodeUserGroup = function (s, isRet) {
                 let exists = false;
+                if (!isRet) {
+                    vm.newUserPromoCodeUserGroup = {};
+                }
 
                 vm.userGroupConfig.map(e => {
                     e.playerNames.map(el => {
@@ -19388,6 +19474,9 @@ define(['js/app'], function (myApp) {
 
             vm.searchBlockPromoCodeUserGroup = function (s, isRet) {
                 let exists = false;
+                if (!isRet) {
+                    vm.newUserBlockPromoCodeUserGroup = {};
+                }
 
                 vm.userGroupBlockConfig.map(e => {
                     e.playerNames.map(el => {

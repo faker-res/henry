@@ -45,7 +45,7 @@ function socketActionPlatformGameStatus(socketIO, socket) {
          */
         updateGameStatusToPlatform: function updateGameStatusToPlatform(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.query && data.updateData);
+            var isValidData = Boolean(data && data.query && data.query.game && data.query.game.length && data.updateData);
             socketUtil.emitter(self.socket, dbPlatformGameStatus.updatePlatformGameStatus, [data.query, data.updateData], actionName, isValidData);
         }
 
