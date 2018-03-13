@@ -19494,6 +19494,45 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.searchMultipleUsersFromOtherGroup = function (newUserPromoCodeUserGroupObj, newUserBlockPromoCodeUserGroupObj, selectedPromoCodeUserGroup, selectedBlockPromoCodeUserGroup, playerNames, type) {
+                //type 1: promo code user group list
+                //type 2: promo code user group block list
+                let existPlayers = [];
+                let existPlayerGroup = [];
+
+                for (var i = 0; i < playerNames.length; i++) {
+                    if (vm.searchPromoCodeUserGroup(playerNames[i], true)) {
+                        newUserPromoCodeUserGroupObj.newGroup = selectedPromoCodeUserGroup;
+                        existPlayers.push(playerNames[i]);
+                        existPlayerGroup.push(newUserPromoCodeUserGroupObj.oldGroup.name);
+                    } else if (vm.searchBlockPromoCodeUserGroup(playerNames[i], true)) {
+                        newUserBlockPromoCodeUserGroupObj.newGroup = selectedBlockPromoCodeUserGroup;
+                        existPlayers.push(playerNames[i]);
+                        existPlayerGroup.push(newUserBlockPromoCodeUserGroupObj.oldGroup.name);
+                    } else {
+                        switch(type) {
+                            case 1:
+                                selectedPromoCodeUserGroup.playerNames.push(playerNames[i].trim());
+                                break;
+                            case 2:
+                                selectedBlockPromoCodeUserGroup.playerNames.push(playerNames[i].trim());
+                                break;
+                        }
+                    }
+                }
+
+                if (existPlayers && existPlayers.length > 0 && existPlayerGroup && existPlayerGroup.length > 0) {
+                    let filteredExistPlayerGroup = vm.removeDuplicateNameFromArr(existPlayerGroup);
+                    let message = [
+                        existPlayers.join(", "), $translate("already exist in group"), filteredExistPlayerGroup.join(", "),
+                        $translate(", Are you sure you want to move player to group"), type == 1 ? newUserPromoCodeUserGroupObj.newGroup.name : newUserBlockPromoCodeUserGroupObj.newGroup.name, "?"];
+                    vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
+                    vm.modalYesNo.modalText = message.join(" ");
+                    vm.modalYesNo.actionYes = () => vm.addMultipleUsersToGroup(existPlayers, type == 1 ? 1 : 2);
+                    $('#modalYesNo').modal();
+                }
+            }
+
             vm.addUserToPromoCodeGroup = function (data, isSkipCheck) {
                 vm.isMoveUserFromGroupToGroup = false;
                 if (vm.searchPromoCodeUserGroup(data, true) && !isSkipCheck) {
@@ -19534,11 +19573,10 @@ define(['js/app'], function (myApp) {
                             vm.splitNewLine = vm.newUserPromoCodeUserGroup.name.split("\n");
                             console.log('vm.splitNewLine', vm.splitNewLine);
 
-                            for (var i = 0; i < vm.splitNewLine.length; i++) {
-                                console.log(vm.splitNewLine[i]);
-                                vm.selectedPromoCodeUserGroup.playerNames.push(vm.splitNewLine[i].trim());
-                                vm.newUserPromoCodeUserGroup = null;
-                            }
+                            vm.newUserPromoCodeUserGroup.newGroup = vm.selectedPromoCodeUserGroup;
+                            vm.newUserBlockPromoCodeUserGroup.newGroup = vm.selectedBlockPromoCodeUserGroup;
+                            vm.searchMultipleUsersFromOtherGroup(vm.newUserPromoCodeUserGroup, vm.newUserBlockPromoCodeUserGroup, vm.selectedPromoCodeUserGroup, vm.selectedBlockPromoCodeUserGroup, vm.splitNewLine, 1);
+                            vm.newUserPromoCodeUserGroup.name = null;
                         }
                     }
 
@@ -19586,11 +19624,10 @@ define(['js/app'], function (myApp) {
                             vm.splitBlockUserNewLine = vm.newUserBlockPromoCodeUserGroup.name.split("\n");
                             console.log('vm.splitBlockUserNewLine', vm.splitBlockUserNewLine);
 
-                            for (var i = 0; i < vm.splitBlockUserNewLine.length; i++) {
-                                console.log(vm.splitBlockUserNewLine[i]);
-                                vm.selectedBlockPromoCodeUserGroup.playerNames.push(vm.splitBlockUserNewLine[i].trim());
-                                vm.newUserBlockPromoCodeUserGroup = null;
-                            }
+                            vm.newUserBlockPromoCodeUserGroup.newGroup = vm.selectedBlockPromoCodeUserGroup;
+                            vm.newUserPromoCodeUserGroup.newGroup = vm.selectedPromoCodeUserGroup;
+                            vm.searchMultipleUsersFromOtherGroup(vm.newUserPromoCodeUserGroup, vm.newUserBlockPromoCodeUserGroup, vm.selectedPromoCodeUserGroup, vm.selectedBlockPromoCodeUserGroup, vm.splitBlockUserNewLine, 2);
+                            vm.newUserBlockPromoCodeUserGroup.name = null;
                         }
                     }
 
@@ -19598,22 +19635,70 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.addUserFromGroupToGroup = function (data, type) {
+            vm.addUserFromGroupToGroup = function (playerName, type) {
                 //type 1 - represent move user from block promo code group to promo code group
                 //type 2 - represent move user from promo code group to block promo code group
                 if(type == 1) {
-                    vm.newUserBlockPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserBlockPromoCodeUserGroup.oldGroup.playerNames.indexOf(data), 1);
-                    vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(data);
+                    vm.newUserBlockPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserBlockPromoCodeUserGroup.oldGroup.playerNames.indexOf(playerName), 1);
+                    vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(playerName);
                     vm.newUserPromoCodeUserGroup.name = null;
                     vm.isMoveUserFromGroupToGroup = true;
                 }
                 else if(type == 2) {
-                    vm.newUserPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserPromoCodeUserGroup.oldGroup.playerNames.indexOf(data), 1);
-                    vm.newUserBlockPromoCodeUserGroup.newGroup.playerNames.push(data);
+                    vm.newUserPromoCodeUserGroup.oldGroup.playerNames.splice(vm.newUserPromoCodeUserGroup.oldGroup.playerNames.indexOf(playerName), 1);
+                    vm.newUserBlockPromoCodeUserGroup.newGroup.playerNames.push(playerName);
                     vm.newUserBlockPromoCodeUserGroup.name = null;
                     vm.isMoveUserFromGroupToGroup = true;
                 }
             };
+
+            vm.addMultipleUsersToGroup = function (existPlayersArr, type) {
+                //type 1: promo code user group list
+                //type 2: promo code user group block list
+                existPlayersArr.map(currentUser => {
+                    vm.userGroupConfig.map(oldUser => {
+                        oldUser.playerNames.map(user => {
+                            if (user == currentUser) {
+                                oldUser.playerNames.splice(oldUser.playerNames.indexOf(currentUser), 1);
+                                switch (type) {
+                                    case 1:
+                                        vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(currentUser);
+                                        break;
+                                    case 2:
+                                        vm.newUserBlockPromoCodeUserGroup.newGroup.playerNames.push(currentUser);
+                                }
+
+                            }
+                        })
+                    })
+                });
+
+                existPlayersArr.map(currentUser => {
+                    vm.userGroupBlockConfig.map(oldUser => {
+                        oldUser.playerNames.map(user => {
+                            if (user == currentUser) {
+                                oldUser.playerNames.splice(oldUser.playerNames.indexOf(currentUser), 1);
+                                switch (type) {
+                                    case 1:
+                                        vm.newUserPromoCodeUserGroup.newGroup.playerNames.push(currentUser);
+                                        break;
+                                    case 2:
+                                        vm.newUserBlockPromoCodeUserGroup.newGroup.playerNames.push(currentUser);
+                                }
+                            }
+                        })
+                    })
+                });
+            }
+
+            vm.removeDuplicateNameFromArr = function (dataArr) {
+                let filter = function(val, idx) {
+                    return this.indexOf(val) == idx;
+                }
+                let filteredData = dataArr.filter(filter, dataArr);
+
+                return filteredData;
+            }
 
             vm.getPromoCodeUserGroup = function () {
                 socketService.$socket($scope.AppSocket, 'getPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
