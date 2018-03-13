@@ -287,7 +287,8 @@ let dbPlayerInfo = {
                     $lt: todayTime.endTime
                 },
                 rewardPointsObjId: ObjectId(rewardPointsObjId),
-                category: category
+                category: category,
+                status: 1
             }
         }, {
             $group: {
