@@ -963,11 +963,14 @@ var dbPlayerConsumptionWeekSummary = {
                         if (consumptionSummary && playerLevel && ratio >= 0) {
                             let consumeValidAmount = consumptionSummary.validAmount;
                             let returnForThisGameType = consumeValidAmount * ratio;
+                            let nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
+
                             returnAmount += returnForThisGameType;
                             res.totalConsumptionAmount += consumeValidAmount;
                             res[type] = {
                                 consumptionAmount: consumeValidAmount,
                                 returnAmount: returnForThisGameType,
+                                nonXIMAAmt: nonXIMAAmt,
                                 ratio: ratio
                             };
                         }
@@ -976,6 +979,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 {
                                     consumptionAmount: 0,
                                     returnAmount: 0,
+                                    nonXIMAAmt: 0,
                                     ratio: ratio
                                 };
                         }
@@ -993,11 +997,13 @@ var dbPlayerConsumptionWeekSummary = {
                                 // Offset consumption return dirty amount
                                 el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
 
-                                let consumpDiff = el.validAmount - res[el._id].consumptionAmount;
-                                res[el._id].consumptionAmount += consumpDiff;
-                                res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
+                                let consumpDiff = el.validAmount - res[el._id].consumptionAmount - res[el._id].nonXIMAAmt;
 
-                                totalAmtDiff += consumpDiff * res[el._id].ratio;
+                                if (consumpDiff > 0.01) {
+                                    res[el._id].consumptionAmount += consumpDiff;
+                                    res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
+                                    totalAmtDiff += consumpDiff * res[el._id].ratio;
+                                }
                             });
 
                             res.totalAmount += totalAmtDiff;
