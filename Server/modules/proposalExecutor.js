@@ -2460,7 +2460,8 @@ var proposalExecutor = {
                     let userAgent = proposalData.data.userAgent;
                     let adminName = proposalData.data.adminName;
 
-                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent, adminName).then(
+                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent, adminName,
+                        null, null, null, null, proposalData.proposalId).then(
                         data => {
                             deferred.resolve(data);
                         }
@@ -3177,6 +3178,7 @@ var proposalExecutor = {
             },
 
             rejectPlayerAddRewardPoints: function (proposalData, deferred) {
+                dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
                 deferred.resolve("Proposal is rejected");
             },
 

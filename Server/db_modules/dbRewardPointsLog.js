@@ -35,7 +35,9 @@ var dbRewardPointsLog = {
                 ? constRewardPointsLogCategory.PERIOD_POINT_CONVERSION : constRewardPointsLogCategory.EARLY_POINT_CONVERSION;
         proposalData.data.remark = proposalData.data.remark
             ? proposalData.data.remark + " Proposal No: " + proposalData.proposalId : "Proposal No: " + proposalData.proposalId;
-        proposalData.data.convertedRewardPoints = proposalData.data.convertedRewardPoints || 0;
+        let amount = proposalData.data.hasOwnProperty("convertedRewardPoints")
+            ? isNaN(proposalData.data.convertedRewardPoints) ? 0 : -parseInt(proposalData.data.convertedRewardPoints)
+            : isNaN(proposalData.data.updateAmount) ? 0 : parseInt(proposalData.data.updateAmount);
 
         let logData = {
             rewardPointsObjId: proposalData.data.playerRewardPointsObjId,
@@ -44,7 +46,7 @@ var dbRewardPointsLog = {
             newPoints: proposalData.data.afterRewardPoints,
             playerName: proposalData.data.playerName,
             playerLevelName: proposalData.data.playerLevelName,
-            amount: -proposalData.data.convertedRewardPoints,
+            amount: amount,
             remark: proposalData.data.remark,
             status: constRewardPointsLogStatus.PENDING,
             userAgent: proposalData.inputDevice,
