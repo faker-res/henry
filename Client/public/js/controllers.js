@@ -501,7 +501,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         Online: 1,
         ATM: 2,
         Counter: 3,
-        AliPayTransfer: 4
+        AliPayTransfer: 4,
+        weChatPayTransfer: 5
     };
 
     $scope.merchantTargetDeviceJson = {
@@ -656,7 +657,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "POINT_REDUCTION",
         5: "POINT_INCREMENT",
         6: "EARLY_POINT_CONVERSION",
-        7: "PERIOD_POINT_CONVERSION"
+        7: "PERIOD_POINT_CONVERSION",
+        8: "POINT_REDUCTION_CANCELLED",
+        9: "EARLY_POINT_CONVERSION_CANCELLED",
+        10: "PERIOD_POINT_CONVERSION_CANCELLED"
     };
 
     $scope.constRewardPointsLogStatus = {

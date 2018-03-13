@@ -298,7 +298,10 @@ let dbPlayerRewardPoints = {
                 (rewardPoints) => {
                     //proposalId not null mean proposal already create log, just need update status && rewardPointsTaskObjId
 
-                    if (proposalId) {
+                    if (proposalId && (category !== constRewardPointsLogCategory.POINT_REDUCTION
+                            && category !== constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED
+                            && category !== constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED
+                            && category !== constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED)) {
                         dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
                     } else {
                         let logData = {
