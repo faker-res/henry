@@ -1533,7 +1533,7 @@ define(['js/app'], function (myApp) {
                 new Date(player._id.registrationTime).getTime() >= currentPeriodDate.getTime() &&
                 new Date(player._id.registrationTime).getTime() < nextPeriodDate.getTime());
             let growOldPlayer = growPlayerData.filter(player =>
-                new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
+                new Date(player._id.registrationTime).getTime() < previousPeriodDate.getTime());
             // Lost
             let lostPreviousPeriodNewPlayer = lostPlayerData.filter(player =>
                 new Date(player._id.registrationTime).getTime() >= previousPeriodDate.getTime() &&
