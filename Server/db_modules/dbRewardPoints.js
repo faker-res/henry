@@ -1151,7 +1151,7 @@ let dbRewardPoints = {
     },
 
     getPointRule: function (playerId, platformId) {
-        let player, platform, platformObjId, firstProm, lists, dailyConvertedPoints, rewardPoints, rewardPointsObjId;
+        let player, platform, platformObjId, firstProm, lists, dailyConvertedPoints, dailyAppliedPoints, rewardPoints, rewardPointsObjId;
         let intervalPeriod = null;
         let list = [];
 
@@ -1196,13 +1196,15 @@ let dbRewardPoints = {
 
         return firstProm.then(() => {
             return Q.all([dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platformObjId), dbPlayerLevel.getPlayerLevel({platform: platformObjId}),
-                dbGameProvider.getPlatformProviderGroup(platformObjId), dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(rewardPointsObjId)]).then(
+                dbGameProvider.getPlatformProviderGroup(platformObjId), dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(rewardPointsObjId),
+                dbPlayerInfo.getPlayerRewardPointsDailyAppliedPoints(rewardPointsObjId)]).then(
                 data => {
                     let rewardPointsLvlConfig = data[0];
                     let allPlayerLvl = data[1];
                     let platformProviderGroup = data[2];
                     if (player) { // only display if found player data
                         dailyConvertedPoints = data[3];
+                        dailyAppliedPoints = data[4];
                     }
 
                     let playerLevelId, playerLevelName, dailyMaxPoints, pointToCreditManualRate, pointToCreditManualMaxPoints;
@@ -1263,6 +1265,7 @@ let dbRewardPoints = {
 
                     let outputObject = {
                         preDailyExchangedPoint: dailyConvertedPoints,
+                        preDailyAppliedPoint: dailyAppliedPoints,
                         userCurrentPoint: rewardPoints,
                         refreshPeriod: intervalPeriod,
                         list: list
