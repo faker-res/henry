@@ -4210,10 +4210,15 @@ let dbPlayerInfo = {
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
+                                    }).populate({
+                                        path: "rewardPointsObjId",
+                                        model: dbconfig.collection_rewardPoints
                                     }).lean().then(
                                         res => {
                                             res.name = res.name.replace(platformPrefix, "");
                                             retObj = res;
+                                            retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                                            retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
                                             var a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
