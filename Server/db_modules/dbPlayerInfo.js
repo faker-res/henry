@@ -5210,38 +5210,7 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
                     gameProvider = data[1];
-                    return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
-                        stateRec => {
-                            if (!stateRec) {
-                                return new dbconfig.collection_playerState({
-                                    player: playerObj._id,
-                                    lastTransferFromProvider: Date.now()
-                                }).save();
-                            } else {
-                                // State exist
-                                if (stateRec.lastTransferFromProvider) {
-                                    // update rec
-                                    return dbconfig.collection_playerState.findOneAndUpdate({
-                                        player: playerObj._id,
-                                        lastTransferFromProvider: {$lt: new Date() - 1000}
-                                    }, {
-                                        $currentDate: {lastTransferFromProvider: true}
-                                    }, {
-                                        new: true
-                                    });
-                                } else {
-                                    // update rec with new field
-                                    return dbconfig.collection_playerState.findOneAndUpdate({
-                                        player: playerObj._id,
-                                    }, {
-                                        $currentDate: {lastTransferFromProvider: true}
-                                    }, {
-                                        new: true
-                                    });
-                                }
-                            }
-                        }
-                    ).then(
+                    return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
                         playerState => {
                             if (playerState) {
 
