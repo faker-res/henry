@@ -245,6 +245,7 @@ let dbPlayerInfo = {
             dbRewardPoints.getPlayerRewardPoints(ObjectId(playerObjId)).then(
                 rewardPoints => {
                     if (rewardPoints) {
+                        proposalData.data.playerRewardPointsObjId = rewardPoints._id;
                         proposalData.data.beforeRewardPoints = rewardPoints.points;
                         proposalData.data.afterRewardPoints = rewardPoints.points + updateAmount;
                     }
