@@ -17,6 +17,7 @@ var simplifiedChinese = {
     "Token is not authenticated": "令牌未经过身份验证",
     "Player ip doesn't match!": "玩家IP不匹配",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
+    "transfer credit fail, please try again later": "转账失败，请稍后重试",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
