@@ -1406,7 +1406,8 @@ let dbPlayerInfo = {
                     password: randomPsw,
                     validCredit: defaultCredit,
                     isTestPlayer: true,
-                    isRealPlayer: false
+                    isRealPlayer: false,
+                    isLogin: true,
                 };
 
                 if(platform.requireSMSVerificationForDemoPlayer && !isBackStageGenerated) {
@@ -1437,9 +1438,12 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
 
+                let profile = {name: playerData.name, password: playerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
                 playerData.password = randomPsw;
 
-                return playerData;
+                return {playerData, token};
             }
         );
     },
