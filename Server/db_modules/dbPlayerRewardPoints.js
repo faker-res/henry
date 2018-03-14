@@ -174,6 +174,10 @@ let dbPlayerRewardPoints = {
                             });
                         }
 
+                        //minus from RP
+                        dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -actualConvertRewardPointsAmount,
+                            constRewardPointsLogCategory.EARLY_POINT_CONVERSION, remark, userAgent, adminName || playerInfo.name);
+
                         convertCredit = Math.floor(actualConvertRewardPointsAmount / playerLvlRewardPointsConfig.pointToCreditManualRate);
                         let spendingAmount = convertCredit * playerLvlRewardPointsConfig.spendingAmountOnReward;
                         let proposalData = {
@@ -296,33 +300,33 @@ let dbPlayerRewardPoints = {
                 }
             ).then(
                 (rewardPoints) => {
-                    //proposalId not null mean proposal already create log, just need update status && rewardPointsTaskObjId
+                    if(category !== constRewardPointsLogCategory.EARLY_POINT_CONVERSION && category !== constRewardPointsLogCategory.PERIOD_POINT_CONVERSION) {
+                        if (proposalId && (category !== constRewardPointsLogCategory.POINT_REDUCTION
+                                && category !== constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED
+                                && category !== constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED
+                                && category !== constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED)) {
+                            dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
+                        } else {
+                            let logData = {
+                                rewardPointsObjId: playerRewardPoints._id,
+                                rewardPointsTaskObjId: rewardPointsTaskObjId,
+                                category: category,
+                                oldPoints: playerRewardPoints.points,
+                                newPoints: afterChangedRewardPoints,
+                                playerName: playerInfo.name,
+                                playerLevelName: playerInfo.playerLevel.name,
+                                amount: updateAmount,
+                                remark: remark,
+                                status: status,
+                                userAgent: userAgent,
+                                currentDayAppliedAmount: currentDayAppliedAmount,
+                                maxDayApplyAmount: maxDayApplyAmount,
+                                proposalId: proposalId,
+                                creator: creatorName
+                            };
 
-                    if (proposalId && (category !== constRewardPointsLogCategory.POINT_REDUCTION
-                            && category !== constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED
-                            && category !== constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED
-                            && category !== constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED)) {
-                        dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
-                    } else {
-                        let logData = {
-                            rewardPointsObjId: playerRewardPoints._id,
-                            rewardPointsTaskObjId: rewardPointsTaskObjId,
-                            category: category,
-                            oldPoints: playerRewardPoints.points,
-                            newPoints: afterChangedRewardPoints,
-                            playerName: playerInfo.name,
-                            playerLevelName: playerInfo.playerLevel.name,
-                            amount: updateAmount,
-                            remark: remark,
-                            status: status,
-                            userAgent: userAgent,
-                            currentDayAppliedAmount: currentDayAppliedAmount,
-                            maxDayApplyAmount: maxDayApplyAmount,
-                            proposalId: proposalId,
-                            creator: creatorName
-                        };
-
-                        dbLogger.createRewardPointsLog(logData);
+                            dbLogger.createRewardPointsLog(logData);
+                        }
                     }
                     return rewardPoints;
                 }
