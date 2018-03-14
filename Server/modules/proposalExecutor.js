@@ -3201,8 +3201,21 @@ var proposalExecutor = {
             },
 
             rejectPlayerConvertRewardPoints: function (proposalData, deferred) {
+                let playerObjId = proposalData.data.playerObjId;
+                let platformObjId = proposalData.data.platformObjId;
+                let category = constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED;
+                let remark = proposalData.data.remark + " Proposal No: " + proposalData.proposalId;
+                let userAgent = proposalData.inputDevice;
+                let adminName = proposalData.creator.name;
+                let updateAmount = Math.abs(proposalData.data.convertedRewardPoints);
+
                 dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
-                deferred.resolve("Proposal is rejected");
+                dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent,
+                    adminName, constRewardPointsLogStatus.PROCESSED, null, null, null, proposalData.proposalId).then(
+                    () => {
+                        deferred.resolve("Proposal is rejected");
+                    }
+                );
             },
 
             rejectPlayerAutoConvertRewardPoints: function (proposalData, deferred) {
@@ -3732,12 +3745,7 @@ function createRewardPointsTaskForProposal(proposalData, taskData, deferred, rew
                 () => {
                     return dbconfig.collection_rewardPoints.findOne({_id: proposalData.data.playerRewardPointsObjId}).lean().then(
                         playerRewardPoints => {
-                            let rewardPointsLogStatus = proposalData.status == constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
-                            let updateAmount = proposalData.data.convertedRewardPoints >= 0 ? -Math.abs(proposalData.data.convertedRewardPoints) : Math.abs(proposalData.data.convertedRewardPoints);
-                            return dbPlayerRewardPoints.tryToDeductRewardPointFromPlayer(playerRewardPoints.playerObjId, playerRewardPoints.platformObjId,
-                                updateAmount, taskData.data.category, proposalData.data.remark,
-                                proposalData.inputDevice, proposalData.creator.name, rewardPointsLogStatus, proposalData.data.currentDayAppliedAmount, proposalData.data.maxDayApplyAmount,
-                                rewardTask._id, taskData.proposalId);
+                            return dbRewardPointsLog.updateConvertRewardPointsLog(taskData.proposalId, constRewardPointsLogStatus.PROCESSED, rewardTask._id);
                         }
                     );
                 }
