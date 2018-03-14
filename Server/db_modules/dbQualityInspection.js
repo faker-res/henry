@@ -101,6 +101,16 @@ var dbQualityInspection = {
         }
         return mysqlAccName
     },
+    splitLive800AccForCompanyID:function(acc){
+        let mysqlAccName = '';
+        let accArr = acc.split('-');
+
+        if(accArr.length  == 2) {
+            mysqlCompanyId = String(accArr[0]);
+
+            return mysqlCompanyId
+        }
+    },
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
@@ -1429,13 +1439,20 @@ var dbQualityInspection = {
 
     },
     splitOperatorIdToArray:function(operatorIdArr){
-        let results = [];
+        let operatorRes = [];
+        let companyIdRes = [];
         operatorIdArr.forEach(item=>{
             let operator = dbQualityInspection.splitLive800Acc(item);
-            results.push(operator);
+            let companyId = dbQualityInspection.splitLive800AccForCompanyID(item);
+            if (!operatorRes.includes(operator)){
+                operatorRes.push(operator);
+            }
+            if (!companyIdRes.includes(companyId)){
+                companyIdRes.push(companyId);
+            }
         });
 
-        return results;
+        return [operatorRes, companyIdRes];
     },
     searchLive800SettlementRecord: function (data) {
         if (data) {
@@ -1443,16 +1460,17 @@ var dbQualityInspection = {
             let ProgressStatusProm;
             let ProgressMarkProm;
             let operatorName = [];
+            let companyId = [];
             if (data.operatorId && data.operatorId.length > 0) {
                 if (Array.isArray(data.operatorId)) {
-                    operatorName = dbQualityInspection.splitOperatorIdToArray(data.operatorId);
+                    [operatorName, companyId] = dbQualityInspection.splitOperatorIdToArray(data.operatorId);
                 }
             }
 
-            if (data.companyId.length != 0 && operatorName.length != 0) {
-                summaryProm = dbQualityInspection.getLive800RecordDaySummary(data.companyId, operatorName, data.startTime, data.endTime);
-                ProgressStatusProm = dbQualityInspection.getProgressReportStatusByOperator(data.companyId, operatorName, data.startTime, data.endTime);
-                ProgressMarkProm = dbQualityInspection.getProgressReportMarksByOperator(data.companyId, operatorName, data.startTime, data.endTime);
+            if (companyId.length != 0 && operatorName.length != 0) {
+                summaryProm = dbQualityInspection.getLive800RecordDaySummary(companyId, operatorName, data.startTime, data.endTime);
+                ProgressStatusProm = dbQualityInspection.getProgressReportStatusByOperator(companyId, operatorName, data.startTime, data.endTime);
+                ProgressMarkProm = dbQualityInspection.getProgressReportMarksByOperator(companyId, operatorName, data.startTime, data.endTime);
             }
             else {
                 summaryProm = dbQualityInspection.getAllLive800RecordDaySummary(data.startTime, data.endTime);
