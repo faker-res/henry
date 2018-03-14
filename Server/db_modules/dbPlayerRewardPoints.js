@@ -174,10 +174,6 @@ let dbPlayerRewardPoints = {
                             });
                         }
 
-                        //minus from RP
-                        dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -actualConvertRewardPointsAmount,
-                            constRewardPointsLogCategory.EARLY_POINT_CONVERSION, remark, userAgent, adminName || playerInfo.name);
-
                         convertCredit = Math.floor(actualConvertRewardPointsAmount / playerLvlRewardPointsConfig.pointToCreditManualRate);
                         let spendingAmount = convertCredit * playerLvlRewardPointsConfig.spendingAmountOnReward;
                         let proposalData = {
@@ -212,7 +208,15 @@ let dbPlayerRewardPoints = {
                             userType: constProposalUserType.PLAYERS,
                             inputDevice: userAgent
                         };
-                        return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
+                        return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData).then(
+                            data => {
+                                //minus from RP
+                                dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -actualConvertRewardPointsAmount,
+                                    constRewardPointsLogCategory.EARLY_POINT_CONVERSION, remark, userAgent, adminName || playerInfo.name);
+                                return data;
+                            },
+                            err => {return Q.reject(err);}
+                        );
                     }
                 }
             ).then(
