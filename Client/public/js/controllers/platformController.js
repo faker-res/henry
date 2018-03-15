@@ -7792,6 +7792,11 @@ define(['js/app'], function (myApp) {
         vm.createPlayerRegistrationIntentRecord = function (data) {
 
                 var intentData = {
+                    adminInfo: {
+                        type: "admin",
+                        name: authService.adminName,
+                        id: authService.adminId
+                    },
                     name: data.data.name,
                     realName: data.data.realName,
                     password: data.data.password,
