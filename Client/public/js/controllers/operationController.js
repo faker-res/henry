@@ -421,9 +421,17 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            let totalProposalType = 0;
+            if (vm.rightPanelTitle == 'ALL_PROPOSAL') {
+                totalProposalType = $('select#selectProposalType option').length;
+            }
+            else if (vm.rightPanelTitle == 'APPROVAL_PROPOSAL') {
+                totalProposalType = $('select#selectProposalAuditType option').length;
+            }
+
             let proposalTypeNames = [];
 
-            if (vm.allProposalType.length != vm.proposalTypeSelected.length) {
+            if (totalProposalType != vm.proposalTypeSelected.length) {
                 vm.allProposalType.filter(item => {
                     if (vm.proposalTypeSelected.indexOf(item.name) > -1 && proposalTypeNames.indexOf(item.name) < 0) {
                         proposalTypeNames.push(item.name);
