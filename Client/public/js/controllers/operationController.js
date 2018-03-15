@@ -54,7 +54,8 @@ define(['js/app'], function (myApp) {
             1: 'Online',
             2: 'ATM',
             3: 'Counter',
-            4: 'AliPayTransfer'
+            4: 'AliPayTransfer',
+            5: 'weChatPayTransfer'
         };
         vm.inputDevice = {
             BACKSTAGE: 0,

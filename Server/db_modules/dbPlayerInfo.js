@@ -64,6 +64,7 @@ const constSMSPurpose = require("../const/constSMSPurpose");
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
+const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
 
 // db_common
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
@@ -220,7 +221,9 @@ let dbPlayerInfo = {
      * Update player's reward points and create log
      */
     updatePlayerRewardPointsRecord: function (playerObjId, platformObjId, updateAmount, remark, adminName, adminId) {
+        updateAmount = isNaN(updateAmount) ? 0 : parseInt(updateAmount);
         let category = updateAmount >= 0 ? constRewardPointsLogCategory.POINT_INCREMENT : constRewardPointsLogCategory.POINT_REDUCTION;
+        let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
         let proposalType = updateAmount >= 0 ? constProposalType.PLAYER_ADD_REWARD_POINTS : constProposalType.PLAYER_MINUS_REWARD_POINTS;
         let proposalData = {
             data: {
@@ -229,11 +232,38 @@ let dbPlayerInfo = {
                 updateAmount: updateAmount,
                 category: category,
                 remark: remark,
-                userAgent: constPlayerRegistrationInterface.BACKSTAGE,
+                userAgent: userAgent,
                 adminName: adminName
+            },
+            creator: {
+                name: adminName
             }
         };
-        dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData);
+
+        //if its add RP, get reward points for creation of proposal, RP log created along with proposal creation.
+        if (proposalType === constProposalType.PLAYER_ADD_REWARD_POINTS) {
+            dbRewardPoints.getPlayerRewardPoints(ObjectId(playerObjId)).then(
+                rewardPoints => {
+                    if (rewardPoints) {
+                        proposalData.data.playerRewardPointsObjId = rewardPoints._id;
+                        proposalData.data.beforeRewardPoints = rewardPoints.points;
+                        proposalData.data.afterRewardPoints = rewardPoints.points + updateAmount;
+                    }
+                }
+            );
+        }
+        return dbProposal.createProposalWithTypeName(platformObjId, proposalType, proposalData).then(
+            data => {
+                //if its minus RP, call dbPlayerRewardPoints.changePlayerRewardPoint() to minus RP first, RP log created within the function.
+                if (proposalType === constProposalType.PLAYER_MINUS_REWARD_POINTS) {
+                    //status is here to ensure reward points log status is set to PROCESSED, if proposal is auto approved.
+                    let status = data.status === constProposalStatus.APPROVED ? constRewardPointsLogStatus.PROCESSED : constRewardPointsLogStatus.PENDING;
+                    remark = remark ? remark + " Proposal No: " + data.proposalId : "Proposal No: " + data.proposalId;
+                    dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent,
+                        adminName, status, null, null, null, data.proposalId);
+                }
+            }
+        );
     },
 
     /**
@@ -287,12 +317,50 @@ let dbPlayerInfo = {
                     $lt: todayTime.endTime
                 },
                 rewardPointsObjId: ObjectId(rewardPointsObjId),
-                category: category
+                category: category,
+                status: constRewardPointsLogStatus.PROCESSED
             }
         }, {
             $group: {
                 _id: "$rewardPointsObjId",
                 amount: {$sum: {$subtract: ["$oldPoints", "$newPoints"]}}
+            }
+        }).then(
+            rewardPointsLog => rewardPointsLog && rewardPointsLog[0] ? rewardPointsLog[0].amount : 0
+        )
+    },
+
+    /**
+     * Get player reward points daily applied points
+     */
+    getPlayerRewardPointsDailyAppliedPoints: function (rewardPointsObjId) {
+        let todayTime = dbUtility.getTodaySGTime();
+        let category = [
+            constRewardPointsLogCategory.LOGIN_REWARD_POINTS,
+            constRewardPointsLogCategory.TOPUP_REWARD_POINTS,
+            constRewardPointsLogCategory.GAME_REWARD_POINTS,
+            constRewardPointsLogCategory.POINT_REDUCTION,
+            constRewardPointsLogCategory.POINT_INCREMENT,
+            constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
+            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION,
+            constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED,
+            constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED,
+            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED
+        ];
+        return dbconfig.collection_rewardPointsLog.aggregate({
+            $match: {
+                createTime: {
+                    $gte: todayTime.startTime,
+                    $lt: todayTime.endTime
+                },
+                rewardPointsObjId: ObjectId(rewardPointsObjId),
+                category: { $in: category },
+                status: constRewardPointsLogStatus.PROCESSED
+            }
+        }, {
+            $group: {
+                _id: "$rewardPointsObjId",
+                amount: {$sum: {$subtract: ["$newPoints", "$oldPoints"]}}
             }
         }).then(
             rewardPointsLog => rewardPointsLog && rewardPointsLog[0] ? rewardPointsLog[0].amount : 0
@@ -1338,7 +1406,8 @@ let dbPlayerInfo = {
                     password: randomPsw,
                     validCredit: defaultCredit,
                     isTestPlayer: true,
-                    isRealPlayer: false
+                    isRealPlayer: false,
+                    isLogin: true,
                 };
 
                 if(platform.requireSMSVerificationForDemoPlayer && !isBackStageGenerated) {
@@ -1369,9 +1438,12 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
 
+                let profile = {name: playerData.name, password: playerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
                 playerData.password = randomPsw;
 
-                return playerData;
+                return {playerData, token};
             }
         );
     },
@@ -1398,8 +1470,8 @@ let dbPlayerInfo = {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
-                apiData.userCurrentPoint = apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
-                apiData.rewardPointsObjId = apiData.rewardPointsObjId._id;
+                apiData.userCurrentPoint = apiData.rewardPointsObjId && apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
+                apiData.rewardPointsObjId = apiData.rewardPointsObjId && apiData.rewardPointsObjId._id;
 
                 // if (data.realName) {
                 //     data.realName = dbUtility.encodeRealName(data.realName);
@@ -1424,8 +1496,9 @@ let dbPlayerInfo = {
                 b = apiData.bankAccountCity ? pmsAPI.foundation_getCity({cityId: apiData.bankAccountCity}) : true;
                 c = apiData.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: apiData.bankAccountDistrict}) : true;
                 var creditProm = dbPlayerInfo.getPlayerCredit(apiData.playerId);
-                let rewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(apiData.rewardPointsObjId);
-                return Q.all([a, b, c, creditProm, rewardPointsProm]);
+                let convertedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(apiData.rewardPointsObjId);
+                let appliedRewardPointsProm = dbPlayerInfo.getPlayerRewardPointsDailyAppliedPoints(apiData.rewardPointsObjId);
+                return Q.all([a, b, c, creditProm, convertedRewardPointsProm, appliedRewardPointsProm]);
             },
             function (err) {
                 deferred.reject({name: "DBError", error: err, message: "Error in getting player platform Data"})
@@ -1433,13 +1506,16 @@ let dbPlayerInfo = {
         ).then(
             zoneData => {
                 apiData.bankAccountProvinceId = apiData.bankAccountProvince;
-                apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
                 apiData.bankAccountCityId = apiData.bankAccountCity;
-                apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
-                apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
-                apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
-                apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
+                if (zoneData && zoneData[0]) {
+                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
+                    apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                    apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
+                    apiData.preDailyAppliedPoint = zoneData[5] ? zoneData[5] : 0;
+                }
                 deferred.resolve(apiData);
             },
             zoneError => {
@@ -4144,10 +4220,15 @@ let dbPlayerInfo = {
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
+                                    }).populate({
+                                        path: "rewardPointsObjId",
+                                        model: dbconfig.collection_rewardPoints
                                     }).lean().then(
                                         res => {
                                             res.name = res.name.replace(platformPrefix, "");
                                             retObj = res;
+                                            retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                                            retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
                                             var a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
@@ -7774,12 +7855,13 @@ let dbPlayerInfo = {
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
-        var dayDate = dbUtility.getTodaySGTime();
-        var weekDates = dbUtility.getTodaySGTime();
+        let dayDate = dbUtility.getTodaySGTime();
+        let weekDates = dbUtility.getTodaySGTime();
         weekDates.startTime = new Date(weekDates.startTime.getTime() - 7 * 24 * 3600 * 1000);
         weekDates.endTime = dayDate.startTime;
-        var returnedData;
-        var calculation = null;
+        let returnedData;
+        let calculation = null;
+
         switch (type) {
             case 'topup' :
                 calculation = {$sum: "$topUpAmount"};
@@ -7787,6 +7869,7 @@ let dbPlayerInfo = {
             case 'consumption' :
                 calculation = {$sum: "$consumptionAmount"}
         }
+
         return dbconfig.collection_platformDaySummary.aggregate(
             {
                 $match: {
@@ -7802,6 +7885,34 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+
+                data.map(e => {
+                    if (e.number > 1000000) {
+                        let todayTime = dbUtility.getDayTime(e._id);
+
+                        console.log('todayTime', todayTime);
+
+                        dbconfig.collection_playerTopUpDaySummary.aggregate({
+                            $match: {
+                                date: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                                platformId: platformId
+                            }
+                        }, {
+                            $group: {
+                                _id: {playerId: "$playerId", platformId: "$platformId"},
+                                amount: {$sum: "$amount"},
+                                times: {$sum: "$times"}
+                            }
+                        }).exec().then(
+                            data => {
+                                data = data.map(e => e.amount > 10000);
+                                console.log('extra data', data)
+                            }
+                        )
+                    }
+                });
+
+
                 returnedData = Object.assign([], data);
                 if (type == "topup") {
                     return dbPlayerTopUpRecord.getTopUpTotalAmountForAllPlatform(dayDate.startTime, dayDate.endTime, platformId)
@@ -7812,7 +7923,7 @@ let dbPlayerInfo = {
         ).then(
             data1 => {
                 if (data1 && data1[0]) {
-                    var newRecord = {};
+                    let newRecord = {};
                     newRecord._id = {date: dayDate.startTime};
                     newRecord.number = data1[0].totalAmount;
                     returnedData.push(newRecord);
@@ -9985,7 +10096,7 @@ let dbPlayerInfo = {
                                         if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             console.log(paymentData.merchants[i])
 
-                                            if(playerData.forbidTopUpType && playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1){
+                                            if(!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1){
                                                 resData.push({
                                                     type: paymentData.merchants[i].topupType,
                                                     status: status,

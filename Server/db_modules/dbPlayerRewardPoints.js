@@ -208,7 +208,15 @@ let dbPlayerRewardPoints = {
                             userType: constProposalUserType.PLAYERS,
                             inputDevice: userAgent
                         };
-                        return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
+                        return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData).then(
+                            data => {
+                                //minus from RP
+                                dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -actualConvertRewardPointsAmount,
+                                    constRewardPointsLogCategory.EARLY_POINT_CONVERSION, remark, userAgent, adminName || playerInfo.name);
+                                return data;
+                            },
+                            err => {return Q.reject(err);}
+                        );
                     }
                 }
             ).then(
@@ -296,30 +304,33 @@ let dbPlayerRewardPoints = {
                 }
             ).then(
                 (rewardPoints) => {
-                    //proposalId not null mean proposal already create log, just need update status && rewardPointsTaskObjId
+                    if(category !== constRewardPointsLogCategory.EARLY_POINT_CONVERSION && category !== constRewardPointsLogCategory.PERIOD_POINT_CONVERSION) {
+                        if (proposalId && (category !== constRewardPointsLogCategory.POINT_REDUCTION
+                                && category !== constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED
+                                && category !== constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED
+                                && category !== constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED)) {
+                            dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
+                        } else {
+                            let logData = {
+                                rewardPointsObjId: playerRewardPoints._id,
+                                rewardPointsTaskObjId: rewardPointsTaskObjId,
+                                category: category,
+                                oldPoints: playerRewardPoints.points,
+                                newPoints: afterChangedRewardPoints,
+                                playerName: playerInfo.name,
+                                playerLevelName: playerInfo.playerLevel.name,
+                                amount: updateAmount,
+                                remark: remark,
+                                status: status,
+                                userAgent: userAgent,
+                                currentDayAppliedAmount: currentDayAppliedAmount,
+                                maxDayApplyAmount: maxDayApplyAmount,
+                                proposalId: proposalId,
+                                creator: creatorName
+                            };
 
-                    if (proposalId) {
-                        dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
-                    } else {
-                        let logData = {
-                            rewardPointsObjId: playerRewardPoints._id,
-                            rewardPointsTaskObjId: rewardPointsTaskObjId,
-                            category: category,
-                            oldPoints: playerRewardPoints.points,
-                            newPoints: afterChangedRewardPoints,
-                            playerName: playerInfo.name,
-                            playerLevelName: playerInfo.playerLevel.name,
-                            amount: updateAmount,
-                            remark: remark,
-                            status: status,
-                            userAgent: userAgent,
-                            currentDayAppliedAmount: currentDayAppliedAmount,
-                            maxDayApplyAmount: maxDayApplyAmount,
-                            proposalId: proposalId,
-                            creator: creatorName
-                        };
-
-                        dbLogger.createRewardPointsLog(logData);
+                            dbLogger.createRewardPointsLog(logData);
+                        }
                     }
                     return rewardPoints;
                 }
@@ -556,7 +567,16 @@ let dbPlayerRewardPoints = {
                                     },
                                     inputDevice: constPlayerRegistrationInterface.BACKSTAGE,
                                 };
-                                return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
+
+                                return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData).then(
+                                    data => {
+                                        //minus from RP
+                                        dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -convertRewardPoints,
+                                            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION, null, constPlayerRegistrationInterface.BACKSTAGE, "system");
+                                        return data;
+                                    },
+                                    err => {return Q.reject(err);}
+                                );
                             }
                             return rewardPoints;
                         }

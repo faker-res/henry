@@ -421,7 +421,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
                 function successFunc(data) {
                     if(data.data){
-                        vm.pgn.totalPage = (data.data / vm.pgn.limit).toFixed(0);
+                        let itemTotal = data.data && data.data ? data.data : 0;
+                        let totalPage = itemTotal / vm.pgn.limit
+                        vm.pgn.totalPage = Math.ceil(totalPage);
                         vm.pgn.count = data.data;
                     }else{
                         vm.pgn.totalPage = 1;
@@ -1642,25 +1644,25 @@ define(['js/app'], function (myApp) {
                 vm.selectedCSAccount = [];
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800 = [];
-                vm.CSDepartmentId=[];
+                vm.allCSDepartmentId = [];
+                vm.selectedCS = [];
 
                 if (seletedProductsId !== 'all') {
                     // select the CS account that bound to the selected platform
 
-                    vm.platformList.forEach(platform => {
+                    vm.platformWithCSDepartment.forEach(platform => {
                         if (platform.id === seletedProductsId) {
                             if (platform.data.csDepartment.length > 0) {
                                 platform.data.csDepartment.forEach(department => {
-                                    vm.CSDepartmentId.push(department._id);
+                                    vm.allCSDepartmentId.push(department._id);
                                 });
                             }
                         }
                     });
 
                     let sendQuery ={
-                        departments: {$in: vm.CSDepartmentId}
+                        departments: {$in: vm.allCSDepartmentId}
                     };
-
 
                     socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
 
@@ -1668,18 +1670,13 @@ define(['js/app'], function (myApp) {
                             data.data.forEach(acc => {
                                 if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                     vm.selectedCSAccount.push(acc);
+                                    vm.selectedCS.push(acc._id);
                                     acc.live800Acc.forEach(liveAcc => {
                                         vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
                                         vm.selectedLive800.push(liveAcc);
                                     });
                                 }
                             });
-                            if (vm.selectedCSAccount && vm.selectedCSAccount.length > 0){
-                                vm.selectedCS=[];
-                                vm.selectedCSAccount.forEach(acc => {
-                                    vm.selectedCS.push(acc._id);
-                                });
-                            }
                         }else{
                             // for null
                             vm.selectedCSAccount.push("");
@@ -1692,7 +1689,7 @@ define(['js/app'], function (myApp) {
 
                 } else {
                     // select all by default
-                    vm.platformList.forEach(platform => {
+                    vm.platformWithCSDepartment.forEach(platform => {
                         if (platform.data.csDepartment.length >0) {
                             platform.data.csDepartment.forEach(department =>{
                                 vm.allCSDepartmentId.push(department._id);
@@ -1791,6 +1788,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedLive800= [];
                 vm.allLive800Acc=[];
                 vm.allCSDepartmentId=[];
+                vm.selectedCS = [];
                 vm.platformWithCSDepartment=[]; // to filter out the platform with CS Department for the Product Filter
 
 
@@ -1812,18 +1810,11 @@ define(['js/app'], function (myApp) {
                         data.data.forEach(acc => {
                             if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
                                 vm.selectedCSAccount.push(acc);
+                                vm.selectedCS.push(acc._id);
                             }
                         });
 
                         console.log("vm.selectedCSAccount",vm.selectedCSAccount);
-
-                        if (vm.selectedCSAccount && vm.selectedCSAccount.length > 0){
-                            vm.selectedCS=[];
-                            vm.selectedCSAccount.forEach(acc => {
-                                vm.selectedCS.push(acc._id);
-                            });
-                        }
-
                         console.log("vm.selectedCS",vm.selectedCS);
 
                         //select the Live800 account that bound to the selected CS account
@@ -1846,10 +1837,11 @@ define(['js/app'], function (myApp) {
                                 });
                             }
                         });
+
                         console.log("vm.selectedLive800Acc",vm.selectedLive800Acc);
                         console.log("vm.selectedLive800",vm.selectedLive800);
                     }
-                    $scope.safeApply();
+                   $scope.safeApply();
                 });
 
                 vm.QIReportQuery ={};
@@ -1866,11 +1858,11 @@ define(['js/app'], function (myApp) {
                 let startTime = vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate();
                 let endTime = vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate();
 
-                let searchInterval = new Date(endTime).getTime() - new Date(utilService.getTodayStartTime()).getTime();
-                if (searchInterval > 0) {
-                    socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
-                    return;
-                }
+                // let searchInterval = new Date(endTime).getTime() - new Date(utilService.getTodayStartTime()).getTime();
+                // if (searchInterval > 0) {
+                //     socketService.showErrorMessage($translate("Exceed QI Report search max time frame"));
+                //     return;
+                // }
 
                 vm.platformCompanyID=[];
                 vm.platformList.forEach(platform => {
@@ -1880,31 +1872,16 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.mysqlData=[];
-                vm.companyID=[];
+                let searchAllByDefault = false;
+                if (vm.selectedLive800.length === vm.allLive800Acc.length || vm.selectedLive800.length == 0){
+                    searchAllByDefault = true;
+                }
 
-                if (vm.selectedPlatformID != 'all'){
-                    let index=vm.platformCompanyID.findIndex(p => p.id == vm.selectedPlatformID);
-                    if(index != -1) {
-                        vm.companyID=vm.platformCompanyID[index].companyId;
-                    }
-                }
-                else {
-                    vm.platformCompanyID.forEach(platform => {
-                        platform.companyId.forEach(id => {
-                            vm.companyID.push(id);
-                        })
-                    });
-                    if (vm.selectedLive800.length === vm.allLive800Acc.length){
-                        // selected all
-                        vm.selectedLive800=[];
-                        vm.companyID=[];
-                    }
-                }
                 $('#QIReportTableSpin').show();
 
                 var query = {
-                    'companyId':vm.companyID,
-                    'operatorId':vm.selectedLive800,
+                    //'companyId':vm.companyID,
+                    'operatorId':searchAllByDefault === false ? vm.selectedLive800 : [],
                     'startTime': vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate(),
                 };
@@ -1925,7 +1902,7 @@ define(['js/app'], function (myApp) {
 
                             // handle total number of effective conversation, non-effective conversation and total conversation
                             let preData = [];
-                            preData = data.data[0].map(item => {
+                            data.data[0].filter(item => {
                                 //preData =  data.data[0].map(item => {
                                 let itemObj = {};
 
@@ -1938,41 +1915,47 @@ define(['js/app'], function (myApp) {
                                 if (index != -1) {
                                     itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                 }
-                                itemObj.count_0 = item.totalNonEffectiveCount;
-                                itemObj.count_1 = item.totalEffectiveCount;
-                                itemObj.totalCount = item.totalCount;
 
-                                return itemObj;
+                                if (itemObj.productName && itemObj.adminName){
+                                    itemObj.count_0 = item.totalNonEffectiveCount;
+                                    itemObj.count_1 = item.totalEffectiveCount;
+                                    itemObj.totalCount = item.totalCount;
+
+                                    return preData.push(itemObj);
+                                }
+
 
                             });
 
-                            var holder = {};
+                            if (preData && preData.length > 0) {
+                                var holder = {};
 
-                            preData.forEach(d => {
+                                preData.forEach(d => {
 
-                                if (holder.hasOwnProperty(d.adminName)) {
-                                    holder[d.adminName] = [holder[d.adminName][0] + d.count_0, holder[d.adminName][1] + d.count_1, holder[d.adminName][2] + d.totalCount];
-                                } else {
-                                    holder[d.adminName] = [d.count_0, d.count_1, d.totalCount];
+                                    if (holder.hasOwnProperty(d.adminName)) {
+                                        holder[d.adminName] = [holder[d.adminName][0] + d.count_0, holder[d.adminName][1] + d.count_1, holder[d.adminName][2] + d.totalCount];
+                                    } else {
+                                        holder[d.adminName] = [d.count_0, d.count_1, d.totalCount];
+                                    }
+                                });
+
+                                for (var prop in holder) {
+                                    let index = preData.findIndex(p => p.adminName == prop);
+                                    if (index != -1) {
+                                        vm.postData.push({
+                                            productName: preData[index].productName,
+                                            adminName: prop,
+                                            count_0: holder[prop][0],
+                                            count_1: holder[prop][1],
+                                            totalCount: holder[prop][2],
+                                        })
+                                    }
                                 }
-                            });
 
-                            for (var prop in holder) {
-                                let index = preData.findIndex(p => p.adminName == prop);
-                                if (index != -1) {
-                                    vm.postData.push({
-                                        productName: preData[index].productName,
-                                        adminName: prop,
-                                        count_0: holder[prop][0],
-                                        count_1: holder[prop][1],
-                                        totalCount: holder[prop][2],
-                                    })
-                                }
                             }
-
                         }
 
-                        if (data.data[1].length > 0) {
+                        if (data.data[1].length > 0 && vm.postData.length >0 ) {
                             // handle the status of the conversation record group by operatorId based on status
                             let preData = [];
 
@@ -2008,7 +1991,7 @@ define(['js/app'], function (myApp) {
                             });
                         }
 
-                        if (data.data[2].length > 0) {
+                        if (data.data[2].length > 0 && vm.postData.length > 0) {
                             // handle the total timeout rate and total inspesction per operatorId
                             let preData = [];
 
@@ -2166,24 +2149,21 @@ define(['js/app'], function (myApp) {
                                 adminName: data.adminName
 
                             }, function (data) {
-                                selectedLiveAcc = data.data[0].live800Acc;
 
-                                vm.mysqlData.forEach( item => {
-                                    if (item.operatorName == data.data[0].adminName){
-                                        selectedCompanyId.push(item.companyId.toString());
-                                    }
-                                });
-
-                                for (let i = 0; i < selectedLiveAcc.length; i++) {
-                                    vm.mysqlData.forEach(item => {
-                                        if (item.operatorId == selectedLiveAcc[i]) {
-                                            vm.displayDetailData.push(item);
-                                        }
-                                    })
+                                if (!data || !data.data[0] || data.data[0].length == 0){
+                                    return;
                                 }
 
+                                // vm.mysqlData.forEach( item => {
+                                //     if (item.operatorName == data.data[0].adminName){
+                                //         selectedCompanyId.push(item.companyId.toString());
+                                //     }
+                                // });
+
+                                selectedLiveAcc = data.data[0].live800Acc;
+                            
                                 let params= {
-                                    'companyId': selectedCompanyId,
+                                    //'companyId': selectedCompanyId.length > 0 ? selectedCompanyId : [],
                                     'operatorId': selectedLiveAcc,
                                     'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
                                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
