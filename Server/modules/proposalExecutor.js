@@ -2482,25 +2482,23 @@ var proposalExecutor = {
 
             executePlayerConvertRewardPoints: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.playerRewardPointsObjId) {
-                    let isPeriodPointConversion = proposalData.creator.type == 'system';
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         platformId: proposalData.data.platformObjId,
-                        type: isPeriodPointConversion ? constRewardType.PLAYER_PERIOD_POINT_CONVERSION : constRewardType.PLAYER_EARLY_POINT_CONVERSION,
-                        rewardType: isPeriodPointConversion ? constRewardType.PLAYER_PERIOD_POINT_CONVERSION : constRewardType.PLAYER_EARLY_POINT_CONVERSION,
+                        type: constRewardType.PLAYER_EARLY_POINT_CONVERSION,
+                        rewardType: constRewardType.PLAYER_EARLY_POINT_CONVERSION,
                         currentAmount: proposalData.data.convertCredit,
                         initAmount: proposalData.data.convertCredit,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
                         providerGroup: proposalData.data.providerGroup,
                         applyAmount: 0,
                         data: {
-                            category: isPeriodPointConversion ? constRewardPointsLogCategory.PERIOD_POINT_CONVERSION : constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
+                            category: constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
                             convertedRewardPointsAmount: proposalData.data.convertedRewardPoints,
                             rewardPointsObjId: proposalData.data.playerRewardPointsObjId
                         },
 
                     };
-
                     let deferred1 = Q.defer();
                     createRewardPointsTaskForProposal(proposalData, taskData, deferred1, constProposalType.PLAYER_CONVERT_REWARD_POINTS, proposalData);
                     deferred1.promise.then(
@@ -3219,8 +3217,22 @@ var proposalExecutor = {
             },
 
             rejectPlayerAutoConvertRewardPoints: function (proposalData, deferred) {
+                let playerObjId = proposalData.data.playerObjId;
+                let platformObjId = proposalData.data.platformObjId;
+                let category = constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED;
+                let remark = proposalData.data.remark
+                    ? proposalData.data.remark + " Proposal No: " + proposalData.proposalId : "Proposal No: " + proposalData.proposalId;
+                let userAgent = proposalData.inputDevice;
+                let adminName = proposalData.creator.name;
+                let updateAmount = Math.abs(proposalData.data.convertedRewardPoints);
+
                 dbRewardPointsLog.updateConvertRewardPointsLog(proposalData.proposalId, constRewardPointsLogStatus.CANCELLED, null);
-                deferred.resolve("Proposal is rejected");
+                dbPlayerRewardPoints.changePlayerRewardPoint(playerObjId, platformObjId, updateAmount, category, remark, userAgent,
+                    adminName, constRewardPointsLogStatus.PROCESSED, null, null, null, proposalData.proposalId).then(
+                    () => {
+                        deferred.resolve("Proposal is rejected");
+                    }
+                );
             },
         }
     }
