@@ -1470,8 +1470,8 @@ let dbPlayerInfo = {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
-                apiData.userCurrentPoint = apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
-                apiData.rewardPointsObjId = apiData.rewardPointsObjId._id;
+                apiData.userCurrentPoint = apiData.rewardPointsObjId && apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
+                apiData.rewardPointsObjId = apiData.rewardPointsObjId && apiData.rewardPointsObjId._id;
 
                 // if (data.realName) {
                 //     data.realName = dbUtility.encodeRealName(data.realName);
@@ -1506,14 +1506,16 @@ let dbPlayerInfo = {
         ).then(
             zoneData => {
                 apiData.bankAccountProvinceId = apiData.bankAccountProvince;
-                apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
                 apiData.bankAccountCityId = apiData.bankAccountCity;
-                apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
-                apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
-                apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
-                apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
-                apiData.preDailyAppliedPoint = zoneData[5] ? zoneData[5] : 0;
+                if (zoneData && zoneData[0]) {
+                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
+                    apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                    apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
+                    apiData.preDailyAppliedPoint = zoneData[5] ? zoneData[5] : 0;
+                }
                 deferred.resolve(apiData);
             },
             zoneError => {
