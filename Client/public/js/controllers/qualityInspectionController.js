@@ -421,7 +421,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'countLive800', query, successFunc);
                 function successFunc(data) {
                     if(data.data){
-                        vm.pgn.totalPage = (data.data / vm.pgn.limit).toFixed(0);
+                        let itemTotal = data.data && data.data ? data.data : 0;
+                        let totalPage = itemTotal / vm.pgn.limit
+                        vm.pgn.totalPage = Math.ceil(totalPage);
                         vm.pgn.count = data.data;
                     }else{
                         vm.pgn.totalPage = 1;
