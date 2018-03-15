@@ -1311,17 +1311,20 @@ let dbRewardPoints = {
 
                 let loginRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
-                    category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS
+                    category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS,
+                    status: true
                 }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
 
                 let topupRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
-                    category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS
+                    category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS,
+                    status: true
                 }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
 
                 let gameRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
-                    category: constRewardPointsTaskCategory.GAME_REWARD_POINTS
+                    category: constRewardPointsTaskCategory.GAME_REWARD_POINTS,
+                    status: true
                 }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
 
                 let gameProviderProm = dbConfig.collection_gameProvider.find({}).lean();
@@ -1956,6 +1959,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                 case constRewardPointsTaskCategory.TOPUP_REWARD_POINTS: {
                     if (reward.period == 1 && currentGoal == 0 && reward.target && reward.target.dailyTopupAmount && (todayTopupAmount >= reward.target.dailyTopupAmount)) {
                         currentGoal = 1;
+                        status = 1;
                     }
                     rewards = {
                         "id": reward._id,
