@@ -7895,7 +7895,7 @@ let dbPlayerInfo = {
                         dbconfig.collection_playerTopUpDaySummary.aggregate({
                             date: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                             platformId: platformId
-                        }).then(
+                        }).exec().then(
                             data => console.log('extra data', data)
                         )
                     }
