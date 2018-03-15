@@ -1956,7 +1956,6 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                 case constRewardPointsTaskCategory.TOPUP_REWARD_POINTS: {
                     if (reward.period == 1 && currentGoal == 0 && reward.target && reward.target.dailyTopupAmount && (todayTopupAmount >= reward.target.dailyTopupAmount)) {
                         currentGoal = 1;
-                        status = 1;
                     }
                     rewards = {
                         "id": reward._id,
