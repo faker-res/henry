@@ -532,28 +532,10 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
-            let totalProposalType = 0;
-            if (vm.rightPanelTitle == 'ALL_PROPOSAL') {
-                totalProposalType = $('select#selectProposalType option').length;
-            }
-            else if (vm.rightPanelTitle == 'APPROVAL_PROPOSAL') {
-                totalProposalType = $('select#selectProposalAuditType option').length;
-            }
-
-            let proposalTypeNames = [];
-
-            if (totalProposalType != vm.proposalAuditTypeSelected.length) {
-                vm.allProposalType.filter(item => {
-                    if (vm.proposalAuditTypeSelected.indexOf(item.name) > -1 && proposalTypeNames.indexOf(item.name) < 0) {
-                        proposalTypeNames.push(item.name);
-                    }
-                });
-            }
-
             let sendData = {
                 adminId: authService.adminId,
                 platformId: vm.allPlatformId,
-                type: proposalTypeNames,
+                type: vm.proposalAuditTypeSelected,
                 startDate: startTime.getLocalDate(),
                 endDate: newEndTime,
                 entryType: vm.queryProposalEntryType,
