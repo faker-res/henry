@@ -133,4 +133,4 @@ div(style='display:none')
                 div.text-center  {{cform.processTime | date:"yyyy-MM-dd hh:mm:ss"}}
             div.col-md-1(style="padding-top:10px;")
                 div.form-group
-                    textarea.form-control(value="{{cform.appealReason}}", readonly="readonly", rows="3")
+                    textarea.form-control(readonly="readonly", rows="3") {{cform.appealReason}}
