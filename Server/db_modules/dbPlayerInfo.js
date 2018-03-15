@@ -7888,9 +7888,9 @@ let dbPlayerInfo = {
 
                 data.map(e => {
                     if (e.number > 1000000) {
-                        let todayTime = dbUtility.getDayTime(e._id);
+                        let todayTime = dbUtility.getYesterdaySGTime();
 
-                        console.log('todayTime', todayTime);
+                        console.log('yesterdayTime', todayTime);
 
                         dbconfig.collection_playerTopUpDaySummary.aggregate({
                             $match: {
