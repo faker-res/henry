@@ -175,7 +175,6 @@ define(['js/app'], function (myApp) {
         function loadAllData () {
             if (authService.checkViewPermission('Dashboard', 'Platform', 'Read')) {
                 getDashboardData(0);
-                getDashboardData(7);
             }
             if (authService.checkViewPermission('Dashboard', 'Statistics', 'Read')) {
                 drawDataGraph();
@@ -298,6 +297,20 @@ define(['js/app'], function (myApp) {
                     queryDone[4] = true;
                 })
             });
+
+            callback();
+
+            function callback() {
+                for (let i in queryDone) {
+                    if (!queryDone[i]) {
+                        return setTimeout(callback, 100);
+                    }
+                }
+
+                if (numDays == 0) {
+                    return getDashboardData(7);
+                }
+            }
         }
 
         function drawDataGraph () {
