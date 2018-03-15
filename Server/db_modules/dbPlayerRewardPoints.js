@@ -567,7 +567,16 @@ let dbPlayerRewardPoints = {
                                     },
                                     inputDevice: constPlayerRegistrationInterface.BACKSTAGE,
                                 };
-                                return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
+
+                                return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData).then(
+                                    data => {
+                                        //minus from RP
+                                        dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -convertRewardPoints,
+                                            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION, null, constPlayerRegistrationInterface.BACKSTAGE, "system");
+                                        return data;
+                                    },
+                                    err => {return Q.reject(err);}
+                                );
                             }
                             return rewardPoints;
                         }
