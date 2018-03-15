@@ -7855,12 +7855,13 @@ let dbPlayerInfo = {
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
-        var dayDate = dbUtility.getTodaySGTime();
-        var weekDates = dbUtility.getTodaySGTime();
+        let dayDate = dbUtility.getTodaySGTime();
+        let weekDates = dbUtility.getTodaySGTime();
         weekDates.startTime = new Date(weekDates.startTime.getTime() - 7 * 24 * 3600 * 1000);
         weekDates.endTime = dayDate.startTime;
-        var returnedData;
-        var calculation = null;
+        let returnedData;
+        let calculation = null;
+
         switch (type) {
             case 'topup' :
                 calculation = {$sum: "$topUpAmount"};
@@ -7868,6 +7869,7 @@ let dbPlayerInfo = {
             case 'consumption' :
                 calculation = {$sum: "$consumptionAmount"}
         }
+
         return dbconfig.collection_platformDaySummary.aggregate(
             {
                 $match: {
@@ -7883,6 +7885,9 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+
+                console.log('collection_platformDaySummary', data);
+
                 returnedData = Object.assign([], data);
                 if (type == "topup") {
                     return dbPlayerTopUpRecord.getTopUpTotalAmountForAllPlatform(dayDate.startTime, dayDate.endTime, platformId)
@@ -7893,7 +7898,7 @@ let dbPlayerInfo = {
         ).then(
             data1 => {
                 if (data1 && data1[0]) {
-                    var newRecord = {};
+                    let newRecord = {};
                     newRecord._id = {date: dayDate.startTime};
                     newRecord.number = data1[0].totalAmount;
                     returnedData.push(newRecord);
