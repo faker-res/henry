@@ -6013,7 +6013,13 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate("adminName"), data: "adminName"},
                     {title: $translate('playerId'), data: "playerId"},
-                    {title: $translate('TYPE'), data: "action"},
+                    //{title: $translate('TYPE'), data: "action"},
+                    {
+                        title: $translate('TYPE'), data: "action", sClass: "sumText",
+                        render: function (data) {
+                            return $translate(data);
+                        }
+                    },
                     {title: $translate("Operation Time"), data: "operationTime$"},
                     {title: $translate("remark"), data: "error", bSortable: false}
                 ],
