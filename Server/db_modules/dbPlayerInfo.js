@@ -7893,10 +7893,21 @@ let dbPlayerInfo = {
                         console.log('todayTime', todayTime);
 
                         dbconfig.collection_playerTopUpDaySummary.aggregate({
-                            date: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                            platformId: platformId
+                            $match: {
+                                date: {$gte: todayTime.startTime, $lt: todayTime.endTime},
+                                platformId: platformId
+                            }
+                        }, {
+                            $group: {
+                                _id: {playerId: "$playerId", platformId: "$platformId"},
+                                amount: {$sum: "$amount"},
+                                times: {$sum: "$times"}
+                            }
                         }).exec().then(
-                            data => console.log('extra data', data)
+                            data => {
+                                data = data.map(e => e.amount > 10000);
+                                console.log('extra data', data)
+                            }
                         )
                     }
                 });
