@@ -7905,7 +7905,7 @@ let dbPlayerInfo = {
                             }
                         }).exec().then(
                             data => {
-                                data = data.map(e => e.amount > 10000);
+                                data = data.filter(e => e.amount > 10000);
                                 console.log('extra data', data)
                             }
                         )
