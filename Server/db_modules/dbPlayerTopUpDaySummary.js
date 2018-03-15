@@ -113,9 +113,7 @@ var dbPlayerTopUpDaySummary = {
     },
 
     calculatePlatformActiveValidPlayerDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
-        //todo: refactor this to settlement server later
-        
-        var matchObj = {
+        let matchObj = {
             platformId: platformId,
             date: {
                 $gte: startTime,
@@ -123,7 +121,7 @@ var dbPlayerTopUpDaySummary = {
             }
         };
 
-        var consumptionProm = dbconfig.collection_playerConsumptionDaySummary.aggregate(
+        let consumptionProm = dbconfig.collection_playerConsumptionDaySummary.aggregate(
             {
                 $match: matchObj
             },
@@ -137,7 +135,7 @@ var dbPlayerTopUpDaySummary = {
             }
         ).allowDiskUse(true).exec();
 
-        var topUpProm = dbconfig.collection_playerTopUpDaySummary.aggregate(
+        let topUpProm = dbconfig.collection_playerTopUpDaySummary.aggregate(
             {
                 $match: matchObj
             },
