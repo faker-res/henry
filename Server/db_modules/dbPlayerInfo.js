@@ -245,6 +245,7 @@ let dbPlayerInfo = {
             dbRewardPoints.getPlayerRewardPoints(ObjectId(playerObjId)).then(
                 rewardPoints => {
                     if (rewardPoints) {
+                        proposalData.data.playerRewardPointsObjId = rewardPoints._id;
                         proposalData.data.beforeRewardPoints = rewardPoints.points;
                         proposalData.data.afterRewardPoints = rewardPoints.points + updateAmount;
                     }
@@ -341,7 +342,10 @@ let dbPlayerInfo = {
             constRewardPointsLogCategory.POINT_REDUCTION,
             constRewardPointsLogCategory.POINT_INCREMENT,
             constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
-            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION
+            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION,
+            constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED,
+            constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED,
+            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED
         ];
         return dbconfig.collection_rewardPointsLog.aggregate({
             $match: {
@@ -1402,7 +1406,8 @@ let dbPlayerInfo = {
                     password: randomPsw,
                     validCredit: defaultCredit,
                     isTestPlayer: true,
-                    isRealPlayer: false
+                    isRealPlayer: false,
+                    isLogin: true,
                 };
 
                 if(platform.requireSMSVerificationForDemoPlayer && !isBackStageGenerated) {
@@ -1433,9 +1438,12 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
 
+                let profile = {name: playerData.name, password: playerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
                 playerData.password = randomPsw;
 
-                return playerData;
+                return {playerData, token};
             }
         );
     },
@@ -1462,8 +1470,8 @@ let dbPlayerInfo = {
                     data.bankAccount = dbUtility.encodeBankAcc(data.bankAccount);
                 }
                 apiData = data;
-                apiData.userCurrentPoint = apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
-                apiData.rewardPointsObjId = apiData.rewardPointsObjId._id;
+                apiData.userCurrentPoint = apiData.rewardPointsObjId && apiData.rewardPointsObjId.points ? apiData.rewardPointsObjId.points : 0;
+                apiData.rewardPointsObjId = apiData.rewardPointsObjId && apiData.rewardPointsObjId._id;
 
                 // if (data.realName) {
                 //     data.realName = dbUtility.encodeRealName(data.realName);
@@ -1498,14 +1506,16 @@ let dbPlayerInfo = {
         ).then(
             zoneData => {
                 apiData.bankAccountProvinceId = apiData.bankAccountProvince;
-                apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
                 apiData.bankAccountCityId = apiData.bankAccountCity;
-                apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
                 apiData.bankAccountDistrictId = apiData.bankAccountDistrict;
-                apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
-                apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
-                apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
-                apiData.preDailyAppliedPoint = zoneData[5] ? zoneData[5] : 0;
+                if (zoneData && zoneData[0]) {
+                    apiData.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : apiData.bankAccountProvince;
+                    apiData.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : apiData.bankAccountCity;
+                    apiData.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : apiData.bankAccountDistrict;
+                    apiData.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                    apiData.preDailyExchangedPoint = zoneData[4] ? zoneData[4] : 0;
+                    apiData.preDailyAppliedPoint = zoneData[5] ? zoneData[5] : 0;
+                }
                 deferred.resolve(apiData);
             },
             zoneError => {
@@ -4210,10 +4220,15 @@ let dbPlayerInfo = {
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
+                                    }).populate({
+                                        path: "rewardPointsObjId",
+                                        model: dbconfig.collection_rewardPoints
                                     }).lean().then(
                                         res => {
                                             res.name = res.name.replace(platformPrefix, "");
                                             retObj = res;
+                                            retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                                            retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
                                             var a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
@@ -5254,6 +5269,8 @@ let dbPlayerInfo = {
         //         }
         //     }
         // };
+
+
         var deferred = Q.defer();
         let playerObj;
         let gameProvider;
@@ -5274,21 +5291,31 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
                     gameProvider = data[1];
+                    return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
+                        playerState => {
+                            if (playerState) {
 
-                    dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
-                        providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+                                dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
+                                    providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
-                    if (playerObj.platform.useProviderGroup) {
-                        // Platform supporting provider group
-                        return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
-                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                    } else if (playerObj.platform.canMultiReward) {
-                        // Platform supporting multiple rewards will use new function first
-                        return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                    }
-                    else {
-                        return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                    }
+                                if (playerObj.platform.useProviderGroup) {
+                                    // Platform supporting provider group
+                                    return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
+                                        data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                                } else if (playerObj.platform.canMultiReward) {
+                                    // Platform supporting multiple rewards will use new function first
+                                    return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                                }
+                                else {
+                                    return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
+                                }
+                            }else {
+                                return Promise.reject({
+                                    name: "DBError",
+                                    message: "transfer credit fail, please try again later"
+                                })
+                            }
+                        });
 
                 } else {
                     deferred.reject({name: "DataError", message: "Cant find player or provider"});
@@ -7828,12 +7855,13 @@ let dbPlayerInfo = {
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
-        var dayDate = dbUtility.getTodaySGTime();
-        var weekDates = dbUtility.getTodaySGTime();
+        let dayDate = dbUtility.getTodaySGTime();
+        let weekDates = dbUtility.getTodaySGTime();
         weekDates.startTime = new Date(weekDates.startTime.getTime() - 7 * 24 * 3600 * 1000);
         weekDates.endTime = dayDate.startTime;
-        var returnedData;
-        var calculation = null;
+        let returnedData;
+        let calculation = null;
+
         switch (type) {
             case 'topup' :
                 calculation = {$sum: "$topUpAmount"};
@@ -7841,6 +7869,7 @@ let dbPlayerInfo = {
             case 'consumption' :
                 calculation = {$sum: "$consumptionAmount"}
         }
+
         return dbconfig.collection_platformDaySummary.aggregate(
             {
                 $match: {
@@ -7856,6 +7885,9 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+
+                console.log('collection_platformDaySummary', data);
+
                 returnedData = Object.assign([], data);
                 if (type == "topup") {
                     return dbPlayerTopUpRecord.getTopUpTotalAmountForAllPlatform(dayDate.startTime, dayDate.endTime, platformId)
@@ -7866,7 +7898,7 @@ let dbPlayerInfo = {
         ).then(
             data1 => {
                 if (data1 && data1[0]) {
-                    var newRecord = {};
+                    let newRecord = {};
                     newRecord._id = {date: dayDate.startTime};
                     newRecord.number = data1[0].totalAmount;
                     returnedData.push(newRecord);
@@ -10039,7 +10071,7 @@ let dbPlayerInfo = {
                                         if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                             console.log(paymentData.merchants[i])
 
-                                            if(playerData.forbidTopUpType && playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1){
+                                            if(!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1){
                                                 resData.push({
                                                     type: paymentData.merchants[i].topupType,
                                                     status: status,
