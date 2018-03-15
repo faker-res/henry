@@ -263,7 +263,20 @@ var simplifiedChinese = {
     "Unable to get login URL for demo player": "试玩玩家无法获取登入链接",
     "Redemption failed, the points to be redeemed are less than the minimum credit (1)": "兑换失败，欲兑换的点数不足最低金额 （1） 元",
     "LOCAL_CREDIT": "自由额度",
-    "No Any MerchantNo Are Available, Please Change TopUp Method":"此在线充值类型无可用的商户号，请更换充值方式。"
+    "No Any MerchantNo Are Available, Please Change TopUp Method":"此在线充值类型无可用的商户号，请更换充值方式。",
+    "Player does not have enough reward points": "兑换失败: 很抱歉，可兑换积分不足",
+    "Redemption succeeded": "领取成功",
+    "Redemption failed": "兑换失败: 很抱歉",
+    "Player already applied max amount of points for today.": "领取失败： 很抱歉，已达今日可领取积分上线。",
+    "used": "使用",
+    "reward points": "积分",
+    "to redeem": "兑换",
+    "credit": "真钱",
+    "Remaining": "剩余",
+    "not enough to redeem (1) credit": "不足兑换 (1) 真钱",
+    "has been returned to your account": "已退回至您的帐户",
+    "has exceed the redemption limit": "超出可兑换限额",
+    "daily reward point redemption limit is reach": "已达今日可兑换限额",
     //todo::add missing messages here
 
     /*

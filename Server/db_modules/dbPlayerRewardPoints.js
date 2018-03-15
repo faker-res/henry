@@ -150,9 +150,9 @@ let dbPlayerRewardPoints = {
                 todayConvertedRewardPoints => {
                     if (todayConvertedRewardPoints >= playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
                         return Q.reject({
-                            status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
+                            status: constServerCode.COMMON_ERROR,
                             name: "DataError",
-                            errorMessage: "Redemption failed" + ", " + "daily reward point redemption limit is reach" + " (" + playerLvlRewardPointsConfig.pointToCreditManualMaxPoints + ") " + "reward points"
+                            errorMessage: "Player already applied max amount of points for today."
                         });
                     } else {
                         if (Number(todayConvertedRewardPoints) + Number(convertRewardPointsAmount) > playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
@@ -223,14 +223,14 @@ let dbPlayerRewardPoints = {
                 result => {
                     if(typeof rewardPointsRemainder !== "undefined"){
                         if(rewardPointsRemainder == 0){
-                            return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit"});
+                            return Q.resolve({message: "Redemption succeeded" + ": " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit"});
                         }else{
                             if(limitReach){
-                                return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
+                                return Q.resolve({message: "Redemption succeeded" + ": " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
                                     "Remaining" + "(" + rewardPointsRemainder + ") " + "reward points" + " " + "has exceed the redemption limit" + ", " + "has been returned to your account"});
                             }
 
-                            return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
+                            return Q.resolve({message: "Redemption succeeded" + ": " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
                                 "Remaining" + " (" + rewardPointsRemainder + ") " + "reward points" + " " + "not enough to redeem (1) credit" + ", " + "has been returned to your account"});
                         }
                     }
