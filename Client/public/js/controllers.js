@@ -83,7 +83,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         // }, 1000000);
 
         $scope.AppSocket.on('connect', function () {
-            $scope.$broadcast('socketConnected', 'socketConnected');
+            // $scope.$broadcast('socketConnected', 'socketConnected');
             console.log('Management server connected');
             initPage();
             authService.getAllActions($scope.AppSocket, function () {
