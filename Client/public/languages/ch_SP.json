@@ -3328,7 +3328,7 @@
   "two period at the same time, system will force player to auto level up, batch level settlement will not provide": "同时设置两个周期，系统将强制玩家瞬间自动升级，并无法提供批量结算升级。",
   "player level up period different": "玩家升级多个周期",
   "selected games": "选中的游戏",
-  "Player does not have enough reward points": "兑换失败: 很抱歉，可兑换积分不足",
+  "Redemption failed, the points to be redeemed are less than the minimum credit (1)": "兑换失败，欲兑换的点数不足最低金额（1）元",
   "Redemption succeeded: used": "领取成功: 使用",
   "Redemption failed": "兑换失败: 很抱歉",
   "Player already applied max amount of points for today.": "领取失败： 很抱歉，已达今日可领取积分上限。",

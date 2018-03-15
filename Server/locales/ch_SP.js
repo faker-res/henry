@@ -267,7 +267,6 @@ var simplifiedChinese = {
     "Player does not have enough reward points": "兑换失败: 很抱歉，可兑换积分不足",
     "Redemption succeeded: used": "领取成功: 使用",
     "Redemption failed": "兑换失败: 很抱歉",
-    "Player already applied max amount of points for today.": "领取失败： 很抱歉，已达今日可领取积分上限。",
     "reward points": "积分",
     "to redeem": "兑换",
     "credit": "真钱",

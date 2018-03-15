@@ -151,9 +151,9 @@ let dbPlayerRewardPoints = {
                 todayConvertedRewardPoints => {
                     if (todayConvertedRewardPoints >= playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
                         return Q.reject({
-                            status: constServerCode.COMMON_ERROR,
+                            status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
-                            errorMessage: "Player already applied max amount of points for today."
+                            errorMessage: localization.localization.translate("Redemption failed") + ", " + localization.localization.translate("daily reward point redemption limit is reach") + " (" + playerLvlRewardPointsConfig.pointToCreditManualMaxPoints + ") " + localization.localization.translate("reward points")
                         });
                     } else {
                         if (Number(todayConvertedRewardPoints) + Number(convertRewardPointsAmount) > playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
