@@ -1558,13 +1558,15 @@ var dbPlayerTopUpRecord = {
     },
 
     getTopUpTotalAmountForAllPlatform: function (startTime, endTime, platform) {
-        var matchObj = {
+        let matchObj = {
             createTime: {$gte: startTime, $lt: endTime},
             platformId: platform
-        }
+        };
+
         if (platform !== 'all') {
             matchObj.platformId = platform
         }
+
         return dbconfig.collection_playerTopUpRecord.aggregate(
             {
                 $match: matchObj
@@ -1575,7 +1577,7 @@ var dbPlayerTopUpRecord = {
                     totalAmount: {$sum: "$amount"}
                 }
             }
-        ).allowDiskUse(true).exec().then(
+        ).read("secondaryPreferred").allowDiskUse(true).exec().then(
             function (data) {
                 return dbconfig.collection_platform.populate(data, {path: '_id'})
             }
