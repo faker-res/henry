@@ -1298,17 +1298,6 @@ define(['js/app'], function (myApp) {
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
         };
-        vm.calculateLineDataAndAverageForDecimalPlaces = (data, key, label) => {
-            var graphData = [];
-            let averageData = [];
-            let average = data.length !== 0 ? $noRoundTwoDecimalPlaces(data.reduce((a, item) => a + (Number.isInteger(item[key]) ? item[key] : item[key]), 0) / data.length) : 0;
-            data.map(item => {
-                graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key]]);
-                averageData.push([new Date(item.date), average]);
-            })
-            return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
-        };
-
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.selectedPlatform._id})
                 .then(function (data) {
@@ -2903,7 +2892,7 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    let calculatedConsumptionData = vm.calculateLineDataAndAverageForDecimalPlaces(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
+                    let calculatedConsumptionData = vm.calculateLineDataAndAverage(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
                     vm.platformConsumptionAmountAverage = calculatedConsumptionData.average;
                     vm.plotLineByElementId("#line-playerCredit", calculatedConsumptionData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
                     vm.isShowLoadingSpinner('#playerCreditAnalysis', false);
@@ -3576,25 +3565,39 @@ define(['js/app'], function (myApp) {
                                 let Counter = {amount: 0};
                                 let AliPayTransfer = {amount: 0};
                                 let wechatPayTransfer = {amount: 0};
-                                let defaultData = [Online, ATM, Counter, AliPayTransfer, wechatPayTransfer];
 
                                 if (method.data && method.data.length > 0) {
 
                                     method.data.forEach(methodDetail => {
-                                       if (methodDetail._id != null){
-                                            defaultData[parseInt(methodDetail._id, 10) - 1].amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
-                                       }
+                                        switch (parseInt(methodDetail._id,10)){
+                                            case (vm.constDepositMethod.Online):
+                                                Online.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+                                            case (vm.constDepositMethod.ATM):
+                                                ATM.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+                                            case (vm.constDepositMethod.Counter):
+                                                Counter.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+                                            case (vm.constDepositMethod.AliPayTransfer):
+                                                AliPayTransfer.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+                                            case (vm.constDepositMethod.WechatTransfer):
+                                                wechatPayTransfer.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+
+                                        }
                                     })
                                 }
 
                                 vm.manualTopUpMethod.push({
                                     date: new Date(method.date),
-                                    totalSum: defaultData[0].amount + defaultData[1].amount + defaultData[2].amount + defaultData[3].amount + defaultData[4].amount,
-                                    Online: defaultData[0],
-                                    ATM: defaultData[1],
-                                    Counter: defaultData[2],
-                                    AliPayTransfer: defaultData[3],
-                                    weChatPayTransfer: defaultData[4]
+                                    totalSum: Online.amount + ATM.amount + Counter.amount + AliPayTransfer.amount + wechatPayTransfer.amount,
+                                    Online: Online,
+                                    ATM: ATM,
+                                    Counter: Counter,
+                                    AliPayTransfer: AliPayTransfer,
+                                    weChatPayTransfer: wechatPayTransfer
                                 })
 
                             })
