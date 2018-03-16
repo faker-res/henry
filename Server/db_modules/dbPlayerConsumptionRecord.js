@@ -1092,7 +1092,7 @@ var dbPlayerConsumptionRecord = {
                     if(minValidAmount != null){
                         queryObj.validAmount = {$gte: minValidAmount};
                     }
-                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(requestCount).lean().populate({
+                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(Number(requestCount)).lean().populate({
                         path: "gameId",
                         model: dbconfig.collection_game
                     }).populate({
@@ -1106,15 +1106,33 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             recordData => {
+                let playerBonusListArray = [];
                 if(recordData && recordData.length > 0){
                     recordData.forEach(
                         record => {
                             record.providerId = record.providerId.providerId;
                             record.playerName = dbUtility.encodePlayerName(record.playerId.name);
+                            let playerName = record.playerId.name;
+                            let playerBonusListObj = {};
+                            playerBonusListObj[playerName] = record.bonusAmount;
+
+                            playerBonusListArray.push(playerBonusListObj)
                             delete record.playerId;
                         }
                     );
                 }
+
+                playerBonusListArray.sort(function (a, b) {
+                    if(a[Object.keys(a)[0]] >  b[Object.keys(b)[0]]){
+                        return -1;
+                    }else if(a[Object.keys(a)[0]] <  b[Object.keys(b)[0]]){
+                        return 1;
+                    }else {
+                        return 0;
+                    }
+                });
+
+                recordData.push({"playerBonusLst": playerBonusListArray});
                 return recordData;
             }
         );
