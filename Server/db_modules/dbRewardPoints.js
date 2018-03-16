@@ -443,7 +443,7 @@ let dbRewardPoints = {
                     return Promise.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",
-                        message: "Player already applied max amount of points for today."
+                        message: "Error in getting player level"
                     });
                 }
 
