@@ -17,6 +17,7 @@ const constRewardPointsEventPeriod = require('../const/constRewardPointsEventPer
 const constRewardPointsUserAgent = require("../const/constRewardPointsUserAgent");
 const constRewardPointsEventTopupType = require("../const/constRewardPointsEventTopupType");
 const constRewardPointsTopupEventUserAgent = require("../const/constRewardPointsTopupEventUserAgent");
+const constServerCode = require('../const/constServerCode');
 
 let dbRewardPoints = {
 
@@ -440,6 +441,7 @@ let dbRewardPoints = {
                 }
                 else {
                     return Promise.reject({
+                        status: constServerCode.COMMON_ERROR,
                         name: "DataError",
                         message: "Player already applied max amount of points for today."
                     });
@@ -470,6 +472,7 @@ let dbRewardPoints = {
 
                 if (Number(dailyMaxPoints) <= Number(todayApplied)) {
                     return Promise.reject({
+                        status: constServerCode.COMMON_ERROR,
                         name: "DataError",
                         message: "Player already applied max amount of points for today."
                     });
