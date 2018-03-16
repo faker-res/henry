@@ -342,10 +342,7 @@ let dbPlayerInfo = {
             constRewardPointsLogCategory.POINT_REDUCTION,
             constRewardPointsLogCategory.POINT_INCREMENT,
             constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
-            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION,
-            constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED,
-            constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED,
-            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED
+            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION
         ];
         return dbconfig.collection_rewardPointsLog.aggregate({
             $match: {
