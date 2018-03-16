@@ -48,6 +48,7 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.data.amount' , description:'withdrawAmount'},
             {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
+            {parameterName:'proposalData.data.lastSettleTime' , description:'approvalTimeForWithdrawal'},
         ]
     },
     WITHDRAW_CANCEL: {

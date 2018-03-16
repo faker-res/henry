@@ -3352,5 +3352,6 @@
   "Promo Min Top Up Amount is required": "最低存款(D) 是必填项",
   "Promo Consumption is required": "所需流水(Y) 是必填项",
   "Promo Max Top Up Amount is required": "优惠上限(M) 是必填项",
-  "Promo Reward % is required": "优惠% 是必填项"
+  "Promo Reward % is required": "优惠% 是必填项",
+  "approvalTimeForWithdrawal": "提款成功通過的時間"
 }
