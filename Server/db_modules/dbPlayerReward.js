@@ -137,7 +137,7 @@ let dbPlayerReward = {
             };
 
             if (isRewardAmountDynamic) {
-                listItem.promoRate = (selectedParam.rewardPercentage * 100) + "%";
+                listItem.promoRate = parseFloat((selectedParam.rewardPercentage * 100).toFixed(2)) + "%";
                 listItem.promoLimit = selectedParam.maxRewardInSingleTopUp;
                 listItem.betTimes = selectedParam.spendingTimes;
             }
