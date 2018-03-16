@@ -29,7 +29,7 @@ let dbRewardPoints = {
                     return dbRewardPoints.createRewardPoints(playerObjId, playerData);
                 }
                 else if (playerData && playerData.playerLevel && rewardPointsData.playerLevel && rewardPointsData.playerLevel.toString() !== playerData.playerLevel.toString()) {
-                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerObjId);
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerData.playerLevel);
                 }
 
                 return rewardPointsData;
