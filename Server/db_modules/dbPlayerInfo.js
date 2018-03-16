@@ -7885,9 +7885,6 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-
-                console.log('collection_platformDaySummary', data);
-
                 returnedData = Object.assign([], data);
                 if (type == "topup") {
                     return dbPlayerTopUpRecord.getTopUpTotalAmountForAllPlatform(dayDate.startTime, dayDate.endTime, platformId)
