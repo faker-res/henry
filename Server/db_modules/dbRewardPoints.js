@@ -1980,7 +1980,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "content": reward.rewardContent,
                         "gradeLimit": level,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "goal": reward.consecutiveCount,
                         "currentGoal": currentGoal
                     }
