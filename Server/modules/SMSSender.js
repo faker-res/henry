@@ -57,6 +57,8 @@ const SMSSender = {
                                         template.content = template.content.replace('{{proposalData.data.rewardAmount}}', proposalData.data.rewardAmount.toFixed(2));
                                     if(proposalData.data.amount)
                                         template.content = template.content.replace('{{proposalData.data.amount}}', proposalData.data.amount.toFixed(2));
+                                    if(proposalData.data.lastSettleTime)
+                                        template.content = template.content.replace('{{proposalData.data.lastSettleTime}}', moment(proposalData.data.lastSettleTime).format("YYYY/MM/DD HH:mm:ss"));
                                     template.content = renderTemplate(template.content, metaData);
                                 }
 
