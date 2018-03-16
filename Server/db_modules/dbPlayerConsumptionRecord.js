@@ -1106,15 +1106,39 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             recordData => {
+                let playerBonusListArray = [];
                 if(recordData && recordData.length > 0){
                     recordData.forEach(
                         record => {
                             record.providerId = record.providerId.providerId;
                             record.playerName = dbUtility.encodePlayerName(record.playerId.name);
+                            let index = playerBonusListArray.findIndex(p => p.hasOwnProperty(record.playerId.name) == true);
+
+                            if(index != -1){
+                                playerBonusListArray[index][record.playerId.name] += record.bonusAmount;
+                            }else{
+                                let playerName = record.playerId.name;
+                                let playerBonusListObj = {};
+                                playerBonusListObj[playerName] = record.bonusAmount;
+                                playerBonusListArray.push(playerBonusListObj);
+                            }
+                            
                             delete record.playerId;
                         }
                     );
                 }
+
+                playerBonusListArray.sort(function (a, b) {
+                    if(a[Object.keys(a)[0]] >  b[Object.keys(b)[0]]){
+                        return 1;
+                    }else if(a[Object.keys(a)[0]] <  b[Object.keys(b)[0]]){
+                        return -1;
+                    }else {
+                        return 0;
+                    }
+                });
+
+                recordData.push({"playerBonusLst": playerBonusListArray});
                 return recordData;
             }
         );
