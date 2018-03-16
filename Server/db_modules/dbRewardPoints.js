@@ -1972,7 +1972,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "refreshPeriod": rewardPeriod,
                         "device": constRewardPointsTopupEventUserAgent[reward.userAgent ? reward.userAgent.toString() : ""],
                         "depositType": reward.target && reward.target.merchantTopupMainType ? constRewardPointsEventTopupType[reward.target.merchantTopupMainType] : "",
-                        "onlineTopupType": reward.target && reward.target.merchantTopUpType ? reward.target.merchantTopUpType : "",
+                        "onlineTopupType": reward.target && reward.target.merchantTopupType ? reward.target.merchantTopupType : "",
                         "manualTopupType": reward.target && reward.target.depositMethod ? reward.target.depositMethod : "",
                         "bankCardType": reward.target && reward.target.bankType ? reward.target.bankType : "",
                         "dailyRequestDeposit": reward.target && reward.target.dailyTopupAmount ? reward.target.dailyTopupAmount : 0,
