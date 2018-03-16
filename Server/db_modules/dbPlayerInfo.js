@@ -1318,7 +1318,7 @@ let dbPlayerInfo = {
 
     createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-        let platform, defaultCredit;
+        let platform, defaultCredit, demoPlayerData;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -1397,7 +1397,7 @@ let dbPlayerInfo = {
 
                 let demoPlayerName = data[0];
 
-                let demoPlayerData = {
+                demoPlayerData = {
                     platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
@@ -1409,7 +1409,7 @@ let dbPlayerInfo = {
 
                 if(platform.requireSMSVerificationForDemoPlayer && !isBackStageGenerated) {
                     if (phoneNumber) {
-                        dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode, demoPlayerName);
+                        return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode, demoPlayerName);
                     } else {
                         return Promise.reject({
                             status: constServerCode.INVALID_PHONE_NUMBER,
@@ -1418,7 +1418,9 @@ let dbPlayerInfo = {
                         });
                     }
                 }
-
+            }
+        ).then(
+            () => {
                 if (phoneNumber) {
                     demoPlayerData.phoneNumber = phoneNumber;
                 }
