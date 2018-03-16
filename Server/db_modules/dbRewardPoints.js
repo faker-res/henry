@@ -29,7 +29,7 @@ let dbRewardPoints = {
                     return dbRewardPoints.createRewardPoints(playerObjId, playerData);
                 }
                 else if (playerData && playerData.playerLevel && rewardPointsData.playerLevel && rewardPointsData.playerLevel.toString() !== playerData.playerLevel.toString()) {
-                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerObjId);
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerData.playerLevel);
                 }
 
                 return rewardPointsData;
@@ -443,7 +443,7 @@ let dbRewardPoints = {
                     return Promise.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",
-                        message: "Player already applied max amount of points for today."
+                        message: "Error in getting player level"
                     });
                 }
 
