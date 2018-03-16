@@ -7885,34 +7885,6 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-
-                data.map(e => {
-                    if (e.number > 1000000) {
-                        let todayTime = dbUtility.getDayTime(e._id);
-
-                        console.log('todayTime', todayTime);
-
-                        dbconfig.collection_playerTopUpDaySummary.aggregate({
-                            $match: {
-                                date: {$gte: todayTime.startTime, $lt: todayTime.endTime},
-                                platformId: platformId
-                            }
-                        }, {
-                            $group: {
-                                _id: {playerId: "$playerId", platformId: "$platformId"},
-                                amount: {$sum: "$amount"},
-                                times: {$sum: "$times"}
-                            }
-                        }).exec().then(
-                            data => {
-                                data = data.map(e => e.amount > 10000);
-                                console.log('extra data', data)
-                            }
-                        )
-                    }
-                });
-
-
                 returnedData = Object.assign([], data);
                 if (type == "topup") {
                     return dbPlayerTopUpRecord.getTopUpTotalAmountForAllPlatform(dayDate.startTime, dayDate.endTime, platformId)

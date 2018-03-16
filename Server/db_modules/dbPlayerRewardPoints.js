@@ -24,6 +24,7 @@ var dbLogger = require("./../modules/dbLogger");
 let dbUtil = require('../modules/dbutility');
 
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
+let localization = require("../modules/localization");
 
 let dbPlayerRewardPoints = {
 
@@ -152,7 +153,7 @@ let dbPlayerRewardPoints = {
                         return Q.reject({
                             status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
-                            errorMessage: "Redemption failed" + ", " + "daily reward point redemption limit is reach" + " (" + playerLvlRewardPointsConfig.pointToCreditManualMaxPoints + ") " + "reward points"
+                            errorMessage: localization.localization.translate("Redemption failed") + ", " + localization.localization.translate("daily reward point redemption limit is reach") + " (" + playerLvlRewardPointsConfig.pointToCreditManualMaxPoints + ") " + localization.localization.translate("reward points")
                         });
                     } else {
                         if (Number(todayConvertedRewardPoints) + Number(convertRewardPointsAmount) > playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
@@ -223,15 +224,21 @@ let dbPlayerRewardPoints = {
                 result => {
                     if(typeof rewardPointsRemainder !== "undefined"){
                         if(rewardPointsRemainder == 0){
-                            return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit"});
+                            return Q.resolve({message: localization.localization.translate("Redemption succeeded: used") + " " +" (" +
+                            actualConvertRewardPointsAmount + ") " + localization.localization.translate("reward points, to redeem") +
+                            " (" + convertCredit + ") " + localization.localization.translate("credit")});
                         }else{
                             if(limitReach){
-                                return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
-                                    "Remaining" + "(" + rewardPointsRemainder + ") " + "reward points" + " " + "has exceed the redemption limit" + ", " + "has been returned to your account"});
+                                return Q.resolve({message: localization.localization.translate("Redemption succeeded: used")  + " " +" (" +
+                                actualConvertRewardPointsAmount + ") " + localization.localization.translate("reward points, to redeem") + " (" +
+                                convertCredit + ") " + localization.localization.translate("credit") + ". " + localization.localization.translate("Remaining") +
+                                " (" + rewardPointsRemainder + ") " + localization.localization.translate("reward points has exceed the redemption limit, has been returned to your account")});
                             }
 
-                            return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
-                                "Remaining" + " (" + rewardPointsRemainder + ") " + "reward points" + " " + "not enough to redeem (1) credit" + ", " + "has been returned to your account"});
+                            return Q.resolve({message: localization.localization.translate("Redemption succeeded: used")  +" (" + actualConvertRewardPointsAmount +
+                            ") " + localization.localization.translate("reward points, to redeem") + " (" + convertCredit + ") " +
+                            localization.localization.translate("credit") + ". " + localization.localization.translate("Remaining") + " (" +
+                            rewardPointsRemainder + ") " + localization.localization.translate("reward points not enough to redeem (1) credit, has been returned to your account")});
                         }
                     }
                 }
