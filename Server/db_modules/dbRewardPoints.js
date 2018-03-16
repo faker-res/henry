@@ -1947,7 +1947,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "content": reward.rewardContent,
                         "gradeLimit": level,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "providerId": providerIds,
                         "goal": reward.consecutiveCount,
                         "currentGoal": currentGoal
@@ -2013,7 +2013,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "content": reward.rewardContent,
                         "gradeLimit": level,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "dailyRequestBetCountsAndAmount": dailyRequestBetCountsAndAmount,
                         "dailyBetConsumption": reward.target && reward.target.dailyValidConsumptionAmount ? reward.target.dailyValidConsumptionAmount : 0,
                         "dailyWinBetCounts": reward.target && reward.target.dailyWinGameCount ? reward.target.dailyWinGameCount : 0,
