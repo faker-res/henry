@@ -1092,7 +1092,7 @@ var dbPlayerConsumptionRecord = {
                     if(minValidAmount != null){
                         queryObj.validAmount = {$gte: minValidAmount};
                     }
-                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(requestCount).lean().populate({
+                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(Number(requestCount)).lean().populate({
                         path: "gameId",
                         model: dbconfig.collection_game
                     }).populate({
