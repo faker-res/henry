@@ -2498,16 +2498,27 @@ let dbPlayerReward = {
                 data.map(grp => {
                     grp.platformObjId = platformObjId;
 
-                    let saveObj = {
-                        platformObjId: grp.platformObjId,
-                        name: grp.name,
-                        color: grp.color,
-                        playerNames: grp.playerNames || []
-                    };
+                    if (grp && grp._id) { // for existing group data
+                        let saveObj = {
+                            name: grp.name,
+                            color: grp.color,
+                            playerNames: grp.playerNames || []
+                        };
 
-                    saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
-                        name: grp.name
-                    }, saveObj, {upsert: true}));
+                        saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                            _id: grp._id
+                        }, saveObj, {upsert: true}));
+                    } else if (grp && !grp._id) { // for new group data
+                        let insertObj = {
+                            platformObjId: grp.platformObjId,
+                            name: grp.name,
+                            color: grp.color,
+                            playerNames: grp.playerNames || []
+                        };
+
+                        let newGroup = new dbConfig.collection_promoCodeUserGroup(insertObj);
+                        return newGroup.save();
+                    }
                 });
             }
         }
@@ -3894,7 +3905,7 @@ let dbPlayerReward = {
                 let withdrawPropQuery = {
                     'data.platformId': playerData.platform._id,
                     'data.playerObjId': playerData._id,
-                    settleTime: {$gt: selectedTopUp.createTime},
+                    createTime: {$gt: selectedTopUp.createTime},
                     status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
                 };
 

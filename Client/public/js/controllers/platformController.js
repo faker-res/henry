@@ -17942,7 +17942,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {
                         vm.rewardPointsEventPeriodChange(idx, val);
-                        vm.rewardPointsEventSetDisable(idx, val, true);
+                        vm.rewardPointsEventSetDisable(idx, val, true, true);
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();
@@ -17995,7 +17995,7 @@ define(['js/app'], function (myApp) {
                 //Use Object.assign instead of directly use rewardPointsEvent, because datetimePicker input will disappear when add new event to vm.rewardPointsEvent
                 $scope.$socketPromise('updateRewardPointsEvent', {rewardPointsEvent: Object.assign({}, rewardPointsEvent)}).then((data) => {
                     vm.rewardPointsEventPeriodChange(idx, rewardPointsEvent);
-                    vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true);
+                    vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true, true);
                     $scope.safeApply();
                     vm.endLoadWeekDay();
                 });
@@ -18043,7 +18043,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.rewardPointsEventSetDisable = (idx, rewardPointsEvent, isDisable) => {
+            vm.rewardPointsEventSetDisable = (idx, rewardPointsEvent, isDisable, isMultiple) => {
                 rewardPointsEvent.isEditing=!isDisable;
                 if (rewardPointsEvent.period == 6){
                     let startDateId = "#rewardPointsEventStartDate-" + idx;
@@ -18051,8 +18051,10 @@ define(['js/app'], function (myApp) {
                     vm.datetimePickerSetDisable(startDateId, isDisable);
                     vm.datetimePickerSetDisable(endDateId, isDisable);
                 }
-                $scope.safeApply();
-                vm.endLoadWeekDay();
+                if (!isMultiple) {
+                    $scope.safeApply();
+                }
+                // vm.endLoadWeekDay();
             };
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
@@ -19386,7 +19388,10 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function (data) {
+                        vm.getPromoCodeUserGroup();
+                        $scope.safeApply();
+                    });
                     vm.saveUserFromGroupToGroup(1, vm.userGroupAllConfig, vm.userGroupBlockConfig)
                 }
             };
