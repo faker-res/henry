@@ -17,6 +17,7 @@ const constRewardPointsEventPeriod = require('../const/constRewardPointsEventPer
 const constRewardPointsUserAgent = require("../const/constRewardPointsUserAgent");
 const constRewardPointsEventTopupType = require("../const/constRewardPointsEventTopupType");
 const constRewardPointsTopupEventUserAgent = require("../const/constRewardPointsTopupEventUserAgent");
+const constServerCode = require('../const/constServerCode');
 
 let dbRewardPoints = {
 
@@ -28,7 +29,7 @@ let dbRewardPoints = {
                     return dbRewardPoints.createRewardPoints(playerObjId, playerData);
                 }
                 else if (playerData && playerData.playerLevel && rewardPointsData.playerLevel && rewardPointsData.playerLevel.toString() !== playerData.playerLevel.toString()) {
-                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerObjId);
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerData.playerLevel);
                 }
 
                 return rewardPointsData;
@@ -440,8 +441,9 @@ let dbRewardPoints = {
                 }
                 else {
                     return Promise.reject({
+                        status: constServerCode.COMMON_ERROR,
                         name: "DataError",
-                        message: "Player already applied max amount of points for today."
+                        message: "Error in getting player level"
                     });
                 }
 
@@ -470,6 +472,7 @@ let dbRewardPoints = {
 
                 if (Number(dailyMaxPoints) <= Number(todayApplied)) {
                     return Promise.reject({
+                        status: constServerCode.COMMON_ERROR,
                         name: "DataError",
                         message: "Player already applied max amount of points for today."
                     });
@@ -1367,7 +1370,7 @@ let dbRewardPoints = {
                                 },
                                 {
                                     $group: {
-                                        _id: {playerId: "$playerId"},
+                                        _id: {playerId: "$playerId", eventObjId: event._id},
                                         amount: {$sum: "$amount"}
                                     }
                                 }
@@ -1378,13 +1381,8 @@ let dbRewardPoints = {
                 }
             })
             .then(playerTopupRecord => {
-                let todayTopupAmount = 0;
-                if(playerTopupRecord && playerTopupRecord[0] && playerTopupRecord[0][0] && playerTopupRecord[0][0].amount) {
-                   todayTopupAmount =  playerTopupRecord[0][0].amount;
-                }
-
                 let loginRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, rewardPointRecord);
-                let topupRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, rewardPointRecord, todayTopupAmount);
+                let topupRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, rewardPointRecord, playerTopupRecord);
                 let gameRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, rewardPointRecord);
                 let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking);
 
@@ -1886,7 +1884,7 @@ function getPlayerLevelValue(playerObjId) {
     },{"playerLevel":1}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
 }
 
-function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoints, todayTopupAmount) {
+function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoints, todayTopupAmountArr) {
     let rewardPointListArr = [];
 
     if (rewardPointEvent && rewardPointEvent.length > 0) {
@@ -1949,7 +1947,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "content": reward.rewardContent,
                         "gradeLimit": level,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "providerId": providerIds,
                         "goal": reward.consecutiveCount,
                         "currentGoal": currentGoal
@@ -1957,16 +1955,24 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                     break;
                 }
                 case constRewardPointsTaskCategory.TOPUP_REWARD_POINTS: {
-                    if (reward.period == 1 && currentGoal == 0 && reward.target && reward.target.dailyTopupAmount && (todayTopupAmount >= reward.target.dailyTopupAmount)) {
-                        currentGoal = 1;
-                        status = 1;
+                    if (todayTopupAmountArr && todayTopupAmountArr.length > 0) {
+                        for (let i = 0; i < todayTopupAmountArr.length; i++) {
+                            if (todayTopupAmountArr[i] && todayTopupAmountArr[i][0] && todayTopupAmountArr[i][0]._id && todayTopupAmountArr[i][0]._id.eventObjId
+                                && (todayTopupAmountArr[i][0]._id.eventObjId.toString() === reward._id.toString())) {
+                                if (reward.period == 1 && currentGoal == 0 && reward.target && reward.target.dailyTopupAmount && (todayTopupAmountArr[i][0].amount >= reward.target.dailyTopupAmount)) {
+                                    currentGoal = 1;
+                                    status = 1;
+                                }
+                            }
+                        }
                     }
+
                     rewards = {
                         "id": reward._id,
                         "refreshPeriod": rewardPeriod,
                         "device": constRewardPointsTopupEventUserAgent[reward.userAgent ? reward.userAgent.toString() : ""],
                         "depositType": reward.target && reward.target.merchantTopupMainType ? constRewardPointsEventTopupType[reward.target.merchantTopupMainType] : "",
-                        "onlineTopupType": reward.target && reward.target.merchantTopUpType ? reward.target.merchantTopUpType : "",
+                        "onlineTopupType": reward.target && reward.target.merchantTopupType ? reward.target.merchantTopupType : "",
                         "manualTopupType": reward.target && reward.target.depositMethod ? reward.target.depositMethod : "",
                         "bankCardType": reward.target && reward.target.bankType ? reward.target.bankType : "",
                         "dailyRequestDeposit": reward.target && reward.target.dailyTopupAmount ? reward.target.dailyTopupAmount : 0,
@@ -1974,7 +1980,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "content": reward.rewardContent,
                         "gradeLimit": level,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "goal": reward.consecutiveCount,
                         "currentGoal": currentGoal
                     }
@@ -2007,7 +2013,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "content": reward.rewardContent,
                         "gradeLimit": level,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "dailyRequestBetCountsAndAmount": dailyRequestBetCountsAndAmount,
                         "dailyBetConsumption": reward.target && reward.target.dailyValidConsumptionAmount ? reward.target.dailyValidConsumptionAmount : 0,
                         "dailyWinBetCounts": reward.target && reward.target.dailyWinGameCount ? reward.target.dailyWinGameCount : 0,
