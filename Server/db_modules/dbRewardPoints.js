@@ -1919,7 +1919,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
             let rewardEndTime;
             let rewardPeriod;
             let currentGoal = 0;
-            let level = "";
+            let level, levelName;
             let rewards = {};
             let status = 0;
             let providerIds = [];
@@ -1933,6 +1933,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
 
             if (reward.level) {
                 level = reward.level.value;
+                levelName = reward.level.name;
             }
 
             if (rewardPoints && rewardPoints.progress && rewardPoints.progress.length > 0) {
@@ -1972,6 +1973,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "title": reward.rewardTitle,
                         "content": reward.rewardContent,
                         "gradeLimit": level,
+                        "gradeName": levelName,
                         "point": reward.rewardPoints,
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "providerId": providerIds,
@@ -1993,6 +1995,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "title": reward.rewardTitle,
                         "content": reward.rewardContent,
                         "gradeLimit": level,
+                        "gradeName": levelName,
                         "point": reward.rewardPoints,
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "goal": reward.consecutiveCount,
@@ -2026,6 +2029,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "title": reward.rewardTitle,
                         "content": reward.rewardContent,
                         "gradeLimit": level,
+                        "gradeName": levelName,
                         "point": reward.rewardPoints,
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "dailyRequestBetCountsAndAmount": dailyRequestBetCountsAndAmount,
