@@ -259,7 +259,7 @@ var roleChecker = {
                 // Delete: ['deletePlayersById'],
                 ForbidTopupTypes: [],
                 AddFeedback: [],
-                FeedbackHistory: [],
+                FeedbackHistory: ['getPlayerFeedbackReport'],
                 Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
                 EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal'],
                 PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
