@@ -16,8 +16,5 @@ let WSCONFIG = {
     },
     "dev": {
         "socketURL": "devtest.fpms8.me:9000",
-    },
-    "CD": {
-        "socketURL": "devoffice99.fpms8.me:9000",
     }
 };
