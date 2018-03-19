@@ -216,7 +216,7 @@ define([], function () {
                 minute: '2-digit',
                 second: '2-digit'
             };
-            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3/$1/$2')
                 .replace(',', ' ');
         }
 
@@ -226,7 +226,7 @@ define([], function () {
                 month: '2-digit',
                 day: '2-digit'
             };
-            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3/$1/$2')
                 .replace(',', ' ');
         }
 
