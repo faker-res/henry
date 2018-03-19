@@ -443,17 +443,35 @@
     };
 
     proto.getPlayerDayStatus = function(callback, requestData) {
-        this.playerService.getPlayerDayStatus.request(requestData);
+        let data = requestData;
+        if (data && data.providerIds) {
+            let providerIdsStr = data.providerIds.replace(/\s/g,'');
+            let providerIdsArr = providerIdsStr.split(',');
+            data.providerIds = providerIdsArr;
+        }
+        this.playerService.getPlayerDayStatus.request(data);
         this.playerService.getPlayerDayStatus.once(callback);
     };
 
     proto.getPlayerWeekStatus = function(callback, requestData) {
-        this.playerService.getPlayerWeekStatus.request(requestData);
+        let data = requestData;
+        if (data && data.providerIds) {
+            let providerIdsStr = data.providerIds.replace(/\s/g,'');
+            let providerIdsArr = providerIdsStr.split(',');
+            data.providerIds = providerIdsArr;
+        }
+        this.playerService.getPlayerWeekStatus.request(data);
         this.playerService.getPlayerWeekStatus.once(callback);
     };
 
     proto.getPlayerMonthStatus = function(callback, requestData) {
-        this.playerService.getPlayerMonthStatus.request(requestData);
+        let data = requestData;
+        if (data && data.providerIds) {
+            let providerIdsStr = data.providerIds.replace(/\s/g,'');
+            let providerIdsArr = providerIdsStr.split(',');
+            data.providerIds = providerIdsArr;
+        }
+        this.playerService.getPlayerMonthStatus.request(data);
         this.playerService.getPlayerMonthStatus.once(callback);
     };
 
