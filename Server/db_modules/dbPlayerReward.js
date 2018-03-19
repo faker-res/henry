@@ -3905,7 +3905,7 @@ let dbPlayerReward = {
                 let withdrawPropQuery = {
                     'data.platformId': playerData.platform._id,
                     'data.playerObjId': playerData._id,
-                    settleTime: {$gt: selectedTopUp.createTime},
+                    createTime: {$gt: selectedTopUp.createTime},
                     status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
                 };
 
