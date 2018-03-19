@@ -3348,6 +3348,7 @@
   "Promo Consumption is required": "所需流水(Y) 是必填项",
   "Promo Max Top Up Amount is required": "优惠上限(M) 是必填项",
   "Promo Reward % is required": "优惠% 是必填项",
+  "approvalTimeForWithdrawal": "提款成功通過的時間",
   "resetPartnerPassword": "重置代理密码",
   "resetAdminPassword": "重置用户密码",
   "createDepartment": "添加部门",

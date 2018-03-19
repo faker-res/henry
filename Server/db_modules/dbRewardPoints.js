@@ -443,7 +443,7 @@ let dbRewardPoints = {
                     return Promise.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",
-                        message: "Player already applied max amount of points for today."
+                        message: "Error in getting player level"
                     });
                 }
 
@@ -1980,7 +1980,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "content": reward.rewardContent,
                         "gradeLimit": level,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "goal": reward.consecutiveCount,
                         "currentGoal": currentGoal
                     }
