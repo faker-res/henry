@@ -1077,7 +1077,7 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
-    searchPlatformConsumption: function(platformId, startTime, endTime, startIndex, requestCount, minBonusAmount, minAmount, minValidAmount){
+    searchPlatformConsumption: function(platformId, startTime, endTime, startIndex, requestCount, minBonusAmount, minAmount, minValidAmount, isRanking){
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if( platformData ){
@@ -1114,6 +1114,8 @@ var dbPlayerConsumptionRecord = {
                             record.playerName = dbUtility.encodePlayerName(record.playerId.name);
                             let playerName = record.playerId.name;
                             let playerBonusListObj = {};
+                            playerBonusListObj.providerId = record.providerId || "";
+                            playerBonusListObj.cpGameType = record.cpGameType || "";
                             playerBonusListObj[playerName] = record.bonusAmount;
 
                             playerBonusListArray.push(playerBonusListObj)
@@ -1122,18 +1124,21 @@ var dbPlayerConsumptionRecord = {
                     );
                 }
 
-                playerBonusListArray.sort(function (a, b) {
-                    if(a[Object.keys(a)[0]] >  b[Object.keys(b)[0]]){
-                        return -1;
-                    }else if(a[Object.keys(a)[0]] <  b[Object.keys(b)[0]]){
-                        return 1;
-                    }else {
-                        return 0;
-                    }
-                });
+                if(isRanking && (isRanking == "true" || isRanking == true)){
+                    playerBonusListArray.sort(function (a, b) {
+                        if(a[Object.keys(a)[2]] >  b[Object.keys(b)[2]]){
+                            return -1;
+                        }else if(a[Object.keys(a)[2]] <  b[Object.keys(b)[2]]){
+                            return 1;
+                        }else {
+                            return 0;
+                        }
+                    });
 
-                recordData.push({"playerBonusLst": playerBonusListArray});
-                return recordData;
+                    return playerBonusListArray;
+                }else{
+                    return recordData;
+                }
             }
         );
     },
