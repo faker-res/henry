@@ -19389,7 +19389,7 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function (data) {
-                        vm.getPromoCodeUserGroup();
+                        vm.getAllPromoCodeUserGroup();
                         $scope.safeApply();
                     });
                     vm.saveUserFromGroupToGroup(1, vm.userGroupAllConfig, vm.userGroupBlockConfig)
