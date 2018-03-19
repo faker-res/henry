@@ -6042,6 +6042,9 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
         // start common functions//////////////////
+        vm.dateReformat = function (data) {
+            return utilService.$getTimeFromStdTimeFormat(data);
+        };
         vm.createInnerTable = function (id) {
             var content = $('<div>', {
                 style: "display:inline-block"
