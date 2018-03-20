@@ -3400,7 +3400,7 @@
   "addPlayersToAlipayGroup": "添加玩家到支付宝组",
   "EMPTY_SELECT": "(空）",
   "level up consumption provider different": "升级投注额来源不同",
-  "more than 2 consumption provider, (auto level up) turn on, (schedule level up) turn off": "升级同时设置检测两个（或以上）投注额来源，系统将强制开启『玩家瞬间自动升级』、关闭『定期批量自动升级』，同时无法提供手动批量结算升级按钮。",
+  "more than 2 consumption provider, (auto level up) turn on, (manual batch level up) turn off": "升级同时设置检测两个（或以上）投注额来源，系统将强制开启『玩家瞬间自动升级』、同时无法提供手动批量结算升级按钮。",
   "manualDailyProviderSettlement": "每日提供商手工结算",
   "createForbidTopUpLog": "创建禁用充值类型记录"
 
