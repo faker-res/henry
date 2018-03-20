@@ -339,10 +339,7 @@ let dbPlayerInfo = {
             constRewardPointsLogCategory.LOGIN_REWARD_POINTS,
             constRewardPointsLogCategory.TOPUP_REWARD_POINTS,
             constRewardPointsLogCategory.GAME_REWARD_POINTS,
-            constRewardPointsLogCategory.POINT_REDUCTION,
-            constRewardPointsLogCategory.POINT_INCREMENT,
-            constRewardPointsLogCategory.EARLY_POINT_CONVERSION,
-            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION
+            constRewardPointsLogCategory.POINT_INCREMENT
         ];
         return dbconfig.collection_rewardPointsLog.aggregate({
             $match: {
@@ -1318,7 +1315,7 @@ let dbPlayerInfo = {
 
     createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
-        let platform, defaultCredit;
+        let platform, defaultCredit, demoPlayerData;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -1397,7 +1394,7 @@ let dbPlayerInfo = {
 
                 let demoPlayerName = data[0];
 
-                let demoPlayerData = {
+                demoPlayerData = {
                     platform: platform._id,
                     name: demoPlayerName,
                     password: randomPsw,
@@ -1409,7 +1406,7 @@ let dbPlayerInfo = {
 
                 if(platform.requireSMSVerificationForDemoPlayer && !isBackStageGenerated) {
                     if (phoneNumber) {
-                        dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode, demoPlayerName);
+                        return dbPlayerMail.verifySMSValidationCode(phoneNumber, platform, smsCode, demoPlayerName);
                     } else {
                         return Promise.reject({
                             status: constServerCode.INVALID_PHONE_NUMBER,
@@ -1418,7 +1415,9 @@ let dbPlayerInfo = {
                         });
                     }
                 }
-
+            }
+        ).then(
+            () => {
                 if (phoneNumber) {
                     demoPlayerData.phoneNumber = phoneNumber;
                 }
@@ -7430,14 +7429,20 @@ let dbPlayerInfo = {
      * Get player consumption and top up amount for day
      *
      */
-    getPlayerStatus: function (playerId, bDay) {
-        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
-            {
-                path: "platform",
-                model: dbconfig.collection_platform
-            }
-        ).then(
-            function (playerData) {
+    getPlayerStatus: function (playerId, bDay, providerIds) {
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean();
+
+        let providerProm = Promise.resolve();
+        if (providerIds && providerIds instanceof Array && providerIds.length > 0) {
+            providerProm = dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {providerId: 1}).lean();
+        }
+
+        return Promise.all([playerProm, providerProm]).then(
+            function (data) {
+                let playerData = data[0];
+                let providersData = data[1];
                 if (playerData && playerData.platform) {
                     //var times = bDay ? dbUtility.getCurrentDailySettlementTime(playerData.platform.dailySettlementHour, playerData.platform.dailySettlementMinute)
                     //    : dbUtility.getCurrentWeeklySettlementTime(playerData.platform.weeklySettlementDay, playerData.platform.weeklySettlementHour, playerData.platform.weeklySettlementMinute);
@@ -7462,16 +7467,24 @@ let dbPlayerInfo = {
                             }
                         }
                     ).exec();
+
+                    let consumptionMatchObj = {
+                        platformId: playerData.platform._id,
+                        createTime: {
+                            $gte: startTime,
+                            $lt: endTime
+                        },
+                        playerId: playerData._id
+                    };
+
+                    if (providersData && providersData.length > 0) {
+                        let providerObjIdArr = providersData.map(provider => provider._id);
+                        consumptionMatchObj.providerId = {$in: providerObjIdArr};
+                    }
+
                     var consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
                         {
-                            $match: {
-                                platformId: playerData.platform._id,
-                                createTime: {
-                                    $gte: startTime,
-                                    $lt: endTime
-                                },
-                                playerId: playerData._id
-                            }
+                            $match: consumptionMatchObj
                         },
                         {
                             $group: {
@@ -7518,14 +7531,20 @@ let dbPlayerInfo = {
      * Get player consumption and top up amount for past month
      *
      */
-    getPlayerMonthStatus: function (playerId) {
-        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
-            {
-                path: "platform",
-                model: dbconfig.collection_platform
-            }
-        ).then(
-            function (playerData) {
+    getPlayerMonthStatus: function (playerId, providerIds) {
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean();
+
+        let providerProm = Promise.resolve();
+        if (providerIds && providerIds instanceof Array && providerIds.length > 0) {
+            providerProm = dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {providerId: 1}).lean();
+        }
+
+        return Promise.all([playerProm, providerProm]).then(
+            function (data) {
+                let playerData = data[0];
+                let providersData = data[1];
                 if (playerData && playerData.platform) {
                     var time = dbUtility.getCurrentMonthSGTIme();
                     var endTime = time.endTime;
@@ -7549,16 +7568,24 @@ let dbPlayerInfo = {
                             }
                         }
                     ).exec();
+
+                    let consumptionMatchObj = {
+                        platformId: playerData.platform._id,
+                        createTime: {
+                            $gte: startTime,
+                            $lt: endTime
+                        },
+                        playerId: playerData._id
+                    };
+
+                    if (providersData && providersData.length > 0) {
+                        let providerObjIdArr = providersData.map(provider => provider._id);
+                        consumptionMatchObj.providerId = {$in: providerObjIdArr};
+                    }
+
                     var consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
                         {
-                            $match: {
-                                platformId: playerData.platform._id,
-                                createTime: {
-                                    $gte: startTime,
-                                    $lt: endTime
-                                },
-                                playerId: playerData._id
-                            }
+                            $match: consumptionMatchObj
                         },
                         {
                             $group: {
