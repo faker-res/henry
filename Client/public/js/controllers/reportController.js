@@ -466,7 +466,7 @@ define(['js/app'], function (myApp) {
                 result = val.playerId;
                 vm.selectedProposalDetailForDisplay.playerName = val.name;
             } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType' || fieldName == 'bankName') {
-                result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
+                result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
             } else if (fieldName == 'depositMethod') {
                 result = $translate(vm.getDepositMethodbyId[val])
             } else if (fieldName === 'playerStatus') {

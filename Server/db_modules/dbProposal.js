@@ -481,6 +481,8 @@ var proposal = {
                                 return proposalData;
                             }
                         )
+                    } else {
+                        return proposalData;
                     }
                 }
             )
