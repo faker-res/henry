@@ -462,6 +462,30 @@ var proposal = {
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
             .then(
                 proposalData => {
+                    let allProm = [];
+                    if (proposalData && proposalData.process && proposalData.process.steps) {
+                        for (let x = 0; x < proposalData.process.steps.length; x++) {
+                            let proposalProcessStepObjId = proposalData.process.steps[x];
+                            allProm.push(
+                                dbconfig.collection_proposalProcessStep.findOne({_id: proposalProcessStepObjId})
+                                    .populate({path: "department", model: dbconfig.collection_department})
+                                    .populate({path: "operator", model: dbconfig.collection_admin})
+                            );
+                        }
+                        return Q.all(allProm).then(
+                            function (processSteps) {
+                                proposalData.process.steps = [];
+                                for (let x in processSteps) {
+                                    proposalData.process.steps.push(processSteps[x]);
+                                }
+                                return proposalData;
+                            }
+                        )
+                    }
+                }
+            )
+            .then(
+                proposalData => {
                     if (proposalData && proposalData.data && proposalData.data.phone) {
                         proposalData.data.phone = dbutility.encodePhoneNum(proposalData.data.phone);
                     }
