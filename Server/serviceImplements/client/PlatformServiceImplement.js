@@ -1,6 +1,7 @@
 const WebSocketUtil = require("./../../server_common/WebSocketUtil");
 const PlatformService = require("./../../services/client/ClientServices").PlatformService;
 const dbPlatform = require('./../../db_modules/dbPlatform');
+const dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
 const dbPlatformAnnouncement = require("../../db_modules/dbPlatformAnnouncement");
 const dbUtility = require('./../../modules/dbutility');
 const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
@@ -67,6 +68,11 @@ var PlatformServiceImplement = function () {
             conn, wsFunc, data, dbPlayerConsumptionRecord.searchPlatformConsumption,
             [data.platformId, data.startTime, data.endTime, data.startIndex, data.requestCount, data.minBonusAmount, data.minAmount, data.minValidAmount, data.isRanking], isValidData, null, null, true
         );
+    };
+
+    this.verifyUserPasswordWithTransferIn.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.loginname && data.password && data.platformId && data.providerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.verifyUserPasswordWithTransferIn, [data.loginname, data.password, data.platformId, data.providerId], isValidData);
     };
 
 };
