@@ -1218,6 +1218,11 @@ var dbPlayerTopUpRecord = {
                     updateData.data.cardOwner = request.result.cardOwner;
                     updateData.data.bankTypeId = request.result.bankTypeId;
                     updateData.data.resultData = request.result;
+                    if(request.result && request.result.changeAmount){
+                        updateData.data.inputAmount = inputData.amount;
+                        updateData.data.amount = request.result.changeAmount;
+                    }
+
                     if (resultData[0]) {
                         updateData.data.cardQuota = resultData[0].totalAmount || 0;
                     }
