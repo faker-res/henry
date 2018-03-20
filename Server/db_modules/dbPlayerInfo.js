@@ -2824,7 +2824,7 @@ let dbPlayerInfo = {
                             break;
                     }
                     var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch();
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
                     let promArr;
 
                     if (useProviderGroup) {
