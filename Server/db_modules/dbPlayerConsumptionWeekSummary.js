@@ -415,10 +415,18 @@ var dbPlayerConsumptionWeekSummary = {
 
                                                             // Offset if it matters
                                                             if (consumpDiff > 0.01) {
+                                                                // Log the offset
+                                                                proposalData.data.devCheckMsg =
+                                                                    "GameType: " + el._id + ", " +
+                                                                    "Original: " + proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + ", ";
+
                                                                 proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
                                                                 proposalData.data.rewardAmount += consumpDiff * returnRatio;
                                                                 proposalData.data.spendingAmount += consumpDiff * returnRatio;
                                                                 proposalData.data.consumeValidAmount += consumpDiff;
+
+                                                                proposalData.data.devCheckMsg +=
+                                                                    "Offset: " + el.validAmount + "-" + curValidAmt + "-" + curNonXIMAAmt + "-" + consumedValidAmount
                                                             }
                                                         }
                                                     });
@@ -440,7 +448,20 @@ var dbPlayerConsumptionWeekSummary = {
                     );
 
                     if (proms.length > 0) {
-                        return Q.all(proms);
+                        return Q.all(proms).then(
+                            data => {
+                                return data;
+                            },
+                            err => {
+                                if(bRequest){
+                                    deferred.reject({
+                                        name: "DBError",
+                                        message: "Error creating player consumption return proposal",
+                                        error: err
+                                    });
+                                }
+                            }
+                        );
                     } else {
                         //todo::update the error message here for client
                         //no consumption return
@@ -963,11 +984,14 @@ var dbPlayerConsumptionWeekSummary = {
                         if (consumptionSummary && playerLevel && ratio >= 0) {
                             let consumeValidAmount = consumptionSummary.validAmount;
                             let returnForThisGameType = consumeValidAmount * ratio;
+                            let nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
+
                             returnAmount += returnForThisGameType;
                             res.totalConsumptionAmount += consumeValidAmount;
                             res[type] = {
                                 consumptionAmount: consumeValidAmount,
                                 returnAmount: returnForThisGameType,
+                                nonXIMAAmt: nonXIMAAmt,
                                 ratio: ratio
                             };
                         }
@@ -976,6 +1000,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 {
                                     consumptionAmount: 0,
                                     returnAmount: 0,
+                                    nonXIMAAmt: 0,
                                     ratio: ratio
                                 };
                         }
@@ -993,11 +1018,13 @@ var dbPlayerConsumptionWeekSummary = {
                                 // Offset consumption return dirty amount
                                 el.validAmount -= doneXIMAConsumption["GameType:" + el._id] ? doneXIMAConsumption["GameType:" + el._id].consumeValidAmount : 0;
 
-                                let consumpDiff = el.validAmount - res[el._id].consumptionAmount;
-                                res[el._id].consumptionAmount += consumpDiff;
-                                res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
+                                let consumpDiff = el.validAmount - res[el._id].consumptionAmount - res[el._id].nonXIMAAmt;
 
-                                totalAmtDiff += consumpDiff * res[el._id].ratio;
+                                if (consumpDiff > 0.01) {
+                                    res[el._id].consumptionAmount += consumpDiff;
+                                    res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
+                                    totalAmtDiff += consumpDiff * res[el._id].ratio;
+                                }
                             });
 
                             res.totalAmount += totalAmtDiff;

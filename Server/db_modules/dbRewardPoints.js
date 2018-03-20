@@ -17,6 +17,7 @@ const constRewardPointsEventPeriod = require('../const/constRewardPointsEventPer
 const constRewardPointsUserAgent = require("../const/constRewardPointsUserAgent");
 const constRewardPointsEventTopupType = require("../const/constRewardPointsEventTopupType");
 const constRewardPointsTopupEventUserAgent = require("../const/constRewardPointsTopupEventUserAgent");
+const constServerCode = require('../const/constServerCode');
 
 let dbRewardPoints = {
 
@@ -28,7 +29,7 @@ let dbRewardPoints = {
                     return dbRewardPoints.createRewardPoints(playerObjId, playerData);
                 }
                 else if (playerData && playerData.playerLevel && rewardPointsData.playerLevel && rewardPointsData.playerLevel.toString() !== playerData.playerLevel.toString()) {
-                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerObjId);
+                    return dbRewardPoints.updateRewardPointsPlayerLevel(rewardPointsData._id, playerData.playerLevel);
                 }
 
                 return rewardPointsData;
@@ -181,7 +182,7 @@ let dbRewardPoints = {
                             let prom = [];
                             for (let i = 0; i < relevantEvents.length; i++) {
                                 let event = relevantEvents[i];
-                                let relevantTopupMatchQuery = buildTodayTopupAmountQuery(event, topupProposalData);
+                                let relevantTopupMatchQuery = buildTodayTopupAmountQuery(event, topupProposalData, true);
 
                                 prom.push(dbConfig.collection_playerTopUpRecord.aggregate(
                                     {
@@ -440,8 +441,9 @@ let dbRewardPoints = {
                 }
                 else {
                     return Promise.reject({
+                        status: constServerCode.COMMON_ERROR,
                         name: "DataError",
-                        message: "Player already applied max amount of points for today."
+                        message: "Error in getting player level"
                     });
                 }
 
@@ -470,6 +472,7 @@ let dbRewardPoints = {
 
                 if (Number(dailyMaxPoints) <= Number(todayApplied)) {
                     return Promise.reject({
+                        status: constServerCode.COMMON_ERROR,
                         name: "DataError",
                         message: "Player already applied max amount of points for today."
                     });
@@ -1151,7 +1154,7 @@ let dbRewardPoints = {
     },
 
     getPointRule: function (playerId, platformId) {
-        let player, platform, platformObjId, firstProm, lists, dailyConvertedPoints, rewardPoints, rewardPointsObjId;
+        let player, platform, platformObjId, firstProm, lists, dailyConvertedPoints, dailyAppliedPoints, rewardPoints, rewardPointsObjId;
         let intervalPeriod = null;
         let list = [];
 
@@ -1196,13 +1199,15 @@ let dbRewardPoints = {
 
         return firstProm.then(() => {
             return Q.all([dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platformObjId), dbPlayerLevel.getPlayerLevel({platform: platformObjId}),
-                dbGameProvider.getPlatformProviderGroup(platformObjId), dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(rewardPointsObjId)]).then(
+                dbGameProvider.getPlatformProviderGroup(platformObjId), dbPlayerInfo.getPlayerRewardPointsDailyConvertedPoints(rewardPointsObjId),
+                dbPlayerInfo.getPlayerRewardPointsDailyAppliedPoints(rewardPointsObjId)]).then(
                 data => {
                     let rewardPointsLvlConfig = data[0];
                     let allPlayerLvl = data[1];
                     let platformProviderGroup = data[2];
                     if (player) { // only display if found player data
                         dailyConvertedPoints = data[3];
+                        dailyAppliedPoints = data[4];
                     }
 
                     let playerLevelId, playerLevelName, dailyMaxPoints, pointToCreditManualRate, pointToCreditManualMaxPoints;
@@ -1263,6 +1268,7 @@ let dbRewardPoints = {
 
                     let outputObject = {
                         preDailyExchangedPoint: dailyConvertedPoints,
+                        preDailyAppliedPoint: dailyAppliedPoints,
                         userCurrentPoint: rewardPoints,
                         refreshPeriod: intervalPeriod,
                         list: list
@@ -1281,13 +1287,10 @@ let dbRewardPoints = {
     getMissonList: function (playerId, platformId) {
         let returnData;
         let platformData = null;
-        let loginRewardPointEvent = [];
+        let playerData = null;
         let topupRewardPointEvent = [];
-        let gameRewardPointEvent = [];
-        let gameProvider = [];
         let rewardPointRecord = [];
-        let rewardPointsRanking = [];
-        let rewardPointsProm;
+        let rewardPointsProm = [];
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformRecord => {
@@ -1302,29 +1305,88 @@ let dbRewardPoints = {
                 }
             })
             .then(playerRecord => {
+                let topupRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
+                    platformObjId: platformData._id,
+                    category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS,
+                    status: true
+                }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+
+                if (playerRecord) {
+                    playerData = playerRecord;
+                    rewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerRecord._id);
+                }
+
+                return Promise.all([topupRewardPointProm, rewardPointsProm])
+            })
+            .then(playerTopupRewardPointsRecord => {
+                topupRewardPointEvent = playerTopupRewardPointsRecord[0] ? playerTopupRewardPointsRecord[0] : [];
+                rewardPointRecord = playerTopupRewardPointsRecord[1] ? playerTopupRewardPointsRecord[1] : [];
+
+                if(rewardPointRecord){
+                    let rewardProgressList = rewardPointRecord && rewardPointRecord.progress ? rewardPointRecord.progress : [];
+                    let rewardProgressListChanged = false;
+                    let prom = [];
+                    if (playerData) {
+                        for (let i = 0; i < topupRewardPointEvent.length; i++) {
+                            let event = topupRewardPointEvent[i];
+                            let topupMatchQuery = buildTodayTopupAmountQuery(event, playerData, false);
+
+                            prom.push(dbConfig.collection_playerTopUpRecord.aggregate(
+                                {
+                                    $match: topupMatchQuery
+                                },
+                                {
+                                    $group: {
+                                        _id: {playerId: "$playerId"},
+                                        amount: {$sum: "$amount"}
+                                    }
+                                }
+                            ).then(
+                                summary => {
+                                    let periodTopupAmount = summary && summary[0] && summary[0].amount ? summary[0].amount : 0;
+                                    if (periodTopupAmount > 0) {
+                                        let eventProgress = getEventProgress(rewardProgressList, event);
+                                        let progressChanged = updateTopupProgressCount(eventProgress, event, periodTopupAmount);
+                                        rewardProgressListChanged = rewardProgressListChanged || progressChanged;
+                                    }
+                                }
+                            ));
+                        }
+                    }
+                    return Promise.all(prom).then(
+                        () => {
+                            if (rewardProgressListChanged) {
+                                return dbConfig.collection_rewardPoints.findOneAndUpdate({
+                                    platformObjId: rewardPointRecord.platformObjId,
+                                    playerObjId: rewardPointRecord.playerObjId
+                                }, {
+                                    progress: rewardProgressList
+                                }, {new: true}).lean();
+                            }
+                            else {
+                                return Promise.resolve(rewardPointRecord);
+                            }
+                        }
+                    );
+                }
+            })
+            .then(rewardPoints => {
                 let limit = 10;
                 let sortCol = {points: -1, lastUpdate: 1};
 
                 let loginRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
-                    category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS
-                }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
-
-                let topupRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
-                    platformObjId: platformData._id,
-                    category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS
+                    category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS,
+                    status: true
                 }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
 
                 let gameRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
-                    category: constRewardPointsTaskCategory.GAME_REWARD_POINTS
+                    category: constRewardPointsTaskCategory.GAME_REWARD_POINTS,
+                    status: true
                 }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
 
                 let gameProviderProm = dbConfig.collection_gameProvider.find({}).lean();
-
-                if (playerRecord) {
-                    rewardPointsProm = dbConfig.collection_rewardPoints.findOne({playerObjId: playerRecord._id}).lean();
-                }
 
                 let rewardPointsRankingProm = dbConfig.collection_rewardPoints.find({
                     platformObjId: platformData._id
@@ -1336,32 +1398,28 @@ let dbRewardPoints = {
                 }).sort(sortCol).limit(limit)
                     .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
 
-                return Promise.all([loginRewardPointProm, topupRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsProm, rewardPointsRankingProm])
+                return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPoints, rewardPointsRankingProm])
             })
             .then(data => {
-                if(data){
-                    loginRewardPointEvent = data[0] ? data[0] : [];
-                    topupRewardPointEvent = data[1] ? data[1] : [];
-                    gameRewardPointEvent = data[2] ? data[2] : [];
-                    gameProvider = data[3] ? data[3] : [];
-                    rewardPointRecord = data[4] ? data[4] : [];
-                    rewardPointsRanking = data[5] ? data[5] : [];
+                let loginRewardPointEvent = data[0] ? data[0] : [];
+                let gameRewardPointEvent = data[1] ? data[1] : [];
+                let gameProvider = data[2] ? data[2] : [];
+                let rewardPoints = data[3] ? data[3] : [];
+                let rewardPointsRanking = data[4] ? data[4] : [];
 
-                    let loginRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, rewardPointRecord);
-                    let topupRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, rewardPointRecord);
-                    let gameRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, rewardPointRecord);
-                    let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking);
+                let loginRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, rewardPoints);
+                let topupRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, rewardPoints);
+                let gameRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, rewardPoints);
+                let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking);
 
-                    returnData = {
-                        "loginPointList": loginRewardPointListArr,
-                        "rechargePointList": topupRewardPointListArr,
-                        "gamePointList": gameRewardPointListArr,
-                        "pointRanking": rewardPointsRankingListArr
-                    }
+                returnData = {
+                    "loginPointList": loginRewardPointListArr,
+                    "rechargePointList": topupRewardPointListArr,
+                    "gamePointList": gameRewardPointListArr,
+                    "pointRanking": rewardPointsRankingListArr
                 }
 
                 return returnData;
-
             })
     }
 };
@@ -1524,11 +1582,21 @@ function updateLoginProgressCount(progress, event, provider) {
     }
     else {
         let today = dbUtility.getTodaySGTime();
-        if (!progress.isApplicable && progress.lastUpdateTime < today.startTime && progress.count < event.consecutiveCount) {
-            // add progress if necessary
-            progress.count++;
-            commonLoginProgressUpdate(progress, provider);
-            progressUpdated = true;
+
+        if (event.period != 1) {
+            if (progress.lastUpdateTime < today.startTime) {
+                // add progress count if exceed consecutiveCount when not daily
+                progress.count++;
+                commonLoginProgressUpdate(progress, provider);
+                progressUpdated = true;
+            }
+        } else {
+            if (!progress.isApplicable && progress.lastUpdateTime < today.startTime && progress.count < event.consecutiveCount) {
+                // add progress if necessary
+                progress.count++;
+                commonLoginProgressUpdate(progress, provider);
+                progressUpdated = true;
+            }
         }
         // do nothing otherwise
     }
@@ -1714,11 +1782,11 @@ function updateTopupProgressCount(progress, event, todayTopupAmount) {
     return progressUpdated;
 }
 
-function buildTodayTopupAmountQuery(event, topupProposalData) {
+function buildTodayTopupAmountQuery(event, topupData, isFromUpdate) {
     let today = dbUtility.getTodaySGTime();
     let relevantTopupMatchQuery = {
-        playerId: topupProposalData.data.playerObjId,
-        platformId: topupProposalData.data.platformId,
+        playerId: isFromUpdate ? topupData.data.playerObjId : topupData._id,
+        platformId: isFromUpdate ? topupData.data.platformId : topupData.platform,
         createTime: {$gte: today.startTime, $lte: today.endTime}
     };
 
@@ -1804,8 +1872,8 @@ function getEventPeriodTime(event) {
             //     return event.customPeriodStartTime;
             // }
             return {
-                startTime: event.customPeriodStartTime?event.customPeriodStartTime:"",
-                endTime: event.customPeriodEndTime? event.customPeriodEndTime: ""
+                startTime: event && event.customPeriodStartTime?event.customPeriodStartTime:"",
+                endTime: event && event.customPeriodEndTime? event.customPeriodEndTime: ""
             };
         // go to default if custom period start time does not exist
         default:
@@ -1845,132 +1913,138 @@ function getPlayerLevelValue(playerObjId) {
 function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoints) {
     let rewardPointListArr = [];
 
-    rewardPointEvent.forEach(reward => {
-        let rewardStartTime;
-        let rewardEndTime;
-        let rewardPeriod;
-        let currentGoal = 0;
-        let level = "";
-        let rewards = {};
-        let status = 0;
-        let providerIds = [];
+    if (rewardPointEvent && rewardPointEvent.length > 0) {
+        rewardPointEvent.forEach(reward => {
+            let rewardStartTime;
+            let rewardEndTime;
+            let rewardPeriod;
+            let currentGoal = 0;
+            let level, levelName;
+            let rewards = {};
+            let status = 0;
+            let providerIds = [];
 
-        if (reward.period) {
-            let periodTime = getRewardPointsPeriodTime(reward.period);
-            rewardStartTime = periodTime.startTime;
-            rewardEndTime = periodTime.endTime;
-            rewardPeriod = constRewardPointsEventPeriod[reward.period];
-        }
+            if (reward.period) {
+                let periodTime = getEventPeriodTime(reward);
+                rewardStartTime = periodTime.startTime;
+                rewardEndTime = periodTime.endTime;
+                rewardPeriod = constRewardPointsEventPeriod[reward.period];
+            }
 
-        if (reward.level) {
-            level = reward.level.value;
-        }
+            if (reward.level) {
+                level = reward.level.value;
+                levelName = reward.level.name;
+            }
 
-        if (rewardPoints && rewardPoints.progress && rewardPoints.progress.length > 0) {
-            rewardPoints.progress.filter(item => {
-                if (item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() === reward._id.toString()
-                    && item.lastUpdateTime >= rewardStartTime && item.lastUpdateTime <= rewardEndTime) {
-                    currentGoal = item.count;
+            if (rewardPoints && rewardPoints.progress && rewardPoints.progress.length > 0) {
+                rewardPoints.progress.filter(item => {
+                    if (item.rewardPointsEventObjId && item.rewardPointsEventObjId.toString() === reward._id.toString()
+                        && item.lastUpdateTime >= rewardStartTime && item.lastUpdateTime <= rewardEndTime) {
+                        currentGoal = item.count;
 
-                    if (item.isApplied) {
-                        status = 2;
+                        if (item.isApplied) {
+                            status = 2;
+                        }
+                        else if (item.isApplicable) {
+                            status = 1;
+                        }
                     }
-                    else if(item.isApplicable) {
-                        status = 1;
+                });
+            }
+
+            switch (category) {
+                case constRewardPointsTaskCategory.LOGIN_REWARD_POINTS: {
+                    if (reward.target && reward.target.targetDestination && reward.target.targetDestination.length > 0) {
+                        reward.target.targetDestination.forEach(item => {
+                            if (gameProvider && gameProvider.length > 0) {
+                                gameProvider.forEach(gameItem => {
+                                    if (item == gameItem._id.toString()) {
+                                        providerIds.push(gameItem.providerId);
+                                    }
+                                });
+                            }
+                        })
                     }
+
+                    rewards = {
+                        "id": reward._id,
+                        "refreshPeriod": rewardPeriod,
+                        "device": constRewardPointsUserAgent[reward.userAgent ? reward.userAgent.toString() : ""],
+                        "title": reward.rewardTitle,
+                        "content": reward.rewardContent,
+                        "gradeLimit": level,
+                        "gradeName": levelName,
+                        "point": reward.rewardPoints,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
+                        "providerId": providerIds,
+                        "goal": reward.consecutiveCount,
+                        "currentGoal": currentGoal
+                    }
+                    break;
                 }
-            });
-        }
-
-        switch (category) {
-            case constRewardPointsTaskCategory.LOGIN_REWARD_POINTS: {
-                if (reward.target && reward.target.targetDestination && reward.target.targetDestination.length > 0) {
-                    reward.target.targetDestination.forEach(item => {
+                case constRewardPointsTaskCategory.TOPUP_REWARD_POINTS: {
+                    rewards = {
+                        "id": reward._id,
+                        "refreshPeriod": rewardPeriod,
+                        "device": constRewardPointsTopupEventUserAgent[reward.userAgent ? reward.userAgent.toString() : ""],
+                        "depositType": reward.target && reward.target.merchantTopupMainType ? constRewardPointsEventTopupType[reward.target.merchantTopupMainType] : "",
+                        "onlineTopupType": reward.target && reward.target.merchantTopupType ? reward.target.merchantTopupType : "",
+                        "manualTopupType": reward.target && reward.target.depositMethod ? reward.target.depositMethod : "",
+                        "bankCardType": reward.target && reward.target.bankType ? reward.target.bankType : "",
+                        "dailyRequestDeposit": reward.target && reward.target.dailyTopupAmount ? reward.target.dailyTopupAmount : 0,
+                        "title": reward.rewardTitle,
+                        "content": reward.rewardContent,
+                        "gradeLimit": level,
+                        "gradeName": levelName,
+                        "point": reward.rewardPoints,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
+                        "goal": reward.consecutiveCount,
+                        "currentGoal": currentGoal
+                    }
+                    break;
+                }
+                case constRewardPointsTaskCategory.GAME_REWARD_POINTS: {
+                    let dailyRequestBetCountsAndAmount = [];
+                    if (reward.target && reward.target.targetDestination) {
                         if (gameProvider && gameProvider.length > 0) {
                             gameProvider.forEach(gameItem => {
-                                if (item == gameItem._id.toString()) {
+                                if (reward.target.targetDestination == gameItem._id.toString()) {
                                     providerIds.push(gameItem.providerId);
                                 }
                             });
                         }
-                    })
-                }
-
-                rewards = {
-                    "id": reward._id,
-                    "refreshPeriod": rewardPeriod,
-                    "device": constRewardPointsUserAgent[reward.userAgent.toString()],
-                    "title": reward.rewardTitle,
-                    "content": reward.rewardContent,
-                    "gradeLimit": level,
-                    "point": reward.rewardPoints,
-                    "status": status,
-                    "providerId": providerIds,
-                    "goal": reward.consecutiveCount,
-                    "currentGoal": currentGoal
-                }
-                break;
-            }
-            case constRewardPointsTaskCategory.TOPUP_REWARD_POINTS: {
-                rewards = {
-                    "id": reward._id,
-                    "refreshPeriod": rewardPeriod,
-                    "device": constRewardPointsTopupEventUserAgent[reward.userAgent.toString()],
-                    "depositType": reward.target && reward.target.merchantTopupMainType ? constRewardPointsEventTopupType[reward.target.merchantTopupMainType] : "",
-                    "onlineTopupType": reward.target && reward.target.merchantTopUpType ? reward.target.merchantTopUpType : "",
-                    "manualTopupType": reward.target && reward.target.depositMethod ? reward.target.depositMethod : "",
-                    "bankCardType": reward.target && reward.target.bankType ? reward.target.bankType : "",
-                    "dailyRequestDeposit": reward.target && reward.target.dailyTopupAmount ? reward.target.dailyTopupAmount : 0,
-                    "title": reward.rewardTitle,
-                    "content": reward.rewardContent,
-                    "gradeLimit": level,
-                    "point": reward.rewardPoints,
-                    "status": status,
-                    "goal": reward.consecutiveCount,
-                    "currentGoal": currentGoal
-                }
-                break;
-            }
-            case constRewardPointsTaskCategory.GAME_REWARD_POINTS: {
-                let dailyRequestBetCountsAndAmount = [];
-                if (reward.target && reward.target.targetDestination) {
-                    if (gameProvider && gameProvider.length > 0) {
-                        gameProvider.forEach(gameItem => {
-                            if (reward.target.targetDestination == gameItem._id.toString()) {
-                                providerIds.push(gameItem.providerId);
-                            }
-                        });
                     }
-                }
 
-                if(reward.target && (reward.target.dailyConsumptionCount || reward.target.singleConsumptionAmount)) {
-                    dailyRequestBetCountsAndAmount.push(reward.target.dailyConsumptionCount ? reward.target.dailyConsumptionCount : 0);
-                    dailyRequestBetCountsAndAmount.push(reward.target.singleConsumptionAmount ? reward.target.singleConsumptionAmount : 0);
-                }
+                    if (reward.target && (reward.target.dailyConsumptionCount || reward.target.singleConsumptionAmount)) {
+                        dailyRequestBetCountsAndAmount.push(reward.target.dailyConsumptionCount ? reward.target.dailyConsumptionCount : 0);
+                        dailyRequestBetCountsAndAmount.push(reward.target.singleConsumptionAmount ? reward.target.singleConsumptionAmount : 0);
+                    }
 
-                rewards = {
-                    "id": reward._id,
-                    "refreshPeriod": rewardPeriod,
-                    "device": constRewardPointsUserAgent[reward.userAgent.toString()],
-                    "gameType": reward.target && reward.target.gameType ? reward.target.gameType : "",
-                    "betDetail": reward.target && reward.target.betType ? reward.target.betType : "",
-                    "title": reward.rewardTitle,
-                    "content": reward.rewardContent,
-                    "gradeLimit": level,
-                    "point": reward.rewardPoints,
-                    "status": status,
-                    "dailyRequestBetCountsAndAmount": dailyRequestBetCountsAndAmount,
-                    "dailyBetConsumption": reward.target && reward.target.dailyValidConsumptionAmount ? reward.target.dailyValidConsumptionAmount : 0,
-                    "dailyWinBetCounts": reward.target && reward.target.dailyWinGameCount ? reward.target.dailyWinGameCount : 0,
-                    "providerId": providerIds,
-                    "goal": reward.consecutiveCount,
-                    "currentGoal": currentGoal
+                    rewards = {
+                        "id": reward._id,
+                        "refreshPeriod": rewardPeriod,
+                        "device": constRewardPointsUserAgent[reward.userAgent ? reward.userAgent.toString() : ""],
+                        "gameType": reward.target && reward.target.gameType ? reward.target.gameType : "",
+                        "betDetail": reward.target && reward.target.betType ? reward.target.betType : "",
+                        "title": reward.rewardTitle,
+                        "content": reward.rewardContent,
+                        "gradeLimit": level,
+                        "gradeName": levelName,
+                        "point": reward.rewardPoints,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
+                        "dailyRequestBetCountsAndAmount": dailyRequestBetCountsAndAmount,
+                        "dailyBetConsumption": reward.target && reward.target.dailyValidConsumptionAmount ? reward.target.dailyValidConsumptionAmount : 0,
+                        "dailyWinBetCounts": reward.target && reward.target.dailyWinGameCount ? reward.target.dailyWinGameCount : 0,
+                        "providerId": providerIds,
+                        "goal": reward.consecutiveCount,
+                        "currentGoal": currentGoal
+                    }
+                    break;
                 }
-                break;
             }
-        }
-        rewardPointListArr.push(rewards);
-    });
+            rewardPointListArr.push(rewards);
+        });
+    }
 
     return rewardPointListArr;
 }
@@ -2001,34 +2075,4 @@ function getRewardPointsRanking(rewardPoints) {
     }
 
     return rewardPointsRankingListArr;
-}
-
-function getRewardPointsPeriodTime(period) {
-    if (!period) {
-        return false;
-    }
-
-    switch(period) {
-        case 1:
-            return dbUtility.getTodaySGTime();
-        case 2:
-            return dbUtility.getCurrentWeekSGTime();
-        case 3:
-            return dbUtility.getCurrentBiWeekSGTIme();
-        case 4:
-            return dbUtility.getCurrentMonthSGTIme();
-        case 5:
-            return dbUtility.getCurrentYearSGTime();
-        case 6:
-            // if (event.customPeriodStartTime) {
-            //     return event.customPeriodStartTime;
-            // }
-            return {
-                startTime: event.customPeriodStartTime?event.customPeriodStartTime:"",
-                endTime: event.customPeriodEndTime? event.customPeriodEndTime: ""
-            };
-        // go to default if custom period start time does not exist
-        default:
-            return false;
-    }
 }

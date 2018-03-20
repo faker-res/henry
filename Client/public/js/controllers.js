@@ -83,7 +83,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         // }, 1000000);
 
         $scope.AppSocket.on('connect', function () {
-            $scope.$broadcast('socketConnected', 'socketConnected');
+            // $scope.$broadcast('socketConnected', 'socketConnected');
             console.log('Management server connected');
             initPage();
             authService.getAllActions($scope.AppSocket, function () {
@@ -493,8 +493,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         1: "网银转账(Online Transfer)",
         2: "自动取款机(ATM)",
         3: "银行柜台(Counter)",
-        4: "网银跨行(InterBank Transfer)",
-        5: "支付宝(AliPay)"
+        4: "支付宝转账(AliPay Transfer)",
+        5: "微信转帐(WeChatPay Transfer)"
     };
 
     $scope.depositMethodList = {

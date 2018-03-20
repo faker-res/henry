@@ -1077,7 +1077,7 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
-    searchPlatformConsumption: function(platformId, startTime, endTime, startIndex, requestCount, minBonusAmount, minAmount, minValidAmount){
+    searchPlatformConsumption: function(platformId, startTime, endTime, startIndex, requestCount, minBonusAmount, minAmount, minValidAmount, isRanking){
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if( platformData ){
@@ -1092,7 +1092,10 @@ var dbPlayerConsumptionRecord = {
                     if(minValidAmount != null){
                         queryObj.validAmount = {$gte: minValidAmount};
                     }
-                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(requestCount).lean().populate({
+
+                    console.log('searchPlatformConsumption queryObj', queryObj);
+
+                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(Number(requestCount)).lean().populate({
                         path: "gameId",
                         model: dbconfig.collection_game
                     }).populate({
@@ -1106,16 +1109,39 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             recordData => {
+                let playerBonusListArray = [];
                 if(recordData && recordData.length > 0){
                     recordData.forEach(
                         record => {
                             record.providerId = record.providerId.providerId;
                             record.playerName = dbUtility.encodePlayerName(record.playerId.name);
+                            let playerBonusListObj = {};
+                            playerBonusListObj.playerName = record.playerName;
+                            playerBonusListObj.bonusAmount = record.bonusAmount;
+                            playerBonusListObj.providerId = record.providerId || "";
+                            playerBonusListObj.cpGameType = record.cpGameType || "";
+
+                            playerBonusListArray.push(playerBonusListObj);
                             delete record.playerId;
                         }
                     );
                 }
-                return recordData;
+
+                if(isRanking && (isRanking == "true" || isRanking == true)){
+                    playerBonusListArray.sort(function (a, b) {
+                        if(a[Object.keys(a)[2]] >  b[Object.keys(b)[2]]){
+                            return -1;
+                        }else if(a[Object.keys(a)[2]] <  b[Object.keys(b)[2]]){
+                            return 1;
+                        }else {
+                            return 0;
+                        }
+                    });
+
+                    return playerBonusListArray;
+                }else{
+                    return recordData;
+                }
             }
         );
     },

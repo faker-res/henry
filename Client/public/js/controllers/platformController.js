@@ -776,6 +776,7 @@ define(['js/app'], function (myApp) {
             };
 
             $scope.$on('switchPlatform', () => {
+                initPageParam();
                 vm.loadPlatformData({loadAll: true, noParallelTrigger: true});
             });
 
@@ -7792,6 +7793,11 @@ define(['js/app'], function (myApp) {
         vm.createPlayerRegistrationIntentRecord = function (data) {
 
                 var intentData = {
+                    adminInfo: {
+                        type: "admin",
+                        name: authService.adminName,
+                        id: authService.adminId
+                    },
                     name: data.data.name,
                     realName: data.data.realName,
                     password: data.data.password,
@@ -9418,6 +9424,7 @@ define(['js/app'], function (myApp) {
                             vm.playerApplyRewardShow.consumptionReturnData[key].consumptionAmount = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].consumptionAmount).toFixed(2);
                             vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].returnAmount).toFixed(2);
                             vm.playerApplyRewardShow.consumptionReturnData[key].ratio = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].ratio).toFixed(4);
+                            vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt = parseFloat(vm.playerApplyRewardShow.consumptionReturnData[key].nonXIMAAmt).toFixed(2);
                             vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')] = vm.playerApplyRewardShow.consumptionReturnData[key];
                             // hide consumption type that is not in current selecting platform
                             if(vm.playerApplyRewardShow.consumptionReturnData[$translate(vm.allGameTypes[key] || 'Unknown')].ratio ==0)
@@ -17935,7 +17942,7 @@ define(['js/app'], function (myApp) {
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {
                         vm.rewardPointsEventPeriodChange(idx, val);
-                        vm.rewardPointsEventSetDisable(idx, val, true);
+                        vm.rewardPointsEventSetDisable(idx, val, true, true);
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();
@@ -17988,7 +17995,7 @@ define(['js/app'], function (myApp) {
                 //Use Object.assign instead of directly use rewardPointsEvent, because datetimePicker input will disappear when add new event to vm.rewardPointsEvent
                 $scope.$socketPromise('updateRewardPointsEvent', {rewardPointsEvent: Object.assign({}, rewardPointsEvent)}).then((data) => {
                     vm.rewardPointsEventPeriodChange(idx, rewardPointsEvent);
-                    vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true);
+                    vm.rewardPointsEventSetDisable(idx, rewardPointsEvent, true, true);
                     $scope.safeApply();
                     vm.endLoadWeekDay();
                 });
@@ -18036,7 +18043,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.rewardPointsEventSetDisable = (idx, rewardPointsEvent, isDisable) => {
+            vm.rewardPointsEventSetDisable = (idx, rewardPointsEvent, isDisable, isMultiple) => {
                 rewardPointsEvent.isEditing=!isDisable;
                 if (rewardPointsEvent.period == 6){
                     let startDateId = "#rewardPointsEventStartDate-" + idx;
@@ -18044,8 +18051,10 @@ define(['js/app'], function (myApp) {
                     vm.datetimePickerSetDisable(startDateId, isDisable);
                     vm.datetimePickerSetDisable(endDateId, isDisable);
                 }
-                $scope.safeApply();
-                vm.endLoadWeekDay();
+                if (!isMultiple) {
+                    $scope.safeApply();
+                }
+                // vm.endLoadWeekDay();
             };
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
@@ -18826,9 +18835,9 @@ define(['js/app'], function (myApp) {
             vm.drawPromoCodeHistoryTable = function (data, size, summary, newSearch) {
                 let tableOptions = {
                     data: data,
-                    "order": vm.promoCodeQuery.aaSorting || [[11, 'desc']],
+                    "order": vm.promoCodeQuery.aaSorting || [[12, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [11]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [12]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -19379,7 +19388,10 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData);
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function (data) {
+                        vm.getAllPromoCodeUserGroup();
+                        $scope.safeApply();
+                    });
                     vm.saveUserFromGroupToGroup(1, vm.userGroupAllConfig, vm.userGroupBlockConfig)
                 }
             };
@@ -22290,200 +22302,8 @@ define(['js/app'], function (myApp) {
 
                 setTimeout(
                     function () {
-                        vm.initFeedbackQuery();
+                        initPageParam();
 
-                        vm.queryPara = {};
-
-                        vm.phonePattern = /^[0-9]{8,18}$/;
-                        vm.showPlatformList = true;
-                        vm.showPlatformDropDownList = false;
-                        vm.prepareDemoPlayerPrefix();
-                        vm.showPlatformDetailTab(null);
-                        vm.showRewardSettingsTab(null);
-                        vm.showReapplyLostOrderTab(null);
-                        vm.showPlayerAccountingDetailTab(null);
-                        vm.platformAction = null;
-                        vm.showTopupTab(null);
-                        vm.addPlayerFeedbackResultData = {};
-                        vm.deletePlayerFeedbackResultData = {};
-                        vm.addPlayerFeedbackTopicData = {};
-                        vm.deletePlayerFeedbackTopicData = {};
-                        // vm.allGameStatusString = {};
-                        vm.credibilityRemarks = [];
-                        vm.gameStatus = {};
-                        vm.gameSmallShow = {};
-                        vm.gameGroupClickable = {
-                            inGameLoaded: true,
-                            outGameLoaded: true,
-                        };
-                        vm.filterGameType = 'all';
-                        vm.filterPlayGameType = 'all';
-
-                        vm.platformPageName = 'Player';
-                        vm.playerTableQuery = {limit: 10};
-                        utilService.actionAfterLoaded("#playerTablePage", function () {
-                            vm.playerTableQuery.pageObj = utilService.createPageForPagingTable("#playerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
-                                var isChange = false;
-                                if (pageSize != vm.playerTableQuery.limit) {
-                                    isChange = true;
-                                    vm.playerTableQuery.limit = pageSize;
-                                }
-                                if ((curP - 1) * pageSize != vm.playerTableQuery.index) {
-                                    isChange = true;
-                                    vm.playerTableQuery.index = (curP - 1) * pageSize;
-                                }
-                                if (isChange) return vm.advancedPlayerQuery();
-                            });
-                            $('#playerDataTable').on('order.dt', function (event, a, b) {
-                                // console.log(event, a, b);
-                                if (!a.aaSorting[0]) return;
-                                var sortCol = a.aaSorting[0][0];
-                                var sortDire = a.aaSorting[0][1];
-                                var sortKey = a.aoColumns[sortCol].data;
-                                // vm.playerTableQuery.aaSorting = a.aaSorting;
-
-                                if (sortKey) {
-                                    vm.playerTableQuery.sortCol = vm.playerTableQuery.sortCol || {};
-                                    var preVal = vm.playerTableQuery.sortCol[sortKey];
-                                    vm.playerTableQuery.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                                    if (vm.playerTableQuery.sortCol[sortKey] != preVal) {
-                                        vm.playerTableQuery.sortCol = {};
-                                        vm.playerTableQuery.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                                        vm.advancedPlayerQuery();
-                                    }
-                                }
-                            });
-                        });
-
-
-                        $('#partnerDataTable').on('order.dt', function (event, a, b) {
-                            // console.log(event, a, b);
-                            if (!a.aaSorting[0]) return;
-                            var sortCol = a.aaSorting[0][0];
-                            var sortDire = a.aaSorting[0][1];
-                            var sortKey = a.aoColumns[sortCol].data;
-                            // vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
-                            if (sortKey) {
-                                vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
-                                var preVal = vm.advancedPartnerQueryObj.sortCol[sortKey];
-                                vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                                if (vm.advancedPartnerQueryObj.sortCol[sortKey] != preVal) {
-                                    vm.advancedPartnerQueryObj.sortCol = {};
-                                    vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                                    vm.getPartnersByAdvancedQueryDebounced();
-                                }
-                            }
-                        });
-
-
-                        Q.all([vm.getAllPlayerFeedbackResults(), vm.getAllPlayerFeedbackTopics()]).then(
-                            function (data) {
-                                // This init data will be a list of undefineds.
-                                // The above promises don't actually produce data, they just promise to set their vm variables!
-
-                                vm.getAllGameTypes();
-                                vm.getAllRewardTypes();
-                                vm.loadPlatformData();
-                                vm.getAllMessageTypes();
-                                vm.linkProvider();
-                                $.getScript("dataSource/data.js").then(
-                                    () => {
-                                        $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {
-                                            return a < b;
-                                        })
-                                    }
-                                );
-
-                                window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
-                                var showLeft = $cookies.get("platformShowLeft");
-                                if (showLeft === 'false') {
-                                    vm.toggleShowPlatformList(false)
-                                }
-                            },
-                            function (error) {
-                                console.warn("init error", error);
-                            }
-                        ).done();
-
-                        // Create the view-model for the chart and attach to the scope.
-                        //
-                        vm.chartViewModel = new flowchart.ChartViewModel();
-                        vm.chartViewModel.setEditable(true);
-                        vm.proposalChanged = false;
-                        vm.advancedQueryObj = {};
-
-                        $scope.$watch(function () {
-                            return socketService.getProposalNodeData()
-                        }, function (newValue, oldValue) {
-                            if (vm.editingNode) return;
-                            if (newValue !== oldValue) {
-                                if (!newValue) return;
-                                vm.curNodeID = newValue.id;
-                                vm.tempNodeName = newValue.name;
-                                vm.tempNodeDepartmentName = newValue.departmentData.name;
-                                vm.tempNodeDepartmentID = newValue.departmentData.id;
-                                vm.tempNodeRoleName = newValue.roleData.name;
-                                vm.tempNodeRoleID = newValue.roleData.id;
-                                $scope.safeApply();
-                            }
-                        });
-
-
-                        // Get bank list from pmsAPI
-                        socketService.$socket($scope.AppSocket, 'getBankTypeList', {},
-                            data => {
-                                if (data && data.data && data.data.data) {
-                                    vm.allBankTypeList = {};
-                                    console.log('banktype', data.data.data);
-                                    data.data.data.forEach(item => {
-                                        if (item && item.bankTypeId) {
-                                            vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
-                                        }
-                                    })
-                                }
-                                $scope.safeApply();
-                            });
-
-                        socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
-                            console.log('rewardType', data);
-                            vm.rewardAttrConst = data.data;
-                        })
-                        socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
-                            vm.allGameProvider = data.data;
-                            console.log("vm.allGameProvider", vm.allGameProvider);
-                            $scope.safeApply();
-                        }, function (data) {
-                        });
-                        vm.generalDataTableOptions = {
-                            "paging": true,
-                            columnDefs: [{targets: '_all', defaultContent: ' '}],
-                            dom: 'tpl',
-                            "aaSorting": [],
-                            destroy: true,
-                            "scrollX": true,
-                            // sScrollY: 350,
-                            scrollCollapse: true,
-                            // order: [[0, "desc"]],
-                            lengthMenu: [
-                                [10, 25, 50, -1],
-                                ['10', '25', '50', $translate('Show All')]
-                            ],
-                            "language": {
-                                "info": "",
-                                "emptyTable": "",
-                                "paginate": {
-                                    "previous": $translate("PREVIOUS_PAGE"),
-                                    "next": $translate("NEXT_PAGE"),
-                                },
-                                "lengthMenu": $translate("lengthMenuText"),
-                                sZeroRecords: ""
-                            },
-                            "drawCallback": function (settings) {
-                                setTimeout(function () {
-                                    $(window).trigger('resize');
-                                }, 100)
-                            }
-                        }
                         //TODO::TEST CODE
                         /*
                          vm.dialogIds = [];
@@ -22516,6 +22336,202 @@ define(['js/app'], function (myApp) {
                     }
                 );
             });
+
+            function initPageParam () {
+                vm.initFeedbackQuery();
+
+                vm.queryPara = {};
+
+                vm.phonePattern = /^[0-9]{8,18}$/;
+                vm.showPlatformList = true;
+                vm.showPlatformDropDownList = false;
+                vm.prepareDemoPlayerPrefix();
+                vm.showPlatformDetailTab(null);
+                vm.showRewardSettingsTab(null);
+                vm.showReapplyLostOrderTab(null);
+                vm.showPlayerAccountingDetailTab(null);
+                vm.platformAction = null;
+                vm.showTopupTab(null);
+                vm.addPlayerFeedbackResultData = {};
+                vm.deletePlayerFeedbackResultData = {};
+                vm.addPlayerFeedbackTopicData = {};
+                vm.deletePlayerFeedbackTopicData = {};
+                // vm.allGameStatusString = {};
+                vm.credibilityRemarks = [];
+                vm.gameStatus = {};
+                vm.gameSmallShow = {};
+                vm.gameGroupClickable = {
+                    inGameLoaded: true,
+                    outGameLoaded: true,
+                };
+                vm.filterGameType = 'all';
+                vm.filterPlayGameType = 'all';
+
+                vm.platformPageName = 'Player';
+                vm.playerTableQuery = {limit: 10};
+
+                utilService.actionAfterLoaded("#playerTablePage", function () {
+                    vm.playerTableQuery.pageObj = utilService.createPageForPagingTable("#playerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                        var isChange = false;
+                        if (pageSize != vm.playerTableQuery.limit) {
+                            isChange = true;
+                            vm.playerTableQuery.limit = pageSize;
+                        }
+                        if ((curP - 1) * pageSize != vm.playerTableQuery.index) {
+                            isChange = true;
+                            vm.playerTableQuery.index = (curP - 1) * pageSize;
+                        }
+                        if (isChange) return vm.advancedPlayerQuery();
+                    });
+                    $('#playerDataTable').on('order.dt', function (event, a, b) {
+                        // console.log(event, a, b);
+                        if (!a.aaSorting[0]) return;
+                        var sortCol = a.aaSorting[0][0];
+                        var sortDire = a.aaSorting[0][1];
+                        var sortKey = a.aoColumns[sortCol].data;
+                        // vm.playerTableQuery.aaSorting = a.aaSorting;
+
+                        if (sortKey) {
+                            vm.playerTableQuery.sortCol = vm.playerTableQuery.sortCol || {};
+                            var preVal = vm.playerTableQuery.sortCol[sortKey];
+                            vm.playerTableQuery.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                            if (vm.playerTableQuery.sortCol[sortKey] != preVal) {
+                                vm.playerTableQuery.sortCol = {};
+                                vm.playerTableQuery.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                                vm.advancedPlayerQuery();
+                            }
+                        }
+                    });
+                });
+
+                $('#partnerDataTable').on('order.dt', function (event, a, b) {
+                    // console.log(event, a, b);
+                    if (!a.aaSorting[0]) return;
+                    var sortCol = a.aaSorting[0][0];
+                    var sortDire = a.aaSorting[0][1];
+                    var sortKey = a.aoColumns[sortCol].data;
+                    // vm.advancedPartnerQueryObj.aaSorting = a.aaSorting;
+                    if (sortKey) {
+                        vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {};
+                        var preVal = vm.advancedPartnerQueryObj.sortCol[sortKey];
+                        vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                        if (vm.advancedPartnerQueryObj.sortCol[sortKey] != preVal) {
+                            vm.advancedPartnerQueryObj.sortCol = {};
+                            vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                            vm.getPartnersByAdvancedQueryDebounced();
+                        }
+                    }
+                });
+
+                Q.all([vm.getAllPlayerFeedbackResults(), vm.getAllPlayerFeedbackTopics()]).then(
+                    function (data) {
+                        // This init data will be a list of undefineds.
+                        // The above promises don't actually produce data, they just promise to set their vm variables!
+
+                        vm.getAllGameTypes();
+                        vm.getAllRewardTypes();
+                        vm.loadPlatformData();
+                        vm.getAllMessageTypes();
+                        vm.linkProvider();
+                        $.getScript("dataSource/data.js").then(
+                            () => {
+                                $scope.creditChangeTypeStrings = creditChangeTypeStrings.sort(function (a, b) {
+                                    return a < b;
+                                })
+                            }
+                        );
+
+                        window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
+                        var showLeft = $cookies.get("platformShowLeft");
+                        if (showLeft === 'false') {
+                            vm.toggleShowPlatformList(false)
+                        }
+                    },
+                    function (error) {
+                        console.warn("init error", error);
+                    }
+                ).done();
+
+                // Create the view-model for the chart and attach to the scope.
+                //
+                vm.chartViewModel = new flowchart.ChartViewModel();
+                vm.chartViewModel.setEditable(true);
+                vm.proposalChanged = false;
+                vm.advancedQueryObj = {};
+
+                $scope.$watch(function () {
+                    return socketService.getProposalNodeData()
+                }, function (newValue, oldValue) {
+                    if (vm.editingNode) return;
+                    if (newValue !== oldValue) {
+                        if (!newValue) return;
+                        vm.curNodeID = newValue.id;
+                        vm.tempNodeName = newValue.name;
+                        vm.tempNodeDepartmentName = newValue.departmentData.name;
+                        vm.tempNodeDepartmentID = newValue.departmentData.id;
+                        vm.tempNodeRoleName = newValue.roleData.name;
+                        vm.tempNodeRoleID = newValue.roleData.id;
+                        $scope.safeApply();
+                    }
+                });
+
+
+                // Get bank list from pmsAPI
+                socketService.$socket($scope.AppSocket, 'getBankTypeList', {},
+                    data => {
+                        if (data && data.data && data.data.data) {
+                            vm.allBankTypeList = {};
+                            console.log('banktype', data.data.data);
+                            data.data.data.forEach(item => {
+                                if (item && item.bankTypeId) {
+                                    vm.allBankTypeList[item.id] = item.name + ' (' + item.id + ')';
+                                }
+                            })
+                        }
+                        $scope.safeApply();
+                    });
+
+                socketService.$socket($scope.AppSocket, 'getRewardTypesConfig', {}, function (data) {
+                    console.log('rewardType', data);
+                    vm.rewardAttrConst = data.data;
+                })
+                socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
+                    vm.allGameProvider = data.data;
+                    console.log("vm.allGameProvider", vm.allGameProvider);
+                    $scope.safeApply();
+                }, function (data) {
+                });
+                vm.generalDataTableOptions = {
+                    "paging": true,
+                    columnDefs: [{targets: '_all', defaultContent: ' '}],
+                    dom: 'tpl',
+                    "aaSorting": [],
+                    destroy: true,
+                    "scrollX": true,
+                    // sScrollY: 350,
+                    scrollCollapse: true,
+                    // order: [[0, "desc"]],
+                    lengthMenu: [
+                        [10, 25, 50, -1],
+                        ['10', '25', '50', $translate('Show All')]
+                    ],
+                    "language": {
+                        "info": "",
+                        "emptyTable": "",
+                        "paginate": {
+                            "previous": $translate("PREVIOUS_PAGE"),
+                            "next": $translate("NEXT_PAGE"),
+                        },
+                        "lengthMenu": $translate("lengthMenuText"),
+                        sZeroRecords: ""
+                    },
+                    "drawCallback": function (settings) {
+                        setTimeout(function () {
+                            $(window).trigger('resize');
+                        }, 100)
+                    }
+                }
+            }
 
             vm.initPlatformOfficer = function () {
                 vm.csUrlSearchQuery = {

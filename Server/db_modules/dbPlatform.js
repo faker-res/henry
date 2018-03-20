@@ -1122,7 +1122,10 @@ var dbPlatform = {
             proms.push(
                 dbPlatform.calculatePlayerConsumptionIncentive(playerObjIds[i], eventData, proposalTypeId, startTime, endTime).then(
                     data => data,
-                    error => error
+                    error => {
+                        errorUtils.reportError(error);
+                        return error;
+                    }
                 )
             );
         }

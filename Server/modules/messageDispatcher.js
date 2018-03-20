@@ -198,8 +198,10 @@ const messageDispatcher = {
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardAmount}}', metaData.proposalData.data.rewardAmount.toFixed(2));
             if(metaData.proposalData.data.amount)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.amount}}', metaData.proposalData.data.amount.toFixed(2));
+            if(metaData.proposalData.data.lastSettleTime)
+                // the time when the withdrawal request is approved
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.lastSettleTime}}', moment(metaData.proposalData.data.lastSettleTime).format("YYYY/MM/DD HH:mm:ss"));
         }
-        
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },

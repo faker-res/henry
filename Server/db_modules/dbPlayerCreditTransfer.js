@@ -1254,7 +1254,7 @@ let dbPlayerCreditTransfer = {
                 }
             },
             err => {
-                return Promise.reject({name: "DBError", message: "Error in increasing player credit.", error: err});
+                return Promise.reject({name: "DBError", message: "Error in increasing player credit.", error: JSON.stringify(err)});
             }
         ).catch(
             err => {
@@ -1275,7 +1275,7 @@ let dbPlayerCreditTransfer = {
                 } else {
                     return Promise.reject({
                         name: "DBError",
-                        message: err
+                        message: JSON.stringify(err)
                     })
                 }
             }

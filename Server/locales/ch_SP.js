@@ -17,6 +17,7 @@ var simplifiedChinese = {
     "Token is not authenticated": "令牌未经过身份验证",
     "Player ip doesn't match!": "玩家IP不匹配",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
+    "transfer credit fail, please try again later": "转账失败，请稍后重试",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
@@ -260,9 +261,21 @@ var simplifiedChinese = {
     "Unable to check game credit for demo player": "试玩玩家无法查看额度",
     "Unable to transfer credit for demo player": "试玩玩家无法转入转出",
     "Unable to get login URL for demo player": "试玩玩家无法获取登入链接",
-    "Redemption failed, the points to be redeemed are less than the minimum credit (1)": "兑换失败，欲兑换的点数不足最低金额 （1） 元",
+    "Redemption failed, the points to be redeemed are less than the minimum credit (1)": "兑换失败，欲兑换的点数不足最低金额（1）元",
+    "Player already applied max amount of points for today.": "领取失败： 很抱歉，已达今日可领取积分上限。",
     "LOCAL_CREDIT": "自由额度",
-    "No Any MerchantNo Are Available, Please Change TopUp Method":"此在线充值类型无可用的商户号，请更换充值方式。"
+    "No Any MerchantNo Are Available, Please Change TopUp Method":"此在线充值类型无可用的商户号，请更换充值方式。",
+    "Player does not have enough reward points": "兑换失败: 很抱歉，可兑换积分不足",
+    "Redemption succeeded: used": "领取成功: 使用",
+    "Redemption failed": "兑换失败: 很抱歉",
+    "reward points": "积分",
+    "to redeem": "兑换",
+    "credit": "真钱",
+    "Remaining": "剩余",
+    "daily reward point redemption limit is reach": "已达今日可兑换限额",
+    "reward points, to redeem": "积分， 兑换",
+    "reward points has exceed the redemption limit, has been returned to your account": "积分超出可兑换限额，已退回至您的帐户",
+    "reward points not enough to redeem (1) credit, has been returned to your account": "积分不足兑换（1）真钱，已退回至您的帐户",
     //todo::add missing messages here
 
     /*

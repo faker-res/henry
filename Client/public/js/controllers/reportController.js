@@ -466,7 +466,7 @@ define(['js/app'], function (myApp) {
                 result = val.playerId;
                 vm.selectedProposalDetailForDisplay.playerName = val.name;
             } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType' || fieldName == 'bankName') {
-                result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
+                result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
             } else if (fieldName == 'depositMethod') {
                 result = $translate(vm.getDepositMethodbyId[val])
             } else if (fieldName === 'playerStatus') {
@@ -6013,7 +6013,13 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate("adminName"), data: "adminName"},
                     {title: $translate('playerId'), data: "playerId"},
-                    {title: $translate('TYPE'), data: "action"},
+                    //{title: $translate('TYPE'), data: "action"},
+                    {
+                        title: $translate('TYPE'), data: "action", sClass: "sumText",
+                        render: function (data) {
+                            return $translate(data);
+                        }
+                    },
                     {title: $translate("Operation Time"), data: "operationTime$"},
                     {title: $translate("remark"), data: "error", bSortable: false}
                 ],
@@ -6036,6 +6042,9 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
         // start common functions//////////////////
+        vm.dateReformat = function (data) {
+            return utilService.$getTimeFromStdTimeFormat(data);
+        };
         vm.createInnerTable = function (id) {
             var content = $('<div>', {
                 style: "display:inline-block"

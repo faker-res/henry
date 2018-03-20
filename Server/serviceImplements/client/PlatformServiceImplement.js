@@ -66,7 +66,7 @@ var PlatformServiceImplement = function () {
         data.endTime = data.endTime || new Date();
         WebSocketUtil.performAction(
             conn, wsFunc, data, dbPlayerConsumptionRecord.searchPlatformConsumption,
-            [data.platformId, data.startTime, data.endTime, data.startIndex, data.requestCount, data.minBonusAmount, data.minAmount, data.minValidAmount], isValidData, null, null, true
+            [data.platformId, data.startTime, data.endTime, data.startIndex, data.requestCount, data.minBonusAmount, data.minAmount, data.minValidAmount, data.isRanking], isValidData, null, null, true
         );
     };
 
