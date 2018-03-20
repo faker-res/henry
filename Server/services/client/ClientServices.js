@@ -112,7 +112,8 @@
                 "getConfig",
                 "getLiveStream",
                 "playerPhoneChat",
-                "searchConsumptionRecord"
+                "searchConsumptionRecord",
+                "verifyUserPasswordWithTransferIn"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
