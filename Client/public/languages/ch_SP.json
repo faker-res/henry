@@ -3398,6 +3398,7 @@
   "deleteAlipayGroup": "移除支付宝组",
   "setPlatformDefaultAlipayGroup": "设置平台默认支付宝祖",
   "addPlayersToAlipayGroup": "添加玩家到支付宝组",
-  "manualDailyProviderSettlement": "每日提供商手工结算"
+  "manualDailyProviderSettlement": "每日提供商手工结算",
+  "createForbidTopUpLog": "创建禁用充值类型记录"
 
 }
