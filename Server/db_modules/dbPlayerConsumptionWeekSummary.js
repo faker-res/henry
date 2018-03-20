@@ -415,10 +415,18 @@ var dbPlayerConsumptionWeekSummary = {
 
                                                             // Offset if it matters
                                                             if (consumpDiff > 0.01) {
+                                                                // Log the offset
+                                                                proposalData.data.devCheckMsg =
+                                                                    "GameType: " + el._id + ", " +
+                                                                    "Original: " + proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + ", ";
+
                                                                 proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount += consumpDiff;
                                                                 proposalData.data.rewardAmount += consumpDiff * returnRatio;
                                                                 proposalData.data.spendingAmount += consumpDiff * returnRatio;
                                                                 proposalData.data.consumeValidAmount += consumpDiff;
+
+                                                                proposalData.data.devCheckMsg +=
+                                                                    "Offset: " + el.validAmount + "-" + curValidAmt + "-" + curNonXIMAAmt + "-" + consumedValidAmount
                                                             }
                                                         }
                                                     });

@@ -1288,13 +1288,11 @@ let dbRewardPoints = {
         let returnData;
         let platformData = null;
         let playerData = null;
-        let loginRewardPointEvent = [];
         let topupRewardPointEvent = [];
-        let gameRewardPointEvent = [];
-        let gameProvider = [];
         let rewardPointRecord = [];
-        let rewardPointsRanking = [];
-        let rewardPointsProm;
+        let rewardPointsProm = [];
+        let playerLevelProm = [];
+        let playerLevelRecord = [];
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformRecord => {
@@ -1309,18 +1307,81 @@ let dbRewardPoints = {
                 }
             })
             .then(playerRecord => {
+                let topupRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
+                    platformObjId: platformData._id,
+                    category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS,
+                    status: true
+                }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
+
+                if (playerRecord) {
+                    playerData = playerRecord;
+                    rewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerRecord._id);
+                    playerLevelProm = getPlayerLevelValue(playerRecord._id);
+                }
+
+                return Promise.all([topupRewardPointProm, rewardPointsProm, playerLevelProm])
+            })
+            .then(playerTopupRewardPointsRecord => {
+                topupRewardPointEvent = playerTopupRewardPointsRecord[0] ? playerTopupRewardPointsRecord[0] : [];
+                rewardPointRecord = playerTopupRewardPointsRecord[1] ? playerTopupRewardPointsRecord[1] : [];
+                playerLevelRecord = playerTopupRewardPointsRecord[2] ? playerTopupRewardPointsRecord[2] : [];
+
+                if(rewardPointRecord){
+                    let rewardProgressList = rewardPointRecord && rewardPointRecord.progress ? rewardPointRecord.progress : [];
+                    let rewardProgressListChanged = false;
+                    let prom = [];
+                    if (playerData) {
+                        for (let i = 0; i < topupRewardPointEvent.length; i++) {
+                            let event = topupRewardPointEvent[i];
+                            if (playerLevelRecord && playerLevelRecord.playerLevel && event && event.level && (playerLevelRecord.playerLevel.value >= event.level.value)) {
+                                let topupMatchQuery = buildTodayTopupAmountQuery(event, playerData, false);
+                                prom.push(dbConfig.collection_playerTopUpRecord.aggregate(
+                                    {
+                                        $match: topupMatchQuery
+                                    },
+                                    {
+                                        $group: {
+                                            _id: {playerId: "$playerId"},
+                                            amount: {$sum: "$amount"}
+                                        }
+                                    }
+                                ).then(
+                                    summary => {
+                                        let periodTopupAmount = summary && summary[0] && summary[0].amount ? summary[0].amount : 0;
+                                        if (periodTopupAmount > 0) {
+                                            let eventProgress = getEventProgress(rewardProgressList, event);
+                                            let progressChanged = updateTopupProgressCount(eventProgress, event, periodTopupAmount);
+                                            rewardProgressListChanged = rewardProgressListChanged || progressChanged;
+                                        }
+                                    }
+                                ));
+                            }
+                        }
+                    }
+                    return Promise.all(prom).then(
+                        () => {
+                            if (rewardProgressListChanged) {
+                                return dbConfig.collection_rewardPoints.findOneAndUpdate({
+                                    platformObjId: rewardPointRecord.platformObjId,
+                                    playerObjId: rewardPointRecord.playerObjId
+                                }, {
+                                    progress: rewardProgressList
+                                }, {new: true}).lean();
+                            }
+                            else {
+                                return Promise.resolve(rewardPointRecord);
+                            }
+                        }
+                    );
+                }
+            })
+            .then(rewardPoints => {
                 let limit = 10;
                 let sortCol = {points: -1, lastUpdate: 1};
 
                 let loginRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
                     platformObjId: platformData._id,
                     category: constRewardPointsTaskCategory.LOGIN_REWARD_POINTS,
-                    status: true
-                }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
-
-                let topupRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
-                    platformObjId: platformData._id,
-                    category: constRewardPointsTaskCategory.TOPUP_REWARD_POINTS,
                     status: true
                 }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
 
@@ -1332,11 +1393,6 @@ let dbRewardPoints = {
 
                 let gameProviderProm = dbConfig.collection_gameProvider.find({}).lean();
 
-                if (playerRecord) {
-                    playerData = playerRecord;
-                    rewardPointsProm = dbConfig.collection_rewardPoints.findOne({playerObjId: playerRecord._id}).lean();
-                }
-
                 let rewardPointsRankingProm = dbConfig.collection_rewardPoints.find({
                     platformObjId: platformData._id
                 }, {
@@ -1347,43 +1403,18 @@ let dbRewardPoints = {
                 }).sort(sortCol).limit(limit)
                     .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
 
-                return Promise.all([loginRewardPointProm, topupRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsProm, rewardPointsRankingProm])
+                return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPoints, rewardPointsRankingProm])
             })
             .then(data => {
-                if(data){
-                    loginRewardPointEvent = data[0] ? data[0] : [];
-                    topupRewardPointEvent = data[1] ? data[1] : [];
-                    gameRewardPointEvent = data[2] ? data[2] : [];
-                    gameProvider = data[3] ? data[3] : [];
-                    rewardPointRecord = data[4] ? data[4] : [];
-                    rewardPointsRanking = data[5] ? data[5] : [];
+                let loginRewardPointEvent = data[0] ? data[0] : [];
+                let gameRewardPointEvent = data[1] ? data[1] : [];
+                let gameProvider = data[2] ? data[2] : [];
+                let rewardPoints = data[3] ? data[3] : [];
+                let rewardPointsRanking = data[4] ? data[4] : [];
 
-                    let prom = [];
-                    if (playerData) {
-                        for (let i = 0; i < topupRewardPointEvent.length; i++) {
-                            let event = topupRewardPointEvent[i];
-                            let topupMatchQuery = buildTodayTopupAmountQuery(event, playerData, false);
-
-                            prom.push(dbConfig.collection_playerTopUpRecord.aggregate(
-                                {
-                                    $match: topupMatchQuery
-                                },
-                                {
-                                    $group: {
-                                        _id: {playerId: "$playerId", eventObjId: event._id},
-                                        amount: {$sum: "$amount"}
-                                    }
-                                }
-                            ));
-                        }
-                    }
-                    return Promise.all(prom);
-                }
-            })
-            .then(playerTopupRecord => {
-                let loginRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, rewardPointRecord);
-                let topupRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, rewardPointRecord, playerTopupRecord);
-                let gameRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, rewardPointRecord);
+                let loginRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, rewardPoints);
+                let topupRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, rewardPoints);
+                let gameRewardPointListArr = getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, rewardPoints);
                 let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking);
 
                 returnData = {
@@ -1884,7 +1915,7 @@ function getPlayerLevelValue(playerObjId) {
     },{"playerLevel":1}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
 }
 
-function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoints, todayTopupAmountArr) {
+function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoints) {
     let rewardPointListArr = [];
 
     if (rewardPointEvent && rewardPointEvent.length > 0) {
@@ -1893,7 +1924,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
             let rewardEndTime;
             let rewardPeriod;
             let currentGoal = 0;
-            let level = "";
+            let level, levelName;
             let rewards = {};
             let status = 0;
             let providerIds = [];
@@ -1907,6 +1938,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
 
             if (reward.level) {
                 level = reward.level.value;
+                levelName = reward.level.name;
             }
 
             if (rewardPoints && rewardPoints.progress && rewardPoints.progress.length > 0) {
@@ -1946,8 +1978,9 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "title": reward.rewardTitle,
                         "content": reward.rewardContent,
                         "gradeLimit": level,
+                        "gradeName": levelName,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "providerId": providerIds,
                         "goal": reward.consecutiveCount,
                         "currentGoal": currentGoal
@@ -1955,30 +1988,19 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                     break;
                 }
                 case constRewardPointsTaskCategory.TOPUP_REWARD_POINTS: {
-                    if (todayTopupAmountArr && todayTopupAmountArr.length > 0) {
-                        for (let i = 0; i < todayTopupAmountArr.length; i++) {
-                            if (todayTopupAmountArr[i] && todayTopupAmountArr[i][0] && todayTopupAmountArr[i][0]._id && todayTopupAmountArr[i][0]._id.eventObjId
-                                && (todayTopupAmountArr[i][0]._id.eventObjId.toString() === reward._id.toString())) {
-                                if (reward.period == 1 && currentGoal == 0 && reward.target && reward.target.dailyTopupAmount && (todayTopupAmountArr[i][0].amount >= reward.target.dailyTopupAmount)) {
-                                    currentGoal = 1;
-                                    status = 1;
-                                }
-                            }
-                        }
-                    }
-
                     rewards = {
                         "id": reward._id,
                         "refreshPeriod": rewardPeriod,
                         "device": constRewardPointsTopupEventUserAgent[reward.userAgent ? reward.userAgent.toString() : ""],
                         "depositType": reward.target && reward.target.merchantTopupMainType ? constRewardPointsEventTopupType[reward.target.merchantTopupMainType] : "",
-                        "onlineTopupType": reward.target && reward.target.merchantTopUpType ? reward.target.merchantTopUpType : "",
+                        "onlineTopupType": reward.target && reward.target.merchantTopupType ? reward.target.merchantTopupType : "",
                         "manualTopupType": reward.target && reward.target.depositMethod ? reward.target.depositMethod : "",
                         "bankCardType": reward.target && reward.target.bankType ? reward.target.bankType : "",
                         "dailyRequestDeposit": reward.target && reward.target.dailyTopupAmount ? reward.target.dailyTopupAmount : 0,
                         "title": reward.rewardTitle,
                         "content": reward.rewardContent,
                         "gradeLimit": level,
+                        "gradeName": levelName,
                         "point": reward.rewardPoints,
                         "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "goal": reward.consecutiveCount,
@@ -2012,8 +2034,9 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "title": reward.rewardTitle,
                         "content": reward.rewardContent,
                         "gradeLimit": level,
+                        "gradeName": levelName,
                         "point": reward.rewardPoints,
-                        "status": status,
+                        "status": status == 0 && (currentGoal >= reward.consecutiveCount) ? 1 : status,
                         "dailyRequestBetCountsAndAmount": dailyRequestBetCountsAndAmount,
                         "dailyBetConsumption": reward.target && reward.target.dailyValidConsumptionAmount ? reward.target.dailyValidConsumptionAmount : 0,
                         "dailyWinBetCounts": reward.target && reward.target.dailyWinGameCount ? reward.target.dailyWinGameCount : 0,

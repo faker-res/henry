@@ -2867,6 +2867,10 @@ define(['js/app'], function (myApp) {
                     countDown--;
                     mark.text(countDown);
                 } else {
+                    if (window.location.pathname != '/operation') {
+                        clearInterval(vm.refreshInterval);
+                    }
+                    
                     countDown = -1;
                 }
             }, 1000);
