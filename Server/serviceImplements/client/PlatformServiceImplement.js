@@ -72,7 +72,7 @@ var PlatformServiceImplement = function () {
 
     this.verifyUserPasswordWithTransferIn.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.loginname && data.password && data.platformId && data.providerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.verifyUserPasswordWithTransferIn, [data.loginname, data.password, data.platformId, data.providerId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.verifyUserPasswordWithTransferIn, [data.loginname, data.password, data.platformId, data.providerId], isValidData, null, null, true);
     };
 
 };
