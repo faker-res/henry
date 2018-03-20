@@ -6919,7 +6919,7 @@ let dbPlayerInfo = {
                                        let levelUpErrorCode = "";
                                        let levelUpErrorMsg = "";
 
-                                       function countRecordSumWholePeriod(recordPeriod, bTopUp) {
+                                       function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider) {
                                            let queryRecord = bTopUp ? topUpSummary : consumptionSummary;
                                            let queryAmountField = bTopUp ? "amount" : "validAmount";
                                            let periodTime;
@@ -6935,7 +6935,13 @@ let dbPlayerInfo = {
 
                                            for (let c = 0; c < queryRecord.length; c++) {
                                                if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
-                                                   recordSum += queryRecord[c][queryAmountField];
+                                                   if (consumptionProvider) {
+                                                       if (consumptionProvider.toString() == queryRecord[c].providerId.toString()) {
+                                                           recordSum += queryRecord[c][queryAmountField];
+                                                       }
+                                                   } else {
+                                                       recordSum += queryRecord[c][queryAmountField];
+                                                   }
                                                }
                                            }
                                            return recordSum;
@@ -6950,14 +6956,29 @@ let dbPlayerInfo = {
                                                    const conditionSet = conditionSets[j];
                                                    const topupPeriod = conditionSet.topupPeriod;
                                                    const consumptionPeriod = conditionSet.consumptionPeriod;
+                                                   const consumptionProvider = conditionSet.consumptionSourceProviderId;
                                                    if (!topUpSumPeriod.hasOwnProperty(topupPeriod)) {
                                                        topUpSumPeriod[topupPeriod] = countRecordSumWholePeriod(topupPeriod, true);
                                                    }
-                                                   if (!consumptionSumPeriod.hasOwnProperty(consumptionPeriod)) {
-                                                       consumptionSumPeriod[consumptionPeriod] = countRecordSumWholePeriod(consumptionPeriod, false);
-                                                   }
                                                    const meetsTopupCondition = topUpSumPeriod[topupPeriod] >= conditionSet.topupLimit;
-                                                   const meetsConsumptionCondition = consumptionSumPeriod[consumptionPeriod] >= conditionSet.consumptionLimit;
+                                                   let meetsConsumptionCondition;
+                                                   if (consumptionProvider && consumptionProvider.length) {
+                                                       let totalConsumptionByProvider = 0;
+                                                       consumptionProvider.forEach(providerObjId => {
+                                                           let objName = consumptionPeriod + providerObjId;
+                                                           if (!consumptionSumPeriod.hasOwnProperty(objName)) {
+                                                               consumptionSumPeriod[objName] = countRecordSumWholePeriod(consumptionPeriod, false, providerObjId);
+                                                           }
+                                                           totalConsumptionByProvider += consumptionSumPeriod[objName];
+                                                       });
+
+                                                       meetsConsumptionCondition = totalConsumptionByProvider >= conditionSet.consumptionLimit;
+                                                   } else {
+                                                       if (!consumptionSumPeriod.hasOwnProperty(consumptionPeriod)) {
+                                                           consumptionSumPeriod[consumptionPeriod] = countRecordSumWholePeriod(consumptionPeriod, false);
+                                                       }
+                                                       meetsConsumptionCondition = consumptionSumPeriod[consumptionPeriod] >= conditionSet.consumptionLimit;
+                                                   }
 
                                                    const meetsEnoughConditions =
                                                        conditionSet.andConditions
@@ -7607,7 +7628,40 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             function (data) {
                 if (data && data.platform) {
-                    return dbconfig.collection_playerLevel.find({platform: data.platform}).sort({value: 1}).lean();
+                    return dbconfig.collection_playerLevel.find({platform: data.platform}).sort({value: 1}).lean().then(
+                        playerLevel => {
+                            return dbconfig.collection_gameProvider.find({}).lean().then(
+                                gameProvider => {
+
+                                    playerLevel.forEach(level => {
+                                        level.levelUpConfig.forEach(levelUp => {
+                                            let levelUpProviderId = [];
+                                            levelUp.consumptionSourceProviderId.forEach(levelUpProvider => {
+                                                gameProvider.forEach(providerdata => {
+                                                    if (levelUpProvider.toString() == providerdata._id.toString()) {
+                                                        levelUpProviderId.push(providerdata.providerId);
+                                                    }
+                                                });
+                                            })
+                                            levelUp.consumptionSourceProviderId = levelUpProviderId;
+                                        })
+                                        // level.levelDownConfig.forEach(levelDown => {
+                                        //     let levelDownProviderId = [];
+                                        //     levelDown.consumptionSourceProviderId.forEach(levelDownProvider => {
+                                        //         gameProvider.forEach(providerdata => {
+                                        //             if (levelDownProvider.toString() == providerdata._id.toString()) {
+                                        //                 levelDownProviderId.push(providerdata.providerId);
+                                        //             }
+                                        //         });
+                                        //     })
+                                        //     levelDown.consumptionSourceProviderId = levelDownProviderId;
+                                        // })
+                                    });
+
+                                    return playerLevel;
+                                });
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find player"});

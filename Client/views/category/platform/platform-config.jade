@@ -92,7 +92,7 @@
                                         th(rowspan='2') {{"VALUE" | translate}}
                                         th(rowspan='2', ng-if='vm.configTableEdit || vm.configTableAdd')
                                         th(colspan='2') {{"TOP_UP" | translate}}
-                                        th(colspan='2') {{"CONSUMPTION" |  translate}}
+                                        th(colspan='3') {{"CONSUMPTION" |  translate}}
                                         //th(colspan='{{vm.allGameTypeslength}}') {{"CONSUMPTION" | translate}}
                                         th(rowspan='2') {{'ALL_CONDITIONS_MUST_MATCH_SHORT' | translate}}
                                         th(rowspan='2', ng-if='vm.configTableEdit')
@@ -102,6 +102,7 @@
                                         th {{'Limit' | translate}}
                                         th {{'PERIOD' | translate}}
                                         th {{'Limit' | translate}}
+                                        th {{'SOURCE' | translate}}
                                         th {{'PERIOD' | translate}}
                                         th {{'CREDIT' | translate}}
                                         th {{'Lock Provider Group' | translate}}
@@ -127,7 +128,7 @@
                                             text(ng-if='!vm.configTableEdit') {{level.name | translate}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}', align="center")
                                             text(style="width: 60px") {{level.value}}
-                                        td.static(colspan='{{vm.configTableEdit ? 7 : 5}}')
+                                        td.static(colspan='{{vm.configTableEdit ? 8 : 6}}')
                                             text {{"Level Up Conditions" | translate}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.reward.bonusCredit')
@@ -170,6 +171,11 @@
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionLimit | number : 2}}
                                         td
+                                            text(ng-if='!vm.configTableEdit') {{vm.getProviderNameById(oneConfig.consumptionSourceProviderId)}}
+                                            div(ng-if='vm.configTableEdit')
+                                                select.spicker.form-control(ng-change = 'vm.isDiffConsumptionProvider(oneConfig.consumptionSourceProviderId, true)' ng-model="oneConfig.consumptionSourceProviderId" multiple, data-container="body" data-width='100%' data-actions-box='true')
+                                                    option(style="display: inline-block" ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
+                                        td
                                             text(ng-if='!vm.configTableEdit') {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
                                             select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', ng-change= 'vm.diffLevelUpPeriod(oneConfig.consumptionPeriod)', required, style='text-align-last: center;')
                                                 option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
@@ -179,7 +185,7 @@
                                             a.fa.fa-times-circle(ng-if='level.levelUpConfig.length > 1', ng-click='level.levelUpConfig.splice(j,1)', title='{{"REMOVE_THIS_LEVEL_UP_CONDITION" | translate}}')
 
                                     tr
-                                        td.static(colspan='{{vm.configTableEdit ? 7 : 5}}', ng-class='{hidden: i === 0}')
+                                        td.static(colspan='{{vm.configTableEdit ? 8 : 6}}', ng-class='{hidden: i === 0}')
                                             text {{"Level Down Conditions" | translate}}
                                     tr(ng-repeat='(j,oneConfig) in level.levelDownConfig', ng-class='{hidden: i === 0}')
                                         td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelDownConfig.length}}')
@@ -197,6 +203,10 @@
                                             //input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionMinimum', ng-change="vm.playerLvlDownChange(i,j,'consumptionMinimum')", required)
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.consumptionMinimum', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.consumptionMinimum | number : 2}}
+                                        td
+                                            text {{'EMPTY_SELECT' | translate}}
+                                            //select.spicker.form-control(ng-if='vm.configTableEdit' ng-model="oneConfig.consumptionSourceProviderId" multiple, data-container="body" data-width='100%' data-actions-box='true')
+                                            //    option(style="display: inline-block" ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
                                         td
                                             text {{"LEVEL"+oneConfig.consumptionPeriod | translate}}
                                             //select.form-control(ng-if='vm.configTableEdit', ng-model='oneConfig.consumptionPeriod', ng-disabled="oneConfig.topupMinimum", required)
@@ -251,6 +261,9 @@
                                         td
                                             input.form-control(type='number', min='0', ng-model='levelConfig.consumptionLimit', required)
                                         td
+                                            select.spicker.form-control(ng-change = 'vm.isDiffConsumptionProvider(levelConfig.consumptionSourceProviderId, true)' ng-model="levelConfig.consumptionSourceProviderId" multiple, data-container="body" data-width='100%' data-actions-box='true')
+                                                option(style="display: inline-block" ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
+                                        td
                                             select.form-control(ng-model='levelConfig.consumptionPeriod', ng-change = 'vm.diffLevelUpPeriod(levelConfig.consumptionPeriod)', required, style='text-align-last: center;')
                                                 option(ng-repeat='(i,j) in vm.playerLevelByMaxPeriod', value='{{j}}') {{"LEVEL"+i | translate}}
                                         td
@@ -278,6 +291,10 @@
                                             //input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum', ng-change="vm.playerLvlDownChange(-1,j,'consumptionMinimum')", required)
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionMinimum', required)
                                         td
+                                            text {{'EMPTY_SELECT' | translate}}
+                                            //select.spicker.form-control(ng-model="vm.newPlayerLvl.levelDownConfig[0].consumptionSourceProviderId" multiple, data-container="body" data-width='100%' data-actions-box='true')
+                                            //    option(style="display: inline-block" ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}') {{v.name}}
+                                        td
                                             //select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod',ng-disabled="vm.newPlayerLvl.levelDownConfig[0].topupMinimum", required)
                                             text {{vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod | translate}}
                                             //select.form-control(ng-model='vm.newPlayerLvl.levelDownConfig[0].consumptionPeriod', required)
@@ -285,13 +302,13 @@
                                         td
                                             input(type='checkbox', ng-model='vm.newPlayerLvl.levelDownConfig[0].andConditions')
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI(); vm.initPlayerLevelPeriod();')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI(); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'ADD_LEVEL' | translate}}
                             img.img-create
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod()')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'EDIT' | translate}}
                             img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player")')
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player");')
                             text {{"CANCEL" | translate}}
                             .fa.fa-ban
                         button.btn.btn-primary.common-button(ng-if="vm.configTableAdd", ng-disabled='formPlatformConfigPlayerLevel.$invalid || !vm.configAddPlayerLevelValid()', ng-click='vm.configTableAdd=false; vm.submitAddPlayerLvl()')
@@ -1348,7 +1365,22 @@
                                     label {{"two period at the same time, system will force player to auto level up, batch level settlement will not provide"|translate}}
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal') {{"CONFIRM" | translate}}
-                //button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalLevelUpProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"level up consumption provider different" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"more than 2 consumption provider, (auto level up) turn on, (schedule level up) turn off"|translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal') {{"CONFIRM" | translate}}
 
 #modalUnlockProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
