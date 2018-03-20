@@ -1369,7 +1369,7 @@ define(['js/app'], function (myApp) {
             } else if (choice == "ACTIONLOG_REPORT") {
                 vm.actionLogQuery = vm.actionLogQuery || {};
                 vm.actionLogQuery.allActions = [
-                    {group: "DEPARTMENT", text: "ADD_DEPARTMENT", action: "createDepartment"},
+                    {group: "DEPARTMENT", text: "ADD_DEPARTMENT", action: "createDepartmentWithParent"},
                     {group: "DEPARTMENT", text: "MOVE_DEPARTMENT", action: "updateDepartmentParent"},
                     {group: "DEPARTMENT", text: "RENAME_DEPARTMENT", action: "updateDepartment"},
                     {group: "DEPARTMENT", text: "DELETE_DEPARTMENT", action: "deleteDepartmentsById"},
@@ -1401,9 +1401,9 @@ define(['js/app'], function (myApp) {
                     },
 
                     {group: "PLAYER", text: "CREATE_PLAYER", action: "createPlayer"},
-                    {group: "PLAYER", text: "createTestPlayerForPlatform", action: "createTestPlayerForPlatform"},
+                    {group: "PLAYER", text: "createTestPlayerForPlatform", action: "createDemoPlayer"},
                     {group: "PLAYER", text: "createUpdatePlayerInfoProposal", action: "createUpdatePlayerInfoProposal"},
-                    {group: "PLAYER", text: "Search referral", action: "getPlayerReferrals"},
+                    //{group: "PLAYER", text: "Search referral", action: "getPlayerReferrals"},
                     {
                         group: "PLAYER",
                         text: "createUpdatePlayerPhoneProposal",
@@ -1433,15 +1433,15 @@ define(['js/app'], function (myApp) {
                         text: "createUpdatePlayerCreditProposal",
                         action: "createUpdatePlayerCreditProposal"
                     },
-                    {group: "PLAYER", text: "Forbid TopUp Types", action: "updatePlayerPayment"},
+                    {group: "PLAYER", text: "Forbid TopUp Types", action: "createForbidTopUpLog"},
                     {group: "PLAYER", text: "createPlayerFeedback", action: "createPlayerFeedback"},
 
-                    {group: "PLAYER", text: "updatePlayerStatus", action: "updatePlayerStatus"},
-                    {
-                        group: "PLAYER",
-                        text: "transferPlayerCreditFromProvider",
-                        action: "transferPlayerCreditFromProvider"
-                    },
+                    // {group: "PLAYER", text: "updatePlayerStatus", action: "updatePlayerStatus"},
+                    // {
+                    //     group: "PLAYER",
+                    //     text: "transferPlayerCreditFromProvider",
+                    //     action: "transferPlayerCreditFromProvider"
+                    // },
                     {group: "PLAYER", text: "transferPlayerCreditToProvider", action: "transferPlayerCreditToProvider"},
                     {group: "PLAYER", text: "PlayerPermission", action: "updatePlayerPermission"},
 
@@ -1469,7 +1469,7 @@ define(['js/app'], function (myApp) {
                     {group: "GameGroup", text: "Remove Game Group", action: "deleteGameGroup"},
                     {group: "GameGroup", text: "Rename Game Group", action: "renamePlatformGameGroup"},
                     {group: "GameGroup", text: "Move Game Group", action: "updateGameGroupParent"},
-                    {group: "GameGroup", text: "Update Game Group", action: "updatePlatformGameGroup"},
+                    // {group: "GameGroup", text: "Update Game Group", action: "updatePlatformGameGroup"},
 
                     {group: "REWARD", text: "createRewardEvent", action: "createRewardEvent"},
                     {group: "REWARD", text: "deleteRewardEventByIds", action: "deleteRewardEventByIds"},
