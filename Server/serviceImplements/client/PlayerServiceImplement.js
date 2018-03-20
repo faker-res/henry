@@ -1013,19 +1013,19 @@ let PlayerServiceImplement = function () {
     this.getPlayerDayStatus.expectsData = 'playerId: String';
     this.getPlayerDayStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, true], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, true, data.providerIds], isValidData);
     };
 
     this.getPlayerWeekStatus.expectsData = '';
     this.getPlayerWeekStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, false], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, false, data.providerIds], isValidData);
     };
 
     this.getPlayerMonthStatus.expectsData = '';
     this.getPlayerMonthStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerMonthStatus, [conn.playerId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerMonthStatus, [conn.playerId, data.providerIds], isValidData);
     };
 
     this.getMailList.expectsData = '';

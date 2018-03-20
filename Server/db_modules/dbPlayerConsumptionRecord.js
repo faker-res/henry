@@ -1092,6 +1092,9 @@ var dbPlayerConsumptionRecord = {
                     if(minValidAmount != null){
                         queryObj.validAmount = {$gte: minValidAmount};
                     }
+
+                    console.log('searchPlatformConsumption queryObj', queryObj);
+
                     return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(Number(requestCount)).lean().populate({
                         path: "gameId",
                         model: dbconfig.collection_game
@@ -1112,13 +1115,13 @@ var dbPlayerConsumptionRecord = {
                         record => {
                             record.providerId = record.providerId.providerId;
                             record.playerName = dbUtility.encodePlayerName(record.playerId.name);
-                            let playerName = record.playerId.name;
                             let playerBonusListObj = {};
+                            playerBonusListObj.playerName = record.playerName;
+                            playerBonusListObj.bonusAmount = record.bonusAmount;
                             playerBonusListObj.providerId = record.providerId || "";
                             playerBonusListObj.cpGameType = record.cpGameType || "";
-                            playerBonusListObj[playerName] = record.bonusAmount;
 
-                            playerBonusListArray.push(playerBonusListObj)
+                            playerBonusListArray.push(playerBonusListObj);
                             delete record.playerId;
                         }
                     );
