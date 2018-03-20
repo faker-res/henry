@@ -2860,6 +2860,7 @@ let dbPlayerInfo = {
                 }
             },
             function (error) {
+                errorUtils.reportError(error);
                 deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
             }
         );
