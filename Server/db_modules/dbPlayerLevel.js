@@ -150,6 +150,29 @@ let dbPlayerLevelInfo = {
                 // ,{path: "platform", model: dbconfig.collection_platform, select: ["playerLevelUpPeriod","playerLevelDownPeriod"]}]
             ).lean();
 
+        let consumptionQuery = {
+            platformId: ObjectId(platformObjId),
+            createTime: {
+                $gte: new Date(startTime),
+                $lt: new Date(endTime)
+            },
+            playerId: ObjectId(playerObjId)
+        };
+
+        if (upOrDown && levels && levels.length) {
+            // let providerObjId
+
+            let providerObjId = levels[levels.length - 1].levelUpConfig[0].consumptionSourceProviderId;
+
+            if (providerObjId && providerObjId.length) {
+                providerObjId = providerObjId.map(providerId => {
+                    providerId = ObjectId(providerId);
+                    return providerId;
+                })
+                consumptionQuery.providerId = {$in: providerObjId};
+            }
+        }
+
         let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
             {
                 $match: {
@@ -171,14 +194,7 @@ let dbPlayerLevelInfo = {
 
         let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
             {
-                $match: {
-                    platformId: ObjectId(platformObjId),
-                    createTime: {
-                        $gte: new Date(startTime),
-                        $lt: new Date(endTime)
-                    },
-                    playerId: ObjectId(playerObjId)
-                }
+                $match: consumptionQuery
             },
             {
                 $group: {
