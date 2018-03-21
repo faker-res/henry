@@ -7977,8 +7977,8 @@ define(['js/app'], function (myApp) {
                 //createTestPlayerForPlatform
                 socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
                     vm.createtrail = data.data;
-                    vm.testPlayerName = data.data.name;
-                    vm.testPlayerPassword = data.data.password;
+                    vm.testPlayerName = data.data.playerData.name;
+                    vm.testPlayerPassword = data.data.playerData.password;
                     console.log('testaccount', data);
                     $scope.safeApply();
                     //$('#modalTestPlayer').modal();
