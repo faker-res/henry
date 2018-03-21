@@ -194,6 +194,7 @@ define(['js/app'], function (myApp) {
                             }
                         })
                     }else{
+                        // use number 999999 for signifiant company_id is not exist
                         if (companyIds.indexOf('999999') == -1) {
                             companyIds.push('999999');
                         }
