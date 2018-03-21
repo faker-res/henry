@@ -252,7 +252,10 @@ define(['js/app'], function (myApp) {
             vm.loadLive800Acc = function(){
                 let live800Accs = [];
                 vm.fpmsACCList.forEach(item=>{
-                    live800Accs = live800Accs.concat(item.live800Acc);
+                    // live800Accs = live800Accs.concat(item.live800Acc);
+                    if(item.live800Acc.includes(vm.inspection800.fpms)){
+                        live800Accs = live800Accs.concat(item.live800Acc);
+                    }
                 })
                 vm.live800Accs = live800Accs;
             }
@@ -485,7 +488,7 @@ define(['js/app'], function (myApp) {
                 vm.inspection800.fpms = [];
                 vm.inspection800.status = '1';
                 vm.inspection800.qiUser = 'all';
-                vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:5, count:0};
+                vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:25, count:0};
 
                 setTimeout(function(){
                     $scope.safeApply();
