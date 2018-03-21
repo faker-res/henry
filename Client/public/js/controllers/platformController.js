@@ -397,6 +397,23 @@ define(['js/app'], function (myApp) {
                 },
             }
 
+            vm.merchantTopupTypeJson = { // for reward points purpose only
+                '1': 'NetPay',
+                //'2': 'WechatQR',
+                '3': 'AlipayQR',
+                '4': 'WechatApp',
+                //'5': 'AlipayApp',
+                '6': 'FASTPAY',
+                '7': 'QQPAYQR',
+                '8': 'UnPayQR',
+                '9': 'JdPayQR',
+                '10': 'WXWAP',
+                '11': 'ALIWAP',
+                '12': 'QQWAP',
+                //'13': 'PCard',
+                '14': 'JDWAP'
+            };
+
             vm.prepareToBeDeletedProviderGroupId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
@@ -11692,6 +11709,40 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.isDiffConsumptionProvider = function (providerArr, showModal) {
+                let isDiff = false;
+                let providerSourceArr;
+                if (providerArr) {
+                    providerSourceArr = providerArr.sort();
+                } else {
+                    providerSourceArr = vm.allPlayerLvl[0].levelUpConfig[0].consumptionSourceProviderId.sort();
+                }
+
+                for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                    for (let j = 0; j < vm.allPlayerLvl[i].levelUpConfig.length; j++) {
+                        let providerSourceCompare = vm.allPlayerLvl[i].levelUpConfig[j].consumptionSourceProviderId.sort();
+                        if (JSON.stringify(providerSourceArr) != JSON.stringify(providerSourceCompare)) {
+                            isDiff = true;
+                            break;
+                        }
+                    }
+                    if (isDiff) {
+                        break;
+                    }
+                }
+
+                if (showModal && isDiff && !vm.autoCheckPlayerLevelUp) {
+                    vm.autoCheckPlayerLevelUp = true;
+                    $("#modalLevelUpProvider").modal('show');
+                    $("#modalLevelUpProvider").on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+                }
+
+                return isDiff;
+            }
+
+
             vm.diffLevelUpPeriod = function (childPeriod) {
                 if (vm.allPlayerLevelUpPeriod[childPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod && !vm.autoCheckPlayerLevelUp) {
                     vm.autoCheckPlayerLevelUp = true;
@@ -11726,6 +11777,8 @@ define(['js/app'], function (myApp) {
                     $("#modalLevelUpPeriod").on('shown.bs.modal', function (e) {
                         $scope.safeApply();
                     })
+                } else {
+                    vm.isDiffConsumptionProvider(null, true);
                 }
             }
 
@@ -17037,6 +17090,7 @@ define(['js/app'], function (myApp) {
                         vm.getAllPlayerLevels().done(
                             function (data) {
                                 migratePlayerLevels();
+                                // vm.endLoadWeekDay();
                             }
                         );
                         break;
@@ -19770,6 +19824,24 @@ define(['js/app'], function (myApp) {
                     });
             };
 
+            vm.getProviderNameById = function (providerObjIdArr) {
+                let providerString = "";
+                for (let i = 0; i < providerObjIdArr.length; i++) {
+                    vm.allProviders.forEach(provider => {
+                        if (providerObjIdArr[i].toString() == provider._id.toString()) {
+                            if (providerString) {
+                                providerString += ", ";
+                            }
+                            providerString += provider.name;
+                        }
+                    })
+                }
+                if (!providerString) {
+                    providerString = $translate("EMPTY_SELECT");
+                }
+                return providerString;
+            }
+
             vm.getAllPlayerLevels = function () {
                 vm.playerIDArr = [];
                 vm.autoCheckPlayerLevelUp = null;
@@ -19864,7 +19936,8 @@ define(['js/app'], function (myApp) {
                     topupPeriod: vm.playerLevelPeriod.levelUpPeriodName,
                     consumptionLimit: 1,
                     consumptionPeriod: vm.playerLevelPeriod.levelUpPeriodName,
-                    andConditions: true
+                    andConditions: true,
+                    consumptionSourceProviderId: []
                 }];
 
                 vm.newPlayerLvl = {
@@ -20625,6 +20698,9 @@ define(['js/app'], function (myApp) {
                         || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
                         vm.platformBatchLevelUp = false;
                         break;
+                    } else if (vm.isDiffConsumptionProvider(levelUpConfig[j].consumptionSourceProviderId)) {
+                        vm.platformBatchLevelUp = false;
+                        break;
                     }
                 }
                 $scope.$socketPromise('createPlayerLevel', sendData)
@@ -20727,6 +20803,9 @@ define(['js/app'], function (myApp) {
                             for (let j = 0; j < levelUpConfig.length; j++) {
                                 if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
                                     || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                                    vm.platformBatchLevelUp = false;
+                                    break;
+                                } else if (vm.isDiffConsumptionProvider(levelUpConfig[j].consumptionSourceProviderId)) {
                                     vm.platformBatchLevelUp = false;
                                     break;
                                 }
@@ -21217,6 +21296,9 @@ define(['js/app'], function (myApp) {
                                                 for (let j = 0; j < levelUpConfig.length; j++) {
                                                     if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
                                                         || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                                                        vm.platformBatchLevelUp = false;
+                                                        break;
+                                                    } else if (vm.isDiffConsumptionProvider(levelUpConfig[j].consumptionSourceProviderId)) {
                                                         vm.platformBatchLevelUp = false;
                                                         break;
                                                     }
