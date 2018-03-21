@@ -235,8 +235,12 @@ define(['js/app'], function (myApp) {
                   console.log('all admin data', cdata.data);
                   let fpmsACCList = [];
                   let live800Accs = [];
+                  vm.allUser = cdata.data;
                   cdata.data.forEach(item=>{
-                    let liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
+                    let liveAccSet = [];
+                    if(item.live800Acc){
+                        liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
+                    }
                     let acc = {
                       _id:item._id,
                       name:item.adminName,
@@ -250,11 +254,15 @@ define(['js/app'], function (myApp) {
               });
             }
             vm.loadLive800Acc = function(){
+
                 let live800Accs = [];
-                vm.fpmsACCList.forEach(item=>{
-                    // live800Accs = live800Accs.concat(item.live800Acc);
-                    if(item.live800Acc.includes(vm.inspection800.fpms)){
-                        live800Accs = live800Accs.concat(item.live800Acc);
+                vm.allUser.forEach(item => {
+                    if (vm.inspection800.fpms.indexOf(item._id) != -1) {
+
+                        item.live800Acc.forEach(live800 => {
+                            live800Accs.push(live800);
+                        })
+
                     }
                 })
                 vm.live800Accs = live800Accs;
