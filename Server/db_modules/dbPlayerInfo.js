@@ -7665,13 +7665,15 @@ let dbPlayerInfo = {
                                     playerLevel.forEach(level => {
                                         level.levelUpConfig.forEach(levelUp => {
                                             let levelUpProviderId = [];
-                                            levelUp.consumptionSourceProviderId.forEach(levelUpProvider => {
-                                                gameProvider.forEach(providerdata => {
-                                                    if (levelUpProvider.toString() == providerdata._id.toString()) {
-                                                        levelUpProviderId.push(providerdata.providerId);
-                                                    }
-                                                });
-                                            })
+                                            if (levelUp.consumptionSourceProviderId && levelUp.consumptionSourceProviderId.length) {
+                                                levelUp.consumptionSourceProviderId.forEach(levelUpProvider => {
+                                                    gameProvider.forEach(providerdata => {
+                                                        if (levelUpProvider.toString() == providerdata._id.toString()) {
+                                                            levelUpProviderId.push(providerdata.providerId);
+                                                        }
+                                                    });
+                                                })
+                                            }
                                             levelUp.consumptionSourceProviderId = levelUpProviderId;
                                         })
                                         // level.levelDownConfig.forEach(levelDown => {
