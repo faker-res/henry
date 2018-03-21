@@ -2945,3 +2945,31 @@ input[type='number'].leftALignNumber {
 .grayRow{
     background-color: rgba(153, 153, 153, 100);
 }
+
+.bootstrap-datetimepicker-widget.inverted:before,
+.bootstrap-datetimepicker-widget.inverted:after {
+    border: none;
+}
+
+.bootstrap-datetimepicker-widget.inverted:after {
+    content: '';
+    display: inline-block;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #fff;
+    position: absolute;
+    top: 100%;
+    left: 7px;
+}
+
+.bootstrap-datetimepicker-widget.inverted:before {
+    content: '';
+    display: inline-block;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid #ccc;
+    border-top-color: rgba(0,0,0,0.2);
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 6px;
+}
