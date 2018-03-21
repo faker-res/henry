@@ -8,7 +8,8 @@ var localConfig = {
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@localhost:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@localhost:27017/playerdb/',
-        logsDBUrl: 'localhost:27017/logsdb'
+        logsDBUrl: 'localhost:27017/logsdb',
+        logs2DBUrl: 'localhost:27017/logs2db',
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
