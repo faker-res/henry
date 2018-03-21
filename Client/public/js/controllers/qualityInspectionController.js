@@ -193,6 +193,10 @@ define(['js/app'], function (myApp) {
                                 companyIds.push(cId);
                             }
                         })
+                    }else{
+                        if (companyIds.indexOf('999999') == -1) {
+                            companyIds.push('999999');
+                        }
                     }
 
                     if (item.data.livecompanyIds && item.data.livecompanyIds.indexOf(item.data.live800CompanyId) == -1)
