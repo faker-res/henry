@@ -42,7 +42,7 @@ function socketActionMerchantGroup(socketIO, socket) {
         renamePlatformMerchantGroup: function renamePlatformMerchantGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.update);
-            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.updatePlatformMerchantGroup, [data.query, data.update], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.updatePlatformMerchantGroupInfo, [data.query, data.update], actionName, isValidData);
         },
 
         /**
@@ -85,6 +85,7 @@ function socketActionMerchantGroup(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.update);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.updatePlatformMerchantGroup, [data.query, data.update], actionName, isValidData);
         },
+
         /**
          * Delete game group by id / Delete the MerchantGroup and all its all sub-groups (all children)
          * @param {json} data - It has to contain ObjId of the group
