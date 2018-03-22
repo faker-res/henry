@@ -1440,16 +1440,21 @@ var dbQualityInspection = {
     },
     splitOperatorIdToArray:function(operatorIdArr){
         let operatorRes = [];
+        let operatorList = [];
         let companyIdRes = [];
         operatorIdArr.forEach(item=>{
             let operator = dbQualityInspection.splitLive800Acc(item);
             let companyId = dbQualityInspection.splitLive800AccForCompanyID(item);
-            if (!operatorRes.includes(operator)){
-                operatorRes.push(operator);
+            if (!operatorList.includes(operator)){
+                operatorList.push(operator);
             }
             if (!companyIdRes.includes(companyId)){
                 companyIdRes.push(companyId);
             }
+        });
+
+        operatorList.forEach( op => {
+            operatorRes.push(new RegExp("^" + op, "i"));
         });
 
         return [operatorRes, companyIdRes];
