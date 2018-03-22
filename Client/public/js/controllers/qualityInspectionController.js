@@ -394,6 +394,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
                     data.data.forEach(item=>{
+                        if(query.status == 7){
+                            item.status = 7;
+                        }
                         item.statusName = item.conversation && item.conversation.length > 0 ? item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]) : $translate(vm.constQualityInspectionStatus[7]);
                         item.conversation.forEach(function(cv,i){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
