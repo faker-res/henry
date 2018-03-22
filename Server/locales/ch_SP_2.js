@@ -232,6 +232,7 @@ var simplifiedChinese = {
     "This IP address has applied for max reward times in event period": "此IP已经达到了该优惠周期内的申请上限",
     "Player reach participate limit": "玩家已达参加次数上限",
     "Player does not have enough consumption": "玩家没有足够的投注额",
+    "Player already applied for the reward point.": "领取失败：很抱歉，已经领取过此项积分奖励。",
     //todo::add missing messages here
 
     /*
