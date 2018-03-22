@@ -397,7 +397,7 @@ define(['js/app'], function (myApp) {
                 },
             }
 
-            vm.merchantTopupTypeJson = { // for reward points purpose only
+            vm.merchantTopupType = { // for reward points purpose only
                 '1': 'NetPay',
                 //'2': 'WechatQR',
                 '3': 'AlipayQR',
