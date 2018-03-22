@@ -17397,6 +17397,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
                 vm.rewardPointsEvent = [];
+                vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 switch (choice) {
                     case 'rewardPointsRule':
@@ -18025,6 +18026,7 @@ define(['js/app'], function (myApp) {
                     $.each(vm.rewardPointsEvent, function (idx, val) {
                         vm.rewardPointsEventPeriodChange(idx, val);
                         vm.rewardPointsEventSetDisable(idx, val, true, true);
+                        vm.rewardPointsEventOld.push($.extend(true, {}, val));
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();
@@ -18125,6 +18127,19 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.rewardPointsEventSetEditStatusAll = () => {
+                for(let x in vm.rewardPointsEvent) {
+                    vm.rewardPointsEventSetDisable(x,vm.rewardPointsEvent[x],false,true);
+                }
+                vm.refreshSPicker();
+            };
+
+            vm.rewardPointsEventReset = (idx) => {
+                console.log(vm.rewardPointsEventOld[idx]);
+                vm.rewardPointsEvent[idx] = Object.assign({},vm.rewardPointsEventOld[idx]);
+                vm.refreshSPicker();
+            };
+
             vm.rewardPointsEventSetDisable = (idx, rewardPointsEvent, isDisable, isMultiple) => {
                 rewardPointsEvent.isEditing=!isDisable;
                 if (rewardPointsEvent.period == 6){
@@ -18135,8 +18150,8 @@ define(['js/app'], function (myApp) {
                 }
                 if (!isMultiple) {
                     $scope.safeApply();
+                    vm.refreshSPicker();
                 }
-                // vm.endLoadWeekDay();
             };
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
