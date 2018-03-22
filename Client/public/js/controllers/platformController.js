@@ -940,6 +940,8 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.beforeUpdatePlatform();
+                vm.isNotAllowEdit = true;
+                vm.isCreateNewPlatform = false;
 
                 $cookies.put("platform", node.text);
                 if (option && !option.loadAll) {
@@ -1127,6 +1129,8 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
                 $('.demoPlayerPrefixSelection option:selected').text("");
+                vm.isNotAllowEdit = false;
+                vm.isCreateNewPlatform = true;
                 $scope.safeApply();
             }
             vm.getDayName = function (d) {
@@ -1695,6 +1699,28 @@ define(['js/app'], function (myApp) {
                 vm.updatePlatform._id = vm.selectedPlatform.id;
                 console.log('department ID', vm.showPlatform.department);
             };
+
+            vm.updatePlatformConfig = function () {
+                vm.isNotAllowEdit = false;
+            };
+
+            vm.cancelUpdatePlatformConfig = function () {
+                vm.isNotAllowEdit = true;
+                if(vm.isCreateNewPlatform) {
+                    vm.bindSelectedPlatformData();
+                }
+                vm.isCreateNewPlatform = false;
+            };
+
+            vm.bindSelectedPlatformData = function () {
+                if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                    vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
+                    vm.beforeUpdatePlatform();
+                    if(vm.showPlatform && vm.showPlatform.demoPlayerPrefix){
+                        $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
+                    }
+                }
+            }
 
             //update selected platform data
             vm.updatePlatformAction = function () {
