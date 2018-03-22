@@ -2490,6 +2490,28 @@ var dbPlatform = {
                 promoCodeIsActive: promoCodeIsActive
             }, {new: true});
     },
+
+    createClickCountLog: (platformId, device, pageName, buttonName) => {
+        let todayTime = dbUtility.getTodaySGTime();
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}, '_id').lean().then(
+            platformObj => {
+                let clickCountObj = {
+                    platform: platformObj._id,
+                    startTime: todayTime.startTime,
+                    endTime: todayTime.endTime,
+                    device: device,
+                    pageName: pageName,
+                    buttonName: buttonName
+                };
+
+                dbconfig.collection_clickCount
+                    .update(clickCountObj, {$inc: {count: 1}}, {upsert: true})
+                    .exec()
+                    .catch(errorUtils.reportError);
+            }
+        )
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
