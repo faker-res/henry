@@ -399,7 +399,7 @@ let dbRewardPoints = {
                 if (progress.isApplied) {
                     return Promise.reject({
                         name: "DataError",
-                        message: "Player already applied for the reward point."
+                        message: localization.localization.translate("Player already applied for the reward point.")
                     });
                 }
 
