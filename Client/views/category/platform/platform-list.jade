@@ -203,7 +203,7 @@
     .modal-dialog
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal', ng-click="")
+                a.fa.fa-times.close(type='button', data-dismiss='modal', ng-click="vm.setPlatformFooter(null);vm.cancelUpdatePlatformConfig();")
                 h4.modal-title(ng-show="!vm.platformAction") {{"PLATFORM" | translate}}
                 h4.modal-title(ng-show="vm.platformAction=='create'") {{"CREATE_PLATFORM" | translate}}
                 h4.modal-title(ng-show="vm.platformAction=='delete'") {{"DELETE_PLATFORM" | translate}}
@@ -229,12 +229,12 @@
             .modal-footer
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('create');vm.initPlatform(true);vm.clearShowPlatform();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('delete')", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction && vm.playerDisplayDataTab != 'advertisementPanel' && vm.partnerDisplayDataTab != 'partnerAdvertisementPanel'") {{"DELETE" | translate}}
-                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('edit');vm.initPlatform(true);", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"EDIT" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.setPlatformFooter('edit');vm.initPlatform(true);vm.updatePlatformConfig();", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&!vm.platformAction&&vm.playerDisplayDataTab != 'advertisementPanel'") {{"EDIT" | translate}}
 
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='create'", ng-click="vm.createNewPlatform();vm.setPlatformFooter(null)", ng-disabled="form_new_platform.$invalid") {{"CREATE" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='create'", ng-click="vm.createNewPlatform();vm.setPlatformFooter(null);", ng-disabled="form_new_platform.$invalid") {{"CREATE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='delete'", ng-click="vm.deletePlatform();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="vm.csDepartmentError || vm.qiDepartmentError", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='edit'", ng-click="vm.updatePlatformAction();vm.setPlatformFooter(null)") {{"EDIT" | translate}}
-                button.btn.btn-warning.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction", ng-click="vm.setPlatformFooter(null)") {{"CANCEL" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="vm.csDepartmentError || vm.qiDepartmentError", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='edit'", ng-click="vm.updatePlatformAction();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction", ng-click="vm.setPlatformFooter(null);vm.cancelUpdatePlatformConfig();") {{"CANCEL" | translate}}
 
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerConsecutiveConsumptionSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Consecutive Consumption Settlement" | translate}}

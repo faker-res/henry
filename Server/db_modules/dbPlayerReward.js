@@ -4124,7 +4124,7 @@ let dbPlayerReward = {
                         },
                         {
                             $group: {
-                                _id: {playerId: "$data.playerObjId"},
+                                _id: null,
                                 amount: {$sum: "$data.rewardAmount"}
                             }
                         }
