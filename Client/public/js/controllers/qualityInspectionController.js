@@ -1928,7 +1928,7 @@ define(['js/app'], function (myApp) {
                                 itemObj.productName = vm.platformCompanyID[platformIndex].productName;
 
                             }
-                            let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
+                            let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc.toUpperCase() == item.operatorId.toUpperCase())
                             if (index != -1) {
                                 itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                             }
@@ -1978,7 +1978,7 @@ define(['js/app'], function (myApp) {
 
                                 preData = data.data[1].map(item => {
                                     let itemObj = {};
-                                    let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
+                                    let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc.toUpperCase() == item.operatorId.toUpperCase())
                                     if (index != -1) {
                                         itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                     }
@@ -2014,7 +2014,7 @@ define(['js/app'], function (myApp) {
 
                                 preData = data.data[2].map(item => {
                                     let itemObj = {};
-                                    let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
+                                    let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc.toUpperCase() == item.operatorId.toUpperCase())
                                     if (index != -1) {
                                         itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                     }
@@ -2207,7 +2207,7 @@ define(['js/app'], function (myApp) {
 
                                         if (data.data[1] && data.data[1].length > 0) {
                                             data.data[1].forEach(data => {
-                                                let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
+                                                let index = vm.displayDetailData.findIndex(p => p.operatorId.toUpperCase() == data.operatorId.toUpperCase());
                                                 if (index != -1) {
                                                     if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
                                                         vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = vm.v[index][vm.constQualityInspectionStatus[data.status]] + data.count;
@@ -2236,7 +2236,7 @@ define(['js/app'], function (myApp) {
 
                                         if (data.data[2] && data.data[2].length > 0) {
                                             data.data[2].forEach(data => {
-                                                let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
+                                                let index = vm.displayDetailData.findIndex(p => p.operatorId.toUpperCase() == data.operatorId.toUpperCase());
                                                 if (index != -1) {
                                                     vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
                                                     vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
