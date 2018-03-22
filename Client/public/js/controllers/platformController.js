@@ -939,6 +939,8 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
                 }
 
+                vm.beforeUpdatePlatform();
+
                 $cookies.put("platform", node.text);
                 if (option && !option.loadAll) {
                     $scope.safeApply();

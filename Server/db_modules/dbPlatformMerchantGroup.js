@@ -47,7 +47,9 @@ var dbPlatformMerchantGroup = {
         }
         return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
-
+    updatePlatformMerchantGroupInfo: function (query, updateData) {
+        return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+    },
     /**
      * Get all the bank card groups  by platformObjId
      * @param {String}  platformId - ObjId of the platform
