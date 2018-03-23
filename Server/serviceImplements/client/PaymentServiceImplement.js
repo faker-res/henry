@@ -120,7 +120,7 @@ var PaymentServiceImplement = function () {
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount) && data.amount < 10000000);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT", false, false, false, data.bPMSGroup], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -355,6 +355,18 @@ var PaymentServiceImplement = function () {
     this.isFirstTopUp.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.isPlayerFirstTopUp, [conn.playerId], isValidData);
+    };
+
+    this.requestBankTypeByUserName.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId && data && data.clientType);
+        let userIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                userIp = forwardedIp[0].trim();
+            }
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.requestBankTypeByUserName, [conn.playerId, data.clientType, userIp], isValidData);
     };
 
 };

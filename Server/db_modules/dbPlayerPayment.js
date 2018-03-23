@@ -128,10 +128,10 @@ const dbPlayerPayment = {
                 if (alipays && alipays.data && alipays.data.length > 0) {
                     alipays.data.forEach(
                         alipay => {
-                                    if (accountNumber == alipay.accountNumber) {
-                                        bValid = true;
-                                        quota = alipay.quota;
-                                    }
+                            if (accountNumber == alipay.accountNumber) {
+                                bValid = true;
+                                quota = alipay.quota;
+                            }
                         }
                     );
                 }
@@ -139,6 +139,7 @@ const dbPlayerPayment = {
             }
         );
     },
+
     getMerchantDailyLimits: (playerId, merchantNo) => {
         let playerData = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
@@ -174,7 +175,35 @@ const dbPlayerPayment = {
                 return {bValid: bValid, quota: quota};
             }
         );
+    },
+
+    requestBankTypeByUserName: function (playerId, clientType, userIp) {
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean().then(
+            playerData => {
+                if( playerData ){
+                    if( playerData.permission.topupManual){
+                        return pmsAPI.foundation_requestBankTypeByUsername(
+                            {
+                                queryId: serverInstance.getQueryId(),
+                                platformId: playerData.platform.platformId,
+                                username: playerData.name,
+                                ip: userIp
+                            }
+                        );
+                    }
+                    else{
+                        return [];
+                    }
+                }
+                else{
+                    return Q.reject({name: "DataError", message: "Cannot find player"})
+                }
+            }
+        );
     }
+
 };
 
 module.exports = dbPlayerPayment;

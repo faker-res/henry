@@ -335,6 +335,12 @@
         this._service.isFirstTopUp.once(callback);
     };
 
+    proto.requestBankTypeByUserName = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.requestBankTypeByUserName.request(data);
+        this._service.requestBankTypeByUserName.once(callback);
+    };
+
 
     if (isNode) {
         module.exports = ClientPaymentAPITest;
