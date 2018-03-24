@@ -1012,6 +1012,8 @@ var dbPlayerConsumptionWeekSummary = {
 
                     console.log('consumptionSummariesByKey', consumptionSummariesByKey);
                     console.log('consumptionRecSumm', consumptionRecSumm);
+                    console.log('res', res);
+                    console.log('doneXIMAConsumption', doneXIMAConsumption);
 
                     if (platformData.useProviderGroup) {
                         let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
@@ -1032,6 +1034,8 @@ var dbPlayerConsumptionWeekSummary = {
                                     totalAmtDiff += consumpDiff * res[el._id].ratio;
                                 }
                             });
+
+                            console.log('totalAmtDiff', totalAmtDiff);
 
                             res.totalAmount += totalAmtDiff;
                         }
