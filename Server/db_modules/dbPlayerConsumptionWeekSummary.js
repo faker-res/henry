@@ -1028,7 +1028,7 @@ var dbPlayerConsumptionWeekSummary = {
 
                                 let consumpDiff = el.validAmount - res[el._id].consumptionAmount - res[el._id].nonXIMAAmt;
 
-                                if (consumpDiff > 0.01) {
+                                if (res[el._id].consumptionAmount + consumpDiff > 0) {
                                     res[el._id].consumptionAmount += consumpDiff;
                                     res[el._id].returnAmount += consumpDiff * res[el._id].ratio;
                                     totalAmtDiff += consumpDiff * res[el._id].ratio;
