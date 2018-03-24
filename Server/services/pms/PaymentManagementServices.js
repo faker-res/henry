@@ -71,7 +71,8 @@
                 "getBankTypeList",
                 "getProvince",
                 "getCity",
-                "getDistrict"
+                "getDistrict",
+                "requestBankTypeByUsername"
             ];
             addServiceSyncFunctions(sinonet, this, functionNames, ["queryId"]);
         };

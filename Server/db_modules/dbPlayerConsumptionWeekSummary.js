@@ -1007,6 +1007,8 @@ var dbPlayerConsumptionWeekSummary = {
                     }
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
 
+                    console.log('consumptionSummariesByKey', consumptionSummariesByKey);
+
                     if (platformData.useProviderGroup) {
                         let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
 
