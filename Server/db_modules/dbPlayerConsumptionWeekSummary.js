@@ -877,6 +877,9 @@ var dbPlayerConsumptionWeekSummary = {
         if (bDetail) {
             summaryDay["$lt"] = settleTime.endTime;
         }
+
+        console.log('summaryDay', summaryDay);
+
         let summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
                 platformId: platformId,
@@ -1008,6 +1011,7 @@ var dbPlayerConsumptionWeekSummary = {
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
 
                     console.log('consumptionSummariesByKey', consumptionSummariesByKey);
+                    console.log('consumptionRecSumm', consumptionRecSumm);
 
                     if (platformData.useProviderGroup) {
                         let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
