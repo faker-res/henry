@@ -414,7 +414,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                             let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
                                                             // Offset if it matters
-                                                            if (consumpDiff > 0.01) {
+                                                            if (proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + consumpDiff > 0) {
                                                                 // Log the offset
                                                                 proposalData.data.devCheckMsg =
                                                                     "GameType: " + el._id + ", " +
@@ -878,8 +878,6 @@ var dbPlayerConsumptionWeekSummary = {
             summaryDay["$lt"] = settleTime.endTime;
         }
 
-        console.log('summaryDay', summaryDay);
-
         let summaryProm = dbconfig.collection_playerConsumptionSummary.find(
             {
                 platformId: platformId,
@@ -1010,10 +1008,11 @@ var dbPlayerConsumptionWeekSummary = {
                     }
                     res.totalAmount = returnAmount < 1 ? 0 : returnAmount;
 
-                    console.log('consumptionSummariesByKey', consumptionSummariesByKey);
-                    console.log('consumptionRecSumm', consumptionRecSumm);
-                    console.log('res', res);
-                    console.log('doneXIMAConsumption', doneXIMAConsumption);
+                    // DO NOT REMOVE - DEBUG USE
+                    // console.log('consumptionSummariesByKey', consumptionSummariesByKey);
+                    // console.log('consumptionRecSumm', consumptionRecSumm);
+                    // console.log('res', res);
+                    // console.log('doneXIMAConsumption', doneXIMAConsumption);
 
                     if (platformData.useProviderGroup) {
                         let totalConsumptionRec = consumptionRecSumm && consumptionRecSumm.length > 0 ? consumptionRecSumm.reduce((a, b) => a + b.validAmount, 0) : 0;
@@ -1034,8 +1033,6 @@ var dbPlayerConsumptionWeekSummary = {
                                     totalAmtDiff += consumpDiff * res[el._id].ratio;
                                 }
                             });
-
-                            console.log('totalAmtDiff', totalAmtDiff);
 
                             res.totalAmount += totalAmtDiff;
                         }
