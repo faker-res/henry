@@ -73,4 +73,21 @@ angular.module('myApp.filters', []).
         return function (value) {
             return Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value;
         }
+    }).
+    filter('roundToTwoDecimalPlacesString', function (){
+        return function (value) {
+            if (Number.isInteger(value)){
+               return value.toLocaleString() + '.00';
+            }
+            else{
+                let splitString =  value.toLocaleString().split(".");
+                if (splitString[1].length == 1) {
+                   return value.toLocaleString() + '0';
+                }
+                else{
+                    return (Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value).toLocaleString();
+
+                }
+            }
+        }
     });

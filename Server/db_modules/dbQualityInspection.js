@@ -359,8 +359,8 @@ var dbQualityInspection = {
         let platformProm = dbconfig.collection_platform.find().lean();
         Q.all([sqlResult, platformProm]).then(queryResult => {
 
-            results = queryResult[0];
-            platforms = queryResult[1];
+            let results = queryResult[0];
+            let platforms = queryResult[1];
             let msgIds = [];
             if(results.length == 0){
                 deferred.resolve([]);
@@ -680,8 +680,8 @@ var dbQualityInspection = {
                     timeoutRate = overtimeSetting[0].presetMark;
                 }
             }else if(i==otsLength){
-                if(sec >= overtimeSetting[otsLength].conversationInterval){
-                    timeoutRate = overtimeSetting[i].presetMark;
+                if(sec >= overtimeSetting[otsLength - 1].conversationInterval){
+                    timeoutRate = overtimeSetting[i - 1].presetMark;
                 }
             }else{
                 if(sec > overtimeSetting[i-1].conversationInterval && sec <= overtimeSetting[i].conversationInterval){
@@ -1763,7 +1763,7 @@ var dbQualityInspection = {
         let conversationForm = [];
 
         if(connection){
-            let a = connection.query(queryString, function (error, results, fields) {
+            connection.query(queryString, function (error, results, fields) {
                 //console.log("live 800 result",results)
                 if(error){
                     console.log(error);
@@ -1842,11 +1842,14 @@ var dbQualityInspection = {
 
                                             return dbconfig.collection_live800RecordDaySummary.find(query).lean().then(
                                                 data => {
-                                                    if(data && data.length > 0){
-                                                        deferred.resolve();
-                                                    }else{
+                                                    // if(data && data.length > 0){
+                                                    //     deferred.resolve();
+                                                    // }else{
+                                                    //     dbconfig.collection_live800RecordDaySummary(updateData).save();
+                                                    //     deferred.resolve(result);
+                                                    // }
+                                                    if(!data || data.length <= 0) {
                                                         dbconfig.collection_live800RecordDaySummary(updateData).save();
-                                                        deferred.resolve(result);
                                                     }
                                             });
                                         }
@@ -1856,6 +1859,9 @@ var dbQualityInspection = {
                         }
                     });
                 }
+
+                deferred.resolve();
+                connection.end();
             });
             return deferred.promise;
         }else{
