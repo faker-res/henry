@@ -359,8 +359,8 @@ var dbQualityInspection = {
         let platformProm = dbconfig.collection_platform.find().lean();
         Q.all([sqlResult, platformProm]).then(queryResult => {
 
-            results = queryResult[0];
-            platforms = queryResult[1];
+            let results = queryResult[0];
+            let platforms = queryResult[1];
             let msgIds = [];
             if(results.length == 0){
                 deferred.resolve([]);
@@ -680,8 +680,8 @@ var dbQualityInspection = {
                     timeoutRate = overtimeSetting[0].presetMark;
                 }
             }else if(i==otsLength){
-                if(sec >= overtimeSetting[otsLength].conversationInterval){
-                    timeoutRate = overtimeSetting[i].presetMark;
+                if(sec >= overtimeSetting[otsLength - 1].conversationInterval){
+                    timeoutRate = overtimeSetting[i - 1].presetMark;
                 }
             }else{
                 if(sec > overtimeSetting[i-1].conversationInterval && sec <= overtimeSetting[i].conversationInterval){
