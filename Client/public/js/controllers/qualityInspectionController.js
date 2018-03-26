@@ -329,6 +329,23 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
+            vm.checkUncheckSelectAll = function () {
+                let isChecked = false;
+
+                isChecked = document.getElementById("selectAll").checked;
+
+                if(isChecked) {
+                    $('input[name="rowChecked"]').each(function() {
+                        this.checked = true;
+                        vm.storeBatchId();
+                    });
+                } else {
+                    $('input[name="rowChecked"]').each(function() {
+                        this.checked = false;
+                        vm.batchEditList = [];
+                    });
+                }
+            };
             vm.storeBatchId = function(isCheck, conversation){
                 vm.batchEditList = [];
                 $('body .batchEdit:checked').each( function(){
@@ -433,6 +450,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     });
                     vm.conversationForm = data.data;
+                    $("#selectAll").removeAttr('checked');
                     $('.searchingQualityInspection').hide();
                     $scope.safeApply();
                 }
