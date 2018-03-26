@@ -1,6 +1,7 @@
 const WebSocketUtil = require("./../../server_common/WebSocketUtil");
 const PlatformService = require("./../../services/client/ClientServices").PlatformService;
 const dbPlatform = require('./../../db_modules/dbPlatform');
+const dbPlayerInfo = require('./../../db_modules/dbPlayerInfo');
 const dbPlatformAnnouncement = require("../../db_modules/dbPlatformAnnouncement");
 const dbUtility = require('./../../modules/dbutility');
 const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
@@ -69,6 +70,15 @@ var PlatformServiceImplement = function () {
         );
     };
 
+    this.verifyUserPasswordWithTransferIn.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.loginname && data.password && data.platformId && data.providerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.verifyUserPasswordWithTransferIn, [data.loginname, data.password, data.platformId, data.providerId], isValidData, null, null, true);
+    };
+
+    this.clickCount.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.device && data.pageName && data.buttonName);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.createClickCountLog, [data.platformId, data.device, data.pageName, data.buttonName], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

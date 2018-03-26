@@ -397,6 +397,23 @@ define(['js/app'], function (myApp) {
                 },
             }
 
+            vm.merchantTopupType = { // for reward points purpose only
+                '1': 'NetPay',
+                //'2': 'WechatQR',
+                '3': 'AlipayQR',
+                '4': 'WechatApp',
+                //'5': 'AlipayApp',
+                '6': 'FASTPAY',
+                '7': 'QQPAYQR',
+                '8': 'UnPayQR',
+                '9': 'JdPayQR',
+                '10': 'WXWAP',
+                '11': 'ALIWAP',
+                '12': 'QQWAP',
+                //'13': 'PCard',
+                '14': 'JDWAP'
+            };
+
             vm.prepareToBeDeletedProviderGroupId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
@@ -922,6 +939,10 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
                 }
 
+                vm.beforeUpdatePlatform();
+                vm.isNotAllowEdit = true;
+                vm.isCreateNewPlatform = false;
+
                 $cookies.put("platform", node.text);
                 if (option && !option.loadAll) {
                     $scope.safeApply();
@@ -1108,6 +1129,8 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
                 $('.demoPlayerPrefixSelection option:selected').text("");
+                vm.isNotAllowEdit = false;
+                vm.isCreateNewPlatform = true;
                 $scope.safeApply();
             }
             vm.getDayName = function (d) {
@@ -1676,6 +1699,28 @@ define(['js/app'], function (myApp) {
                 vm.updatePlatform._id = vm.selectedPlatform.id;
                 console.log('department ID', vm.showPlatform.department);
             };
+
+            vm.updatePlatformConfig = function () {
+                vm.isNotAllowEdit = false;
+            };
+
+            vm.cancelUpdatePlatformConfig = function () {
+                vm.isNotAllowEdit = true;
+                if(vm.isCreateNewPlatform) {
+                    vm.bindSelectedPlatformData();
+                }
+                vm.isCreateNewPlatform = false;
+            };
+
+            vm.bindSelectedPlatformData = function () {
+                if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                    vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
+                    vm.beforeUpdatePlatform();
+                    if(vm.showPlatform && vm.showPlatform.demoPlayerPrefix){
+                        $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
+                    }
+                }
+            }
 
             //update selected platform data
             vm.updatePlatformAction = function () {
@@ -7977,8 +8022,8 @@ define(['js/app'], function (myApp) {
                 //createTestPlayerForPlatform
                 socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
                     vm.createtrail = data.data;
-                    vm.testPlayerName = data.data.name;
-                    vm.testPlayerPassword = data.data.password;
+                    vm.testPlayerName = data.data.playerData.name;
+                    vm.testPlayerPassword = data.data.playerData.password;
                     console.log('testaccount', data);
                     $scope.safeApply();
                     //$('#modalTestPlayer').modal();
@@ -11692,6 +11737,40 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.isDiffConsumptionProvider = function (providerArr, showModal) {
+                let isDiff = false;
+                let providerSourceArr;
+                if (providerArr) {
+                    providerSourceArr = providerArr.sort();
+                } else {
+                    providerSourceArr = vm.allPlayerLvl[0].levelUpConfig[0].consumptionSourceProviderId.sort();
+                }
+
+                for (let i = 0; i < vm.allPlayerLvl.length; i++) {
+                    for (let j = 0; j < vm.allPlayerLvl[i].levelUpConfig.length; j++) {
+                        let providerSourceCompare = vm.allPlayerLvl[i].levelUpConfig[j].consumptionSourceProviderId.sort();
+                        if (JSON.stringify(providerSourceArr) != JSON.stringify(providerSourceCompare)) {
+                            isDiff = true;
+                            break;
+                        }
+                    }
+                    if (isDiff) {
+                        break;
+                    }
+                }
+
+                if (showModal && isDiff && !vm.autoCheckPlayerLevelUp) {
+                    vm.autoCheckPlayerLevelUp = true;
+                    $("#modalLevelUpProvider").modal('show');
+                    $("#modalLevelUpProvider").on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+                }
+
+                return isDiff;
+            }
+
+
             vm.diffLevelUpPeriod = function (childPeriod) {
                 if (vm.allPlayerLevelUpPeriod[childPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod && !vm.autoCheckPlayerLevelUp) {
                     vm.autoCheckPlayerLevelUp = true;
@@ -11726,6 +11805,8 @@ define(['js/app'], function (myApp) {
                     $("#modalLevelUpPeriod").on('shown.bs.modal', function (e) {
                         $scope.safeApply();
                     })
+                } else {
+                    vm.isDiffConsumptionProvider(null, true);
                 }
             }
 
@@ -17037,6 +17118,7 @@ define(['js/app'], function (myApp) {
                         vm.getAllPlayerLevels().done(
                             function (data) {
                                 migratePlayerLevels();
+                                // vm.endLoadWeekDay();
                             }
                         );
                         break;
@@ -17315,6 +17397,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
                 vm.rewardPointsEvent = [];
+                vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 switch (choice) {
                     case 'rewardPointsRule':
@@ -17943,6 +18026,7 @@ define(['js/app'], function (myApp) {
                     $.each(vm.rewardPointsEvent, function (idx, val) {
                         vm.rewardPointsEventPeriodChange(idx, val);
                         vm.rewardPointsEventSetDisable(idx, val, true, true);
+                        vm.rewardPointsEventOld.push($.extend(true, {}, val));
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();
@@ -18043,6 +18127,19 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.rewardPointsEventSetEditStatusAll = () => {
+                for(let x in vm.rewardPointsEvent) {
+                    vm.rewardPointsEventSetDisable(x,vm.rewardPointsEvent[x],false,true);
+                }
+                vm.refreshSPicker();
+            };
+
+            vm.rewardPointsEventReset = (idx) => {
+                console.log(vm.rewardPointsEventOld[idx]);
+                vm.rewardPointsEvent[idx] = Object.assign({},vm.rewardPointsEventOld[idx]);
+                vm.refreshSPicker();
+            };
+
             vm.rewardPointsEventSetDisable = (idx, rewardPointsEvent, isDisable, isMultiple) => {
                 rewardPointsEvent.isEditing=!isDisable;
                 if (rewardPointsEvent.period == 6){
@@ -18053,8 +18150,8 @@ define(['js/app'], function (myApp) {
                 }
                 if (!isMultiple) {
                     $scope.safeApply();
+                    vm.refreshSPicker();
                 }
-                // vm.endLoadWeekDay();
             };
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
@@ -19388,7 +19485,9 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function (data) {
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function () {
+                        vm.getPromoCodeUserGroup();
+                        vm.getBlockPromoCodeUserGroup();
                         vm.getAllPromoCodeUserGroup();
                         $scope.safeApply();
                     });
@@ -19768,6 +19867,24 @@ define(['js/app'], function (myApp) {
                     });
             };
 
+            vm.getProviderNameById = function (providerObjIdArr) {
+                let providerString = "";
+                for (let i = 0; i < providerObjIdArr.length; i++) {
+                    vm.allProviders.forEach(provider => {
+                        if (providerObjIdArr[i].toString() == provider._id.toString()) {
+                            if (providerString) {
+                                providerString += ", ";
+                            }
+                            providerString += provider.name;
+                        }
+                    })
+                }
+                if (!providerString) {
+                    providerString = $translate("EMPTY_SELECT");
+                }
+                return providerString;
+            }
+
             vm.getAllPlayerLevels = function () {
                 vm.playerIDArr = [];
                 vm.autoCheckPlayerLevelUp = null;
@@ -19862,7 +19979,8 @@ define(['js/app'], function (myApp) {
                     topupPeriod: vm.playerLevelPeriod.levelUpPeriodName,
                     consumptionLimit: 1,
                     consumptionPeriod: vm.playerLevelPeriod.levelUpPeriodName,
-                    andConditions: true
+                    andConditions: true,
+                    consumptionSourceProviderId: []
                 }];
 
                 vm.newPlayerLvl = {
@@ -20623,6 +20741,9 @@ define(['js/app'], function (myApp) {
                         || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
                         vm.platformBatchLevelUp = false;
                         break;
+                    } else if (vm.isDiffConsumptionProvider(levelUpConfig[j].consumptionSourceProviderId)) {
+                        vm.platformBatchLevelUp = false;
+                        break;
                     }
                 }
                 $scope.$socketPromise('createPlayerLevel', sendData)
@@ -20725,6 +20846,9 @@ define(['js/app'], function (myApp) {
                             for (let j = 0; j < levelUpConfig.length; j++) {
                                 if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
                                     || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                                    vm.platformBatchLevelUp = false;
+                                    break;
+                                } else if (vm.isDiffConsumptionProvider(levelUpConfig[j].consumptionSourceProviderId)) {
                                     vm.platformBatchLevelUp = false;
                                     break;
                                 }
@@ -21215,6 +21339,9 @@ define(['js/app'], function (myApp) {
                                                 for (let j = 0; j < levelUpConfig.length; j++) {
                                                     if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
                                                         || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
+                                                        vm.platformBatchLevelUp = false;
+                                                        break;
+                                                    } else if (vm.isDiffConsumptionProvider(levelUpConfig[j].consumptionSourceProviderId)) {
                                                         vm.platformBatchLevelUp = false;
                                                         break;
                                                     }

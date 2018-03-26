@@ -15,6 +15,7 @@ var playerLevelSchema = new Schema({
         topupLimit: {type: Number, default: 10, required: true},
         topupPeriod: {type: String, required: true},
         //minimum consumption value required for this level
+        consumptionSourceProviderId: {type: Array, default: []},
         consumptionLimit: {type: Number, default: 20, required: true},
         consumptionPeriod: {type: String, required: true}
     }],
@@ -25,6 +26,7 @@ var playerLevelSchema = new Schema({
         topupMinimum: {type: Number, default: 0, required: true},
         topupPeriod: {type: String, required: true},
         // Minimum consumption required to stay at this level
+        // consumptionSourceProviderId: {type: Array, default: []},
         consumptionMinimum: {type: Number, default: 0, required: true},
         consumptionPeriod: {type: String, required: true}
     }],

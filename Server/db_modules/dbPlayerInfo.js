@@ -93,6 +93,7 @@ let dbConsumptionReturnWithdraw = require('../db_modules/dbConsumptionReturnWith
 let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
+let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
 
 let dbPlayerInfo = {
 
@@ -1141,6 +1142,11 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     playerData = data;
+
+                    if (playerData.isRealPlayer) {
+                        dbDemoPlayer.updatePlayerConverted(playerData.platform, playerData.phoneNumber).catch(errorUtils.reportError);
+                    }
+
                     let promArr = [];
                     var levelProm = dbconfig.collection_playerLevel.findOne({
                         platform: playerdata.platform,
@@ -1433,6 +1439,8 @@ let dbPlayerInfo = {
                 if (!playerData) {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
+
+                dbDemoPlayer.createDemoPlayerLog(playerData, phoneNumber, deviceData, isBackStageGenerated).catch(errorUtils.reportError);
 
                 let profile = {name: playerData.name, password: playerData.password};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
@@ -2824,7 +2832,7 @@ let dbPlayerInfo = {
                             break;
                     }
                     var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
                     let promArr;
 
                     if (useProviderGroup) {
@@ -2860,6 +2868,7 @@ let dbPlayerInfo = {
                 }
             },
             function (error) {
+                errorUtils.reportError(error);
                 deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
             }
         );
@@ -6919,7 +6928,7 @@ let dbPlayerInfo = {
                                        let levelUpErrorCode = "";
                                        let levelUpErrorMsg = "";
 
-                                       function countRecordSumWholePeriod(recordPeriod, bTopUp) {
+                                       function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider) {
                                            let queryRecord = bTopUp ? topUpSummary : consumptionSummary;
                                            let queryAmountField = bTopUp ? "amount" : "validAmount";
                                            let periodTime;
@@ -6935,7 +6944,13 @@ let dbPlayerInfo = {
 
                                            for (let c = 0; c < queryRecord.length; c++) {
                                                if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
-                                                   recordSum += queryRecord[c][queryAmountField];
+                                                   if (consumptionProvider) {
+                                                       if (consumptionProvider.toString() == queryRecord[c].providerId.toString()) {
+                                                           recordSum += queryRecord[c][queryAmountField];
+                                                       }
+                                                   } else {
+                                                       recordSum += queryRecord[c][queryAmountField];
+                                                   }
                                                }
                                            }
                                            return recordSum;
@@ -6950,14 +6965,29 @@ let dbPlayerInfo = {
                                                    const conditionSet = conditionSets[j];
                                                    const topupPeriod = conditionSet.topupPeriod;
                                                    const consumptionPeriod = conditionSet.consumptionPeriod;
+                                                   const consumptionProvider = conditionSet.consumptionSourceProviderId;
                                                    if (!topUpSumPeriod.hasOwnProperty(topupPeriod)) {
                                                        topUpSumPeriod[topupPeriod] = countRecordSumWholePeriod(topupPeriod, true);
                                                    }
-                                                   if (!consumptionSumPeriod.hasOwnProperty(consumptionPeriod)) {
-                                                       consumptionSumPeriod[consumptionPeriod] = countRecordSumWholePeriod(consumptionPeriod, false);
-                                                   }
                                                    const meetsTopupCondition = topUpSumPeriod[topupPeriod] >= conditionSet.topupLimit;
-                                                   const meetsConsumptionCondition = consumptionSumPeriod[consumptionPeriod] >= conditionSet.consumptionLimit;
+                                                   let meetsConsumptionCondition;
+                                                   if (consumptionProvider && consumptionProvider.length) {
+                                                       let totalConsumptionByProvider = 0;
+                                                       consumptionProvider.forEach(providerObjId => {
+                                                           let objName = consumptionPeriod + providerObjId;
+                                                           if (!consumptionSumPeriod.hasOwnProperty(objName)) {
+                                                               consumptionSumPeriod[objName] = countRecordSumWholePeriod(consumptionPeriod, false, providerObjId);
+                                                           }
+                                                           totalConsumptionByProvider += consumptionSumPeriod[objName];
+                                                       });
+
+                                                       meetsConsumptionCondition = totalConsumptionByProvider >= conditionSet.consumptionLimit;
+                                                   } else {
+                                                       if (!consumptionSumPeriod.hasOwnProperty(consumptionPeriod)) {
+                                                           consumptionSumPeriod[consumptionPeriod] = countRecordSumWholePeriod(consumptionPeriod, false);
+                                                       }
+                                                       meetsConsumptionCondition = consumptionSumPeriod[consumptionPeriod] >= conditionSet.consumptionLimit;
+                                                   }
 
                                                    const meetsEnoughConditions =
                                                        conditionSet.andConditions
@@ -7635,7 +7665,42 @@ let dbPlayerInfo = {
         return dbconfig.collection_players.findOne({playerId: playerId}).then(
             function (data) {
                 if (data && data.platform) {
-                    return dbconfig.collection_playerLevel.find({platform: data.platform}).sort({value: 1}).lean();
+                    return dbconfig.collection_playerLevel.find({platform: data.platform}).sort({value: 1}).lean().then(
+                        playerLevel => {
+                            return dbconfig.collection_gameProvider.find({}).lean().then(
+                                gameProvider => {
+
+                                    playerLevel.forEach(level => {
+                                        level.levelUpConfig.forEach(levelUp => {
+                                            let levelUpProviderId = [];
+                                            if (levelUp.consumptionSourceProviderId && levelUp.consumptionSourceProviderId.length) {
+                                                levelUp.consumptionSourceProviderId.forEach(levelUpProvider => {
+                                                    gameProvider.forEach(providerdata => {
+                                                        if (levelUpProvider.toString() == providerdata._id.toString()) {
+                                                            levelUpProviderId.push(providerdata.providerId);
+                                                        }
+                                                    });
+                                                })
+                                            }
+                                            levelUp.consumptionSourceProviderId = levelUpProviderId;
+                                        })
+                                        // level.levelDownConfig.forEach(levelDown => {
+                                        //     let levelDownProviderId = [];
+                                        //     levelDown.consumptionSourceProviderId.forEach(levelDownProvider => {
+                                        //         gameProvider.forEach(providerdata => {
+                                        //             if (levelDownProvider.toString() == providerdata._id.toString()) {
+                                        //                 levelDownProviderId.push(providerdata.providerId);
+                                        //             }
+                                        //         });
+                                        //     })
+                                        //     levelDown.consumptionSourceProviderId = levelDownProviderId;
+                                        // })
+                                    });
+
+                                    return playerLevel;
+                                });
+                        }
+                    );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find player"});

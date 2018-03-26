@@ -399,7 +399,7 @@ let dbRewardPoints = {
                 if (progress.isApplied) {
                     return Promise.reject({
                         name: "DataError",
-                        message: "Player already applied for the reward point."
+                        message: localization.localization.translate("Player already applied for the reward point.")
                     });
                 }
 
@@ -1291,6 +1291,8 @@ let dbRewardPoints = {
         let topupRewardPointEvent = [];
         let rewardPointRecord = [];
         let rewardPointsProm = [];
+        let playerLevelProm = [];
+        let playerLevelRecord = [];
 
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformRecord => {
@@ -1314,13 +1316,15 @@ let dbRewardPoints = {
                 if (playerRecord) {
                     playerData = playerRecord;
                     rewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerRecord._id);
+                    playerLevelProm = getPlayerLevelValue(playerRecord._id);
                 }
 
-                return Promise.all([topupRewardPointProm, rewardPointsProm])
+                return Promise.all([topupRewardPointProm, rewardPointsProm, playerLevelProm])
             })
             .then(playerTopupRewardPointsRecord => {
                 topupRewardPointEvent = playerTopupRewardPointsRecord[0] ? playerTopupRewardPointsRecord[0] : [];
                 rewardPointRecord = playerTopupRewardPointsRecord[1] ? playerTopupRewardPointsRecord[1] : [];
+                playerLevelRecord = playerTopupRewardPointsRecord[2] ? playerTopupRewardPointsRecord[2] : [];
 
                 if(rewardPointRecord){
                     let rewardProgressList = rewardPointRecord && rewardPointRecord.progress ? rewardPointRecord.progress : [];
@@ -1329,28 +1333,29 @@ let dbRewardPoints = {
                     if (playerData) {
                         for (let i = 0; i < topupRewardPointEvent.length; i++) {
                             let event = topupRewardPointEvent[i];
-                            let topupMatchQuery = buildTodayTopupAmountQuery(event, playerData, false);
-
-                            prom.push(dbConfig.collection_playerTopUpRecord.aggregate(
-                                {
-                                    $match: topupMatchQuery
-                                },
-                                {
-                                    $group: {
-                                        _id: {playerId: "$playerId"},
-                                        amount: {$sum: "$amount"}
+                            if (playerLevelRecord && playerLevelRecord.playerLevel && event && event.level && (playerLevelRecord.playerLevel.value >= event.level.value)) {
+                                let topupMatchQuery = buildTodayTopupAmountQuery(event, playerData, false);
+                                prom.push(dbConfig.collection_playerTopUpRecord.aggregate(
+                                    {
+                                        $match: topupMatchQuery
+                                    },
+                                    {
+                                        $group: {
+                                            _id: {playerId: "$playerId"},
+                                            amount: {$sum: "$amount"}
+                                        }
                                     }
-                                }
-                            ).then(
-                                summary => {
-                                    let periodTopupAmount = summary && summary[0] && summary[0].amount ? summary[0].amount : 0;
-                                    if (periodTopupAmount > 0) {
-                                        let eventProgress = getEventProgress(rewardProgressList, event);
-                                        let progressChanged = updateTopupProgressCount(eventProgress, event, periodTopupAmount);
-                                        rewardProgressListChanged = rewardProgressListChanged || progressChanged;
+                                ).then(
+                                    summary => {
+                                        let periodTopupAmount = summary && summary[0] && summary[0].amount ? summary[0].amount : 0;
+                                        if (periodTopupAmount > 0) {
+                                            let eventProgress = getEventProgress(rewardProgressList, event);
+                                            let progressChanged = updateTopupProgressCount(eventProgress, event, periodTopupAmount);
+                                            rewardProgressListChanged = rewardProgressListChanged || progressChanged;
+                                        }
                                     }
-                                }
-                            ));
+                                ));
+                            }
                         }
                     }
                     return Promise.all(prom).then(

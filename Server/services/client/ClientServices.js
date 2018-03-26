@@ -112,7 +112,9 @@
                 "getConfig",
                 "getLiveStream",
                 "playerPhoneChat",
-                "searchConsumptionRecord"
+                "searchConsumptionRecord",
+                "verifyUserPasswordWithTransferIn",
+                "clickCount",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -186,6 +188,7 @@
                 "getQuickpayTopupRequestList",
                 "isFirstTopUp",
                 "getPlayerAliPayStatus",
+                "requestBankTypeByUserName"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
