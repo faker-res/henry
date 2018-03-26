@@ -720,6 +720,14 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerConsumptionDaySummary.getPlayersConsumptionSumForAllPlatform, [startTime, endTime, platform], actionName, isValidData);
         },
 
+        getPlayerConsumptionDetailByPlatform: function getPlayerConsumptionDetailByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.platformId);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getPlayerConsumptionDetailByPlatform, [startTime, endTime, ObjectId(data.platformId)], actionName, isValidData);
+        },
+
         /**
          * Get total player topUp amount for all the platforms within the time frame
          * @param {json} data - data contains start time , end time

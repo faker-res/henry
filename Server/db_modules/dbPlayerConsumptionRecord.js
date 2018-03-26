@@ -1807,6 +1807,7 @@ var dbPlayerConsumptionRecord = {
         let matchObj = {
             createTime: {$gte: startTime, $lt: endTime}
         };
+
         if (platform !== 'all') {
             matchObj.platformId = platform
         }
@@ -1825,6 +1826,27 @@ var dbPlayerConsumptionRecord = {
                 return dbconfig.collection_platform.populate(data, {path: '_id', model: dbconfig.collection_platform})
             }
         );
+    },
+
+
+    getPlayerConsumptionDetailByPlatform: function (startTime, endTime, platformId) {
+        let matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            platformId: (platformId)
+        };
+
+        return dbconfig.collection_playerConsumptionRecord.aggregate(
+            {
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: "$platformId",
+                    totalAmount: {$sum: "$amount"},
+                    userIds: {$addToSet: "$playerId"},
+                }
+            }
+        ).read("secondaryPreferred").allowDiskUse(true).exec();
     },
 
     /**

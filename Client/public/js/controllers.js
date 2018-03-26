@@ -8,6 +8,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
     // }
 
+    let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
+    let $roundToTwoDecimalPlacesString = $filter('roundToTwoDecimalPlacesString');
     //set up socket service
     socketService.authService = authService;
     socketService.curScope = $scope;
@@ -403,7 +405,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             $scope.safeApply();
             return;
         }
-
+        loadProfitDetail();
         $scope.$broadcast('switchPlatform');
     };
 
@@ -1470,5 +1472,102 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))
+
+    function loadProfitDetail() {
+        let queryDone = [false, false, false, false];
+        let sendData = {
+            platformId: $scope.selectedPlatform.id,
+            startDate: utilService.getTodayStartTime(),
+            endDate: utilService.getTodayEndTime(),
+        };
+
+        let sendData1 = {};
+        Object.assign(sendData1, sendData);
+        sendData1.topUpType = ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'];
+        sendData1.playerBonusType = 'PlayerBonus';
+
+        socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData1, function (data) {
+
+            $scope.$evalAsync(() => {
+                $scope.profitDetailIncome = 0;
+                $scope.profitDetailBonusAmount =  0;
+                $scope.profitDetailTopUpAmount = 0;
+
+                let bonusAmount = data.data[0][0] != undefined ? data.data[0][0].amount : 0;
+                let topUpAmount = data.data[1][0] != undefined ? data.data[1][0].amount : 0;
+
+                $scope.profitDetailIncome = $roundToTwoDecimalPlacesString(topUpAmount - bonusAmount);
+                $scope.profitDetailBonusAmount =  $roundToTwoDecimalPlacesString(bonusAmount);
+                $scope.profitDetailTopUpAmount = $roundToTwoDecimalPlacesString(topUpAmount);
+
+                let sendData3 = {
+                    platformId: $scope.selectedPlatform.id,
+                    startDate: utilService.getThisMonthStartTime(),
+                    endDate: utilService.getThisMonthEndTime(),
+                    topUpType: ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'],
+                    playerBonusType: 'PlayerBonus'
+                };
+
+                socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData3, function (totalAmount) {
+
+                    $scope.$evalAsync(() => {
+                        $scope.netProfitDetailIncome = 0;
+
+                        let totalBonusAmount = totalAmount.data[0][0] != undefined ? totalAmount.data[0][0].amount : 0;
+                        let totalTopUpAmount = totalAmount.data[1][0] != undefined ? totalAmount.data[1][0].amount : 0;
+
+                        $scope.netProfitDetailIncome = $roundToTwoDecimalPlacesString(totalTopUpAmount - totalBonusAmount);
+
+                        queryDone[3] = true;
+                    })
+                });
+
+                queryDone[0] = true;
+            })
+        });
+
+
+        socketService.$socket($scope.AppSocket, 'getPlayerConsumptionDetailByPlatform', sendData, function success(data) {
+            $scope.$evalAsync(() => {
+
+                let consumptionAmount = data.data[0] != undefined ? data.data[0].totalAmount : 0;
+                $scope.profitDetailConsumptionAmount = $roundToTwoDecimalPlacesString(consumptionAmount);
+                $scope.profitDetailConsumptionPlayer = data.data[0] != undefined ? data.data[0].userIds.length.toLocaleString() : 0;
+                queryDone[1] = true;
+            })
+        });
+
+        let sendData2 = {
+            platform: $scope.selectedPlatform.id,
+            startDate: utilService.getTodayStartTime(),
+            endDate: utilService.getTodayEndTime(),
+        };
+
+        socketService.$socket($scope.AppSocket, 'countNewPlayers', sendData2, function success(data) {
+            $scope.$evalAsync(() => {
+
+                $scope.profitDetailNewPlayer = data.data[0] != undefined ? data.data[0].number.toLocaleString() : 0;
+
+                queryDone[2] = true;
+            })
+        });
+
+        callback();
+
+        function callback() {
+            for (let i in queryDone) {
+                if (!queryDone[i]) {
+                    return setTimeout(callback, 1000);
+                }
+            }
+
+            if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] ){
+                $scope.safeApply();
+                setInterval(loadProfitDetail(), 60000) // update every minute
+            }
+        }
+
+
+    }
 
 });
