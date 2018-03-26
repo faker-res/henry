@@ -437,29 +437,12 @@ var dbQualityInspection = {
 
             //calculate each CS/ Customer Conversation
             cv.conversation.forEach(cItem => {
-                if (!firstCV && cItem.roles == 2) {
-                    firstCV = cItem;
-                    lastCustomerCV = cItem;
-                    customerCVCount += 1;
-                } else {
-                    if (cItem.roles == 2) {
-                        // keep the last customer question , to calculate the timeoutRate
-                        if (lastCV.roles == 1) {
-                            lastCustomerCV = cItem;
-                            customerCVCount += 1;
-                        }
-                    } else if (cItem.roles == 1 && lastCustomerCV) {
 
-                        if (lastCV.roles == 1) {
-                            // if that's cs conversation before it, no need to rate again.
-                        } else if (lastCV.roles != 1) {
-                            // calculate the timeoutRate
-                            csCVCount += 1;
-                        }
-                    } else {
-                    }
+                if(cItem.roles == 1){
+                    csCVCount += 1;
+                }else if(cItem.roles == 2){
+                    customerCVCount += 1;
                 }
-                lastCV = cItem;
             });
 
             if (customerCVCount < conversationDefinition.askingSentence) {
@@ -1440,16 +1423,21 @@ var dbQualityInspection = {
     },
     splitOperatorIdToArray:function(operatorIdArr){
         let operatorRes = [];
+        let operatorList = [];
         let companyIdRes = [];
         operatorIdArr.forEach(item=>{
             let operator = dbQualityInspection.splitLive800Acc(item);
             let companyId = dbQualityInspection.splitLive800AccForCompanyID(item);
-            if (!operatorRes.includes(operator)){
-                operatorRes.push(operator);
+            if (!operatorList.includes(operator)){
+                operatorList.push(operator);
             }
             if (!companyIdRes.includes(companyId)){
                 companyIdRes.push(companyId);
             }
+        });
+
+        operatorList.forEach( op => {
+            operatorRes.push(new RegExp("^" + op, "i"));
         });
 
         return [operatorRes, companyIdRes];
