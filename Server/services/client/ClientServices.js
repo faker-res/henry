@@ -188,6 +188,7 @@
                 "getQuickpayTopupRequestList",
                 "isFirstTopUp",
                 "getPlayerAliPayStatus",
+                "requestBankTypeByUserName"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
