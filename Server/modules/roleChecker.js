@@ -191,7 +191,7 @@ var roleChecker = {
 
             },
             Statistics: {
-                Read: ['countLoginPlayerAllPlatform', 'countTopUpORConsumptionAllPlatform', 'countNewPlayerAllPlatform']
+                Read: ['countLoginPlayerAllPlatform', 'countTopUpORConsumptionAllPlatform', 'countNewPlayerAllPlatform', 'getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform', 'countNewPlayers']
             }
         },
         Admin: {
