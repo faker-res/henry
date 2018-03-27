@@ -3362,6 +3362,7 @@
   "PRE_CONVERT": "尚未转化",
   "POST_CONVERT": "已经转化",
   "CANNOT_CONVERT": "无法转化",
+  "CONVERT_RATE": "转化率",
   "Promo Reward Amount is required": "优惠金額(X) 是必填项",
   "Promo Min Top Up Amount is required": "最低存款(D) 是必填项",
   "Promo Consumption is required": "所需流水(Y) 是必填项",
