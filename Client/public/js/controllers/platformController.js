@@ -18479,35 +18479,40 @@ define(['js/app'], function (myApp) {
                             status: 1
                         };
 
-                        if (!data.amount) {
-                            if(type == 3) {
-                                return socketService.showErrorMessage($translate("Promo Reward % is required"));
+                        if (data && !data.isBlockPromoCodeUser) {
+                            if (!data.amount) {
+                                if (type == 3) {
+                                    return socketService.showErrorMessage($translate("Promo Reward % is required"));
+                                } else if (type == 2) {
+                                    return socketService.showErrorMessage($translate("Promo Reward Amount Y is required"));
+                                }
+                                else {
+                                    return socketService.showErrorMessage($translate("Promo Reward Amount X is required"));
+                                }
+                            }
+                            else if (type != 2 && isNaN(data.minTopUpAmount)) {
+                                return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
+                            }
+                            else if (type == 3 && isNaN(data.maxRewardAmount)) {
+                                return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
+                            }
+                            else if (isNaN(data.requiredConsumption)) {
+                                if (type == 3) {
+                                    return socketService.showErrorMessage($translate("Type C Promo Consumption is required"));
+                                } else {
+                                    return socketService.showErrorMessage($translate("Promo Consumption is required"));
+                                }
                             }
                             else {
-                                return socketService.showErrorMessage($translate("Promo Reward Amount is required"));
-                            }
-                        }
-                        else if (type != 2 && isNaN(data.minTopUpAmount)) {
-                            return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
-                        }
-                        else if (type == 3 && isNaN(data.maxRewardAmount)) {
-                            return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
-                        }
-                        else if (isNaN(data.requiredConsumption)) {
-                            return socketService.showErrorMessage($translate("Promo Consumption is required"));
-                        }
-                        else {
-                            return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
-                                if (ret && ret.data && ret.data.length > 0) {
-                                    if (!data.skipCheck) {
-                                        data.hasMoreThanOne = true;
-                                        $scope.safeApply();
+                                return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
+                                    if (ret && ret.data && ret.data.length > 0) {
+                                        if (!data.skipCheck) {
+                                            data.hasMoreThanOne = true;
+                                            $scope.safeApply();
+                                        }
                                     }
-                                }
 
-                                if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                                    if (data && !data.isBlockPromoCodeUser) {
-
+                                    if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
                                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
                                         let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
 
@@ -18530,8 +18535,8 @@ define(['js/app'], function (myApp) {
                                             $scope.safeApply();
                                         });
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
                     }
                 }
