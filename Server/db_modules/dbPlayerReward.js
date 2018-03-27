@@ -4543,7 +4543,7 @@ let dbPlayerReward = {
                         let isReachedTopUpInPeriod = false;
 
                         if (eventInPeriodData && eventInPeriodData.length > 0) {
-                            console.log("lose return hit number of apply", playerData.name);
+                            console.log("lose return hit number of apply", playerData && playerData.name? playerData.name: "");
                             // player already applied the reward within the period timeframe
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -4597,14 +4597,14 @@ let dbPlayerReward = {
                             }
                             if (j == 0) {
                                 if (!isReachedTopUpInPeriod) {
-                                    console.log("lose return top up amount does not meet", playerData.name);
+                                    console.log("lose return top up amount does not meet", playerData && playerData.name? playerData.name: "");
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
                                         message: "Player's top up amount does not meet condition in period"
                                     });
                                 } else {
-                                    console.log("lose return lose amount does not meet", playerData.name);
+                                    console.log("lose return lose amount does not meet", playerData && playerData.name? playerData.name: "");
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
