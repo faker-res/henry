@@ -407,22 +407,12 @@ define(['js/app'], function (myApp) {
                             let colors = '';
 
                             // render with different color
-                            overtimeSetting.forEach((ots,i)=>{
-                                if(cv.roles==1 && cv.needRate){
-                                    if(i==0){
-                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                            colors = overtimeSetting[0].color;
-                                        }
-                                    }else if(i==otsLength){
-                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                            colors = overtimeSetting[i].color;
-                                        }
-                                    }else{
-                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                            colors = overtimeSetting[i].color;
-                                        }
-                                    }
-                                }
+                            overtimeSetting.forEach((ots,i) => {
+                               if(cv.roles == 1 && cv.needRate){
+                                   if(cv.timeoutRate == ots.presetMark){
+                                       colors = ots.color;
+                                   }
+                               }
                             });
                             cv.colors = colors;
                             return cv;
@@ -793,20 +783,10 @@ define(['js/app'], function (myApp) {
                                             let colors = '';
 
                                             // render with different color
-                                            overtimeSetting.forEach((ots,i)=>{
-                                                if(cv.roles==1 && cv.needRate){
-                                                    if(i==0){
-                                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                            colors = overtimeSetting[0].color;
-                                                        }
-                                                    }else if(i==otsLength){
-                                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                            colors = overtimeSetting[i].color;
-                                                        }
-                                                    }else{
-                                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                            colors = overtimeSetting[i].color;
-                                                        }
+                                            overtimeSetting.forEach((ots,i) => {
+                                                if(cv.roles == 1 && cv.needRate){
+                                                    if(cv.timeoutRate == ots.presetMark){
+                                                        colors = ots.color;
                                                     }
                                                 }
                                             });
@@ -890,20 +870,10 @@ define(['js/app'], function (myApp) {
                                     let colors = '';
 
                                     // render with different color
-                                    overtimeSetting.forEach((ots,i)=>{
-                                        if(cv.roles==1 && cv.needRate){
-                                            if(i==0){
-                                                if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                    colors = overtimeSetting[0].color;
-                                                }
-                                            }else if(i==otsLength){
-                                                if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                    colors = overtimeSetting[i].color;
-                                                }
-                                            }else{
-                                                if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                    colors = overtimeSetting[i].color;
-                                                }
+                                    overtimeSetting.forEach((ots,i) => {
+                                        if(cv.roles == 1 && cv.needRate){
+                                            if(cv.timeoutRate == ots.presetMark){
+                                                colors = ots.color;
                                             }
                                         }
                                     });
@@ -987,20 +957,10 @@ define(['js/app'], function (myApp) {
                                 let colors = '';
 
                                 // render with different color
-                                overtimeSetting.forEach((ots,i)=>{
-                                    if(cv.roles==1 && cv.needRate){
-                                        if(i==0){
-                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                colors = overtimeSetting[0].color;
-                                            }
-                                        }else if(i==otsLength){
-                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
-                                        }else{
-                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
+                                overtimeSetting.forEach((ots,i) => {
+                                    if(cv.roles == 1 && cv.needRate){
+                                        if(cv.timeoutRate == ots.presetMark){
+                                            colors = ots.color;
                                         }
                                     }
                                 });
@@ -1081,20 +1041,10 @@ define(['js/app'], function (myApp) {
                                 let colors = '';
 
                                 // render with different color
-                                overtimeSetting.forEach((ots,i)=>{
-                                    if(cv.roles==1 && cv.needRate){
-                                        if(i==0){
-                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                colors = overtimeSetting[0].color;
-                                            }
-                                        }else if(i==otsLength){
-                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
-                                        }else{
-                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
+                                overtimeSetting.forEach((ots,i) => {
+                                    if(cv.roles == 1 && cv.needRate){
+                                        if(cv.timeoutRate == ots.presetMark){
+                                            colors = ots.color;
                                         }
                                     }
                                 });
