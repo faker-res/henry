@@ -24,7 +24,7 @@
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.getDemoPlayerAnalysis()') {{'SEARCH' | translate}}
 
-        label.text-primary {{'DEMO_PLAYER' | translate}}{{'DEVICE' | translate}} VS {{vm.queryPara.demoPlayer.periodText | translate}}
+        label.text-primary {{'demoPlayer' | translate}}{{'DEVICE' | translate}} VS {{vm.queryPara.demoPlayer.periodText | translate}}
         .row
 
             .col-md-6
@@ -38,7 +38,7 @@
                             div.graphDiv
 
     #demoPlayerStatusAnalysis
-        label.text-primary {{'DEMO_PLAYER' | translate}}{{'STATUS' | translate}} VS {{vm.queryPara.demoPlayer.periodText | translate}}
+        label.text-primary {{'demoPlayer' | translate}}{{'STATUS' | translate}} VS {{vm.queryPara.demoPlayer.periodText | translate}}
         .row
             .col-md-6
                 .graph
@@ -49,16 +49,16 @@
                         .pieChart
                             div.graphDiv(style='width: 100%;height:600px')
 
-    #demoPlayerSuccessHeadCountAnalysis
-        label.text-primary {{'DEPOSIT_SUCCESS_HEAD_COUNT' | translate}} VS {{vm.queryPara.demoPlayer.periodText | translate}}
+    #demoPlayerConvertRateAnalysis
+        label.text-primary {{'demoPlayer' | translate}}{{'CONVERT_RATE' | translate}} VS {{vm.queryPara.demoPlayer.periodText | translate}}
         .row
             .col-md-6
                 .graph
-                    table#demoPlayerSuccessHeadCountAnalysisTable.display.tableDiv(style='min-width:100%')
-            .col-md-6
-                .graph
                     .panel.panel-default
-                        #line-demoPlayerSuccessHeadCount.lineChart.graphDiv(style='height: 600px;')
+                        .pieChart
+                            div.graphDiv(style='width: 100%;height:600px')
+            .col-md-6
+                div(style='min-width:100%')
 
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")

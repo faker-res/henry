@@ -1199,7 +1199,8 @@ define(['js/app'], function (myApp) {
                     vm.drawDemoPlayerDeviceTable(vm.demoPlayerDeviceData, '#demoPlayerDeviceAnalysisTable');
                     vm.drawDemoPlayerStatusPie(vm.demoPlayerStatusData, '#demoPlayerStatusAnalysis');
                     vm.drawDemoPlayerStatusTable(vm.demoPlayerStatusData, '#demoPlayerStatusAnalysisTable');
-                })
+                    vm.drawDemoPlayerConvertRatePie(vm.demoPlayerStatusData, '#demoPlayerConvertRateAnalysis')
+                });
             }, function (data) {
                 vm.isShowLoadingSpinner('#demoPlayerAnalysis', false);
                 console.log("demo player data not found?", data);
@@ -1494,6 +1495,69 @@ define(['js/app'], function (myApp) {
             dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
             let a = $(tableName).DataTable(dataOptions);
             a.columns.adjust().draw();
+        };
+
+        vm.drawDemoPlayerConvertRatePie = (srcData, pieChartName) => {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            let statusTotal = {
+                "1": {label: $translate("OLD_PLAYER"), data: 0},
+                "2": {label: $translate("PRE_CONVERT"), data: 0},
+                "3": {label: $translate("POST_CONVERT"), data: 0},
+                "4": {label: $translate("CANNOT_CONVERT"), data: 0}
+            };
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(statusData => {
+                            if (statusData && statusData._id && statusData._id.status && statusTotal[statusData._id.status]) {
+                                statusTotal[statusData._id.status].data += statusData.calc;
+                            }
+                        });
+                    }
+                });
+            }
+
+            // finalizedPieData.push(statusTotal["4"]);
+            // finalizedPieData.push(statusTotal["1"]);
+            finalizedPieData.push(statusTotal["2"]);
+            finalizedPieData.push(statusTotal["3"]);
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            var options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'demoPlayerStatusData');
         };
         // demo player END   ====================================================
 
