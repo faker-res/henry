@@ -88,6 +88,10 @@ const pmsAPI = {
         return callPMSAPI("foundation", "getBankTypeList", data);
     },
 
+    foundation_requestBankTypeByUsername: function (data) {
+        return callPMSAPI("foundation", "requestBankTypeByUsername", data);
+    },
+
     //platform service
     platform_add: function (data) {
         return callPMSAPI("platform", "add", data);

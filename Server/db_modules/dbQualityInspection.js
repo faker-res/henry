@@ -322,6 +322,8 @@ var dbQualityInspection = {
         let deferred = Q.defer();
         let combineData = [];
         Q.all(data).then(results => {
+            console.log("LH CHECK Quality Inspection BBBBBBBBBBBBBBBBBBBBBBB",results.mongo);
+            console.log("LH CHECK Quality Inspection CCCCCCCCCCCCCCCCCCCCCCC",results.mysql);
             let mongoData = results.mongo;
             let mysqlData = results.mysql;
             if(results.length == 0){
@@ -348,6 +350,7 @@ var dbQualityInspection = {
                     }
                     combineData.push(item);
                 });
+                console.log("LH CHECK Quality Inspection DDDDDDDDDDDDDDDDDDDD",combineData);
                 deferred.resolve(combineData);
             }
 
@@ -359,8 +362,8 @@ var dbQualityInspection = {
         let platformProm = dbconfig.collection_platform.find().lean();
         Q.all([sqlResult, platformProm]).then(queryResult => {
 
-            results = queryResult[0];
-            platforms = queryResult[1];
+            let results = queryResult[0];
+            let platforms = queryResult[1];
             let msgIds = [];
             if(results.length == 0){
                 deferred.resolve([]);
@@ -437,29 +440,12 @@ var dbQualityInspection = {
 
             //calculate each CS/ Customer Conversation
             cv.conversation.forEach(cItem => {
-                if (!firstCV && cItem.roles == 2) {
-                    firstCV = cItem;
-                    lastCustomerCV = cItem;
-                    customerCVCount += 1;
-                } else {
-                    if (cItem.roles == 2) {
-                        // keep the last customer question , to calculate the timeoutRate
-                        if (lastCV.roles == 1) {
-                            lastCustomerCV = cItem;
-                            customerCVCount += 1;
-                        }
-                    } else if (cItem.roles == 1 && lastCustomerCV) {
 
-                        if (lastCV.roles == 1) {
-                            // if that's cs conversation before it, no need to rate again.
-                        } else if (lastCV.roles != 1) {
-                            // calculate the timeoutRate
-                            csCVCount += 1;
-                        }
-                    } else {
-                    }
+                if(cItem.roles == 1){
+                    csCVCount += 1;
+                }else if(cItem.roles == 2){
+                    customerCVCount += 1;
                 }
-                lastCV = cItem;
             });
 
             if (customerCVCount < conversationDefinition.askingSentence) {
@@ -503,6 +489,7 @@ var dbQualityInspection = {
                 return a.time - b.time;
             });
 
+            console.log("LH CHECK Quality Inspection AAAAAAAAAAAAAAAAAAa",content)
             return content;
     },
     searchPendingMySQL:function(mongoData, queryObj, paginationQuery, connection){
@@ -658,6 +645,9 @@ var dbQualityInspection = {
         if (platform.overtimeSetting) {
 
             let overtimeSetting = platform.overtimeSetting;
+            overtimeSetting.sort(function (a, b) {
+                return a.conversationInterval - b.conversationInterval
+            })
             conversation.forEach(item => {
                 if (!firstCV && item.roles == 2) {
                     firstCV = item;
@@ -697,7 +687,7 @@ var dbQualityInspection = {
                     timeoutRate = overtimeSetting[0].presetMark;
                 }
             }else if(i==otsLength){
-                if(sec >= overtimeSetting[otsLength].conversationInterval){
+                if(sec >= overtimeSetting[i - 1].conversationInterval){
                     timeoutRate = overtimeSetting[i].presetMark;
                 }
             }else{
@@ -1440,16 +1430,21 @@ var dbQualityInspection = {
     },
     splitOperatorIdToArray:function(operatorIdArr){
         let operatorRes = [];
+        let operatorList = [];
         let companyIdRes = [];
         operatorIdArr.forEach(item=>{
             let operator = dbQualityInspection.splitLive800Acc(item);
             let companyId = dbQualityInspection.splitLive800AccForCompanyID(item);
-            if (!operatorRes.includes(operator)){
-                operatorRes.push(operator);
+            if (!operatorList.includes(operator)){
+                operatorList.push(operator);
             }
             if (!companyIdRes.includes(companyId)){
                 companyIdRes.push(companyId);
             }
+        });
+
+        operatorList.forEach( op => {
+            operatorRes.push(new RegExp("^" + op, "i"));
         });
 
         return [operatorRes, companyIdRes];
@@ -1775,7 +1770,7 @@ var dbQualityInspection = {
         let conversationForm = [];
 
         if(connection){
-            let a = connection.query(queryString, function (error, results, fields) {
+            connection.query(queryString, function (error, results, fields) {
                 //console.log("live 800 result",results)
                 if(error){
                     console.log(error);
@@ -1854,11 +1849,14 @@ var dbQualityInspection = {
 
                                             return dbconfig.collection_live800RecordDaySummary.find(query).lean().then(
                                                 data => {
-                                                    if(data && data.length > 0){
-                                                        deferred.resolve();
-                                                    }else{
+                                                    // if(data && data.length > 0){
+                                                    //     deferred.resolve();
+                                                    // }else{
+                                                    //     dbconfig.collection_live800RecordDaySummary(updateData).save();
+                                                    //     deferred.resolve(result);
+                                                    // }
+                                                    if(!data || data.length <= 0) {
                                                         dbconfig.collection_live800RecordDaySummary(updateData).save();
-                                                        deferred.resolve(result);
                                                     }
                                             });
                                         }
@@ -1868,6 +1866,9 @@ var dbQualityInspection = {
                         }
                     });
                 }
+
+                deferred.resolve();
+                connection.end();
             });
             return deferred.promise;
         }else{

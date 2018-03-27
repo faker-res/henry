@@ -191,7 +191,7 @@ var roleChecker = {
 
             },
             Statistics: {
-                Read: ['countLoginPlayerAllPlatform', 'countTopUpORConsumptionAllPlatform', 'countNewPlayerAllPlatform']
+                Read: ['countLoginPlayerAllPlatform', 'countTopUpORConsumptionAllPlatform', 'countNewPlayerAllPlatform', 'getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform', 'countNewPlayers']
             }
         },
         Admin: {
@@ -566,6 +566,7 @@ var roleChecker = {
                 ValidActivePlayer: ['countValidActivePlayerbyPlatform'],
                 OnlineTopupSuccessRate: ['getOnlineTopupAnalysisByPlatform'],
                 TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform'],
+                DemoPlayer: ['getDemoPlayerAnalysis'],
                 PlayerDomain: ['getPlayerDomainAnalysisData']
             }
         },

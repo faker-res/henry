@@ -1254,7 +1254,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 query: {
                     platform: vm.selectedPlatform.id,
-                    name: vm.SelectedMerchantGroupNode.groupId
+                    groupId: vm.SelectedMerchantGroupNode.groupId
                 },
                 update: {
                     name: vm.newMerchantGroup.name,

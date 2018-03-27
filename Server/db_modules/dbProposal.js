@@ -3995,6 +3995,64 @@ var proposal = {
         )
     },
 
+    getProfitDisplayDetailByPlatform: (platformId, startDate, endDate, playerBonusType, topUpType) => {
+
+        let playerBonusProm = dbconfig.collection_proposalType.findOne({
+            platformId: ObjectId(platformId),
+            name: playerBonusType
+        }).read("secondaryPreferred").lean().then(
+            (detail) => {
+                if (!detail) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+
+                let matchObj = {
+                    createTime: {$gte: startDate, $lt: endDate},
+                    type: detail._id,
+                    status: {$in: ['Success', 'Approved']}
+                };
+
+                return dbconfig.collection_proposal.aggregate([
+                    {$match: matchObj},
+                    {
+                        $group: {
+                            _id: "$data.platformId",
+                            amount: {$sum: "$data.amount"}
+                        }
+                    }
+                ]).read("secondaryPreferred")
+
+            }
+        )
+
+        let topUpProm = dbconfig.collection_proposalType.find({
+            platformId: ObjectId(platformId),
+            name: {$in: topUpType}
+        }).read("secondaryPreferred").lean().then(
+            (detail) => {
+                if (!detail) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+
+                let typeId = detail.map( detailData => {return detailData._id});
+                let matchObj = {
+                    createTime: {$gte: startDate, $lt: endDate},
+                    type: {$in: typeId},
+                    status: {$in: ['Success', 'Approved']}
+                };
+
+                return dbconfig.collection_proposal.aggregate([
+                    {$match: matchObj},
+                    {
+                        $group: {
+                            _id: "$data.platformId",
+                            amount: {$sum: "$data.amount"}
+                        }
+                    }
+                ]).read("secondaryPreferred")
+
+            }
+        )
+
+        return Q.all([playerBonusProm,topUpProm])
+    },
+
 };
 
 /*

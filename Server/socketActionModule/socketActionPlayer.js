@@ -12,6 +12,7 @@ var dbGameProviderPlayerDaySummary = require('./../db_modules/dbGameProviderPlay
 let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbApiLog = require('./../db_modules/dbApiLog');
 let dbRewardPointsLog = require('./../db_modules/dbRewardPointsLog');
+let dbDemoPlayer = require('./../db_modules/dbDemoPlayer');
 var socketUtil = require('./../modules/socketutility');
 var utility = require('./../modules/encrypt');
 var constPlayerStatus = require('./../const/constPlayerStatus');
@@ -720,6 +721,14 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerConsumptionDaySummary.getPlayersConsumptionSumForAllPlatform, [startTime, endTime, platform], actionName, isValidData);
         },
 
+        getPlayerConsumptionDetailByPlatform: function getPlayerConsumptionDetailByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.startDate && data.endDate && data.platformId);
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getPlayerConsumptionDetailByPlatform, [startTime, endTime, ObjectId(data.platformId)], actionName, isValidData);
+        },
+
         /**
          * Get total player topUp amount for all the platforms within the time frame
          * @param {json} data - data contains start time , end time
@@ -1200,7 +1209,13 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data);
             let userAgent = constPlayerRegistrationInterface.BACKSTAGE;
             socketUtil.emitter(self.socket, dbPlayerInfo.getCreditDetail, [data.playerObjId, getAdminId(), getAdminName()], actionName, isValidData);
-        }
+        },
+
+        getDemoPlayerAnalysis: function getDemoPlayerAnalysis(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.period && data.startDate && data.endDate && data.platformId);
+            socketUtil.emitter(self.socket, dbDemoPlayer.getDemoPlayerAnalysis, [ObjectId(data.platformId), new Date(data.startDate), new Date(data.endDate), data.period], actionName, isValidData);
+        },
     };
     socketActionPlayer.actions = this.actions;
 }

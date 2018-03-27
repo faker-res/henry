@@ -397,6 +397,23 @@ define(['js/app'], function (myApp) {
                 },
             }
 
+            vm.merchantTopupType = { // for reward points purpose only
+                '1': 'NetPay',
+                //'2': 'WechatQR',
+                '3': 'AlipayQR',
+                '4': 'WechatApp',
+                //'5': 'AlipayApp',
+                '6': 'FASTPAY',
+                '7': 'QQPAYQR',
+                '8': 'UnPayQR',
+                '9': 'JdPayQR',
+                '10': 'WXWAP',
+                '11': 'ALIWAP',
+                '12': 'QQWAP',
+                //'13': 'PCard',
+                '14': 'JDWAP'
+            };
+
             vm.prepareToBeDeletedProviderGroupId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
@@ -922,6 +939,10 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.qiDepartmentTXT = vm.combinePlatformDepart(vm.showPlatform.qiDepartment);
                 }
 
+                vm.beforeUpdatePlatform();
+                vm.isNotAllowEdit = true;
+                vm.isCreateNewPlatform = false;
+
                 $cookies.put("platform", node.text);
                 if (option && !option.loadAll) {
                     $scope.safeApply();
@@ -1108,6 +1129,8 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
                 $('.demoPlayerPrefixSelection option:selected').text("");
+                vm.isNotAllowEdit = false;
+                vm.isCreateNewPlatform = true;
                 $scope.safeApply();
             }
             vm.getDayName = function (d) {
@@ -1676,6 +1699,28 @@ define(['js/app'], function (myApp) {
                 vm.updatePlatform._id = vm.selectedPlatform.id;
                 console.log('department ID', vm.showPlatform.department);
             };
+
+            vm.updatePlatformConfig = function () {
+                vm.isNotAllowEdit = false;
+            };
+
+            vm.cancelUpdatePlatformConfig = function () {
+                vm.isNotAllowEdit = true;
+                if(vm.isCreateNewPlatform) {
+                    vm.bindSelectedPlatformData();
+                }
+                vm.isCreateNewPlatform = false;
+            };
+
+            vm.bindSelectedPlatformData = function () {
+                if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                    vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
+                    vm.beforeUpdatePlatform();
+                    if(vm.showPlatform && vm.showPlatform.demoPlayerPrefix){
+                        $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
+                    }
+                }
+            }
 
             //update selected platform data
             vm.updatePlatformAction = function () {
@@ -7977,8 +8022,8 @@ define(['js/app'], function (myApp) {
                 //createTestPlayerForPlatform
                 socketService.$socket($scope.AppSocket, 'createDemoPlayer', {platformId: vm.selectedPlatform.data.platformId}, function (data) {
                     vm.createtrail = data.data;
-                    vm.testPlayerName = data.data.name;
-                    vm.testPlayerPassword = data.data.password;
+                    vm.testPlayerName = data.data.playerData.name;
+                    vm.testPlayerPassword = data.data.playerData.password;
                     console.log('testaccount', data);
                     $scope.safeApply();
                     //$('#modalTestPlayer').modal();
@@ -17352,6 +17397,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsTabClicked = function (choice) {
                 vm.selectedRewardPointTab = choice;
                 vm.rewardPointsEvent = [];
+                vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
                 switch (choice) {
                     case 'rewardPointsRule':
@@ -17980,6 +18026,7 @@ define(['js/app'], function (myApp) {
                     $.each(vm.rewardPointsEvent, function (idx, val) {
                         vm.rewardPointsEventPeriodChange(idx, val);
                         vm.rewardPointsEventSetDisable(idx, val, true, true);
+                        vm.rewardPointsEventOld.push($.extend(true, {}, val));
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();
@@ -18080,6 +18127,19 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.rewardPointsEventSetEditStatusAll = () => {
+                for(let x in vm.rewardPointsEvent) {
+                    vm.rewardPointsEventSetDisable(x,vm.rewardPointsEvent[x],false,true);
+                }
+                vm.refreshSPicker();
+            };
+
+            vm.rewardPointsEventReset = (idx) => {
+                console.log(vm.rewardPointsEventOld[idx]);
+                vm.rewardPointsEvent[idx] = Object.assign({},vm.rewardPointsEventOld[idx]);
+                vm.refreshSPicker();
+            };
+
             vm.rewardPointsEventSetDisable = (idx, rewardPointsEvent, isDisable, isMultiple) => {
                 rewardPointsEvent.isEditing=!isDisable;
                 if (rewardPointsEvent.period == 6){
@@ -18090,8 +18150,8 @@ define(['js/app'], function (myApp) {
                 }
                 if (!isMultiple) {
                     $scope.safeApply();
+                    vm.refreshSPicker();
                 }
-                // vm.endLoadWeekDay();
             };
 
             vm.rewardPointsEventAddNewRow = (rewardPointsEventCategory, otherEventParam={}) => {
@@ -19425,7 +19485,9 @@ define(['js/app'], function (myApp) {
                     };
                     socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', deleteData);
                 } else {
-                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function (data) {
+                    socketService.$socket($scope.AppSocket, 'savePromoCodeUserGroup', sendData, function () {
+                        vm.getPromoCodeUserGroup();
+                        vm.getBlockPromoCodeUserGroup();
                         vm.getAllPromoCodeUserGroup();
                         $scope.safeApply();
                     });

@@ -93,6 +93,7 @@ let dbConsumptionReturnWithdraw = require('../db_modules/dbConsumptionReturnWith
 let dbSmsGroup = require('../db_modules/dbSmsGroup');
 let PLATFORM_PREFIX_SEPARATOR = '';
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
+let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
 
 let dbPlayerInfo = {
 
@@ -1141,6 +1142,11 @@ let dbPlayerInfo = {
             function (data) {
                 if (data) {
                     playerData = data;
+
+                    if (playerData.isRealPlayer) {
+                        dbDemoPlayer.updatePlayerConverted(playerData.platform, playerData.phoneNumber).catch(errorUtils.reportError);
+                    }
+
                     let promArr = [];
                     var levelProm = dbconfig.collection_playerLevel.findOne({
                         platform: playerdata.platform,
@@ -1433,6 +1439,8 @@ let dbPlayerInfo = {
                 if (!playerData) {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
+
+                dbDemoPlayer.createDemoPlayerLog(playerData, phoneNumber, deviceData, isBackStageGenerated).catch(errorUtils.reportError);
 
                 let profile = {name: playerData.name, password: playerData.password};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
@@ -2824,7 +2832,7 @@ let dbPlayerInfo = {
                             break;
                     }
                     var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform);
+                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
                     let promArr;
 
                     if (useProviderGroup) {
@@ -2860,6 +2868,7 @@ let dbPlayerInfo = {
                 }
             },
             function (error) {
+                errorUtils.reportError(error);
                 deferred.reject({name: "DBError", message: "Error creating top up record", error: error});
             }
         );
@@ -7664,13 +7673,15 @@ let dbPlayerInfo = {
                                     playerLevel.forEach(level => {
                                         level.levelUpConfig.forEach(levelUp => {
                                             let levelUpProviderId = [];
-                                            levelUp.consumptionSourceProviderId.forEach(levelUpProvider => {
-                                                gameProvider.forEach(providerdata => {
-                                                    if (levelUpProvider.toString() == providerdata._id.toString()) {
-                                                        levelUpProviderId.push(providerdata.providerId);
-                                                    }
-                                                });
-                                            })
+                                            if (levelUp.consumptionSourceProviderId && levelUp.consumptionSourceProviderId.length) {
+                                                levelUp.consumptionSourceProviderId.forEach(levelUpProvider => {
+                                                    gameProvider.forEach(providerdata => {
+                                                        if (levelUpProvider.toString() == providerdata._id.toString()) {
+                                                            levelUpProviderId.push(providerdata.providerId);
+                                                        }
+                                                    });
+                                                })
+                                            }
                                             levelUp.consumptionSourceProviderId = levelUpProviderId;
                                         })
                                         // level.levelDownConfig.forEach(levelDown => {
