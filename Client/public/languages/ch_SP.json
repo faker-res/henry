@@ -3100,7 +3100,7 @@
   "NewRegister_Date": "新注册（日）",
   "ConsumptionPlayer_Date": "投注人数（日）",
   "Income_Date": "收入（日）",
-  "TotalIncome_ThisMonth": "本月总收入",
+  "TotalIncome_ThisMonth": "本月总收入 ",
   "WithdrawCancel": "提款（取消）",
   "PlayerLimitedOfferRewardSuccess": "秒杀礼包（成功）",
   "UpdateBankInfoSuccess": "编辑玩家银行资料（成功）",
