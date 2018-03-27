@@ -264,6 +264,14 @@ define([], function () {
             // return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 23, 59, 59);
             return new Date(util.getTodayStartTime().getTime() + 24 * 3600 * 1000);
         }
+        this.getThisMonthStartTime = function () {
+            var todayDate = new Date();
+            return new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+        }
+        this.getThisMonthEndTime = function () {
+            var todayDate = new Date();
+            return new Date(todayDate.getFullYear(), todayDate.getMonth()+1, 1, 0, 0, 0);
+        }
         this.getYesterdayStartTime = function () {
             return new Date(util.getTodayStartTime().getTime() - 24 * 60 * 60 * 1000);
         }

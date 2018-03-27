@@ -193,6 +193,11 @@ define(['js/app'], function (myApp) {
                                 companyIds.push(cId);
                             }
                         })
+                    }else{
+                        // use number 999999 for signifiant company_id is not exist
+                        if (companyIds.indexOf('999999') == -1) {
+                            companyIds.push('999999');
+                        }
                     }
 
                     if (item.data.livecompanyIds && item.data.livecompanyIds.indexOf(item.data.live800CompanyId) == -1)
@@ -235,8 +240,12 @@ define(['js/app'], function (myApp) {
                   console.log('all admin data', cdata.data);
                   let fpmsACCList = [];
                   let live800Accs = [];
+                  vm.allUser = cdata.data;
                   cdata.data.forEach(item=>{
-                    let liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
+                    let liveAccSet = [];
+                    if(item.live800Acc){
+                        liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
+                    }
                     let acc = {
                       _id:item._id,
                       name:item.adminName,
@@ -250,9 +259,16 @@ define(['js/app'], function (myApp) {
               });
             }
             vm.loadLive800Acc = function(){
+
                 let live800Accs = [];
-                vm.fpmsACCList.forEach(item=>{
-                    live800Accs = live800Accs.concat(item.live800Acc);
+                vm.allUser.forEach(item => {
+                    if (vm.inspection800.fpms.indexOf(item._id) != -1) {
+
+                        item.live800Acc.forEach(live800 => {
+                            live800Accs.push(live800);
+                        })
+
+                    }
                 })
                 vm.live800Accs = live800Accs;
             }
@@ -311,6 +327,23 @@ define(['js/app'], function (myApp) {
                     vm.initPartnerDisplayDataModal();
                 } else if (tabName && tabName == "system-settlement") {
                     vm.prepareSettlementHistory();
+                }
+            };
+            vm.checkUncheckSelectAll = function () {
+                let isChecked = false;
+
+                isChecked = document.getElementById("selectAll").checked;
+
+                if(isChecked) {
+                    $('input[name="rowChecked"]').each(function() {
+                        this.checked = true;
+                        vm.storeBatchId();
+                    });
+                } else {
+                    $('input[name="rowChecked"]').each(function() {
+                        this.checked = false;
+                        vm.batchEditList = [];
+                    });
                 }
             };
             vm.storeBatchId = function(isCheck, conversation){
@@ -378,6 +411,9 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'searchLive800', query, success);
                 function success(data) {
                     data.data.forEach(item=>{
+                        if(query.status == 7){
+                            item.status = 7;
+                        }
                         item.statusName = item.conversation && item.conversation.length > 0 ? item.status ? $translate(vm.constQualityInspectionStatus[item.status]): $translate(vm.constQualityInspectionStatus[1]) : $translate(vm.constQualityInspectionStatus[7]);
                         item.conversation.forEach(function(cv,i){
                             cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
@@ -414,6 +450,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     });
                     vm.conversationForm = data.data;
+                    $("#selectAll").removeAttr('checked');
                     $('.searchingQualityInspection').hide();
                     $scope.safeApply();
                 }
@@ -1894,139 +1931,145 @@ define(['js/app'], function (myApp) {
                     vm.rawMysqlData=[];
 
 
-                    if (data.data[0] && data.data[1] && data.data[2]) {
+                    if (data.data[0] && data.data[0].length > 0) {
 
+                        vm.mysqlData = $.extend(true, [], data.data[0]);
 
-                        if (data.data[0].length > 0) {
-                            vm.mysqlData = $.extend(true, [], data.data[0]);
+                        // handle total number of effective conversation, non-effective conversation and total conversation
+                        let preData = [];
+                        data.data[0].filter(item => {
+                            //preData =  data.data[0].map(item => {
+                            let itemObj = {};
 
-                            // handle total number of effective conversation, non-effective conversation and total conversation
-                            let preData = [];
-                            data.data[0].filter(item => {
-                                //preData =  data.data[0].map(item => {
-                                let itemObj = {};
-
-                                let platformIndex = vm.platformCompanyID.findIndex(p => p.companyId.includes(item.companyId.toString()));
-                                if (platformIndex != -1) {
-                                    itemObj.productName = vm.platformCompanyID[platformIndex].productName;
-
-                                }
-                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
-                                if (index != -1) {
-                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
-                                }
-
-                                if (itemObj.productName && itemObj.adminName){
-                                    itemObj.count_0 = item.totalNonEffectiveCount;
-                                    itemObj.count_1 = item.totalEffectiveCount;
-                                    itemObj.totalCount = item.totalCount;
-
-                                    return preData.push(itemObj);
-                                }
-
-
-                            });
-
-                            if (preData && preData.length > 0) {
-                                var holder = {};
-
-                                preData.forEach(d => {
-
-                                    if (holder.hasOwnProperty(d.adminName)) {
-                                        holder[d.adminName] = [holder[d.adminName][0] + d.count_0, holder[d.adminName][1] + d.count_1, holder[d.adminName][2] + d.totalCount];
-                                    } else {
-                                        holder[d.adminName] = [d.count_0, d.count_1, d.totalCount];
-                                    }
-                                });
-
-                                for (var prop in holder) {
-                                    let index = preData.findIndex(p => p.adminName == prop);
-                                    if (index != -1) {
-                                        vm.postData.push({
-                                            productName: preData[index].productName,
-                                            adminName: prop,
-                                            count_0: holder[prop][0],
-                                            count_1: holder[prop][1],
-                                            totalCount: holder[prop][2],
-                                        })
-                                    }
-                                }
+                            let platformIndex = vm.platformCompanyID.findIndex(p => p.companyId.includes(item.companyId.toString()));
+                            if (platformIndex != -1) {
+                                itemObj.productName = vm.platformCompanyID[platformIndex].productName;
 
                             }
+                            let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc.toUpperCase() == item.operatorId.toUpperCase())
+                            if (index != -1) {
+                                itemObj.adminName = vm.selectedLive800Acc[index].adminName;
+                            }
+
+                            if (itemObj.productName && itemObj.adminName){
+                                itemObj.count_0 = item.totalNonEffectiveCount;
+                                itemObj.count_1 = item.totalEffectiveCount;
+                                itemObj.totalCount = item.totalCount;
+
+                                return preData.push(itemObj);
+                            }
+
+
+                        });
+
+                        if (preData && preData.length > 0) {
+                            var holder = {};
+
+                            preData.forEach(d => {
+
+                                if (holder.hasOwnProperty(d.adminName)) {
+                                    holder[d.adminName] = [holder[d.adminName][0] + d.count_0, holder[d.adminName][1] + d.count_1, holder[d.adminName][2] + d.totalCount];
+                                } else {
+                                    holder[d.adminName] = [d.count_0, d.count_1, d.totalCount];
+                                }
+                            });
+
+                            for (var prop in holder) {
+                                let index = preData.findIndex(p => p.adminName == prop);
+                                if (index != -1) {
+                                    vm.postData.push({
+                                        productName: preData[index].productName,
+                                        adminName: prop,
+                                        count_0: holder[prop][0],
+                                        count_1: holder[prop][1],
+                                        totalCount: holder[prop][2],
+                                    })
+                                }
+                            }
+
                         }
 
-                        if (data.data[1].length > 0 && vm.postData.length >0 ) {
-                            // handle the status of the conversation record group by operatorId based on status
-                            let preData = [];
+                        if (vm.postData.length > 0){
+                            if (data.data[1] && data.data[1].length > 0) {
+                                // handle the status of the conversation record group by operatorId based on status
+                                let preData = [];
 
-                            preData = data.data[1].map(item => {
-                                let itemObj = {};
-                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
-                                if (index != -1) {
-                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
-                                }
-                                itemObj.status = item.status;
-                                itemObj.count = item.count;
-
-                                return itemObj;
-                            });
-
-                            preData.forEach(data => {
-                                let index = vm.postData.findIndex(p => p.adminName == data.adminName);
-                                if (index != -1) {
-                                    if (vm.postData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
-                                        vm.postData[index][vm.constQualityInspectionStatus[data.status]] = vm.postData[index][vm.constQualityInspectionStatus[data.status]] + data.count;
-                                    } else {
-                                        vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                preData = data.data[1].map(item => {
+                                    let itemObj = {};
+                                    let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc.toUpperCase() == item.operatorId.toUpperCase())
+                                    if (index != -1) {
+                                        itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                     }
-                                }
-                            });
+                                    itemObj.status = item.status;
+                                    itemObj.count = item.count;
 
-                            vm.postData.forEach(data => {
+                                    return itemObj;
+                                });
+
+                                preData.forEach(data => {
+                                    let index = vm.postData.findIndex(p => p.adminName == data.adminName);
+                                    if (index != -1) {
+                                        if (vm.postData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
+                                            vm.postData[index][vm.constQualityInspectionStatus[data.status]] = vm.postData[index][vm.constQualityInspectionStatus[data.status]] + data.count;
+                                        } else {
+                                            vm.postData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                        }
+                                    }
+                                });
+                            }
+                            vm.postData.map(data => {
                                 for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
                                     if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
                                         data[vm.constQualityInspectionStatus[i]] = 0;
                                     }
                                 }
-                            });
-                        }
-
-                        if (data.data[2].length > 0 && vm.postData.length > 0) {
-                            // handle the total timeout rate and total inspesction per operatorId
-                            let preData = [];
-
-                            preData = data.data[2].map(item => {
-                                let itemObj = {};
-                                let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc == item.operatorId)
-                                if (index != -1) {
-                                    itemObj.adminName = vm.selectedLive800Acc[index].adminName;
-                                }
-                                itemObj.totalOvertimeRate = item.totalOvertimeRate;
-                                itemObj.totalInspectionRate = item.totalInspectionRate;
-
-                                return itemObj;
+                                return data;
                             });
 
-                            preData.forEach(data => {
-                                let index = vm.postData.findIndex(p => p.adminName == data.adminName);
-                                if (index != -1) {
-                                    if (vm.postData[index].hasOwnProperty("totalOvertimeRate")) {
-                                        vm.postData[index]["totalOvertimeRate"] = vm.postData[index]["totalOvertimeRate"] + data.totalOvertimeRate;
-                                    } else {
-                                        vm.postData[index]["totalOvertimeRate"] = data.totalOvertimeRate;
+                            if (data.data[2] && data.data[2].length > 0) {
+                                // handle the total timeout rate and total inspesction per operatorId
+                                let preData = [];
+
+                                preData = data.data[2].map(item => {
+                                    let itemObj = {};
+                                    let index = vm.selectedLive800Acc.findIndex(p => p.live800Acc.toUpperCase() == item.operatorId.toUpperCase())
+                                    if (index != -1) {
+                                        itemObj.adminName = vm.selectedLive800Acc[index].adminName;
                                     }
+                                    itemObj.totalOvertimeRate = item.totalOvertimeRate;
+                                    itemObj.totalInspectionRate = item.totalInspectionRate;
 
-                                    if (vm.postData[index].hasOwnProperty("totalInspectionRate")) {
-                                        vm.postData[index]["totalInspectionRate"] = vm.postData[index]["totalInspectionRate"] + data.totalInspectionRate;
-                                    } else {
-                                        vm.postData[index]["totalInspectionRate"] = data.totalInspectionRate;
+                                    return itemObj;
+                                });
+
+                                preData.forEach(data => {
+                                    let index = vm.postData.findIndex(p => p.adminName == data.adminName);
+                                    if (index != -1) {
+                                        if (vm.postData[index].hasOwnProperty("totalOvertimeRate")) {
+                                            vm.postData[index]["totalOvertimeRate"] = vm.postData[index]["totalOvertimeRate"] + data.totalOvertimeRate;
+                                        } else {
+                                            vm.postData[index]["totalOvertimeRate"] = data.totalOvertimeRate;
+                                        }
+
+                                        if (vm.postData[index].hasOwnProperty("totalInspectionRate")) {
+                                            vm.postData[index]["totalInspectionRate"] = vm.postData[index]["totalInspectionRate"] + data.totalInspectionRate;
+                                        } else {
+                                            vm.postData[index]["totalInspectionRate"] = data.totalInspectionRate;
+                                        }
                                     }
-                                }
-                            });
+                                });
+                            }
 
-                            vm.postData.forEach(data => {
+                            vm.postData.map(data => {
+                                if (!data.totalOvertimeRate){
+                                    data.totalOvertimeRate = 0;
+                                }
+                                if (!data.totalInspectionRate){
+                                    data.totalInspectionRate = 0;
+                                }
+
                                 data.pendingCount = data.count_1 - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED
-                                data.avgMark = ((data.totalOvertimeRate + data.totalInspectionRate) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+                                data.avgMark = ((data.totalOvertimeRate || 0 + data.totalInspectionRate || 0) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
                                 // check NaN
                                 if (data.pendingCount == "NaN") {
                                     data.pendingCount = Number(0).toFixed(2);
@@ -2034,8 +2077,11 @@ define(['js/app'], function (myApp) {
                                 if (data.avgMark == "NaN") {
                                     data.avgMark = Number(0).toFixed(2);
                                 }
+
+                                return data;
                             })
                         }
+
                     }
 
                     $('#QIReportTableSpin').hide();
@@ -2173,41 +2219,70 @@ define(['js/app'], function (myApp) {
 
                                 function success(data) {
 
-                                    if (data.data[0] && data.data[1] && data.data[2]) {
+                                    if (data.data[0] && data.data[0].length > 0) {
 
                                         vm.displayDetailData = $.extend(true, [], data.data[0]);
 
-                                        data.data[1].forEach(data => {
-                                            let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
-                                            if (index != -1) {
-                                                if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
-                                                    vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = vm.v[index][vm.constQualityInspectionStatus[data.status]] + data.count;
-                                                } else {
-                                                    vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                        if (data.data[1] && data.data[1].length > 0) {
+                                            data.data[1].forEach(data => {
+                                                let index = vm.displayDetailData.findIndex(p => p.operatorId.toUpperCase() == data.operatorId.toUpperCase());
+                                                if (index != -1) {
+                                                    if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
+                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = vm.v[index][vm.constQualityInspectionStatus[data.status]] + data.count;
+                                                    } else {
+                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
+                                                    }
                                                 }
-                                            }
-                                        });
+                                            });
 
-                                        vm.displayDetailData.forEach(data => {
+                                            // vm.displayDetailData.forEach(data => {
+                                            //     for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                            //         if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                            //             data[vm.constQualityInspectionStatus[i]] = 0;
+                                            //         }
+                                            //     }
+                                            // });
+                                        }
+                                        vm.displayDetailData.map(data => {
                                             for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
                                                 if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
                                                     data[vm.constQualityInspectionStatus[i]] = 0;
                                                 }
                                             }
+                                            return data;
                                         });
 
-                                        data.data[2].forEach(data => {
-                                            let index = vm.displayDetailData.findIndex(p => p.operatorId == data.operatorId);
-                                            if (index != -1) {
-                                                vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
-                                                vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
-                                            }
-                                        });
+                                        if (data.data[2] && data.data[2].length > 0) {
+                                            data.data[2].forEach(data => {
+                                                let index = vm.displayDetailData.findIndex(p => p.operatorId.toUpperCase() == data.operatorId.toUpperCase());
+                                                if (index != -1) {
+                                                    vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
+                                                    vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
+                                                }
+                                            });
+                                        }
 
-                                        vm.displayDetailData.forEach(data => {
+                                            vm.displayDetailData.map(data => {
+                                                if (!data.totalOvertimeRate){
+                                                    data.totalOvertimeRate = 0;
+                                                }
+                                                if (!data.totalInspectionRate){
+                                                    data.totalInspectionRate = 0;
+                                                }
                                                 data.pendingCount = data.totalEffectiveCount - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
-                                                data.avgMark = ((data.totalOvertimeRate + data.totalInspectionRate) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
-                                        });
+                                                data.avgMark = ((data.totalOvertimeRate || 0 + data.totalInspectionRate || 0) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+
+                                                // check NaN
+                                                if (data.pendingCount == "NaN") {
+                                                    data.pendingCount = Number(0).toFixed(2);
+                                                }
+                                                if (data.avgMark == "NaN") {
+                                                    data.avgMark = Number(0).toFixed(2);
+                                                }
+
+                                                return data;
+                                            });
+
 
                                         $scope.safeApply();
                                         vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
