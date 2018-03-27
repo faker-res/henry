@@ -95,6 +95,17 @@
 
     };
 
+    proto.clickCount = function (callback, requestData) {
+
+        this._service.clickCount.request(requestData);
+        this._service.clickCount.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+
+    };
+
     if (isNode) {
         module.exports = ClientPlatformAPITest;
     } else {

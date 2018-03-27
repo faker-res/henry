@@ -47,7 +47,9 @@ div
 div(style='height:50px')
     .row(style='background-color:#337ab7;')
         div.col-md-1(style="height:50px")
-            div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold;') 选取
+            div(style='color:white;font-weight:bold;')
+                input.form-control(type="checkbox", id="selectAll", ng-click="vm.checkUncheckSelectAll()" style="float:left;margin-left:2px;margin-top:8px;")
+                label(for="selectAll" style='float:right;position:absolute;margin-left:-50px;top:30%') 选取
         div.col-md-1(style="height:50px")
             div.text-center(style='position: relative;top: 50%;transform: translateY(-50%);color:white;font-weight: bold') 评估状态
         div.col-md-7(style="height:50px")
@@ -97,12 +99,13 @@ div(style='display:none')
     div#conversationForm(style='height:60px')
         div.row(style='border:2px solid #CECECE')
             div.col-md-1(style="padding-top:10px;")
-                input.form-control.batchEdit(type="checkbox", value="{{cform.messageId}}",ng-click="storebatch(cform)")
+                input.form-control.batchEdit(type="checkbox", name="rowChecked", value="{{cform.messageId}}",ng-click="storebatch(cform)")
             div.col-md-1(style="text-align:center;padding-top:10px;")
-                div(ng-click="rateIt(cform)", style="cursor:pointer"){{cform.statusName}}
+                div
+                    a(href="" ng-click="rateIt(cform)", style="cursor:pointer") {{cform.statusName}}
                 div(ng-if='cform.editable', style='margin-top:30px;')
-                    div.btn.btn-primary(ng-click="confirmrate(cform)", style="cursor:pointer") Confirm
-                    div.btn.btn-primary.red(ng-click="cancelrate(cform)", style="cursor:pointer;margin-top:2px;") Cancel
+                    div.btn.btn-primary(ng-click="confirmrate(cform)", style="cursor:pointer;width:80px") {{'CONFIRM' | translate}}
+                    div.btn.btn-primary.red(ng-click="cancelrate(cform)", style="cursor:pointer;margin-top:2px;width:80px") {{'CANCEL' | translate}}
             div.col-md-7(style='border-left:1px solid black;border-right:1px solid black')
                 .row
                     div(style="text-align:center;color:red;padding-top:10px;") **** 新的对话开始 ****

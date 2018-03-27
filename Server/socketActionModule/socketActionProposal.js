@@ -525,6 +525,15 @@ function socketActionProposal(socketIO, socket) {
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbProposal.getTopupAnalysisByPlatform, [ObjectId(data.platformId), startTime, endTime, data.type, data.period], actionName, isValidData);
         },
+        getProfitDisplayDetailByPlatform: function getProfitDisplayDetailByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.playerBonusType && data.topUpType );
+            var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
+            var endTime = data.endDate ? new Date(data.endDate) : new Date();
+            socketUtil.emitter(self.socket, dbProposal.getProfitDisplayDetailByPlatform, [ObjectId(data.platformId), startTime, endTime, data.playerBonusType, data.topUpType], actionName, isValidData);
+        },
+
+
     };
     socketActionProposal.actions = this.actions;
 }
