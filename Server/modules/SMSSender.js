@@ -193,7 +193,7 @@ const SMSSender = {
                     contentToReplace = promoData.expirationTime;
                     break;
                 case "P":
-                    contentToReplace = promoData.allowedProviders;
+                    contentToReplace = promoData.allowedProviders || localization.translate("ALL_PROVIDERS");
                     break;
                 case "Q":
                     contentToReplace = promoData.code;

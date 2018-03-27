@@ -83,6 +83,8 @@ define(['js/app'], function (myApp) {
                 pageArr: []
             }
 
+            vm.appealingTotalRecord = 0;
+            vm.appealingTotalRecordByCS = 0;
             //vm.unReadEvaluation = {};
 
 
@@ -384,7 +386,27 @@ define(['js/app'], function (myApp) {
                 vm.pgn.index = ((pgNo-1)*vm.pgn.limit);
                 vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
-            },
+            };
+            vm.getTotalNumberOfAppealingRecord = function(){
+                socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecord', "", function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.appealingTotalRecord = data.data;
+                        }
+                    });
+                });
+
+            };
+            vm.getTotalNumberOfAppealingRecordByCS = function(){
+                socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecordByCS', "", function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.appealingTotalRecordByCS = data.data;
+                        }
+                    });
+                });
+
+            };
             vm.searchLive800 = function(){
                 $('.searchingQualityInspection').show();
                 let fpmsId = [];
@@ -502,6 +524,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
                     console.log(data);
                     vm.searchLive800();
+                    vm.getTotalNumberOfAppealingRecord();
                 });
             }
             vm.showLive800 = function(){
