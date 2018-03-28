@@ -1,0 +1,47 @@
+.section
+    .row
+        .titlePic
+            .title
+                text {{vm.showPageName | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#clickCountAnalysis .block-query","clickCount")')
+                        text.pull-left.margin-right-5 {{vm.optionText.clickCount | translate}}
+    #clickCountAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.clickCount.periodText')
+                    option(value='day') {{"DAY" | translate}}
+                    option(value='week') {{"WEEK" | translate}}
+                    option(value='month') {{"MONTH" | translate}}
+            div
+                label {{'Start date' | translate}}
+                .startTime
+            div
+                label {{'End date' | translate}}
+                .endTime
+            div
+                label {{'DEVICE' | translate}}
+                select.form-control(ng-model='vm.queryPara.clickCount.inputDevice', ng-options="i as v | translate for (i,v) in vm.constInputDevice", style='max-width:200px')
+            div
+                label {{'PAGE_NAME' | translate}}
+                select.form-control(ng-model='vm.queryPara.clickCount.pageName', ng-options="i as v | translate for (i,v) in vm.constPageName", style='max-width:200px')
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.getClickCountAnalysis()') {{'SEARCH' | translate}}
+
+        label.text-primary {{'clickCount' | translate}}: {{'DEVICE' | translate}}, {{'PAGE_NAME' | translate}} VS {{vm.queryPara.clickCount.periodText | translate}}
+        .row
+
+            .col-md-6
+                .graph
+                    table#clickCountAnalysisTable.display.tableDiv(style='min-width:100%')
+            .col-md-6
+
+                .graph
+                    .panel.panel-default
+                        .pieChart
+                            div.graphDiv
+
+
+p(ng-init="vm.loadPageFunc(vm.showPageName)")

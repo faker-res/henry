@@ -1453,7 +1453,10 @@
   "PLAYER_CONSUMPTION_REWARD_GROUP_REPORT": "投注额优惠（组）优惠报表",
   "PLAYER_FREE_TRIAL_REWARD_GROUP_REPORT": "免费体验金（组）优惠报表",
   "PLAYER_RANDOM_REWARD_GROUP_REPORT": "随机抽奖（组）优惠报表",
-
+  "CLICK_COUNT": "埋点",
+  "clickCount": "埋点",
+  "PAGE_NAME": "页面",
+  "TOTAL_CLICK_COUNT": "总点击次数",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
