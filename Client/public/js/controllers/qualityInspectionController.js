@@ -1789,15 +1789,16 @@ define(['js/app'], function (myApp) {
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss'
                 });
-                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
-                var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
-                obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
+
+                let thisMonthDateStartTime = utilService.getThisMonthStartTime();
+                obj.startTime.data('datetimepicker').setLocalDate(new Date(thisMonthDateStartTime));
 
                 obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss'
                 });
-                obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayStartTime()));
+                let thisMonthDatEndTime = utilService.getThisMonthEndTime();
+                obj.endTime.data('datetimepicker').setLocalDate(new Date(thisMonthDatEndTime));
             };
 
 
@@ -2056,7 +2057,7 @@ define(['js/app'], function (myApp) {
                                 if (data.pendingCount == "NaN") {
                                     data.pendingCount = Number(0).toFixed(2);
                                 }
-                                if (data.avgMark == "NaN") {
+                                if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
                                     data.avgMark = Number(0).toFixed(2);
                                 }
 
@@ -2182,12 +2183,6 @@ define(['js/app'], function (myApp) {
                                     return;
                                 }
 
-                                // vm.mysqlData.forEach( item => {
-                                //     if (item.operatorName == data.data[0].adminName){
-                                //         selectedCompanyId.push(item.companyId.toString());
-                                //     }
-                                // });
-
                                 selectedLiveAcc = data.data[0].live800Acc;
                             
                                 let params= {
@@ -2210,20 +2205,12 @@ define(['js/app'], function (myApp) {
                                                 let index = vm.displayDetailData.findIndex(p => p.operatorId.toUpperCase() == data.operatorId.toUpperCase());
                                                 if (index != -1) {
                                                     if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
-                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = vm.v[index][vm.constQualityInspectionStatus[data.status]] + data.count;
+                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] +=  data.count;
                                                     } else {
                                                         vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
                                                     }
                                                 }
                                             });
-
-                                            // vm.displayDetailData.forEach(data => {
-                                            //     for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
-                                            //         if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
-                                            //             data[vm.constQualityInspectionStatus[i]] = 0;
-                                            //         }
-                                            //     }
-                                            // });
                                         }
                                         vm.displayDetailData.map(data => {
                                             for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
@@ -2258,7 +2245,7 @@ define(['js/app'], function (myApp) {
                                                 if (data.pendingCount == "NaN") {
                                                     data.pendingCount = Number(0).toFixed(2);
                                                 }
-                                                if (data.avgMark == "NaN") {
+                                                if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
                                                     data.avgMark = Number(0).toFixed(2);
                                                 }
 
@@ -2298,7 +2285,13 @@ define(['js/app'], function (myApp) {
                     // ],
                     columns: [
 
-                        {title: "Live800 " + $translate('Account'), data: "operatorId"},
+                        {
+                            title: "Live800 " + $translate('Account'), data: "operatorId", sClass: "expandInnerPlayerReport",
+                            render: function (data, type, row) {
+                                return "<a>" + data + "</a>";
+                            }
+
+                        },
                         {
                             title: $translate('TOTAL_CONVERSATION_RECORD'),
                             data: "totalCount",
@@ -2358,8 +2351,237 @@ define(['js/app'], function (myApp) {
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
-
                 var innerTable = $('#' + id).DataTable(tableOptions);
+                //start
+                $('#' + id).off('click', 'td.expandInnerPlayerReport');
+                $('#' + id).resize();
+
+                $('#' + id).on('click', 'td.expandInnerPlayerReport', function () {
+                    var tr = $(this).closest('tr');
+                    var row = innerTable.row(tr);
+
+                    if (row.child.isShown()) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                    else {
+                        // Open this row
+                        var data = row.data();
+                        console.log('content', data);
+                        var id = 'detailReportTable' + data.operatorName;
+                        row.child(vm.createInnerTable(id)).show();
+                        vm[id] = {};
+
+                        let selectedLiveAcc = [];
+                        let selectedCompanyId =[];
+                        vm.displayDetailData = [];
+
+
+                           // selectedLiveAcc = data.data[0].live800Acc;
+
+                            let params= {
+                                'operatorId': [data.operatorId],
+                                'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
+                                'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
+                            };
+
+                            socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDate', params, function (data){
+                                if (data.data[0] && data.data[0].length > 0) {
+
+                                    vm.displayDetailData = $.extend(true, [], data.data[0]);
+
+                                    if (data.data[1] && data.data[1].length > 0) {
+                                        data.data[1].forEach(data => {
+                                            let index = vm.displayDetailData.findIndex(p => p.date == data.date);
+                                            if (index != -1) {
+                                                if (data.data && data.data.length > 0){
+                                                    data.data.forEach( inData => {
+                                                        if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
+                                                            vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
+                                                        } else {
+                                                            vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
+                                                        }
+                                                    })
+                                                }
+
+                                            }
+                                            // else{
+                                            //     // generate same empty record when the length of record is not same
+                                            //     let recordData = {
+                                            //         date: data.date,
+                                            //         companyId: data.companyId,
+                                            //         operatorId: data.operatorId,
+                                            //         totalCount: 0,
+                                            //         totalEffectiveCount: 0,
+                                            //         totalNonEffectiveCount: 0
+                                            //     };
+                                            //     if (data.data && data.data.length > 0){
+                                            //         data.data.forEach( inData => {
+                                            //             if (recordData.hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
+                                            //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
+                                            //             } else {
+                                            //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
+                                            //             }
+                                            //         })
+                                            //     }
+                                            //     vm.displayDetailData.push(recordData);
+                                            // }
+                                        });
+                                    }
+                                    vm.displayDetailData.map(data => {
+                                        for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                            if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                                data[vm.constQualityInspectionStatus[i]] = 0;
+                                            }
+                                        }
+                                        return data;
+                                    });
+
+                                    if (data.data[2] && data.data[2].length > 0) {
+                                        data.data[2].forEach(data => {
+                                            let index = vm.displayDetailData.findIndex(p => p.date == data.date);
+                                            if (index != -1) {
+                                                vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
+                                                vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
+                                            }
+                                            // else{
+                                            //     // generate same empty record when the length of record is not same
+                                            //     let recordData = {
+                                            //         date: data.date,
+                                            //         companyId: data.companyId,
+                                            //         operatorId: data.operatorId,
+                                            //         totalCount: 0,
+                                            //         totalEffectiveCount: 0,
+                                            //         totalNonEffectiveCount: 0,
+                                            //         COMPLETED_UNREAD: 0,
+                                            //         COMPLETED_READ: 0,
+                                            //         COMPLETED: 0,
+                                            //         APPEALING: 0,
+                                            //         APPEAL_COMPLETED: 0,
+                                            //
+                                            //     };
+                                            //     recordData.totalInspectionRate = data.totalInspectionRate || 0;
+                                            //     recordData.totalOvertimeRate = data.totalOvertimeRate || 0;
+                                            //     vm.displayDetailData.push(recordData);
+                                            // }
+                                        });
+                                    }
+
+                                    vm.displayDetailData.map(data => {
+                                        data.date = data.date.split("T")[0];
+                                        if (!data.totalOvertimeRate){
+                                            data.totalOvertimeRate = 0;
+                                        }
+                                        if (!data.totalInspectionRate){
+                                            data.totalInspectionRate = 0;
+                                        }
+                                        data.pendingCount = data.totalEffectiveCount - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
+                                        data.avgMark = ((data.totalOvertimeRate || 0 + data.totalInspectionRate || 0) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+
+                                        // check NaN
+                                        if (data.pendingCount == "NaN") {
+                                            data.pendingCount = Number(0).toFixed(2);
+                                        }
+                                        if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
+                                            data.avgMark = Number(0).toFixed(2);
+                                        }
+
+                                        return data;
+                                    });
+
+
+                                    $scope.safeApply();
+                                    vm.drawInDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                                }
+
+                            });
+
+                        tr.addClass('shown');
+                    }
+                });
+                $('#' + id).off('order.dt');
+                $('#' + id).on('order.dt', function (event, a, b) {
+                //$('#QIReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'QIReportQuery', vm.searchQIRecord);
+                });
+                //
+            };
+
+            vm.drawInDetailQIReportTable = function (data, id, size, newSearch, qObj) {
+                let holder = data;
+                let tableOptions = {
+                    data: data,
+                    //"ordering": false,
+                    // aoColumnDefs: [
+                    //     {targets: '_all', defaultContent: ' ', bSortable: false}
+                    // ],
+                    columns: [
+
+                        {
+                            title: $translate('date'), data: "date",
+                        },
+                        {
+                            title: $translate('TOTAL_CONVERSATION_RECORD'),
+                            data: "totalCount",
+
+                        },
+                        {
+                            title: $translate('NOT_EVALUATED_QUANTITY'), data: "totalNonEffectiveCount",
+
+                        },
+                        {
+                            title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "totalEffectiveCount",
+
+                        },
+                        {
+                            title: $translate('PROCESSING_QUANTITY'), data: "pendingCount",
+
+                        },
+                        {
+                            title: $translate('COMPLETED_UNREAD_QUANTITY'), data: "COMPLETED_UNREAD",
+
+                        },
+                        {
+                            title: $translate('COMPLETED_READ_QUANTITY'), data: "COMPLETED_READ",
+
+                        },
+                        {
+                            title: $translate('COMPLETED_QUANTITY'), data: "COMPLETED",
+
+                        },
+                        {
+                            title: $translate('APPEALING_QUANTITY'), data: "APPEALING",
+
+                        },
+                        {
+                            title: $translate('APPEAL_COMPLETED_QUANTITY'), data: "APPEAL_COMPLETED",
+
+                        },
+                        {
+                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalOvertimeRate",
+
+                        },
+                        {
+                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionRate",
+
+                        },
+                        {
+                            title: $translate('AVG_DEDUCTION_MARK') , data: "avgMark",
+
+                        }
+                    ],
+                    "paging": false,
+                    // "dom": '<"top">rt<"bottom"il><"clear">',
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
+                var innerDetailTable = $('#' + id).DataTable(tableOptions);
+
             };
 
             vm.commonTableOption = {
