@@ -724,143 +724,42 @@ var proposal = {
 
     /**
      * Approve or reject Proposal Process current Step
-     * @param {ObjectId} proposalId - The id of the proposal
+     * @param {Object} proposalIds - Array of proposal ids
      * @param {ObjectId} adminId - The id of the admin user
      * @param {String} memo - memo of the step
      * @param {Boolean} bApprove - memo of the step
      */
-    updateProposalProcessStep: function (proposalId, adminId, memo, bApprove) {
-        var deferred = Q.defer();
-        var nextStepId = null;
-        var proposalData = null;
-        //find proposal
-        dbconfig.collection_proposal.findOne({_id: proposalId}).populate(
-            {
-                path: "type",
-                model: dbconfig.collection_proposalType
+    updateProposalProcessStep: function (proposalIds, adminId, memo, bApprove) {
+        if (proposalIds) {
+            // Convert to array if it's single object
+            if (!Array.isArray(proposalIds)) {
+                proposalIds = [proposalIds];
             }
-        ).populate(
-            {
-                path: "process",
-                model: dbconfig.collection_proposalProcess
-            }
-        ).then(
-            function (data) {
-                //todo::add proposal or process status check here
-                // if (data && remark) {
-                //     dbconfig.collection_proposal.findOneAndUpdate({_id: proposalId, createTime: data.createTime}, {
-                //         $addToSet: {remark: {admin: adminId, content: remark}}
-                //     }, {new: true}).exec();
-                // }
-                if (data.status != constProposalStatus.PENDING) {
-                    deferred.reject({name: "DBError", message: "Proposal is not in Pending status."});
-                    return;
-                }
-                if (data && data.process) {
-                    if (data.status == constProposalStatus.PREPENDING) {
-                        deferred.reject({name: "DataError", message: "Incorrect proposal status"});
-                    }
-                    else {
-                        //get full info of process
-                        proposalData = data;
-                        return dbconfig.collection_proposalProcess.findOne({_id: data.process})
-                            .populate({path: "currentStep", model: dbconfig.collection_proposalProcessStep})
-                            .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).exec();
-                    }
-                }
-                else {
-                    deferred.reject({name: "DBError", message: "Can't find proposal"});
-                }
-            },
-            function (err) {
-                deferred.reject({name: "DBError", message: "Error finding proposal", error: err});
-            }
-        ).then(
-            //find proposal process and create finished step for process
-            function (data) {
-                if (data && data.currentStep && data.steps) {
-                    var curTime = new Date();
-                    nextStepId = bApprove ? data.currentStep.nextStepWhenApprove : data.currentStep.nextStepWhenReject;
-                    var stepData = {
-                        status: bApprove ? constProposalStepStatus.APPROVED : constProposalStepStatus.REJECTED,
-                        operator: adminId,
-                        memo: memo,
-                        operationTime: curTime,
-                        isLocked: null
-                    };
 
-                    return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
-                        {_id: data.currentStep._id, createTime: data.currentStep.createTime},
-                        stepData
-                    ).exec();
+            return dbconfig.collection_proposal.find({_id: {$in: proposalIds}}).populate(
+                {
+                    path: "type",
+                    model: dbconfig.collection_proposalType
                 }
-                else {
-                    deferred.reject({name: "DBError", message: "Can't find proposal process"});
+            ).populate(
+                {
+                    path: "process",
+                    model: dbconfig.collection_proposalProcess,
+                    populate: [
+                        {path: "currentStep", model: dbconfig.collection_proposalProcessStep},
+                        {path: "type", model: dbconfig.collection_proposalTypeProcess}
+                    ]
                 }
-            },
-            function (err) {
-                deferred.reject({name: "DBError", message: "Error finding proposal process", error: err});
-            }
-        ).then(
-            //update process info
-            function (data) {
-                if (data) {
-                    var status = bApprove ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
-                    if (nextStepId) {
-                        return dbconfig.collection_proposalProcess.findOneAndUpdate(
-                            {_id: proposalData.process._id, createTime: proposalData.process.createTime},
-                            {
-                                currentStep: nextStepId,
-                                status: constProposalStatus.PENDING,
-                                isLocked: null
-                            }
-                        );
-                    }
-                    else {
-                        return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bApprove, proposalData, true)
-                            .then(
-                                data => dbconfig.collection_proposalProcess.findOneAndUpdate(
-                                    {_id: proposalData.process._id, createTime: proposalData.process.createTime},
-                                    {
-                                        currentStep: null,
-                                        status: status,
-                                        isLocked: null
-                                    },
-                                    {new: true}
-                                )
-                            ).then(
-                                () => {
-                                    let updateData = {status: status, isLocked: null};
-                                    return dbconfig.collection_proposal.findOneAndUpdate(
-                                        {_id: proposalData._id, createTime: proposalData.createTime},
-                                        updateData,
-                                        {new: true}
-                                    )
-                                }
-                            );
-                    }
+            ).then(
+                proposals => {
+                    proposals.forEach(prop => {
+                        if (prop && prop.process && prop.status == constProposalStatus.PENDING) {
+                            processUpdateProposalProcessStep(prop, adminId, memo, bApprove).catch(errorUtils.reportError);
+                        }
+                    });
                 }
-                else {
-                    deferred.reject({name: "DBError", message: "Can't update proposal process step"});
-                }
-            },
-            function (err) {
-                deferred.reject({name: "DBError", message: "Error find proposal process step", error: err});
-            }
-        ).then(
-            function (data) {
-                if (data) {
-                    deferred.resolve(data);
-                }
-                else {
-                    deferred.reject({name: "DBError", message: "Can't update proposal process"});
-                }
-            },
-            function (err) {
-                deferred.reject({name: "DBError", message: "Error creating proposal process step", error: err});
-            }
-        );
-        return deferred.promise;
+            )
+        }
     },
 
     cancelProposal: function (proposalId, adminId, remark) {
@@ -4647,6 +4546,73 @@ function convertStringNumber(Arr) {
         result.push(Number(item));
     })
     return result;
+}
+
+function processUpdateProposalProcessStep (prop, adminId, memo, bApprove) {
+    let curProcess = prop.process;
+
+    if (curProcess.currentStep && curProcess.steps) {
+        let curTime = new Date();
+        let nextStepId = bApprove ? curProcess.currentStep.nextStepWhenApprove : curProcess.currentStep.nextStepWhenReject;
+        let stepData = {
+            status: bApprove ? constProposalStepStatus.APPROVED : constProposalStepStatus.REJECTED,
+            operator: adminId,
+            memo: memo,
+            operationTime: curTime,
+            isLocked: null
+        };
+
+        return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
+            {_id: curProcess.currentStep._id, createTime: curProcess.currentStep.createTime},
+            stepData
+        ).exec().then(
+            //update process info
+            data => {
+                if (data) {
+                    let status = bApprove ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
+                    if (nextStepId) {
+                        return dbconfig.collection_proposalProcess.findOneAndUpdate(
+                            {_id: curProcess._id, createTime: curProcess.createTime},
+                            {
+                                currentStep: nextStepId,
+                                status: constProposalStatus.PENDING,
+                                isLocked: null
+                            }
+                        );
+                    }
+                    else {
+                        return proposalExecutor.approveOrRejectProposal(prop.type.executionType, prop.type.rejectionType, bApprove, prop, true)
+                            .then(
+                                data => dbconfig.collection_proposalProcess.findOneAndUpdate(
+                                    {_id: curProcess._id, createTime: curProcess.createTime},
+                                    {
+                                        currentStep: null,
+                                        status: status,
+                                        isLocked: null
+                                    },
+                                    {new: true}
+                                )
+                            ).then(
+                                () => {
+                                    let updateData = {status: status, isLocked: null};
+                                    return dbconfig.collection_proposal.findOneAndUpdate(
+                                        {_id: prop._id, createTime: prop.createTime},
+                                        updateData,
+                                        {new: true}
+                                    )
+                                }
+                            );
+                    }
+                }
+                else {
+                    return Promise.reject({name: "DBError", message: "Can't update proposal process step"});
+                }
+            },
+            function (err) {
+                return Promise.reject({name: "DBError", message: "Error find proposal process step", error: err});
+            }
+        );
+    }
 }
 
 var proto = proposalFunc.prototype;

@@ -278,6 +278,7 @@ var simplifiedChinese = {
     "reward points not enough to redeem (1) credit, has been returned to your account": "积分不足兑换（1）真钱，已退回至您的帐户",
     "Already successful...": "取消失败，存款已经成功到帐，请查询帐户余额。",
     "Player already applied for the reward point.": "领取失败：很抱歉，已经领取过此项积分奖励。",
+    "ALL_PROVIDERS": "全部供应商",
     //todo::add missing messages here
 
     /*
