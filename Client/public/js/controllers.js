@@ -1474,6 +1474,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))
 
     function loadProfitDetail() {
+        console.log("Update the ProfitDisplayingTable")
         let queryDone = [false, false, false, false];
         let sendData = {
             platformId: $scope.selectedPlatform.id,
@@ -1555,15 +1556,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         callback();
 
         function callback() {
-            for (let i in queryDone) {
-                if (!queryDone[i]) {
-                    return setTimeout(callback, 1000);
-                }
-            }
 
             if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] ){
-                $scope.safeApply();
-                setInterval(loadProfitDetail(), 60000) // update every minute
+
+                //clearTimeout(callBackTimeOut);
+                var profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
+                return profileDetailTimeOut; // update every minute
+            }
+            else{
+
+               // clearTimeout(profileDetailTimeOut);
+                var callBackTimeOut = setTimeout(callback, 30000);
+                return callBackTimeOut;
             }
         }
 
