@@ -18,7 +18,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"READ EVALUATION" | translate}}
                         li(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'Read')")
-                            a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='appealEvaluation';vm.initAppealEvaluation();")
+                            a.common-tab(data-toggle="tab", ng-click="vm.evaluationTab ='appealEvaluation';vm.initAppealEvaluation();vm.getTotalNumberOfAppealingRecordByCS();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"APPEAL EVALUATION" | translate}}
                 .panel-body.common-right-panel-body
@@ -74,7 +74,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td(style="width: 77.27px;")
                                                             td(style="width: 231.82px;")
                                                         tr(ng-repeat="conversation in unreadEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
-                                                            td(style="width: 78.18px;") {{unreadEvaluation.fpmsAcc}}
+                                                            td(style="width: 78.18px;") {{unreadEvaluation.live800Acc.id}}
                                                             td(style="width: 78.18px;") {{conversation.roleName}}
                                                             td(style="width: 77.27px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
                                                             td(style="width: 309.09px;") {{conversation.content}}
@@ -150,7 +150,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td.col-sm-1
                                                             td.col-sm-3
                                                         tr(ng-repeat="conversation in readEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
-                                                            td.col-sm-1 {{readEvaluation.fpmsAcc}}
+                                                            td.col-sm-1 {{readEvaluation.live800Acc.id}}
                                                             td.col-sm-1 {{conversation.roleName}}
                                                             td.col-sm-1 {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
                                                             td.col-sm-4 {{conversation.content}}
@@ -201,9 +201,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                             .inlineBlk(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation', 'queryByAppealStatus')")
                                 label {{'APPEAL STATUS' | translate}}
-                                select.form-control#selectAppealStatus(ng-model="vm.appealStatus" ng-init='vm.appealStatus="all"')
+                                select.form-control#selectAppealStatus(ng-model="vm.appealStatus" ng-init='vm.appealStatus="all"' ng-click="vm.getTotalNumberOfAppealingRecordByCS();")
                                     option(value='all' selected="true") {{'ALL' | translate}}
-                                    option(ng-repeat='(i,v) in vm.evaluationAppealStatus', value='{{v}}') {{i|translate}}
+                                    option(value=5) {{'APPEALING' | translate}} ({{vm.appealingTotalRecordByCS}})
+                                    option(value=6) {{'APPEAL_COMPLETED' | translate}}
+                                    //option(ng-repeat='(i,v) in vm.evaluationAppealStatus', value='{{v}}') {{i|translate}}
                             .inlineBlk.pull-right(style='width:100px;padding-top:20px; margin-left:20px;')
                                 button.common-button.btn.btn-primary(ng-click='vm.getAppealEvaluationRecordByConversationDate(1)') {{'SEARCH_BY_CONVERSATION_DATE' | translate}}
                             .inlineBlk.pull-right(style='width:100px;padding-top:20px')
@@ -240,7 +242,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                                             td(style="width: 80px;")
                                                             td(style="width: 230px;")
                                                         tr(ng-repeat="conversation in appealEvaluation.conversation", style="border: 1px solid; word-wrap: break-word; background-color:{{conversation.colors}};")
-                                                            td(style="width: 80px;") {{appealEvaluation.fpmsAcc}}
+                                                            td(style="width: 80px;") {{appealEvaluation.live800Acc.id}}
                                                             td(style="width: 80px;") {{conversation.roleName}}
                                                             td(style="width: 89px;") {{conversation.createTime | date:"yyyy-MM-dd HH:mm:ss"}}
                                                             td(style="width: 320px;") {{conversation.content}}
