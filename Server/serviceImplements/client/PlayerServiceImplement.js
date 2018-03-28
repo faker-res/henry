@@ -1016,6 +1016,12 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, true, data.providerIds], isValidData);
     };
 
+    this.getPlayerAnyDayStatus.expectsData = 'playerId: String';
+    this.getPlayerAnyDayStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerAnyDayStatus, [conn.playerId, data.providerIds, data.startTime], isValidData);
+    };
+
     this.getPlayerWeekStatus.expectsData = '';
     this.getPlayerWeekStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
