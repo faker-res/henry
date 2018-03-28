@@ -395,7 +395,7 @@ define(['js/app'], function (myApp) {
             vm.getTotalNumberOfAppealingRecord = function(){
                 socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecord', "", function (data) {
                     $scope.$evalAsync(() => {
-                        if (data && data.data) {
+                        if (data && data.hasOwnProperty("data")) {
                             vm.appealingTotalRecord = data.data;
                         }
                     });
@@ -490,6 +490,8 @@ define(['js/app'], function (myApp) {
 
                     $scope.safeApply();
                 }
+
+                vm.getTotalNumberOfAppealingRecord();
             };
             vm.getPlatformOvertimeSetting = function(item){
                 let overtimeSetting = vm.platformList.filter(pf=>{
@@ -529,7 +531,6 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
                     console.log(data);
                     vm.searchLive800();
-                    vm.getTotalNumberOfAppealingRecord();
                 });
             }
             vm.showLive800 = function(){
@@ -541,7 +542,7 @@ define(['js/app'], function (myApp) {
                         qiUser: 'all'
                     }
                 }
-                vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:5, count:0};
+                vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:100, count:0};
 
                 setTimeout(function(){
                     $scope.safeApply();
@@ -580,7 +581,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#unreadEvaluationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -588,7 +589,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             };
 
@@ -600,7 +601,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#readEvaluationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -608,7 +609,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             }
 
@@ -620,7 +621,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#conversationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -628,7 +629,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
 
                     $('#appealEvaluationStartDatetimePicker').datetimepicker({
                         language: 'en',
@@ -636,7 +637,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#appealEvaluationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -644,7 +645,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             }
 
@@ -657,7 +658,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#reportConversationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -665,7 +666,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
 
                     let qaDepartmentMember = [];
                     if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0) {
