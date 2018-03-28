@@ -26,11 +26,11 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                 a(href='', name='report', ng-click="openHeaderPanel('report'); setClickedHeaderIcon()" )
                     i.fa.fa-table
                     | {{ 'REPORT' | translate }}
-            li(style="{{ checkViewPermission('Operation')? 'display:bloc; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Operation')? 'display:block; width:65px;' : 'display:none'}}")
                 a(href='', name='operation', ng-click="openHeaderPanel('operation'); setClickedHeaderIcon()" )
                     i.fa.fa-tasks
                     | {{ 'OPERATION' | translate }}
-            li(style="{{ checkViewPermission('Analysis')? 'display:bloc; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Analysis')? 'display:block; width:65px;' : 'display:none'}}")
                 a(href='', name='analysis', ng-click="openHeaderPanel('analysis'); setClickedHeaderIcon()" )
                     i.fa.fa-line-chart
                     | {{ 'ANALYSIS' | translate }}
