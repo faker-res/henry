@@ -79,6 +79,18 @@ var dbQualityInspection = {
             })
         }
     },
+    getTotalNumberOfAppealingRecord: function(){
+        return dbconfig.collection_qualityInspection.find({status: constQualityInspectionStatus.APPEALING}).count();
+
+    },
+    getTotalNumberOfAppealingRecordByCS: function(adminId){
+        let query = {
+            status: constQualityInspectionStatus.APPEALING,
+            fpmsAcc: adminId
+        }
+
+        return dbconfig.collection_qualityInspection.find(query).count();
+    },
     splitOperatorId:function(operatorIdArr){
         let results = [];
         let resultTXT = '';
@@ -1234,7 +1246,13 @@ var dbQualityInspection = {
                 data.qualityAssessor = adminId;
                 data.processTime = Date.now();
                 data.fpmsAcc = udata;
-                data.status = constQualityInspectionStatus.COMPLETED_UNREAD;
+
+                if(data.status == constQualityInspectionStatus.APPEALING){
+                    data.status = constQualityInspectionStatus.APPEAL_COMPLETED;
+                }else{
+                    data.status = constQualityInspectionStatus.COMPLETED_UNREAD;
+                }
+
                 if (qaData.length == 0) {
                     return dbconfig.collection_qualityInspection(data).save();
                 }else{
