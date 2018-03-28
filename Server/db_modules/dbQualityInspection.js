@@ -334,8 +334,6 @@ var dbQualityInspection = {
         let deferred = Q.defer();
         let combineData = [];
         Q.all(data).then(results => {
-            console.log("LH CHECK Quality Inspection BBBBBBBBBBBBBBBBBBBBBBB",results.mongo);
-            console.log("LH CHECK Quality Inspection CCCCCCCCCCCCCCCCCCCCCCC",results.mysql);
             let mongoData = results.mongo;
             let mysqlData = results.mysql;
             if(results.length == 0){
@@ -348,21 +346,25 @@ var dbQualityInspection = {
                         return sqlItem.messageId == item.messageId;
                     });
                     if (mysqlCV.length > 0) {
-                        let conversation = mysqlCV[0].conversation;
-                        item.conversation.forEach(cv => {
-                            let overrideCV = conversation.filter(mycv => {
-                                return cv.time == mycv.time;
-                            });
-                            if (overrideCV.length > 0) {
-                                let roles = overrideCV[0].roles;
-                                cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
-                                cv.content = overrideCV[0].content;
+                        mysqlCV.forEach(conversation => {
+                            if(conversation &&  conversation.companyId && conversation.operatorName && item && item.companyId && item.live800Acc && item.live800Acc.name &&
+                                conversation.companyId == item.companyId && conversation.operatorName == item.live800Acc.name){
+                                item.conversation.forEach(cv => {
+                                    let overrideCV = conversation.conversation.filter(mycv => {
+                                        return cv.time == mycv.time
+                                    })
+
+                                    if(overrideCV.length > 0){
+                                        let roles = overrideCV[0].roles;
+                                        cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
+                                        cv.content = overrideCV[0].content;
+                                    }
+                                })
                             }
-                        })
+                        });
                     }
                     combineData.push(item);
                 });
-                console.log("LH CHECK Quality Inspection DDDDDDDDDDDDDDDDDDDD",combineData);
                 deferred.resolve(combineData);
             }
 
@@ -402,6 +404,8 @@ var dbQualityInspection = {
                         dData.messageId = item.msg_id;
                         let conversation = dbQualityInspection.conversationReformat(item.content);
                         dData.conversation = conversation;
+                        dData.companyId = item.company_id;
+                        dData.operatorName = item.operator_name;
                         reformatData.push(dData);
                     });
                     let cv = {
@@ -501,7 +505,6 @@ var dbQualityInspection = {
                 return a.time - b.time;
             });
 
-            console.log("LH CHECK Quality Inspection AAAAAAAAAAAAAAAAAAa",content)
             return content;
     },
     searchPendingMySQL:function(mongoData, queryObj, paginationQuery, connection){
@@ -807,7 +810,7 @@ var dbQualityInspection = {
             status: constQualityInspectionStatus.COMPLETED_UNREAD,
             fpmsAcc: adminId
         }
-        let unreadEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        let unreadEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).sort({createTime: -1}).then(
             unreadEvaluationData => {
                 if(unreadEvaluationData && unreadEvaluationData.length > 0){
                     //let dbResult = dbQualityInspection.searchMongoDB(query);
@@ -886,7 +889,7 @@ var dbQualityInspection = {
             status: constQualityInspectionStatus.COMPLETED_READ,
             fpmsAcc: adminId
         }
-        let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).sort({createTime: -1}).then(
             readEvaluationData => {
                 if(readEvaluationData && readEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -944,7 +947,7 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).sort({createTime: -1}).then(
             appealEvaluationData => {
                 if(appealEvaluationData && appealEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -1003,7 +1006,7 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).sort({createTime: -1}).then(
             appealEvaluationData => {
                 if(appealEvaluationData && appealEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -1787,6 +1790,7 @@ var dbQualityInspection = {
 
         let conversationForm = [];
 
+        let counter = 0;
         if(connection){
             connection.query(queryString, function (error, results, fields) {
                 //console.log("live 800 result",results)
@@ -1795,6 +1799,7 @@ var dbQualityInspection = {
                 }
 
                 if(results){
+                    console.log("LH CHECK QI SCHEDULER AAAAAAAAAAAA",results.length);
                     results.forEach(result => {
                         let totalInvalidConversation = 0;
                         let totalValidConversation = 0;
@@ -1803,10 +1808,8 @@ var dbQualityInspection = {
                             let ytdEndTime = new Date(result.storeTime);
                             ytdEndTime.setHours(23, 59, 59, 999);
 
-
                             ytdStartTime = dbUtility.getLocalTimeString(ytdStartTime);
                             ytdEndTime = dbUtility.getLocalTimeString(ytdEndTime);
-
 
                             let query = "SELECT CAST(store_time AS DATE) AS createTime, company_id, operator_id , operator_name, content   FROM chat_content " +
                                 "WHERE store_time BETWEEN CAST('"+ ytdStartTime + "' as DATETIME) AND CAST('"+ ytdEndTime + "' AS DATETIME) " +
@@ -1874,7 +1877,10 @@ var dbQualityInspection = {
                                                     //     deferred.resolve(result);
                                                     // }
                                                     if(!data || data.length <= 0) {
+                                                        counter += 1;
+                                                        console.log("LH CHECK QI SCHEDULER BBBBBBBBBBBBB",counter);
                                                         dbconfig.collection_live800RecordDaySummary(updateData).save();
+                                                        console.log("LH CHECK QI SCHEDULER CCCCCCCCCCCCC",updateData);
                                                     }
                                             });
                                         }
@@ -1888,6 +1894,7 @@ var dbQualityInspection = {
                 deferred.resolve();
                 connection.end();
             });
+
             return deferred.promise;
         }else{
             return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
