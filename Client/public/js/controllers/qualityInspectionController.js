@@ -2367,7 +2367,7 @@ define(['js/app'], function (myApp) {
                         // Open this row
                         var data = row.data();
                         console.log('content', data);
-                        var id = 'detailReportTable' + data.operatorName;
+                        var id = 'detailReportTable' + data.operatorId;
                         row.child(vm.createInnerTable(id)).show();
                         vm[id] = {};
 
