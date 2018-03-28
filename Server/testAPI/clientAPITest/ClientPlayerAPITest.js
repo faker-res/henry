@@ -453,6 +453,17 @@
         this.playerService.getPlayerDayStatus.once(callback);
     };
 
+    proto.getPlayerAnyDayStatus = function(callback, requestData) {
+        let data = requestData;
+        if (data && data.providerIds) {
+            let providerIdsStr = data.providerIds.replace(/\s/g,'');
+            let providerIdsArr = providerIdsStr.split(',');
+            data.providerIds = providerIdsArr;
+        }
+        this.playerService.getPlayerAnyDayStatus.request(data);
+        this.playerService.getPlayerAnyDayStatus.once(callback);
+    };
+
     proto.getPlayerWeekStatus = function(callback, requestData) {
         let data = requestData;
         if (data && data.providerIds) {

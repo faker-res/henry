@@ -83,6 +83,8 @@ define(['js/app'], function (myApp) {
                 pageArr: []
             }
 
+            vm.appealingTotalRecord = 0;
+            vm.appealingTotalRecordByCS = 0;
             //vm.unReadEvaluation = {};
 
 
@@ -271,6 +273,11 @@ define(['js/app'], function (myApp) {
                     }
                 })
                 vm.live800Accs = live800Accs;
+                if (vm.live800Accs && vm.live800Accs.length > 0) {
+                    if(vm.inspection800) {
+                        vm.inspection800.live800Accs = vm.live800Accs;
+                    }
+                }
             }
             //search and select platform node
             vm.searchAndSelectPlatform = function (text, option) {
@@ -384,11 +391,31 @@ define(['js/app'], function (myApp) {
                 vm.pgn.index = ((pgNo-1)*vm.pgn.limit);
                 vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
-            },
+            };
+            vm.getTotalNumberOfAppealingRecord = function(){
+                socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecord', "", function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.hasOwnProperty("data")) {
+                            vm.appealingTotalRecord = data.data;
+                        }
+                    });
+                });
+
+            };
+            vm.getTotalNumberOfAppealingRecordByCS = function(){
+                socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecordByCS', "", function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.appealingTotalRecordByCS = data.data;
+                        }
+                    });
+                });
+
+            };
             vm.searchLive800 = function(){
                 $('.searchingQualityInspection').show();
                 let fpmsId = [];
-                if(vm.fpmsACCList.length > 0){
+                if(vm.fpmsACCList && vm.fpmsACCList.length > 0){
                   vm.fpmsACCList.map(item=>{
                     fpmsId.push(item.name);
                   })
@@ -424,22 +451,12 @@ define(['js/app'], function (myApp) {
                             let colors = '';
 
                             // render with different color
-                            overtimeSetting.forEach((ots,i)=>{
-                                if(cv.roles==1 && cv.needRate){
-                                    if(i==0){
-                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                            colors = overtimeSetting[0].color;
-                                        }
-                                    }else if(i==otsLength){
-                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                            colors = overtimeSetting[i].color;
-                                        }
-                                    }else{
-                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                            colors = overtimeSetting[i].color;
-                                        }
-                                    }
-                                }
+                            overtimeSetting.forEach((ots,i) => {
+                               if(cv.roles == 1 && cv.needRate){
+                                   if(cv.timeoutRate == ots.presetMark){
+                                       colors = ots.color;
+                                   }
+                               }
                             });
                             cv.colors = colors;
                             return cv;
@@ -473,6 +490,8 @@ define(['js/app'], function (myApp) {
 
                     $scope.safeApply();
                 }
+
+                vm.getTotalNumberOfAppealingRecord();
             };
             vm.getPlatformOvertimeSetting = function(item){
                 let overtimeSetting = vm.platformList.filter(pf=>{
@@ -516,13 +535,14 @@ define(['js/app'], function (myApp) {
             }
             vm.showLive800 = function(){
                 vm.initLive800Start();
-                vm.fpmsACCList = [];
                 vm.batchEditList = [];
-                vm.inspection800 = {};
-                vm.inspection800.fpms = [];
-                vm.inspection800.status = '1';
-                vm.inspection800.qiUser = 'all';
-                vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:5, count:0};
+                if (!vm.inspection800) {
+                    vm.inspection800 = {
+                        status: '1',
+                        qiUser: 'all'
+                    }
+                }
+                vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:100, count:0};
 
                 setTimeout(function(){
                     $scope.safeApply();
@@ -561,7 +581,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#unreadEvaluationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -569,7 +589,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             };
 
@@ -581,7 +601,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#readEvaluationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -589,7 +609,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             }
 
@@ -601,7 +621,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#conversationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -609,7 +629,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
 
                     $('#appealEvaluationStartDatetimePicker').datetimepicker({
                         language: 'en',
@@ -617,7 +637,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#appealEvaluationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -625,7 +645,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             }
 
@@ -638,7 +658,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getYesterdayStartTime());
+                    $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
 
                     $('#reportConversationEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -646,7 +666,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getNdaylaterStartTime(1));
+                    $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
 
                     let qaDepartmentMember = [];
                     if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0) {
@@ -811,20 +831,10 @@ define(['js/app'], function (myApp) {
                                             let colors = '';
 
                                             // render with different color
-                                            overtimeSetting.forEach((ots,i)=>{
-                                                if(cv.roles==1 && cv.needRate){
-                                                    if(i==0){
-                                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                            colors = overtimeSetting[0].color;
-                                                        }
-                                                    }else if(i==otsLength){
-                                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                            colors = overtimeSetting[i].color;
-                                                        }
-                                                    }else{
-                                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                            colors = overtimeSetting[i].color;
-                                                        }
+                                            overtimeSetting.forEach((ots,i) => {
+                                                if(cv.roles == 1 && cv.needRate){
+                                                    if(cv.timeoutRate == ots.presetMark){
+                                                        colors = ots.color;
                                                     }
                                                 }
                                             });
@@ -908,20 +918,10 @@ define(['js/app'], function (myApp) {
                                     let colors = '';
 
                                     // render with different color
-                                    overtimeSetting.forEach((ots,i)=>{
-                                        if(cv.roles==1 && cv.needRate){
-                                            if(i==0){
-                                                if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                    colors = overtimeSetting[0].color;
-                                                }
-                                            }else if(i==otsLength){
-                                                if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                    colors = overtimeSetting[i].color;
-                                                }
-                                            }else{
-                                                if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                    colors = overtimeSetting[i].color;
-                                                }
+                                    overtimeSetting.forEach((ots,i) => {
+                                        if(cv.roles == 1 && cv.needRate){
+                                            if(cv.timeoutRate == ots.presetMark){
+                                                colors = ots.color;
                                             }
                                         }
                                     });
@@ -1005,20 +1005,10 @@ define(['js/app'], function (myApp) {
                                 let colors = '';
 
                                 // render with different color
-                                overtimeSetting.forEach((ots,i)=>{
-                                    if(cv.roles==1 && cv.needRate){
-                                        if(i==0){
-                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                colors = overtimeSetting[0].color;
-                                            }
-                                        }else if(i==otsLength){
-                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
-                                        }else{
-                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
+                                overtimeSetting.forEach((ots,i) => {
+                                    if(cv.roles == 1 && cv.needRate){
+                                        if(cv.timeoutRate == ots.presetMark){
+                                            colors = ots.color;
                                         }
                                     }
                                 });
@@ -1099,20 +1089,10 @@ define(['js/app'], function (myApp) {
                                 let colors = '';
 
                                 // render with different color
-                                overtimeSetting.forEach((ots,i)=>{
-                                    if(cv.roles==1 && cv.needRate){
-                                        if(i==0){
-                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                colors = overtimeSetting[0].color;
-                                            }
-                                        }else if(i==otsLength){
-                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
-                                        }else{
-                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
+                                overtimeSetting.forEach((ots,i) => {
+                                    if(cv.roles == 1 && cv.needRate){
+                                        if(cv.timeoutRate == ots.presetMark){
+                                            colors = ots.color;
                                         }
                                     }
                                 });
@@ -1807,15 +1787,16 @@ define(['js/app'], function (myApp) {
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss'
                 });
-                var lastMonth = utilService.setNDaysAgo(new Date(), 1);
-                var lastMonthDateStartTime = utilService.setThisDayStartTime(new Date(lastMonth));
-                obj.startTime.data('datetimepicker').setLocalDate(new Date(lastMonthDateStartTime));
+
+                let thisMonthDateStartTime = utilService.getThisMonthStartTime();
+                obj.startTime.data('datetimepicker').setLocalDate(new Date(thisMonthDateStartTime));
 
                 obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
                     language: 'en',
                     format: 'dd/MM/yyyy hh:mm:ss'
                 });
-                obj.endTime.data('datetimepicker').setLocalDate(new Date(utilService.getTodayStartTime()));
+                let thisMonthDatEndTime = utilService.getThisMonthEndTime();
+                obj.endTime.data('datetimepicker').setLocalDate(new Date(thisMonthDatEndTime));
             };
 
 
@@ -2074,7 +2055,7 @@ define(['js/app'], function (myApp) {
                                 if (data.pendingCount == "NaN") {
                                     data.pendingCount = Number(0).toFixed(2);
                                 }
-                                if (data.avgMark == "NaN") {
+                                if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
                                     data.avgMark = Number(0).toFixed(2);
                                 }
 
@@ -2200,12 +2181,6 @@ define(['js/app'], function (myApp) {
                                     return;
                                 }
 
-                                // vm.mysqlData.forEach( item => {
-                                //     if (item.operatorName == data.data[0].adminName){
-                                //         selectedCompanyId.push(item.companyId.toString());
-                                //     }
-                                // });
-
                                 selectedLiveAcc = data.data[0].live800Acc;
                             
                                 let params= {
@@ -2228,20 +2203,12 @@ define(['js/app'], function (myApp) {
                                                 let index = vm.displayDetailData.findIndex(p => p.operatorId.toUpperCase() == data.operatorId.toUpperCase());
                                                 if (index != -1) {
                                                     if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[data.status])) {
-                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = vm.v[index][vm.constQualityInspectionStatus[data.status]] + data.count;
+                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] +=  data.count;
                                                     } else {
                                                         vm.displayDetailData[index][vm.constQualityInspectionStatus[data.status]] = data.count;
                                                     }
                                                 }
                                             });
-
-                                            // vm.displayDetailData.forEach(data => {
-                                            //     for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
-                                            //         if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
-                                            //             data[vm.constQualityInspectionStatus[i]] = 0;
-                                            //         }
-                                            //     }
-                                            // });
                                         }
                                         vm.displayDetailData.map(data => {
                                             for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
@@ -2276,7 +2243,7 @@ define(['js/app'], function (myApp) {
                                                 if (data.pendingCount == "NaN") {
                                                     data.pendingCount = Number(0).toFixed(2);
                                                 }
-                                                if (data.avgMark == "NaN") {
+                                                if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
                                                     data.avgMark = Number(0).toFixed(2);
                                                 }
 
@@ -2316,7 +2283,13 @@ define(['js/app'], function (myApp) {
                     // ],
                     columns: [
 
-                        {title: "Live800 " + $translate('Account'), data: "operatorId"},
+                        {
+                            title: "Live800 " + $translate('Account'), data: "operatorId", sClass: "expandInnerPlayerReport",
+                            render: function (data, type, row) {
+                                return "<a>" + data + "</a>";
+                            }
+
+                        },
                         {
                             title: $translate('TOTAL_CONVERSATION_RECORD'),
                             data: "totalCount",
@@ -2376,8 +2349,235 @@ define(['js/app'], function (myApp) {
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
-
                 var innerTable = $('#' + id).DataTable(tableOptions);
+                //start
+                $('#' + id).off('click', 'td.expandInnerPlayerReport');
+                $('#' + id).resize();
+
+                $('#' + id).on('click', 'td.expandInnerPlayerReport', function () {
+                    var tr = $(this).closest('tr');
+                    var row = innerTable.row(tr);
+
+                    if (row.child.isShown()) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                    else {
+                        // Open this row
+                        var data = row.data();
+                        console.log('content', data);
+                        var id = 'detailReportTable' + data.operatorId;
+                        row.child(vm.createInnerTable(id)).show();
+                        vm[id] = {};
+
+                        let selectedLiveAcc = [];
+                        let selectedCompanyId =[];
+                        vm.displayDetailData = [];
+
+                        let params= {
+                            'operatorId': [data.operatorId],
+                            'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
+                            'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDate', params, function (data){
+                            if (data.data[0] && data.data[0].length > 0) {
+
+                                vm.displayDetailData = $.extend(true, [], data.data[0]);
+
+                                if (data.data[1] && data.data[1].length > 0) {
+                                    data.data[1].forEach(data => {
+                                        let index = vm.displayDetailData.findIndex(p => p.date == data.date);
+                                        if (index != -1) {
+                                            if (data.data && data.data.length > 0){
+                                                data.data.forEach( inData => {
+                                                    if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
+                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
+                                                    } else {
+                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
+                                                    }
+                                                })
+                                            }
+
+                                        }
+                                        // else{
+                                        //     // generate same empty record when the length of record is not same
+                                        //     let recordData = {
+                                        //         date: data.date,
+                                        //         companyId: data.companyId,
+                                        //         operatorId: data.operatorId,
+                                        //         totalCount: 0,
+                                        //         totalEffectiveCount: 0,
+                                        //         totalNonEffectiveCount: 0
+                                        //     };
+                                        //     if (data.data && data.data.length > 0){
+                                        //         data.data.forEach( inData => {
+                                        //             if (recordData.hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
+                                        //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
+                                        //             } else {
+                                        //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
+                                        //             }
+                                        //         })
+                                        //     }
+                                        //     vm.displayDetailData.push(recordData);
+                                        // }
+                                    });
+                                }
+                                vm.displayDetailData.map(data => {
+                                    for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                        if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                            data[vm.constQualityInspectionStatus[i]] = 0;
+                                        }
+                                    }
+                                    return data;
+                                });
+
+                                if (data.data[2] && data.data[2].length > 0) {
+                                    data.data[2].forEach(data => {
+                                        let index = vm.displayDetailData.findIndex(p => p.date == data.date);
+                                        if (index != -1) {
+                                            vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
+                                            vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
+                                        }
+                                        // else{
+                                        //     // generate same empty record when the length of record is not same
+                                        //     let recordData = {
+                                        //         date: data.date,
+                                        //         companyId: data.companyId,
+                                        //         operatorId: data.operatorId,
+                                        //         totalCount: 0,
+                                        //         totalEffectiveCount: 0,
+                                        //         totalNonEffectiveCount: 0,
+                                        //         COMPLETED_UNREAD: 0,
+                                        //         COMPLETED_READ: 0,
+                                        //         COMPLETED: 0,
+                                        //         APPEALING: 0,
+                                        //         APPEAL_COMPLETED: 0,
+                                        //
+                                        //     };
+                                        //     recordData.totalInspectionRate = data.totalInspectionRate || 0;
+                                        //     recordData.totalOvertimeRate = data.totalOvertimeRate || 0;
+                                        //     vm.displayDetailData.push(recordData);
+                                        // }
+                                    });
+                                }
+
+                                vm.displayDetailData.map(data => {
+
+                                    data.date = data.date.split("T")[0];
+
+                                    if (!data.totalOvertimeRate){
+                                        data.totalOvertimeRate = 0;
+                                    }
+                                    if (!data.totalInspectionRate){
+                                        data.totalInspectionRate = 0;
+                                    }
+                                    data.pendingCount = data.totalEffectiveCount - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
+                                    data.avgMark = ((data.totalOvertimeRate || 0 + data.totalInspectionRate || 0) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+
+                                    // check NaN
+                                    if (data.pendingCount == "NaN") {
+                                        data.pendingCount = Number(0).toFixed(2);
+                                    }
+                                    if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
+                                        data.avgMark = Number(0).toFixed(2);
+                                    }
+
+                                    return data;
+                                });
+
+                                $scope.safeApply();
+                                vm.drawInDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                            }
+
+                        });
+
+                        tr.addClass('shown');
+                    }
+                });
+                $('#' + id).off('order.dt');
+                $('#' + id).on('order.dt', function (event, a, b) {
+                //$('#QIReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'QIReportQuery', vm.searchQIRecord);
+                });
+                //
+            };
+
+            vm.drawInDetailQIReportTable = function (data, id, size, newSearch, qObj) {
+                let holder = data;
+                let tableOptions = {
+                    data: data,
+                    //"ordering": false,
+                    // aoColumnDefs: [
+                    //     {targets: '_all', defaultContent: ' ', bSortable: false}
+                    // ],
+                    columns: [
+
+                        {
+                            title: $translate('date'), data: "date",
+                        },
+                        {
+                            title: $translate('TOTAL_CONVERSATION_RECORD'),
+                            data: "totalCount",
+
+                        },
+                        {
+                            title: $translate('NOT_EVALUATED_QUANTITY'), data: "totalNonEffectiveCount",
+
+                        },
+                        {
+                            title: $translate('EFFECTIVE_CONVERSATION_QUANTITY'), data: "totalEffectiveCount",
+
+                        },
+                        {
+                            title: $translate('PROCESSING_QUANTITY'), data: "pendingCount",
+
+                        },
+                        {
+                            title: $translate('COMPLETED_UNREAD_QUANTITY'), data: "COMPLETED_UNREAD",
+
+                        },
+                        {
+                            title: $translate('COMPLETED_READ_QUANTITY'), data: "COMPLETED_READ",
+
+                        },
+                        {
+                            title: $translate('COMPLETED_QUANTITY'), data: "COMPLETED",
+
+                        },
+                        {
+                            title: $translate('APPEALING_QUANTITY'), data: "APPEALING",
+
+                        },
+                        {
+                            title: $translate('APPEAL_COMPLETED_QUANTITY'), data: "APPEAL_COMPLETED",
+
+                        },
+                        {
+                            title: $translate('TOTAL_OVERTIME_MARK') + '(+/-)', data: "totalOvertimeRate",
+
+                        },
+                        {
+                            title: $translate('TOTAL_EVALUATION_MARK') + '(+/-)', data: "totalInspectionRate",
+
+                        },
+                        {
+                            title: $translate('AVG_DEDUCTION_MARK') , data: "avgMark",
+
+                        }
+                    ],
+                    "paging": false,
+                    // "dom": '<"top">rt<"bottom"il><"clear">',
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
+                var innerDetailTable = $('#' + id).DataTable(tableOptions);
+
             };
 
             vm.commonTableOption = {

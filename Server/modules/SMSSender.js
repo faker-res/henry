@@ -134,8 +134,7 @@ const SMSSender = {
                     smsAPI.channel_getChannelList({}).then(
                         channelData => {
                             if (channelData && channelData.channels && channelData.channels.length > 1) {
-                                defaultChannel = channelData.channels[1];
-
+                                defaultChannel = 2;
                                 let messageContent = SMSSender.contentModifier(promoData.promoCodeType.smsContent,promoData);
 
                                 var messageData = {
@@ -193,7 +192,7 @@ const SMSSender = {
                     contentToReplace = promoData.expirationTime;
                     break;
                 case "P":
-                    contentToReplace = promoData.allowedProviders;
+                    contentToReplace = promoData.allowedProviders || localization.translate("ALL_PROVIDERS");
                     break;
                 case "Q":
                     contentToReplace = promoData.code;
