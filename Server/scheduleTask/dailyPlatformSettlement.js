@@ -192,6 +192,7 @@ var dailyPlatformSettlement = {
      * @param {objectId} platformId - platform id
      */
     calculateDailyPlatformSettlement: function (platformId) {
+        console.log("calculateDailyPlatformSettlement");
         return Q.resolve().then(
             () => playerSummary.calculateYesterdayPlayerConsumptionSummary(platformId).catch(
                 error => Q.reject({

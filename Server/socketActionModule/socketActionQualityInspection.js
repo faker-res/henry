@@ -70,6 +70,16 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.countLive800, [data], actionName, isDataValid);
         },
+        getTotalNumberOfAppealingRecord: function getTotalNumberOfAppealingRecord(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = true;
+            socketUtil.emitter(self.socket, dbQualityInspection.getTotalNumberOfAppealingRecord, [data], actionName, isDataValid);
+        },
+        getTotalNumberOfAppealingRecordByCS: function getTotalNumberOfAppealingRecordByCS(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = true;
+            socketUtil.emitter(self.socket, dbQualityInspection.getTotalNumberOfAppealingRecordByCS, [getAdminId()], actionName, isDataValid);
+        },
         getProgressReportByOperator: function getProgressReportByOperator(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);

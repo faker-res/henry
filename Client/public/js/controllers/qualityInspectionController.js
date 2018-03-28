@@ -83,6 +83,8 @@ define(['js/app'], function (myApp) {
                 pageArr: []
             }
 
+            vm.appealingTotalRecord = 0;
+            vm.appealingTotalRecordByCS = 0;
             //vm.unReadEvaluation = {};
 
 
@@ -271,6 +273,11 @@ define(['js/app'], function (myApp) {
                     }
                 })
                 vm.live800Accs = live800Accs;
+                if (vm.live800Accs && vm.live800Accs.length > 0) {
+                    if(vm.inspection800) {
+                        vm.inspection800.live800Accs = vm.live800Accs;
+                    }
+                }
             }
             //search and select platform node
             vm.searchAndSelectPlatform = function (text, option) {
@@ -329,6 +336,23 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 }
             };
+            vm.checkUncheckSelectAll = function () {
+                let isChecked = false;
+
+                isChecked = document.getElementById("selectAll").checked;
+
+                if(isChecked) {
+                    $('input[name="rowChecked"]').each(function() {
+                        this.checked = true;
+                        vm.storeBatchId();
+                    });
+                } else {
+                    $('input[name="rowChecked"]').each(function() {
+                        this.checked = false;
+                        vm.batchEditList = [];
+                    });
+                }
+            };
             vm.storeBatchId = function(isCheck, conversation){
                 vm.batchEditList = [];
                 $('body .batchEdit:checked').each( function(){
@@ -367,11 +391,31 @@ define(['js/app'], function (myApp) {
                 vm.pgn.index = ((pgNo-1)*vm.pgn.limit);
                 vm.pgn.currentPage = pgNo;
                 vm.searchLive800();
-            },
+            };
+            vm.getTotalNumberOfAppealingRecord = function(){
+                socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecord', "", function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.appealingTotalRecord = data.data;
+                        }
+                    });
+                });
+
+            };
+            vm.getTotalNumberOfAppealingRecordByCS = function(){
+                socketService.$socket($scope.AppSocket, 'getTotalNumberOfAppealingRecordByCS', "", function (data) {
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.appealingTotalRecordByCS = data.data;
+                        }
+                    });
+                });
+
+            };
             vm.searchLive800 = function(){
                 $('.searchingQualityInspection').show();
                 let fpmsId = [];
-                if(vm.fpmsACCList.length > 0){
+                if(vm.fpmsACCList && vm.fpmsACCList.length > 0){
                   vm.fpmsACCList.map(item=>{
                     fpmsId.push(item.name);
                   })
@@ -407,22 +451,12 @@ define(['js/app'], function (myApp) {
                             let colors = '';
 
                             // render with different color
-                            overtimeSetting.forEach((ots,i)=>{
-                                if(cv.roles==1 && cv.needRate){
-                                    if(i==0){
-                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                            colors = overtimeSetting[0].color;
-                                        }
-                                    }else if(i==otsLength){
-                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                            colors = overtimeSetting[i].color;
-                                        }
-                                    }else{
-                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                            colors = overtimeSetting[i].color;
-                                        }
-                                    }
-                                }
+                            overtimeSetting.forEach((ots,i) => {
+                               if(cv.roles == 1 && cv.needRate){
+                                   if(cv.timeoutRate == ots.presetMark){
+                                       colors = ots.color;
+                                   }
+                               }
                             });
                             cv.colors = colors;
                             return cv;
@@ -433,6 +467,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     });
                     vm.conversationForm = data.data;
+                    $("#selectAll").removeAttr('checked');
                     $('.searchingQualityInspection').hide();
                     $scope.safeApply();
                 }
@@ -494,16 +529,18 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'rateCSConversation', rate, function(data){
                     console.log(data);
                     vm.searchLive800();
+                    vm.getTotalNumberOfAppealingRecord();
                 });
             }
             vm.showLive800 = function(){
                 vm.initLive800Start();
-                vm.fpmsACCList = [];
                 vm.batchEditList = [];
-                vm.inspection800 = {};
-                vm.inspection800.fpms = [];
-                vm.inspection800.status = '1';
-                vm.inspection800.qiUser = 'all';
+                if (!vm.inspection800) {
+                    vm.inspection800 = {
+                        status: '1',
+                        qiUser: 'all'
+                    }
+                }
                 vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:5, count:0};
 
                 setTimeout(function(){
@@ -793,20 +830,10 @@ define(['js/app'], function (myApp) {
                                             let colors = '';
 
                                             // render with different color
-                                            overtimeSetting.forEach((ots,i)=>{
-                                                if(cv.roles==1 && cv.needRate){
-                                                    if(i==0){
-                                                        if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                            colors = overtimeSetting[0].color;
-                                                        }
-                                                    }else if(i==otsLength){
-                                                        if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                            colors = overtimeSetting[i].color;
-                                                        }
-                                                    }else{
-                                                        if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                            colors = overtimeSetting[i].color;
-                                                        }
+                                            overtimeSetting.forEach((ots,i) => {
+                                                if(cv.roles == 1 && cv.needRate){
+                                                    if(cv.timeoutRate == ots.presetMark){
+                                                        colors = ots.color;
                                                     }
                                                 }
                                             });
@@ -890,20 +917,10 @@ define(['js/app'], function (myApp) {
                                     let colors = '';
 
                                     // render with different color
-                                    overtimeSetting.forEach((ots,i)=>{
-                                        if(cv.roles==1 && cv.needRate){
-                                            if(i==0){
-                                                if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                    colors = overtimeSetting[0].color;
-                                                }
-                                            }else if(i==otsLength){
-                                                if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                    colors = overtimeSetting[i].color;
-                                                }
-                                            }else{
-                                                if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                    colors = overtimeSetting[i].color;
-                                                }
+                                    overtimeSetting.forEach((ots,i) => {
+                                        if(cv.roles == 1 && cv.needRate){
+                                            if(cv.timeoutRate == ots.presetMark){
+                                                colors = ots.color;
                                             }
                                         }
                                     });
@@ -987,20 +1004,10 @@ define(['js/app'], function (myApp) {
                                 let colors = '';
 
                                 // render with different color
-                                overtimeSetting.forEach((ots,i)=>{
-                                    if(cv.roles==1 && cv.needRate){
-                                        if(i==0){
-                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                colors = overtimeSetting[0].color;
-                                            }
-                                        }else if(i==otsLength){
-                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
-                                        }else{
-                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
+                                overtimeSetting.forEach((ots,i) => {
+                                    if(cv.roles == 1 && cv.needRate){
+                                        if(cv.timeoutRate == ots.presetMark){
+                                            colors = ots.color;
                                         }
                                     }
                                 });
@@ -1081,20 +1088,10 @@ define(['js/app'], function (myApp) {
                                 let colors = '';
 
                                 // render with different color
-                                overtimeSetting.forEach((ots,i)=>{
-                                    if(cv.roles==1 && cv.needRate){
-                                        if(i==0){
-                                            if(cv.timeoutRate >= overtimeSetting[0].presetMark){
-                                                colors = overtimeSetting[0].color;
-                                            }
-                                        }else if(i==otsLength){
-                                            if(cv.timeoutRate <= overtimeSetting[otsLength].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
-                                        }else{
-                                            if(cv.timeoutRate < overtimeSetting[i-1].presetMark && cv.timeoutRate > overtimeSetting[i+1].presetMark){
-                                                colors = overtimeSetting[i].color;
-                                            }
+                                overtimeSetting.forEach((ots,i) => {
+                                    if(cv.roles == 1 && cv.needRate){
+                                        if(cv.timeoutRate == ots.presetMark){
+                                            colors = ots.color;
                                         }
                                     }
                                 });
