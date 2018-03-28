@@ -2374,125 +2374,123 @@ define(['js/app'], function (myApp) {
                         let selectedCompanyId =[];
                         vm.displayDetailData = [];
 
+                        let params= {
+                            'operatorId': [data.operatorId],
+                            'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
+                            'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
+                        };
 
-                           // selectedLiveAcc = data.data[0].live800Acc;
+                        socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDate', params, function (data){
+                            if (data.data[0] && data.data[0].length > 0) {
 
-                            let params= {
-                                'operatorId': [data.operatorId],
-                                'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
-                                'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
-                            };
+                                vm.displayDetailData = $.extend(true, [], data.data[0]);
 
-                            socketService.$socket($scope.AppSocket, 'searchLive800SettlementRecordByDate', params, function (data){
-                                if (data.data[0] && data.data[0].length > 0) {
-
-                                    vm.displayDetailData = $.extend(true, [], data.data[0]);
-
-                                    if (data.data[1] && data.data[1].length > 0) {
-                                        data.data[1].forEach(data => {
-                                            let index = vm.displayDetailData.findIndex(p => p.date == data.date);
-                                            if (index != -1) {
-                                                if (data.data && data.data.length > 0){
-                                                    data.data.forEach( inData => {
-                                                        if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
-                                                            vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
-                                                        } else {
-                                                            vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
-                                                        }
-                                                    })
-                                                }
-
+                                if (data.data[1] && data.data[1].length > 0) {
+                                    data.data[1].forEach(data => {
+                                        let index = vm.displayDetailData.findIndex(p => p.date == data.date);
+                                        if (index != -1) {
+                                            if (data.data && data.data.length > 0){
+                                                data.data.forEach( inData => {
+                                                    if (vm.displayDetailData[index].hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
+                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
+                                                    } else {
+                                                        vm.displayDetailData[index][vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
+                                                    }
+                                                })
                                             }
-                                            // else{
-                                            //     // generate same empty record when the length of record is not same
-                                            //     let recordData = {
-                                            //         date: data.date,
-                                            //         companyId: data.companyId,
-                                            //         operatorId: data.operatorId,
-                                            //         totalCount: 0,
-                                            //         totalEffectiveCount: 0,
-                                            //         totalNonEffectiveCount: 0
-                                            //     };
-                                            //     if (data.data && data.data.length > 0){
-                                            //         data.data.forEach( inData => {
-                                            //             if (recordData.hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
-                                            //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
-                                            //             } else {
-                                            //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
-                                            //             }
-                                            //         })
-                                            //     }
-                                            //     vm.displayDetailData.push(recordData);
-                                            // }
-                                        });
-                                    }
-                                    vm.displayDetailData.map(data => {
-                                        for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
-                                            if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
-                                                data[vm.constQualityInspectionStatus[i]] = 0;
-                                            }
+
                                         }
-                                        return data;
+                                        // else{
+                                        //     // generate same empty record when the length of record is not same
+                                        //     let recordData = {
+                                        //         date: data.date,
+                                        //         companyId: data.companyId,
+                                        //         operatorId: data.operatorId,
+                                        //         totalCount: 0,
+                                        //         totalEffectiveCount: 0,
+                                        //         totalNonEffectiveCount: 0
+                                        //     };
+                                        //     if (data.data && data.data.length > 0){
+                                        //         data.data.forEach( inData => {
+                                        //             if (recordData.hasOwnProperty(vm.constQualityInspectionStatus[inData._id.status])) {
+                                        //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] += inData.count;
+                                        //             } else {
+                                        //                 recordData[vm.constQualityInspectionStatus[inData._id.status]] = inData.count;
+                                        //             }
+                                        //         })
+                                        //     }
+                                        //     vm.displayDetailData.push(recordData);
+                                        // }
                                     });
-
-                                    if (data.data[2] && data.data[2].length > 0) {
-                                        data.data[2].forEach(data => {
-                                            let index = vm.displayDetailData.findIndex(p => p.date == data.date);
-                                            if (index != -1) {
-                                                vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
-                                                vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
-                                            }
-                                            // else{
-                                            //     // generate same empty record when the length of record is not same
-                                            //     let recordData = {
-                                            //         date: data.date,
-                                            //         companyId: data.companyId,
-                                            //         operatorId: data.operatorId,
-                                            //         totalCount: 0,
-                                            //         totalEffectiveCount: 0,
-                                            //         totalNonEffectiveCount: 0,
-                                            //         COMPLETED_UNREAD: 0,
-                                            //         COMPLETED_READ: 0,
-                                            //         COMPLETED: 0,
-                                            //         APPEALING: 0,
-                                            //         APPEAL_COMPLETED: 0,
-                                            //
-                                            //     };
-                                            //     recordData.totalInspectionRate = data.totalInspectionRate || 0;
-                                            //     recordData.totalOvertimeRate = data.totalOvertimeRate || 0;
-                                            //     vm.displayDetailData.push(recordData);
-                                            // }
-                                        });
+                                }
+                                vm.displayDetailData.map(data => {
+                                    for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                        if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                            data[vm.constQualityInspectionStatus[i]] = 0;
+                                        }
                                     }
+                                    return data;
+                                });
 
-                                    vm.displayDetailData.map(data => {
-                                        data.date = data.date.split("T")[0];
-                                        if (!data.totalOvertimeRate){
-                                            data.totalOvertimeRate = 0;
+                                if (data.data[2] && data.data[2].length > 0) {
+                                    data.data[2].forEach(data => {
+                                        let index = vm.displayDetailData.findIndex(p => p.date == data.date);
+                                        if (index != -1) {
+                                            vm.displayDetailData[index].totalInspectionRate = data.totalInspectionRate;
+                                            vm.displayDetailData[index].totalOvertimeRate = data.totalOvertimeRate;
                                         }
-                                        if (!data.totalInspectionRate){
-                                            data.totalInspectionRate = 0;
-                                        }
-                                        data.pendingCount = data.totalEffectiveCount - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
-                                        data.avgMark = ((data.totalOvertimeRate || 0 + data.totalInspectionRate || 0) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
-
-                                        // check NaN
-                                        if (data.pendingCount == "NaN") {
-                                            data.pendingCount = Number(0).toFixed(2);
-                                        }
-                                        if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
-                                            data.avgMark = Number(0).toFixed(2);
-                                        }
-
-                                        return data;
+                                        // else{
+                                        //     // generate same empty record when the length of record is not same
+                                        //     let recordData = {
+                                        //         date: data.date,
+                                        //         companyId: data.companyId,
+                                        //         operatorId: data.operatorId,
+                                        //         totalCount: 0,
+                                        //         totalEffectiveCount: 0,
+                                        //         totalNonEffectiveCount: 0,
+                                        //         COMPLETED_UNREAD: 0,
+                                        //         COMPLETED_READ: 0,
+                                        //         COMPLETED: 0,
+                                        //         APPEALING: 0,
+                                        //         APPEAL_COMPLETED: 0,
+                                        //
+                                        //     };
+                                        //     recordData.totalInspectionRate = data.totalInspectionRate || 0;
+                                        //     recordData.totalOvertimeRate = data.totalOvertimeRate || 0;
+                                        //     vm.displayDetailData.push(recordData);
+                                        // }
                                     });
-
-
-                                    $scope.safeApply();
-                                    vm.drawInDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
                                 }
 
-                            });
+                                vm.displayDetailData.map(data => {
+
+                                    data.date = data.date.split("T")[0];
+
+                                    if (!data.totalOvertimeRate){
+                                        data.totalOvertimeRate = 0;
+                                    }
+                                    if (!data.totalInspectionRate){
+                                        data.totalInspectionRate = 0;
+                                    }
+                                    data.pendingCount = data.totalEffectiveCount - data.COMPLETED_UNREAD - data.COMPLETED_READ - data.COMPLETED - data.APPEALING - data.APPEAL_COMPLETED;
+                                    data.avgMark = ((data.totalOvertimeRate || 0 + data.totalInspectionRate || 0) / (data.COMPLETED_UNREAD + data.COMPLETED_READ + data.COMPLETED + data.APPEALING + data.APPEAL_COMPLETED)).toFixed(2);
+
+                                    // check NaN
+                                    if (data.pendingCount == "NaN") {
+                                        data.pendingCount = Number(0).toFixed(2);
+                                    }
+                                    if (data.avgMark == "NaN" || data.avgMark == "Infinity") {
+                                        data.avgMark = Number(0).toFixed(2);
+                                    }
+
+                                    return data;
+                                });
+
+                                $scope.safeApply();
+                                vm.drawInDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                            }
+
+                        });
 
                         tr.addClass('shown');
                     }
