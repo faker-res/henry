@@ -3,29 +3,25 @@ var Schema = mongoose.Schema;
 
 var rewardPointsProgress = new Schema({
     // platform
-    platformObjId: {type: Schema.ObjectId, ref: 'platform', index: true},
-    // player, note that if it does not exist, it is not a real player, but an inserted record
-    playerObjId: {type: Schema.ObjectId, ref: 'player', index: true},
-
-    // player name, could be player that does not exist
-    // playerName: {type: String},
-    // player level
-    // playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true},
-
-    createTime: {type: Date, default: Date.now},
-
-    // lastUpdate: {type: Date, default: Date.now},
-    // event details base on category
-
-    //game
+    // platformObjId: {type: Schema.ObjectId, ref: 'platform', index: true},
+    // reward points
+    rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints', index: true},
+    // reward progress count
+    count: {type: Number, default: 0},
+    // last update progress time
+    lastUpdateTime: {type: Date, default: Date.now, index: true},
+    // is reward applicable
+    isApplicable: {type: Boolean, default: false},
+    // is reward applied
+    isApplied: {type: Boolean, default: false},
+    // reward points event
     rewardPointsEventObjId: {type: Schema.ObjectId, ref: 'player', index: true},
+    //for game reward points
     todayWinCount: {type: Number},
     todayConsumptionAmountProgress: {type: Number} ,
     todayConsumptionCount: {type: Number},
-    count: {type: Number},
-    lastUpdateTime: {type: Date, default: Date.now},
-    isApplicable: {type: Boolean},
-    isApplied: {type: Boolean}
+    // progress create time
+    createTime: {type: Date, default: Date.now}
 
 
 
