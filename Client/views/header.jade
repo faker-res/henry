@@ -1,6 +1,6 @@
-nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bottom: 0;height: 100px')
+nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bottom: 0;height: 85px')
     .navbar-header.nav-header.visible-lg(style='min-width:150px;')
-        div.inlineBlk(style="border-radius: 9px;border: 1px;color:white;margin-top:40px;background-color:rgba(0,0,0,0.5)")
+        div.inlineBlk(style="border-radius: 9px;border: 1px;color:white;margin-top:0; background-color:rgba(0,0,0,0.5); min-width: 150px;")
             img(ng-if="companyLogo" ng-src="{{companyLogo}}" width="100px" height="100px" style="position:absolute;left:20px;top:10px;z-index:-1;")
             div.inlineBlk(ng-if='checkViewPermission("Platform","Platform", "Read")',
                 data-toggle="modal",
@@ -11,6 +11,10 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                 //div#platformTree(style="height: 400px;")
             .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px;' ng-click='switchPlatform($event)')
             #platformTreeHeader(ng-show='showPlatformDropDownList', style="min-width: 200px; position: absolute; color: black; z-index: 9;")
+        div.inlineBlk(style='min-width:150px !important; display: flex; font-size:0.8em; color:#ffffff;')
+            //label.control-label(style="margin-top: 10px; width:40px") {{"Server" | translate}}
+            select(ng-model="mgntServer", ng-change="changeServer(mgntServer)", style="font-size: 12px; display: block; width: 100%; height: 20px; color: #555; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; padding:0;")
+                option(ng-repeat='(i,v) in mgntServerList', value='{{i}}', ng-selected='currentServer' ng-disabled='!v.latency') {{i + ":  " + v.latency + "ms"}}
     #cssmenu
         ul.navibar.navbar-header.nav-header.navbar-brand
             li(style="{{ checkViewPermission('Platform')? 'display:block' : 'display:none'}}" class="wbLogo")
@@ -66,33 +70,32 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
             //        | {{'API TEST PAGE' | translate }}
 
         ul.navbar-right()
-            //li(style="min-width:300px !important;font-size:0.8em;color:#ffffff;", ng-show="checkViewPermission('Dashboard', 'Statistics', 'Read')")
-            //    .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
-            //        table.pull-right(style='width:100%;')
-            //            thead
-            //                tr
-            //                    th(colspan=4) {{ 'TotalIncome_ThisMonth' | translate }}: {{ netProfitDetailIncome }}
-            //            tbody(style='text-align: right')
-            //                tr
-            //                    td {{ 'ConsumptionAmount_Date' | translate }}:
-            //                    td {{ profitDetailConsumptionAmount }}
-            //                    td {{ 'NewRegister_Date' | translate }}:
-            //                    td {{ profitDetailNewPlayer }}
-            //                tr
-            //                    td {{ 'TopUp_Date' | translate }}:
-            //                    td {{ profitDetailTopUpAmount }}
-            //                    td {{ 'ConsumptionPlayer_Date' | translate}}:
-            //                    td {{ profitDetailConsumptionPlayer }}
-            //                tr
-            //                    td {{ 'Withdraw_Date' | translate }}:
-            //                    td -{{ profitDetailBonusAmount }}
-            //                    td {{ 'Income_Date' | translate }}:
-            //                    td {{ profitDetailIncome }}
-            //
-            li(style='min-width:150px !important; font-size:0.7em; color:#ffffff;')
-                label.control-label {{"Server" | translate}}
-                select.form-control(ng-model="mgntServer", ng-change='changeServer(mgntServer)')
-                    option(ng-repeat='(i,v) in mgntServerList', value='{{i}}', ng-selected='currentServer' ng-disabled='!v.latency') {{i + ":  " + v.latency + "ms"}}
+            li(style="min-width:350px !important;font-size:0.8em;color:#ffffff;", ng-show="checkViewPermission('Dashboard', 'Statistics', 'Read')")
+                .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
+                    table.pull-right(style='width:100%;')
+                        thead
+                            tr
+                                th(colspan=4) {{ 'TotalIncome_ThisMonth' | translate }}: {{ netProfitDetailIncome }}
+                        tbody(style='text-align: right')
+                            tr
+                                td {{ 'ConsumptionAmount_Date' | translate }}:
+                                td {{ profitDetailConsumptionAmount }}
+                                td {{ 'NewRegister_Date' | translate }}:
+                                td {{ profitDetailNewPlayer }}
+                            tr
+                                td {{ 'TopUp_Date' | translate }}:
+                                td {{ profitDetailTopUpAmount }}
+                                td {{ 'ConsumptionPlayer_Date' | translate}}:
+                                td {{ profitDetailConsumptionPlayer }}
+                            tr
+                                td {{ 'Withdraw_Date' | translate }}:
+                                td -{{ profitDetailBonusAmount }}
+                                td {{ 'Income_Date' | translate }}:
+                                td {{ profitDetailIncome }}
+            //li(style='min-width:150px !important; font-size:0.7em; color:#ffffff;')
+            //    label.control-label {{"Server" | translate}}
+            //    select.form-control(ng-model="mgntServer", ng-change='changeServer(mgntServer)')
+            //        option(ng-repeat='(i,v) in mgntServerList', value='{{i}}', ng-selected='currentServer' ng-disabled='!v.latency') {{i + ":  " + v.latency + "ms"}}
             li(style='min-width:120px !important;font-size:0.8em;color:#ffffff;')
                 .row.margin-top-bottom-small(style='margin-left:0;margin-right:0')
                     table.pull-right(style='width:100%')

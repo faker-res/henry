@@ -79,6 +79,18 @@ var dbQualityInspection = {
             })
         }
     },
+    getTotalNumberOfAppealingRecord: function(){
+        return dbconfig.collection_qualityInspection.find({status: constQualityInspectionStatus.APPEALING}).count();
+
+    },
+    getTotalNumberOfAppealingRecordByCS: function(adminId){
+        let query = {
+            status: constQualityInspectionStatus.APPEALING,
+            fpmsAcc: adminId
+        }
+
+        return dbconfig.collection_qualityInspection.find(query).count();
+    },
     splitOperatorId:function(operatorIdArr){
         let results = [];
         let resultTXT = '';
@@ -322,6 +334,8 @@ var dbQualityInspection = {
         let deferred = Q.defer();
         let combineData = [];
         Q.all(data).then(results => {
+            console.log("LH CHECK Quality Inspection BBBBBBBBBBBBBBBBBBBBBBB",results.mongo);
+            console.log("LH CHECK Quality Inspection CCCCCCCCCCCCCCCCCCCCCCC",results.mysql);
             let mongoData = results.mongo;
             let mysqlData = results.mysql;
             if(results.length == 0){
@@ -348,6 +362,7 @@ var dbQualityInspection = {
                     }
                     combineData.push(item);
                 });
+                console.log("LH CHECK Quality Inspection DDDDDDDDDDDDDDDDDDDD",combineData);
                 deferred.resolve(combineData);
             }
 
@@ -486,6 +501,7 @@ var dbQualityInspection = {
                 return a.time - b.time;
             });
 
+            console.log("LH CHECK Quality Inspection AAAAAAAAAAAAAAAAAAa",content)
             return content;
     },
     searchPendingMySQL:function(mongoData, queryObj, paginationQuery, connection){
@@ -641,6 +657,9 @@ var dbQualityInspection = {
         if (platform.overtimeSetting) {
 
             let overtimeSetting = platform.overtimeSetting;
+            overtimeSetting.sort(function (a, b) {
+                return a.conversationInterval - b.conversationInterval
+            })
             conversation.forEach(item => {
                 if (!firstCV && item.roles == 2) {
                     firstCV = item;
@@ -680,8 +699,8 @@ var dbQualityInspection = {
                     timeoutRate = overtimeSetting[0].presetMark;
                 }
             }else if(i==otsLength){
-                if(sec >= overtimeSetting[otsLength - 1].conversationInterval){
-                    timeoutRate = overtimeSetting[i - 1].presetMark;
+                if(sec >= overtimeSetting[i - 1].conversationInterval){
+                    timeoutRate = overtimeSetting[i].presetMark;
                 }
             }else{
                 if(sec > overtimeSetting[i-1].conversationInterval && sec <= overtimeSetting[i].conversationInterval){
@@ -1227,7 +1246,13 @@ var dbQualityInspection = {
                 data.qualityAssessor = adminId;
                 data.processTime = Date.now();
                 data.fpmsAcc = udata;
-                data.status = constQualityInspectionStatus.COMPLETED_UNREAD;
+
+                if(data.status == constQualityInspectionStatus.APPEALING){
+                    data.status = constQualityInspectionStatus.APPEAL_COMPLETED;
+                }else{
+                    data.status = constQualityInspectionStatus.COMPLETED_UNREAD;
+                }
+
                 if (qaData.length == 0) {
                     return dbconfig.collection_qualityInspection(data).save();
                 }else{
