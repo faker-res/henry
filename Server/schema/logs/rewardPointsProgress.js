@@ -18,10 +18,10 @@ var rewardPointsProgress = new Schema({
     rewardPointsEventObjId: {type: Schema.ObjectId, ref: 'player', index: true},
     //for game reward points
     todayWinCount: {type: Number},
-    todayConsumptionAmountProgress: {type: Number} ,
+    todayConsumptionAmountProgress: {type: Number},
     todayConsumptionCount: {type: Number},
     // progress create time
-    createTime: {type: Date, default: Date.now}
+    createTime: {type: Date, default: Date.now, index: true}
 
 
 
