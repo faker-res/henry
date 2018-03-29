@@ -105,9 +105,8 @@ let dbRewardPoints = {
                 }
 
                 // let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
-                let rewardProgressProm;
+                let rewardProgressProm = [];
                 if (relevantEvents.length) {
-                    rewardProgressProm = [];
                     relevantEvents.forEach(relevantData => {
                         if (relevantData._id) {
                             let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
@@ -119,8 +118,6 @@ let dbRewardPoints = {
                             rewardProgressProm.push(rewardProm);
                         }
                     });
-                } else {
-                    rewardProgressProm = Promise.resolve();
                 }
 
                 return Promise.all(rewardProgressProm).then(
@@ -235,9 +232,8 @@ let dbRewardPoints = {
                             }
 
                             // let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
-                            let rewardProgressProm;
+                            let rewardProgressProm = [];
                             if (relevantEvents.length) {
-                                rewardProgressProm = [];
                                 relevantEvents.forEach(relevantData => {
                                     if (relevantData._id) {
                                         let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
@@ -249,8 +245,6 @@ let dbRewardPoints = {
                                         rewardProgressProm.push(rewardProm);
                                     }
                                 });
-                            } else {
-                                rewardProgressProm = Promise.resolve();
                             }
 
                             return Promise.all(rewardProgressProm).then(
@@ -386,9 +380,8 @@ let dbRewardPoints = {
 
                 // let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
 
-                let rewardProgressProm;
+                let rewardProgressProm = [];
                 if (relevantEvents.length) {
-                    rewardProgressProm = [];
                     relevantEvents.forEach(relevantData => {
                         if (relevantData._id) {
                             let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
@@ -400,8 +393,6 @@ let dbRewardPoints = {
                             rewardProgressProm.push(rewardProm);
                         }
                     });
-                } else {
-                    rewardProgressProm = Promise.resolve();
                 }
 
                 return Promise.all(rewardProgressProm).then(
@@ -457,7 +448,9 @@ let dbRewardPoints = {
             }
         ).then(
             playerRewardPointsData => {
-                playerRewardPoints.progress = [];
+                if (playerRewardPoints) {
+                    playerRewardPoints.progress = [];
+                }
                 if (rewardPointsConfig && Number(rewardPointsConfig.applyMethod) === 2) {
                     let promResolve = Promise.resolve();
                     // send to apply
@@ -817,9 +810,7 @@ let dbRewardPoints = {
                                         }).lean();
                                         rewardProgressProm.push(rewardProm);
                                     }
-                                    if (!rewardProgressProm.length) {
-                                        rewardProgressProm = Promise.resolve();
-                                    }
+
                                     return Promise.all(rewardProgressProm);
                                     // return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
                                 }
@@ -1047,9 +1038,7 @@ let dbRewardPoints = {
                                     }).lean();
                                     rewardProgressProm.push(rewardProm);
                                 }
-                                if (!rewardProgressProm.length) {
-                                    rewardProgressProm = Promise.resolve();
-                                }
+
                                 return Promise.all(rewardProgressProm);
                                 // return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
                             }
@@ -1280,9 +1269,7 @@ let dbRewardPoints = {
                                     }).lean();
                                     rewardProgressProm.push(rewardProm);
                                 }
-                                if (!rewardProgressProm.length) {
-                                    rewardProgressProm = Promise.resolve();
-                                }
+
                                 return Promise.all(rewardProgressProm);
                                 // return dbConfig.collection_rewardPoints.findOne({playerObjId: playerObjId}).lean();
                             }
@@ -1582,9 +1569,8 @@ let dbRewardPoints = {
 
                 if(rewardPointRecord){
                     // let rewardProgressList = rewardPointRecord && rewardPointRecord.progress ? rewardPointRecord.progress : [];
-                    let rewardProgressProm;
+                    let rewardProgressProm = [];
                     if (topupRewardPointEvent.length) {
-                        rewardProgressProm = [];
                         topupRewardPointEvent.forEach(relevantData => {
                             if (relevantData._id) {
                                 let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
@@ -1596,8 +1582,6 @@ let dbRewardPoints = {
                                 rewardProgressProm.push(rewardProm);
                             }
                         });
-                    } else {
-                        rewardProgressProm = Promise.resolve();
                     }
 
                     return Promise.all(rewardProgressProm).then(
