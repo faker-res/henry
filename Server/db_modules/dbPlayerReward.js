@@ -5103,7 +5103,11 @@ let dbPlayerReward = {
                                             });
                                     }
 
-                                    return Promise.all(postPropPromArr);
+                                    return Promise.all(postPropPromArr).then(() => {
+                                        return {
+                                            rewardAmount: rewardAmount
+                                        }
+                                    });
                                 }
                                 else {
                                     return proposalData;
