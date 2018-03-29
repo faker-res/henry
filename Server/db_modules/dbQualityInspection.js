@@ -26,18 +26,25 @@ var dbQualityInspection = {
         let dbResult = null;
         let mongoDataCount = 0;
         console.log(query);
-        if (query.companyId&&query.companyId.length > 0) {
-            let companyId = query.companyId.join(',');
-            queryObj += " company_id IN (" + companyId + ") AND ";
-        }
+
         if (query.operatorId && query.operatorId.length > 0) {
             if(Array.isArray(query.operatorId)){
                 operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                companyId = dbQualityInspection.splitOperatorIdByCompanyId(query.operatorId)
             }else{
                 operatorId = query.operatorId;
             }
+
             if(operatorId!='all'){
                 queryObj += " operator_name IN (" + operatorId + ") AND ";
+            }
+
+            queryObj += " company_id IN (" + companyId + ") AND ";
+            query.companyId = companyId;
+        }else{
+            if (query.companyId && query.companyId.length > 0) {
+                companyId = query.companyId.join(',');
+                queryObj += " company_id IN (" + companyId + ") AND ";
             }
         }
 
@@ -102,6 +109,14 @@ var dbQualityInspection = {
         resultTXT = results.join(',');
         return resultTXT;
     },
+    splitOperatorIdByCompanyId:function(operatorIdArr){
+        let results = [];
+        operatorIdArr.forEach(item=>{
+            let companyId = dbQualityInspection.splitLive800AccForCompanyID(item);
+            results.push(companyId);
+        });
+        return results;
+    },
     splitLive800Acc:function(acc){
         let mysqlAccName = '';
         let accArr = acc.split('-');
@@ -126,23 +141,29 @@ var dbQualityInspection = {
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
-
         let operatorId = null;
+        let companyId = null;
         let paginationQuery = '';
         console.log(query);
 
-        if (query.companyId&&query.companyId.length > 0) {
-            let companyId = query.companyId.join(',');
-            queryObj += " company_id IN (" + companyId + ") AND ";
-        }
         if (query.operatorId && query.operatorId.length > 0) {
             if(Array.isArray(query.operatorId)){
                 operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                companyId = dbQualityInspection.splitOperatorIdByCompanyId(query.operatorId)
             }else{
                 operatorId = query.operatorId;
             }
+
             if(operatorId!='all'){
                 queryObj += " operator_name IN (" + operatorId + ") AND ";
+            }
+
+            queryObj += " company_id IN (" + companyId + ") AND ";
+            query.companyId = companyId;
+        }else{
+            if (query.companyId && query.companyId.length > 0) {
+                companyId = query.companyId.join(',');
+                queryObj += " company_id IN (" + companyId + ") AND ";
             }
         }
 
@@ -2099,7 +2120,7 @@ var dbQualityInspection = {
     getSummarizedLive800Record:function(queryString, connection){
         var deferred = Q.defer();
 
-        let conversationForm = [];
+        let resultProm = [];
 
         let counter = 0;
         if(connection){
@@ -2107,6 +2128,7 @@ var dbQualityInspection = {
                 //console.log("live 800 result",results)
                 if(error){
                     console.log(error);
+                    console.log("LH CHECK QI SCHEDULER ERROR 111111111111",error);
                 }
 
                 if(results){
@@ -2127,10 +2149,11 @@ var dbQualityInspection = {
                                 "AND company_id = '" + result.company_id + "' AND operator_id = '" + result.operator_id + "' ";
 
                             let proms = [];
-                            connection.query(query, function (detailsError, detailsResults, fields) {
+                            let a = connection.query(query, function (detailsError, detailsResults, fields) {
 
                                 if(detailsError){
                                     console.log(detailsError);
+                                    console.log("LH CHECK QI SCHEDULER ERROR 2222222222222",detailsError);
                                 }
 
                                 if(detailsResults){
@@ -2198,15 +2221,19 @@ var dbQualityInspection = {
                                     }
                                 );
                             })
+
+                            resultProm.push(a);
                         }
                     });
                 }
 
-                deferred.resolve();
-                connection.end();
+                // deferred.resolve();
+                // connection.end();
             });
 
-            return deferred.promise;
+            return Promise.all(resultProm);
+
+            //return deferred.promise;
         }else{
             return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
         }
