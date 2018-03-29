@@ -66,6 +66,7 @@
                 "authenticate",
                 "authenticatePlayerPartner",
                 "getPlayerDayStatus",
+                "getPlayerAnyDayStatus",
                 "getPlayerWeekStatus",
                 "getPlayerMonthStatus",
                 "updatePhotoUrl",
