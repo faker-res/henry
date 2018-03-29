@@ -2511,7 +2511,100 @@ var dbPlatform = {
                     .catch(errorUtils.reportError);
             }
         )
-    }
+    },
+
+    getDemoPlayerAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
+        let todayTime = dbUtility.getTodaySGTime();
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}, '_id').lean().then(
+            platformObj => {
+                let clickCountObj = {
+                    platform: platformObj._id,
+                    startTime: todayTime.startTime,
+                    endTime: todayTime.endTime,
+                    device: device,
+                    pageName: pageName
+                };
+
+                dbconfig.collection_clickCount.find(clickCountObj).lean();
+            }
+        )
+    },
+
+    getClickCountAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
+        let pageGroupProms = [];
+        let dayStartTime = startDate;
+        let getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                };
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                };
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                };
+        }
+
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            let dayEndTime = getNextDate.call(this, dayStartTime);
+            let matchObj = {
+                startTime: {$gte: dayStartTime},
+                endTime: {$lte: dayEndTime},
+                device: device,
+                pageName: pageName
+            };
+            let dayStartTimeStr = dayStartTime.toString();
+            if (platformId !== 'all') {
+                matchObj.platform = platformId;
+            }
+
+            let pageGroupProm = dbconfig.collection_clickCount.aggregate(
+                {$match: matchObj},
+                {
+                    $group: {
+                        _id: {"buttonName": "$buttonName"},
+                        total: {$sum: "$count"}
+                    }
+                }
+            ).read("secondaryPreferred").then(
+                data => {
+                    console.log('PAGE-DATA===', data);
+                    return {
+                        date: new Date(dayStartTimeStr),
+                        data: data
+                    }
+                }
+            );
+
+            pageGroupProms.push(pageGroupProm);
+            dayStartTime = dayEndTime;
+        }
+
+        return Promise.all([Promise.all(pageGroupProms)]).then(
+            data => {
+
+                let pageGroup = [];
+
+                if (data && data[0] instanceof Array) {
+                    pageGroup = data[0];
+                }
+
+                return pageGroup;
+            }
+        );
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {

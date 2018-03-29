@@ -39,6 +39,29 @@ define(['js/app'], function (myApp) {
             WechatTransfer: 5
         };
 
+        vm.constInputDevice = {
+            1: 'WEB_PLAYER',
+            2: 'WEB_AGENT',
+            3: 'H5_PLAYER',
+            4: 'H5_AGENT',
+            5: 'APP_PLAYER',
+            6: 'APP_AGENT'
+        };
+
+        vm.constPageName = {
+            PAGE_1: 'PAGE_1',
+            PAGE_2: 'PAGE_2',
+            PAGE_3: 'PAGE_3',
+            PAGE_4: 'PAGE_4'
+        };
+
+        vm.constButtonName = {
+            BUTTON_1: 'BUTTON_1',
+            BUTTON_2: 'BUTTON_2',
+            BUTTON_3: 'BUTTON_3',
+            BUTTON_4: 'BUTTON_4'
+        };
+
         // For debugging:
         window.VM = vm;
 
@@ -338,6 +361,13 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('demoPlayer', 'day', 3, function () {
 
                         });
+                        break;
+                    case "CLICK_COUNT":
+                        vm.initSearchParameter('clickCount', 'day', 3, function () {
+
+                        });
+                        vm.queryPara.clickCount.inputDevice = "1";
+                        vm.queryPara.clickCount.pageName = "PAGE_1";
                         break;
 
                 }
@@ -1208,6 +1238,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawDemoPlayerDevicePie = (srcData, pieChartName) => {
+            console.log('srcData===', srcData);
+            console.log('pieChartName===', pieChartName);
             let placeholder = pieChartName + ' div.graphDiv';
             let finalizedPieData = [];
 
@@ -1234,6 +1266,7 @@ define(['js/app'], function (myApp) {
             finalizedPieData.push(deviceTotal["1"]);
             finalizedPieData.push(deviceTotal["3"]);
             finalizedPieData.push(deviceTotal["5"]);
+            console.log('finalizedPieData===', finalizedPieData);
 
             function labelFormatter(label, series) {
                 return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
@@ -1510,8 +1543,10 @@ define(['js/app'], function (myApp) {
 
             if (srcData) {
                 srcData.map(dateData => {
+                    console.log('dateData===', dateData);
                     if (dateData && dateData.data instanceof Array) {
                         dateData.data.map(statusData => {
+                            console.log('statusData===', statusData);
                             if (statusData && statusData._id && statusData._id.status && statusTotal[statusData._id.status]) {
                                 statusTotal[statusData._id.status].data += statusData.calc;
                             }
@@ -1519,11 +1554,13 @@ define(['js/app'], function (myApp) {
                     }
                 });
             }
+            console.log('statusTotal===', statusTotal);
 
             // finalizedPieData.push(statusTotal["4"]);
             // finalizedPieData.push(statusTotal["1"]);
             finalizedPieData.push(statusTotal["2"]);
             finalizedPieData.push(statusTotal["3"]);
+            console.log('finalizedPieData===', finalizedPieData);
 
             function labelFormatter(label, series) {
                 return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
@@ -1560,6 +1597,177 @@ define(['js/app'], function (myApp) {
             socketService.$plotPie(placeholder, finalizedPieData, options, 'demoPlayerStatusData');
         };
         // demo player END   ====================================================
+
+        // click count START ====================================================
+        vm.getClickCountAnalysis = function () {
+            vm.isShowLoadingSpinner('#clickCountAnalysis', true);
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.clickCount.periodText,
+                startDate: vm.queryPara.clickCount.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.clickCount.endTime.data('datetimepicker').getLocalDate(),
+                device: vm.queryPara.clickCount.inputDevice,
+                pageName: vm.queryPara.clickCount.pageName
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountAnalysis', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountData = data.data;
+                    vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+
+                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis');
+                    vm.drawClickCountTable(vm.clickCountData, '#clickCountAnalysisTable');
+                });
+            }, function (data) {
+                vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+            });
+        };
+
+        vm.drawClickCountPie = (srcData, pieChartName) => {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            let pageTotal = {
+                "1": {label: $translate("BUTTON_1"), data: 0},
+                "2": {label: $translate("BUTTON_2"), data: 0},
+                "3": {label: $translate("BUTTON_3"), data: 0},
+                "4": {label: $translate("BUTTON_4"), data: 0}
+            };
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(pageData => {
+                            if (pageData && pageData._id && pageData._id.buttonName && pageTotal[pageData._id.buttonName]) {
+                                pageTotal[pageData._id.buttonName].data += pageData.total;
+                            }
+                        });
+                    }
+                });
+            }
+
+            finalizedPieData.push(pageTotal["1"]);
+            finalizedPieData.push(pageTotal["2"]);
+            finalizedPieData.push(pageTotal["3"]);
+            finalizedPieData.push(pageTotal["4"]);
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            let options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'clickCountData');
+        };
+
+        vm.drawClickCountTable = (srcData, tableName) => {
+            let pageTotal = {
+                "1": {label: $translate("BUTTON_1"), data: 0},
+                "2": {label: $translate("BUTTON_2"), data: 0},
+                "3": {label: $translate("BUTTON_3"), data: 0},
+                "4": {label: $translate("BUTTON_4"), data: 0}
+            };
+            let dailyPageData = [];
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    let dayData = {
+                        date: String(utilService.$getTimeFromStdTimeFormat(new Date(dateData.date))).substring(0, 10),
+                        total: 0,
+                        BUTTON_1: 0,
+                        BUTTON_2: 0,
+                        BUTTON_3: 0,
+                        BUTTON_4: 0
+                    };
+
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(pageData => {
+                            if (pageData && pageData._id && pageData._id.buttonName && pageTotal[pageData._id.buttonName]) {
+                                pageTotal[pageData._id.buttonName].data += pageData.total;
+                            }
+
+                            dayData.total += pageData.total;
+
+                            switch (pageData._id.buttonName) {
+                                case "1":
+                                    dayData.BUTTON_1 += pageData.total;
+                                    break;
+                                case "2":
+                                    dayData.BUTTON_2 += pageData.total;
+                                    break;
+                                case "3":
+                                    dayData.BUTTON_3 += pageData.total;
+                                    break;
+                                case "4":
+                                    dayData.BUTTON_4 += pageData.total;
+                                    break;
+                            }
+                        });
+                    }
+
+                    dailyPageData.push(dayData);
+                });
+            }
+
+            let numberOfPeriod = srcData.length;
+
+            let averageData = {
+                date: $translate("average value"),
+                total: ((pageTotal["1"].data + pageTotal["2"].data + pageTotal["3"].data + pageTotal["4"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_1: ((pageTotal["1"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_2: ((pageTotal["2"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_3: ((pageTotal["3"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_4: ((pageTotal["4"].data) / numberOfPeriod).toFixed(2)
+            };
+
+            dailyPageData.splice(0, 0, averageData);
+
+            let dataOptions = {
+                data: dailyPageData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
+                columns: [
+                    {title: $translate(vm.queryPara.clickCount.periodText), data: "date"},
+                    {title: $translate("TOTAL_CLICK_COUNT"), data: "total"},
+                    {title: 'BUTTON_1', data: "BUTTON_1"},
+                    {title: 'BUTTON_2', data: "BUTTON_2"},
+                    {title: 'BUTTON_3', data: "BUTTON_3"},
+                    {title: 'BUTTON_4', data: "BUTTON_4"}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            let a = $(tableName).DataTable(dataOptions);
+            a.columns.adjust().draw();
+        };
+        // click count END   ====================================================
 
         // new player start =============================================
         vm.getNextDateByPeriodAndDate = (period, startDate) => {
