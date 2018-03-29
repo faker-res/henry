@@ -39,7 +39,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     span.add-on
                                         i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                             .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionReport', 'Read')")
-                                button.common-button.btn.btn-primary(ng-click='vm.getWorkloadReport()') {{'SEARCH' | translate}}
+                                button.common-button.btn.btn-primary(ng-click='vm.getWorkloadReport(true)') {{'SEARCH' | translate}}
                             .inlineBlk(ng-show='vm.loadingWorkloadReportTable')
                                 i.fa.fa-spin.fa-spinner
 
