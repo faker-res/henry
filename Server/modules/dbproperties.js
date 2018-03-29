@@ -287,6 +287,9 @@ var partnerLoginRecordModel = dbLogs.model('partnerLoginRecord', partnerLoginRec
 let createDemoPlayerLogSchema = require('./../schema/logs/createDemoPlayerLog');
 let createDemoPlayerLogModel = dbLogs2.model('createDemoPlayerLog', createDemoPlayerLogSchema, 'createDemoPlayerLog');
 
+let rewardPointsProgressSchema = require('./../schema/logs/rewardPointsProgress');
+let rewardPointsProgressModel = dbLogs2.model('rewardPointsProgress', rewardPointsProgressSchema, 'rewardPointsProgress');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -497,6 +500,7 @@ var dbProperties = {
     collection_rewardTaskGroup: rewardTaskGroupModel,
     collection_createDemoPlayerLog: createDemoPlayerLogModel,
     collection_clickCount: clickCountModel,
+    collection_rewardPointsProgress: rewardPointsProgressModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
