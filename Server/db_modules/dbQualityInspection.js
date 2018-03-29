@@ -102,6 +102,14 @@ var dbQualityInspection = {
         resultTXT = results.join(',');
         return resultTXT;
     },
+    splitOperatorIdByCompanyId:function(operatorIdArr){
+        let results = [];
+        operatorIdArr.forEach(item=>{
+            let companyId = dbQualityInspection.splitLive800AccForCompanyID(item);
+            results.push(companyId);
+        });
+        return results;
+    },
     splitLive800Acc:function(acc){
         let mysqlAccName = '';
         let accArr = acc.split('-');
@@ -126,23 +134,29 @@ var dbQualityInspection = {
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
-
         let operatorId = null;
+        let companyId = null;
         let paginationQuery = '';
         console.log(query);
 
-        if (query.companyId&&query.companyId.length > 0) {
-            let companyId = query.companyId.join(',');
-            queryObj += " company_id IN (" + companyId + ") AND ";
-        }
         if (query.operatorId && query.operatorId.length > 0) {
             if(Array.isArray(query.operatorId)){
                 operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                companyId = dbQualityInspection.splitOperatorIdByCompanyId(query.operatorId)
             }else{
                 operatorId = query.operatorId;
             }
+
             if(operatorId!='all'){
                 queryObj += " operator_name IN (" + operatorId + ") AND ";
+            }
+
+            queryObj += " company_id IN (" + companyId + ") AND ";
+            query.companyId = companyId;
+        }else{
+            if (query.companyId && query.companyId.length > 0) {
+                companyId = query.companyId.join(',');
+                queryObj += " company_id IN (" + companyId + ") AND ";
             }
         }
 
