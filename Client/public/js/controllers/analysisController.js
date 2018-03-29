@@ -1238,8 +1238,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawDemoPlayerDevicePie = (srcData, pieChartName) => {
-            console.log('srcData===', srcData);
-            console.log('pieChartName===', pieChartName);
             let placeholder = pieChartName + ' div.graphDiv';
             let finalizedPieData = [];
 
@@ -1266,7 +1264,6 @@ define(['js/app'], function (myApp) {
             finalizedPieData.push(deviceTotal["1"]);
             finalizedPieData.push(deviceTotal["3"]);
             finalizedPieData.push(deviceTotal["5"]);
-            console.log('finalizedPieData===', finalizedPieData);
 
             function labelFormatter(label, series) {
                 return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
@@ -1543,10 +1540,8 @@ define(['js/app'], function (myApp) {
 
             if (srcData) {
                 srcData.map(dateData => {
-                    console.log('dateData===', dateData);
                     if (dateData && dateData.data instanceof Array) {
                         dateData.data.map(statusData => {
-                            console.log('statusData===', statusData);
                             if (statusData && statusData._id && statusData._id.status && statusTotal[statusData._id.status]) {
                                 statusTotal[statusData._id.status].data += statusData.calc;
                             }
@@ -1554,13 +1549,11 @@ define(['js/app'], function (myApp) {
                     }
                 });
             }
-            console.log('statusTotal===', statusTotal);
 
             // finalizedPieData.push(statusTotal["4"]);
             // finalizedPieData.push(statusTotal["1"]);
             finalizedPieData.push(statusTotal["2"]);
             finalizedPieData.push(statusTotal["3"]);
-            console.log('finalizedPieData===', finalizedPieData);
 
             function labelFormatter(label, series) {
                 return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
