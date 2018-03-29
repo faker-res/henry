@@ -39,6 +39,12 @@ define(['js/app'], function (myApp) {
             WechatTransfer: 5
         };
 
+        vm.constDemoPlayerStatus = {
+            OLD_PLAYER: "1",
+            PRE_CONVERT: "2",
+            POST_CONVERT: "3",
+            CANNOT_CONVERT: "4"
+          
         vm.constInputDevice = {
             1: 'WEB_PLAYER',
             2: 'WEB_AGENT',
@@ -360,6 +366,9 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case "DEMO_PLAYER":
+                        vm.averageData = {};
+                        vm.dailyStatusData = [];
+                        $('#demoPlayerStatusTable').hide();
                         vm.initSearchParameter('demoPlayer', 'day', 3, function () {
 
                         });
@@ -1230,7 +1239,7 @@ define(['js/app'], function (myApp) {
                     vm.drawDemoPlayerDevicePie(vm.demoPlayerDeviceData, '#demoPlayerAnalysis');
                     vm.drawDemoPlayerDeviceTable(vm.demoPlayerDeviceData, '#demoPlayerDeviceAnalysisTable');
                     vm.drawDemoPlayerStatusPie(vm.demoPlayerStatusData, '#demoPlayerStatusAnalysis');
-                    vm.drawDemoPlayerStatusTable(vm.demoPlayerStatusData, '#demoPlayerStatusAnalysisTable');
+                    vm.drawDemoPlayerStatusTable(vm.demoPlayerStatusData);
                     vm.drawDemoPlayerConvertRatePie(vm.demoPlayerStatusData, '#demoPlayerConvertRateAnalysis')
                 });
             }, function (data) {
@@ -1447,7 +1456,9 @@ define(['js/app'], function (myApp) {
             socketService.$plotPie(placeholder, finalizedPieData, options, 'demoPlayerStatusData');
         };
 
-        vm.drawDemoPlayerStatusTable = (srcData, tableName) => {
+        vm.drawDemoPlayerStatusTable = (srcData) => {
+            vm.averageData = {};
+            vm.dailyStatusData = [];
             let statusTotal = {
                 "1": {label: "OLD_PLAYER", data: 0},
                 "2": {label: "PRE_CONVERT", data: 0},
@@ -1507,26 +1518,9 @@ define(['js/app'], function (myApp) {
                 CANNOT_CONVERT: ((statusTotal["4"].data) / numberOfPeriod).toFixed(2)
             };
 
-            dailyStatusData.splice(0, 0, averageData);
-
-            let dataOptions = {
-                data: dailyStatusData,
-                aoColumnDefs: [
-                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
-                ],
-                columns: [
-                    {title: $translate(vm.queryPara.demoPlayer.periodText), data: "date"},
-                    {title: $translate("TOTAL_REGISTRATION"), data: "total"},
-                    {title: $translate("OLD_PLAYER"), data: "OLD_PLAYER"},
-                    {title: $translate("PRE_CONVERT"), data: "PRE_CONVERT"},
-                    {title: $translate("POST_CONVERT"), data: "POST_CONVERT"},
-                    {title: $translate('CANNOT_CONVERT')+ " (" + $translate("BACKSTAGE") + $translate("CREATE_NEW_PLAYER") + ")", data: "CANNOT_CONVERT"}
-                ],
-                "paging": false,
-            };
-            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-            let a = $(tableName).DataTable(dataOptions);
-            a.columns.adjust().draw();
+            vm.averageData = averageData;
+            vm.dailyStatusData = dailyStatusData;
+            $('#demoPlayerStatusTable').show();
         };
 
         vm.drawDemoPlayerConvertRatePie = (srcData, pieChartName) => {
@@ -4345,6 +4339,98 @@ define(['js/app'], function (myApp) {
             socketService.$plotPie(elementId, pieData, {});
         };
 
+        vm.initDemoPlayerLog = function (status, selectedDate) {
+            vm.status = status;
+            vm.selectedDate = selectedDate;
+            vm.demoPlayerLog = {};
+            utilService.actionAfterLoaded('#modalDemoPlayerLog.in #demoPlayerLogTblPage', function () {
+                vm.demoPlayerLog.pageObj = utilService.createPageForPagingTable("#demoPlayerLogTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "demoPlayerLog", vm.getDemoPlayerLogData);
+                });
+                vm.getDemoPlayerLogData(true);
+            });
+        };
+
+        vm.getDemoPlayerLogData = function (newSearch) {
+
+            let sendQuery = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.demoPlayer.periodText,
+                status: vm.status,
+                selectedDate: vm.selectedDate,
+                index: newSearch ? 0 : vm.demoPlayerLog.index,
+                limit: newSearch ? 10 : vm.demoPlayerLog.limit,
+                sortCol: vm.demoPlayerLog.sortCol || null
+            };
+
+            socketService.$socket($scope.AppSocket, 'getDemoPlayerLog', sendQuery, function (data) {
+                console.log("getDemoPlayerLog", data);
+                let tblData = data && data.data ? data.data.data : [];
+                let total = data.data ? data.data.total : 0;
+                vm.demoPlayerLog.totalCount = total;
+                if (tblData && tblData.length > 0) {
+                    tblData.map(data => {
+                        if (data.status == vm.constDemoPlayerStatus.OLD_PLAYER || data.status == vm.constDemoPlayerStatus.POST_CONVERT) {
+                            if (data.phoneNumber) {
+                                let str = data.phoneNumber;
+                                data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                            }
+                        }
+                    });
+                }
+                vm.drawDemoPlayerLogTable(newSearch, tblData, total);
+            });
+        };
+
+        vm.drawDemoPlayerLogTable = function (newSearch, tblData, size) {
+            let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        "targets": 0,
+                        "title": $translate('order'),
+                        "render": function (data, type, full, meta) {
+                            return meta.settings._iDisplayStart + meta.row + 1;
+                        }
+                    },
+                    {title: $translate('Demo Player Account'), data: "name"},
+                    {title: $translate('phoneNumber'), data: "phoneNumber"},
+                ],
+                "paging": false,
+                "searching": false,
+                "info": false,
+                "destroy": true,
+                "scrollCollapse": true,
+                "language": {
+                    "emptyTable": $translate("No data available in table"),
+                }
+            });
+            let aTable = $("#demoPlayerLogTbl").DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            vm.demoPlayerLog.pageObj.init({maxCount: size}, newSearch);
+            $('#demoPlayerLogTbl').resize();
+            $('#demoPlayerLogTbl').off('order.dt');
+            $scope.safeApply();
+        };
+
+        vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+            var isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
+            if (pageSize != vm[objKey].limit) {
+                isChange = true;
+                vm[objKey].limit = pageSize;
+            }
+            if ((curP - 1) * pageSize != vm[objKey].index) {
+                isChange = true;
+                vm[objKey].index = (curP - 1) * pageSize;
+            }
+            if (isChange) return searchFunc.call(this);
+        };
     };
     analysisController.$inject = injectParams;
     myApp.register.controller('analysisCtrl', analysisController);
