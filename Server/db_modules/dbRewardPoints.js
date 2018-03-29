@@ -457,7 +457,9 @@ let dbRewardPoints = {
             }
         ).then(
             playerRewardPointsData => {
-                playerRewardPoints.progress = [];
+                if (playerRewardPoints) {
+                    playerRewardPoints.progress = [];
+                }
                 if (rewardPointsConfig && Number(rewardPointsConfig.applyMethod) === 2) {
                     let promResolve = Promise.resolve();
                     // send to apply
