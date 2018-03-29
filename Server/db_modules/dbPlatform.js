@@ -2580,7 +2580,6 @@ var dbPlatform = {
                 }
             ).read("secondaryPreferred").then(
                 data => {
-                    console.log('PAGE-DATA===', data);
                     return {
                         date: new Date(dayStartTimeStr),
                         data: data
