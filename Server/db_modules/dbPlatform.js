@@ -2514,7 +2514,7 @@ var dbPlatform = {
     },
 
     getClickCountAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
-        let pageGroupProms = [];
+        let buttonGroupProms = [];
         let dayStartTime = startDate;
         let getNextDate;
 
@@ -2552,7 +2552,7 @@ var dbPlatform = {
                 matchObj.platform = platformId;
             }
 
-            let pageGroupProm = dbconfig.collection_clickCount.aggregate(
+            let buttonGroupProm = dbconfig.collection_clickCount.aggregate(
                 {$match: matchObj},
                 {
                     $group: {
@@ -2569,20 +2569,19 @@ var dbPlatform = {
                 }
             );
 
-            pageGroupProms.push(pageGroupProm);
+            buttonGroupProms.push(buttonGroupProm);
             dayStartTime = dayEndTime;
         }
 
-        return Promise.all([Promise.all(pageGroupProms)]).then(
+        return Promise.all([Promise.all(buttonGroupProms)]).then(
             data => {
-
-                let pageGroup = [];
+                let buttonGroup = [];
 
                 if (data && data[0] instanceof Array) {
-                    pageGroup = data[0];
+                    buttonGroup = data[0];
                 }
 
-                return pageGroup;
+                return buttonGroup;
             }
         );
     },

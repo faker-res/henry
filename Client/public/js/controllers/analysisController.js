@@ -45,21 +45,23 @@ define(['js/app'], function (myApp) {
             3: 'H5_PLAYER',
             4: 'H5_AGENT',
             5: 'APP_PLAYER',
-            6: 'APP_AGENT'
+            6: 'APP_AGENT',
         };
 
         vm.constPageName = {
             PAGE_1: 'PAGE_1',
             PAGE_2: 'PAGE_2',
             PAGE_3: 'PAGE_3',
-            PAGE_4: 'PAGE_4'
+            PAGE_4: 'PAGE_4',
         };
 
         vm.constButtonName = {
             BUTTON_1: 'BUTTON_1',
             BUTTON_2: 'BUTTON_2',
             BUTTON_3: 'BUTTON_3',
-            BUTTON_4: 'BUTTON_4'
+            BUTTON_4: 'BUTTON_4',
+            BUTTON_5: 'BUTTON_5',
+            BUTTON_6: 'BUTTON_6',
         };
 
         // For debugging:
@@ -1613,6 +1615,7 @@ define(['js/app'], function (myApp) {
                 });
             }, function (data) {
                 vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+                console.log("click count data not found?", data);
             });
         };
 
@@ -1620,29 +1623,33 @@ define(['js/app'], function (myApp) {
             let placeholder = pieChartName + ' div.graphDiv';
             let finalizedPieData = [];
 
-            let pageTotal = {
-                "1": {label: $translate("BUTTON_1"), data: 0},
-                "2": {label: $translate("BUTTON_2"), data: 0},
-                "3": {label: $translate("BUTTON_3"), data: 0},
-                "4": {label: $translate("BUTTON_4"), data: 0}
+            let clickTotal = {
+                "BUTTON_1": {label: $translate("BUTTON_1"), data: 0},
+                "BUTTON_2": {label: $translate("BUTTON_2"), data: 0},
+                "BUTTON_3": {label: $translate("BUTTON_3"), data: 0},
+                "BUTTON_4": {label: $translate("BUTTON_4"), data: 0},
+                "BUTTON_5": {label: $translate("BUTTON_5"), data: 0},
+                "BUTTON_6": {label: $translate("BUTTON_6"), data: 0},
             };
 
             if (srcData) {
                 srcData.map(dateData => {
                     if (dateData && dateData.data instanceof Array) {
-                        dateData.data.map(pageData => {
-                            if (pageData && pageData._id && pageData._id.buttonName && pageTotal[pageData._id.buttonName]) {
-                                pageTotal[pageData._id.buttonName].data += pageData.total;
+                        dateData.data.map(buttonData => {
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[buttonData._id.buttonName]) {
+                                clickTotal[buttonData._id.buttonName].data += buttonData.total;
                             }
                         });
                     }
                 });
             }
 
-            finalizedPieData.push(pageTotal["1"]);
-            finalizedPieData.push(pageTotal["2"]);
-            finalizedPieData.push(pageTotal["3"]);
-            finalizedPieData.push(pageTotal["4"]);
+            finalizedPieData.push(clickTotal["BUTTON_1"]);
+            finalizedPieData.push(clickTotal["BUTTON_2"]);
+            finalizedPieData.push(clickTotal["BUTTON_3"]);
+            finalizedPieData.push(clickTotal["BUTTON_4"]);
+            finalizedPieData.push(clickTotal["BUTTON_5"]);
+            finalizedPieData.push(clickTotal["BUTTON_6"]);
 
             function labelFormatter(label, series) {
                 return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
@@ -1680,13 +1687,15 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawClickCountTable = (srcData, tableName) => {
-            let pageTotal = {
-                "1": {label: $translate("BUTTON_1"), data: 0},
-                "2": {label: $translate("BUTTON_2"), data: 0},
-                "3": {label: $translate("BUTTON_3"), data: 0},
-                "4": {label: $translate("BUTTON_4"), data: 0}
+            let clickTotal = {
+                "BUTTON_1": {label: $translate("BUTTON_1"), data: 0},
+                "BUTTON_2": {label: $translate("BUTTON_2"), data: 0},
+                "BUTTON_3": {label: $translate("BUTTON_3"), data: 0},
+                "BUTTON_4": {label: $translate("BUTTON_4"), data: 0},
+                "BUTTON_5": {label: $translate("BUTTON_5"), data: 0},
+                "BUTTON_6": {label: $translate("BUTTON_6"), data: 0},
             };
-            let dailyPageData = [];
+            let dailyClickData = [];
 
             if (srcData) {
                 srcData.map(dateData => {
@@ -1696,35 +1705,43 @@ define(['js/app'], function (myApp) {
                         BUTTON_1: 0,
                         BUTTON_2: 0,
                         BUTTON_3: 0,
-                        BUTTON_4: 0
+                        BUTTON_4: 0,
+                        BUTTON_5: 0,
+                        BUTTON_6: 0,
                     };
 
                     if (dateData && dateData.data instanceof Array) {
-                        dateData.data.map(pageData => {
-                            if (pageData && pageData._id && pageData._id.buttonName && pageTotal[pageData._id.buttonName]) {
-                                pageTotal[pageData._id.buttonName].data += pageData.total;
+                        dateData.data.map(buttonData => {
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[buttonData._id.buttonName]) {
+                                clickTotal[buttonData._id.buttonName].data += buttonData.total;
                             }
 
-                            dayData.total += pageData.total;
+                            dayData.total += buttonData.total;
 
-                            switch (pageData._id.buttonName) {
-                                case "1":
-                                    dayData.BUTTON_1 += pageData.total;
+                            switch (buttonData._id.buttonName) {
+                                case "BUTTON_1":
+                                    dayData.BUTTON_1 += buttonData.total;
                                     break;
-                                case "2":
-                                    dayData.BUTTON_2 += pageData.total;
+                                case "BUTTON_2":
+                                    dayData.BUTTON_2 += buttonData.total;
                                     break;
-                                case "3":
-                                    dayData.BUTTON_3 += pageData.total;
+                                case "BUTTON_3":
+                                    dayData.BUTTON_3 += buttonData.total;
                                     break;
-                                case "4":
-                                    dayData.BUTTON_4 += pageData.total;
+                                case "BUTTON_4":
+                                    dayData.BUTTON_4 += buttonData.total;
+                                    break;
+                                case "BUTTON_5":
+                                    dayData.BUTTON_5 += buttonData.total;
+                                    break;
+                                case "BUTTON_6":
+                                    dayData.BUTTON_6 += buttonData.total;
                                     break;
                             }
                         });
                     }
 
-                    dailyPageData.push(dayData);
+                    dailyClickData.push(dayData);
                 });
             }
 
@@ -1732,27 +1749,31 @@ define(['js/app'], function (myApp) {
 
             let averageData = {
                 date: $translate("average value"),
-                total: ((pageTotal["1"].data + pageTotal["2"].data + pageTotal["3"].data + pageTotal["4"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_1: ((pageTotal["1"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_2: ((pageTotal["2"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_3: ((pageTotal["3"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_4: ((pageTotal["4"].data) / numberOfPeriod).toFixed(2)
+                total: ((clickTotal["BUTTON_1"].data + clickTotal["BUTTON_2"].data + clickTotal["BUTTON_3"].data + clickTotal["BUTTON_4"].data + clickTotal["BUTTON_5"].data + clickTotal["BUTTON_6"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_1: ((clickTotal["BUTTON_1"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_2: ((clickTotal["BUTTON_2"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_3: ((clickTotal["BUTTON_3"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_4: ((clickTotal["BUTTON_4"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_5: ((clickTotal["BUTTON_5"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_6: ((clickTotal["BUTTON_6"].data) / numberOfPeriod).toFixed(2),
             };
 
-            dailyPageData.splice(0, 0, averageData);
+            dailyClickData.splice(0, 0, averageData);
 
             let dataOptions = {
-                data: dailyPageData,
+                data: dailyClickData,
                 aoColumnDefs: [
                     {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
                 ],
                 columns: [
                     {title: $translate(vm.queryPara.clickCount.periodText), data: "date"},
-                    {title: $translate("TOTAL_CLICK_COUNT"), data: "total"},
-                    {title: 'BUTTON_1', data: "BUTTON_1"},
-                    {title: 'BUTTON_2', data: "BUTTON_2"},
-                    {title: 'BUTTON_3', data: "BUTTON_3"},
-                    {title: 'BUTTON_4', data: "BUTTON_4"}
+                    {title: $translate('TOTAL_CLICK_COUNT'), data: "total"},
+                    {title: $translate('BUTTON_1'), data: "BUTTON_1"},
+                    {title: $translate('BUTTON_2'), data: "BUTTON_2"},
+                    {title: $translate('BUTTON_3'), data: "BUTTON_3"},
+                    {title: $translate('BUTTON_4'), data: "BUTTON_4"},
+                    {title: $translate('BUTTON_5'), data: "BUTTON_5"},
+                    {title: $translate('BUTTON_6'), data: "BUTTON_6"},
                 ],
                 "paging": false,
             };
