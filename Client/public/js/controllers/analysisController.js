@@ -45,14 +45,14 @@ define(['js/app'], function (myApp) {
             3: 'H5_PLAYER',
             4: 'H5_AGENT',
             5: 'APP_PLAYER',
-            6: 'APP_AGENT',
+            6: 'APP_AGENT'
         };
 
         vm.constPageName = {
             PAGE_1: 'PAGE_1',
             PAGE_2: 'PAGE_2',
             PAGE_3: 'PAGE_3',
-            PAGE_4: 'PAGE_4',
+            PAGE_4: 'PAGE_4'
         };
 
         vm.constButtonName = {
@@ -61,7 +61,7 @@ define(['js/app'], function (myApp) {
             BUTTON_3: 'BUTTON_3',
             BUTTON_4: 'BUTTON_4',
             BUTTON_5: 'BUTTON_5',
-            BUTTON_6: 'BUTTON_6',
+            BUTTON_6: 'BUTTON_6'
         };
 
         // For debugging:
