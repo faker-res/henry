@@ -1788,7 +1788,7 @@ var dbQualityInspection = {
     getSummarizedLive800Record:function(queryString, connection){
         var deferred = Q.defer();
 
-        let conversationForm = [];
+        let resultProm = [];
 
         let counter = 0;
         if(connection){
@@ -1796,6 +1796,7 @@ var dbQualityInspection = {
                 //console.log("live 800 result",results)
                 if(error){
                     console.log(error);
+                    console.log("LH CHECK QI SCHEDULER ERROR 111111111111",error);
                 }
 
                 if(results){
@@ -1816,10 +1817,11 @@ var dbQualityInspection = {
                                 "AND company_id = '" + result.company_id + "' AND operator_id = '" + result.operator_id + "' ";
 
                             let proms = [];
-                            connection.query(query, function (detailsError, detailsResults, fields) {
+                            let a = connection.query(query, function (detailsError, detailsResults, fields) {
 
                                 if(detailsError){
                                     console.log(detailsError);
+                                    console.log("LH CHECK QI SCHEDULER ERROR 2222222222222",detailsError);
                                 }
 
                                 if(detailsResults){
@@ -1887,15 +1889,19 @@ var dbQualityInspection = {
                                     }
                                 );
                             })
+
+                            resultProm.push(a);
                         }
                     });
                 }
 
-                deferred.resolve();
-                connection.end();
+                // deferred.resolve();
+                // connection.end();
             });
 
-            return deferred.promise;
+            return Promise.all(resultProm);
+
+            //return deferred.promise;
         }else{
             return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
         }
