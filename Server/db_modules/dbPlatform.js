@@ -2513,24 +2513,6 @@ var dbPlatform = {
         )
     },
 
-    getDemoPlayerAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
-        let todayTime = dbUtility.getTodaySGTime();
-
-        return dbconfig.collection_platform.findOne({platformId: platformId}, '_id').lean().then(
-            platformObj => {
-                let clickCountObj = {
-                    platform: platformObj._id,
-                    startTime: todayTime.startTime,
-                    endTime: todayTime.endTime,
-                    device: device,
-                    pageName: pageName
-                };
-
-                dbconfig.collection_clickCount.find(clickCountObj).lean();
-            }
-        )
-    },
-
     getClickCountAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
         let pageGroupProms = [];
         let dayStartTime = startDate;
