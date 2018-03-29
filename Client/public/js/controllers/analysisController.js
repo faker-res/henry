@@ -44,6 +44,7 @@ define(['js/app'], function (myApp) {
             PRE_CONVERT: "2",
             POST_CONVERT: "3",
             CANNOT_CONVERT: "4"
+        };
           
         vm.constInputDevice = {
             1: 'WEB_PLAYER',
