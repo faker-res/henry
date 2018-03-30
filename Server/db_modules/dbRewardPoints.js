@@ -1889,7 +1889,14 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData) {
 
     if (event.target && event.target.betType && event.target.betType.length > 0) {
         let relevantBetType = event.target.betType;
-        if (!consumptionRecord.betType || relevantBetType.indexOf(consumptionRecord.betType.toString()) < 0) {
+        let betTypes = consumptionRecord && consumptionRecord.betType ? consumptionRecord.betType.split('|').filter(function(el) {return el.length != 0}) : [];
+
+        if (betTypes && betTypes.length > 0) {
+            let matchBetTypes = relevantBetType.filter(el => betTypes.includes(el));
+            if(matchBetTypes && matchBetTypes.length == 0) {
+                return false;
+            }
+        } else {
             return false;
         }
     }
