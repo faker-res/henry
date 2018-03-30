@@ -380,7 +380,6 @@ define(['js/app'], function (myApp) {
                         });
                         vm.queryPara.clickCount.inputDevice = "1";
                         vm.queryPara.clickCount.pageName = "PAGE_1";
-                        vm.getClickCountButtonName();
                         break;
 
                 }
@@ -1605,6 +1604,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getClickCountAnalysis = function () {
+            vm.getClickCountButtonName();
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
                 platformId: vm.selectedPlatform._id,
