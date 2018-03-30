@@ -3899,6 +3899,9 @@ let dbPlayerReward = {
 
         // reward specific promise
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+
+            console.log('rewardData', rewardData);
+
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
                 applyAmount = rewardData.selectedTopup.amount;
@@ -4464,6 +4467,7 @@ let dbPlayerReward = {
                                 spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
+                                selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
                             }
 
@@ -4849,6 +4853,9 @@ let dbPlayerReward = {
 
                 // Decide whether deduct player credit
                 if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
+
+                    console.log('applyAmount', applyAmount);
+
                     // Decide whether player has enough free amount to apply
                     if (playerData.validCredit >= applyAmount) {
                         // Player has enough amount in validCredit
