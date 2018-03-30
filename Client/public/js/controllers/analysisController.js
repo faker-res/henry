@@ -1750,6 +1750,7 @@ define(['js/app'], function (myApp) {
                 averageData.total += xyz[$translate(buttonName)].data;
                 averageData[$translate(buttonName)] = ((xyz[$translate(buttonName)].data) / numberOfPeriod).toFixed(2);
             }
+            averageData.total = (averageData.total / numberOfPeriod).toFixed(2);
 
             dailyClickData.splice(0, 0, averageData);
 
