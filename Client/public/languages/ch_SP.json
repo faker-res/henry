@@ -1053,6 +1053,7 @@
   "PARTNER_TOP_UP_RETURN_REPORT": "代理充值优惠报表",
   "PLAYER_TOP_UP_REWARD_REPORT": "玩家充值大冒险优惠报表",
   "PLAYER_REFERRAL_REWARD_REPORT": "玩家推荐人优惠报表",
+  "No single QA account is found": "收寻不到相关的质检人员",
   "SEARCH": "搜索",
   "type 1": "类型 1",
   "type 2": "类型 2",
@@ -3439,6 +3440,7 @@
   "level up consumption provider different": "升级投注额来源不同",
   "more than 2 consumption provider, (auto level up) turn on, (manual batch level up) turn off": "升级同时设置检测两个（或以上）投注额来源，系统将强制开启『玩家瞬间自动升级』、同时无法提供手动批量结算升级按钮。",
   "manualDailyProviderSettlement": "每日提供商手工结算",
-  "createForbidTopUpLog": "创建禁用充值类型记录"
+  "createForbidTopUpLog": "创建禁用充值类型记录",
+  "UPDATE_ALL": "全部更新"
 
 }
