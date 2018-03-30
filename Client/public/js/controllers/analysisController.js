@@ -1632,33 +1632,33 @@ define(['js/app'], function (myApp) {
         vm.drawClickCountPie = (srcData, pieChartName) => {
             let placeholder = pieChartName + ' div.graphDiv';
             let finalizedPieData = [];
+            let click = {};
             let clickTotal = {};
-            let abc = {};
 
             for (let i = 0; i < vm.constButtonName.length; i++) {
                 let buttonName = vm.constButtonName[i];
-                clickTotal[i] = {label: $translate(buttonName), data: 0};
+                click[i] = {label: $translate(buttonName), data: 0};
             }
 
             // replace object key with button label name
-            for (let i = 0; i < Object.keys(clickTotal).length; i++) {
-                abc[clickTotal[Object.keys(clickTotal)[i]].label] = clickTotal[Object.keys(clickTotal)[i]];
+            for (let i = 0; i < Object.keys(click).length; i++) {
+                clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
             }
 
             if (srcData) {
                 srcData.map(dateData => {
                     if (dateData && dateData.data instanceof Array) {
                         dateData.data.map(buttonData => {
-                            if (buttonData && buttonData._id && buttonData._id.buttonName && abc[$translate(buttonData._id.buttonName)]) {
-                                abc[$translate(buttonData._id.buttonName)].data += buttonData.total;
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
+                                clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
                             }
                         });
                     }
                 });
             }
 
-            for (let index in abc) {
-                finalizedPieData.push(abc[index]);
+            for (let index in clickTotal) {
+                finalizedPieData.push(clickTotal[index]);
             }
 
             function labelFormatter(label, series) {
@@ -1698,17 +1698,17 @@ define(['js/app'], function (myApp) {
 
         vm.drawClickCountTable = (srcData, tableName) => {
             let dailyClickData = [];
+            let click = {};
             let clickTotal = {};
-            let xyz = {};
 
             for (let i = 0; i < vm.constButtonName.length; i++) {
                 let buttonName = vm.constButtonName[i];
-                clickTotal[i] = {label: $translate(buttonName), data: 0};
+                click[i] = {label: $translate(buttonName), data: 0};
             }
 
             // replace object key with button label name
-            for (let i = 0; i < Object.keys(clickTotal).length; i++) {
-                xyz[clickTotal[Object.keys(clickTotal)[i]].label] = clickTotal[Object.keys(clickTotal)[i]];
+            for (let i = 0; i < Object.keys(click).length; i++) {
+                clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
             }
 
             if (srcData) {
@@ -1725,8 +1725,8 @@ define(['js/app'], function (myApp) {
 
                     if (dateData && dateData.data instanceof Array) {
                         dateData.data.map(buttonData => {
-                            if (buttonData && buttonData._id && buttonData._id.buttonName && xyz[$translate(buttonData._id.buttonName)]) {
-                                xyz[$translate(buttonData._id.buttonName)].data += buttonData.total;
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
+                                clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
                             }
 
                             dayData.total += buttonData.total;
@@ -1747,8 +1747,8 @@ define(['js/app'], function (myApp) {
 
             for (let x = 0; x < vm.constButtonName.length; x++) {
                 let buttonName = vm.constButtonName[x];
-                averageData.total += xyz[$translate(buttonName)].data;
-                averageData[$translate(buttonName)] = ((xyz[$translate(buttonName)].data) / numberOfPeriod).toFixed(2);
+                averageData.total += clickTotal[$translate(buttonName)].data;
+                averageData[$translate(buttonName)] = ((clickTotal[$translate(buttonName)].data) / numberOfPeriod).toFixed(2);
             }
             averageData.total = (averageData.total / numberOfPeriod).toFixed(2);
 
