@@ -1589,7 +1589,22 @@ define(['js/app'], function (myApp) {
         // demo player END   ====================================================
 
         // click count START ====================================================
+        vm.getClickCountButtonName = function () {
+            let sendData = {
+                platformId: vm.selectedPlatform._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountButtonName', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.constButtonName = data.data;
+                });
+            }, function (data) {
+                console.log("click count data not found?", data);
+            });
+        };
+
         vm.getClickCountAnalysis = function () {
+            vm.getClickCountButtonName();
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
                 platformId: vm.selectedPlatform._id,
@@ -1617,37 +1632,37 @@ define(['js/app'], function (myApp) {
         vm.drawClickCountPie = (srcData, pieChartName) => {
             let placeholder = pieChartName + ' div.graphDiv';
             let finalizedPieData = [];
+            let click = {};
+            let clickTotal = {};
 
-            let clickTotal = {
-                "BUTTON_1": {label: $translate("BUTTON_1"), data: 0},
-                "BUTTON_2": {label: $translate("BUTTON_2"), data: 0},
-                "BUTTON_3": {label: $translate("BUTTON_3"), data: 0},
-                "BUTTON_4": {label: $translate("BUTTON_4"), data: 0},
-                "BUTTON_5": {label: $translate("BUTTON_5"), data: 0},
-                "BUTTON_6": {label: $translate("BUTTON_6"), data: 0},
-            };
+            for (let i = 0; i < vm.constButtonName.length; i++) {
+                let buttonName = vm.constButtonName[i];
+                click[i] = {label: $translate(buttonName), data: 0};
+            }
+
+            // replace object key with button label name
+            for (let i = 0; i < Object.keys(click).length; i++) {
+                clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
+            }
 
             if (srcData) {
                 srcData.map(dateData => {
                     if (dateData && dateData.data instanceof Array) {
                         dateData.data.map(buttonData => {
-                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[buttonData._id.buttonName]) {
-                                clickTotal[buttonData._id.buttonName].data += buttonData.total;
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
+                                clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
                             }
                         });
                     }
                 });
             }
 
-            finalizedPieData.push(clickTotal["BUTTON_1"]);
-            finalizedPieData.push(clickTotal["BUTTON_2"]);
-            finalizedPieData.push(clickTotal["BUTTON_3"]);
-            finalizedPieData.push(clickTotal["BUTTON_4"]);
-            finalizedPieData.push(clickTotal["BUTTON_5"]);
-            finalizedPieData.push(clickTotal["BUTTON_6"]);
+            for (let index in clickTotal) {
+                finalizedPieData.push(clickTotal[index]);
+            }
 
             function labelFormatter(label, series) {
-                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+                return "<div style='font-size:12pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
             }
 
             let options = {
@@ -1682,57 +1697,40 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawClickCountTable = (srcData, tableName) => {
-            let clickTotal = {
-                "BUTTON_1": {label: $translate("BUTTON_1"), data: 0},
-                "BUTTON_2": {label: $translate("BUTTON_2"), data: 0},
-                "BUTTON_3": {label: $translate("BUTTON_3"), data: 0},
-                "BUTTON_4": {label: $translate("BUTTON_4"), data: 0},
-                "BUTTON_5": {label: $translate("BUTTON_5"), data: 0},
-                "BUTTON_6": {label: $translate("BUTTON_6"), data: 0},
-            };
             let dailyClickData = [];
+            let click = {};
+            let clickTotal = {};
+
+            for (let i = 0; i < vm.constButtonName.length; i++) {
+                let buttonName = vm.constButtonName[i];
+                click[i] = {label: $translate(buttonName), data: 0};
+            }
+
+            // replace object key with button label name
+            for (let i = 0; i < Object.keys(click).length; i++) {
+                clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
+            }
 
             if (srcData) {
                 srcData.map(dateData => {
                     let dayData = {
                         date: String(utilService.$getTimeFromStdTimeFormat(new Date(dateData.date))).substring(0, 10),
                         total: 0,
-                        BUTTON_1: 0,
-                        BUTTON_2: 0,
-                        BUTTON_3: 0,
-                        BUTTON_4: 0,
-                        BUTTON_5: 0,
-                        BUTTON_6: 0,
                     };
+
+                    for (let x = 0; x < vm.constButtonName.length; x++) {
+                        let buttonName = vm.constButtonName[x];
+                        dayData[$translate(buttonName)] = 0;
+                    }
 
                     if (dateData && dateData.data instanceof Array) {
                         dateData.data.map(buttonData => {
-                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[buttonData._id.buttonName]) {
-                                clickTotal[buttonData._id.buttonName].data += buttonData.total;
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
+                                clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
                             }
 
                             dayData.total += buttonData.total;
-
-                            switch (buttonData._id.buttonName) {
-                                case "BUTTON_1":
-                                    dayData.BUTTON_1 += buttonData.total;
-                                    break;
-                                case "BUTTON_2":
-                                    dayData.BUTTON_2 += buttonData.total;
-                                    break;
-                                case "BUTTON_3":
-                                    dayData.BUTTON_3 += buttonData.total;
-                                    break;
-                                case "BUTTON_4":
-                                    dayData.BUTTON_4 += buttonData.total;
-                                    break;
-                                case "BUTTON_5":
-                                    dayData.BUTTON_5 += buttonData.total;
-                                    break;
-                                case "BUTTON_6":
-                                    dayData.BUTTON_6 += buttonData.total;
-                                    break;
-                            }
+                            dayData[$translate(buttonData._id.buttonName)] += buttonData.total;
                         });
                     }
 
@@ -1744,14 +1742,15 @@ define(['js/app'], function (myApp) {
 
             let averageData = {
                 date: $translate("average value"),
-                total: ((clickTotal["BUTTON_1"].data + clickTotal["BUTTON_2"].data + clickTotal["BUTTON_3"].data + clickTotal["BUTTON_4"].data + clickTotal["BUTTON_5"].data + clickTotal["BUTTON_6"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_1: ((clickTotal["BUTTON_1"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_2: ((clickTotal["BUTTON_2"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_3: ((clickTotal["BUTTON_3"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_4: ((clickTotal["BUTTON_4"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_5: ((clickTotal["BUTTON_5"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_6: ((clickTotal["BUTTON_6"].data) / numberOfPeriod).toFixed(2),
+                total: 0,
             };
+
+            for (let x = 0; x < vm.constButtonName.length; x++) {
+                let buttonName = vm.constButtonName[x];
+                averageData.total += clickTotal[$translate(buttonName)].data;
+                averageData[$translate(buttonName)] = ((clickTotal[$translate(buttonName)].data) / numberOfPeriod).toFixed(2);
+            }
+            averageData.total = (averageData.total / numberOfPeriod).toFixed(2);
 
             dailyClickData.splice(0, 0, averageData);
 
@@ -1763,15 +1762,16 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate(vm.queryPara.clickCount.periodText), data: "date"},
                     {title: $translate('TOTAL_CLICK_COUNT'), data: "total"},
-                    {title: $translate('BUTTON_1'), data: "BUTTON_1"},
-                    {title: $translate('BUTTON_2'), data: "BUTTON_2"},
-                    {title: $translate('BUTTON_3'), data: "BUTTON_3"},
-                    {title: $translate('BUTTON_4'), data: "BUTTON_4"},
-                    {title: $translate('BUTTON_5'), data: "BUTTON_5"},
-                    {title: $translate('BUTTON_6'), data: "BUTTON_6"},
                 ],
                 "paging": false,
             };
+
+            for (let x = 0; x < vm.constButtonName.length; x++) {
+                let buttonName = vm.constButtonName[x];
+                let buttonObj = {title: $translate(buttonName), data: $translate(buttonName)};
+                dataOptions.columns[x+2] = buttonObj;
+            }
+
             dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
             let a = $(tableName).DataTable(dataOptions);
             a.columns.adjust().draw();
