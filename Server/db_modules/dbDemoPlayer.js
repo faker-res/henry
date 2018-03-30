@@ -144,6 +144,47 @@ let dbDemoPlayer = {
             }
         );
     },
+    getDemoPlayerLog: (platformId, period, status, selectedDate, index, limit, sortCol) => {
+        index = index || 0;
+        sortCol = sortCol || {createTime: 1};
+        let getNextDate;
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                };
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                };
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                };
+        }
+
+        let dayEndTime = getNextDate.call(this, selectedDate);
+        let matchObj = {
+            createTime: {$gte: selectedDate, $lt: dayEndTime},
+            status: status
+        };
+        if (platformId != 'all') {
+            matchObj.platform = platformId;
+        }
+
+        let a = dbconfig.collection_createDemoPlayerLog.find(matchObj).count();
+        let b = dbconfig.collection_createDemoPlayerLog.find(matchObj).sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([a, b]).then(data => {
+            return({total: data[0], data: data[1]});
+        });
+    },
 };
 
 module.exports = dbDemoPlayer;
