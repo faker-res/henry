@@ -7645,6 +7645,7 @@ let dbPlayerInfo = {
                     return {
                         topUpAmount: data[0][0] ? data[0][0].amount : 0,
                         consumptionAmount: data[1][0] ? data[1][0].validAmount : 0,
+                        bonusAmount: data[1][0] ? data[1][0].bonusAmount : 0,
                         rewardAmount: data[2] ? data[2] : 0
                     };
                 }
@@ -7652,6 +7653,7 @@ let dbPlayerInfo = {
                     return {
                         topUpAmount: 0,
                         consumptionAmount: 0,
+                        bonusAmount: 0,
                         rewardAmount: 0
                     };
                 }
@@ -11635,7 +11637,7 @@ let dbPlayerInfo = {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
                                     rewardData.smsCode = data.smsCode;
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
+                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
                                     return Q.reject({

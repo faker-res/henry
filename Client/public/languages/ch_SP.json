@@ -457,6 +457,7 @@
   "NEXT": "目标等级",
   "TEST_PLAYER_NAME": "试玩玩家姓名",
   "TEST_PLAYER_PASSWORD": "试玩玩家密码",
+  "Demo Player Account": "试玩账号",
   "Test Player": "试玩玩家",
   "Real Player": "真实玩家",
   "CREATE_PLAYER": "创建玩家",
@@ -1052,6 +1053,7 @@
   "PARTNER_TOP_UP_RETURN_REPORT": "代理充值优惠报表",
   "PLAYER_TOP_UP_REWARD_REPORT": "玩家充值大冒险优惠报表",
   "PLAYER_REFERRAL_REWARD_REPORT": "玩家推荐人优惠报表",
+  "No single QA account is found": "收寻不到相关的质检人员",
   "SEARCH": "搜索",
   "type 1": "类型 1",
   "type 2": "类型 2",
@@ -1453,7 +1455,20 @@
   "PLAYER_CONSUMPTION_REWARD_GROUP_REPORT": "投注额优惠（组）优惠报表",
   "PLAYER_FREE_TRIAL_REWARD_GROUP_REPORT": "免费体验金（组）优惠报表",
   "PLAYER_RANDOM_REWARD_GROUP_REPORT": "随机抽奖（组）优惠报表",
-
+  "CLICK_COUNT": "埋点",
+  "clickCount": "埋点",
+  "PAGE_NAME": "页面",
+  "TOTAL_CLICK_COUNT": "总点击次数",
+  "PAGE_1": "页面1",
+  "PAGE_2": "页面2",
+  "PAGE_3": "页面3",
+  "PAGE_4": "页面4",
+  "BUTTON_1": "按钮1",
+  "BUTTON_2": "按钮2",
+  "BUTTON_3": "按钮3",
+  "BUTTON_4": "按钮4",
+  "BUTTON_5": "按钮5",
+  "BUTTON_6": "按钮6",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -3424,6 +3439,7 @@
   "level up consumption provider different": "升级投注额来源不同",
   "more than 2 consumption provider, (auto level up) turn on, (manual batch level up) turn off": "升级同时设置检测两个（或以上）投注额来源，系统将强制开启『玩家瞬间自动升级』、同时无法提供手动批量结算升级按钮。",
   "manualDailyProviderSettlement": "每日提供商手工结算",
-  "createForbidTopUpLog": "创建禁用充值类型记录"
+  "createForbidTopUpLog": "创建禁用充值类型记录",
+  "UPDATE_ALL": "全部更新"
 
 }

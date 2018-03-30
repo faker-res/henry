@@ -39,6 +39,38 @@ define(['js/app'], function (myApp) {
             WechatTransfer: 5
         };
 
+        vm.constDemoPlayerStatus = {
+            OLD_PLAYER: "1",
+            PRE_CONVERT: "2",
+            POST_CONVERT: "3",
+            CANNOT_CONVERT: "4"
+        };
+          
+        vm.constInputDevice = {
+            1: 'WEB_PLAYER',
+            2: 'WEB_AGENT',
+            3: 'H5_PLAYER',
+            4: 'H5_AGENT',
+            5: 'APP_PLAYER',
+            6: 'APP_AGENT'
+        };
+
+        vm.constPageName = {
+            PAGE_1: 'PAGE_1',
+            PAGE_2: 'PAGE_2',
+            PAGE_3: 'PAGE_3',
+            PAGE_4: 'PAGE_4'
+        };
+
+        vm.constButtonName = {
+            BUTTON_1: 'BUTTON_1',
+            BUTTON_2: 'BUTTON_2',
+            BUTTON_3: 'BUTTON_3',
+            BUTTON_4: 'BUTTON_4',
+            BUTTON_5: 'BUTTON_5',
+            BUTTON_6: 'BUTTON_6'
+        };
+
         // For debugging:
         window.VM = vm;
 
@@ -335,9 +367,19 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                     case "DEMO_PLAYER":
+                        vm.averageData = {};
+                        vm.dailyStatusData = [];
+                        $('#demoPlayerStatusTable').hide();
                         vm.initSearchParameter('demoPlayer', 'day', 3, function () {
 
                         });
+                        break;
+                    case "CLICK_COUNT":
+                        vm.initSearchParameter('clickCount', 'day', 3, function () {
+
+                        });
+                        vm.queryPara.clickCount.inputDevice = "1";
+                        vm.queryPara.clickCount.pageName = "PAGE_1";
                         break;
 
                 }
@@ -1198,7 +1240,7 @@ define(['js/app'], function (myApp) {
                     vm.drawDemoPlayerDevicePie(vm.demoPlayerDeviceData, '#demoPlayerAnalysis');
                     vm.drawDemoPlayerDeviceTable(vm.demoPlayerDeviceData, '#demoPlayerDeviceAnalysisTable');
                     vm.drawDemoPlayerStatusPie(vm.demoPlayerStatusData, '#demoPlayerStatusAnalysis');
-                    vm.drawDemoPlayerStatusTable(vm.demoPlayerStatusData, '#demoPlayerStatusAnalysisTable');
+                    vm.drawDemoPlayerStatusTable(vm.demoPlayerStatusData);
                     vm.drawDemoPlayerConvertRatePie(vm.demoPlayerStatusData, '#demoPlayerConvertRateAnalysis')
                 });
             }, function (data) {
@@ -1415,7 +1457,9 @@ define(['js/app'], function (myApp) {
             socketService.$plotPie(placeholder, finalizedPieData, options, 'demoPlayerStatusData');
         };
 
-        vm.drawDemoPlayerStatusTable = (srcData, tableName) => {
+        vm.drawDemoPlayerStatusTable = (srcData) => {
+            vm.averageData = {};
+            vm.dailyStatusData = [];
             let statusTotal = {
                 "1": {label: "OLD_PLAYER", data: 0},
                 "2": {label: "PRE_CONVERT", data: 0},
@@ -1475,26 +1519,9 @@ define(['js/app'], function (myApp) {
                 CANNOT_CONVERT: ((statusTotal["4"].data) / numberOfPeriod).toFixed(2)
             };
 
-            dailyStatusData.splice(0, 0, averageData);
-
-            let dataOptions = {
-                data: dailyStatusData,
-                aoColumnDefs: [
-                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
-                ],
-                columns: [
-                    {title: $translate(vm.queryPara.demoPlayer.periodText), data: "date"},
-                    {title: $translate("TOTAL_REGISTRATION"), data: "total"},
-                    {title: $translate("OLD_PLAYER"), data: "OLD_PLAYER"},
-                    {title: $translate("PRE_CONVERT"), data: "PRE_CONVERT"},
-                    {title: $translate("POST_CONVERT"), data: "POST_CONVERT"},
-                    {title: $translate('CANNOT_CONVERT')+ " (" + $translate("BACKSTAGE") + $translate("CREATE_NEW_PLAYER") + ")", data: "CANNOT_CONVERT"}
-                ],
-                "paging": false,
-            };
-            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-            let a = $(tableName).DataTable(dataOptions);
-            a.columns.adjust().draw();
+            vm.averageData = averageData;
+            vm.dailyStatusData = dailyStatusData;
+            $('#demoPlayerStatusTable').show();
         };
 
         vm.drawDemoPlayerConvertRatePie = (srcData, pieChartName) => {
@@ -1560,6 +1587,196 @@ define(['js/app'], function (myApp) {
             socketService.$plotPie(placeholder, finalizedPieData, options, 'demoPlayerStatusData');
         };
         // demo player END   ====================================================
+
+        // click count START ====================================================
+        vm.getClickCountAnalysis = function () {
+            vm.isShowLoadingSpinner('#clickCountAnalysis', true);
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.clickCount.periodText,
+                startDate: vm.queryPara.clickCount.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.clickCount.endTime.data('datetimepicker').getLocalDate(),
+                device: vm.queryPara.clickCount.inputDevice,
+                pageName: vm.queryPara.clickCount.pageName
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountAnalysis', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountData = data.data;
+                    vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+
+                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis');
+                    vm.drawClickCountTable(vm.clickCountData, '#clickCountAnalysisTable');
+                });
+            }, function (data) {
+                vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+                console.log("click count data not found?", data);
+            });
+        };
+
+        vm.drawClickCountPie = (srcData, pieChartName) => {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            let clickTotal = {
+                "BUTTON_1": {label: $translate("BUTTON_1"), data: 0},
+                "BUTTON_2": {label: $translate("BUTTON_2"), data: 0},
+                "BUTTON_3": {label: $translate("BUTTON_3"), data: 0},
+                "BUTTON_4": {label: $translate("BUTTON_4"), data: 0},
+                "BUTTON_5": {label: $translate("BUTTON_5"), data: 0},
+                "BUTTON_6": {label: $translate("BUTTON_6"), data: 0},
+            };
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(buttonData => {
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[buttonData._id.buttonName]) {
+                                clickTotal[buttonData._id.buttonName].data += buttonData.total;
+                            }
+                        });
+                    }
+                });
+            }
+
+            finalizedPieData.push(clickTotal["BUTTON_1"]);
+            finalizedPieData.push(clickTotal["BUTTON_2"]);
+            finalizedPieData.push(clickTotal["BUTTON_3"]);
+            finalizedPieData.push(clickTotal["BUTTON_4"]);
+            finalizedPieData.push(clickTotal["BUTTON_5"]);
+            finalizedPieData.push(clickTotal["BUTTON_6"]);
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            let options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'clickCountData');
+        };
+
+        vm.drawClickCountTable = (srcData, tableName) => {
+            let clickTotal = {
+                "BUTTON_1": {label: $translate("BUTTON_1"), data: 0},
+                "BUTTON_2": {label: $translate("BUTTON_2"), data: 0},
+                "BUTTON_3": {label: $translate("BUTTON_3"), data: 0},
+                "BUTTON_4": {label: $translate("BUTTON_4"), data: 0},
+                "BUTTON_5": {label: $translate("BUTTON_5"), data: 0},
+                "BUTTON_6": {label: $translate("BUTTON_6"), data: 0},
+            };
+            let dailyClickData = [];
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    let dayData = {
+                        date: String(utilService.$getTimeFromStdTimeFormat(new Date(dateData.date))).substring(0, 10),
+                        total: 0,
+                        BUTTON_1: 0,
+                        BUTTON_2: 0,
+                        BUTTON_3: 0,
+                        BUTTON_4: 0,
+                        BUTTON_5: 0,
+                        BUTTON_6: 0,
+                    };
+
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(buttonData => {
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[buttonData._id.buttonName]) {
+                                clickTotal[buttonData._id.buttonName].data += buttonData.total;
+                            }
+
+                            dayData.total += buttonData.total;
+
+                            switch (buttonData._id.buttonName) {
+                                case "BUTTON_1":
+                                    dayData.BUTTON_1 += buttonData.total;
+                                    break;
+                                case "BUTTON_2":
+                                    dayData.BUTTON_2 += buttonData.total;
+                                    break;
+                                case "BUTTON_3":
+                                    dayData.BUTTON_3 += buttonData.total;
+                                    break;
+                                case "BUTTON_4":
+                                    dayData.BUTTON_4 += buttonData.total;
+                                    break;
+                                case "BUTTON_5":
+                                    dayData.BUTTON_5 += buttonData.total;
+                                    break;
+                                case "BUTTON_6":
+                                    dayData.BUTTON_6 += buttonData.total;
+                                    break;
+                            }
+                        });
+                    }
+
+                    dailyClickData.push(dayData);
+                });
+            }
+
+            let numberOfPeriod = srcData.length;
+
+            let averageData = {
+                date: $translate("average value"),
+                total: ((clickTotal["BUTTON_1"].data + clickTotal["BUTTON_2"].data + clickTotal["BUTTON_3"].data + clickTotal["BUTTON_4"].data + clickTotal["BUTTON_5"].data + clickTotal["BUTTON_6"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_1: ((clickTotal["BUTTON_1"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_2: ((clickTotal["BUTTON_2"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_3: ((clickTotal["BUTTON_3"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_4: ((clickTotal["BUTTON_4"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_5: ((clickTotal["BUTTON_5"].data) / numberOfPeriod).toFixed(2),
+                BUTTON_6: ((clickTotal["BUTTON_6"].data) / numberOfPeriod).toFixed(2),
+            };
+
+            dailyClickData.splice(0, 0, averageData);
+
+            let dataOptions = {
+                data: dailyClickData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
+                columns: [
+                    {title: $translate(vm.queryPara.clickCount.periodText), data: "date"},
+                    {title: $translate('TOTAL_CLICK_COUNT'), data: "total"},
+                    {title: $translate('BUTTON_1'), data: "BUTTON_1"},
+                    {title: $translate('BUTTON_2'), data: "BUTTON_2"},
+                    {title: $translate('BUTTON_3'), data: "BUTTON_3"},
+                    {title: $translate('BUTTON_4'), data: "BUTTON_4"},
+                    {title: $translate('BUTTON_5'), data: "BUTTON_5"},
+                    {title: $translate('BUTTON_6'), data: "BUTTON_6"},
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            let a = $(tableName).DataTable(dataOptions);
+            a.columns.adjust().draw();
+        };
+        // click count END   ====================================================
 
         // new player start =============================================
         vm.getNextDateByPeriodAndDate = (period, startDate) => {
@@ -4123,6 +4340,98 @@ define(['js/app'], function (myApp) {
             socketService.$plotPie(elementId, pieData, {});
         };
 
+        vm.initDemoPlayerLog = function (status, selectedDate) {
+            vm.status = status;
+            vm.selectedDate = selectedDate;
+            vm.demoPlayerLog = {};
+            utilService.actionAfterLoaded('#modalDemoPlayerLog.in #demoPlayerLogTblPage', function () {
+                vm.demoPlayerLog.pageObj = utilService.createPageForPagingTable("#demoPlayerLogTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "demoPlayerLog", vm.getDemoPlayerLogData);
+                });
+                vm.getDemoPlayerLogData(true);
+            });
+        };
+
+        vm.getDemoPlayerLogData = function (newSearch) {
+
+            let sendQuery = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.demoPlayer.periodText,
+                status: vm.status,
+                selectedDate: vm.selectedDate,
+                index: newSearch ? 0 : vm.demoPlayerLog.index,
+                limit: newSearch ? 10 : vm.demoPlayerLog.limit,
+                sortCol: vm.demoPlayerLog.sortCol || null
+            };
+
+            socketService.$socket($scope.AppSocket, 'getDemoPlayerLog', sendQuery, function (data) {
+                console.log("getDemoPlayerLog", data);
+                let tblData = data && data.data ? data.data.data : [];
+                let total = data.data ? data.data.total : 0;
+                vm.demoPlayerLog.totalCount = total;
+                if (tblData && tblData.length > 0) {
+                    tblData.map(data => {
+                        if (data.status == vm.constDemoPlayerStatus.OLD_PLAYER || data.status == vm.constDemoPlayerStatus.POST_CONVERT) {
+                            if (data.phoneNumber) {
+                                let str = data.phoneNumber;
+                                data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                            }
+                        }
+                    });
+                }
+                vm.drawDemoPlayerLogTable(newSearch, tblData, total);
+            });
+        };
+
+        vm.drawDemoPlayerLogTable = function (newSearch, tblData, size) {
+            let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        "targets": 0,
+                        "title": $translate('order'),
+                        "render": function (data, type, full, meta) {
+                            return meta.settings._iDisplayStart + meta.row + 1;
+                        }
+                    },
+                    {title: $translate('Demo Player Account'), data: "name"},
+                    {title: $translate('phoneNumber'), data: "phoneNumber"},
+                ],
+                "paging": false,
+                "searching": false,
+                "info": false,
+                "destroy": true,
+                "scrollCollapse": true,
+                "language": {
+                    "emptyTable": $translate("No data available in table"),
+                }
+            });
+            let aTable = $("#demoPlayerLogTbl").DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            vm.demoPlayerLog.pageObj.init({maxCount: size}, newSearch);
+            $('#demoPlayerLogTbl').resize();
+            $('#demoPlayerLogTbl').off('order.dt');
+            $scope.safeApply();
+        };
+
+        vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+            var isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
+            if (pageSize != vm[objKey].limit) {
+                isChange = true;
+                vm[objKey].limit = pageSize;
+            }
+            if ((curP - 1) * pageSize != vm[objKey].index) {
+                isChange = true;
+                vm[objKey].index = (curP - 1) * pageSize;
+            }
+            if (isChange) return searchFunc.call(this);
+        };
     };
     analysisController.$inject = injectParams;
     myApp.register.controller('analysisCtrl', analysisController);

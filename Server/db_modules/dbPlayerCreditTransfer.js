@@ -1183,11 +1183,7 @@ let dbPlayerCreditTransfer = {
                     };
 
                     //move credit to player
-                    return dbConfig.collection_players.findOneAndUpdate(
-                        {_id: playerObjId, platform: platform},
-                        updatePlayerObj,
-                        {new: true}
-                    )
+                    return dbOps.findOneAndUpdateWithRetry(dbConfig.collection_players, {_id: playerObjId, platform: platform}, updatePlayerObj, {new: true});
                 } else {
                     return Q.reject({
                         status: constServerCode.PLAYER_REWARD_INFO,

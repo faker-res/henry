@@ -575,124 +575,133 @@ define(['js/app'], function (myApp) {
             vm.initUnreadEvaluation = function(){
                 if(vm.selectedPlatform){
                     vm.evaluationTab = 'unreadEvaluation';
-                    $('#unreadEvaluationStartDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
+
+                    utilService.actionAfterLoaded('#unreadEvaluationEndDatetimePicker', function () {
+                        $('#unreadEvaluationStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#unreadEvaluationEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                     });
-
-                    $("#unreadEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
-
-                    $('#unreadEvaluationEndDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
-                    });
-
-                    $("#unreadEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             };
 
             vm.initReadEvaluation = function(){
                 if(vm.selectedPlatform) {
-                    $('#readEvaluationStartDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
+                    utilService.actionAfterLoaded('#readEvaluationEndDatetimePicker', function () {
+                        $('#readEvaluationStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#readEvaluationEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                     });
-
-                    $("#readEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
-
-                    $('#readEvaluationEndDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
-                    });
-
-                    $("#readEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             }
 
             vm.initAppealEvaluation = function(){
                 if(vm.selectedPlatform) {
-                    $('#conversationStartDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
+                    utilService.actionAfterLoaded('#appealEvaluationEndDatetimePicker', function () {
+                        $('#conversationStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#conversationEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+                        $('#appealEvaluationStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#appealEvaluationEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                     });
-
-                    $("#conversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
-
-                    $('#conversationEndDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
-                    });
-
-                    $("#conversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
-
-                    $('#appealEvaluationStartDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
-                    });
-
-                    $("#appealEvaluationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
-
-                    $('#appealEvaluationEndDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
-                    });
-
-                    $("#appealEvaluationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
                 }
             }
 
             vm.initWorkloadProgress = function(){
                 if(vm.selectedPlatform) {
                     vm.inspectionReportTab ='workloadReport';
-                    $('#reportConversationStartDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
-                    });
-
-                    $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
-
-                    $('#reportConversationEndDatetimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
-                    });
-
-                    $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
-
-                    let qaDepartmentMember = [];
-                    if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0) {
-                        vm.selectedPlatform.data.qiDepartment.forEach(qItem => {
-                            qaDepartmentMember = qaDepartmentMember.concat(qItem.users);
-                        })
-                    }
-
-                    if (qaDepartmentMember && qaDepartmentMember.length > 0) {
-                        socketService.$socket($scope.AppSocket, 'getQIAdmins', {admins: qaDepartmentMember}, function (qdata) {
-                            console.log('all admin data', qdata.data);
-                            vm.qaDepartments = [];
-
-                            if (qdata.data.length > 0) {
-                                qdata.data.forEach(item => {
-                                    console.log(item);
-                                    let qaAccount = {};
-                                    qaAccount._id = item._id;
-                                    qaAccount.name = item.adminName;
-                                    vm.qaDepartments.push(qaAccount);
-                                })
-                            }
-                            $scope.safeApply();
-                        }, function (err) {
+                    utilService.actionAfterLoaded('#reportConversationEndDatetimePicker', function () {
+                        $('#reportConversationStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
                         });
-                    }
+
+                        $("#reportConversationStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#reportConversationEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#reportConversationEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+                        let qaDepartmentMember = [];
+                        if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.qiDepartment && vm.selectedPlatform.data.qiDepartment.length > 0) {
+                            vm.selectedPlatform.data.qiDepartment.forEach(qItem => {
+                                qaDepartmentMember = qaDepartmentMember.concat(qItem.users);
+                            })
+                        }
+
+                        if (qaDepartmentMember && qaDepartmentMember.length > 0) {
+                            socketService.$socket($scope.AppSocket, 'getQIAdmins', {admins: qaDepartmentMember}, function (qdata) {
+                                console.log('all admin data', qdata.data);
+                                vm.qaDepartments = [];
+
+                                if (qdata.data.length > 0) {
+                                    qdata.data.forEach(item => {
+                                        console.log(item);
+                                        let qaAccount = {};
+                                        qaAccount._id = item._id;
+                                        qaAccount.name = item.adminName;
+                                        vm.qaDepartments.push(qaAccount);
+                                    })
+                                }
+                                $scope.safeApply();
+                            }, function (err) {
+                            });
+                        }
+                    });
                 }
             }
 
@@ -1195,8 +1204,8 @@ define(['js/app'], function (myApp) {
             //////////////////////////////////////////////////////////Start of Report Tab///////////////////////////////////////////////////////////////////
             vm.getWorkloadReport = function(newSearch) {
                 vm.loadingWorkloadReportTable = true;
-                var startTime = $('#reportConversationStartDatetimePicker').data('datetimepicker').getLocalDate();
-                var endTime = $('#reportConversationEndDatetimePicker').data('datetimepicker').getLocalDate();
+                let startTime = $('#reportConversationStartDatetimePicker').data('datetimepicker').getLocalDate();
+                let endTime = $('#reportConversationEndDatetimePicker').data('datetimepicker').getLocalDate();
 
                 let sendData = {
                     startTime: startTime,
@@ -1206,6 +1215,10 @@ define(['js/app'], function (myApp) {
                 if(vm.qaAccount && vm.qaAccount != "all"){
                     sendData.qualityAssessor = [vm.qaAccount];
                 }else{
+                    if (!vm.qaDepartments || vm.qaDepartments.length == 0){
+                        vm.loadingWorkloadReportTable = false;
+                        return socketService.showErrorMessage($translate('No single QA account is found'));
+                    }
                     let qaArr = [];
                     vm.qaDepartments.forEach(q => {
                         if(q && q._id){
@@ -1219,36 +1232,36 @@ define(['js/app'], function (myApp) {
                 let resultArr = [];
 
                 socketService.$socket($scope.AppSocket, 'getWorkloadReport', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0){
+                    if(data && data.data && data.data.length > 0) {
 
                         data.data.map(data => {
-                            if(data && data.status){
+                            if (data && data.status) {
                                 data.status = vm.constQualityInspectionStatus[data.status];
                             }
 
                             let index = resultArr.findIndex(r => r.qaAccount == data.qaAccount)
 
-                            if(index != -1){
-                                if(data.status == "COMPLETED_UNREAD"){
+                            if (index != -1) {
+                                if (data.status == "COMPLETED_UNREAD") {
                                     resultArr[index].completedUnread = data.count;
                                 }
 
-                                if(data.status == "COMPLETED_READ"){
+                                if (data.status == "COMPLETED_READ") {
                                     resultArr[index].completedRead = data.count;
                                 }
 
-                                if(data.status == "COMPLETED"){
+                                if (data.status == "COMPLETED") {
                                     resultArr[index].completed = data.count;
                                 }
 
-                                if(data.status == "APPEALING"){
+                                if (data.status == "APPEALING") {
                                     resultArr[index].appealing = data.count;
                                 }
 
-                                if(data.status == "APPEAL_COMPLETED"){
+                                if (data.status == "APPEAL_COMPLETED") {
                                     resultArr[index].appealCompleted = data.count;
                                 }
-                            }else{
+                            } else {
                                 let resultObj = {
                                     qaAccount: data.qaAccount,
                                     completedUnread: 0,
@@ -1258,23 +1271,23 @@ define(['js/app'], function (myApp) {
                                     appealCompleted: 0
                                 }
 
-                                if(data.status == "COMPLETED_UNREAD"){
+                                if (data.status == "COMPLETED_UNREAD") {
                                     resultObj.completedUnread = data.count;
                                 }
 
-                                if(data.status == "COMPLETED_READ"){
+                                if (data.status == "COMPLETED_READ") {
                                     resultObj.completedRead = data.count;
                                 }
 
-                                if(data.status == "COMPLETED"){
+                                if (data.status == "COMPLETED") {
                                     resultObj.completed = data.count;
                                 }
 
-                                if(data.status == "APPEALING"){
+                                if (data.status == "APPEALING") {
                                     resultObj.appealing = data.count;
                                 }
 
-                                if(data.status == "APPEAL_COMPLETED"){
+                                if (data.status == "APPEAL_COMPLETED") {
                                     resultObj.appealCompleted = data.count;
                                 }
 
@@ -1282,59 +1295,175 @@ define(['js/app'], function (myApp) {
                             }
 
                             return data;
-                        })
-
-                        let tableData = resultArr;
-
-                        var option = $.extend({}, vm.generalDataTableOptions, {
-                            data: tableData,
-                            aoColumnDefs: [
-                                {'sortCol': 'qaAccount', bSortable: true, 'aTargets': [0]},
-                                {'sortCol': 'completedUnread', bSortable: true, 'aTargets': [1]},
-                                {'sortCol': 'completedRead', bSortable: true, 'aTargets': [2]},
-                                {'sortCol': 'completed', bSortable: true, 'aTargets': [3]},
-                                {'sortCol': 'appealing', bSortable: true, 'aTargets': [4]},
-                                {'sortCol': 'appealCompleted', bSortable: true, 'aTargets': [5]},
-
-                            ],
-                            columns: [
-                                {title: $translate('QA ACCOUNT'), data: "qaAccount"},
-                                {title: $translate('COMPLETED_UNREAD'), data: "completedUnread"},
-                                {title: $translate('COMPLETED_READ'), data: "completedRead"},
-                                {title: $translate('COMPLETED'), data: "completed"},
-                                {title: $translate('APPEALING'), data: "appealing"},
-                                {title: $translate('APPEAL_COMPLETED'), data: "appealCompleted"}
-                            ],
-                            bSortClasses: false,
-                            destroy: true,
-                            paging: false,
-                            autoWidth: true,
-                            initComplete: function (data, type, row) {
-                                $scope.safeApply();
-                            },
-                            createdRow: function (row, data, dataIndex) {
-                                $compile(angular.element(row).contents())($scope);
-
-                            },
-                            //fnRowCallback: vm.playerListTableRow
                         });
-
-                        var a = utilService.createDatatableWithFooter('#workloadReportTable', option, {});
-
-                        //vm.workloadReportRecords.pageObj.init({maxCount: vm.workloadReportRecords.totalCount}, newSearch);
-                        $('#workloadReportTable').off('order.dt');
-                        $('#workloadReportTable').on('order.dt', function (event, a, b) {
-                            vm.commonSortChangeHandler(a, 'workloadReportRecords', vm.getWorkloadReport);
-                        });
-                        setTimeout(function () {
-                            $('#workloadReportTable').resize();
-                        }, 300);
+                        vm.loadingWorkloadReportTable = false;
+                        $scope.safeApply();
+                        vm.drawQAReportTable(resultArr, [], [],newSearch);
+                        vm.QAReportQuery ={};
+                        vm.QAReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
                     }
 
-                    vm.loadingWorkloadReportTable = false;
-                    $scope.safeApply();
+                },function (error) {
+                        console.log("error", error);
+                    }
+                );
+            }
+            vm.drawQAReportTable = function(resultArr, total, size, newSearch) {
+                let tableData = resultArr;
+
+                var option = $.extend(true, {}, vm.commonTableOption, {
+                    data: tableData,
+                    // aoColumnDefs: [
+                    //     {'sortCol': 'qaAccount', bSortable: true, 'aTargets': [0]},
+                    //     {'sortCol': 'completedUnread', bSortable: true, 'aTargets': [1]},
+                    //     {'sortCol': 'completedRead', bSortable: true, 'aTargets': [2]},
+                    //     {'sortCol': 'completed', bSortable: true, 'aTargets': [3]},
+                    //     {'sortCol': 'appealing', bSortable: true, 'aTargets': [4]},
+                    //     {'sortCol': 'appealCompleted', bSortable: true, 'aTargets': [5]},
+                    //
+                    // ],
+                    columns: [
+                        {
+                            title: $translate('QA ACCOUNT'),
+                            data: "qaAccount", sClass: "expandQAReport",
+                            render: function (data, type, row) {
+                                return "<a>" + data + "</a>";
+                            }
+                        },
+                        {title: $translate('COMPLETED_UNREAD'), data: "completedUnread"},
+                        {title: $translate('COMPLETED_READ'), data: "completedRead"},
+                        {title: $translate('COMPLETED'), data: "completed"},
+                        {title: $translate('APPEALING'), data: "appealing"},
+                        {title: $translate('APPEAL_COMPLETED'), data: "appealCompleted"}
+                    ],
+                    "paging": true,
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    }
+
+                });
+
+                if (reportTbl) {
+                    reportTbl.clear();
+                }
+                var reportTbl = $("#workloadReportTable").DataTable(option);
+                utilService.setDataTablePageInput('workloadReportTable', reportTbl, $translate);
+
+                $('#workloadReportTable tbody').off('click', 'td.expandQAReport');
+                $('#workloadReportTable').resize();
+
+                $('#workloadReportTable tbody').on('click', 'td.expandQAReport', function () {
+                    var tr = $(this).closest('tr');
+                    var row = reportTbl.row(tr);
+
+                    if (row.child.isShown()) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                    else {
+                        // Open this row
+                        var data = row.data();
+                        console.log('content', data);
+                        var id = 'reportTable' + data.qaAccount;
+                        row.child(vm.createInnerTable(id)).show();
+                        vm[id] = {};
+
+                        let params = {
+                            qualityAssessor: data.qaAccount,
+                            startTime: $('#reportConversationStartDatetimePicker').data('datetimepicker').getLocalDate(),
+                            endTime: $('#reportConversationEndDatetimePicker').data('datetimepicker').getLocalDate(),
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'getWorkloadReportByDate', params, function (data) {
+                            if (data && data.data && data.data.length > 0) {
+                                vm.displayDetailData = [];
+
+                                data.data.forEach(detail => {
+
+                                    let detailData = {};
+
+                                    detailData.date = utilService.getFormatTime(new Date(detail.date)).split(" ")[0];
+                                    if (detail.data.length > 0) {
+
+                                        detail.data.forEach(inDetail => {
+                                            if (inDetail) {
+                                                let status = vm.constQualityInspectionStatus[inDetail._id.status];
+                                                if (status == "COMPLETED_UNREAD") {
+                                                    detailData.COMPLETED_UNREAD = inDetail.count;
+                                                }
+
+                                                if (status == "COMPLETED_READ") {
+                                                    detailData.COMPLETED_READ = inDetail.count;
+                                                }
+
+                                                if (status == "COMPLETED") {
+                                                    detailData.COMPLETED = inDetail.count;
+                                                }
+
+                                                if (status == "APPEALING") {
+                                                    detailData.APPEALING = inDetail.count;
+                                                }
+
+                                                if (data.status == "APPEAL_COMPLETED") {
+                                                    detailData.APPEAL_COMPLETED = inDetail.count;
+                                                }
+                                            }
+
+                                        })
+
+                                    }
+                                    vm.displayDetailData.push(detailData);
+                                });
+                            }
+
+                            vm.displayDetailData.map(data => {
+                                for (let i = 1; i < Object.keys(vm.constQualityInspectionStatus).length + 1; i++) {
+                                    if (!data.hasOwnProperty(vm.constQualityInspectionStatus[i])) {
+                                        data[vm.constQualityInspectionStatus[i]] = 0;
+                                    }
+                                }
+                                return data;
+                            });
+
+                            $scope.safeApply();
+                            vm.drawDetailQAReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
+                        }, function (error) {
+                            console.log("error", error);
+                        });
+
+                        tr.addClass('shown');
+                    }
+                });
+                $('#workloadReportTable').off('order.dt');
+                $('#workloadReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'QAReportQuery', vm.getWorkloadReport);
                 });
             }
+
+            vm.drawDetailQAReportTable = function (data, id, size, newSearch, qObj) {
+                let holder = data;
+                let tableOptions = {
+                    data: data,
+                    columns: [
+                        {title: $translate('date'), data: "date"},
+                        {title: $translate('COMPLETED_UNREAD'), data: "COMPLETED_UNREAD"},
+                        {title: $translate('COMPLETED_READ'), data: "COMPLETED_READ"},
+                        {title: $translate('COMPLETED'), data: "COMPLETED"},
+                        {title: $translate('APPEALING'), data: "APPEALING"},
+                        {title: $translate('APPEAL_COMPLETED'), data: "APPEAL_COMPLETED"}
+                    ],
+                    "paging": false,
+                    "language": {
+                        "info": "Total _MAX_ records",
+                        "emptyTable": $translate("No data available in table"),
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                $('#' + id + 'label').text($translate("total") + ' ' + size + ' ' + $translate("records"));
+                var innerTable = $('#' + id).DataTable(tableOptions);
+            };
 
             vm.getEvaluationProgressRecord = function() {
                 if(vm.yearMonth){
@@ -2465,7 +2594,7 @@ define(['js/app'], function (myApp) {
 
                                 vm.displayDetailData.map(data => {
 
-                                    data.date = data.date.split("T")[0];
+                                    data.date = utilService.getFormatTime(new Date(data.date)).split(" ")[0];
 
                                     if (!data.totalOvertimeRate){
                                         data.totalOvertimeRate = 0;

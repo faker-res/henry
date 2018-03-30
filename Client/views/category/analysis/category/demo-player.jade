@@ -42,7 +42,49 @@
         .row
             .col-md-6
                 .graph
-                    table#demoPlayerStatusAnalysisTable.display.tableDiv(style='min-width:100%')
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center#demoPlayerStatusTable(style='width:100%;')
+                        thead
+                            tr
+                                th(style='width:20%')
+                                    span {{ vm.queryPara.demoPlayer.periodText | translate}}
+                                th(style='width:12%')
+                                    span {{ "TOTAL_REGISTRATION" | translate}}
+                                th(style='width:12%')
+                                    span {{ "OLD_PLAYER" | translate}}
+                                th(style='width:12%')
+                                    span {{ "PRE_CONVERT" | translate}}
+                                th(style='width:14%')
+                                    span {{ "POST_CONVERT" | translate}}
+                                th(style='width:30%')
+                                    span {{ "CANNOT_CONVERT" | translate}} ({{ "BACKSTAGE" | translate}}{{ "CREATE_NEW_PLAYER" | translate}})
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.averageData.total }}
+                                td
+                                    span {{ vm.averageData.OLD_PLAYER }}
+                                td
+                                    span {{ vm.averageData.PRE_CONVERT }}
+                                td
+                                    span {{ vm.averageData.POST_CONVERT }}
+                                td
+                                    span {{ vm.averageData.CANNOT_CONVERT }}
+
+                            tr(ng-repeat='(i, v) in vm.dailyStatusData')
+                                td(style='width:80px')
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td(style='width:40px')
+                                    span {{ v.total }}
+                                td
+                                    a(data-target="#modalDemoPlayerLog" data-toggle="modal" ng-click='vm.initDemoPlayerLog(vm.constDemoPlayerStatus.OLD_PLAYER, v.date);') {{ v.OLD_PLAYER }}
+                                td
+                                    a(data-target="#modalDemoPlayerLog" data-toggle="modal" ng-click='vm.initDemoPlayerLog(vm.constDemoPlayerStatus.PRE_CONVERT, v.date);') {{ v.PRE_CONVERT }}
+                                td
+                                    a(data-target="#modalDemoPlayerLog" data-toggle="modal" ng-click='vm.initDemoPlayerLog(vm.constDemoPlayerStatus.POST_CONVERT, v.date);') {{ v.POST_CONVERT }}
+                                td
+                                    span {{ v.CANNOT_CONVERT }}
             .col-md-6
                 .graph
                     .panel.panel-default
@@ -59,6 +101,17 @@
                             div.graphDiv(style='width: 100%;height:600px')
             .col-md-6
                 div(style='min-width:100%')
+
+    #modalDemoPlayerLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+        .modal-dialog(style='width:60%;')
+            .modal-content
+                .modal-header
+                    a.fa.fa-times.close(type='button', data-dismiss='modal')
+                .modal-body
+                    div
+                        label {{"Total" | translate}} {{vm.demoPlayerLog.totalCount}} {{"records" | translate}}
+                        table#demoPlayerLogTbl.common-table.display(style='min-width:100%')
+                        #demoPlayerLogTblPage.height30
 
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")
