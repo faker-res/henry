@@ -1892,7 +1892,16 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData) {
         let betTypes = consumptionRecord && consumptionRecord.betType ? consumptionRecord.betType.split('|').filter(function(el) {return el.length != 0}) : [];
 
         if (betTypes && betTypes.length > 0) {
-            let matchBetTypes = relevantBetType.filter(el => betTypes.includes(el));
+            let matchBetTypes = [];
+
+            betTypes.forEach(betType => {
+                relevantBetType.forEach(eventBetType => {
+                    if (betType == eventBetType) {
+                        matchBetTypes.push(betType);
+                    }
+                });
+            });
+
             if(matchBetTypes && matchBetTypes.length == 0) {
                 return false;
             }
