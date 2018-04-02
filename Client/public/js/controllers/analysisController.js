@@ -4354,6 +4354,7 @@ define(['js/app'], function (myApp) {
                 let total = data.data ? data.data.total : 0;
                 vm.demoPlayerLog.totalCount = total;
                 if (tblData && tblData.length > 0) {
+                    let count = sendQuery.index || 0;
                     tblData.map(data => {
                         if (data.status == vm.constDemoPlayerStatus.OLD_PLAYER || data.status == vm.constDemoPlayerStatus.POST_CONVERT) {
                             if (data.phoneNumber) {
@@ -4361,6 +4362,8 @@ define(['js/app'], function (myApp) {
                                 data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
                             }
                         }
+                        count += 1;
+                        data.rowNumber = count;
                     });
                 }
                 vm.drawDemoPlayerLogTable(newSearch, tblData, total);
@@ -4374,13 +4377,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {
-                        "targets": 0,
-                        "title": $translate('order'),
-                        "render": function (data, type, full, meta) {
-                            return meta.settings._iDisplayStart + meta.row + 1;
-                        }
-                    },
+                    {title: $translate('order'), data: "rowNumber"},
                     {title: $translate('Demo Player Account'), data: "name"},
                     {title: $translate('phoneNumber'), data: "phoneNumber"},
                 ],

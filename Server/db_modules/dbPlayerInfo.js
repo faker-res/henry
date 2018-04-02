@@ -11448,11 +11448,25 @@ let dbPlayerInfo = {
                             message: "Player do not have permission for reward"
                         });
                     }
-                    //check if player's reward task is no credit now
-                    return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
-                        taskStatus => {
-                            return dbconfig.collection_rewardEvent.findOne({platform: playerData.platform, code: code})
-                                .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                    return dbPlayerUtil.setPlayerState(playerData._id, "ApplyRewardEvent").then(
+                        playerState => {
+                            if(playerState) {
+                                //check if player's reward task is no credit now
+                                return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
+                                    taskStatus => {
+                                        return dbconfig.collection_rewardEvent.findOne({
+                                            platform: playerData.platform,
+                                            code: code
+                                        })
+                                            .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                                    }
+                                );
+                            } else {
+                                return Promise.reject({
+                                    name: "DBError",
+                                    message: "Apply Reward Fail, please try again later"
+                                })
+                            }
                         }
                     );
                 }

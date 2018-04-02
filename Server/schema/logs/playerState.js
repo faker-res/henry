@@ -17,7 +17,9 @@ let playerStateSchema = new Schema({
     // Last apply promo code reward
     lastApplyPromoCode: {type: Date, default: new Date()},
     // Last apply transfer credit from provider
-    lastTransferFromProvider: {type: Date, default: new Date()}
+    lastTransferFromProvider: {type: Date, default: new Date()},
+    // Last apply transfer credit from provider
+    lastApplyRewardEvent: {type: Date, default: new Date()},
 });
 
 module.exports = playerStateSchema;
