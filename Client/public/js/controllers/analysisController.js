@@ -45,7 +45,7 @@ define(['js/app'], function (myApp) {
             POST_CONVERT: "3",
             CANNOT_CONVERT: "4"
         };
-          
+
         vm.constInputDevice = {
             1: 'WEB_PLAYER',
             2: 'WEB_AGENT',
@@ -53,22 +53,6 @@ define(['js/app'], function (myApp) {
             4: 'H5_AGENT',
             5: 'APP_PLAYER',
             6: 'APP_AGENT'
-        };
-
-        vm.constPageName = {
-            PAGE_1: 'PAGE_1',
-            PAGE_2: 'PAGE_2',
-            PAGE_3: 'PAGE_3',
-            PAGE_4: 'PAGE_4'
-        };
-
-        vm.constButtonName = {
-            BUTTON_1: 'BUTTON_1',
-            BUTTON_2: 'BUTTON_2',
-            BUTTON_3: 'BUTTON_3',
-            BUTTON_4: 'BUTTON_4',
-            BUTTON_5: 'BUTTON_5',
-            BUTTON_6: 'BUTTON_6'
         };
 
         // For debugging:
@@ -122,7 +106,7 @@ define(['js/app'], function (myApp) {
                             }],
                         }
 
-                        //todo:: need to optimize this part 
+                        //todo:: need to optimize this part
                         // socketService.$socket($scope.AppSocket, 'getApiLoggerAllServiceName', {service: 'player'},
                         //     function success(data) {
                         //         console.log('get func name', data);
@@ -3644,7 +3628,7 @@ define(['js/app'], function (myApp) {
         vm.drawPlayerTopUp = function (type) {
             var opt = '';
             let socketName = null;
-            
+
             if (type == 'TOPUPMANUAL') {
                 opt = 'ManualPlayerTopUp';
                 vm.queryPara.topUp.amountTag = 'TOPUPMANUAL_AMOUNT';
@@ -3815,7 +3799,7 @@ define(['js/app'], function (myApp) {
                                     $scope.$evalAsync(() => {
                                         if (data && data.data && data.data.data) {
                                             vm.allBankTypeList = {};
-                                            vm.manualTopUpBankInfo = [];                                    
+                                            vm.manualTopUpBankInfo = [];
                                             Object.assign(vm.allBankTypeList, data.data.data);
 
                                             bankData.forEach( bank => {
