@@ -135,7 +135,7 @@ const dbPlayerUtility = {
 
         return Q.resolve().then(
             () => {
-                if (updateAmount < 0 || !Number.isInteger(updateAmount)) {
+                if (updateAmount && updateAmount < 0) {
                     return Promise.reject({
                         name: "DataError",
                         message: "tryToDeductCreditFromPlayer expects a positive value to deduct",

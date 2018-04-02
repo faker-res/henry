@@ -414,6 +414,14 @@ define(['js/app'], function (myApp) {
                 '14': 'JDWAP'
             };
 
+            vm.getDepositMethodbyId = {
+                1: 'Online',
+                2: 'ATM',
+                3: 'Counter',
+                4: 'AliPayTransfer',
+                5: 'weChatPayTransfer'
+            };
+
             vm.prepareToBeDeletedProviderGroupId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
@@ -13076,12 +13084,13 @@ define(['js/app'], function (myApp) {
                 vm.clearPlayerProposalLimit.resMsg = '';
                 vm.clearPlayerProposalLimit.showSubmit = false;
                 socketService.$socket($scope.AppSocket, 'requestClearProposalLimit', {username: vm.selectedSinglePlayer.name}, function (data) {
-                    vm.clearPlayerProposalLimit.resMsg = data;
-                    vm.clearPlayerProposalLimit.showSubmit = true;
-                    console.log('feedback', data);
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        vm.clearPlayerProposalLimit.resMsg = $translate("Success");
+                    })
                 }, function (err) {
-                    console.log('err', err);
+                    $scope.$evalAsync(() => {
+                        vm.clearPlayerProposalLimit.resMsg = err.error.errorMsg;
+                    })
                 });
             }
             ///////////////////////////////// player feedback //////////////////////////////////////////
@@ -17399,6 +17408,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEvent = [];
                 vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
+                vm.rewardPointsEventUpdateAll = false;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -18131,8 +18141,24 @@ define(['js/app'], function (myApp) {
                 for(let x in vm.rewardPointsEvent) {
                     vm.rewardPointsEventSetDisable(x,vm.rewardPointsEvent[x],false,true);
                 }
+
+                if(vm.rewardPointsEvent.filter(a => a.isEditing == true).length > 0){
+                    vm.rewardPointsEventUpdateAll = true;
+                }else{
+                    vm.rewardPointsEventUpdateAll = false;
+                }
                 vm.refreshSPicker();
             };
+
+            vm.updateAllRewardPointsEvent = () => {
+                for(let x in vm.rewardPointsEvent) {
+                    vm.updateRewardPointsEvent(x,vm.rewardPointsEvent[x]);
+                    vm.rewardPointsEventSetDisable(x,vm.rewardPointsEvent[x],true,true);
+                }
+
+                vm.rewardPointsEventUpdateAll = false;
+                $scope.safeApply();
+            }
 
             vm.rewardPointsEventReset = (idx) => {
                 console.log(vm.rewardPointsEventOld[idx]);

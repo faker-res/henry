@@ -1457,6 +1457,7 @@
   "PLAYER_RANDOM_REWARD_GROUP_REPORT": "随机抽奖（组）优惠报表",
   "CLICK_COUNT": "埋点",
   "clickCount": "埋点",
+  "ClickCount": "埋点",
   "PAGE_NAME": "页面",
   "TOTAL_CLICK_COUNT": "总点击次数",
   "PAGE_1": "页面1",
@@ -3439,6 +3440,7 @@
   "level up consumption provider different": "升级投注额来源不同",
   "more than 2 consumption provider, (auto level up) turn on, (manual batch level up) turn off": "升级同时设置检测两个（或以上）投注额来源，系统将强制开启『玩家瞬间自动升级』、同时无法提供手动批量结算升级按钮。",
   "manualDailyProviderSettlement": "每日提供商手工结算",
-  "createForbidTopUpLog": "创建禁用充值类型记录"
+  "createForbidTopUpLog": "创建禁用充值类型记录",
+  "UPDATE_ALL": "全部更新"
 
 }
