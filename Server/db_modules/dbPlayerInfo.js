@@ -7473,6 +7473,7 @@ let dbPlayerInfo = {
             function (data) {
                 let playerData = data[0];
                 let providersData = data[1];
+
                 if (playerData && playerData.platform) {
                     //var times = bDay ? dbUtility.getCurrentDailySettlementTime(playerData.platform.dailySettlementHour, playerData.platform.dailySettlementMinute)
                     //    : dbUtility.getCurrentWeeklySettlementTime(playerData.platform.weeklySettlementDay, playerData.platform.weeklySettlementHour, playerData.platform.weeklySettlementMinute);
@@ -7544,6 +7545,116 @@ let dbPlayerInfo = {
                     return {
                         topUpAmount: 0,
                         consumptionAmount: 0
+                    };
+                }
+            },
+            function (error) {
+                return Q.reject({
+                    name: "DBError",
+                    message: "Error in finding player top up and consumption records",
+                    error: error
+                });
+            }
+        );
+    },
+
+    /*
+     * Get player consumption and top up amount for day
+     *
+     */
+    getPlayerAnyDayStatus: function (playerId, providerIds, startTime) {
+        let playerProm = dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).lean();
+
+        let providerProm = Promise.resolve();
+        if (providerIds && providerIds instanceof Array && providerIds.length > 0) {
+            providerProm = dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {providerId: 1}).lean();
+        }
+
+        let dayTime = dbUtility.getDayTime(startTime);
+
+        return Promise.all([playerProm, providerProm]).then(
+            data => {
+                let playerData = data[0];
+                let providersData = data[1];
+
+                if (playerData && playerData.platform) {
+                    let startTime = dayTime.startTime;
+                    let endTime = dayTime.endTime;
+                    let topUpProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                        {
+                            $match: {
+                                platformId: playerData.platform._id,
+                                createTime: {
+                                    $gte: startTime,
+                                    $lt: endTime
+                                },
+                                playerId: playerData._id
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: {playerId: "$playerId", platformId: "$platformId"},
+                                amount: {$sum: "$amount"}
+                            }
+                        }
+                    ).exec();
+
+                    let consumptionMatchObj = {
+                        platformId: playerData.platform._id,
+                        createTime: {
+                            $gte: startTime,
+                            $lt: endTime
+                        },
+                        playerId: playerData._id
+                    };
+
+                    if (providersData && providersData.length > 0) {
+                        let providerObjIdArr = providersData.map(provider => provider._id);
+                        consumptionMatchObj.providerId = {$in: providerObjIdArr};
+                    }
+
+                    let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate(
+                        {
+                            $match: consumptionMatchObj
+                        },
+                        {
+                            $group: {
+                                _id: {playerId: "$playerId", platformId: "$platformId"},
+                                validAmount: {$sum: "$validAmount"},
+                                bonusAmount: {$sum: "$bonusAmount"}
+                            }
+                        }
+                    ).exec();
+
+                    let rewardAmtProm = dbPropUtil.getTotalRewardAmtFromProposal(playerData.platform._id, playerData._id, startTime, endTime);
+
+                    return Promise.all([topUpProm, consumptionProm, rewardAmtProm]);
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Cant find player"});
+                }
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error in finding player", error: error});
+            }
+        ).then(
+            function (data) {
+                if (data && data[0] && data[1]) {
+                    return {
+                        topUpAmount: data[0][0] ? data[0][0].amount : 0,
+                        consumptionAmount: data[1][0] ? data[1][0].validAmount : 0,
+                        bonusAmount: data[1][0] ? data[1][0].bonusAmount : 0,
+                        rewardAmount: data[2] ? data[2] : 0
+                    };
+                }
+                else {
+                    return {
+                        topUpAmount: 0,
+                        consumptionAmount: 0,
+                        bonusAmount: 0,
+                        rewardAmount: 0
                     };
                 }
             },
@@ -11337,11 +11448,25 @@ let dbPlayerInfo = {
                             message: "Player do not have permission for reward"
                         });
                     }
-                    //check if player's reward task is no credit now
-                    return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
-                        taskStatus => {
-                            return dbconfig.collection_rewardEvent.findOne({platform: playerData.platform, code: code})
-                                .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                    return dbPlayerUtil.setPlayerState(playerData._id, "ApplyRewardEvent").then(
+                        playerState => {
+                            if(playerState) {
+                                //check if player's reward task is no credit now
+                                return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
+                                    taskStatus => {
+                                        return dbconfig.collection_rewardEvent.findOne({
+                                            platform: playerData.platform,
+                                            code: code
+                                        })
+                                            .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                                    }
+                                );
+                            } else {
+                                return Promise.reject({
+                                    name: "DBError",
+                                    message: "Apply Reward Fail, please try again later"
+                                })
+                            }
                         }
                     );
                 }
@@ -11526,7 +11651,7 @@ let dbPlayerInfo = {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
                                     rewardData.smsCode = data.smsCode;
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
+                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
                                     return Q.reject({

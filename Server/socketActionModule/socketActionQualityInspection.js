@@ -60,6 +60,12 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data.startTime, data.endTime, data.qualityAssessor);
             socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReport, [data.startTime, data.endTime, data.qualityAssessor], actionName, isDataValid);
         },
+        getWorkloadReportByDate: function getWorkloadReportByDate(data){
+            var actionName = arguments.callee.name;
+            //data = true;
+            var isDataValid = Boolean(data.startTime, data.endTime, data.qualityAssessor);
+            socketUtil.emitter(self.socket, dbQualityInspection.getWorkloadReportByDate, [data.startTime, data.endTime, data.qualityAssessor], actionName, isDataValid);
+        },
         searchLive800: function searchLive800(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
@@ -126,6 +132,11 @@ function socketActionQualityInspection(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
             socketUtil.emitter(self.socket, dbQualityInspection.searchLive800SettlementRecord, [data], actionName, isDataValid);
+        },
+        searchLive800SettlementRecordByDate: function searchLive800SettlementRecordByDate(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.searchLive800SettlementRecordByDate, [data], actionName, isDataValid);
         }
     };
 

@@ -132,8 +132,11 @@ style.
 
                     br
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventSetEditStatusAll();')
+                        button.btn.btn-primary.common-button(ng-if='!vm.rewardPointsEventUpdateAll' ng-click='vm.rewardPointsEventSetEditStatusAll();')
                             text {{'EDIT_ALL' | translate}}
+                            img.img-edit
+                        button.btn.btn-primary.common-button(ng-if='vm.rewardPointsEventUpdateAll' ng-click='vm.updateAllRewardPointsEvent();')
+                            text {{'UPDATE_ALL' | translate}}
                             img.img-edit
                         button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventAddNewRow(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS);vm.endLoadWeekDay();')
                             text {{'ADD' | translate}}
@@ -206,8 +209,11 @@ style.
                                     button.btn(class="{{val.status? 'btn-danger':'btn-success'}}" ng-if='!val.isEditing' ng-click='val.status = !val.status; vm.updateRewardPointsEvent(idx,val);' style='margin: 1px 1px;') {{val.status? 'Closed':'Open' | translate}}
                     br
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventSetEditStatusAll();')
+                        button.btn.btn-primary.common-button(ng-if='!vm.rewardPointsEventUpdateAll' ng-click='vm.rewardPointsEventSetEditStatusAll();')
                             text {{'EDIT_ALL' | translate}}
+                            img.img-edit
+                        button.btn.btn-primary.common-button(ng-if='vm.rewardPointsEventUpdateAll' ng-click='vm.updateAllRewardPointsEvent();')
+                            text {{'UPDATE_ALL' | translate}}
                             img.img-edit
                         button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventAddNewRow(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS);vm.endLoadWeekDay();')
                             text {{'ADD' | translate}}
@@ -289,8 +295,11 @@ style.
 
                     br
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventSetEditStatusAll();')
+                        button.btn.btn-primary.common-button(ng-if='!vm.rewardPointsEventUpdateAll' ng-click='vm.rewardPointsEventSetEditStatusAll();')
                             text {{'EDIT_ALL' | translate}}
+                            img.img-edit
+                        button.btn.btn-primary.common-button(ng-if='vm.rewardPointsEventUpdateAll' ng-click='vm.updateAllRewardPointsEvent();')
+                            text {{'UPDATE_ALL' | translate}}
                             img.img-edit
                         button.btn.btn-primary.common-button(ng-click='vm.rewardPointsEventAddNewRow(constRewardPointsTaskCategory.GAME_REWARD_POINTS);vm.endLoadWeekDay();')
                             text {{'ADD' | translate}}

@@ -2511,7 +2511,110 @@ var dbPlatform = {
                     .catch(errorUtils.reportError);
             }
         )
-    }
+    },
+
+    getClickCountButtonName: (platformId) => {
+        let matchObj = {
+            platform: platformId
+        };
+
+        return dbconfig.collection_clickCount.aggregate(
+            {$match: matchObj},
+            {
+                $group: {
+                    _id: "$buttonName"
+                }
+            }
+        ).read("secondaryPreferred").then(
+            data => {
+                let buttonName = [];
+
+                if (data) {
+                    data.map(buttonData => {
+                        if (buttonData && buttonData._id) {
+                            buttonName.push(buttonData._id);
+                        }
+                    });
+                }
+                buttonName.sort();
+
+                return buttonName;
+            }
+        );
+    },
+
+    getClickCountAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
+        let buttonGroupProms = [];
+        let dayStartTime = startDate;
+        let getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                };
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                };
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                };
+        }
+
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            let dayEndTime = getNextDate.call(this, dayStartTime);
+            let matchObj = {
+                startTime: {$gte: dayStartTime},
+                endTime: {$lte: dayEndTime},
+                device: device,
+                pageName: pageName
+            };
+            let dayStartTimeStr = dayStartTime.toString();
+            if (platformId !== 'all') {
+                matchObj.platform = platformId;
+            }
+
+            let buttonGroupProm = dbconfig.collection_clickCount.aggregate(
+                {$match: matchObj},
+                {
+                    $group: {
+                        _id: {"buttonName": "$buttonName"},
+                        total: {$sum: "$count"}
+                    }
+                }
+            ).read("secondaryPreferred").then(
+                data => {
+                    return {
+                        date: new Date(dayStartTimeStr),
+                        data: data
+                    }
+                }
+            );
+
+            buttonGroupProms.push(buttonGroupProm);
+            dayStartTime = dayEndTime;
+        }
+
+        return Promise.all([Promise.all(buttonGroupProms)]).then(
+            data => {
+                let buttonGroup = [];
+
+                if (data && data[0] instanceof Array) {
+                    buttonGroup = data[0];
+                }
+
+                return buttonGroup;
+            }
+        );
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {

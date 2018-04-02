@@ -71,7 +71,7 @@ var dbRewardPointsRanking = {
                         censoredName = censoredName.substr(0, rank.playerName.length); // extract original playerName's length, to maintain actual length
                         rank.playerName = censoredName;
                         //censor playerName end
-                        rank.playerLevel = rank.playerLevel.name;
+                        rank.playerLevel = rank.playerLevel && rank.playerLevel.name? rank.playerLevel.name: "";
                     });
                     return rewardPointsRanking;
                 }
