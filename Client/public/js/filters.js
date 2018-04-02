@@ -71,13 +71,7 @@ angular.module('myApp.filters', []).
     }).
     filter('noRoundTwoDecimalPlaces', function (){
         return function (value) {
-            let splitString =  value.toLocaleString().split(".");
-            let tempNum = splitString[0];
-            if (splitString[1]) {
-                tempNum += "." + splitString[1].substr(0,2);
-            }
-            return parseFloat(tempNum);
-            // return Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value;
+            return Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value;
         }
     }).
     filter('roundToTwoDecimalPlacesString', function (){
