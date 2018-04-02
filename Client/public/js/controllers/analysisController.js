@@ -1587,7 +1587,6 @@ define(['js/app'], function (myApp) {
                     for (let i = 0; i < Object.keys(vm.deviceData).length; i++) {
                         vm.clickCountDevice[vm.deviceData[Object.keys(vm.deviceData)[i]]] = vm.deviceData[Object.keys(vm.deviceData)[i]];
                     }
-                    console.log("vm.clickCountDevice===", vm.clickCountDevice);
 
                     // set first page name as default selected page name
                     vm.queryPara.clickCount.inputDevice = vm.clickCountDevice[Object.keys(vm.clickCountDevice)[1]] || "";
@@ -1612,8 +1611,6 @@ define(['js/app'], function (myApp) {
                         vm.clickCountPageName[vm.pageNameData[Object.keys(vm.pageNameData)[i]]] = vm.pageNameData[Object.keys(vm.pageNameData)[i]];
                     }
 
-                    console.log("vm.clickCountPageName===", vm.clickCountPageName);
-
                     // set first page name as default selected page name
                     vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[2]] || "";
                 });
@@ -1632,7 +1629,6 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getClickCountButtonName', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     vm.clickCountButtonName = data.data.sort();
-                    console.log("vm.clickCountButtonName===", vm.clickCountButtonName);
                 });
             }, function (data) {
                 console.log("clickCount button name data not found?", data);
@@ -1654,7 +1650,6 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getClickCountAnalysis', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     vm.clickCountData = data.data;
-                    console.log('vm.clickCountData===', vm.clickCountData);
                     vm.isShowLoadingSpinner('#clickCountAnalysis', false);
 
                     vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis');
@@ -1681,7 +1676,6 @@ define(['js/app'], function (myApp) {
             for (let i = 0; i < Object.keys(click).length; i++) {
                 clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
             }
-            console.log("clickTotal11===", clickTotal);
 
             if (srcData) {
                 srcData.map(dateData => {
@@ -1748,7 +1742,6 @@ define(['js/app'], function (myApp) {
             for (let i = 0; i < Object.keys(click).length; i++) {
                 clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
             }
-            console.log("clickTotal22===", clickTotal);
 
             if (srcData) {
                 srcData.map(dateData => {
