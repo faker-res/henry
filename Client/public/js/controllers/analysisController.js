@@ -1589,7 +1589,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     // set first page name as default selected page name
-                    vm.queryPara.clickCount.inputDevice = vm.clickCountDevice[Object.keys(vm.clickCountDevice)[1]] || "";
+                    vm.queryPara.clickCount.inputDevice = vm.clickCountDevice[Object.keys(vm.clickCountDevice)[0]] || "";
                 });
             }, function (data) {
                 console.log("clickCount device data not found?", data);
@@ -1612,7 +1612,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     // set first page name as default selected page name
-                    vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[2]] || "";
+                    vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[0]] || "";
                 });
             }, function (data) {
                 console.log("clickCount page name data not found?", data);
