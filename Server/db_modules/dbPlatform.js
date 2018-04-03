@@ -2513,6 +2513,32 @@ var dbPlatform = {
         )
     },
 
+    getClickCountDevice: (platformId) => {
+        let matchObj = {
+            platform: platformId
+        };
+
+        return dbconfig.collection_clickCount.distinct("device", matchObj);
+    },
+
+    getClickCountPageName: (platformId) => {
+        let matchObj = {
+            platform: platformId
+        };
+
+        return dbconfig.collection_clickCount.distinct("pageName", matchObj);
+    },
+
+    getClickCountButtonName: (platformId, device, pageName) => {
+        let matchObj = {
+            platform: platformId,
+            device: device,
+            pageName: pageName
+        };
+
+        return dbconfig.collection_clickCount.distinct("buttonName", matchObj);
+    },
+
     getClickCountAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
         let buttonGroupProms = [];
         let dayStartTime = startDate;

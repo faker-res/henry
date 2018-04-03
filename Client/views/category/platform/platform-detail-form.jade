@@ -25,7 +25,8 @@ form(name="form_new_platform" ,novalidate)
                 div.form-group.col-md-3
                     label.control-label {{"DemoPlayerPrefix" | translate}}
                     div
-                    select.demoPlayerPrefixSelection(ng-model='vm.showPlatform.demoPlayerPrefix', ng-disabled="vm.isNotAllowEdit", style='height:30px')
+                    select(ng-model='vm.showPlatform.demoPlayerPrefix', ng-disabled="vm.isNotAllowEdit", style='height:30px')
+                        option(ng-repeat='(i,v) in vm.alphabetArr', value='{{v}}') {{v}}
                 div.form-group.col-md-3
                     label.control-label {{"DEMO_PLAYER_DEFAULT_CREDIT" | translate}}
                     div
