@@ -1813,6 +1813,22 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        vm.updateProposalProcessStepProm = function (proposalId, bApprove) {
+            var deferred = Q.defer();
+            socketService.$socket($scope.AppSocket, 'updateProposalProcessStep', {
+                proposalId: proposalId,
+                adminId: authService.adminId,
+                memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
+                bApprove: bApprove,
+                remark: $('#proposalRemark').val()
+            }, function (data) {
+                deferred.resolve(true);
+            }, function (error) {
+                deferred.reject(error);
+            });
+            return deferred.promise;
+        };
+
         vm.updateMultiProposal = function (bApprove) {
             console.log("updateMultiProposal", vm.multiProposalSelected);
             if (bApprove) {
@@ -1821,13 +1837,10 @@ define(['js/app'], function (myApp) {
                 vm.showProposalIndicator.reject = true;
             }
             if (vm.multiProposalSelected && vm.multiProposalSelected.length > 0) {
-                return $scope.$socketPromise('updateProposalProcessStep', {
-                    proposalId: vm.multiProposalSelected,
-                    adminId: authService.adminId,
-                    memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
-                    bApprove: bApprove,
-                    remark: $('#proposalRemark').val()
-                }).then(
+                var proms = vm.multiProposalSelected.map(
+                    proposalId => vm.updateProposalProcessStepProm(proposalId, bApprove)
+                );
+                Q.all(proms).then(
                     data => {
                         console.log("updateMultiProposal done:", data);
                         vm.multiProposalSelected = [];
