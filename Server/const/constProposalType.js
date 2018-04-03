@@ -61,7 +61,8 @@ const constProposalType = {
     PLAYER_ADD_REWARD_POINTS: "PlayerAddRewardPoints",
     PLAYER_MINUS_REWARD_POINTS: "PlayerMinusRewardPoints",
     PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints",
-    PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints"
+    PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints",
+    PLAYER_LOSE_RETURN_REWARD_GROUP: "PlayerLoseReturnRewardGroup"
 };
 
 module.exports = constProposalType;
