@@ -222,7 +222,7 @@ var dbGame = {
                 }
 
                 if (!query.provider) {
-                    query.provider = {$in: player.platform.gameProviders};
+                    query.provider = {$in: platform.gameProviders};
                 }
 
                 return dbGame.getGameList(query, startIndex, count, playerId, bannedProvider);
