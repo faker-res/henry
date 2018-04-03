@@ -1457,7 +1457,7 @@ var proposalExecutor = {
                     dbconfig.collection_platform.findOne({_id: proposalData.data.platformId}).lean().then(
                         platformData => {
                             let promiseUse;
-                            if (platformData && platformData.useProviderGroup) {
+                            if (platformData && platformData.useProviderGroup && proposalData.data.spendingAmount) {
                                 promiseUse = dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, constRewardType.PLAYER_CONSUMPTION_RETURN);
                             } else {
                                 promiseUse = changePlayerCredit(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.rewardAmount, constRewardType.PLAYER_CONSUMPTION_RETURN, proposalData.data);
