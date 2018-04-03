@@ -76,6 +76,7 @@ angular.module('myApp.filters', []).
             if (splitString[1]) {
                 tempNum += "." + splitString[1].substr(0,2);
             }
+            tempNum = tempNum.replace(/,/g,"");
             return parseFloat(tempNum);
             // return Number.isFinite(parseFloat(value)) ? Math.floor(parseFloat(value) * 100 ) / 100 : value;
         }
