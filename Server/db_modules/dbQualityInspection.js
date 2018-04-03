@@ -57,6 +57,8 @@ var dbQualityInspection = {
             let connection = dbQualityInspection.connectMysql();
             console.log(query)
 
+            console.log("AAAAAAAAAAAAAAAAAAAAAAAa",queryObj)
+            console.log("BBBBBBBBBBBBBBBBBBBBBBBB",query)
             let mysqlCount = dbQualityInspection.countMySQLDB(queryObj, connection);
             if(query.status==constQualityInspectionStatus.PENDINGTOPROCESS){
                 let mongoData = dbQualityInspection.countMongoDB(query, mysqlCount);
@@ -186,6 +188,7 @@ var dbQualityInspection = {
 
             //get status equal to "1"
             delete query.status;
+            console.log("111111111111111111111111111",query);
             let mongoResult = dbQualityInspection.searchMongoDB(query);
             let connection = dbQualityInspection.connectMysql();
             let dbResult = dbQualityInspection.searchPendingMySQL(mongoResult, queryObj, paginationQuery,connection);
@@ -266,6 +269,7 @@ var dbQualityInspection = {
     searchMongoDB:function(query){
         let deferred = Q.defer();
         let queryQA = {};
+        let operatorRegList = [];
         if (query.status){
             queryQA.status = query.status;
         }
@@ -280,7 +284,11 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(query.operatorId!='all'){
-                queryQA['live800Acc.id'] = { '$in':query.operatorId}
+                query.operatorId.forEach( op => {
+                    operatorRegList.push(new RegExp("^" + op, "i"));
+                });
+
+                queryQA['live800Acc.id'] = { '$in':operatorRegList}
             }
         }
         if(query.companyId && query.companyId.length > 0 ){
@@ -292,12 +300,14 @@ var dbQualityInspection = {
             }
         }
         console.log(queryQA);
+        console.log("22222222222222222222222222222",queryQA);
         let qaResult =  dbconfig.collection_qualityInspection.find(queryQA)
             .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
             .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
             .lean()
             .then(results => {
                 results.forEach(item => {
+                    console.log("333333333333333333333333333",item);
                     let live800Chat = {conversation: []};
                     live800Chat.messageId = item.msg_id;
                     live800Chat.status = item.status;
@@ -320,6 +330,7 @@ var dbQualityInspection = {
     countMongoDB: function(query, mysqlProm){
         let deferred = Q.defer();
         let queryQA = {};
+        let live800AccReg = [];
         if (query.startTime && query.endTime) {
             queryQA.createTime = {'$lte':new Date(query.endTime),
                 '$gte': new Date(query.startTime)}
@@ -331,7 +342,10 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(query.operatorId!='all'){
-                queryQA['live800Acc.id'] = { '$in':query.operatorId}
+                query.operatorId.forEach(id => {
+                    live800AccReg.push(new RegExp("^" + id, "i"));
+                });
+                queryQA['live800Acc.id'] = { '$in':live800AccReg}
             }
         }
         if(query.companyId && query.companyId.length > 0 ){
@@ -342,6 +356,7 @@ var dbQualityInspection = {
                 queryQA.qualityAssessor = {'$in': query.qualityAssessor};
             }
         }
+        console.log("ZZZZZZZZZZZZZZZZZZZz",queryQA);
         let countQuery = dbconfig.collection_qualityInspection.find(queryQA).count();
         Q.all([countQuery, mysqlProm]).then(data=>{
             let mongoCount = data[0] || 0;
@@ -575,10 +590,13 @@ var dbQualityInspection = {
             connection.query("SELECT COUNT(msg_id) FROM chat_content WHERE" + queryObj, function (error, results, fields) {
                 let countNo = 0;
                 if(results){
+                    console.log("CCCCCCCCCCCCCCCCCCCCCCCCCCc",results)
+                    console.log("CCCCCCCCCCCCCCCCCCCCCCCCCCc2222222222","SELECT COUNT(*) FROM chat_content WHERE" + queryObj)
                     if(results[0] && results[0]['COUNT(msg_id)']){
                         countNo = results[0]['COUNT(msg_id)'];
                     }
                     if(error){
+                        console.log("DDDDDDDDDDDDDDDDDDDDDDD",error)
                         console.log(error);
                     }
                 }
@@ -1273,8 +1291,13 @@ var dbQualityInspection = {
     rateBatchConversation: function(cvs, accName){
         var deferred = Q.defer();
         let proms = [];
+        let live800AccReg = null;
         cvs.batchData.forEach(uItem=>{
-            let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
+            if(uItem && uItem.live800Acc && uItem.live800Acc.id) {
+                live800AccReg = new RegExp("^" + uItem.live800Acc.id, "i")
+            }
+
+            let query = { 'live800Acc': live800AccReg};
             let prom = dbconfig.collection_admin.findOne(query).then(
                 item=>{
                     let adminName = item ? item._id:null;

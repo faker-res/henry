@@ -215,7 +215,7 @@ define(['js/app'], function (myApp) {
                     })
 
                 })
-              vm.getCSDepartmentMember(csDepartmentMember);
+              vm.getCSDepartmentMember(csDepartmentMember,companyIds);
               vm.getQIDepartmentMember(qiDepartmentMember);
               vm.companyIds = companyIds;
             }
@@ -237,7 +237,7 @@ define(['js/app'], function (myApp) {
                 }, function (err) {
                 });
             }
-            vm.getCSDepartmentMember = function(csMembers){
+            vm.getCSDepartmentMember = function(csMembers, companyIds){
               socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: csMembers}, function (cdata) {
                   console.log('all admin data', cdata.data);
                   let fpmsACCList = [];
@@ -246,7 +246,16 @@ define(['js/app'], function (myApp) {
                   cdata.data.forEach(item=>{
                     let liveAccSet = [];
                     if(item.live800Acc){
-                        liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
+                        liveAccSet = item.live800Acc.filter(live800=>{
+                            let equal = false;
+                            companyIds.forEach(c =>
+                            {
+                                if (c == live800.substring(0, live800.indexOf("-"))) {
+                                    equal = true;
+                                }
+                            });
+                            return equal;
+                        });
                     }
                     let acc = {
                       _id:item._id,
@@ -263,7 +272,7 @@ define(['js/app'], function (myApp) {
             vm.loadLive800Acc = function(){
 
                 let live800Accs = [];
-                vm.allUser.forEach(item => {
+                vm.fpmsACCList.forEach(item => {
                     if (vm.inspection800.fpms.indexOf(item._id) != -1) {
 
                         item.live800Acc.forEach(live800 => {
