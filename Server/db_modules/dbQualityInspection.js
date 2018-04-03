@@ -1433,9 +1433,8 @@ var dbQualityInspection = {
                                                 live800SummarizeRecord.map(l => {
                                                     if(l && l._id && l._id.date){
                                                         let startTime = new Date(l._id.date);
-                                                        let endTime = new Date();
+                                                        let endTime = new Date(l._id.date);
                                                         endTime.setHours(23, 59, 59, 999);
-                                                        endTime.setDate(l._id.date.getDate());
 
                                                         let queryToGetQIRecord = {
                                                             createTime: {
@@ -1444,7 +1443,7 @@ var dbQualityInspection = {
                                                             },
                                                             companyId: {$in: p.live800CompanyId}
                                                         }
-
+                                                        
                                                         let calculatedData = dbconfig.collection_qualityInspection.find(queryToGetQIRecord).count().then(
                                                             qualityInspectionCount => {
                                                                 let isCompleted = false;
