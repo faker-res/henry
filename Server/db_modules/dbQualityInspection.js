@@ -57,8 +57,6 @@ var dbQualityInspection = {
             let connection = dbQualityInspection.connectMysql();
             console.log(query)
 
-            console.log("AAAAAAAAAAAAAAAAAAAAAAAa",queryObj)
-            console.log("BBBBBBBBBBBBBBBBBBBBBBBB",query)
             let mysqlCount = dbQualityInspection.countMySQLDB(queryObj, connection);
             if(query.status==constQualityInspectionStatus.PENDINGTOPROCESS){
                 let mongoData = dbQualityInspection.countMongoDB(query, mysqlCount);
@@ -188,7 +186,6 @@ var dbQualityInspection = {
 
             //get status equal to "1"
             delete query.status;
-            console.log("111111111111111111111111111",query);
             let mongoResult = dbQualityInspection.searchMongoDB(query);
             let connection = dbQualityInspection.connectMysql();
             let dbResult = dbQualityInspection.searchPendingMySQL(mongoResult, queryObj, paginationQuery,connection);
@@ -300,14 +297,12 @@ var dbQualityInspection = {
             }
         }
         console.log(queryQA);
-        console.log("22222222222222222222222222222",queryQA);
         let qaResult =  dbconfig.collection_qualityInspection.find(queryQA)
             .populate({path: 'qualityAssessor', model: dbconfig.collection_admin})
             .populate({path: 'fpmsAcc', model: dbconfig.collection_admin}).lean()
             .lean()
             .then(results => {
                 results.forEach(item => {
-                    console.log("333333333333333333333333333",item);
                     let live800Chat = {conversation: []};
                     live800Chat.messageId = item.msg_id;
                     live800Chat.status = item.status;
@@ -356,7 +351,6 @@ var dbQualityInspection = {
                 queryQA.qualityAssessor = {'$in': query.qualityAssessor};
             }
         }
-        console.log("ZZZZZZZZZZZZZZZZZZZz",queryQA);
         let countQuery = dbconfig.collection_qualityInspection.find(queryQA).count();
         Q.all([countQuery, mysqlProm]).then(data=>{
             let mongoCount = data[0] || 0;
@@ -590,13 +584,10 @@ var dbQualityInspection = {
             connection.query("SELECT COUNT(msg_id) FROM chat_content WHERE" + queryObj, function (error, results, fields) {
                 let countNo = 0;
                 if(results){
-                    console.log("CCCCCCCCCCCCCCCCCCCCCCCCCCc",results)
-                    console.log("CCCCCCCCCCCCCCCCCCCCCCCCCCc2222222222","SELECT COUNT(*) FROM chat_content WHERE" + queryObj)
                     if(results[0] && results[0]['COUNT(msg_id)']){
                         countNo = results[0]['COUNT(msg_id)'];
                     }
                     if(error){
-                        console.log("DDDDDDDDDDDDDDDDDDDDDDD",error)
                         console.log(error);
                     }
                 }
