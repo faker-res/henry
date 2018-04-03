@@ -300,7 +300,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 if (bReturn) {
                                     var summaryIds = thisPlayersConsumptionSummaries.map(summary => summary._id);
                                     let spendingAmount = returnAmount < 0.01 ? 0 : returnAmount;
-                                    spendingAmount = eventData.param.consumptionTimesRequired ? spendingAmount * eventData.param.consumptionTimesRequired : spendingAmount;
+
                                     var proposalData = {
                                         type: proposalTypeId,
                                         entryType: bRequest ? constProposalEntryType.CLIENT : constProposalEntryType.SYSTEM,
@@ -313,7 +313,6 @@ var dbPlayerConsumptionWeekSummary = {
                                             eventName: eventData.name,
                                             eventCode: eventData.code,
                                             rewardAmount: returnAmount < 0.01 ? 0 : returnAmount,
-                                            spendingAmount: spendingAmount,
                                             returnDetail: returnDetail,
                                             nonXIMADetail: nonXIMADetail,
                                             summaryIds: summaryIds,
@@ -326,6 +325,10 @@ var dbPlayerConsumptionWeekSummary = {
                                             isIgnoreAudit: eventData.param && Number.isInteger(eventData.param.isIgnoreAudit) && eventData.param.isIgnoreAudit >= returnAmount,
                                         }
                                     };
+
+                                    if (eventData.param.consumptionTimesRequired && eventData.param.consumptionTimesRequired > 0) {
+                                        proposalData.data.spendingAmount = spendingAmount * eventData.param.consumptionTimesRequired;
+                                    }
 
                                     if (adminId && adminName) {
                                         proposalData.creator = {
