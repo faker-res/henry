@@ -45,7 +45,7 @@ createDemoPlayerLogSchema.post('find', function (result) {
 });
 
 createDemoPlayerLogSchema.post('findOne', function (result) {
-    playerPostFindUpdate(result, true);
+    playerPostFindUpdate(result);
 });
 
 module.exports = createDemoPlayerLogSchema;
