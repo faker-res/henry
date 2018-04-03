@@ -919,14 +919,12 @@ define(['js/app'], function (myApp) {
                 }
             };
             vm.prepareDemoPlayerPrefix = function(){
-                var alphabet = 97; //represent alphabet a
-                var totalNumberOfAlphabet = 26;
-                for(var i = 0; i < totalNumberOfAlphabet; i++){
-                    var character = String.fromCharCode(alphabet + i);
-                    $('.demoPlayerPrefixSelection').append($('<option>', {
-                        value: character,
-                        text: character
-                    }));
+                vm.alphabetArr = [];
+                let alphabet = 97; //represent alphabet a
+                let totalNumberOfAlphabet = 26;
+                for(let i = 0; i < totalNumberOfAlphabet; i++){
+                    let character = String.fromCharCode(alphabet + i);
+                    vm.alphabetArr.push(character);
                 }
             };
             //set selected platform node
@@ -935,9 +933,6 @@ define(['js/app'], function (myApp) {
                 vm.curPlatformText = node.text;
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
-                if(vm.showPlatform.demoPlayerPrefix){
-                    $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
-                }
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
                 vm.convertDepartment();
                 if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
@@ -1136,7 +1131,6 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementDay = 0;
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
-                $('.demoPlayerPrefixSelection option:selected').text("");
                 vm.isNotAllowEdit = false;
                 vm.isCreateNewPlatform = true;
                 $scope.safeApply();
@@ -1718,15 +1712,17 @@ define(['js/app'], function (myApp) {
                     vm.bindSelectedPlatformData();
                 }
                 vm.isCreateNewPlatform = false;
+                if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                    if (vm.showPlatform) {
+                        vm.showPlatform.demoPlayerPrefix = vm.selectedPlatform.data.demoPlayerPrefix;
+                    }
+                }
             };
 
             vm.bindSelectedPlatformData = function () {
                 if (vm.selectedPlatform && vm.selectedPlatform.data) {
                     vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
                     vm.beforeUpdatePlatform();
-                    if(vm.showPlatform && vm.showPlatform.demoPlayerPrefix){
-                        $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
-                    }
                 }
             }
 
