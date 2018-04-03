@@ -233,7 +233,7 @@ var roleChecker = {
         Platform: {
             "Platform": {
                 Read: ['getAllPlatforms', 'getPlatform', 'getDepartmentsByPlatformId', 'getPlatformAnnouncementsByPlatformId', 'getPlatformAnnouncementById', 'getAllGameTypes', 'getPlayerLvlPeriodConst', 'getAllGameStatus', 'getAllMessageTypes', 'syncPlatform',
-                    'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup','getConsumptionRecordByGameProvider'],
+                    'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup','getConsumptionRecordByGameProvider','getProfitDisplayDetailByPlatform'],
                 Create: ['createPlatform', 'getDepartmentTreeById'],
                 Delete: ['deletePlatformById'],
                 Edit: ['updatePlatform'],
