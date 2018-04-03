@@ -13025,7 +13025,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: constSystemParam.BATCH_SIZE,
+                        batchSize: 100,
                         makeRequest: function (playerIdObjs, request) {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
