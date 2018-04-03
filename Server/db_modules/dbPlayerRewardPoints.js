@@ -406,6 +406,7 @@ let dbPlayerRewardPoints = {
     },
 
     startConvertPlayersRewardPoints: () => {
+        console.log("start Convert Players Reward Points");
         let AllRewardPointsLvlConfigs;
         let queryTime = dbUtil.getYesterdaySGTime();
         return dbConfig.collection_platform.find({usePointSystem : true}).lean().then(
@@ -434,6 +435,7 @@ let dbPlayerRewardPoints = {
                 if (dbUtil.isFirstDayOfYearSG()) {
                     queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Yearly});
                 }
+                console.log("queryObj",queryObj);
                 //Get platform ids from rewardPointsLvlConfig, ignore platform without rewardPointsLvlConfig.
                 return dbConfig.collection_rewardPointsLvlConfig.find(queryObj).populate({
                     path: 'platformObjId',
@@ -442,6 +444,7 @@ let dbPlayerRewardPoints = {
             }
         ).then(
             rewardPointsLvlConfigs => {
+                console.log("rewardPointsLvlConfigs",rewardPointsLvlConfigs);
                 let settlePlayerRewardPoints = platformId => {
                     // System log
                     console.log('[Convert player reward points] Settling platform:', platformId, queryTime);

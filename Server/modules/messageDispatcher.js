@@ -14,6 +14,7 @@ const constPromoCodeLegend = require("../const/constPromoCodeLegend.js");
 const constMessageType = require("../const/constMessageType.js");
 const assert = require('assert');
 const moment = require('moment-timezone');
+const localization = require("../modules/localization").localization;
 const messageDispatcher = {
 
     /**
@@ -151,7 +152,7 @@ const messageDispatcher = {
                     contentToReplace = metaData.expirationTime;
                     break;
                 case "P":
-                    contentToReplace = metaData.allowedProviders;
+                    contentToReplace = metaData.allowedProviders || localization.translate("ALL_PROVIDERS");
                     break;
                 case "Q":
                     contentToReplace = metaData.code;

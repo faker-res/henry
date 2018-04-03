@@ -414,6 +414,14 @@ define(['js/app'], function (myApp) {
                 '14': 'JDWAP'
             };
 
+            vm.getDepositMethodbyId = {
+                1: 'Online',
+                2: 'ATM',
+                3: 'Counter',
+                4: 'AliPayTransfer',
+                5: 'weChatPayTransfer'
+            };
+
             vm.prepareToBeDeletedProviderGroupId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
@@ -911,14 +919,12 @@ define(['js/app'], function (myApp) {
                 }
             };
             vm.prepareDemoPlayerPrefix = function(){
-                var alphabet = 97; //represent alphabet a
-                var totalNumberOfAlphabet = 26;
-                for(var i = 0; i < totalNumberOfAlphabet; i++){
-                    var character = String.fromCharCode(alphabet + i);
-                    $('.demoPlayerPrefixSelection').append($('<option>', {
-                        value: character,
-                        text: character
-                    }));
+                vm.alphabetArr = [];
+                let alphabet = 97; //represent alphabet a
+                let totalNumberOfAlphabet = 26;
+                for(let i = 0; i < totalNumberOfAlphabet; i++){
+                    let character = String.fromCharCode(alphabet + i);
+                    vm.alphabetArr.push(character);
                 }
             };
             //set selected platform node
@@ -927,9 +933,6 @@ define(['js/app'], function (myApp) {
                 vm.curPlatformText = node.text;
                 // vm.showPlatform = $.extend({}, getLocalTime(vm.selectedPlatform.data));
                 vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
-                if(vm.showPlatform.demoPlayerPrefix){
-                    $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
-                }
                 console.log("vm.selectedPlatform", vm.selectedPlatform);
                 vm.convertDepartment();
                 if(vm.showPlatform.csDepartment && vm.showPlatform.csDepartment.length > 0){
@@ -1128,7 +1131,6 @@ define(['js/app'], function (myApp) {
                 vm.showPlatform.weeklySettlementDay = 0;
                 vm.showPlatform.weeklySettlementHour = 0;
                 vm.showPlatform.weeklySettlementMinute = 0;
-                $('.demoPlayerPrefixSelection option:selected').text("");
                 vm.isNotAllowEdit = false;
                 vm.isCreateNewPlatform = true;
                 $scope.safeApply();
@@ -1710,15 +1712,17 @@ define(['js/app'], function (myApp) {
                     vm.bindSelectedPlatformData();
                 }
                 vm.isCreateNewPlatform = false;
+                if (vm.selectedPlatform && vm.selectedPlatform.data) {
+                    if (vm.showPlatform) {
+                        vm.showPlatform.demoPlayerPrefix = vm.selectedPlatform.data.demoPlayerPrefix;
+                    }
+                }
             };
 
             vm.bindSelectedPlatformData = function () {
                 if (vm.selectedPlatform && vm.selectedPlatform.data) {
                     vm.showPlatform = $.extend({}, vm.selectedPlatform.data);
                     vm.beforeUpdatePlatform();
-                    if(vm.showPlatform && vm.showPlatform.demoPlayerPrefix){
-                        $('.demoPlayerPrefixSelection option:selected').text(vm.showPlatform.demoPlayerPrefix);
-                    }
                 }
             }
 
@@ -13076,12 +13080,13 @@ define(['js/app'], function (myApp) {
                 vm.clearPlayerProposalLimit.resMsg = '';
                 vm.clearPlayerProposalLimit.showSubmit = false;
                 socketService.$socket($scope.AppSocket, 'requestClearProposalLimit', {username: vm.selectedSinglePlayer.name}, function (data) {
-                    vm.clearPlayerProposalLimit.resMsg = data;
-                    vm.clearPlayerProposalLimit.showSubmit = true;
-                    console.log('feedback', data);
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        vm.clearPlayerProposalLimit.resMsg = $translate("Success");
+                    })
                 }, function (err) {
-                    console.log('err', err);
+                    $scope.$evalAsync(() => {
+                        vm.clearPlayerProposalLimit.resMsg = err.error.errorMsg;
+                    })
                 });
             }
             ///////////////////////////////// player feedback //////////////////////////////////////////
@@ -17399,6 +17404,7 @@ define(['js/app'], function (myApp) {
                 vm.rewardPointsEvent = [];
                 vm.rewardPointsEventOld = [];
                 vm.deletingRewardPointsEvent = null;
+                vm.rewardPointsEventUpdateAll = false;
                 switch (choice) {
                     case 'rewardPointsRule':
                         vm.isRewardPointsLvlConfigEditing = false;
@@ -18131,8 +18137,24 @@ define(['js/app'], function (myApp) {
                 for(let x in vm.rewardPointsEvent) {
                     vm.rewardPointsEventSetDisable(x,vm.rewardPointsEvent[x],false,true);
                 }
+
+                if(vm.rewardPointsEvent.filter(a => a.isEditing == true).length > 0){
+                    vm.rewardPointsEventUpdateAll = true;
+                }else{
+                    vm.rewardPointsEventUpdateAll = false;
+                }
                 vm.refreshSPicker();
             };
+
+            vm.updateAllRewardPointsEvent = () => {
+                for(let x in vm.rewardPointsEvent) {
+                    vm.updateRewardPointsEvent(x,vm.rewardPointsEvent[x]);
+                    vm.rewardPointsEventSetDisable(x,vm.rewardPointsEvent[x],true,true);
+                }
+
+                vm.rewardPointsEventUpdateAll = false;
+                $scope.safeApply();
+            }
 
             vm.rewardPointsEventReset = (idx) => {
                 console.log(vm.rewardPointsEventOld[idx]);
@@ -18479,35 +18501,40 @@ define(['js/app'], function (myApp) {
                             status: 1
                         };
 
-                        if (!data.amount) {
-                            if(type == 3) {
-                                return socketService.showErrorMessage($translate("Promo Reward % is required"));
+                        if (data && !data.isBlockPromoCodeUser) {
+                            if (!data.amount) {
+                                if (type == 3) {
+                                    return socketService.showErrorMessage($translate("Promo Reward % is required"));
+                                } else if (type == 2) {
+                                    return socketService.showErrorMessage($translate("Promo Reward Amount Y is required"));
+                                }
+                                else {
+                                    return socketService.showErrorMessage($translate("Promo Reward Amount X is required"));
+                                }
+                            }
+                            else if (type != 2 && isNaN(data.minTopUpAmount)) {
+                                return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
+                            }
+                            else if (type == 3 && isNaN(data.maxRewardAmount)) {
+                                return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
+                            }
+                            else if (isNaN(data.requiredConsumption)) {
+                                if (type == 3) {
+                                    return socketService.showErrorMessage($translate("Type C Promo Consumption is required"));
+                                } else {
+                                    return socketService.showErrorMessage($translate("Promo Consumption is required"));
+                                }
                             }
                             else {
-                                return socketService.showErrorMessage($translate("Promo Reward Amount is required"));
-                            }
-                        }
-                        else if (type != 2 && isNaN(data.minTopUpAmount)) {
-                            return socketService.showErrorMessage($translate("Promo Min Top Up Amount is required"));
-                        }
-                        else if (type == 3 && isNaN(data.maxRewardAmount)) {
-                            return socketService.showErrorMessage($translate("Promo Max Top Up Amount is required"));
-                        }
-                        else if (isNaN(data.requiredConsumption)) {
-                            return socketService.showErrorMessage($translate("Promo Consumption is required"));
-                        }
-                        else {
-                            return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
-                                if (ret && ret.data && ret.data.length > 0) {
-                                    if (!data.skipCheck) {
-                                        data.hasMoreThanOne = true;
-                                        $scope.safeApply();
+                                return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
+                                    if (ret && ret.data && ret.data.length > 0) {
+                                        if (!data.skipCheck) {
+                                            data.hasMoreThanOne = true;
+                                            $scope.safeApply();
+                                        }
                                     }
-                                }
 
-                                if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
-                                    if (data && !data.isBlockPromoCodeUser) {
-
+                                    if (!data.hasMoreThanOne || (data.skipCheck && !data.cancel)) {
                                         sendData.isProviderGroup = Boolean(vm.selectedPlatform.data.useProviderGroup);
                                         let usingGroup = sendData.isProviderGroup ? vm.gameProviderGroup : vm.allGameProvider;
 
@@ -18530,8 +18557,8 @@ define(['js/app'], function (myApp) {
                                             $scope.safeApply();
                                         });
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
                     }
                 }
