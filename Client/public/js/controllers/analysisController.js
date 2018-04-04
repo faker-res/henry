@@ -45,7 +45,7 @@ define(['js/app'], function (myApp) {
             POST_CONVERT: "3",
             CANNOT_CONVERT: "4"
         };
-          
+
         vm.constInputDevice = {
             1: 'WEB_PLAYER',
             2: 'WEB_AGENT',
@@ -53,22 +53,6 @@ define(['js/app'], function (myApp) {
             4: 'H5_AGENT',
             5: 'APP_PLAYER',
             6: 'APP_AGENT'
-        };
-
-        vm.constPageName = {
-            PAGE_1: 'PAGE_1',
-            PAGE_2: 'PAGE_2',
-            PAGE_3: 'PAGE_3',
-            PAGE_4: 'PAGE_4'
-        };
-
-        vm.constButtonName = {
-            BUTTON_1: 'BUTTON_1',
-            BUTTON_2: 'BUTTON_2',
-            BUTTON_3: 'BUTTON_3',
-            BUTTON_4: 'BUTTON_4',
-            BUTTON_5: 'BUTTON_5',
-            BUTTON_6: 'BUTTON_6'
         };
 
         // For debugging:
@@ -89,7 +73,7 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProvider(id);
             vm.getMerchantList();
             vm.getMerchantType();
-        }
+        };
         vm.loadPage = function (choice) {
             $scope.$evalAsync(() => {
                 socketService.clearValue();
@@ -122,7 +106,7 @@ define(['js/app'], function (myApp) {
                             }],
                         }
 
-                        //todo:: need to optimize this part 
+                        //todo:: need to optimize this part
                         // socketService.$socket($scope.AppSocket, 'getApiLoggerAllServiceName', {service: 'player'},
                         //     function success(data) {
                         //         console.log('get func name', data);
@@ -378,8 +362,9 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('clickCount', 'day', 3, function () {
 
                         });
-                        vm.queryPara.clickCount.inputDevice = "1";
-                        vm.queryPara.clickCount.pageName = "PAGE_1";
+                        vm.getClickCountDevice();
+                        vm.getClickCountPageName();
+                        vm.clickCountTimes = 1;
                         break;
 
                 }
@@ -1589,24 +1574,102 @@ define(['js/app'], function (myApp) {
         // demo player END   ====================================================
 
         // click count START ====================================================
-        vm.getClickCountAnalysis = function () {
+        vm.getClickCountDevice = function () {
+            let sendData = {
+                platformId: vm.selectedPlatform._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountDevice', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountDevice = {};
+                    vm.deviceData = data.data;
+
+                    // replace object key with device name
+                    for (let i = 0; i < Object.keys(vm.deviceData).length; i++) {
+                        vm.clickCountDevice[vm.deviceData[Object.keys(vm.deviceData)[i]]] = vm.deviceData[Object.keys(vm.deviceData)[i]];
+                    }
+
+                    // set first page name as default selected page name
+                    vm.queryPara.clickCount.inputDevice = vm.clickCountDevice[Object.keys(vm.clickCountDevice)[0]] || "";
+                });
+            }, function (data) {
+                console.log("clickCount device data not found?", data);
+            });
+        };
+
+        vm.getClickCountPageName = function () {
+            let sendData = {
+                platformId: vm.selectedPlatform._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountPageName', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountPageName = {};
+                    vm.pageNameData = data.data;
+
+                    // replace object key with page name
+                    for (let i = 0; i < Object.keys(vm.pageNameData).length; i++) {
+                        vm.clickCountPageName[vm.pageNameData[Object.keys(vm.pageNameData)[i]]] = vm.pageNameData[Object.keys(vm.pageNameData)[i]];
+                    }
+
+                    // set first page name as default selected page name
+                    vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[0]] || "";
+                });
+            }, function (data) {
+                console.log("clickCount page name data not found?", data);
+            });
+        };
+
+        vm.getClickCountButtonName = function (device, pageName) {
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                device: device,
+                pageName: pageName
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountButtonName', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountButtonName = data.data.sort();
+                });
+            }, function (data) {
+                console.log("clickCount button name data not found?", data);
+            });
+        };
+
+        vm.getClickCountAnalysis = function (device, pageName) {
+            vm.clickCountTable = "clickCountAnalysisTable"+vm.clickCountTimes;
+            vm.clickCountTimes2 = vm.clickCountTimes - 1;
+            vm.clickCountTable2 = vm.clickCountTable.slice(0, -1) + vm.clickCountTimes2;
+            vm.clickCountTableID = '#'+vm.clickCountTable; // new table ID (increment)
+            vm.clickCountTableID2 = '#'+vm.clickCountTable2; // previous table ID after first search (need to be replaced)
+
+            vm.getClickCountButtonName(device, pageName);
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
                 platformId: vm.selectedPlatform._id,
                 period: vm.queryPara.clickCount.periodText,
                 startDate: vm.queryPara.clickCount.startTime.data('datetimepicker').getLocalDate(),
                 endDate: vm.queryPara.clickCount.endTime.data('datetimepicker').getLocalDate(),
-                device: vm.queryPara.clickCount.inputDevice,
-                pageName: vm.queryPara.clickCount.pageName
+                device: device,
+                pageName: pageName
             };
 
             socketService.$socket($scope.AppSocket, 'getClickCountAnalysis', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     vm.clickCountData = data.data;
                     vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis'); // draw pie chart
 
-                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis');
-                    vm.drawClickCountTable(vm.clickCountData, '#clickCountAnalysisTable');
+                    if (vm.clickCountTimes === 1) {
+                        vm.drawClickCountTable(vm.clickCountData, vm.clickCountTableID); // draw first table
+                        vm.clickCountTimes++;
+                    } else {
+                        $(vm.clickCountTableID2).DataTable().destroy(); // destroy previous table ID
+                        $(vm.clickCountTableID2).empty();
+                        document.getElementById(vm.clickCountTable2).setAttribute("id",vm.clickCountTable); // replace previous table ID
+                        vm.drawClickCountTable(vm.clickCountData, vm.clickCountTableID); // draw new table (2nd table onwards)
+                        vm.clickCountTimes++;
+                    }
                 });
             }, function (data) {
                 vm.isShowLoadingSpinner('#clickCountAnalysis', false);
@@ -1617,37 +1680,37 @@ define(['js/app'], function (myApp) {
         vm.drawClickCountPie = (srcData, pieChartName) => {
             let placeholder = pieChartName + ' div.graphDiv';
             let finalizedPieData = [];
+            let click = {};
+            let clickTotal = {};
 
-            let clickTotal = {
-                "BUTTON_1": {label: $translate("BUTTON_1"), data: 0},
-                "BUTTON_2": {label: $translate("BUTTON_2"), data: 0},
-                "BUTTON_3": {label: $translate("BUTTON_3"), data: 0},
-                "BUTTON_4": {label: $translate("BUTTON_4"), data: 0},
-                "BUTTON_5": {label: $translate("BUTTON_5"), data: 0},
-                "BUTTON_6": {label: $translate("BUTTON_6"), data: 0},
-            };
+            for (let i = 0; i < vm.clickCountButtonName.length; i++) {
+                let buttonName = vm.clickCountButtonName[i];
+                click[i] = {label: $translate(buttonName), data: 0};
+            }
+
+            // replace object key with button label name
+            for (let i = 0; i < Object.keys(click).length; i++) {
+                clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
+            }
 
             if (srcData) {
                 srcData.map(dateData => {
                     if (dateData && dateData.data instanceof Array) {
                         dateData.data.map(buttonData => {
-                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[buttonData._id.buttonName]) {
-                                clickTotal[buttonData._id.buttonName].data += buttonData.total;
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
+                                clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
                             }
                         });
                     }
                 });
             }
 
-            finalizedPieData.push(clickTotal["BUTTON_1"]);
-            finalizedPieData.push(clickTotal["BUTTON_2"]);
-            finalizedPieData.push(clickTotal["BUTTON_3"]);
-            finalizedPieData.push(clickTotal["BUTTON_4"]);
-            finalizedPieData.push(clickTotal["BUTTON_5"]);
-            finalizedPieData.push(clickTotal["BUTTON_6"]);
+            for (let index in clickTotal) {
+                finalizedPieData.push(clickTotal[index]);
+            }
 
             function labelFormatter(label, series) {
-                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+                return "<div style='font-size:12pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
             }
 
             let options = {
@@ -1682,57 +1745,40 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawClickCountTable = (srcData, tableName) => {
-            let clickTotal = {
-                "BUTTON_1": {label: $translate("BUTTON_1"), data: 0},
-                "BUTTON_2": {label: $translate("BUTTON_2"), data: 0},
-                "BUTTON_3": {label: $translate("BUTTON_3"), data: 0},
-                "BUTTON_4": {label: $translate("BUTTON_4"), data: 0},
-                "BUTTON_5": {label: $translate("BUTTON_5"), data: 0},
-                "BUTTON_6": {label: $translate("BUTTON_6"), data: 0},
-            };
             let dailyClickData = [];
+            let click = {};
+            let clickTotal = {};
+
+            for (let i = 0; i < vm.clickCountButtonName.length; i++) {
+                let buttonName = vm.clickCountButtonName[i];
+                click[i] = {label: $translate(buttonName), data: 0};
+            }
+
+            // replace object key with button label name
+            for (let i = 0; i < Object.keys(click).length; i++) {
+                clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
+            }
 
             if (srcData) {
                 srcData.map(dateData => {
                     let dayData = {
                         date: String(utilService.$getTimeFromStdTimeFormat(new Date(dateData.date))).substring(0, 10),
                         total: 0,
-                        BUTTON_1: 0,
-                        BUTTON_2: 0,
-                        BUTTON_3: 0,
-                        BUTTON_4: 0,
-                        BUTTON_5: 0,
-                        BUTTON_6: 0,
                     };
+
+                    for (let x = 0; x < vm.clickCountButtonName.length; x++) {
+                        let buttonName = vm.clickCountButtonName[x];
+                        dayData[$translate(buttonName)] = 0;
+                    }
 
                     if (dateData && dateData.data instanceof Array) {
                         dateData.data.map(buttonData => {
-                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[buttonData._id.buttonName]) {
-                                clickTotal[buttonData._id.buttonName].data += buttonData.total;
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
+                                clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
                             }
 
                             dayData.total += buttonData.total;
-
-                            switch (buttonData._id.buttonName) {
-                                case "BUTTON_1":
-                                    dayData.BUTTON_1 += buttonData.total;
-                                    break;
-                                case "BUTTON_2":
-                                    dayData.BUTTON_2 += buttonData.total;
-                                    break;
-                                case "BUTTON_3":
-                                    dayData.BUTTON_3 += buttonData.total;
-                                    break;
-                                case "BUTTON_4":
-                                    dayData.BUTTON_4 += buttonData.total;
-                                    break;
-                                case "BUTTON_5":
-                                    dayData.BUTTON_5 += buttonData.total;
-                                    break;
-                                case "BUTTON_6":
-                                    dayData.BUTTON_6 += buttonData.total;
-                                    break;
-                            }
+                            dayData[$translate(buttonData._id.buttonName)] += buttonData.total;
                         });
                     }
 
@@ -1744,14 +1790,15 @@ define(['js/app'], function (myApp) {
 
             let averageData = {
                 date: $translate("average value"),
-                total: ((clickTotal["BUTTON_1"].data + clickTotal["BUTTON_2"].data + clickTotal["BUTTON_3"].data + clickTotal["BUTTON_4"].data + clickTotal["BUTTON_5"].data + clickTotal["BUTTON_6"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_1: ((clickTotal["BUTTON_1"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_2: ((clickTotal["BUTTON_2"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_3: ((clickTotal["BUTTON_3"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_4: ((clickTotal["BUTTON_4"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_5: ((clickTotal["BUTTON_5"].data) / numberOfPeriod).toFixed(2),
-                BUTTON_6: ((clickTotal["BUTTON_6"].data) / numberOfPeriod).toFixed(2),
+                total: 0,
             };
+
+            for (let x = 0; x < vm.clickCountButtonName.length; x++) {
+                let buttonName = vm.clickCountButtonName[x];
+                averageData.total += clickTotal[$translate(buttonName)].data;
+                averageData[$translate(buttonName)] = ((clickTotal[$translate(buttonName)].data) / numberOfPeriod).toFixed(2);
+            }
+            averageData.total = (averageData.total / numberOfPeriod).toFixed(2);
 
             dailyClickData.splice(0, 0, averageData);
 
@@ -1761,20 +1808,21 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
                 ],
                 columns: [
-                    {title: $translate(vm.queryPara.clickCount.periodText), data: "date"},
-                    {title: $translate('TOTAL_CLICK_COUNT'), data: "total"},
-                    {title: $translate('BUTTON_1'), data: "BUTTON_1"},
-                    {title: $translate('BUTTON_2'), data: "BUTTON_2"},
-                    {title: $translate('BUTTON_3'), data: "BUTTON_3"},
-                    {title: $translate('BUTTON_4'), data: "BUTTON_4"},
-                    {title: $translate('BUTTON_5'), data: "BUTTON_5"},
-                    {title: $translate('BUTTON_6'), data: "BUTTON_6"},
+                    {title: $translate(vm.queryPara.clickCount.periodText), data: "date", sTitle: $translate(vm.queryPara.clickCount.periodText), mData: "date"},
+                    {title: $translate('TOTAL_CLICK_COUNT'), data: "total", sTitle: $translate('TOTAL_CLICK_COUNT'), mData: "total"},
                 ],
                 "paging": false,
             };
+
+            for (let x = 0; x < vm.clickCountButtonName.length; x++) {
+                let buttonName = vm.clickCountButtonName[x];
+                let buttonObj = {title: $translate(buttonName), data: $translate(buttonName), sTitle: $translate(buttonName), mData: $translate(buttonName)};
+                dataOptions.columns[x+2] = buttonObj; // first 2 columns already populated
+            }
+
             dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-            let a = $(tableName).DataTable(dataOptions);
-            a.columns.adjust().draw();
+            let aTable = $(tableName).DataTable(dataOptions);
+            aTable.columns.adjust().draw();
         };
         // click count END   ====================================================
 
@@ -3644,7 +3692,7 @@ define(['js/app'], function (myApp) {
         vm.drawPlayerTopUp = function (type) {
             var opt = '';
             let socketName = null;
-            
+
             if (type == 'TOPUPMANUAL') {
                 opt = 'ManualPlayerTopUp';
                 vm.queryPara.topUp.amountTag = 'TOPUPMANUAL_AMOUNT';
@@ -3815,7 +3863,7 @@ define(['js/app'], function (myApp) {
                                     $scope.$evalAsync(() => {
                                         if (data && data.data && data.data.data) {
                                             vm.allBankTypeList = {};
-                                            vm.manualTopUpBankInfo = [];                                    
+                                            vm.manualTopUpBankInfo = [];
                                             Object.assign(vm.allBankTypeList, data.data.data);
 
                                             bankData.forEach( bank => {
@@ -4370,6 +4418,7 @@ define(['js/app'], function (myApp) {
                 let total = data.data ? data.data.total : 0;
                 vm.demoPlayerLog.totalCount = total;
                 if (tblData && tblData.length > 0) {
+                    let count = sendQuery.index || 0;
                     tblData.map(data => {
                         if (data.status == vm.constDemoPlayerStatus.OLD_PLAYER || data.status == vm.constDemoPlayerStatus.POST_CONVERT) {
                             if (data.phoneNumber) {
@@ -4377,6 +4426,8 @@ define(['js/app'], function (myApp) {
                                 data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
                             }
                         }
+                        count += 1;
+                        data.rowNumber = count;
                     });
                 }
                 vm.drawDemoPlayerLogTable(newSearch, tblData, total);
@@ -4390,13 +4441,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {
-                        "targets": 0,
-                        "title": $translate('order'),
-                        "render": function (data, type, full, meta) {
-                            return meta.settings._iDisplayStart + meta.row + 1;
-                        }
-                    },
+                    {title: $translate('order'), data: "rowNumber"},
                     {title: $translate('Demo Player Account'), data: "name"},
                     {title: $translate('phoneNumber'), data: "phoneNumber"},
                 ],

@@ -147,7 +147,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);
             let isBackStageGenerated = true;
-            socketUtil.emitter(self.socket, dbPlayerInfo.createDemoPlayer, [data.platformId, null, null, null, isBackStageGenerated], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.createDemoPlayer, [data.platformId, null, null, null, null, isBackStageGenerated], actionName, isValidData);
         },
 
         /**
@@ -803,7 +803,7 @@ function socketActionPlayer(socketIO, socket) {
          */
         applyManualTopUpRequest: function applyManualTopUpRequest(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo && data.provinceId && data.cityId);
+            var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo);
             let userAgent = '';
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS], actionName, isValidData);
         },

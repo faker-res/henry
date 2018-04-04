@@ -398,7 +398,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.selectPlatformNode = function (node, option) {
         $scope.selectedPlatform = node;
         $scope.curPlatformText = node.text;
-        authService.updatePlatform($cookies, node.text)
+        authService.updatePlatform($cookies, node.text);
         console.log("$scope.selectedPlatform", node.text);
         $cookies.put("platform", node.text);
         if (option && !option.loadAll) {
@@ -407,6 +407,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
         loadProfitDetail();
         $scope.$broadcast('switchPlatform');
+        $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
+    };
+
+    $scope.fontSizeAdaptive = function(element){
+        element.style.fontSize = '20px';
+        let parentWidth = parseInt(window.getComputedStyle(element.parentElement).width);
+        let elemWidth = parseInt(window.getComputedStyle(element).width);
+        elemWidth = isNaN(elemWidth) ? 0 : elemWidth;
+    
+        if (elemWidth > parentWidth-50){
+            element.style.fontSize = '16px';
+        }
     };
 
     // From: https://davidwalsh.name/javascript-debounce-function

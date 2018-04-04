@@ -215,7 +215,7 @@ define(['js/app'], function (myApp) {
                     })
 
                 })
-              vm.getCSDepartmentMember(csDepartmentMember);
+              vm.getCSDepartmentMember(csDepartmentMember,companyIds);
               vm.getQIDepartmentMember(qiDepartmentMember);
               vm.companyIds = companyIds;
             }
@@ -237,7 +237,7 @@ define(['js/app'], function (myApp) {
                 }, function (err) {
                 });
             }
-            vm.getCSDepartmentMember = function(csMembers){
+            vm.getCSDepartmentMember = function(csMembers, companyIds){
               socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: csMembers}, function (cdata) {
                   console.log('all admin data', cdata.data);
                   let fpmsACCList = [];
@@ -246,7 +246,16 @@ define(['js/app'], function (myApp) {
                   cdata.data.forEach(item=>{
                     let liveAccSet = [];
                     if(item.live800Acc){
-                        liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
+                        liveAccSet = item.live800Acc.filter(live800=>{
+                            let equal = false;
+                            companyIds.forEach(c =>
+                            {
+                                if (c == live800.substring(0, live800.indexOf("-"))) {
+                                    equal = true;
+                                }
+                            });
+                            return equal;
+                        });
                     }
                     let acc = {
                       _id:item._id,
@@ -263,7 +272,7 @@ define(['js/app'], function (myApp) {
             vm.loadLive800Acc = function(){
 
                 let live800Accs = [];
-                vm.allUser.forEach(item => {
+                vm.fpmsACCList.forEach(item => {
                     if (vm.inspection800.fpms.indexOf(item._id) != -1) {
 
                         item.live800Acc.forEach(live800 => {
@@ -1232,77 +1241,80 @@ define(['js/app'], function (myApp) {
                 let resultArr = [];
 
                 socketService.$socket($scope.AppSocket, 'getWorkloadReport', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0) {
-
-                        data.data.map(data => {
-                            if (data && data.status) {
-                                data.status = vm.constQualityInspectionStatus[data.status];
-                            }
-
-                            let index = resultArr.findIndex(r => r.qaAccount == data.qaAccount)
-
-                            if (index != -1) {
-                                if (data.status == "COMPLETED_UNREAD") {
-                                    resultArr[index].completedUnread = data.count;
+                    $scope.$evalAsync(() => {
+                        if(data && data.data && data.data.length > 0) {
+                            data.data.map(data => {
+                                if (data && data.status) {
+                                    data.status = vm.constQualityInspectionStatus[data.status];
                                 }
 
-                                if (data.status == "COMPLETED_READ") {
-                                    resultArr[index].completedRead = data.count;
+                                let index = resultArr.findIndex(r => r.qaAccount == data.qaAccount)
+
+                                if (index != -1) {
+                                    if (data.status == "COMPLETED_UNREAD") {
+                                        resultArr[index].completedUnread = data.count;
+                                    }
+
+                                    if (data.status == "COMPLETED_READ") {
+                                        resultArr[index].completedRead = data.count;
+                                    }
+
+                                    if (data.status == "COMPLETED") {
+                                        resultArr[index].completed = data.count;
+                                    }
+
+                                    if (data.status == "APPEALING") {
+                                        resultArr[index].appealing = data.count;
+                                    }
+
+                                    if (data.status == "APPEAL_COMPLETED") {
+                                        resultArr[index].appealCompleted = data.count;
+                                    }
+                                } else {
+                                    let resultObj = {
+                                        qaAccount: data.qaAccount,
+                                        completedUnread: 0,
+                                        completedRead: 0,
+                                        completed: 0,
+                                        appealing: 0,
+                                        appealCompleted: 0
+                                    }
+
+                                    if (data.status == "COMPLETED_UNREAD") {
+                                        resultObj.completedUnread = data.count;
+                                    }
+
+                                    if (data.status == "COMPLETED_READ") {
+                                        resultObj.completedRead = data.count;
+                                    }
+
+                                    if (data.status == "COMPLETED") {
+                                        resultObj.completed = data.count;
+                                    }
+
+                                    if (data.status == "APPEALING") {
+                                        resultObj.appealing = data.count;
+                                    }
+
+                                    if (data.status == "APPEAL_COMPLETED") {
+                                        resultObj.appealCompleted = data.count;
+                                    }
+
+                                    resultArr.push(resultObj);
                                 }
 
-                                if (data.status == "COMPLETED") {
-                                    resultArr[index].completed = data.count;
-                                }
+                                return data;
+                            });
 
-                                if (data.status == "APPEALING") {
-                                    resultArr[index].appealing = data.count;
-                                }
+                            vm.drawQAReportTable(resultArr, [], [],newSearch);
+                            vm.QAReportQuery ={};
+                            vm.QAReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
+                        }else{
+                            vm.drawQAReportTable("", [], [],newSearch);
+                        }
 
-                                if (data.status == "APPEAL_COMPLETED") {
-                                    resultArr[index].appealCompleted = data.count;
-                                }
-                            } else {
-                                let resultObj = {
-                                    qaAccount: data.qaAccount,
-                                    completedUnread: 0,
-                                    completedRead: 0,
-                                    completed: 0,
-                                    appealing: 0,
-                                    appealCompleted: 0
-                                }
-
-                                if (data.status == "COMPLETED_UNREAD") {
-                                    resultObj.completedUnread = data.count;
-                                }
-
-                                if (data.status == "COMPLETED_READ") {
-                                    resultObj.completedRead = data.count;
-                                }
-
-                                if (data.status == "COMPLETED") {
-                                    resultObj.completed = data.count;
-                                }
-
-                                if (data.status == "APPEALING") {
-                                    resultObj.appealing = data.count;
-                                }
-
-                                if (data.status == "APPEAL_COMPLETED") {
-                                    resultObj.appealCompleted = data.count;
-                                }
-
-                                resultArr.push(resultObj);
-                            }
-
-                            return data;
-                        });
                         vm.loadingWorkloadReportTable = false;
-                        $scope.safeApply();
-                        vm.drawQAReportTable(resultArr, [], [],newSearch);
-                        vm.QAReportQuery ={};
-                        vm.QAReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
-                    }
-
+                    })
                 },function (error) {
                         console.log("error", error);
                     }
@@ -1324,7 +1336,7 @@ define(['js/app'], function (myApp) {
                     // ],
                     columns: [
                         {
-                            title: $translate('QA ACCOUNT'),
+                            title: $translate('QC ACCOUNT'),
                             data: "qaAccount", sClass: "expandQAReport",
                             render: function (data, type, row) {
                                 return "<a>" + data + "</a>";
@@ -1347,6 +1359,7 @@ define(['js/app'], function (myApp) {
                 if (reportTbl) {
                     reportTbl.clear();
                 }
+                $("#workloadReportTable").DataTable(option).clear();
                 var reportTbl = $("#workloadReportTable").DataTable(option);
                 utilService.setDataTablePageInput('workloadReportTable', reportTbl, $translate);
 

@@ -945,7 +945,7 @@
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
                                     option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : "name"', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{(v.status == "DISABLED"?"Disable":v.status) | translate}}</b>
+                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : ["bankTypeId", "name"]', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{(v.status == "DISABLED"?"Disable":v.status) | translate}}</b>
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod', ng-change='vm.selectedDepositMethod(vm.playerManualTopUp.depositMethod)')
@@ -955,11 +955,11 @@
                                 input.form-control(ng-model='vm.playerManualTopUp.realName',ng-hide='!vm.playerManualTopUp.depositMethod || vm.playerManualTopUp.depositMethod === "2"')
                             .form-group-col-md-6
                                 label.control-label {{'PROVINCE_ID' | translate}}
-                                select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', required)
+                                select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerManualTopUp.depositMethod ||vm.playerManualTopUp.depositMethod === "1" || vm.playerManualTopUp.depositMethod === "2" || vm.playerManualTopUp.depositMethod === "3"')
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
                             .form-group-col-md-6
                                 label.control-label {{'CITY_ID' | translate}}
-                                select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', required)
+                                select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerManualTopUp.depositMethod ||vm.playerManualTopUp.depositMethod === "1" || vm.playerManualTopUp.depositMethod === "2" || vm.playerManualTopUp.depositMethod === "3"')
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
                             .form-group-col-md-6
                                 label.control-label {{'DISTRICT_ID' | translate}}
@@ -1172,7 +1172,7 @@
                 form(name='form_player_bonus').well
                     .form-group-col-md-6
                         label.control-label {{'CREDIT' | translate}}
-                        input.leftALignNumber.form-control(type='number',ng-model='vm.playerBonus.amount', required)
+                        input.leftALignNumber.form-control(type='number' min="0" ng-model='vm.playerBonus.amount' required)
                     .form-group-col-md-6(ng-hide='vm.playerBonus.bonusId')
                         label.control-label {{'BONUS_ID' | translate}}
                         input.form-control(ng-model='vm.playerBonus.bonusId', required)

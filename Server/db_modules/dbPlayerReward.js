@@ -2790,7 +2790,10 @@ let dbPlayerReward = {
                     topUpAmount: newProp.data.applyAmount
                 })
             }
-        )
+        ).then(() => {
+            promoCodeObj.promoCodeTypeObjId = promoCodeObj.promoCodeTypeObjId._id;
+            return promoCodeObj;
+        })
     },
 
     getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name) => {
@@ -3791,13 +3794,14 @@ let dbPlayerReward = {
 
     /**
      *
+     * @param userAgent
      * @param playerData
      * @param eventData
      * @param adminInfo
      * @param rewardData
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
+    applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData) => {
         rewardData = rewardData || {};
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
@@ -4463,6 +4467,7 @@ let dbPlayerReward = {
                                 spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
+                                selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
                             }
 
@@ -4924,6 +4929,7 @@ let dbPlayerReward = {
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS
                             };
+                            proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
 
                             if (applyDetail.consecutiveNumber) {
                                 proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
@@ -5003,6 +5009,7 @@ let dbPlayerReward = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS
                         };
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
 
                         // Custom proposal data field
                         if (applyAmount > 0) {

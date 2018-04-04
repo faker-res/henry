@@ -1319,7 +1319,7 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
+    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, userAgentString, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
         let platform, defaultCredit, demoPlayerData;
 
@@ -1440,7 +1440,7 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
 
-                dbDemoPlayer.createDemoPlayerLog(playerData, phoneNumber, deviceData, isBackStageGenerated).catch(errorUtils.reportError);
+                dbDemoPlayer.createDemoPlayerLog(playerData, phoneNumber, userAgentString, isBackStageGenerated).catch(errorUtils.reportError);
 
                 let profile = {name: playerData.name, password: playerData.password};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
@@ -11448,11 +11448,25 @@ let dbPlayerInfo = {
                             message: "Player do not have permission for reward"
                         });
                     }
-                    //check if player's reward task is no credit now
-                    return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
-                        taskStatus => {
-                            return dbconfig.collection_rewardEvent.findOne({platform: playerData.platform, code: code})
-                                .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                    return dbPlayerUtil.setPlayerState(playerData._id, "ApplyRewardEvent").then(
+                        playerState => {
+                            if(playerState) {
+                                //check if player's reward task is no credit now
+                                return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
+                                    taskStatus => {
+                                        return dbconfig.collection_rewardEvent.findOne({
+                                            platform: playerData.platform,
+                                            code: code
+                                        })
+                                            .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                                    }
+                                );
+                            } else {
+                                return Promise.reject({
+                                    name: "DBError",
+                                    message: "Apply Reward Fail, please try again later"
+                                })
+                            }
                         }
                     );
                 }
@@ -11637,7 +11651,7 @@ let dbPlayerInfo = {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
                                     rewardData.smsCode = data.smsCode;
-                                    return dbPlayerReward.applyGroupReward(playerInfo, rewardEvent, adminInfo, rewardData);
+                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData);
                                     break;
                                 default:
                                     return Q.reject({
@@ -13011,7 +13025,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: constSystemParam.BATCH_SIZE,
+                        batchSize: 100,
                         makeRequest: function (playerIdObjs, request) {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,

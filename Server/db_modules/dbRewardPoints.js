@@ -361,9 +361,9 @@ let dbRewardPoints = {
                 let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategoryWithPopulatePlayerLevel(platform._id, constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                 let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(consumptionRecord.playerId);
                 let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
-                let getplayerLevelProm = getPlayerLevelValue(consumptionRecord.playerId);
+                let getPlayerLevelProm = getPlayerLevelValue(consumptionRecord.playerId);
 
-                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getplayerLevelProm]);
+                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getPlayerLevelProm]);
             }
         ).then(
             data => {
@@ -377,8 +377,6 @@ let dbRewardPoints = {
                 let playerLevelData = data[3];
 
                 relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData));
-
-                // let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
 
                 let rewardProgressProm = [];
                 if (relevantEvents.length) {
@@ -1699,17 +1697,19 @@ let dbRewardPoints = {
                 returnData.pointRanking = rewardPointsRankingListArr;
 
                 let gameRewardProm = [];
-                gameRewardPointEvent.forEach(item => {
-                    if (item._id) {
-                        let eventPeriodStartTime = getEventPeriodStartTime(item);
-                        let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
-                            rewardPointsObjId: rewardPointRecord._id,
-                            rewardPointsEventObjId: item._id,
-                            createTime: {$gte: eventPeriodStartTime}
-                        }).lean();
-                        gameRewardProm.push(rewardProm);
-                    }
-                })
+                if(gameRewardPointEvent && gameRewardPointEvent.length > 0){
+                    gameRewardPointEvent.forEach(item => {
+                        if (item._id) {
+                            let eventPeriodStartTime = getEventPeriodStartTime(item);
+                            let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
+                                rewardPointsObjId: rewardPointRecord._id,
+                                rewardPointsEventObjId: item._id,
+                                createTime: {$gte: eventPeriodStartTime}
+                            }).lean();
+                            gameRewardProm.push(rewardProm);
+                        }
+                    })
+                }
 
                 return Promise.all(gameRewardProm).then(
                     gameRewardPointsData => {
@@ -1727,17 +1727,19 @@ let dbRewardPoints = {
             }).then(
                 () => {
                     let loginRewardProm = [];
-                    loginRewardPointEvent.forEach(item => {
-                        if (item._id) {
-                            let eventPeriodStartTime = getEventPeriodStartTime(item);
-                            let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
-                                rewardPointsObjId: rewardPointRecord._id,
-                                rewardPointsEventObjId: item._id,
-                                createTime: {$gte: eventPeriodStartTime}
-                            }).lean();
-                            loginRewardProm.push(rewardProm);
-                        }
-                    })
+                    if(loginRewardPointEvent && loginRewardPointEvent.length > 0){
+                        loginRewardPointEvent.forEach(item => {
+                            if (item._id) {
+                                let eventPeriodStartTime = getEventPeriodStartTime(item);
+                                let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
+                                    rewardPointsObjId: rewardPointRecord._id,
+                                    rewardPointsEventObjId: item._id,
+                                    createTime: {$gte: eventPeriodStartTime}
+                                }).lean();
+                                loginRewardProm.push(rewardProm);
+                            }
+                        })
+                    }
 
                     return Promise.all(loginRewardProm).then(
                         loginRewardPointsData => {
@@ -1754,17 +1756,19 @@ let dbRewardPoints = {
             }).then(
                 () => {
                     let topUpRewardProm = [];
-                    topupRewardPointEvent.forEach(item => {
-                        if (item._id) {
-                            let eventPeriodStartTime = getEventPeriodStartTime(item);
-                            let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
-                                rewardPointsObjId: rewardPointRecord._id,
-                                rewardPointsEventObjId: item._id,
-                                createTime: {$gte: eventPeriodStartTime}
-                            }).lean();
-                            topUpRewardProm.push(rewardProm);
-                        }
-                    })
+                    if(topupRewardPointEvent && topupRewardPointEvent.length > 0){
+                        topupRewardPointEvent.forEach(item => {
+                            if (item._id) {
+                                let eventPeriodStartTime = getEventPeriodStartTime(item);
+                                let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
+                                    rewardPointsObjId: rewardPointRecord._id,
+                                    rewardPointsEventObjId: item._id,
+                                    createTime: {$gte: eventPeriodStartTime}
+                                }).lean();
+                                topUpRewardProm.push(rewardProm);
+                            }
+                        })
+                    }
 
                     return Promise.all(topUpRewardProm).then(
                         topUpRewardPointsData => {
@@ -1889,7 +1893,24 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData) {
 
     if (event.target && event.target.betType && event.target.betType.length > 0) {
         let relevantBetType = event.target.betType;
-        if (!consumptionRecord.betType || relevantBetType.indexOf(consumptionRecord.betType.toString()) < 0) {
+        let delimiters = [' ','|','@'];
+        let betTypes = consumptionRecord && consumptionRecord.betType ? consumptionRecord.betType.split(new RegExp('[' + delimiters.join('') + ']', 'g')).filter(function(el) {return el.length != 0}) : [];
+
+        if (betTypes && betTypes.length > 0) {
+            let matchBetTypes = [];
+
+            betTypes.forEach(betType => {
+                relevantBetType.forEach(eventBetType => {
+                    if (betType == eventBetType) {
+                        matchBetTypes.push(betType);
+                    }
+                });
+            });
+
+            if(matchBetTypes && matchBetTypes.length == 0) {
+                return false;
+            }
+        } else {
             return false;
         }
     }

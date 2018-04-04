@@ -358,6 +358,9 @@ include modalGameCreditLog
                                     li(ng-show="editPlayerPermission",ng-class="selectedTab=='topUpInfo'?'active':''")
                                         a.common-tab(data-toggle="tab", ng-click="selectedTab ='topUpInfo';initTopUpGroupChangeLog()")
                                             text.span {{"Topup Group" | translate}}
+                                    li(ng-show="editPlayerPermission",ng-class="selectedTab=='adminNameAdjunction'?'active':''")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='adminNameAdjunction';")
+                                            text.span {{"AdminNameAdjunction" | translate}}
                                             //button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'EditContact')", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click='vm.prepareEditCritical("player")', data-target='#modalEditCritical') {{"EDIT" | translate}}
 
                             .panel-body.common-right-panel-body
@@ -374,6 +377,10 @@ include modalGameCreditLog
                                         include player-edit-payment-form
                                         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
                                         button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_player.$invalid || form_edit_player.$pristine', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
+                                    #adminNameGroup.tab-pane.fade(ng-class="selectedTab =='adminNameAdjunction'?'in active':''")
+                                        include player-edit-adjunction-form
+                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='(form_edit_player_admin.$invalid || form_edit_player_admin.$pristine) || checkAdminNameValidity()', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
                                 div(ng-show="selectedTab =='topUpInfo'")
                                     hr
                                     .btn.btn-success(ng-click="getPlayerTopUpGroupChangeLog(0,10)") {{'TOPUP_GROUP_RECORD' | translate}}
@@ -1731,7 +1738,7 @@ include modalGameCreditLog
             .modal-body
                 label {{'ClearProposalLimit' | translate}}
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.clearPlayerProposalLimit.showSubmit', ng-click='vm.requestClearProposalLimit()') {{'APPLY' | translate}}
+                button.common-button.margin-right-5.btn.btn-success(ng-if='vm.clearPlayerProposalLimit.showSubmit', ng-click='vm.requestClearProposalLimit()') {{'APPLY' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
                 label.inlineBlk.margin-right-5(ng-if='vm.clearPlayerProposalLimit.resMsg') {{vm.clearPlayerProposalLimit.resMsg}}
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.clearPlayerProposalLimit.showSubmit && !vm.clearPlayerProposalLimit.resMsg')

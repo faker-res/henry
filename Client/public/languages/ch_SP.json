@@ -1461,18 +1461,9 @@
   "PLAYER_RANDOM_REWARD_GROUP_REPORT": "随机抽奖（组）优惠报表",
   "CLICK_COUNT": "埋点",
   "clickCount": "埋点",
+  "ClickCount": "埋点",
   "PAGE_NAME": "页面",
   "TOTAL_CLICK_COUNT": "总点击次数",
-  "PAGE_1": "页面1",
-  "PAGE_2": "页面2",
-  "PAGE_3": "页面3",
-  "PAGE_4": "页面4",
-  "BUTTON_1": "按钮1",
-  "BUTTON_2": "按钮2",
-  "BUTTON_3": "按钮3",
-  "BUTTON_4": "按钮4",
-  "BUTTON_5": "按钮5",
-  "BUTTON_6": "按钮6",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
@@ -3443,6 +3434,11 @@
   "level up consumption provider different": "升级投注额来源不同",
   "more than 2 consumption provider, (auto level up) turn on, (manual batch level up) turn off": "升级同时设置检测两个（或以上）投注额来源，系统将强制开启『玩家瞬间自动升级』、同时无法提供手动批量结算升级按钮。",
   "manualDailyProviderSettlement": "每日提供商手工结算",
-  "createForbidTopUpLog": "创建禁用充值类型记录"
+  "createForbidTopUpLog": "创建禁用充值类型记录",
+  "UPDATE_ALL": "全部更新",
+  "QC ACCOUNT": "QC 帐号",
+  "AdminNameAdjunction": "添加创建者",
+  "AdminName": "创建者",
+  "Admin name is invalid, please try again": "创建者不存在，请再次输入"
 
 }
