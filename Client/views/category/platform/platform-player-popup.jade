@@ -539,6 +539,8 @@
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('platform-transfer-log');vm.showPlatformCreditTransferLog();") {{"PLAYER_PLATFORM_TRANSFER_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('midnight-balance-log');vm.initPlayerCreditLog();") {{"PLAYER_MIDNIGHT_BALANCE_LOG" | translate}}
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerRewardTaskLog')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('rewardTask-log');vm.showPagedPlayerRewardTaskLog();") {{"PLAYER_REWARDTASK_LOG" | translate}}
 
                 .panel.panel-primary(style="border-radius:0 !important;")
                     .panel-body
@@ -739,6 +741,26 @@
                                 label {{"Total" | translate}} {{vm.playerCreditLog.totalCount}} {{"records" | translate}}
                                 table#playerCreditLogTbl.common-table.display(style='min-width:100%')
                                 #playerCreditLogTblPage.height30
+                        div(ng-show="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log'")
+                            #playerRewardTaskLog.adminLogQueryDiv
+                                .inlineBlk
+                                    label {{'START_DATE' | translate}}
+                                    .startTime
+                                .inlineBlk
+                                    label {{'END_DATE' | translate}}
+                                    .endTime
+                                //.inlineBlk
+                                //    label {{'Type' | translate}}
+                                //    select.form-control.limit(ng-model='vm.playerRewardTaskLog.type', required)
+                                //        option(value='none') {{'any' | translate}}
+                                //        option(ng-repeat='(i,v) in creditChangeTypeStrings', value='{{v}}') {{v | translate}}
+                                .inlineBlk
+                                    button.btn.btn-primary(ng-click='vm.getPagedPlayerRewardTaskLog(true)') {{'SEARCH' | translate}}
+                                .inlineBlk(ng-if='vm.playerRewardTaskLog.loading')
+                                    i.fa.fa-spin.fa-spinner
+                            label {{"Total" | translate}} {{vm.playerRewardTaskLog.totalCount}} {{"records" | translate}}
+                            table#playerRewardTaskLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            #playerRewardTaskLogTablePage
             .modal-footer
                 div(ng-show="vm.selectedPlayerAccountingDetailTab == 'current-credit'")
                     button.common-button.margin-right-5.btn.btn-success(ng-disabled='vm.transferAllCredit.isProcessing', ng-click='vm.transferAllCreditToPlayer()') {{'Transfer All from Providers' | translate}}
@@ -747,6 +769,7 @@
                 div(ng-show="vm.selectedPlayerAccountingDetailTab == 'credit-log'")
                 div(ng-show="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log'")
                 div(ng-show="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log'")
+                div(ng-show="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log'")
 
 
 #modalPlayerApiLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
