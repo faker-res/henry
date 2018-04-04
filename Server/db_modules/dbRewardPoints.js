@@ -342,9 +342,6 @@ let dbRewardPoints = {
     },
 
     updateGameRewardPointProgress: (consumptionRecord) => {
-
-        console.log('consumptionRecord', consumptionRecord);
-
         if (!consumptionRecord || !consumptionRecord.platformId || !consumptionRecord.providerId) {
             return Promise.resolve();
         }
@@ -356,8 +353,6 @@ let dbRewardPoints = {
         return dbConfig.collection_platform.findOne({_id: consumptionRecord.platformId}).lean().then(
             platformData => {
                 platform = platformData;
-
-                console.log('platform', platform);
 
                 if (!platform.usePointSystem) {
                     return Promise.resolve();
@@ -372,9 +367,6 @@ let dbRewardPoints = {
             }
         ).then(
             data => {
-
-                console.log('data', data);
-
                 if (!data) {
                     return Promise.resolve();
                 }
@@ -384,8 +376,8 @@ let dbRewardPoints = {
                 rewardPointsConfig = data[2];
                 let playerLevelData = data[3];
 
-                console.log('events', events);
                 console.log('consumptionRecord', consumptionRecord);
+                console.log('playerRewardPoints', playerRewardPoints);
                 console.log('playerLevelData', playerLevelData);
 
                 relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData));
@@ -399,6 +391,10 @@ let dbRewardPoints = {
                     relevantEvents.forEach(relevantData => {
                         if (relevantData._id) {
                             let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
+
+                            console.log('eventPeriodStartTime', eventPeriodStartTime);
+                            console.log('relevantData', relevantData);
+
                             let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                 rewardPointsObjId: playerRewardPoints._id,
                                 rewardPointsEventObjId: relevantData._id,
