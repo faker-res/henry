@@ -384,7 +384,7 @@ let dbRewardPoints = {
                 rewardPointsConfig = data[2];
                 let playerLevelData = data[3];
 
-                console.log('event', event);
+                console.log('events', events);
                 console.log('consumptionRecord', consumptionRecord);
                 console.log('playerLevelData', playerLevelData);
 
