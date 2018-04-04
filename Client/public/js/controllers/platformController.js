@@ -7168,6 +7168,25 @@ define(['js/app'], function (myApp) {
                 }, true);
             }
 
+            vm.checkAdminNameValidity = ((adminName) => {
+                if(!adminName || adminName == ''){
+                    return
+                }
+
+                socketService.$socket($scope.AppSocket, 'getAdminInfo', {adminName: adminName}, function (data) {
+                    $scope.$evalAsync(() => {
+                        if(!data || !data.data){
+                            vm.isAdminNameValidity = true;
+                        }else{
+                            if(data.data._id){
+                                vm.csOfficer = data.data._id;
+                            }
+                            vm.isAdminNameValidity = false;
+                        }
+                    })
+                });
+            })
+
             //check if enable player button is active
             vm.canEnablePlayer = function () {
                 var selectedPlayer = vm.isOneSelectedPlayer();
@@ -7380,6 +7399,10 @@ define(['js/app'], function (myApp) {
                                 utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
                                 vm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
                                 $scope.safeApply()
+                            },
+                            checkAdminNameValidity: function (adminName,form) {
+                                vm.checkAdminNameValidity(adminName,form);
+                                return vm.isAdminNameValidity;
                             }
                         }
                     };
@@ -7688,6 +7711,16 @@ define(['js/app'], function (myApp) {
                             updateData.remark += ", ";
                         }
                         updateData.remark += $translate("GENDER");
+                    }
+                    if (updateData.accAdmin) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("AdminName");
+                    }
+
+                    if(updateData.accAdmin && vm.csOfficer){
+                        updateData.csOfficer = vm.csOfficer;
                     }
 
                     if (isUpdate) {
