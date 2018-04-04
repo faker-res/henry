@@ -366,12 +366,15 @@ let dbRewardPoints = {
                 let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategoryWithPopulatePlayerLevel(platform._id, constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                 let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(consumptionRecord.playerId);
                 let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
-                let getplayerLevelProm = getPlayerLevelValue(consumptionRecord.playerId);
+                let getPlayerLevelProm = getPlayerLevelValue(consumptionRecord.playerId);
 
-                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getplayerLevelProm]);
+                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getPlayerLevelProm]);
             }
         ).then(
             data => {
+
+                console.log('data', data);
+
                 if (!data) {
                     return Promise.resolve();
                 }
