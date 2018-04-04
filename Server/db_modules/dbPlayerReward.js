@@ -2790,7 +2790,10 @@ let dbPlayerReward = {
                     topUpAmount: newProp.data.applyAmount
                 })
             }
-        )
+        ).then(() => {
+            promoCodeObj.promoCodeTypeObjId = promoCodeObj.promoCodeTypeObjId._id;
+            return promoCodeObj;
+        })
     },
 
     getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name) => {
