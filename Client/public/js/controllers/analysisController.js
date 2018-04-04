@@ -73,7 +73,7 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProvider(id);
             vm.getMerchantList();
             vm.getMerchantType();
-        }
+        };
         vm.loadPage = function (choice) {
             $scope.$evalAsync(() => {
                 socketService.clearValue();
@@ -364,6 +364,7 @@ define(['js/app'], function (myApp) {
                         });
                         vm.getClickCountDevice();
                         vm.getClickCountPageName();
+                        vm.clickCountTimes = 1;
                         break;
 
                 }
@@ -1636,6 +1637,12 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getClickCountAnalysis = function (device, pageName) {
+            vm.clickCountTable = "clickCountAnalysisTable"+vm.clickCountTimes;
+            vm.clickCountTimes2 = vm.clickCountTimes - 1;
+            vm.clickCountTable2 = vm.clickCountTable.slice(0, -1) + vm.clickCountTimes2;
+            vm.clickCountTableID = '#'+vm.clickCountTable; // new table ID (increment)
+            vm.clickCountTableID2 = '#'+vm.clickCountTable2; // previous table ID after first search (need to be replaced)
+
             vm.getClickCountButtonName(device, pageName);
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
@@ -1651,9 +1658,18 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     vm.clickCountData = data.data;
                     vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis'); // draw pie chart
 
-                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis');
-                    vm.drawClickCountTable(vm.clickCountData, '#clickCountAnalysisTable');
+                    if (vm.clickCountTimes === 1) {
+                        vm.drawClickCountTable(vm.clickCountData, vm.clickCountTableID); // draw first table
+                        vm.clickCountTimes++;
+                    } else {
+                        $(vm.clickCountTableID2).DataTable().destroy(); // destroy previous table ID
+                        $(vm.clickCountTableID2).empty();
+                        document.getElementById(vm.clickCountTable2).setAttribute("id",vm.clickCountTable); // replace previous table ID
+                        vm.drawClickCountTable(vm.clickCountData, vm.clickCountTableID); // draw new table (2nd table onwards)
+                        vm.clickCountTimes++;
+                    }
                 });
             }, function (data) {
                 vm.isShowLoadingSpinner('#clickCountAnalysis', false);
@@ -1792,21 +1808,21 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
                 ],
                 columns: [
-                    {title: $translate(vm.queryPara.clickCount.periodText), data: "date"},
-                    {title: $translate('TOTAL_CLICK_COUNT'), data: "total"},
+                    {title: $translate(vm.queryPara.clickCount.periodText), data: "date", sTitle: $translate(vm.queryPara.clickCount.periodText), mData: "date"},
+                    {title: $translate('TOTAL_CLICK_COUNT'), data: "total", sTitle: $translate('TOTAL_CLICK_COUNT'), mData: "total"},
                 ],
                 "paging": false,
             };
 
             for (let x = 0; x < vm.clickCountButtonName.length; x++) {
                 let buttonName = vm.clickCountButtonName[x];
-                let buttonObj = {title: $translate(buttonName), data: $translate(buttonName)};
+                let buttonObj = {title: $translate(buttonName), data: $translate(buttonName), sTitle: $translate(buttonName), mData: $translate(buttonName)};
                 dataOptions.columns[x+2] = buttonObj; // first 2 columns already populated
             }
 
             dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-            let a = $(tableName).DataTable(dataOptions);
-            a.columns.adjust().draw();
+            let aTable = $(tableName).DataTable(dataOptions);
+            aTable.columns.adjust().draw();
         };
         // click count END   ====================================================
 

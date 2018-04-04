@@ -3432,6 +3432,9 @@
   "manualDailyProviderSettlement": "每日提供商手工结算",
   "createForbidTopUpLog": "创建禁用充值类型记录",
   "UPDATE_ALL": "全部更新",
-  "QC ACCOUNT": "QC 帐号"
+  "QC ACCOUNT": "QC 帐号",
+  "AdminNameAdjunction": "添加创建者",
+  "AdminName": "创建者",
+  "Admin name is invalid, please try again": "创建者不存在，请再次输入"
 
 }
