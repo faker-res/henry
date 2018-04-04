@@ -1,5 +1,8 @@
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
+var rsaCrypto = require("../../modules/rsaCrypto");
+var dbUtil = require("../../modules/dbutility");
+
 
 // demo player details
 let createDemoPlayerLogSchema = new Schema({
@@ -15,6 +18,34 @@ let createDemoPlayerLogSchema = new Schema({
     phoneNumber: {type: String, index: true},
     // create time
     createTime: {type: Date, default: Date.now, index: true},
+});
+
+var playerPostFindUpdate = function (result) {
+    if (result && result.phoneNumber) {
+        if (result.phoneNumber.length > 20) {
+            try {
+                result.phoneNumber = rsaCrypto.decrypt(result.phoneNumber);
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }
+    }
+
+};
+
+// // example to get player phone number
+createDemoPlayerLogSchema.post('find', function (result) {
+    if (result && result.length > 0) {
+        for (var i = 0; i < result.length; i++) {
+            playerPostFindUpdate(result[i]);
+        }
+        return result;
+    }
+});
+
+createDemoPlayerLogSchema.post('findOne', function (result) {
+    playerPostFindUpdate(result);
 });
 
 module.exports = createDemoPlayerLogSchema;
