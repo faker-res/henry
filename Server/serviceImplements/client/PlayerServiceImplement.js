@@ -1140,6 +1140,7 @@ let PlayerServiceImplement = function () {
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
+        let userAgentString = uaString;
 
         let lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
@@ -1163,7 +1164,7 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId);
         let phoneNumber = data.phoneNumber? data.phoneNumber: null;
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData, userAgentString], isValidData, false, false, true);
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
