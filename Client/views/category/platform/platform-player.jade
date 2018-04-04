@@ -380,7 +380,7 @@ include modalGameCreditLog
                                     #adminNameGroup.tab-pane.fade(ng-class="selectedTab =='adminNameAdjunction'?'in active':''")
                                         include player-edit-adjunction-form
                                         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='(form_edit_player_admin.$invalid || form_edit_player_admin.$pristine) || checkAdminNameValidity()', ng-click="checkAdminNameValidity();updateEditedPlayer();") {{"UPDATE" | translate}}
+                                        button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='(form_edit_player_admin.$invalid || form_edit_player_admin.$pristine) || checkAdminNameValidity()', ng-click="updateEditedPlayer();") {{"UPDATE" | translate}}
                                 div(ng-show="selectedTab =='topUpInfo'")
                                     hr
                                     .btn.btn-success(ng-click="getPlayerTopUpGroupChangeLog(0,10)") {{'TOPUP_GROUP_RECORD' | translate}}
