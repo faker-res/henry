@@ -376,7 +376,13 @@ let dbRewardPoints = {
                 rewardPointsConfig = data[2];
                 let playerLevelData = data[3];
 
+                console.log('event', event);
+                console.log('consumptionRecord', consumptionRecord);
+                console.log('playerLevelData', playerLevelData);
+
                 relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData));
+
+                console.log('relevantEvents', relevantEvents);
 
                 // let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
 
@@ -397,6 +403,9 @@ let dbRewardPoints = {
 
                 return Promise.all(rewardProgressProm).then(
                     progressData => {
+
+                        console.log('progressData', progressData);
+
                         let rewardProgressList = progressData && progressData.length ? progressData : [];
                         let updateRewardArr = [];
                         for (let j = rewardProgressList.length - 1; j >= 0; j--) {
