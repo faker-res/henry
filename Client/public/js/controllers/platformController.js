@@ -7053,7 +7053,8 @@ define(['js/app'], function (myApp) {
                         referral: vm.selectedSinglePlayer.referral,
                         smsSetting: vm.selectedSinglePlayer.smsSetting,
                         gender: vm.selectedSinglePlayer.gender,
-                        DOB: vm.selectedSinglePlayer.DOB
+                        DOB: vm.selectedSinglePlayer.DOB,
+                        accAdmin: vm.selectedSinglePlayer.accAdmin
                     };
                     vm.selectedSinglePlayer.encodedBankAccount =
                         vm.selectedSinglePlayer.bankAccount ?
