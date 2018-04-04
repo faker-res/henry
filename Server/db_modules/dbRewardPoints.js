@@ -361,9 +361,9 @@ let dbRewardPoints = {
                 let getRewardPointEventsProm = dbRewardPointsEvent.getRewardPointsEventByCategoryWithPopulatePlayerLevel(platform._id, constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                 let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(consumptionRecord.playerId);
                 let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
-                let getplayerLevelProm = getPlayerLevelValue(consumptionRecord.playerId);
+                let getPlayerLevelProm = getPlayerLevelValue(consumptionRecord.playerId);
 
-                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getplayerLevelProm]);
+                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getPlayerLevelProm]);
             }
         ).then(
             data => {
@@ -376,7 +376,13 @@ let dbRewardPoints = {
                 rewardPointsConfig = data[2];
                 let playerLevelData = data[3];
 
+                console.log('consumptionRecord', consumptionRecord);
+                console.log('playerRewardPoints', playerRewardPoints);
+                console.log('playerLevelData', playerLevelData);
+
                 relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData));
+
+                console.log('relevantEvents', relevantEvents);
 
                 // let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
 
@@ -385,6 +391,10 @@ let dbRewardPoints = {
                     relevantEvents.forEach(relevantData => {
                         if (relevantData._id) {
                             let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
+
+                            console.log('eventPeriodStartTime', eventPeriodStartTime);
+                            console.log('relevantData', relevantData);
+
                             let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                 rewardPointsObjId: playerRewardPoints._id,
                                 rewardPointsEventObjId: relevantData._id,
@@ -397,6 +407,9 @@ let dbRewardPoints = {
 
                 return Promise.all(rewardProgressProm).then(
                     progressData => {
+
+                        console.log('progressData', progressData);
+
                         let rewardProgressList = progressData && progressData.length ? progressData : [];
                         let updateRewardArr = [];
                         for (let j = rewardProgressList.length - 1; j >= 0; j--) {
@@ -1889,7 +1902,8 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData) {
 
     if (event.target && event.target.betType && event.target.betType.length > 0) {
         let relevantBetType = event.target.betType;
-        let betTypes = consumptionRecord && consumptionRecord.betType ? consumptionRecord.betType.split('|').filter(function(el) {return el.length != 0}) : [];
+        let delimiters = [' ','|','@'];
+        let betTypes = consumptionRecord && consumptionRecord.betType ? consumptionRecord.betType.split(new RegExp('[' + delimiters.join('') + ']', 'g')).filter(function(el) {return el.length != 0}) : [];
 
         if (betTypes && betTypes.length > 0) {
             let matchBetTypes = [];
