@@ -376,25 +376,13 @@ let dbRewardPoints = {
                 rewardPointsConfig = data[2];
                 let playerLevelData = data[3];
 
-                console.log('consumptionRecord', consumptionRecord);
-                console.log('playerRewardPoints', playerRewardPoints);
-                console.log('playerLevelData', playerLevelData);
-
                 relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData));
-
-                console.log('relevantEvents', relevantEvents);
-
-                // let rewardProgressList = playerRewardPoints && playerRewardPoints.progress ? playerRewardPoints.progress : [];
 
                 let rewardProgressProm = [];
                 if (relevantEvents.length) {
                     relevantEvents.forEach(relevantData => {
                         if (relevantData._id) {
                             let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
-
-                            console.log('eventPeriodStartTime', eventPeriodStartTime);
-                            console.log('relevantData', relevantData);
-
                             let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                 rewardPointsObjId: playerRewardPoints._id,
                                 rewardPointsEventObjId: relevantData._id,
@@ -407,9 +395,6 @@ let dbRewardPoints = {
 
                 return Promise.all(rewardProgressProm).then(
                     progressData => {
-
-                        console.log('progressData', progressData);
-
                         let rewardProgressList = progressData && progressData.length ? progressData : [];
                         let updateRewardArr = [];
                         for (let j = rewardProgressList.length - 1; j >= 0; j--) {
