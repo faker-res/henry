@@ -342,6 +342,9 @@ let dbRewardPoints = {
     },
 
     updateGameRewardPointProgress: (consumptionRecord) => {
+
+        console.log('consumptionRecord', consumptionRecord);
+
         if (!consumptionRecord || !consumptionRecord.platformId || !consumptionRecord.providerId) {
             return Promise.resolve();
         }
@@ -353,6 +356,8 @@ let dbRewardPoints = {
         return dbConfig.collection_platform.findOne({_id: consumptionRecord.platformId}).lean().then(
             platformData => {
                 platform = platformData;
+
+                console.log('platform', platform);
 
                 if (!platform.usePointSystem) {
                     return Promise.resolve();
