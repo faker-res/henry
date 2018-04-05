@@ -934,7 +934,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     error: function (e) {
                         console.log("error", e);
                         if (e && e.status == 200) {
-                            alert("正在呼叫。。。");
+                            // alert("再次呼叫。。。");
+                            performPhoneCall(nextTriedTimes);
                         } else {
                             alert("呼叫超时请重试");
                             performPhoneCall(nextTriedTimes);
