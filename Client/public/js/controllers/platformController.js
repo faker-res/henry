@@ -17827,6 +17827,7 @@ define(['js/app'], function (myApp) {
                         //Todo get all game type
                         //Todo get all game bet type
                         vm.getAllGameProviders(vm.selectedPlatform.id);
+                        vm.getGameProviderPTid();
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
                     case 'rewardPointsRanking':
@@ -18397,6 +18398,18 @@ define(['js/app'], function (myApp) {
                 vm.endLoadWeekDay();
             };
 
+            // get id for game provider PT
+            vm.getGameProviderPTid = () => {
+                let gameProviders = vm.allGameProviders;
+                vm.gameProviderPTid = null;
+
+                for (let x = 0; x < gameProviders.length; x++) {
+                    if (gameProviders[x].code === 'PTOTHS' && gameProviders[x].providerId === '18') {
+                        vm.gameProviderPTid = gameProviders[x]._id;
+                    }
+                }
+            };
+
             vm.getRewardPointsEventByCategory = (category) => {
                 vm.rewardPointsEvent = [];
                 $scope.safeApply();
@@ -18404,9 +18417,18 @@ define(['js/app'], function (myApp) {
                     console.log('getRewardPointsEventByCategory',data.data);
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {
+                        vm.gameProviderPT = false;
+                        if (val.target.targetDestination === vm.gameProviderPTid) {
+                            vm.gameProviderPT = true;
+                            val.target.gameProviderPT = true;
+                        } else {
+                            vm.gameProviderPT = false;
+                            val.target.gameProviderPT = false;
+                        }
                         vm.rewardPointsEventPeriodChange(idx, val);
                         vm.rewardPointsEventSetDisable(idx, val, true, true);
                         vm.rewardPointsEventOld.push($.extend(true, {}, val));
+                        vm.refreshSPicker();
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();

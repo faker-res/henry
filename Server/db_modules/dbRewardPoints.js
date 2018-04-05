@@ -362,8 +362,9 @@ let dbRewardPoints = {
                 let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(consumptionRecord.playerId);
                 let getRewardPointsLvlConfigProm = dbRewardPointsLvlConfig.getRewardPointsLvlConfig(platform._id);
                 let getPlayerLevelProm = getPlayerLevelValue(consumptionRecord.playerId);
+                let getGameProvidersProm = dbGameProvider.getGameProviders({_id: {$in: platformData.gameProviders}});
 
-                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getPlayerLevelProm]);
+                return Promise.all([getRewardPointEventsProm, getRewardPointsProm, getRewardPointsLvlConfigProm, getPlayerLevelProm, getGameProvidersProm]);
             }
         ).then(
             data => {
@@ -375,8 +376,17 @@ let dbRewardPoints = {
                 playerRewardPoints = data[1];
                 rewardPointsConfig = data[2];
                 let playerLevelData = data[3];
+                let gameProviders = data[4];
 
-                relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData));
+                let gameProviderPTid = null;
+                let gameProviderPT = gameProviders.filter(provider => {
+                    if (provider.code === 'PTOTHS' && provider.providerId === '18') {
+                        gameProviderPTid = provider._id;
+                        return gameProviderPTid;
+                    }
+                });
+
+                relevantEvents = events.filter(event => isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProviderPTid));
 
                 let rewardProgressProm = [];
                 if (relevantEvents.length) {
@@ -1875,7 +1885,7 @@ function isRelevantTopupEvent(event, topupMainType, topupProposalData, playerLev
     return true;
 }
 
-function isRelevantGameEvent(event, consumptionRecord, playerLevelData) {
+function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProviderPTid) {
     if (!event) {
         return false;
     }
@@ -1897,7 +1907,27 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData) {
         return false;
     }
 
-    if (event.target && event.target.gameType && event.target.gameType.toString() !== String(consumptionRecord.cpGameType)) {
+    // only apply for game provider PT      // possible to have multiple game type inserted manually
+    if (event.target && event.target.targetDestination && event.target.targetDestination.toString() === gameProviderPTid && event.target.gameType) {
+        let gameTypes = event.target.gameType;
+        let gameTypePT = gameTypes.split(',').map(item => item.trim());
+        // gameTypePT = gameTypePT.trim();
+        let matchGameTypePT = 0;
+
+        for (let x = 0; x < gameTypePT.length; x++) {
+            if (gameTypePT[x] === String(consumptionRecord.cpGameType)) {
+                // for matching game type
+                matchGameTypePT++;
+            }
+        }
+
+        // no matching game type
+        if (matchGameTypePT === 0) {
+            return false;
+        }
+    }
+
+    if (event.target && event.target.gameType && (event.target.gameType.toString() !== String(consumptionRecord.cpGameType) && (event.target.targetDestination.toString() !== gameProviderPTid))) {
         return false;
     }
 
