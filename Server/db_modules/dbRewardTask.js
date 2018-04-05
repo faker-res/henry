@@ -246,7 +246,7 @@ const dbRewardTask = {
                     } else {
                         updObj.$inc.targetConsumption = consumptionAmt;
                     }
-    
+
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: providerGroup._id
@@ -320,7 +320,7 @@ const dbRewardTask = {
             }
         )
     },
-    
+
     deductTargetConsumptionFromFreeAmountProviderGroup: (rewardData, proposalData) => {
         // Search available reward task group for this reward & this player
         return dbconfig.collection_rewardTaskGroup.findOne({
@@ -336,7 +336,7 @@ const dbRewardTask = {
                             currentAmt: -rewardData.applyAmount
                         }
                     };
-    
+
                     if (rewardData.useConsumption) {
                         updObj.$inc.forbidXIMAAmt = -rewardData.applyAmount;
                     } else {
@@ -396,6 +396,27 @@ const dbRewardTask = {
         } else {
             return dbRewardTask.getRewardTaskList( query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj);
         }
+    },
+    getPlayerRewardTaskUnlockedRecord: function (query) {
+        let index = query.index || 0;
+        let limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, query.limit);
+        let sortCol = query.sortCol || {'unlockTime': -1};
+        let result = null;
+        let providerGroups = [];
+        var queryObj = {
+            playerId: ObjectId(query.playerId),
+            unlockTime: {
+                $gte: new Date(query.startTime),
+                $lt: new Date(query.endTime)
+            }
+        }
+
+        let a = dbconfig.collection_rewardTaskGroupUnlockedRecord.find(queryObj).count();
+        let b = dbconfig.collection_rewardTaskGroupUnlockedRecord.find(queryObj).sort(sortCol).skip(index).limit(limit).lean();
+        return Promise.all([a,b]).then(result => {
+            return result;
+        })
+
     },
     getRewardTaskGroupProposal: function (query) {
         let rewardTaskGroup = null;
@@ -507,6 +528,132 @@ const dbRewardTask = {
                     data: result[0] ? result[0] : [],
                     summary: result[1][0] ? result[1][0] : {}
                 };
+            });
+    },
+    getRewardTaskGroupProposalById: function (query) {
+
+        return dbconfig.collection_rewardTaskGroup.find(
+            {
+                status: constRewardTaskStatus.STARTED,
+                playerId: ObjectId(query.playerObjId),
+                platformId: ObjectId(query.platformId),
+
+            }
+        ).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).lean().then(
+            rewardTaskGroups => {
+                return dbRewardTask.unlockPlatformProviderGroup(rewardTaskGroups, ObjectId(query.playerObjId));
+            }
+        );
+    },
+    unlockPlatformProviderGroup: (rewardTaskGroup, playerObjId) => {
+        let promsArr = [];
+        let promTaskGroup = [];
+        rewardTaskGroup.forEach(reward => {
+            promsArr.push(dbRewardTask.unlockRewardTaskInRewardTaskGroup(reward, playerObjId).catch(errorUtils.reportError));
+        });
+
+        return Promise.all(promsArr).then( promArr => {
+            return [promArr, rewardTaskGroup];
+        })
+    },
+
+    unlockRewardTaskInRewardTaskGroup: function (reward, playerObjId) {
+        let sortCol = {"createTime": 1};
+        let rewardTaskProposalQuery = {};
+
+
+            let createTime = reward.createTime ? reward.createTime :null;
+            if (!createTime) {
+                return Q.reject({
+                    name: "DataError",
+                    message: "createTime is not available"
+                });
+            }
+
+            let lastSecond = new Date(createTime);
+            lastSecond.setSeconds(lastSecond.getSeconds()-1);
+
+
+            rewardTaskProposalQuery = {
+                'data.playerObjId': playerObjId,
+                settleTime: {
+                    $gte: new Date(lastSecond),
+                    $lt: new Date()
+                },
+                mainType: {$in: ["TopUp","Reward"]},
+            };
+
+            if (!reward.providerGroup) {
+                rewardTaskProposalQuery.$or = [
+                    {'data.providerGroup': {$exists: true, $eq: null}},
+                    {'data.providerGroup': {$exists: true, $size: 0}},
+                    {'data.providerGroup': {$exists: false}},
+                    {'data.providerGroup': ""},
+                ]
+            } else {
+                rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(reward.providerGroup._id), String(reward.providerGroup._id)]};
+            }
+
+            return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
+                path: "type",
+                model: dbconfig.collection_proposalType
+            }).lean().sort(sortCol).then(udata => {
+            udata.map(item => {
+                if(!item.data.topUpProposal) {
+                    item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                }
+
+                if (item.type.name) {
+                    item.data.rewardType = item.type.name;
+                }
+            });
+
+                let prom = dbRewardTask.getTopUpProposal(udata);
+                let propCount = dbconfig.collection_proposal.aggregate({
+                        $match: rewardTaskProposalQuery
+                    },
+                    {
+                        $group: {
+                            '_id': null,
+                            bonusAmountSum: {$sum: "$data.rewardAmount"},
+                            requiredBonusAmountSum: {$sum: "$data.spendingAmount"},
+                            currentAmountSum: {$sum: "$data.rewardAmount"},
+                        }
+                    });
+                    return Q.all([prom, propCount]);
+            }).then(result => {
+
+                result[0].map(item => {
+                    if (reward) {
+                        item.data['createTime$'] = item.createTime;
+                        item.data.useConsumption = reward.useConsumption;
+                        if(!item.data.topUpProposal) {
+                            item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        }
+                        item.data.curConsumption = reward.curConsumption;
+                        if (reward.providerGroup) {
+                            item.data.provider$ = reward.providerGroup ? reward.providerGroup.name :"" ;
+                        }
+                        else{
+
+                            item.data.topUpProposalId = item.data ? item.data.proposalId : '';
+                            item.data.bonusAmount = 0;
+                            item.data.currentAmount = item.data.currentAmt;
+                            item.data.requiredBonusAmount = 0;
+                            item.data['provider$'] = 'LOCAL_CREDIT'
+                        }
+                        item.data.topUpAmount= 0;
+                        if (item.data) {
+                            item.data.topUpAmount = item.data.topUpRecordId && item.data.applyAmount ? item.data.applyAmount:item.data.amount? item.data.amount : 0;
+                        }
+                        if(reward.providerGroup === ''){
+                            item.data.providerGroup = null;
+                        }
+                        return item;
+                    }
+                });
+
+                return result[0] ? result[0] : []
             });
     },
 
