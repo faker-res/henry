@@ -542,23 +542,19 @@ var dbQualityInspection = {
         connection.connect();
         Q.all(mongoData).then(mg=> {
             let mgData = [];
-            mg.forEach(item => {
-                mgData.push({messageId: item.messageId, name: item.live800Acc.name});
-            })
-            let mgDataStr = "";
             let excludeMongoQuery = "";
-            if(mgData.length > 0){
-                let contentInfoList = "";
-                mgData.forEach(data => {
-                    if(data){
-                        contentInfoList += "('" + data.messageId + "','" + data.name + "'),";
-                    }
-                })
+            let contentInfoList = "";
+            mg.forEach(item => {
+                if(item){
+                    contentInfoList += "('" + item.messageId + "','" + item.live800Acc.name + "'),";
+                }
+            })
+
+            if(contentInfoList && contentInfoList.length > 0){
                 contentInfoList = contentInfoList && contentInfoList.length > 0 ? contentInfoList.substring(0,contentInfoList.length - 1) : contentInfoList;
-
                 excludeMongoQuery = " AND (msg_id,operator_name) NOT IN (" + contentInfoList + ")";
-
             }
+
             console.log("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery);
             connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery, function (error, results, fields) {
                 if (error) {
