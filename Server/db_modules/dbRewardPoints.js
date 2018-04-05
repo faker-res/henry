@@ -1576,8 +1576,11 @@ let dbRewardPoints = {
                     let rewardProgressProm = [];
                     if (topupRewardPointEvent.length) {
                         topupRewardPointEvent.forEach(relevantData => {
-                            if (relevantData._id) {
+                            if (relevantData && relevantData._id) {
                                 let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
+
+                                console.log('eventPeriodStartTime', eventPeriodStartTime);
+
                                 let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                     rewardPointsObjId: rewardPointRecord._id,
                                     rewardPointsEventObjId: relevantData._id,
