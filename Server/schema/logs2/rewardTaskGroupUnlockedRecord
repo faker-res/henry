@@ -57,6 +57,6 @@ let rewardTaskGroupUnlockedRecordSchema = new Schema({
 
 });
 
-rewardTaskGroupUnlockedRecordSchema.index({platformId: 1, unlockTime: 1, proposalId: 1, proposalNumber: 1, playerId: 1, rewardTask: 1, creator: 1, topupProposalNumber: 1, status: 1});
+// rewardTaskGroupUnlockedRecordSchema.index({platformId: 1, unlockTime: 1, proposalId: 1, proposalNumber: 1, playerId: 1, rewardTask: 1, creator: 1, topupProposalNumber: 1, status: 1});
 
 module.exports = rewardTaskGroupUnlockedRecordSchema;
