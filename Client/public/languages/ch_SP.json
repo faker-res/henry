@@ -3439,6 +3439,8 @@
   "QC ACCOUNT": "QC 帐号",
   "AdminNameAdjunction": "添加创建者",
   "AdminName": "创建者",
-  "Admin name is invalid, please try again": "创建者不存在，请再次输入"
+  "Admin name is invalid, please try again": "创建者不存在，请再次输入",
+  "This Key is Exist，Please Choose Another Name": "此商户组名称已存在，请选择其他名字来储存"
+
 
 }
