@@ -22870,7 +22870,7 @@ define(['js/app'], function (myApp) {
 
                 vm.queryPara = {};
 
-                vm.phonePattern = /^[0-9]{8,18}$/;
+                vm.phonePattern = /^[0-9]{8,11}$/;
                 vm.showPlatformList = true;
                 vm.showPlatformDropDownList = false;
                 vm.prepareDemoPlayerPrefix();
