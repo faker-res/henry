@@ -1519,6 +1519,9 @@ let dbRewardPoints = {
     },
 
     getMissonList: function (playerId, platformId) {
+
+        console.log('getMissonList', getMissonList);
+
         let returnData = {};
         let platformData = null;
         let playerData = null;
@@ -1561,6 +1564,9 @@ let dbRewardPoints = {
                 return Promise.all([topupRewardPointProm, rewardPointsProm, playerLevelProm])
             })
             .then(playerTopupRewardPointsRecord => {
+
+                console.log('playerTopupRewardPointsRecord', playerTopupRewardPointsRecord);
+
                 topupRewardPointEvent = playerTopupRewardPointsRecord[0] ? playerTopupRewardPointsRecord[0] : [];
                 rewardPointRecord = playerTopupRewardPointsRecord[1] ? playerTopupRewardPointsRecord[1] : [];
                 playerLevelRecord = playerTopupRewardPointsRecord[2] ? playerTopupRewardPointsRecord[2] : [];
@@ -1584,6 +1590,9 @@ let dbRewardPoints = {
 
                     return Promise.all(rewardProgressProm).then(
                         progressData => {
+
+                            console.log('progressData', progressData);
+
                             let rewardProgressList = progressData && progressData.length ? progressData : [];
                             for (let j = rewardProgressList.length - 1; j >= 0; j--) {
                                 if (!rewardProgressList[j]) {
@@ -1687,6 +1696,9 @@ let dbRewardPoints = {
                 return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsRankingProm])
             })
             .then(data => {
+
+                console.log('data11223', data);
+
                 loginRewardPointEvent = data[0] ? data[0] : [];
                 gameRewardPointEvent = data[1] ? data[1] : [];
                 gameProvider = data[2] ? data[2] : [];
@@ -1720,6 +1732,9 @@ let dbRewardPoints = {
                                 }
                             }
                         }
+
+                        console.log('returnData game', returnData);
+
                         returnData.gamePointList =  getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, gameRewardPointsData);
                     }
                 );
@@ -1750,6 +1765,9 @@ let dbRewardPoints = {
                                     }
                                 }
                             }
+
+                            console.log('returnData login', returnData);
+
                             returnData.loginPointList =  getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, loginRewardPointsData);
                         }
                     );
@@ -1780,6 +1798,9 @@ let dbRewardPoints = {
                                 }
                             }
                             returnData.rechargePointList =  getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, topUpRewardPointsData);
+
+                            console.log('returnData', returnData);
+
                             return returnData;
                         }
                     );
