@@ -1907,11 +1907,10 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProv
         return false;
     }
 
-    // only apply for game provider PT      // possible to have multiple game type inserted manually
+    // only apply for game provider PT
     if (event.target && event.target.targetDestination && event.target.targetDestination.toString() === gameProviderPTid && event.target.gameType) {
         let gameTypes = event.target.gameType;
         let gameTypePT = gameTypes.split(',').map(item => item.trim());
-        // gameTypePT = gameTypePT.trim();
         let matchGameTypePT = 0;
 
         for (let x = 0; x < gameTypePT.length; x++) {
