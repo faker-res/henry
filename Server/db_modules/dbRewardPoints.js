@@ -1520,7 +1520,7 @@ let dbRewardPoints = {
 
     getMissonList: function (playerId, platformId) {
 
-        console.log('getMissonList', getMissonList);
+        console.log('getMissonList', playerId, platformId);
 
         let returnData = {};
         let platformData = null;
