@@ -1519,9 +1519,6 @@ let dbRewardPoints = {
     },
 
     getMissonList: function (playerId, platformId) {
-
-        console.log('getMissonList', playerId, platformId);
-
         let returnData = {};
         let platformData = null;
         let playerData = null;
@@ -1564,9 +1561,6 @@ let dbRewardPoints = {
                 return Promise.all([topupRewardPointProm, rewardPointsProm, playerLevelProm])
             })
             .then(playerTopupRewardPointsRecord => {
-
-                console.log('playerTopupRewardPointsRecord', playerTopupRewardPointsRecord);
-
                 topupRewardPointEvent = playerTopupRewardPointsRecord[0] ? playerTopupRewardPointsRecord[0] : [];
                 rewardPointRecord = playerTopupRewardPointsRecord[1] ? playerTopupRewardPointsRecord[1] : [];
                 playerLevelRecord = playerTopupRewardPointsRecord[2] ? playerTopupRewardPointsRecord[2] : [];
@@ -1578,9 +1572,6 @@ let dbRewardPoints = {
                         topupRewardPointEvent.forEach(relevantData => {
                             if (relevantData && relevantData._id) {
                                 let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
-
-                                console.log('eventPeriodStartTime', eventPeriodStartTime);
-
                                 let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                     rewardPointsObjId: rewardPointRecord._id,
                                     rewardPointsEventObjId: relevantData._id,
@@ -1592,6 +1583,7 @@ let dbRewardPoints = {
                     }
 
                     console.log('rewardProgressProm.length', rewardProgressProm.length);
+                    console.log('rewardProgressProm', rewardProgressProm);
 
                     return Promise.all(rewardProgressProm).then(
                         progressData => {
