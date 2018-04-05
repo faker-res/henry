@@ -1582,14 +1582,8 @@ let dbRewardPoints = {
                         });
                     }
 
-                    console.log('rewardProgressProm.length', rewardProgressProm.length);
-                    console.log('rewardProgressProm', rewardProgressProm);
-
                     return Promise.all(rewardProgressProm).then(
                         progressData => {
-
-                            console.log('progressData', progressData);
-
                             let rewardProgressList = progressData && progressData.length ? progressData : [];
                             for (let j = rewardProgressList.length - 1; j >= 0; j--) {
                                 if (!rewardProgressList[j]) {
@@ -1662,7 +1656,8 @@ let dbRewardPoints = {
                         err => {
                             return Promise.reject({
                                 name: "DataError",
-                                message: "Error finding reward progress."
+                                message: "Error finding reward progress.",
+                                error: err
                             })
                         });
                 }
@@ -1735,9 +1730,6 @@ let dbRewardPoints = {
                                 }
                             }
                         }
-
-                        console.log('returnData game', returnData);
-
                         returnData.gamePointList =  getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, gameRewardPointsData);
                     }
                 );
@@ -1768,9 +1760,6 @@ let dbRewardPoints = {
                                     }
                                 }
                             }
-
-                            console.log('returnData login', returnData);
-
                             returnData.loginPointList =  getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, loginRewardPointsData);
                         }
                     );
@@ -1801,9 +1790,6 @@ let dbRewardPoints = {
                                 }
                             }
                             returnData.rechargePointList =  getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, topUpRewardPointsData);
-
-                            console.log('returnData', returnData);
-
                             return returnData;
                         }
                     );
