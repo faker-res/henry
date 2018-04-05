@@ -8434,12 +8434,6 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTaskUnlockedRecord', sendQuery, function (data) {
 
-                    if (data.data[1] && data.data[1].length == 0){
-                        $('#playerRewardTaskLogTable').DataTable().clear().draw();
-                        vm.playerRewardTaskLog.totalCount = data.data[0];
-                        return vm.playerRewardTaskLog.loading = false;
-                    }
-
                     console.log('getPlayerRewardTaskUnlockedRecord', data.data[1]);
                     let result = data.data[1];
                     vm.playerRewardTaskLog.totalCount = data.data[0];
@@ -8540,8 +8534,8 @@ define(['js/app'], function (myApp) {
                     fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                         $compile(nRow)($scope);
                     }
-
                 });
+                tableOptions.language.emptyTable=$translate("No data available in table");
 
                 utilService.createDatatableWithFooter('#playerRewardTaskLogTable', tableOptions, {
                     //4: topUpAmountSum,
