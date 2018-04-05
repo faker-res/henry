@@ -1,0 +1,62 @@
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
+var constRewardTaskStatus = require("./../../const/constRewardTaskStatus");
+
+let rewardTaskGroupUnlockedRecordSchema = new Schema({
+    //platform id
+    platformId: {type: Schema.Types.ObjectId, required: true, index: true},
+    //proposal unique id
+    proposalId: {type: Schema.Types.ObjectId, index: true},
+    //the number generated for the proposal
+    proposalNumber: {type: String, index: true},
+    // the time the record is created
+    unlockTime: {type: Date},
+    //reward task status
+    status: {type: String, default: constRewardTaskStatus.MANUAL_UNLOCK, index: true},
+    //target game provider
+    targetProviderGroup: {type: String},
+    // //if target is enabled
+    // targetEnable: {type: Boolean, default: true, index: true},
+    //reward type
+    rewardTask: {
+        type: {type: String},
+        id: {type: Schema.Types.ObjectId, index: true},
+    },
+    //player id
+    playerId: {type: Schema.Types.ObjectId, ref: 'playerInfo', required: true, index: true},
+    //task data, data structure depend on type
+    data: {type: JSON, default: null},
+    // current consumption
+    currentConsumption: {type: Number, default: 0},
+    // the total consumption that is needed to unlock
+    maxConsumption: {type: Number, default: 0},
+    //current amount
+    currentAmount: {type: Number, default: 0},
+    //target amount
+    targetAmount: {type: Number, default: 0},
+    //for no credit check
+    bonusAmount: {type: Number, default: 0},
+    //if reward task is unlocked
+    isUnlock: {type: Boolean, default: false},
+    //if this reward task will use consumption record
+    useConsumption: {type: Boolean, default: true},
+    //application amount
+    applyAmount: {type: Number, default: 0},
+    //topup amount
+    topupAmount: {type: Number, default: 0},
+    // topup proposal number
+    topupProposalNumber: {type: String},
+    //indicate whether the reward amount was transfered in provider
+    inProvider: {type: Boolean, default: false},
+    // creator's details
+    creator: {
+        type: {type: String},
+        name: {type: String},
+        id: {type: Schema.Types.ObjectId, index: true},
+    }
+
+});
+
+// rewardTaskGroupUnlockedRecordSchema.index({platformId: 1, unlockTime: 1, proposalId: 1, proposalNumber: 1, playerId: 1, rewardTask: 1, creator: 1, topupProposalNumber: 1, status: 1});
+
+module.exports = rewardTaskGroupUnlockedRecordSchema;

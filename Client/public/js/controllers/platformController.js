@@ -8404,7 +8404,162 @@ define(['js/app'], function (myApp) {
 
             }
 
-            /**
+            //  Player's rewardTask log
+            vm.showPagedPlayerRewardTaskLog = function () {
+              // $('#modalPlayerCreditChangeLog').modal().show();
+                vm.playerRewardTaskLog = {};
+                vm.playerRewardTaskLog.type = 'none';
+                utilService.actionAfterLoaded(('#playerRewardTaskLog .endTime'), function () {
+                    vm.playerRewardTaskLog.startTime = utilService.createDatePicker('#playerRewardTaskLog .startTime');
+                    vm.playerRewardTaskLog.endTime = utilService.createDatePicker('#playerRewardTaskLog .endTime');
+                    vm.playerRewardTaskLog.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.playerRewardTaskLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                    vm.playerRewardTaskLog.pageObj = utilService.createPageForPagingTable("#playerRewardTaskLogTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerRewardTaskLog", vm.getPagedPlayerRewardTaskLog)
+                    });
+                    vm.getPagedPlayerRewardTaskLog(true);
+                });
+            }
+
+            vm.getPagedPlayerRewardTaskLog = function (newSearch) {
+                vm.playerRewardTaskLog.loading = true;
+                var sendQuery = {
+                    playerId: vm.isOneSelectedPlayer()._id,
+                    startTime: vm.playerRewardTaskLog.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.playerRewardTaskLog.endTime.data('datetimepicker').getLocalDate(),
+                    index: newSearch ? 0 : vm.playerRewardTaskLog.index,
+                    limit: newSearch ? 10 : vm.playerRewardTaskLog.limit,
+                    sortCol: vm.playerRewardTaskLog.sortCol,
+                }
+
+                socketService.$socket($scope.AppSocket, 'getPlayerRewardTaskUnlockedRecord', sendQuery, function (data) {
+
+                    if (data.data[1] && data.data[1].length == 0){
+                        $('#playerRewardTaskLogTable').DataTable().clear().draw();
+                        vm.playerRewardTaskLog.totalCount = data.data[0];
+                        return vm.playerRewardTaskLog.loading = false;
+                    }
+
+                    console.log('getPlayerRewardTaskUnlockedRecord', data.data[1]);
+                    let result = data.data[1];
+                    vm.playerRewardTaskLog.totalCount = data.data[0];
+                    result.forEach((item,index) => {
+                        item['unlockTime'] = vm.dateReformat(item.unlockTime);
+                        item['targetProviderGroup'] = $translate(item.targetProviderGroup);
+                    });
+
+                    $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));
+                    vm.playerRewardTaskLog.loading = false;
+                })
+            };
+
+            vm.drawRewardTaskUnlockedTable = function (newSearch, tblData, size) {
+                console.log("rewardTaskUnlockedTable",tblData);
+
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    "aaSorting": vm.playerRewardTaskLog.sortCol || [[2, 'desc']],
+                    aoColumnDefs: [
+                        // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+
+                        {
+                            title: $translate('RewardProposalId'),
+                            data: "proposalNumber",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+
+                                    'ng-click': 'vm.showProposalModal("' + data + '",1)'
+
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {title: $translate('SubRewardType'), data: "rewardTask.type",
+                            render: function(data,type,row){
+                                var text = $translate(data);
+                                return text;
+                            }
+
+                        },
+                        {title: $translate('UNLOCKTIME'), data: "unlockTime"},
+                        //相關存款金額
+                        {title: $translate('Deposit Amount'), data: "topupAmount"},
+                        {title: $translate('Deposit ProposalId'),
+                            data: "topupProposalNumber",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showProposalModal("' + data + '",1)'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        //相關存款提案號
+                        {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
+                        {
+                            //解锁进度（投注额）
+                            "title": $translate('CONSUMPTION_UNLOCK'),data:"currentConsumption",
+                            render: function (data, type, row, meta) {
+                                let text = row.currentConsumption +"/"+row.maxConsumption;
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        // 解鎖進度
+                        {
+                            //解锁进度（输赢值）
+                            "title": $translate('WINLOSE_UNLOCK'),data:"currentAmount",
+                            render: function (data, type, row ,meta) {
+                                // let spendingAmt = vm.calSpendingAmt(meta.row);
+                                // let isSubmit = vm.isSubmitProposal(meta.row);
+                                let text = -row.currentAmount + "/-" + row.targetAmount;
+
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {title: $translate('GAME LOBBY / REWARD TASK GROUP'), data: "targetProviderGroup"},
+                        {
+                            "title": $translate('IsConsumption'),data: "useConsumption",
+                            render: function (data, type, row) {
+                                var text = $translate(data);
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+                        {
+                            "title": $translate('creator'),data: "creator.name",
+
+                        },
+                    ],
+                    "paging": false,
+                    // "scrollX": true,
+                    // "autoWidth": true,
+                    // "sScrollY": 350,
+                    // "scrollCollapse": true,
+                    // "destroy": true,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+
+                });
+
+                utilService.createDatatableWithFooter('#playerRewardTaskLogTable', tableOptions, {
+                    //4: topUpAmountSum,
+                    // 6: summary ? summary.bonusAmountSum: 0,
+                    // 7: summary ? summary.requiredBonusAmountSum: 0,
+                    // 8: summary ? summary.currentAmountSum :0
+                });
+
+                vm.playerRewardTaskLog.pageObj.init({maxCount: size}, newSearch);
+                $('#playerRewardTaskLogTable').off('order.dt');
+                $('#playerRewardTaskLogTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'playerRewardTaskLog', vm.getPagedPlayerRewardTaskLog);
+                });
+                $('#playerRewardTaskLogTable').resize();
+
+            }
+
+        /**
              * Get player's all available reward task
              * @param playerId
              * @param callback
@@ -10440,6 +10595,111 @@ define(['js/app'], function (myApp) {
                     });
             }
             vm.applyPlayerBonus = function () {
+
+                // retrieve the related rewardTasks
+                if (vm.playerBonus.bForce == true){
+                    let sendQuery = {
+                        playerObjId: vm.isOneSelectedPlayer()._id,
+                        platformId: vm.selectedPlatform.id,
+                    };
+                    socketService.$socket($scope.AppSocket, 'getRewardTaskGroupProposalById', sendQuery, function (data) {
+
+                        if (!data && data.data[0] && data.data[1]){
+                            return Q.reject("Record is not found");
+                        }
+
+                        vm.rewardTaskGroupProposalList = [];
+                        let providerGroupId;
+                        vm.isUnlockTaskGroup = true;
+                        vm.rtgBonusAmt = {};
+
+                        data.data[1].forEach( inData => {
+                            inData.currentAmount$ = inData.currentAmt - inData.initAmt;
+                            inData.bonusAmount$ = -inData.initAmt;
+
+                            if (inData.providerGroup) {
+                                providerGroupId = inData.providerGroup._id;
+                            }
+                            vm.rtgBonusAmt[providerGroupId] = inData.currentAmount$;
+                        });
+
+                        data.data[1].forEach( (inData, indexInData) => {
+                            vm.dynRewardTaskGroupId =[];
+                            vm.dynRewardTaskGroupId.push(inData);
+                            vm.rewardTaskProposalData = data.data[0][indexInData];
+                            let result = data.data[0][indexInData];
+                            let usedTopUp = [];
+                            result.forEach((item,index) => {
+                                item.proposalId = item.proposalId || item.data.proposalId;
+                                item['createTime$'] = vm.dateReformat(item.data.createTime$);
+                                item.useConsumption = item.data.useConsumption;
+                                item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId: item.data.topUpProposal;
+                                item.topUpAmount = item.data.topUpAmount;
+                                item.bonusAmount = item.data.rewardAmount;
+                                item.applyAmount = item.data.applyAmount || item.data.amount;
+                                item.requiredUnlockAmount = item.data.spendingAmount;
+                                item.requiredBonusAmount = item.data.requiredBonusAmount;
+                                item['provider$'] = $translate(item.data.provider$);
+                                item.rewardType = item.data.rewardType;
+
+                                item.requiredUnlockAmount$ = item.requiredUnlockAmount;
+                                if(vm.isUnlockTaskGroup){
+                                    let spendingAmt = vm.calSpendingAmt(index);
+
+                                    item.curConsumption$ = spendingAmt.currentAmt;
+                                    item.maxConsumption$ = spendingAmt.currentMax;
+                                } else {
+                                    item.curConsumption$ = item.requiredBonusAmount;
+                                    item.maxConsumption$ = item.requiredUnlockAmount;
+                                }
+                                item.bonusAmount$ = item.data.bonusAmount;
+                                item.requiredBonusAmount$ = item.requiredBonusAmount;
+                                item.currentAmount$ = item.data.currentAmount;
+
+                                item.availableAmt$ = (item.applyAmount || 0) + (item.bonusAmount || 0);
+                                item.archivedAmt$ = 0;
+                                if (vm.rtgBonusAmt[item.data.providerGroup] <= -(item.availableAmt$)) {
+                                    vm.rtgBonusAmt[item.data.providerGroup] -= -(item.availableAmt$);
+                                    item.archivedAmt$ = item.availableAmt$
+                                } else if (vm.rtgBonusAmt[item.data.providerGroup] != 0) {
+                                    if (item.data.providerGroup === '') {
+                                        let archivedAmtEmpty = vm.rtgBonusAmt["undefined"] ? vm.rtgBonusAmt["undefined"] : 0;
+                                        item.archivedAmt$ = -archivedAmtEmpty;
+                                        vm.rtgBonusAmt["undefined"] = 0;
+
+                                    } else {
+                                        item.archivedAmt$ = -vm.rtgBonusAmt[item.data.providerGroup];
+                                        vm.rtgBonusAmt[item.data.providerGroup] = 0;
+                                        item.archivedAmt$ = item.archivedAmt$? item.archivedAmt$: 0;
+                                    }
+                                }
+                                item.isArchived =
+                                    item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
+
+                                if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)){
+                                    usedTopUp.push(item.topUpProposal)
+                                }
+
+                            });
+
+                            if (usedTopUp.length > 0) {
+                                result = result.filter((item, index) => {
+                                    for (let i = 0; i < usedTopUp.length; i++) {
+                                        if (usedTopUp.indexOf(item.proposalId) < 0) {
+                                            return item;
+                                        }
+                                    }
+                                });
+                            }
+
+                            vm.rewardTaskGroupProposalList.push(result);
+
+                        })
+
+                    })
+
+                }
+
                 var sendData = {
                     playerId: vm.isOneSelectedPlayer().playerId,
                     amount: vm.playerBonus.amount,
@@ -10451,11 +10711,52 @@ define(['js/app'], function (myApp) {
                 vm.playerBonus.resMsg = '';
                 vm.playerBonus.showSubmit = true;
                 socketService.$socket($scope.AppSocket, 'applyBonusRequest', sendData, function (data) {
-                    console.log('applyBonusRequest success', data);
-                    vm.playerBonus.resMsg = $translate('Approved');
-                    vm.playerBonus.showSubmit = false;
-                    vm.getPlatformPlayersData();
-                    $scope.safeApply();
+                    $scope.$evalAsync(() => {
+                        console.log('applyBonusRequest success', data);
+                        vm.playerBonus.resMsg = $translate('Approved');
+                        vm.playerBonus.showSubmit = false;
+                        vm.getPlatformPlayersData();
+                        // save the rewardTask that is manually unlocked
+                        if(vm.playerBonus.bForce && vm.rewardTaskGroupProposalList && vm.rewardTaskGroupProposalList.length > 0){
+                            vm.rewardTaskGroupProposalList.forEach( listData => {
+                                listData.forEach( rewardTask => {
+                                    let sendData = {
+                                        platformId: vm.selectedPlatform.id,
+                                        playerId: vm.isOneSelectedPlayer()._id,
+                                        unlockTime: new Date().toISOString(),
+                                        creator: {
+                                            type: rewardTask.creator.type,
+                                            name: rewardTask.creator.name,
+                                            id: rewardTask.creator.id
+                                        },
+                                        rewardTask: {
+                                            type: rewardTask.type.name,
+                                            id: rewardTask.type._id,
+                                        },
+                                        currentConsumption: rewardTask.curConsumption$,
+                                        maxConsumption: rewardTask.maxConsumption$,
+                                        currentAmount: rewardTask.archivedAmt$,
+                                        targetAmount: rewardTask.availableAmt$,
+                                        topupAmount: rewardTask.topUpAmount,
+                                        proposalId: rewardTask._id,
+                                        proposalNumber: rewardTask.proposalId,
+                                        topupProposalNumber: rewardTask.topUpProposal,
+                                        bonusAmount: rewardTask.bonusAmount,
+                                        targetProviderGroup: rewardTask.data.provider$,
+                                        status: "ManualUnlock",
+                                        useConsumption: rewardTask.useConsumption,
+                                        inProvider: rewardTask.inProvider,
+
+                                    };
+
+                                    socketService.$socket($scope.AppSocket, 'createRewardTaskGroupUnlockedRecord', sendData, function (data) {
+                                        console.log('createRewardTaskGroupUnlockedRecord', sendData);
+                                        $scope.safeApply();
+                                    })
+                                })
+                            })
+                        }
+                    })
                 }, function (data) {
                     console.log('applyBonusRequest Fail', data);
                     vm.playerBonus.showSubmit = false;
@@ -11358,10 +11659,11 @@ define(['js/app'], function (myApp) {
                 let incRewardAmt = 0;
                 let incConsumptAmt = 0;
                 let rewardTaskGroup = vm.dynRewardTaskGroupId[0] ? vm.dynRewardTaskGroupId[0] : {};
-
+                let index = [];
                 vm.dynRewardTaskGroupIndex.forEach(item => {
                     incRewardAmt += Number(item[0]);
                     incConsumptAmt += Number(item[1]);
+                    index.push(Number(item[2]));
                 });
 
                 let sendQuery = {
@@ -11374,6 +11676,43 @@ define(['js/app'], function (myApp) {
                     vm.getRewardTaskLogData(true);
                     $('#rewardTaskGroupProposalTbl').DataTable().clear().draw();
                     $('#rewardTaskLogTbl').DataTable().clear().draw();
+                    //  save the rewardTask Progress that is  manual unlocked
+                    index.forEach( indexNO => {
+                        let sendData = {
+                            platformId: vm.selectedPlatform.id,
+                            playerId: vm.isOneSelectedPlayer()._id,
+                            unlockTime: new Date().toISOString(),
+                            creator: {
+                                type: vm.rewardTaskGroupProposalList[indexNO].creator.type,
+                                name: vm.rewardTaskGroupProposalList[indexNO].creator.name,
+                                id: vm.rewardTaskGroupProposalList[indexNO].creator.id
+                            },
+                            rewardTask: {
+                                type: vm.rewardTaskGroupProposalList[indexNO].type.name,
+                                id: vm.rewardTaskGroupProposalList[indexNO].type._id,
+                            },
+                            currentConsumption: vm.rewardTaskGroupProposalList[indexNO].curConsumption$,
+                            maxConsumption: vm.rewardTaskGroupProposalList[indexNO].maxConsumption$,
+                            currentAmount: vm.rewardTaskGroupProposalList[indexNO].archivedAmt$,
+                            targetAmount: vm.rewardTaskGroupProposalList[indexNO].availableAmt$,
+                            topupAmount: vm.rewardTaskGroupProposalList[indexNO].topUpAmount,
+                            proposalId: vm.rewardTaskGroupProposalList[indexNO]._id,
+                            proposalNumber: vm.rewardTaskGroupProposalList[indexNO].proposalId,
+                            topupProposalNumber: vm.rewardTaskGroupProposalList[indexNO].topUpProposal,
+                            bonusAmount: vm.rewardTaskGroupProposalList[indexNO].bonusAmount,
+                            targetProviderGroup: vm.rewardTaskGroupProposalList[indexNO].data.provider$,
+                            status: "ManualUnlock",
+                            useConsumption: vm.rewardTaskGroupProposalList[indexNO].useConsumption,
+                            inProvider: vm.rewardTaskGroupProposalList[indexNO].inProvider,
+
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'createRewardTaskGroupUnlockedRecord', sendData, function (data) {
+                            console.log('createRewardTaskGroupUnlockedRecord', sendData);
+                            $scope.safeApply();
+                        })
+
+                    })
                 })
             }
 
@@ -11732,7 +12071,8 @@ define(['js/app'], function (myApp) {
                         }
 
                         console.log("vm.getRewardTaskGroupProposal", result);
-
+                        vm.rewardTaskGroupProposalList = [];
+                        Object.assign(vm.rewardTaskGroupProposalList ,result);
                         $scope.$evalAsync(vm.drawRewardTaskTable(true, result, 0, summary, 0, 0));
                         // vm.drawRewardTaskTable(true, data.data, size, summary, topUpAmountSum);
                         vm.curRewardTask = data;
@@ -16456,13 +16796,13 @@ define(['js/app'], function (myApp) {
 
         vm.rewardSelectOnChange = (model) => {
             if (model && model.name === "topupType") {
-                if (model.value.indexOf("1") === -1) {
+                if (model.value.indexOf("2") === -1) {
                     vm.rewardDisabledParam.indexOf("onlineTopUpType") === -1 ? vm.rewardDisabledParam.push("onlineTopUpType") : null;
                 } else {
                     vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "onlineTopUpType");
                 }
 
-                if (model.value.indexOf("2") === -1) {
+                if (model.value.indexOf("1") === -1) {
                     vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
                 } else {
                     vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");
@@ -22530,7 +22870,7 @@ define(['js/app'], function (myApp) {
 
                 vm.queryPara = {};
 
-                vm.phonePattern = /^[0-9]{8,18}$/;
+                vm.phonePattern = /^[0-9]{8,11}$/;
                 vm.showPlatformList = true;
                 vm.showPlatformDropDownList = false;
                 vm.prepareDemoPlayerPrefix();
