@@ -1519,9 +1519,6 @@ let dbRewardPoints = {
     },
 
     getMissonList: function (playerId, platformId) {
-
-        console.log('getMissonList', playerId, platformId);
-
         let returnData = {};
         let platformData = null;
         let playerData = null;
@@ -1564,9 +1561,6 @@ let dbRewardPoints = {
                 return Promise.all([topupRewardPointProm, rewardPointsProm, playerLevelProm])
             })
             .then(playerTopupRewardPointsRecord => {
-
-                console.log('playerTopupRewardPointsRecord', playerTopupRewardPointsRecord);
-
                 topupRewardPointEvent = playerTopupRewardPointsRecord[0] ? playerTopupRewardPointsRecord[0] : [];
                 rewardPointRecord = playerTopupRewardPointsRecord[1] ? playerTopupRewardPointsRecord[1] : [];
                 playerLevelRecord = playerTopupRewardPointsRecord[2] ? playerTopupRewardPointsRecord[2] : [];
@@ -1576,7 +1570,7 @@ let dbRewardPoints = {
                     let rewardProgressProm = [];
                     if (topupRewardPointEvent.length) {
                         topupRewardPointEvent.forEach(relevantData => {
-                            if (relevantData._id) {
+                            if (relevantData && relevantData._id) {
                                 let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
                                 let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                     rewardPointsObjId: rewardPointRecord._id,
@@ -1590,9 +1584,6 @@ let dbRewardPoints = {
 
                     return Promise.all(rewardProgressProm).then(
                         progressData => {
-
-                            console.log('progressData', progressData);
-
                             let rewardProgressList = progressData && progressData.length ? progressData : [];
                             for (let j = rewardProgressList.length - 1; j >= 0; j--) {
                                 if (!rewardProgressList[j]) {
@@ -1661,6 +1652,13 @@ let dbRewardPoints = {
                             //         }
                             //     }
                             // );
+                        },
+                        err => {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Error finding reward progress.",
+                                error: err
+                            })
                         });
                 }
             })
@@ -1732,9 +1730,6 @@ let dbRewardPoints = {
                                 }
                             }
                         }
-
-                        console.log('returnData game', returnData);
-
                         returnData.gamePointList =  getRewardPointEvent(constRewardPointsTaskCategory.GAME_REWARD_POINTS, gameRewardPointEvent, gameProvider, gameRewardPointsData);
                     }
                 );
@@ -1765,9 +1760,6 @@ let dbRewardPoints = {
                                     }
                                 }
                             }
-
-                            console.log('returnData login', returnData);
-
                             returnData.loginPointList =  getRewardPointEvent(constRewardPointsTaskCategory.LOGIN_REWARD_POINTS, loginRewardPointEvent, gameProvider, loginRewardPointsData);
                         }
                     );
@@ -1798,9 +1790,6 @@ let dbRewardPoints = {
                                 }
                             }
                             returnData.rechargePointList =  getRewardPointEvent(constRewardPointsTaskCategory.TOPUP_REWARD_POINTS, topupRewardPointEvent, gameProvider, topUpRewardPointsData);
-
-                            console.log('returnData', returnData);
-
                             return returnData;
                         }
                     );
