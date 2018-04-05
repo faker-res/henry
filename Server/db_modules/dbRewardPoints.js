@@ -1588,6 +1588,8 @@ let dbRewardPoints = {
                         });
                     }
 
+                    console.log('rewardProgressProm.length', rewardProgressProm.length);
+
                     return Promise.all(rewardProgressProm).then(
                         progressData => {
 
@@ -1661,6 +1663,12 @@ let dbRewardPoints = {
                             //         }
                             //     }
                             // );
+                        },
+                        err => {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Error finding reward progress."
+                            })
                         });
                 }
             })
