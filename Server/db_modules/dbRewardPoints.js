@@ -1570,7 +1570,7 @@ let dbRewardPoints = {
                     let rewardProgressProm = [];
                     if (topupRewardPointEvent.length) {
                         topupRewardPointEvent.forEach(relevantData => {
-                            if (relevantData._id) {
+                            if (relevantData && relevantData._id) {
                                 let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
                                 let rewardProm = dbConfig.collection_rewardPointsProgress.findOne({
                                     rewardPointsObjId: rewardPointRecord._id,
@@ -1652,6 +1652,13 @@ let dbRewardPoints = {
                             //         }
                             //     }
                             // );
+                        },
+                        err => {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Error finding reward progress.",
+                                error: err
+                            })
                         });
                 }
             })
@@ -1687,6 +1694,9 @@ let dbRewardPoints = {
                 return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsRankingProm])
             })
             .then(data => {
+
+                console.log('data11223', data);
+
                 loginRewardPointEvent = data[0] ? data[0] : [];
                 gameRewardPointEvent = data[1] ? data[1] : [];
                 gameProvider = data[2] ? data[2] : [];

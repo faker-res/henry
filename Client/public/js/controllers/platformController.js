@@ -16796,13 +16796,13 @@ define(['js/app'], function (myApp) {
 
         vm.rewardSelectOnChange = (model) => {
             if (model && model.name === "topupType") {
-                if (model.value.indexOf("1") === -1) {
+                if (model.value.indexOf("2") === -1) {
                     vm.rewardDisabledParam.indexOf("onlineTopUpType") === -1 ? vm.rewardDisabledParam.push("onlineTopUpType") : null;
                 } else {
                     vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "onlineTopUpType");
                 }
 
-                if (model.value.indexOf("2") === -1) {
+                if (model.value.indexOf("1") === -1) {
                     vm.rewardDisabledParam.indexOf("bankCardType") === -1 ? vm.rewardDisabledParam.push("bankCardType") : null;
                 } else {
                     vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "bankCardType");

@@ -539,7 +539,7 @@
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('platform-transfer-log');vm.showPlatformCreditTransferLog();") {{"PLAYER_PLATFORM_TRANSFER_LOG" | translate}}
                     li(ng-class="vm.selectedPlayerAccountingDetailTab == 'midnight-balance-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerDailyCreditLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('midnight-balance-log');vm.initPlayerCreditLog();") {{"PLAYER_MIDNIGHT_BALANCE_LOG" | translate}}
-                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'playerRewardTaskLog')")
+                    li(ng-class="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Player', 'rewardTaskLog')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showPlayerAccountingDetailTab('rewardTask-log');vm.showPagedPlayerRewardTaskLog();") {{"PLAYER_REWARDTASK_LOG" | translate}}
 
                 .panel.panel-primary(style="border-radius:0 !important;")
