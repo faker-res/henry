@@ -68,6 +68,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -123,6 +124,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
