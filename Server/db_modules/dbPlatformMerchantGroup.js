@@ -18,7 +18,17 @@ var dbPlatformMerchantGroup = {
             displayName: displayName,
             platform: platform,
         });
-        return gameGroup.save();
+        return gameGroup.save().catch(function (err) {
+            let message = '';
+            if (err) {
+                if (err.code == '11000') {
+                    message = "This Key is Exist，Please Choose Another Name";
+                } else {
+                    message = err.errmsg ? err.errmsg : "";
+                }
+                return Q.reject({name: "DataError", message: message});
+            }
+        })
     },
 
     /**
@@ -48,7 +58,21 @@ var dbPlatformMerchantGroup = {
         return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
     updatePlatformMerchantGroupInfo: function (query, updateData) {
-        return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+        return dbconfig.collection_platformMerchantGroup.findOneAndUpdate(query, updateData, {
+            upsert: true,
+            new: true
+        }).then(data => {
+        }, err => {
+            let message = '';
+            if (err) {
+                if (err.code == '11000') {
+                    message = "This Key is Exist，Please Choose Another Name";
+                } else {
+                    message = err.errmsg ? err.errmsg : "";
+                }
+                return Q.reject({name: "DataError", message: message});
+            }
+        })
     },
     /**
      * Get all the bank card groups  by platformObjId
