@@ -1918,10 +1918,11 @@ define(['js/app'], function (myApp) {
                     proposalDetail.providerGroup = proposalDetail[i] ? vm.getProviderGroupNameById(proposalDetail[i]) : $translate("LOCAL_CREDIT");
                 }
 
-                //remove objectIDs
-                if (checkForHexRegExp.test(proposalDetail[i])) {
+                //remove objectIDs/null/blank objects
+                if (checkForHexRegExp.test(proposalDetail[i]) || proposalDetail[i] === null || proposalDetail[i] === "") {
                     delete proposalDetail[i];
                 }
+
                 if (i == 'providers') {
                     var temp = [];
                     if (proposalDetail.providers) {
