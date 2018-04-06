@@ -11523,6 +11523,7 @@ define(['js/app'], function (myApp) {
                     console.log('getCreditDetail', data);
                     vm.playerCreditDetails = data.data.lockedCreditList;
                     vm.currentFreeAmount = data.data ? data.data.credit : '';
+                    vm.currentFreeAmount =  $noRoundTwoDecimalPlaces(vm.currentFreeAmount);
                     vm.playerCreditDetails.map(d=>{
                         if(d.validCredit == 'unknown'){
                             d.validCredit = '';
