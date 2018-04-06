@@ -381,7 +381,7 @@ let dbRewardPoints = {
                 let gameProviderPTid = null;
                 let gameProviderPT = gameProviders.filter(provider => {
                     if (provider.code === 'PTOTHS' && provider.providerId === '18') {
-                        gameProviderPTid = provider._id;
+                        gameProviderPTid = provider._id.toString();
                         return gameProviderPTid;
                     }
                 });
@@ -1926,7 +1926,7 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData, gameProv
         }
     }
 
-    if (event.target && event.target.gameType && (event.target.gameType.toString() !== String(consumptionRecord.cpGameType) && (event.target.targetDestination.toString() !== gameProviderPTid))) {
+    if (event.target && event.target.gameType && (event.target.gameType.toString() !== String(consumptionRecord.cpGameType)) && (event.target.targetDestination.toString() !== gameProviderPTid)) {
         return false;
     }
 
