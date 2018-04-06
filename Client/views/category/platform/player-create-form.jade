@@ -24,7 +24,9 @@ form(name="form_new_player", novalidate)
 	.row.margin-left-5.margin-right-5
 		.form-group.col-md-6
 			label.control-label {{"REAL_NAME" | translate}}
-			input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="vm.newPlayer.realName")
+			input.form-control(ng-mouseleave="vm.existRealNameDetector(true)", type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="vm.newPlayer.realName")
+			div(ng-show="vm.existRealName", style='color:red;display:inline-block') {{"Real Name Already Exists" | translate}}
+			div.btn.btn-primary.btn-sm(ng-show="vm.existRealName", ng-click="vm.initRealNameRecord()", data-target="#sameRealNameLog", data-toggle="modal", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
 		.form-group.col-md-6
 			label.control-label {{"NICK_NAME" | translate}}
 			input.form-control(type="text", placeholder='{{"NICK_NAME" | translate}}', ng-model="vm.newPlayer.nickName")
@@ -59,7 +61,7 @@ form(name="form_new_player", novalidate)
 				option(ng-repeat='(i,v) in vm.partnerIdObj', value='{{i}}', ng-selected='i==vm.newPlayer.partner') {{v.partnerName}}
 		.form-group.col-md-6
 			label.control-label *{{"TELEPHONE" | translate}}
-			input.form-control(ng-mouseleave="vm.existNumberDetector(true)", type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}',ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber", required)
+			input.form-control(ng-mouseleave="vm.existNumberDetector(true)", type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}', maxlength="11", ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber", required)
 			div(ng-show="vm.existPhone", style='color:red;display:inline-block') {{"Phone Number Already Exists" | translate}}
 			div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.loadPhoneNumberRecord(vm.newPlayer.phoneNumber)", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
 	.row.margin-left-5.margin-right-5

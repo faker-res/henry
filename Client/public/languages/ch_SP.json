@@ -2860,6 +2860,7 @@
   "SMS/PHONE/FEEDBACK": "短信/电话/回访",
   "Duplicate Phone Number": "相同电话开户列表",
   "DETAIL_INFO": "详情按钮",
+  "Duplicate Real Name": "相同姓名开户列表",
   "HEAD_COUNT": "人数",
   "PERCENTAGE": "百分比",
   "SELF_REGISTER_SUCCESS_RATE": "自助成功率分析",
@@ -2901,6 +2902,7 @@
   "Equal to (=)": "等于 (=)",
   "Interval (>=, <)": "区间 (>=, <)",
   "Phone Number Already Exists":"电话号码已存在",
+  "Real Name Already Exists":"真实姓名已存在",
   "SMS": "短信",
   "Approved Time": "成功执行时间",
   "Player reach participate limit": "玩家已达参加次数上限",
@@ -3436,9 +3438,12 @@
   "manualDailyProviderSettlement": "每日提供商手工结算",
   "createForbidTopUpLog": "创建禁用充值类型记录",
   "UPDATE_ALL": "全部更新",
+  "topUpReturnCode": "存送金代码",
   "QC ACCOUNT": "QC 帐号",
   "AdminNameAdjunction": "添加创建者",
   "AdminName": "创建者",
-  "Admin name is invalid, please try again": "创建者不存在，请再次输入"
+  "Admin name is invalid, please try again": "创建者不存在，请再次输入",
+  "This Key is Exist，Please Choose Another Name": "此商户组名称已存在，请选择其他名字来储存"
+
 
 }

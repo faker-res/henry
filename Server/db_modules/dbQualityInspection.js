@@ -542,16 +542,19 @@ var dbQualityInspection = {
         connection.connect();
         Q.all(mongoData).then(mg=> {
             let mgData = [];
-            mg.forEach(item => {
-                mgData.push(item.messageId);
-            })
-            let mgDataStr = "";
             let excludeMongoQuery = "";
-            if(mgData.length > 0){
-                mgDataStr = mgData.join(',');
-                excludeMongoQuery = " AND msg_id NOT IN ("+mgDataStr+")";
+            let contentInfoList = "";
+            mg.forEach(item => {
+                if(item){
+                    contentInfoList += "('" + item.messageId + "','" + item.live800Acc.name + "'),";
+                }
+            })
 
+            if(contentInfoList && contentInfoList.length > 0){
+                contentInfoList = contentInfoList && contentInfoList.length > 0 ? contentInfoList.substring(0,contentInfoList.length - 1) : contentInfoList;
+                excludeMongoQuery = " AND (msg_id,operator_name) NOT IN (" + contentInfoList + ")";
             }
+
             console.log("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery);
             connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery, function (error, results, fields) {
                 if (error) {
@@ -1295,7 +1298,7 @@ var dbQualityInspection = {
                     return adminName
                 })
                 .then(udata=>{
-                    return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId}).then(qaData => {
+                    return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId, "live800Acc.name": new RegExp("^" + uItem.live800Acc.name, "i")}).then(qaData => {
                         delete uItem.statusName;
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
@@ -1356,7 +1359,7 @@ var dbQualityInspection = {
 
         })
         .then(udata=>{
-            return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
+            return dbconfig.collection_qualityInspection.find({messageId: data.messageId, "live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")}).then(qaData => {
                 delete data.statusName;
                 data.qualityAssessor = adminId;
                 data.processTime = Date.now();
@@ -1371,8 +1374,12 @@ var dbQualityInspection = {
                 if (qaData.length == 0) {
                     return dbconfig.collection_qualityInspection(data).save();
                 }else{
+                    if(data && data._id){
+                        delete data._id;
+                    }
+                    
                     dbconfig.collection_qualityInspection.findOneAndUpdate(
-                        {messageId: data.messageId},
+                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
                         data
                     ).then(data=>{
                         console.log(data);
