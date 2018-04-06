@@ -904,7 +904,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 $.ajax({
                     url: urlWithParams,
                     // contentType: "application/json; charset=utf-8",
-                    dataType: "jsonp",
+                    dataType: "text",
                     type: "get",
                     success: function (e) {
                         console.log("ok", e);
