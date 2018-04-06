@@ -930,6 +930,9 @@ var dbUtility = {
     },
 
     getInputDevice: function (inputUserAgent, isPartnerProposal) {
+        if (Number.isInteger(inputUserAgent)) {
+            return inputUserAgent;
+        }
         let ua;
         // userAgent string already parse outside if parse again will always set to WEB
         if (inputUserAgent && (inputUserAgent.browser || inputUserAgent.device || inputUserAgent.os)) {
