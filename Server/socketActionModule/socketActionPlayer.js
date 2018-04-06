@@ -805,7 +805,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS, null, data.topUpReturnCode], actionName, isValidData);
         },
         /**
          *  Get deposit methods
@@ -928,7 +928,7 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.playerId && data.amount && data.alipayName && data.alipayAccount);
             let userAgent = '';
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestAlipayTopup, [userAgent, data.playerId, data.amount, data.alipayName, data.alipayAccount, data.bonusCode, 'ADMIN',
-                getAdminId(), getAdminName(), data.remark, data.createTime, data.realName], actionName, isValidData);
+                getAdminId(), getAdminName(), data.remark, data.createTime, data.realName, null, data.topUpReturnCode], actionName, isValidData);
         },
 
         cancelAlipayTopup: function cancelAlipayTopup(data) {
@@ -948,7 +948,7 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.amount && data.wechatPayAccount);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.requestWechatTopup, [!Boolean(data.notUseQR), userAgent, data.playerId, data.amount, data.wechatPayName, data.wechatPayAccount, data.bonusCode, 'ADMIN', getAdminId(), getAdminName(), data.remark, data.createTime,null, data.topUpReturnCode], actionName, isValidData);
         },
 
         cancelWechatPayTopup: function cancelWechatPayTopup(data) {
