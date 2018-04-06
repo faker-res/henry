@@ -404,9 +404,15 @@ let dbPlayerInfo = {
                         realName: inputData.realName,
                         platform: platformObjId
                     });
+
+                    if (!inputData.userAgent) {
+                        platformObj.allowSameRealNameToRegister = true;
+                    }
+
                     if (!("allowSameRealNameToRegister" in platformObj)) {
                         platformObj.allowSameRealNameToRegister = true;
                     }
+
                     if (platformObj.allowSameRealNameToRegister) {
                         return playerNameChecker;
                     }

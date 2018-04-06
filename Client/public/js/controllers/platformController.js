@@ -23,6 +23,7 @@ define(['js/app'], function (myApp) {
             vm.districtList = [];
             vm.creditChange = {};
             vm.existPhone = false;
+            vm.existRealName = false;
             vm.rewardPointsChange = {};
             vm.rewardPointsConvert = {};
 
@@ -3376,7 +3377,144 @@ define(['js/app'], function (myApp) {
                     vm.getNewPlayerListByFilter(true);
 
                 });
+            };
+
+            vm.existRealNameDetector = function (newSearch) {
+                if (!vm.newPlayer.realName) {
+                    return;
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    realName: vm.newPlayer.realName,
+                    limit: newSearch ? 10 : (vm.realNameDuplicate.limit || 10),
+                    index: newSearch ? 0 : (vm.realNameDuplicate.index || 0)
+                }
+
+                socketService.$socket($scope.AppSocket, 'getDuplicatePlayerRealName', sendData, function (data) {
+                    let realNameDuplicateCount = data.data.size || 0;
+
+                    if (realNameDuplicateCount == 0) {
+                        vm.existRealName = false;
+                    } else {
+                        vm.existRealName = true;
+                    }
+
+                    $scope.safeApply();
+
+                });
+            };
+
+            vm.initRealNameRecord = function () {
+                vm.realNameDuplicate = {};
+                utilService.actionAfterLoaded('#sameRealNameLog.in #sameRealNameLogTablePage', function () {
+                    vm.realNameDuplicate.pageObj = utilService.createPageForPagingTable("#sameRealNameLogTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "realNameDuplicate", vm.loadRealNameRecord);
+                    });
+                    vm.loadRealNameRecord(true);
+                });
             }
+
+            vm.loadRealNameRecord = function (newSearch) {
+                if(!vm.newPlayer.realName){
+                    return;
+                }
+                vm.getCredibilityRemarks();
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    realName: vm.newPlayer.realName,
+                    limit: newSearch ? 10 : (vm.realNameDuplicate.limit || 10),
+                    index: newSearch ? 0 : (vm.realNameDuplicate.index || 0),
+                    sortCol: vm.realNameDuplicate.sortCol || null
+                }
+
+                socketService.$socket($scope.AppSocket, 'getDuplicatePlayerRealName', sendData, function (data) {
+                    console.log("getDuplicatePlayerRealName", data);
+                    let tblData = data && data.data ? data.data.data : [];
+                    let total = data.data ? data.data.size : 0;
+                    vm.realNameDuplicate.totalCount = total;
+
+                    if (tblData && tblData.length > 0) {
+                        tblData.map(
+                            record => {
+                                let credibilityRemarksTXT = '';
+                                record.name = record.data.name ? record.data.name : "";
+                                record.realName = record.data.realName ? record.data.realName : "";
+                                record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                                record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                                record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                                record.playerLevelName = record.data.playerLevel ? $translate(record.data.playerLevel.name) : "";
+                                record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
+                                    return record.data.credibilityRemarks.includes(item._id);
+                                }) : [];
+                                record.credibilityRemarksName = record.credibilityRemarks.map(function (value, index) {
+                                    let colon = '';
+                                    credibilityRemarksTXT += value.name + colon;
+                                    return credibilityRemarksTXT;
+                                }) || '';
+                                record.valueScore = record.data.valueScore ? record.data.valueScore : "";
+                                record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea) : '';
+                                record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime) : "";
+                                Object.keys(vm.allPlayersStatusString).filter(item => {
+                                    return record.data.playerStatus == vm.allPlayersStatusString[item];
+                                })[0];
+                                record.playerStatusName = $translate("Enable");
+                                if (record.data.forbidPlayerFromLogin == true) {
+                                    record.playerStatusName = $translate("Disable")
+                                }
+                                return record;
+                            }
+                        );
+                    }
+                    vm.prepareRealNameDuplicateRecords(newSearch, tblData, total);
+                });
+            };
+
+            vm.prepareRealNameDuplicateRecords = function (newSearch, tblData, size) {
+                let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
+                    ],
+                    columns: [
+                        {title: $translate('PLAYERNAME'), data: "name"},
+                        {title: $translate('Real Name'), data: "realName"},
+                        {title: $translate('CREDIBILITY'), data: "credibilityRemarksName"},
+                        {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                        {
+                            title: $translate('STATUS'), data: "playerStatusName",
+                            render: function (data, type, row) {
+                                let color = "black";
+                                if (row.data.forbidPlayerFromLogin  == true) {
+                                    color = "red";
+                                }
+                                return '<div style="color:' + color + '">' + data + '</div>';
+                            }
+                        },
+                        {title: $translate('PlayerLevel'), data: "playerLevelName"},
+                        {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
+                        {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                        {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                        {title: $translate('last_access_time'), data: "lastAccessTime"}
+
+                    ],
+                    destroy: true,
+                    paging: false,
+                    autoWidth: true,
+                });
+                let aTable = $("#sameRealNameLogTable").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                vm.realNameDuplicate.pageObj.init({maxCount: size}, newSearch);
+                $('#sameRealNameLogTable').resize();
+                $('#sameRealNameLogTable').off('order.dt');
+                $scope.safeApply();
+        };
+
             vm.existNumberDetector = function(newSearch){
 
                 if(!vm.newPlayer.phoneNumber){
@@ -7096,6 +7234,7 @@ define(['js/app'], function (myApp) {
                 vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime( new Date("January 01, 1990")));
 
                 vm.existPhone = false;
+                vm.existRealName = false;
                 vm.newPlayer = {};
                 vm.newPlayer.gender= "true";
                 vm.duplicateNameFound = false;
@@ -8434,12 +8573,6 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPlayerRewardTaskUnlockedRecord', sendQuery, function (data) {
 
-                    if (data.data[1] && data.data[1].length == 0){
-                        $('#playerRewardTaskLogTable').DataTable().clear().draw();
-                        vm.playerRewardTaskLog.totalCount = data.data[0];
-                        return vm.playerRewardTaskLog.loading = false;
-                    }
-
                     console.log('getPlayerRewardTaskUnlockedRecord', data.data[1]);
                     let result = data.data[1];
                     vm.playerRewardTaskLog.totalCount = data.data[0];
@@ -8540,8 +8673,8 @@ define(['js/app'], function (myApp) {
                     fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                         $compile(nRow)($scope);
                     }
-
                 });
+                tableOptions.language.emptyTable=$translate("No data available in table");
 
                 utilService.createDatatableWithFooter('#playerRewardTaskLogTable', tableOptions, {
                     //4: topUpAmountSum,
@@ -17827,6 +17960,7 @@ define(['js/app'], function (myApp) {
                         //Todo get all game type
                         //Todo get all game bet type
                         vm.getAllGameProviders(vm.selectedPlatform.id);
+                        vm.getGameProviderPTid();
                         vm.getRewardPointsEventByCategory($scope.constRewardPointsTaskCategory.GAME_REWARD_POINTS);
                         break;
                     case 'rewardPointsRanking':
@@ -18397,6 +18531,18 @@ define(['js/app'], function (myApp) {
                 vm.endLoadWeekDay();
             };
 
+            // get id for game provider PT
+            vm.getGameProviderPTid = () => {
+                let gameProviders = vm.allGameProviders;
+                vm.gameProviderPTid = null;
+
+                for (let x = 0; x < gameProviders.length; x++) {
+                    if (gameProviders[x].code === 'PTOTHS' && gameProviders[x].providerId === '18') {
+                        vm.gameProviderPTid = gameProviders[x]._id;
+                    }
+                }
+            };
+
             vm.getRewardPointsEventByCategory = (category) => {
                 vm.rewardPointsEvent = [];
                 $scope.safeApply();
@@ -18404,9 +18550,18 @@ define(['js/app'], function (myApp) {
                     console.log('getRewardPointsEventByCategory',data.data);
                     vm.rewardPointsEvent = data.data;
                     $.each(vm.rewardPointsEvent, function (idx, val) {
+                        vm.gameProviderPT = false;
+                        if (val.target.targetDestination === vm.gameProviderPTid) {
+                            vm.gameProviderPT = true;
+                            val.target.gameProviderPT = true;
+                        } else {
+                            vm.gameProviderPT = false;
+                            val.target.gameProviderPT = false;
+                        }
                         vm.rewardPointsEventPeriodChange(idx, val);
                         vm.rewardPointsEventSetDisable(idx, val, true, true);
                         vm.rewardPointsEventOld.push($.extend(true, {}, val));
+                        vm.refreshSPicker();
                     });
                     $scope.safeApply();
                     vm.endLoadWeekDay();
