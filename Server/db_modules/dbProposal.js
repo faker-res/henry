@@ -1995,6 +1995,39 @@ var proposal = {
     //     });
     // },
 
+    getDuplicatePlayerRealName: function (platformId, realName, index, limit, sortCol) {
+        index = index || 0;
+        sortCol = sortCol || {createTime: 1};
+        let sameRealNamePlayerCount = 0;
+
+        let sameRealNamePlayerCountProm = dbconfig.collection_players.find({platform: platformId, realName: realName}).count();
+        let sameRealNamePlayerProm = dbconfig.collection_players.find({platform: platformId, realName: realName})
+            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+            .sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([sameRealNamePlayerCountProm, sameRealNamePlayerProm]).then(
+            data => {
+                let playerIpArea = [];
+                let sameRealNamePlayerRecord = data && data[1] ? data[1] : [];
+                sameRealNamePlayerCount = data[0];
+
+                if (sameRealNamePlayerRecord && sameRealNamePlayerRecord.length > 0) {
+                    playerIpArea = proposal.getPlayerIpAreaFromRecord(platformId, sameRealNamePlayerRecord);
+                }
+
+                return Promise.all([playerIpArea]).then(
+                    data => {
+                        let duplicateRealNamePlayerList = data && data[0] ? data[0] : [];
+                        let result = {data: duplicateRealNamePlayerList, size: sameRealNamePlayerCount};
+
+                        return result;
+                    },
+                    err => {
+                        console.log(err);
+                    });
+            });
+    },
+
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process
