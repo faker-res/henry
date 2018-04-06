@@ -1374,8 +1374,12 @@ var dbQualityInspection = {
                 if (qaData.length == 0) {
                     return dbconfig.collection_qualityInspection(data).save();
                 }else{
+                    if(data && data._id){
+                        delete data._id;
+                    }
+                    
                     dbconfig.collection_qualityInspection.findOneAndUpdate(
-                        {messageId: data.messageId},
+                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
                         data
                     ).then(data=>{
                         console.log(data);
