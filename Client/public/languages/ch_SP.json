@@ -3438,6 +3438,7 @@
   "manualDailyProviderSettlement": "每日提供商手工结算",
   "createForbidTopUpLog": "创建禁用充值类型记录",
   "UPDATE_ALL": "全部更新",
+  "topUpReturnCode": "存送金代码",
   "QC ACCOUNT": "QC 帐号",
   "AdminNameAdjunction": "添加创建者",
   "AdminName": "创建者",
