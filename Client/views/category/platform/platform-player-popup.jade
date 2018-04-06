@@ -1303,34 +1303,34 @@
                                 button.btn.btn-primary.common-button(ng-if='vm.playerApplyRewardShow.showConsumptionReturn && (vm.playerApplyEventResult.error.message.indexOf("您的洗码额度不足") !== -1 || vm.playerApplyEventResult.error.errorMessage.indexOf("您的洗码额度不足") !== -1 )'
                                 ng-click='vm.applyPlayerReward(true)' style='vertical-align: bottom;margin-left: 10px;') {{"force submit" | translate}}
 
-                        ////#modalManualUnlockRewardTask
-                        //table.simple-table(ng-show="vm.selectedRewardSettingsTab == 'unlock-reward'")
-                        //    thead
-                        //        tr
-                        //            th {{'UNLOCK' | translate}}
-                        //            th {{'TYPE' | translate}}
-                        //            th {{'CREATE_TIME' | translate}}
-                        //            th {{'STATUS' | translate}}
-                        //            th {{'initAMOUNT' | translate}}
-                        //            th {{'currentAMOUNT' | translate}}
-                        //            th {{'UNLOCKAMOUNT' | translate}}
-                        //            th {{'REWARD_EVENT' | translate}}
-                        //            th {{'provider' | translate}}
-                        //    tbody(ng-repeat='rewardTask in vm.curRewardTask')
-                        //        tr
-                        //            td
-                        //                input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)", ng-init="rewardTask.checked=true", ng-if="$index === 0")
-                        //                input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)")
-                        //            td {{rewardTask.type | translate}}
-                        //            td {{vm.dateReformat(rewardTask.createTime)}}
-                        //            td {{rewardTask.status | translate}}
-                        //            td {{rewardTask.initAmount || 0}}
-                        //            td {{rewardTask.currentAmount || 0}}
-                        //            td {{rewardTask.unlockedAmount || rewardTask.unlockedBonusAmount || 0}} / {{rewardTask.requiredUnlockAmount || rewardTask.requiredBonusAmount}}
-                        //            td {{rewardTask.eventId.name}} ({{rewardTask.eventId.code}})
-                        //            td
-                        //                text {{ rewardTask.targetEnable ? "Allow:" : "Disable:" | translate }}
-                        //                text(ng-repeat='(i,v) in rewardTask.targetProviders') &nbsp;{{v.name}}
+                        //#modalManualUnlockRewardTask
+                        table.simple-table(ng-if="vm.selectedRewardSettingsTab == 'unlock-reward'")
+                            thead
+                                tr
+                                    th {{'UNLOCK' | translate}}
+                                    th {{'TYPE' | translate}}
+                                    th {{'CREATE_TIME' | translate}}
+                                    th {{'STATUS' | translate}}
+                                    th {{'initAMOUNT' | translate}}
+                                    th {{'currentAMOUNT' | translate}}
+                                    th {{'UNLOCKAMOUNT' | translate}}
+                                    th {{'REWARD_EVENT' | translate}}
+                                    th {{'provider' | translate}}
+                            tbody(ng-repeat='rewardTask in vm.curRewardTask')
+                                tr
+                                    td
+                                        input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)", ng-init="rewardTask.checked=true", ng-if="$index === 0")
+                                        input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)")
+                                    td {{rewardTask.type | translate}}
+                                    td {{vm.dateReformat(rewardTask.createTime)}}
+                                    td {{rewardTask.status | translate}}
+                                    td {{rewardTask.initAmount || 0}}
+                                    td {{rewardTask.currentAmount || 0}}
+                                    td {{rewardTask.unlockedAmount || rewardTask.unlockedBonusAmount || 0}} / {{rewardTask.requiredUnlockAmount || rewardTask.requiredBonusAmount}}
+                                    td {{rewardTask.eventId.name}} ({{rewardTask.eventId.code}})
+                                    td
+                                        text {{ rewardTask.targetEnable ? "Allow:" : "Disable:" | translate }}
+                                        text(ng-repeat='(i,v) in rewardTask.targetProviders') &nbsp;{{v.name}}
 
                         //#modalRewardTaskLog
                         #rewardTaskLogQuery.well(ng-show="vm.selectedRewardSettingsTab == 'reward-progress'")
