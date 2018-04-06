@@ -466,7 +466,10 @@ var dbAdminInfo = {
     callTell400: function(url){
         var deferred = Q.defer();
         request(url, function (error, response, body) {
-            let bodyJSON = JSON.parse( body.replace(/'/g, '"') );
+            let bodyJSON = {};
+            if( body && typeof body == "string"){
+                bodyJSON = JSON.parse( body.replace(/'/g, '"') );
+            }
             if( error ){
                 deferred.reject(error);
                 return;

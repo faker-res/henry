@@ -903,7 +903,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         // -3：失败，密码错误
                         // -4：失败，系统错误
                         // -5: 失败，URL错误
-                        if (res && res.result == "1") {
+                        if (res && res.data && res.data.result == "1") {
                             alert("正在呼叫。。。");
                         }
                         else {
