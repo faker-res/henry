@@ -212,7 +212,7 @@ let dbRewardTaskGroup = {
 
         };
         return dbconfig.collection_rewardTaskGroupUnlockedRecord.findOne(query).lean().then( inData => {
-            if (!inData || inData.length == 0){
+            if (!inData){
                 var rewardTaskGroupUnlockedRecord = new dbconfig.collection_rewardTaskGroupUnlockedRecord(data);
                 return rewardTaskGroupUnlockedRecord.save();
             }else{
