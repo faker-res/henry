@@ -215,7 +215,7 @@ define(['js/app'], function (myApp) {
                     })
 
                 })
-              vm.getCSDepartmentMember(csDepartmentMember);
+              vm.getCSDepartmentMember(csDepartmentMember,companyIds);
               vm.getQIDepartmentMember(qiDepartmentMember);
               vm.companyIds = companyIds;
             }
@@ -237,7 +237,7 @@ define(['js/app'], function (myApp) {
                 }, function (err) {
                 });
             }
-            vm.getCSDepartmentMember = function(csMembers){
+            vm.getCSDepartmentMember = function(csMembers, companyIds){
               socketService.$socket($scope.AppSocket, 'getCSAdmins', {admins: csMembers}, function (cdata) {
                   console.log('all admin data', cdata.data);
                   let fpmsACCList = [];
@@ -246,7 +246,16 @@ define(['js/app'], function (myApp) {
                   cdata.data.forEach(item=>{
                     let liveAccSet = [];
                     if(item.live800Acc){
-                        liveAccSet = item.live800Acc.filter(live800=>{ return live800 != '' });
+                        liveAccSet = item.live800Acc.filter(live800=>{
+                            let equal = false;
+                            companyIds.forEach(c =>
+                            {
+                                if (c == live800.substring(0, live800.indexOf("-"))) {
+                                    equal = true;
+                                }
+                            });
+                            return equal;
+                        });
                     }
                     let acc = {
                       _id:item._id,
@@ -263,7 +272,7 @@ define(['js/app'], function (myApp) {
             vm.loadLive800Acc = function(){
 
                 let live800Accs = [];
-                vm.allUser.forEach(item => {
+                vm.fpmsACCList.forEach(item => {
                     if (vm.inspection800.fpms.indexOf(item._id) != -1) {
 
                         item.live800Acc.forEach(live800 => {
@@ -1232,77 +1241,80 @@ define(['js/app'], function (myApp) {
                 let resultArr = [];
 
                 socketService.$socket($scope.AppSocket, 'getWorkloadReport', sendData, function (data) {
-                    if(data && data.data && data.data.length > 0) {
-
-                        data.data.map(data => {
-                            if (data && data.status) {
-                                data.status = vm.constQualityInspectionStatus[data.status];
-                            }
-
-                            let index = resultArr.findIndex(r => r.qaAccount == data.qaAccount)
-
-                            if (index != -1) {
-                                if (data.status == "COMPLETED_UNREAD") {
-                                    resultArr[index].completedUnread = data.count;
+                    $scope.$evalAsync(() => {
+                        if(data && data.data && data.data.length > 0) {
+                            data.data.map(data => {
+                                if (data && data.status) {
+                                    data.status = vm.constQualityInspectionStatus[data.status];
                                 }
 
-                                if (data.status == "COMPLETED_READ") {
-                                    resultArr[index].completedRead = data.count;
+                                let index = resultArr.findIndex(r => r.qaAccount == data.qaAccount)
+
+                                if (index != -1) {
+                                    if (data.status == "COMPLETED_UNREAD") {
+                                        resultArr[index].completedUnread = data.count;
+                                    }
+
+                                    if (data.status == "COMPLETED_READ") {
+                                        resultArr[index].completedRead = data.count;
+                                    }
+
+                                    if (data.status == "COMPLETED") {
+                                        resultArr[index].completed = data.count;
+                                    }
+
+                                    if (data.status == "APPEALING") {
+                                        resultArr[index].appealing = data.count;
+                                    }
+
+                                    if (data.status == "APPEAL_COMPLETED") {
+                                        resultArr[index].appealCompleted = data.count;
+                                    }
+                                } else {
+                                    let resultObj = {
+                                        qaAccount: data.qaAccount,
+                                        completedUnread: 0,
+                                        completedRead: 0,
+                                        completed: 0,
+                                        appealing: 0,
+                                        appealCompleted: 0
+                                    }
+
+                                    if (data.status == "COMPLETED_UNREAD") {
+                                        resultObj.completedUnread = data.count;
+                                    }
+
+                                    if (data.status == "COMPLETED_READ") {
+                                        resultObj.completedRead = data.count;
+                                    }
+
+                                    if (data.status == "COMPLETED") {
+                                        resultObj.completed = data.count;
+                                    }
+
+                                    if (data.status == "APPEALING") {
+                                        resultObj.appealing = data.count;
+                                    }
+
+                                    if (data.status == "APPEAL_COMPLETED") {
+                                        resultObj.appealCompleted = data.count;
+                                    }
+
+                                    resultArr.push(resultObj);
                                 }
 
-                                if (data.status == "COMPLETED") {
-                                    resultArr[index].completed = data.count;
-                                }
+                                return data;
+                            });
 
-                                if (data.status == "APPEALING") {
-                                    resultArr[index].appealing = data.count;
-                                }
+                            vm.drawQAReportTable(resultArr, [], [],newSearch);
+                            vm.QAReportQuery ={};
+                            vm.QAReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
+                        }else{
+                            vm.drawQAReportTable("", [], [],newSearch);
+                        }
 
-                                if (data.status == "APPEAL_COMPLETED") {
-                                    resultArr[index].appealCompleted = data.count;
-                                }
-                            } else {
-                                let resultObj = {
-                                    qaAccount: data.qaAccount,
-                                    completedUnread: 0,
-                                    completedRead: 0,
-                                    completed: 0,
-                                    appealing: 0,
-                                    appealCompleted: 0
-                                }
-
-                                if (data.status == "COMPLETED_UNREAD") {
-                                    resultObj.completedUnread = data.count;
-                                }
-
-                                if (data.status == "COMPLETED_READ") {
-                                    resultObj.completedRead = data.count;
-                                }
-
-                                if (data.status == "COMPLETED") {
-                                    resultObj.completed = data.count;
-                                }
-
-                                if (data.status == "APPEALING") {
-                                    resultObj.appealing = data.count;
-                                }
-
-                                if (data.status == "APPEAL_COMPLETED") {
-                                    resultObj.appealCompleted = data.count;
-                                }
-
-                                resultArr.push(resultObj);
-                            }
-
-                            return data;
-                        });
                         vm.loadingWorkloadReportTable = false;
-                        $scope.safeApply();
-                        vm.drawQAReportTable(resultArr, [], [],newSearch);
-                        vm.QAReportQuery ={};
-                        vm.QAReportQuery = {aaSorting: [[0, "desc"]], sortCol: {createTime: -1}};
-                    }
-
+                    })
                 },function (error) {
                         console.log("error", error);
                     }
@@ -1324,7 +1336,7 @@ define(['js/app'], function (myApp) {
                     // ],
                     columns: [
                         {
-                            title: $translate('QA ACCOUNT'),
+                            title: $translate('QC ACCOUNT'),
                             data: "qaAccount", sClass: "expandQAReport",
                             render: function (data, type, row) {
                                 return "<a>" + data + "</a>";
@@ -1347,6 +1359,7 @@ define(['js/app'], function (myApp) {
                 if (reportTbl) {
                     reportTbl.clear();
                 }
+                $("#workloadReportTable").DataTable(option).clear();
                 var reportTbl = $("#workloadReportTable").DataTable(option);
                 utilService.setDataTablePageInput('workloadReportTable', reportTbl, $translate);
 
@@ -1785,19 +1798,24 @@ define(['js/app'], function (myApp) {
 
 
             //****** CS Report Tab ******* START //
-
             vm.checkSelectedPlatformID = function(seletedProductsId){
                 vm.selectedCSAccount = [];
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800 = [];
                 vm.allCSDepartmentId = [];
                 vm.selectedCS = [];
+                vm.selectedCompanyId = [];
 
                 if (seletedProductsId !== 'all') {
                     // select the CS account that bound to the selected platform
 
                     vm.platformWithCSDepartment.forEach(platform => {
                         if (platform.id === seletedProductsId) {
+                            if (platform.data.live800CompanyId && platform.data.live800CompanyId.length > 0){
+                                platform.data.live800CompanyId.forEach( companyId => {
+                                    vm.selectedCompanyId.push(companyId);
+                                })
+                            }
                             if (platform.data.csDepartment.length > 0) {
                                 platform.data.csDepartment.forEach(department => {
                                     vm.allCSDepartmentId.push(department._id);
@@ -1812,30 +1830,37 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
 
-                        if (data && data.data && data.data.length > 0){
-                            data.data.forEach(acc => {
-                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
-                                    vm.selectedCSAccount.push(acc);
-                                    vm.selectedCS.push(acc._id);
-                                    acc.live800Acc.forEach(liveAcc => {
-                                        vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
-                                        vm.selectedLive800.push(liveAcc);
-                                    });
-                                }
-                            });
-                        }else{
-                            // for null
-                            vm.selectedCSAccount.push("");
-                            vm.selectedLive800Acc.push("");
-                            vm.selectedCS.push("");
+                        $scope.$evalAsync(() => {
+                            if (data && data.data && data.data.length > 0){
+                                data.data.forEach(acc => {
+                                    if ( acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("") ){
 
-                        }
-                        $scope.safeApply();
+                                        acc.live800Acc.forEach(liveAcc => {
+                                            //check the operatorId is bound to the selected companyID (i.e., platform)
+                                            if( vm.selectedCompanyId.indexOf(liveAcc.split("-")[0]) > -1 ){
+                                                vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                                vm.selectedLive800.push(liveAcc);
+                                            }
+
+                                        });
+                                        if(vm.selectedLive800.length > 0){
+                                            vm.selectedCSAccount.push(acc);
+                                            vm.selectedCS.push(acc._id);
+                                        }
+                                    }
+                                });
+                            }
+                        })
                     });
 
                 } else {
                     // select all by default
                     vm.platformWithCSDepartment.forEach(platform => {
+                        if (platform.data.live800CompanyId && platform.data.live800CompanyId.length > 0){
+                            platform.data.live800CompanyId.forEach( companyId => {
+                                vm.selectedCompanyId.push(companyId);
+                            })
+                        }
                         if (platform.data.csDepartment.length >0) {
                             platform.data.csDepartment.forEach(department =>{
                                 vm.allCSDepartmentId.push(department._id);
@@ -1849,25 +1874,31 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
 
-                        if (data && data.data){
-                            data.data.forEach(acc => {
-                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
-                                    vm.selectedCSAccount.push(acc);
-                                    acc.live800Acc.forEach(liveAcc => {
-                                        vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
-                                        vm.selectedLive800.push(liveAcc);
-                                    });
-                                }
-                            });
+                        $scope.$evalAsync(() => {
+                            if (data && data.data){
+                                data.data.forEach(acc => {
+                                    if ( acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("") ){
 
-                        }
-                        if (vm.selectedCSAccount && vm.selectedCSAccount.length > 0){
-                            vm.selectedCS=[];
-                            vm.selectedCSAccount.forEach(acc => {
-                                vm.selectedCS.push(acc._id);
-                            });
-                        }
-                        $scope.safeApply();
+                                        //  vm.selectedCSAccount.push(acc);
+                                        acc.live800Acc.forEach(liveAcc => {
+                                            //check the operatorId is bound to the selected companyID (i.e., platform)
+                                            if( vm.selectedCompanyId.indexOf(liveAcc.split("-")[0]) > -1 ){
+                                                vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                                vm.selectedLive800.push(liveAcc);
+                                            }
+
+                                            // vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                            // vm.selectedLive800.push(liveAcc);
+                                        });
+                                        if(vm.selectedLive800.length > 0){
+                                            vm.selectedCSAccount.push(acc);
+                                            vm.selectedCS.push(acc._id);
+                                        }
+                                    }
+                                });
+
+                            }
+                        })
                     });
                 }
                 console.log("vm.selectedCSAccount", vm.selectedCSAccount);
@@ -1937,10 +1968,18 @@ define(['js/app'], function (myApp) {
                 vm.allCSDepartmentId=[];
                 vm.selectedCS = [];
                 vm.platformWithCSDepartment=[]; // to filter out the platform with CS Department for the Product Filter
+                vm.selectedCompanyId = [];
 
 
                 vm.platformList.forEach(platform => {
+                    // select the bounded companyId
+                    if (platform.data.live800CompanyId && platform.data.live800CompanyId.length > 0){
+                        platform.data.live800CompanyId.forEach( companyId => {
+                            vm.selectedCompanyId.push(companyId);
+                        })
+                    }
                     if (platform.data.csDepartment.length >0) {
+
                        platform.data.csDepartment.forEach(department =>{
                            vm.allCSDepartmentId.push(department._id);
                        });
@@ -1953,42 +1992,32 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
 
-                    if (data && data.data){
-                        data.data.forEach(acc => {
-                            if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
-                                vm.selectedCSAccount.push(acc);
-                                vm.selectedCS.push(acc._id);
-                            }
-                        });
+                    $scope.$evalAsync(() => {
+                        if (data && data.data){
+                            data.data.forEach(acc => {
+                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
 
-                        console.log("vm.selectedCSAccount",vm.selectedCSAccount);
-                        console.log("vm.selectedCS",vm.selectedCS);
-
-                        //select the Live800 account that bound to the selected CS account
-                        vm.selectedCSAccount.forEach(acc => {
-                            if (acc.live800Acc.length>0) {
-                                acc.live800Acc.forEach(liveAcc => {
-                                    if (liveAcc != "") {
-                                        vm.selectedLive800Acc.push({
-                                            _id: acc._id,
-                                            adminName: acc.adminName,
-                                            live800Acc: liveAcc
-                                        });
-                                        vm.allLive800Acc.push({
-                                            _id: acc._id,
-                                            adminName: acc.adminName,
-                                            live800Acc: liveAcc
-                                        });
-                                        vm.selectedLive800.push(liveAcc);
+                                    acc.live800Acc.forEach(liveAcc => {
+                                        //check the operatorId is bound to the selected companyID (i.e., platform)
+                                        if( vm.selectedCompanyId.indexOf(liveAcc.split("-")[0]) > -1 ){
+                                            vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                            vm.selectedLive800.push(liveAcc);
+                                        }
+                                    });
+                                    if(vm.selectedLive800.length > 0){
+                                        vm.selectedCSAccount.push(acc);
+                                        vm.selectedCS.push(acc._id);
                                     }
-                                });
-                            }
-                        });
+                                }
+                            });
 
-                        console.log("vm.selectedLive800Acc",vm.selectedLive800Acc);
-                        console.log("vm.selectedLive800",vm.selectedLive800);
-                    }
-                   $scope.safeApply();
+                            console.log("vm.selectedCSAccount",vm.selectedCSAccount);
+                            console.log("vm.selectedCS",vm.selectedCS);
+                            console.log("vm.selectedLive800Acc",vm.selectedLive800Acc);
+                            console.log("vm.selectedLive800",vm.selectedLive800);
+                        }
+                    })
+
                 });
 
                 vm.QIReportQuery ={};
@@ -2298,7 +2327,6 @@ define(['js/app'], function (myApp) {
                         vm[id] = {};
 
                         let selectedLiveAcc = [];
-                        let selectedCompanyId =[];
                         vm.displayDetailData = [];
 
                         socketService.$socket($scope.AppSocket, 'getAdminsInfo', {
@@ -2310,10 +2338,9 @@ define(['js/app'], function (myApp) {
                                     return;
                                 }
 
-                                selectedLiveAcc = data.data[0].live800Acc;
+                                selectedLiveAcc = data.data[0].live800Acc.filter( acc => {return vm.selectedCompanyId.indexOf(acc.split("-")[0]) != -1 });
                             
                                 let params= {
-                                    //'companyId': selectedCompanyId.length > 0 ? selectedCompanyId : [],
                                     'operatorId': selectedLiveAcc,
                                     'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
                                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
@@ -2378,8 +2405,7 @@ define(['js/app'], function (myApp) {
 
                                                 return data;
                                             });
-
-
+                                        
                                         $scope.safeApply();
                                         vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
                                     }

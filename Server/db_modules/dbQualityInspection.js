@@ -266,6 +266,7 @@ var dbQualityInspection = {
     searchMongoDB:function(query){
         let deferred = Q.defer();
         let queryQA = {};
+        let operatorRegList = [];
         if (query.status){
             queryQA.status = query.status;
         }
@@ -280,7 +281,11 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(query.operatorId!='all'){
-                queryQA['live800Acc.id'] = { '$in':query.operatorId}
+                query.operatorId.forEach( op => {
+                    operatorRegList.push(new RegExp("^" + op, "i"));
+                });
+
+                queryQA['live800Acc.id'] = { '$in':operatorRegList}
             }
         }
         if(query.companyId && query.companyId.length > 0 ){
@@ -320,6 +325,7 @@ var dbQualityInspection = {
     countMongoDB: function(query, mysqlProm){
         let deferred = Q.defer();
         let queryQA = {};
+        let live800AccReg = [];
         if (query.startTime && query.endTime) {
             queryQA.createTime = {'$lte':new Date(query.endTime),
                 '$gte': new Date(query.startTime)}
@@ -331,7 +337,10 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(query.operatorId!='all'){
-                queryQA['live800Acc.id'] = { '$in':query.operatorId}
+                query.operatorId.forEach(id => {
+                    live800AccReg.push(new RegExp("^" + id, "i"));
+                });
+                queryQA['live800Acc.id'] = { '$in':live800AccReg}
             }
         }
         if(query.companyId && query.companyId.length > 0 ){
@@ -1273,8 +1282,13 @@ var dbQualityInspection = {
     rateBatchConversation: function(cvs, accName){
         var deferred = Q.defer();
         let proms = [];
+        let live800AccReg = null;
         cvs.batchData.forEach(uItem=>{
-            let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
+            if(uItem && uItem.live800Acc && uItem.live800Acc.id) {
+                live800AccReg = new RegExp("^" + uItem.live800Acc.id, "i")
+            }
+
+            let query = { 'live800Acc': live800AccReg};
             let prom = dbconfig.collection_admin.findOne(query).then(
                 item=>{
                     let adminName = item ? item._id:null;
@@ -1419,9 +1433,8 @@ var dbQualityInspection = {
                                                 live800SummarizeRecord.map(l => {
                                                     if(l && l._id && l._id.date){
                                                         let startTime = new Date(l._id.date);
-                                                        let endTime = new Date();
+                                                        let endTime = new Date(l._id.date);
                                                         endTime.setHours(23, 59, 59, 999);
-                                                        endTime.setDate(l._id.date.getDate());
 
                                                         let queryToGetQIRecord = {
                                                             createTime: {
@@ -1430,7 +1443,7 @@ var dbQualityInspection = {
                                                             },
                                                             companyId: {$in: p.live800CompanyId}
                                                         }
-
+                                                        
                                                         let calculatedData = dbconfig.collection_qualityInspection.find(queryToGetQIRecord).count().then(
                                                             qualityInspectionCount => {
                                                                 let isCompleted = false;

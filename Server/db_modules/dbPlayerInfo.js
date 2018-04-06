@@ -404,9 +404,15 @@ let dbPlayerInfo = {
                         realName: inputData.realName,
                         platform: platformObjId
                     });
+
+                    if (!inputData.userAgent) {
+                        platformObj.allowSameRealNameToRegister = true;
+                    }
+
                     if (!("allowSameRealNameToRegister" in platformObj)) {
                         platformObj.allowSameRealNameToRegister = true;
                     }
+
                     if (platformObj.allowSameRealNameToRegister) {
                         return playerNameChecker;
                     }
@@ -1319,7 +1325,7 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, isBackStageGenerated) {
+    createDemoPlayer: function (platformId, smsCode, phoneNumber, deviceData, userAgentString, isBackStageGenerated) {
         let randomPsw = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
         let platform, defaultCredit, demoPlayerData;
 
@@ -1440,7 +1446,7 @@ let dbPlayerInfo = {
                     return Promise.reject({name: "DataError", message: "Can't create new player."});
                 }
 
-                dbDemoPlayer.createDemoPlayerLog(playerData, phoneNumber, deviceData, isBackStageGenerated).catch(errorUtils.reportError);
+                dbDemoPlayer.createDemoPlayerLog(playerData, phoneNumber, userAgentString, isBackStageGenerated).catch(errorUtils.reportError);
 
                 let profile = {name: playerData.name, password: playerData.password};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
