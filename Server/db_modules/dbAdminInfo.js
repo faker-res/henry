@@ -4,6 +4,7 @@ var constSystemParam = require('./../const/constSystemParam');
 var constShardKeys = require('../const/constShardKeys');
 var dbUtility = require('./../modules/dbutility');
 var encrypt = require('./../modules/encrypt');
+const request = require('request');
 var Q = require("q");
 
 var dbAdminInfo = {
@@ -461,6 +462,24 @@ var dbAdminInfo = {
     getAdminNameByDepartment: function (departmentId) {
         return getAllAdminFromChildDepartments([departmentId]);
     },
+
+    callTell400: function(url){
+        var deferred = Q.defer();
+        request(url, function (error, response, body) {
+            let bodyJSON = JSON.parse( body.replace(/'/g, '"') );
+            if( error ){
+                deferred.reject(error);
+                return;
+            }
+            if(response){
+                deferred.resolve( {statusCode: response.statusCode, result: bodyJSON.result} );
+            }
+            else{
+                deferred.reject({name: "DBError", message: "No response"});
+            }
+        });
+        return deferred.promise;
+    }
 
 };
 
