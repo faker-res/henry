@@ -890,8 +890,20 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
                 let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
 
+                // let xhttp = new XMLHttpRequest();
+                // xhttp.onreadystatechange = function() {
+                //     if (this.readyState == 4 && this.status == 200) {
+                //         // Typical action to be performed when the document is ready:
+                //         console.log(xhttp.responseText);
+                //     }
+                // };
+                // xhttp.open("GET", urlWithParams, true);
+                // xhttp.setRequestHeader("Access-Control-Allow-Origin", "*")
+                // xhttp.send();
+
                 $.ajax({
                     url: urlWithParams,
+                    // contentType: "application/json; charset=utf-8",
                     dataType: "jsonp",
                     type: "get",
                     success: function (e) {
@@ -931,14 +943,20 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                             performPhoneCall(nextTriedTimes);
                         }
                     },
-                    error: function (e) {
-                        console.log("error", e);
-                        if (e && e.result != "1") {
+                    error: function (xhr,status,error) {
+                        console.log("error", error);
+                        console.log("error", xhr.responseText);
+                        console.log("error", xhr.responseJSON);
+                        if (error && error.result != "1") {
+                            alert("正在呼叫。。。");
                             // alert("再次呼叫。。。");
-                            performPhoneCall(nextTriedTimes);
+                            // performPhoneCall(nextTriedTimes);
                         } else {
                             alert("正在呼叫。。。");
                         }
+                    },
+                    complete: function (xhr,status,e) {
+                        console.log("error", xhr);
                     }
                 });
             }
