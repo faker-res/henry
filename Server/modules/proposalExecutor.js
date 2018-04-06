@@ -965,7 +965,13 @@ var proposalExecutor = {
                         if (proposalData.data.bonusCode) {
                             applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                         }
-                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                        let applyTopUpReturn = null;
+                        if (proposalData.data.topUpReturnCode) {
+                            let requiredData = {topUpRecordId: data._id}
+                            applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                , proposalData.data.topUpReturnCode, requiredData);
+                        }
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
                                 sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
@@ -1007,7 +1013,13 @@ var proposalExecutor = {
                         if (proposalData.data.bonusCode) {
                             applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                         }
-                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                        let applyTopUpReturn = null;
+                        if (proposalData.data.topUpReturnCode) {
+                            let requiredData = {topUpRecordId: data._id}
+                            applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                , proposalData.data.topUpReturnCode, requiredData);
+                        }
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
                                 sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
@@ -1076,7 +1088,13 @@ var proposalExecutor = {
                         if (proposalData.data.bonusCode) {
                             applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                         }
-                        Promise.all([applyPlayerTopUpPromo, applyPromoCode]).then(
+                        let applyTopUpReturn = null;
+                        if (proposalData.data.topUpReturnCode) {
+                            let requiredData = {topUpRecordId: data._id}
+                            applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                , proposalData.data.topUpReturnCode, requiredData);
+                        }
+                        Promise.all([applyPlayerTopUpPromo, applyPromoCode, applyTopUpReturn]).then(
                             data => {
                                 sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
                                 deferred.resolve(proposalData);
@@ -1125,7 +1143,13 @@ var proposalExecutor = {
                             if (proposalData.data.bonusCode) {
                                 applyPromoCode = dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode);
                             }
-                            Promise.all([applyforTransactionReward, applyPromoCode]).then(
+                            let applyTopUpReturn = null;
+                            if (proposalData.data.topUpReturnCode) {
+                                let requiredData = {topUpRecordId: data._id}
+                                applyTopUpReturn = dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                    , proposalData.data.topUpReturnCode, requiredData);
+                            }
+                            Promise.all([applyforTransactionReward, applyPromoCode, applyTopUpReturn]).then(
                                 data => {
                                     deferred.resolve(proposalData);
                                 },
