@@ -308,6 +308,8 @@ let clickCountSchema = require('./../schema/logs2/clickCount');
 let clickCountModel = dbLogs2.model('clickCount', clickCountSchema, 'clickCount');
 let rewardTaskGroupUnlockedRecordSchema = require('./../schema/logs2/rewardTaskGroupUnlockedRecord');
 let rewardTaskGroupUnlockedRecordModel = dbLogs2.model('rewardTaskGroupUnlockedRecord', rewardTaskGroupUnlockedRecordSchema, 'rewardTaskGroupUnlockedRecord');
+let playerBStateSchema = require('./../schema/logs2/playerBState');
+let playerBStateModel = dbLogs2.model('playerBState', playerBStateSchema, 'playerBState');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -504,6 +506,7 @@ var dbProperties = {
     collection_clickCount: clickCountModel,
     collection_rewardTaskGroupUnlockedRecord: rewardTaskGroupUnlockedRecordModel,
     collection_rewardPointsProgress: rewardPointsProgressModel,
+    collection_playerBState: playerBStateModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,

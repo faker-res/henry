@@ -112,6 +112,7 @@ var simplifiedChinese = {
     "Player or partner already has a pending proposal for this type": "有类似请求正在处理中",
     "Invalid player data": "无效玩家",
     "Player is not valid for this reward": "玩家不符合该奖励条件",
+    "Apply Reward Fail, please try again later": "申请优惠异常, 请稍后再次尝试",
     "Invalid player consumption incentive event data for platform": "奖励活动数据无效",
     "Cannot find player consumption incentive event data for platform": "无法找到奖励活动数据",
     "Player is forbidded for consumption incentive event":"玩家无此奖励权限",

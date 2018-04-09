@@ -2570,6 +2570,7 @@
   "Top up amount is not enough": "充值额度不够",
   "Player has too much valid credit": "玩家额度过多",
   "Player has applied for this reward": "玩家已申请过该优惠",
+  "Apply Reward Fail, please try again later": "申请优惠异常, 请稍后再次尝试",
   "Amount is not enough 100": "申请提款数量过少100",
   "This proposal has been processed": "该提案已在处理中",
   "Invalid player bankcard group data": "玩家无可支付的银行卡",
