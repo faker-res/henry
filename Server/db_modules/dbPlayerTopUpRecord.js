@@ -3242,7 +3242,7 @@ function checkInterfaceRewardPermission(eventData, device) {
     let isForbidInterface = false;
 
     // Check registration interface condition
-    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && device) {
+    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && device >= 0) {
         let registrationInterface = device ? device : 0;
 
         isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface.toString()) < 0;
