@@ -1736,38 +1736,6 @@ define(['js/app'], function (myApp) {
                 finalizedBarData.push(clickTotal[index]);
             }
 
-            function labelFormatter(label, series) {
-                return "<div style='font-size:12pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
-            }
-
-            let options = {
-                series: {
-                    pie: {
-                        show: true,
-                        radius: 1,
-                        label: {
-                            show: true,
-                            radius: 1,
-                            formatter: labelFormatter,
-                            background: {
-                                opacity: 0.8
-                            }
-                        },
-                        combine: {
-                            color: "#999",
-                            threshold: 0.0
-                        }
-                    }
-                },
-                grid: {
-                    hoverable: true,
-                    clickable: true
-                },
-                legend: {
-                    show: false
-                }
-            };
-
             utilService.actionAfterLoaded('#clickCountAnalysisBar', function () {
                 socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(finalizedBarData), vm.newOptions, vm.getXlabelsFromdata(finalizedBarData));
             });
