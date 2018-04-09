@@ -127,6 +127,7 @@ var simplifiedChinese = {
     "Player does not have enough top up amount": "自身充值额度不够",
     "Player has too much credit": "玩家额度过多",
     "Not enough reward amount": "奖励额度不够",
+    "Apply Reward Fail, please try again later": "申请优惠异常, 请稍后再次尝试",
     "Can not find player bonus proposal or provider credit": "无法找到相关数据",
     "Can not find player": "无法找到玩家",
     "This interface is not allowed for reward": "此装置不允许申请奖励",
@@ -287,6 +288,7 @@ var simplifiedChinese = {
     "reward points not enough to redeem (1) credit, has been returned to your account": "积分不足兑换（1）真钱，已退回至您的帐户",
     "Already successful...": "取消失败，存款已经成功到帐，请查询帐户余额。",
     "Player already applied for the reward point.": "领取失败：很抱歉，已经领取过此项积分奖励。",
+    "This player has applied for max reward times in event period": "您已经达到了该优惠申请次数上限，若有疑问请联系客服",
     "ALL_PROVIDERS": "全部供应商",
     //todo::add missing messages here
 
