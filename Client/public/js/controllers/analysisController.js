@@ -1722,6 +1722,17 @@ define(['js/app'], function (myApp) {
                 finalizedBarData.push(clickTotal[index]);
             }
 
+            // bar chart: highest value on left side
+            function descendSort(b,a) {
+                if (a.data < b.data)
+                    return -1;
+                if (a.data > b.data)
+                    return 1;
+                return 0;
+            }
+
+            finalizedBarData.sort(descendSort);
+
             function barNumberFormatter (value) {
                 if (value === 0) return '';
                 else return ((value / totalClick) * 100).toFixed(2) + '%';
