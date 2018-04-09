@@ -4390,7 +4390,7 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
-                            if (!isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
+                            if (intervalTime && !isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
