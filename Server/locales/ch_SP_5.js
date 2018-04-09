@@ -112,6 +112,7 @@ var simplifiedChinese = {
     "Player does not have valid payment information": "玩家支付信息无效",
     "Player does not have enough Expenses.": "玩家投注额度不够",
     "Player does not have this permission": "玩家无此权限",
+    "Apply Reward Fail, please try again later": "申请优惠异常, 请稍后再次尝试",
     "Top up type is forbidden for this player": "支付服务维护中...",
     "Player has pending manual topup request already.": "玩家已有手工充值记录",
     "The player has not unlocked the previous reward task. Not valid for new reward": "玩家已有奖励任务，无法申请新的奖励",

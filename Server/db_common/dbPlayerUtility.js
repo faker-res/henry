@@ -53,6 +53,37 @@ const dbPlayerUtility = {
         )
     },
 
+    /**
+     *
+     * @param playerObjId
+     * @param stateName
+     * @param bFlag - on/off flag
+     */
+    setPlayerBState: (playerObjId, stateName, bFlag) => {
+        let matchQ = {player: playerObjId};
+        let updateQChild = {};
+        updateQChild[stateName] = bFlag;
+        let updateQ = {$set: updateQChild};
+        let allowExec = true;
+
+        return dbconfig.collection_playerBState.findOneAndUpdate(
+            matchQ,
+            updateQ,
+            {
+                new: false,
+                upsert: true
+            }
+        ).then(
+            beforeRec => {
+                if (beforeRec && beforeRec[stateName] === bFlag) {
+                    allowExec = false;
+                }
+
+                return allowExec;
+            }
+        );
+    },
+
     //endregion
 
     //region Credit
