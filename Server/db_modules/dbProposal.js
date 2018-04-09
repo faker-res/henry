@@ -378,8 +378,11 @@ var proposal = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && data[2] != null) {
-                    if(data[0].mainType == constProposalMainType.PlayerConvertRewardPoints
-                        && (proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS
+                    if((data[0].mainType === constProposalMainType.PlayerAddRewardPoints
+                            || data[0].mainType === constProposalMainType.PlayerConvertRewardPoints
+                            || data[0].mainType === constProposalMainType.PlayerAutoConvertRewardPoints)
+                        && (proposalTypeData.name === constProposalType.PLAYER_ADD_REWARD_POINTS
+                            || proposalTypeData.name === constProposalType.PLAYER_CONVERT_REWARD_POINTS
                             || proposalTypeData.name === constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS)){
                         dbRewardPointsLog.createRewardPointsLogByProposalData(data[0]);
                     }
@@ -457,6 +460,32 @@ var proposal = {
             .populate({path: "type", model: dbconfig.collection_proposalType})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .populate({path: "data.allowedProviders", model: dbconfig.collection_gameProvider})
+            .then(
+                proposalData => {
+                    let allProm = [];
+                    if (proposalData && proposalData.process && proposalData.process.steps) {
+                        for (let x = 0; x < proposalData.process.steps.length; x++) {
+                            let proposalProcessStepObjId = proposalData.process.steps[x];
+                            allProm.push(
+                                dbconfig.collection_proposalProcessStep.findOne({_id: proposalProcessStepObjId})
+                                    .populate({path: "department", model: dbconfig.collection_department})
+                                    .populate({path: "operator", model: dbconfig.collection_admin})
+                            );
+                        }
+                        return Q.all(allProm).then(
+                            function (processSteps) {
+                                proposalData.process.steps = [];
+                                for (let x in processSteps) {
+                                    proposalData.process.steps.push(processSteps[x]);
+                                }
+                                return proposalData;
+                            }
+                        )
+                    } else {
+                        return proposalData;
+                    }
+                }
+            )
             .then(
                 proposalData => {
                     if (proposalData && proposalData.data && proposalData.data.phone) {
@@ -1965,6 +1994,39 @@ var proposal = {
     //
     //     });
     // },
+
+    getDuplicatePlayerRealName: function (platformId, realName, index, limit, sortCol) {
+        index = index || 0;
+        sortCol = sortCol || {createTime: 1};
+        let sameRealNamePlayerCount = 0;
+
+        let sameRealNamePlayerCountProm = dbconfig.collection_players.find({platform: platformId, realName: realName}).count();
+        let sameRealNamePlayerProm = dbconfig.collection_players.find({platform: platformId, realName: realName})
+            .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+            .sort(sortCol).skip(index).limit(limit).lean();
+
+        return Promise.all([sameRealNamePlayerCountProm, sameRealNamePlayerProm]).then(
+            data => {
+                let playerIpArea = [];
+                let sameRealNamePlayerRecord = data && data[1] ? data[1] : [];
+                sameRealNamePlayerCount = data[0];
+
+                if (sameRealNamePlayerRecord && sameRealNamePlayerRecord.length > 0) {
+                    playerIpArea = proposal.getPlayerIpAreaFromRecord(platformId, sameRealNamePlayerRecord);
+                }
+
+                return Promise.all([playerIpArea]).then(
+                    data => {
+                        let duplicateRealNamePlayerList = data && data[0] ? data[0] : [];
+                        let result = {data: duplicateRealNamePlayerList, size: sameRealNamePlayerCount};
+
+                        return result;
+                    },
+                    err => {
+                        console.log(err);
+                    });
+            });
+    },
 
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
@@ -3893,11 +3955,13 @@ var proposal = {
                                 $match: {
                                     createTime: {$gte: dayStartTime, $lt: dayEndTime},
                                     type: TopupType._id,
+                                    $and: [{"data.depositMethod": {$exists: true}}, {"data.depositMethod": {$ne: ''}}, {"data.depositMethod": {$ne: null}} ],
+                                    status: 'Success'
                                 }
                             }, {
                                 $group: {
                                     _id: "$data.bankTypeId",
-                                    amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                    amount: {$sum: '$data.amount'},
                                 }
                             }
                         ).read("secondaryPreferred"));
@@ -3908,11 +3972,13 @@ var proposal = {
                                 $match: {
                                     createTime: {$gte: dayStartTime, $lt: dayEndTime},
                                     type: TopupType._id,
+                                    status: "Success",
+                                    $and: [{"data.depositMethod": {$exists: true}}, {"data.depositMethod": {$ne: ''}}, {"data.depositMethod": {$ne: null}} ]
                                 }
                             }, {
                                 $group: {
                                     _id: "$data.depositMethod",
-                                    amount: {$sum: {$cond: [{$eq: ["$status", 'Success']}, '$data.amount', 0]}},
+                                    amount: {$sum: '$data.amount'},
                                 }
                             }
                         ).read("secondaryPreferred"));
@@ -3924,7 +3990,7 @@ var proposal = {
                 return Q.all([Q.all(proms), Q.all(bankProms), Q.all(methodProms)]).then(data => {
 
                     if (type == 'ManualPlayerTopUp') {
-                        if (!data && data[0] && data[1] && data[2]) {
+                        if (!data && !data[0] && !data[1] && !data[2]) {
                             return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
                         }
                         let result = [];
@@ -3960,6 +4026,64 @@ var proposal = {
 
             }
         )
+    },
+
+    getProfitDisplayDetailByPlatform: (platformId, startDate, endDate, playerBonusType, topUpType) => {
+
+        let playerBonusProm = dbconfig.collection_proposalType.findOne({
+            platformId: ObjectId(platformId),
+            name: playerBonusType
+        }).read("secondaryPreferred").lean().then(
+            (detail) => {
+                if (!detail) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+
+                let matchObj = {
+                    createTime: {$gte: startDate, $lt: endDate},
+                    type: detail._id,
+                    status: {$in: ['Success', 'Approved']}
+                };
+
+                return dbconfig.collection_proposal.aggregate([
+                    {$match: matchObj},
+                    {
+                        $group: {
+                            _id: "$data.platformId",
+                            amount: {$sum: "$data.amount"}
+                        }
+                    }
+                ]).read("secondaryPreferred")
+
+            }
+        )
+
+        let topUpProm = dbconfig.collection_proposalType.find({
+            platformId: ObjectId(platformId),
+            name: {$in: topUpType}
+        }).read("secondaryPreferred").lean().then(
+            (detail) => {
+                if (!detail) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+
+                let typeId = detail.map( detailData => {return detailData._id});
+                let matchObj = {
+                    createTime: {$gte: startDate, $lt: endDate},
+                    type: {$in: typeId},
+                    status: {$in: ['Success', 'Approved']}
+                };
+
+                return dbconfig.collection_proposal.aggregate([
+                    {$match: matchObj},
+                    {
+                        $group: {
+                            _id: "$data.platformId",
+                            amount: {$sum: "$data.amount"}
+                        }
+                    }
+                ]).read("secondaryPreferred")
+
+            }
+        )
+
+        return Q.all([playerBonusProm,topUpProm])
     },
 
 };

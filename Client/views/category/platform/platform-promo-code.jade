@@ -31,9 +31,9 @@
                             tr
                                 th(style="width:150px") {{"ACCOUNT" | translate}}
                                 th(style="width:150px") {{"PROMO_CODE_TYPE_1" | translate}}
-                                th(style="width:100px") {{"PROMO_REWARD_AMOUNT" | translate}}
+                                th(style="width:100px") {{"PROMO_REWARD_AMOUNT_1" | translate}}
                                 th(style="width:90px") {{"PROMO_minTopUpAmount" | translate}}
-                                th(style="width:90px") {{"PROMO_CONSUMPTION" | translate}}
+                                th(style="width:90px") {{"PROMO_CONSUMPTION_1" | translate}}
                                 th(style="width:80px") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:200px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:80px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
@@ -51,11 +51,11 @@
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
                                     input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                     text {{'Yes' | translate}}
@@ -119,8 +119,8 @@
                             tr
                                 th(style="width:150px") {{"ACCOUNT" | translate}}
                                 th(style="width:150px") {{"PROMO_CODE_TYPE_2" | translate}}
-                                th(style="width:100px") {{"PROMO_REWARD_AMOUNT" | translate}}
-                                th(style="width:100px") {{"PROMO_CONSUMPTION" | translate}}
+                                th(style="width:100px") {{"PROMO_REWARD_AMOUNT_2" | translate}}
+                                th(style="width:100px") {{"PROMO_CONSUMPTION_2" | translate}}
                                 th(style="width:80px") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:200px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:80px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
@@ -138,9 +138,9 @@
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType2', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                     text {{'Yes' | translate}}
@@ -206,7 +206,7 @@
                                 th(style="width:100px") {{"PROMO_REWARD_%" | translate}}
                                 th(style="width:90px") {{"PROMO_minTopUpAmount" | translate}}
                                 th(style="width:90px") {{"PROMO_maxTopUpAmount" | translate}}
-                                th(style="width:90px") {{"PROMO_CONSUMPTION" | translate}}
+                                th(style="width:90px") {{"PROMO_CONSUMPTION_3" | translate}}
                                 th(style="width:80px") {{"SHARE_WITH_XIMA" | translate}}
                                 th(style="width:200px") {{"PROMO_DUE_DATE" | translate}}
                                 th(style="width:80px") {{"DISABLE_WITHDRAWAL_AFTER_PROMO" | translate}}
@@ -224,13 +224,13 @@
                                 td
                                     select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType3', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
                                     input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
                                     input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser", required)
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser")
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.isBlockPromoCodeUser")
                                     text {{'Yes' | translate}}
@@ -540,7 +540,7 @@
                                         input(type='text', placeholder="{{'GROUP' | translate}}", ng-model='vm.newPromoCodeUserGroup.name', required)
                                     td
                                         input(colorpicker="rgb", style="background-color:{{vm.newPromoCodeUserGroup.color}}", type="text", placeholder="{{'COLOR_CODE' | translate}}", ng-model="vm.newPromoCodeUserGroup.color", required)
-                                    td(ng-click='vm.newPromoCodeUserGroup.playerNames = []; vm.userGroupConfig.push(vm.newPromoCodeUserGroup); vm.newPromoCodeUserGroup={};')
+                                    td(ng-click='vm.newPromoCodeUserGroup.playerNames = []; vm.userGroupConfig.push(vm.newPromoCodeUserGroup); vm.newPromoCodeUserGroup = {};')
                                         i.fa.fa-plus(style="font-size:2em", ng-show='vm.newPromoCodeUserGroup.name && vm.newPromoCodeUserGroup.color')
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="!vm.promoCodeUserGroupAdd", ng-click='vm.promoCodeUserGroupAdd=!vm.promoCodeUserGroupAdd')
@@ -585,12 +585,12 @@
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled
-                                tr(ng-repeat='playerName in vm.selectedPromoCodeUserGroup.playerNames', ng-if='vm.promoCodeUserGroupPlayerEdit')
+                                tr(ng-repeat='playerName in vm.selectedPromoCodeUserGroup.playerNames track by $index', ng-if='vm.promoCodeUserGroupPlayerEdit')
                                     td {{ $index + 1 }}
                                     td(ng-if="$odd" style="background-color:#ddd")
-                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="playerName")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedPromoCodeUserGroup.playerNames[$index]")
                                     td(ng-if="$even")
-                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="playerName")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedPromoCodeUserGroup.playerNames[$index]")
                                     td(ng-if="$odd" style="background-color:#ddd")
                                         button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
                                             i.fa.fa-floppy-o

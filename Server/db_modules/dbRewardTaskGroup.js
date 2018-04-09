@@ -177,15 +177,19 @@ let dbRewardTaskGroup = {
      * @param {ObjectId} rewardTaskGroupId
      * @param {Number} incRewardAmount
      * @param {Number} incConsumptionAmount
+     * @param {ObjectId} adminId
+     * @param {String} adminName
+     * @returns {Promise}
      */
-    unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount) => {
+    unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount, adminId, adminName) => {
         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
             _id: ObjectId(rewardTaskGroupId)
         }, {
             $inc: {
                 currentAmt: -incRewardAmount,
                 curConsumption: incConsumptionAmount
-            }
+            },
+            unlockBy: adminName
         }, {
             new: true
         }).then(
@@ -195,6 +199,26 @@ let dbRewardTaskGroup = {
                 }
             }
         );
+    },
+
+    createRewardTaskGroupUnlockedRecord: (data) => {
+        let query = {
+            platformId: ObjectId(data.platformId),
+            playerId: ObjectId(data.playerId),
+            proposalNumber: data.proposalNumber,
+            topupProposalNumber: data.topupProposalNumber,
+            'rewardTask.type': data.rewardTask.type,
+            targetProviderGroup: data.targetProviderGroup,
+
+        };
+        return dbconfig.collection_rewardTaskGroupUnlockedRecord.findOne(query).lean().then( inData => {
+            if (!inData){
+                var rewardTaskGroupUnlockedRecord = new dbconfig.collection_rewardTaskGroupUnlockedRecord(data);
+                return rewardTaskGroupUnlockedRecord.save();
+            }else{
+                return;
+            }
+        })
     },
 
 

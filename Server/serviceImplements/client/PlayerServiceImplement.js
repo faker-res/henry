@@ -1013,19 +1013,25 @@ let PlayerServiceImplement = function () {
     this.getPlayerDayStatus.expectsData = 'playerId: String';
     this.getPlayerDayStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, true], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, true, data.providerIds], isValidData);
+    };
+
+    this.getPlayerAnyDayStatus.expectsData = 'playerId: String';
+    this.getPlayerAnyDayStatus.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerAnyDayStatus, [conn.playerId, data.providerIds, data.startTime], isValidData);
     };
 
     this.getPlayerWeekStatus.expectsData = '';
     this.getPlayerWeekStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, false], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerStatus, [conn.playerId, false, data.providerIds], isValidData);
     };
 
     this.getPlayerMonthStatus.expectsData = '';
     this.getPlayerMonthStatus.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerMonthStatus, [conn.playerId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerMonthStatus, [conn.playerId, data.providerIds], isValidData);
     };
 
     this.getMailList.expectsData = '';
@@ -1134,6 +1140,7 @@ let PlayerServiceImplement = function () {
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
+        let userAgentString = uaString;
 
         let lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
@@ -1157,7 +1164,7 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId);
         let phoneNumber = data.phoneNumber? data.phoneNumber: null;
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData, userAgentString], isValidData, false, false, true);
     };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);

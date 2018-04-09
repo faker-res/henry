@@ -1122,7 +1122,10 @@ var dbPlatform = {
             proms.push(
                 dbPlatform.calculatePlayerConsumptionIncentive(playerObjIds[i], eventData, proposalTypeId, startTime, endTime).then(
                     data => data,
-                    error => error
+                    error => {
+                        errorUtils.reportError(error);
+                        return error;
+                    }
                 )
             );
         }
@@ -2486,6 +2489,127 @@ var dbPlatform = {
                 promoCodeEndTime: promoCodeEndTime,
                 promoCodeIsActive: promoCodeIsActive
             }, {new: true});
+    },
+
+    createClickCountLog: (platformId, device, pageName, buttonName) => {
+        let todayTime = dbUtility.getTodaySGTime();
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}, '_id').lean().then(
+            platformObj => {
+                let clickCountObj = {
+                    platform: platformObj._id,
+                    startTime: todayTime.startTime,
+                    endTime: todayTime.endTime,
+                    device: device,
+                    pageName: pageName,
+                    buttonName: buttonName
+                };
+
+                dbconfig.collection_clickCount
+                    .update(clickCountObj, {$inc: {count: 1}}, {upsert: true})
+                    .exec()
+                    .catch(errorUtils.reportError);
+            }
+        )
+    },
+
+    getClickCountDevice: (platformId) => {
+        let matchObj = {
+            platform: platformId
+        };
+
+        return dbconfig.collection_clickCount.distinct("device", matchObj);
+    },
+
+    getClickCountPageName: (platformId) => {
+        let matchObj = {
+            platform: platformId
+        };
+
+        return dbconfig.collection_clickCount.distinct("pageName", matchObj);
+    },
+
+    getClickCountButtonName: (platformId, device, pageName) => {
+        let matchObj = {
+            platform: platformId,
+            device: device,
+            pageName: pageName
+        };
+
+        return dbconfig.collection_clickCount.distinct("buttonName", matchObj);
+    },
+
+    getClickCountAnalysis: (platformId, startDate, endDate, period, device, pageName) => {
+        let buttonGroupProms = [];
+        let dayStartTime = startDate;
+        let getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                };
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                };
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                };
+        }
+
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            let dayEndTime = getNextDate.call(this, dayStartTime);
+            let matchObj = {
+                startTime: {$gte: dayStartTime},
+                endTime: {$lte: dayEndTime},
+                device: device,
+                pageName: pageName
+            };
+            let dayStartTimeStr = dayStartTime.toString();
+            if (platformId !== 'all') {
+                matchObj.platform = platformId;
+            }
+
+            let buttonGroupProm = dbconfig.collection_clickCount.aggregate(
+                {$match: matchObj},
+                {
+                    $group: {
+                        _id: {"buttonName": "$buttonName"},
+                        total: {$sum: "$count"}
+                    }
+                }
+            ).read("secondaryPreferred").then(
+                data => {
+                    return {
+                        date: new Date(dayStartTimeStr),
+                        data: data
+                    }
+                }
+            );
+
+            buttonGroupProms.push(buttonGroupProm);
+            dayStartTime = dayEndTime;
+        }
+
+        return Promise.all([Promise.all(buttonGroupProms)]).then(
+            data => {
+                let buttonGroup = [];
+
+                if (data && data[0] instanceof Array) {
+                    buttonGroup = data[0];
+                }
+
+                return buttonGroup;
+            }
+        );
     },
 };
 

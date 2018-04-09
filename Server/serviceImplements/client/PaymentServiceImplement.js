@@ -27,7 +27,7 @@ var PaymentServiceImplement = function () {
         var isValidData = Boolean(data && data.hasOwnProperty("topupType") && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         var merchantUseType = data.merchantUseType || 1;
         var clientType = data.clientType || 1;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addOnlineTopupRequest, [data.userAgent, conn.playerId, data, merchantUseType, clientType, data.topUpReturnCode], isValidData);
     };
 
     this.getTopupList.expectsData = '[startIndex]: Number, [requestCount]: Number';
@@ -120,7 +120,7 @@ var PaymentServiceImplement = function () {
             data.userAgent = userAgent;
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.depositMethod && Number.isInteger(data.amount) && data.amount < 10000000);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT"], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerTopUpRecord.addManualTopupRequest, [data.userAgent, conn.playerId, data, "CLIENT", false, false, false, data.bPMSGroup, data.topUpReturnCode], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -153,7 +153,7 @@ var PaymentServiceImplement = function () {
         }
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount) && data.amount < 10000000);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount,
-            data.bonusCode, "CLIENT", null, null, null, null, data.realName, data.limitedOfferObjId], isValidData);
+            data.bonusCode, "CLIENT", null, null, null, null, data.realName, data.limitedOfferObjId, data.topUpReturnCode], isValidData);
     };
 
     this.requestWechatTopup.expectsData = 'amount: Number|String';
@@ -355,6 +355,18 @@ var PaymentServiceImplement = function () {
     this.isFirstTopUp.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.isPlayerFirstTopUp, [conn.playerId], isValidData);
+    };
+
+    this.requestBankTypeByUserName.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(conn.playerId && data && data.clientType);
+        let userIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                userIp = forwardedIp[0].trim();
+            }
+        }
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.requestBankTypeByUserName, [conn.playerId, data.clientType, userIp], isValidData);
     };
 
 };

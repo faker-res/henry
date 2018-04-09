@@ -14,6 +14,7 @@ const constPromoCodeLegend = require("../const/constPromoCodeLegend.js");
 const constMessageType = require("../const/constMessageType.js");
 const assert = require('assert');
 const moment = require('moment-timezone');
+const localization = require("../modules/localization").localization;
 const messageDispatcher = {
 
     /**
@@ -151,7 +152,7 @@ const messageDispatcher = {
                     contentToReplace = metaData.expirationTime;
                     break;
                 case "P":
-                    contentToReplace = metaData.allowedProviders;
+                    contentToReplace = metaData.allowedProviders || localization.translate("ALL_PROVIDERS");
                     break;
                 case "Q":
                     contentToReplace = metaData.code;
@@ -198,8 +199,10 @@ const messageDispatcher = {
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardAmount}}', metaData.proposalData.data.rewardAmount.toFixed(2));
             if(metaData.proposalData.data.amount)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.amount}}', metaData.proposalData.data.amount.toFixed(2));
+            if(metaData.proposalData.data.lastSettleTime)
+                // the time when the withdrawal request is approved
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.lastSettleTime}}', moment(metaData.proposalData.data.lastSettleTime).format("YYYY/MM/DD HH:mm:ss"));
         }
-        
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },

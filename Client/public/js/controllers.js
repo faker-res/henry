@@ -8,6 +8,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
     // }
 
+    let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
+    let $roundToTwoDecimalPlacesString = $filter('roundToTwoDecimalPlacesString');
     //set up socket service
     socketService.authService = authService;
     socketService.curScope = $scope;
@@ -83,7 +85,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         // }, 1000000);
 
         $scope.AppSocket.on('connect', function () {
-            $scope.$broadcast('socketConnected', 'socketConnected');
+            // $scope.$broadcast('socketConnected', 'socketConnected');
             console.log('Management server connected');
             initPage();
             authService.getAllActions($scope.AppSocket, function () {
@@ -396,15 +398,27 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.selectPlatformNode = function (node, option) {
         $scope.selectedPlatform = node;
         $scope.curPlatformText = node.text;
-        authService.updatePlatform($cookies, node.text)
+        authService.updatePlatform($cookies, node.text);
         console.log("$scope.selectedPlatform", node.text);
         $cookies.put("platform", node.text);
         if (option && !option.loadAll) {
             $scope.safeApply();
             return;
         }
-
+        loadProfitDetail();
         $scope.$broadcast('switchPlatform');
+        $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
+    };
+
+    $scope.fontSizeAdaptive = function(element){
+        element.style.fontSize = '20px';
+        let parentWidth = parseInt(window.getComputedStyle(element.parentElement).width);
+        let elemWidth = parseInt(window.getComputedStyle(element).width);
+        elemWidth = isNaN(elemWidth) ? 0 : elemWidth;
+    
+        if (elemWidth > parentWidth-50){
+            element.style.fontSize = '16px';
+        }
     };
 
     // From: https://davidwalsh.name/javascript-debounce-function
@@ -493,15 +507,16 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         1: "网银转账(Online Transfer)",
         2: "自动取款机(ATM)",
         3: "银行柜台(Counter)",
-        4: "网银跨行(InterBank Transfer)",
-        5: "支付宝(AliPay)"
+        4: "支付宝转账(AliPay Transfer)",
+        5: "微信转帐(WeChatPay Transfer)"
     };
 
     $scope.depositMethodList = {
         Online: 1,
         ATM: 2,
         Counter: 3,
-        AliPayTransfer: 4
+        AliPayTransfer: 4,
+        weChatPayTransfer: 5
     };
 
     $scope.merchantTargetDeviceJson = {
@@ -656,7 +671,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "POINT_REDUCTION",
         5: "POINT_INCREMENT",
         6: "EARLY_POINT_CONVERSION",
-        7: "PERIOD_POINT_CONVERSION"
+        7: "PERIOD_POINT_CONVERSION",
+        8: "POINT_REDUCTION_CANCELLED",
+        9: "EARLY_POINT_CONVERSION_CANCELLED",
+        10: "PERIOD_POINT_CONVERSION_CANCELLED"
     };
 
     $scope.constRewardPointsLogStatus = {
@@ -838,7 +856,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             // let url = "http://eu.tel400.me/cti/previewcallout.action";//http://101.78.133.213/cti/previewcallout.action";
 
             let urls = ["http://eu.tel400.me/cti/previewcallout.action", "http://jinbailitw.tel400.me/cti/previewcallout.action", "http://jinbailicro.tel400.me/cti/previewcallout.action",
-                "http://xindelitz.tel400.me/cti/previewcallout.action", "http://bbet8.tel400.me/cti/previewcallout.action", "http://b8a.tel400.me/cti/previewcallout.action"];
+                "http://b8a.tel400.me/cti/previewcallout.action", "http://bbet8.tel400.me/cti/previewcallout.action", "http://xindelitz.tel400.me/cti/previewcallout.action"];
 
             if (platformId == '6') {
                 let jblUrl = urls[2];
@@ -852,8 +870,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 urls[3] = urls[1];
                 urls[1] = xdlUrl;
             } else if (platformId == '8') {
-                let jshUrl = urls[5];
-                urls[5] = urls[0];
+                let jshUrl = urls[3];
+                urls[3] = urls[0];
                 urls[0] = jshUrl;
             }
 
@@ -861,7 +879,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
             function performPhoneCall(triedTimes) {
                 triedTimes = triedTimes || 0;
-                if (triedTimes >= urls.length) return;
+                if (triedTimes >= urls.length) {
+                    alert("呼叫失败。。。");
+                    return;
+                }
                 let nextTriedTimes = triedTimes + 1;
                 let url = urls[triedTimes];
 
@@ -872,57 +893,99 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
                 let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
 
-                $.ajax({
-                    url: urlWithParams,
-                    dataType: "jsonp",
-                    type: "get",
-                    success: function (e) {
-                        console.log("ok", e);
-                        //{“result”:”1”}
+
+                socketService.$socket($scope.AppSocket, 'callTel400', {url: urlWithParams},
+                    function(res){
+                        console.log(res);
                         // 1：成功
                         // -1：失败，入参的参数不合法
                         // -2：失败，坐席工号不存在
                         // -3：失败，密码错误
                         // -4：失败，系统错误
                         // -5: 失败，URL错误
-                        if (e.result && e.result == "1") {
+                        if (res && res.data && res.data.result == "1") {
                             alert("正在呼叫。。。");
                         }
-                        else if (e.result && e.result == "-1") {
-                            alert("失败，入参的参数不合法。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else if (e.result && e.result == "-2") {
-                            alert("失败，坐席工号不存在。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else if (e.result && e.result == "-3") {
-                            alert("失败，密码错误。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else if (e.result && e.result == "-4") {
-                            alert("失败，系统错误。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else if (e.result && e.result == "-5") {
-                            alert("失败，URL错误。");
-                            performPhoneCall(nextTriedTimes);
-                        }
                         else {
-                            alert("失败，Uknown错误。" + e);
                             performPhoneCall(nextTriedTimes);
                         }
                     },
-                    error: function (e) {
-                        console.log("error", e);
-                        if (e && e.status == 200) {
-                            alert("正在呼叫。。。");
-                        } else {
-                            alert("呼叫超时请重试");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                    }
-                });
+                    function(error){
+                        console.error(error);
+                        performPhoneCall(nextTriedTimes);
+                    },
+                    true
+                );
+
+                // let xhttp = new XMLHttpRequest();
+                // xhttp.onreadystatechange = function() {
+                //     if (this.readyState == 4 && this.status == 200) {
+                //         // Typical action to be performed when the document is ready:
+                //         console.log(xhttp.responseText);
+                //     }
+                // };
+                // xhttp.open("GET", urlWithParams, true);
+                // xhttp.setRequestHeader("Access-Control-Allow-Origin", "*")
+                // xhttp.send();
+
+                // $.ajax({
+                //     url: urlWithParams,
+                //     // contentType: "application/json; charset=utf-8",
+                //     dataType: "text",
+                //     type: "get",
+                //     success: function (e) {
+                //         console.log("ok", e);
+                //         //{“result”:”1”}
+                //         // 1：成功
+                //         // -1：失败，入参的参数不合法
+                //         // -2：失败，坐席工号不存在
+                //         // -3：失败，密码错误
+                //         // -4：失败，系统错误
+                //         // -5: 失败，URL错误
+                //         if (e.result && e.result == "1") {
+                //             alert("正在呼叫。。。");
+                //         }
+                //         else if (e.result && e.result == "-1") {
+                //             alert("失败，入参的参数不合法。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else if (e.result && e.result == "-2") {
+                //             alert("失败，坐席工号不存在。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else if (e.result && e.result == "-3") {
+                //             alert("失败，密码错误。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else if (e.result && e.result == "-4") {
+                //             alert("失败，系统错误。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else if (e.result && e.result == "-5") {
+                //             alert("失败，URL错误。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else {
+                //             alert("失败，Uknown错误。" + e);
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //     },
+                //     error: function (xhr,status,error) {
+                //         console.log("error", error);
+                //         console.log("error", xhr.responseText);
+                //         console.log("error", xhr.responseJSON);
+                //         if (error && error.result != "1") {
+                //             alert("正在呼叫。。。");
+                //             // alert("再次呼叫。。。");
+                //             // performPhoneCall(nextTriedTimes);
+                //         } else {
+                //             alert("正在呼叫。。。");
+                //         }
+                //     },
+                //     complete: function (xhr,status,e) {
+                //         console.log("error", xhr);
+                //     }
+                // });
             }
 
             // urls.forEach(
@@ -1466,5 +1529,106 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))
+
+    var callBackTimeOut;
+    var profileDetailTimeOut;
+    function loadProfitDetail() {
+        clearTimeout(callBackTimeOut);
+        clearTimeout(profileDetailTimeOut);
+        console.log("Update the ProfitDisplayingTable")
+        let queryDone = [false, false, false, false];
+        let sendData = {
+            platformId: $scope.selectedPlatform.id,
+            startDate: utilService.getTodayStartTime(),
+            endDate: utilService.getTodayEndTime(),
+        };
+
+        let sendData1 = {};
+        Object.assign(sendData1, sendData);
+        sendData1.topUpType = ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'];
+        sendData1.playerBonusType = 'PlayerBonus';
+
+        socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData1, function (data) {
+
+            $scope.$evalAsync(() => {
+                $scope.profitDetailIncome = 0;
+                $scope.profitDetailBonusAmount =  0;
+                $scope.profitDetailTopUpAmount = 0;
+
+                let bonusAmount = data.data[0][0] != undefined ? data.data[0][0].amount : 0;
+                let topUpAmount = data.data[1][0] != undefined ? data.data[1][0].amount : 0;
+
+                $scope.profitDetailIncome = $roundToTwoDecimalPlacesString(topUpAmount - bonusAmount);
+                $scope.profitDetailBonusAmount =  $roundToTwoDecimalPlacesString(bonusAmount);
+                $scope.profitDetailTopUpAmount = $roundToTwoDecimalPlacesString(topUpAmount);
+
+                let sendData3 = {
+                    platformId: $scope.selectedPlatform.id,
+                    startDate: utilService.getThisMonthStartTime(),
+                    endDate: utilService.getThisMonthEndTime(),
+                    topUpType: ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'],
+                    playerBonusType: 'PlayerBonus'
+                };
+
+                socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData3, function (totalAmount) {
+
+                    $scope.$evalAsync(() => {
+                        $scope.netProfitDetailIncome = 0;
+
+                        let totalBonusAmount = totalAmount.data[0][0] != undefined ? totalAmount.data[0][0].amount : 0;
+                        let totalTopUpAmount = totalAmount.data[1][0] != undefined ? totalAmount.data[1][0].amount : 0;
+
+                        $scope.netProfitDetailIncome = $roundToTwoDecimalPlacesString(totalTopUpAmount - totalBonusAmount);
+
+                        queryDone[3] = true;
+                    })
+                });
+
+                queryDone[0] = true;
+            })
+        });
+
+
+        socketService.$socket($scope.AppSocket, 'getPlayerConsumptionDetailByPlatform', sendData, function success(data) {
+            $scope.$evalAsync(() => {
+
+                let consumptionAmount = data.data[0] != undefined ? data.data[0].totalAmount : 0;
+                $scope.profitDetailConsumptionAmount = $roundToTwoDecimalPlacesString(consumptionAmount);
+                $scope.profitDetailConsumptionPlayer = data.data[0] != undefined ? data.data[0].userIds.length.toLocaleString() : 0;
+                queryDone[1] = true;
+            })
+        });
+
+        let sendData2 = {
+            platform: $scope.selectedPlatform.id,
+            startDate: utilService.getTodayStartTime(),
+            endDate: utilService.getTodayEndTime(),
+        };
+
+        socketService.$socket($scope.AppSocket, 'countNewPlayers', sendData2, function success(data) {
+            $scope.$evalAsync(() => {
+
+                $scope.profitDetailNewPlayer = data.data[0] != undefined ? data.data[0].number.toLocaleString() : 0;
+
+                queryDone[2] = true;
+            })
+        });
+
+        callback();
+
+        function callback() {
+
+            if (queryDone[0] && queryDone[1] && queryDone[2] && queryDone[3] ){
+                profileDetailTimeOut = setTimeout(loadProfitDetail, 60000);
+                return profileDetailTimeOut; // update every minute
+            }
+            else{
+                callBackTimeOut = setTimeout(callback, 30000);
+                return callBackTimeOut;
+            }
+        }
+
+
+    }
 
 });

@@ -26,18 +26,25 @@ var dbQualityInspection = {
         let dbResult = null;
         let mongoDataCount = 0;
         console.log(query);
-        if (query.companyId&&query.companyId.length > 0) {
-            let companyId = query.companyId.join(',');
-            queryObj += " company_id IN (" + companyId + ") AND ";
-        }
+
         if (query.operatorId && query.operatorId.length > 0) {
             if(Array.isArray(query.operatorId)){
                 operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                companyId = dbQualityInspection.splitOperatorIdByCompanyId(query.operatorId)
             }else{
                 operatorId = query.operatorId;
             }
+
             if(operatorId!='all'){
                 queryObj += " operator_name IN (" + operatorId + ") AND ";
+            }
+
+            queryObj += " company_id IN (" + companyId + ") AND ";
+            query.companyId = companyId;
+        }else{
+            if (query.companyId && query.companyId.length > 0) {
+                companyId = query.companyId.join(',');
+                queryObj += " company_id IN (" + companyId + ") AND ";
             }
         }
 
@@ -79,6 +86,18 @@ var dbQualityInspection = {
             })
         }
     },
+    getTotalNumberOfAppealingRecord: function(){
+        return dbconfig.collection_qualityInspection.find({status: constQualityInspectionStatus.APPEALING}).count();
+
+    },
+    getTotalNumberOfAppealingRecordByCS: function(adminId){
+        let query = {
+            status: constQualityInspectionStatus.APPEALING,
+            fpmsAcc: adminId
+        }
+
+        return dbconfig.collection_qualityInspection.find(query).count();
+    },
     splitOperatorId:function(operatorIdArr){
         let results = [];
         let resultTXT = '';
@@ -89,6 +108,14 @@ var dbQualityInspection = {
         });
         resultTXT = results.join(',');
         return resultTXT;
+    },
+    splitOperatorIdByCompanyId:function(operatorIdArr){
+        let results = [];
+        operatorIdArr.forEach(item=>{
+            let companyId = dbQualityInspection.splitLive800AccForCompanyID(item);
+            results.push(companyId);
+        });
+        return results;
     },
     splitLive800Acc:function(acc){
         let mysqlAccName = '';
@@ -101,26 +128,42 @@ var dbQualityInspection = {
         }
         return mysqlAccName
     },
+    splitLive800AccForCompanyID:function(acc){
+        let mysqlAccName = '';
+        let accArr = acc.split('-');
+
+        if(accArr.length  == 2) {
+            mysqlCompanyId = String(accArr[0]);
+
+            return mysqlCompanyId
+        }
+    },
     searchLive800: function (query) {
         let conversationForm = [];
         let queryObj = "";
-
         let operatorId = null;
+        let companyId = null;
         let paginationQuery = '';
         console.log(query);
 
-        if (query.companyId&&query.companyId.length > 0) {
-            let companyId = query.companyId.join(',');
-            queryObj += " company_id IN (" + companyId + ") AND ";
-        }
         if (query.operatorId && query.operatorId.length > 0) {
             if(Array.isArray(query.operatorId)){
                 operatorId = dbQualityInspection.splitOperatorId(query.operatorId);
+                companyId = dbQualityInspection.splitOperatorIdByCompanyId(query.operatorId)
             }else{
                 operatorId = query.operatorId;
             }
+
             if(operatorId!='all'){
                 queryObj += " operator_name IN (" + operatorId + ") AND ";
+            }
+
+            queryObj += " company_id IN (" + companyId + ") AND ";
+            query.companyId = companyId;
+        }else{
+            if (query.companyId && query.companyId.length > 0) {
+                companyId = query.companyId.join(',');
+                queryObj += " company_id IN (" + companyId + ") AND ";
             }
         }
 
@@ -223,6 +266,7 @@ var dbQualityInspection = {
     searchMongoDB:function(query){
         let deferred = Q.defer();
         let queryQA = {};
+        let operatorRegList = [];
         if (query.status){
             queryQA.status = query.status;
         }
@@ -237,7 +281,11 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(query.operatorId!='all'){
-                queryQA['live800Acc.id'] = { '$in':query.operatorId}
+                query.operatorId.forEach( op => {
+                    operatorRegList.push(new RegExp("^" + op, "i"));
+                });
+
+                queryQA['live800Acc.id'] = { '$in':operatorRegList}
             }
         }
         if(query.companyId && query.companyId.length > 0 ){
@@ -277,6 +325,7 @@ var dbQualityInspection = {
     countMongoDB: function(query, mysqlProm){
         let deferred = Q.defer();
         let queryQA = {};
+        let live800AccReg = [];
         if (query.startTime && query.endTime) {
             queryQA.createTime = {'$lte':new Date(query.endTime),
                 '$gte': new Date(query.startTime)}
@@ -288,7 +337,10 @@ var dbQualityInspection = {
         }
         if (query.operatorId && query.operatorId.length > 0) {
             if(query.operatorId!='all'){
-                queryQA['live800Acc.id'] = { '$in':query.operatorId}
+                query.operatorId.forEach(id => {
+                    live800AccReg.push(new RegExp("^" + id, "i"));
+                });
+                queryQA['live800Acc.id'] = { '$in':live800AccReg}
             }
         }
         if(query.companyId && query.companyId.length > 0 ){
@@ -324,17 +376,22 @@ var dbQualityInspection = {
                         return sqlItem.messageId == item.messageId;
                     });
                     if (mysqlCV.length > 0) {
-                        let conversation = mysqlCV[0].conversation;
-                        item.conversation.forEach(cv => {
-                            let overrideCV = conversation.filter(mycv => {
-                                return cv.time == mycv.time;
-                            });
-                            if (overrideCV.length > 0) {
-                                let roles = overrideCV[0].roles;
-                                cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
-                                cv.content = overrideCV[0].content;
+                        mysqlCV.forEach(conversation => {
+                            if(conversation &&  conversation.companyId && conversation.operatorName && item && item.companyId && item.live800Acc && item.live800Acc.name &&
+                                conversation.companyId == item.companyId && conversation.operatorName == item.live800Acc.name){
+                                item.conversation.forEach(cv => {
+                                    let overrideCV = conversation.conversation.filter(mycv => {
+                                        return cv.time == mycv.time
+                                    })
+
+                                    if(overrideCV.length > 0){
+                                        let roles = overrideCV[0].roles;
+                                        cv.roleName = roles ? constQualityInspectionRoleName[roles]:'';
+                                        cv.content = overrideCV[0].content;
+                                    }
+                                })
                             }
-                        })
+                        });
                     }
                     combineData.push(item);
                 });
@@ -349,8 +406,8 @@ var dbQualityInspection = {
         let platformProm = dbconfig.collection_platform.find().lean();
         Q.all([sqlResult, platformProm]).then(queryResult => {
 
-            results = queryResult[0];
-            platforms = queryResult[1];
+            let results = queryResult[0];
+            let platforms = queryResult[1];
             let msgIds = [];
             if(results.length == 0){
                 deferred.resolve([]);
@@ -377,6 +434,8 @@ var dbQualityInspection = {
                         dData.messageId = item.msg_id;
                         let conversation = dbQualityInspection.conversationReformat(item.content);
                         dData.conversation = conversation;
+                        dData.companyId = item.company_id;
+                        dData.operatorName = item.operator_name;
                         reformatData.push(dData);
                     });
                     let cv = {
@@ -427,29 +486,12 @@ var dbQualityInspection = {
 
             //calculate each CS/ Customer Conversation
             cv.conversation.forEach(cItem => {
-                if (!firstCV && cItem.roles == 2) {
-                    firstCV = cItem;
-                    lastCustomerCV = cItem;
-                    customerCVCount += 1;
-                } else {
-                    if (cItem.roles == 2) {
-                        // keep the last customer question , to calculate the timeoutRate
-                        if (lastCV.roles == 1) {
-                            lastCustomerCV = cItem;
-                            customerCVCount += 1;
-                        }
-                    } else if (cItem.roles == 1 && lastCustomerCV) {
 
-                        if (lastCV.roles == 1) {
-                            // if that's cs conversation before it, no need to rate again.
-                        } else if (lastCV.roles != 1) {
-                            // calculate the timeoutRate
-                            csCVCount += 1;
-                        }
-                    } else {
-                    }
+                if(cItem.roles == 1){
+                    csCVCount += 1;
+                }else if(cItem.roles == 2){
+                    customerCVCount += 1;
                 }
-                lastCV = cItem;
             });
 
             if (customerCVCount < conversationDefinition.askingSentence) {
@@ -500,16 +542,19 @@ var dbQualityInspection = {
         connection.connect();
         Q.all(mongoData).then(mg=> {
             let mgData = [];
-            mg.forEach(item => {
-                mgData.push(item.messageId);
-            })
-            let mgDataStr = "";
             let excludeMongoQuery = "";
-            if(mgData.length > 0){
-                mgDataStr = mgData.join(',');
-                excludeMongoQuery = " AND msg_id NOT IN ("+mgDataStr+")";
+            let contentInfoList = "";
+            mg.forEach(item => {
+                if(item){
+                    contentInfoList += "('" + item.messageId + "','" + item.live800Acc.name + "'),";
+                }
+            })
 
+            if(contentInfoList && contentInfoList.length > 0){
+                contentInfoList = contentInfoList && contentInfoList.length > 0 ? contentInfoList.substring(0,contentInfoList.length - 1) : contentInfoList;
+                excludeMongoQuery = " AND (msg_id,operator_name) NOT IN (" + contentInfoList + ")";
             }
+
             console.log("SELECT * FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery);
             connection.query("SELECT store_time,company_id,msg_id,operator_id,operator_name,content FROM chat_content WHERE " + queryObj + excludeMongoQuery + paginationQuery, function (error, results, fields) {
                 if (error) {
@@ -648,6 +693,9 @@ var dbQualityInspection = {
         if (platform.overtimeSetting) {
 
             let overtimeSetting = platform.overtimeSetting;
+            overtimeSetting.sort(function (a, b) {
+                return a.conversationInterval - b.conversationInterval
+            })
             conversation.forEach(item => {
                 if (!firstCV && item.roles == 2) {
                     firstCV = item;
@@ -687,7 +735,7 @@ var dbQualityInspection = {
                     timeoutRate = overtimeSetting[0].presetMark;
                 }
             }else if(i==otsLength){
-                if(sec >= overtimeSetting[otsLength].conversationInterval){
+                if(sec >= overtimeSetting[i - 1].conversationInterval){
                     timeoutRate = overtimeSetting[i].presetMark;
                 }
             }else{
@@ -795,7 +843,7 @@ var dbQualityInspection = {
             status: constQualityInspectionStatus.COMPLETED_UNREAD,
             fpmsAcc: adminId
         }
-        let unreadEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        let unreadEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).sort({createTime: -1}).then(
             unreadEvaluationData => {
                 if(unreadEvaluationData && unreadEvaluationData.length > 0){
                     //let dbResult = dbQualityInspection.searchMongoDB(query);
@@ -874,7 +922,7 @@ var dbQualityInspection = {
             status: constQualityInspectionStatus.COMPLETED_READ,
             fpmsAcc: adminId
         }
-        let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        let readEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).sort({createTime: -1}).then(
             readEvaluationData => {
                 if(readEvaluationData && readEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -932,7 +980,7 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).sort({createTime: -1}).then(
             appealEvaluationData => {
                 if(appealEvaluationData && appealEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -991,7 +1039,7 @@ var dbQualityInspection = {
             query.status = {$in: [constQualityInspectionStatus.APPEALING, constQualityInspectionStatus.APPEAL_COMPLETED]};
         }
 
-        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).then(
+        let appealEvaluationRecord = dbconfig.collection_qualityInspection.find(query).lean().skip(index).limit(size).sort({createTime: -1}).then(
             appealEvaluationData => {
                 if(appealEvaluationData && appealEvaluationData.length > 0){
                     let queryToSearchFromMySQL = {
@@ -1093,6 +1141,83 @@ var dbQualityInspection = {
             }
         );
     },
+    getWorkloadReportByDate: function(startTime, endTime, qaName){
+
+        let proms =[];
+        let dayStartTime = new Date (startTime);
+
+        let getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+        }
+
+        while (dayStartTime.getTime() < new Date(endTime).getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+
+            let query ={
+                createTime: {
+                    $gte: dayStartTime,
+                    $lt: dayEndTime
+                },
+            }
+
+            proms.push(dbconfig.collection_admin.findOne({adminName: qaName}).then( adminInfo => {
+                if (adminInfo){
+                    query.qualityAssessor = ObjectId(adminInfo._id)
+                    return dbconfig.collection_qualityInspection.aggregate(
+                        {
+                            $match: query
+                        }, {
+                            "$group": {
+                                "_id": {
+                                    "qualityAssessor": "$qualityAssessor",
+                                    "status": "$status"
+                                },
+                                "count": {"$sum": 1},
+                            }
+                        }
+                    ).read("secondaryPreferred");
+
+                }
+            }));
+
+            dayStartTime = dayEndTime;
+        }
+
+        return Q.all([Q.all(proms)]).then(data => {
+
+            if (!data[0]) {
+                return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
+            }
+
+            let tempDate = new Date(startTime);
+
+            let res = [];
+
+            data[0].forEach(item => {
+                if (item && item.length > 0){
+                    let statusList = [];
+                    item.forEach( itemDetail => {
+                        if (itemDetail){
+                            statusList.push(itemDetail);
+                        }
+                    });
+
+                    let obj = {
+                        date: tempDate,
+                        //qaAccount: item[0].qualityAssessor,
+                        data: statusList,
+                    }
+
+                    res.push(obj);
+                }
+                tempDate = getNextDate(tempDate);
+            });
+
+            return res;
+        });
+    },
 
     getAdminNameById: function(workloadResultArr){
         //let returnedAdminData = {};
@@ -1160,15 +1285,20 @@ var dbQualityInspection = {
     rateBatchConversation: function(cvs, accName){
         var deferred = Q.defer();
         let proms = [];
+        let live800AccReg = null;
         cvs.batchData.forEach(uItem=>{
-            let query = { 'live800Acc': {$in: [uItem.live800Acc.id]} };
+            if(uItem && uItem.live800Acc && uItem.live800Acc.id) {
+                live800AccReg = new RegExp("^" + uItem.live800Acc.id, "i")
+            }
+
+            let query = { 'live800Acc': live800AccReg};
             let prom = dbconfig.collection_admin.findOne(query).then(
                 item=>{
                     let adminName = item ? item._id:null;
                     return adminName
                 })
                 .then(udata=>{
-                    return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId}).then(qaData => {
+                    return dbconfig.collection_qualityInspection.find({messageId: uItem.messageId, "live800Acc.name": new RegExp("^" + uItem.live800Acc.name, "i")}).then(qaData => {
                         delete uItem.statusName;
                         uItem.qualityAssessor = accName;
                         uItem.processTime = Date.now();
@@ -1229,17 +1359,27 @@ var dbQualityInspection = {
 
         })
         .then(udata=>{
-            return dbconfig.collection_qualityInspection.find({messageId: data.messageId}).then(qaData => {
+            return dbconfig.collection_qualityInspection.find({messageId: data.messageId, "live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")}).then(qaData => {
                 delete data.statusName;
                 data.qualityAssessor = adminId;
                 data.processTime = Date.now();
                 data.fpmsAcc = udata;
-                data.status = constQualityInspectionStatus.COMPLETED_UNREAD;
+
+                if(data.status == constQualityInspectionStatus.APPEALING){
+                    data.status = constQualityInspectionStatus.APPEAL_COMPLETED;
+                }else{
+                    data.status = constQualityInspectionStatus.COMPLETED_UNREAD;
+                }
+
                 if (qaData.length == 0) {
                     return dbconfig.collection_qualityInspection(data).save();
                 }else{
+                    if(data && data._id){
+                        delete data._id;
+                    }
+                    
                     dbconfig.collection_qualityInspection.findOneAndUpdate(
-                        {messageId: data.messageId},
+                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
                         data
                     ).then(data=>{
                         console.log(data);
@@ -1300,9 +1440,8 @@ var dbQualityInspection = {
                                                 live800SummarizeRecord.map(l => {
                                                     if(l && l._id && l._id.date){
                                                         let startTime = new Date(l._id.date);
-                                                        let endTime = new Date();
+                                                        let endTime = new Date(l._id.date);
                                                         endTime.setHours(23, 59, 59, 999);
-                                                        endTime.setDate(l._id.date.getDate());
 
                                                         let queryToGetQIRecord = {
                                                             createTime: {
@@ -1311,7 +1450,7 @@ var dbQualityInspection = {
                                                             },
                                                             companyId: {$in: p.live800CompanyId}
                                                         }
-
+                                                        
                                                         let calculatedData = dbconfig.collection_qualityInspection.find(queryToGetQIRecord).count().then(
                                                             qualityInspectionCount => {
                                                                 let isCompleted = false;
@@ -1429,13 +1568,25 @@ var dbQualityInspection = {
 
     },
     splitOperatorIdToArray:function(operatorIdArr){
-        let results = [];
+        let operatorRes = [];
+        let operatorList = [];
+        let companyIdRes = [];
         operatorIdArr.forEach(item=>{
             let operator = dbQualityInspection.splitLive800Acc(item);
-            results.push(operator);
+            let companyId = dbQualityInspection.splitLive800AccForCompanyID(item);
+            if (!operatorList.includes(operator)){
+                operatorList.push(operator);
+            }
+            if (!companyIdRes.includes(companyId)){
+                companyIdRes.push(companyId);
+            }
         });
 
-        return results;
+        operatorList.forEach( op => {
+            operatorRes.push(new RegExp("^" + op, "i"));
+        });
+
+        return [operatorRes, companyIdRes];
     },
     searchLive800SettlementRecord: function (data) {
         if (data) {
@@ -1443,16 +1594,17 @@ var dbQualityInspection = {
             let ProgressStatusProm;
             let ProgressMarkProm;
             let operatorName = [];
+            let companyId = [];
             if (data.operatorId && data.operatorId.length > 0) {
                 if (Array.isArray(data.operatorId)) {
-                    operatorName = dbQualityInspection.splitOperatorIdToArray(data.operatorId);
+                    [operatorName, companyId] = dbQualityInspection.splitOperatorIdToArray(data.operatorId);
                 }
             }
 
-            if (data.companyId.length != 0 && operatorName.length != 0) {
-                summaryProm = dbQualityInspection.getLive800RecordDaySummary(data.companyId, operatorName, data.startTime, data.endTime);
-                ProgressStatusProm = dbQualityInspection.getProgressReportStatusByOperator(data.companyId, operatorName, data.startTime, data.endTime);
-                ProgressMarkProm = dbQualityInspection.getProgressReportMarksByOperator(data.companyId, operatorName, data.startTime, data.endTime);
+            if (companyId.length != 0 && operatorName.length != 0) {
+                summaryProm = dbQualityInspection.getLive800RecordDaySummary(companyId, operatorName, data.startTime, data.endTime);
+                ProgressStatusProm = dbQualityInspection.getProgressReportStatusByOperator(companyId, operatorName, data.startTime, data.endTime);
+                ProgressMarkProm = dbQualityInspection.getProgressReportMarksByOperator(companyId, operatorName, data.startTime, data.endTime);
             }
             else {
                 summaryProm = dbQualityInspection.getAllLive800RecordDaySummary(data.startTime, data.endTime);
@@ -1708,6 +1860,240 @@ var dbQualityInspection = {
         })
     },
 
+    searchLive800SettlementRecordByDate: function (data) {
+        if (data) {
+            let summaryProm;
+            let ProgressStatusProm;
+            let ProgressMarkProm = [];
+            let operatorName = [];
+            let companyId = [];
+            if (data.operatorId && data.operatorId.length > 0) {
+                if (Array.isArray(data.operatorId)) {
+                    [operatorName, companyId] = dbQualityInspection.splitOperatorIdToArray(data.operatorId);
+                }
+            }
+
+            if (companyId.length != 0 && operatorName.length != 0) {
+                summaryProm = dbQualityInspection.getLive800RecordDaySummaryByDate(companyId, operatorName, data.startTime, data.endTime);
+                ProgressStatusProm = dbQualityInspection.getProgressReportStatusByOperatorByDate(companyId, operatorName, data.startTime, data.endTime);
+                ProgressMarkProm = dbQualityInspection.getProgressReportMarksByOperatorByDate(companyId, operatorName, data.startTime, data.endTime);
+                return Q.all([summaryProm,ProgressStatusProm,ProgressMarkProm]);
+            }
+            else{
+                return Q.reject({name: "DBError", message: "operatorID cannot be found"})
+            }
+
+        }
+    },
+    getLive800RecordDaySummaryByDate: function (companyId,operatorName,startTime,endTime) {
+
+        let proms =[];
+        let dayStartTime = new Date (startTime);
+
+        let getNextDate = function (date) {
+                    let newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+        }
+
+        while (dayStartTime.getTime() < new Date(endTime).getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+
+            let matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                companyId: {$in: companyId},
+                "live800Acc.name": {$in: operatorName}
+            };
+
+            proms.push(dbconfig.collection_live800RecordDaySummary.aggregate(
+                {
+                    $match: matchObj
+                }, {
+                    $group: {
+                        "_id": {
+                            "companyId": "$companyId",
+                            "operatorName": "$live800Acc.name",
+                        },
+                        "totalCount": {$sum: "$totalRecord"},
+                        "totalEffectiveCount": {$sum:"$effectiveRecord"},
+                        "totalNonEffectiveCount":{$sum: "$nonEffectiveRecord"},
+                    }
+                }
+            ).read("secondaryPreferred"));
+
+            dayStartTime = dayEndTime;
+        }
+
+        return Q.all([Q.all(proms)]).then(data => {
+
+            if (!data[0]) {
+                return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
+            }
+
+            let tempDate = new Date(startTime);
+
+            let res = [];
+
+            data[0].forEach(item => {
+                if (item[0] != null){
+                    let obj = {
+                        date: tempDate,
+                        companyId:  item[0]._id.companyId,
+                        operatorId: item[0]._id.companyId + "-" + item[0]._id.operatorName,
+                        totalCount: item[0].totalCount,
+                        totalEffectiveCount: item[0].totalEffectiveCount,
+                        totalNonEffectiveCount: item[0].totalNonEffectiveCount
+                    }
+
+                    res.push(obj);
+                }
+                tempDate = getNextDate(tempDate);
+            });
+
+            return res;
+        });
+    },
+    getProgressReportMarksByOperatorByDate: function (companyId,operatorName,startTime,endTime) {
+
+
+        let proms =[];
+        let dayStartTime = new Date (startTime);
+
+        let getNextDate = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setDate(newDate.getDate() + 1));
+        }
+
+        while (dayStartTime.getTime() < new Date(endTime).getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+            let matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                companyId: {$in: companyId},
+                "live800Acc.name": {$in: operatorName}
+            };
+
+            proms.push(dbconfig.collection_qualityInspection.aggregate(
+                {
+                    $match: matchObj
+                }, {
+                    "$group": {
+                        "_id": {
+                            "companyId": "$companyId",
+                            "operatorId": "$live800Acc.id",
+                            "operatorName": "$live800Acc.name",
+                        },
+                        "totalOvertimeRate": {$sum: "$totalOvertimeRate"},
+                        "totalInspectionRate": {$sum:"$totalInspectionRate"},
+                    }
+                }
+            ).read("secondaryPreferred"));
+
+            dayStartTime = dayEndTime;
+        }
+
+        return Q.all([Q.all(proms)]).then(data => {
+
+            if (!data[0]) {
+                return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
+            }
+
+            let tempDate = new Date(startTime);
+
+            let res = [];
+
+            data[0].forEach(item => {
+                if (item[0] != null){
+                    let obj = {
+                        date: tempDate,
+                        companyId:  item[0]._id.companyId,
+                        operatorId: item[0]._id.companyId + "-" + item[0]._id.operatorName,
+                        totalOvertimeRate: item[0].totalOvertimeRate,
+                        totalInspectionRate: item[0].totalInspectionRate,
+                    }
+
+                    res.push(obj);
+                }
+                tempDate = getNextDate(tempDate);
+            });
+
+            return res;
+        });
+    },
+    getProgressReportStatusByOperatorByDate: function (companyId, operatorName, startTime, endTime){
+
+        let proms =[];
+        let dayStartTime = new Date (startTime);
+
+        let getNextDate = function (date) {
+            let newDate = new Date(date);
+            return new Date(newDate.setDate(newDate.getDate() + 1));
+        }
+
+        while (dayStartTime.getTime() < new Date(endTime).getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+            let matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+                companyId: {$in: companyId},
+                "live800Acc.name": {$in: operatorName}
+            };
+
+            proms.push(dbconfig.collection_qualityInspection.aggregate(
+                {
+                    $match: matchObj
+                }, {
+                    "$group": {
+                        "_id": {
+                            "companyId": "$companyId",
+                            "operatorName": "$live800Acc.name",
+                            "status": "$status"
+                        },
+                        "count": {"$sum": 1},
+                    }
+                }
+            ).read("secondaryPreferred") );
+
+            dayStartTime = dayEndTime;
+        }
+
+        return Q.all([Q.all(proms)]).then(data => {
+
+            if (!data[0]) {
+                return Q.reject({name: 'DataError', message: 'Can not find proposal record'})
+            }
+
+            let tempDate = new Date(startTime);
+
+            let res = [];
+
+            data[0].forEach(item => {
+                if (item && item.length > 0){
+                    let statusList = [];
+                    item.forEach( itemDetail => {
+                        if (itemDetail){
+                            statusList.push(itemDetail);
+                        }
+
+                    });
+
+                    let obj = {
+                        date: tempDate,
+                        companyId:  item[0]._id.companyId,
+                        operatorId: item[0]._id.companyId + "-" + item[0]._id.operatorName,
+                        data: statusList,
+                    }
+
+                    res.push(obj);
+                }
+                tempDate = getNextDate(tempDate);
+            });
+
+            return res;
+        });
+
+    },
+
     summarizeLive800Record: function(startTime, endTime){
         let startDate = new Date()
         let endDate = new Date();
@@ -1754,16 +2140,19 @@ var dbQualityInspection = {
     getSummarizedLive800Record:function(queryString, connection){
         var deferred = Q.defer();
 
-        let conversationForm = [];
+        let resultProm = [];
 
+        let counter = 0;
         if(connection){
-            let a = connection.query(queryString, function (error, results, fields) {
+            connection.query(queryString, function (error, results, fields) {
                 //console.log("live 800 result",results)
                 if(error){
                     console.log(error);
+                    console.log("LH CHECK QI SCHEDULER ERROR 111111111111",error);
                 }
 
                 if(results){
+                    console.log("LH CHECK QI SCHEDULER AAAAAAAAAAAA",results.length);
                     results.forEach(result => {
                         let totalInvalidConversation = 0;
                         let totalValidConversation = 0;
@@ -1772,20 +2161,19 @@ var dbQualityInspection = {
                             let ytdEndTime = new Date(result.storeTime);
                             ytdEndTime.setHours(23, 59, 59, 999);
 
-
                             ytdStartTime = dbUtility.getLocalTimeString(ytdStartTime);
                             ytdEndTime = dbUtility.getLocalTimeString(ytdEndTime);
-
 
                             let query = "SELECT CAST(store_time AS DATE) AS createTime, company_id, operator_id , operator_name, content   FROM chat_content " +
                                 "WHERE store_time BETWEEN CAST('"+ ytdStartTime + "' as DATETIME) AND CAST('"+ ytdEndTime + "' AS DATETIME) " +
                                 "AND company_id = '" + result.company_id + "' AND operator_id = '" + result.operator_id + "' ";
 
                             let proms = [];
-                            connection.query(query, function (detailsError, detailsResults, fields) {
+                            let a = connection.query(query, function (detailsError, detailsResults, fields) {
 
                                 if(detailsError){
                                     console.log(detailsError);
+                                    console.log("LH CHECK QI SCHEDULER ERROR 2222222222222",detailsError);
                                 }
 
                                 if(detailsResults){
@@ -1836,22 +2224,36 @@ var dbQualityInspection = {
 
                                             return dbconfig.collection_live800RecordDaySummary.find(query).lean().then(
                                                 data => {
-                                                    if(data && data.length > 0){
-                                                        deferred.resolve();
-                                                    }else{
+                                                    // if(data && data.length > 0){
+                                                    //     deferred.resolve();
+                                                    // }else{
+                                                    //     dbconfig.collection_live800RecordDaySummary(updateData).save();
+                                                    //     deferred.resolve(result);
+                                                    // }
+                                                    if(!data || data.length <= 0) {
+                                                        counter += 1;
+                                                        console.log("LH CHECK QI SCHEDULER BBBBBBBBBBBBB",counter);
                                                         dbconfig.collection_live800RecordDaySummary(updateData).save();
-                                                        deferred.resolve(result);
+                                                        console.log("LH CHECK QI SCHEDULER CCCCCCCCCCCCC",updateData);
                                                     }
                                             });
                                         }
                                     }
                                 );
                             })
+
+                            resultProm.push(a);
                         }
                     });
                 }
+
+                // deferred.resolve();
+                // connection.end();
             });
-            return deferred.promise;
+
+            return Promise.all(resultProm);
+
+            //return deferred.promise;
         }else{
             return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
         }

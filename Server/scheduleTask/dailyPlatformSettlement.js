@@ -19,6 +19,7 @@ var dbPlayerConsumptionDaySummary = require('../db_modules/dbPlayerConsumptionDa
 var dbLogger = require('../modules/dbLogger');
 var dbPartner = require('../db_modules/dbPartner');
 var dbRewardTask = require('../db_modules/dbRewardTask');
+var dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 var moment = require('moment-timezone');
 
 var dailyPlatformSettlement = {
@@ -191,6 +192,7 @@ var dailyPlatformSettlement = {
      * @param {objectId} platformId - platform id
      */
     calculateDailyPlatformSettlement: function (platformId) {
+        console.log("calculateDailyPlatformSettlement");
         return Q.resolve().then(
             () => playerSummary.calculateYesterdayPlayerConsumptionSummary(platformId).catch(
                 error => Q.reject({
@@ -225,6 +227,14 @@ var dailyPlatformSettlement = {
                 error => Q.reject({
                     name: "DBError",
                     message: "Error resetting platform player level data!",
+                    error: error
+                })
+            )
+        ).then(
+            () => dbPlayerRewardPoints.startConvertPlayersRewardPoints().catch(
+                error => Q.reject({
+                    name: "DBError",
+                    message: "Error converting player reward points!",
                     error: error
                 })
             )

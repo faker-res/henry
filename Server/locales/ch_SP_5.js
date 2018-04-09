@@ -18,6 +18,7 @@ var simplifiedChinese = {
     "Token is not authenticated": "令牌未经过身份验证",
     "Player ip doesn't match!": "玩家IP不匹配",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
+    "transfer credit fail, please try again later": "转账失败，请稍后重试",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
@@ -66,6 +67,15 @@ var simplifiedChinese = {
     "Cannot find reward event data": "找不到奖励活动数据",
     "Cannot create bonus proposal": "无法创建提款提案",
     "Cannot create bonus task": "无法创建提款任务",
+    "Top up device does not match, fail to claim reward": "存款装置不符，无法同时领取优惠",
+    "Top up type does not match, fail to claim reward": "存款类型不符，无法同时领取优惠",
+    "Bank card type does not match, fail to claim reward": "银行卡类型不符，无法同时领取优惠",
+    "Online top up type does not match, fail to claim reward": "在线充值类型不符，无法同时领取优惠",
+    "Reward claimed exceed limit, fail to claim reward": "超出周期内可领取优惠次数，无法同时领取优惠",
+    "Top up count does not meet period condition, fail to claim reward": "周期内存款笔数不符，无法同时领取优惠",
+    "Claimed reward reach daily max amount, fail to claim reward": "超出单日可领取最高优惠金额，无法同时领取优惠",
+    "Insufficient top up amount, fail to claim reward": "存款金额不足，无法同时领取优惠",
+    "Cannot apply 2 reward in 1 top up": "同一笔存款无法同时申请两种以上优惠",
 
     "Incorrect reward event data": "不正确的奖励活动数据",
     "Failed to retrieve player or provider": "无法检索玩家或供应商",
@@ -231,6 +241,7 @@ var simplifiedChinese = {
     "This IP address has applied for max reward times in event period": "此IP已经达到了该优惠周期内的申请上限",
     "Player reach participate limit": "玩家已达参加次数上限",
     "Player does not have enough consumption": "玩家没有足够的投注额",
+    "Player already applied for the reward point.": "领取失败：很抱歉，已经领取过此项积分奖励。",
     //todo::add missing messages here
 
     /*

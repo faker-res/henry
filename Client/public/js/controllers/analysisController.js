@@ -39,6 +39,22 @@ define(['js/app'], function (myApp) {
             WechatTransfer: 5
         };
 
+        vm.constDemoPlayerStatus = {
+            OLD_PLAYER: "1",
+            PRE_CONVERT: "2",
+            POST_CONVERT: "3",
+            CANNOT_CONVERT: "4"
+        };
+
+        vm.constInputDevice = {
+            1: 'WEB_PLAYER',
+            2: 'WEB_AGENT',
+            3: 'H5_PLAYER',
+            4: 'H5_AGENT',
+            5: 'APP_PLAYER',
+            6: 'APP_AGENT'
+        };
+
         // For debugging:
         window.VM = vm;
 
@@ -57,7 +73,7 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProvider(id);
             vm.getMerchantList();
             vm.getMerchantType();
-        }
+        };
         vm.loadPage = function (choice) {
             $scope.$evalAsync(() => {
                 socketService.clearValue();
@@ -90,7 +106,7 @@ define(['js/app'], function (myApp) {
                             }],
                         }
 
-                        //todo:: need to optimize this part 
+                        //todo:: need to optimize this part
                         // socketService.$socket($scope.AppSocket, 'getApiLoggerAllServiceName', {service: 'player'},
                         //     function success(data) {
                         //         console.log('get func name', data);
@@ -334,6 +350,23 @@ define(['js/app'], function (myApp) {
                             //vm.drawTopupMethodSuccessHeadCountLine();
                         });
                         break;
+                    case "DEMO_PLAYER":
+                        vm.averageData = {};
+                        vm.dailyStatusData = [];
+                        $('#demoPlayerStatusTable').hide();
+                        vm.initSearchParameter('demoPlayer', 'day', 3, function () {
+
+                        });
+                        break;
+                    case "CLICK_COUNT":
+                        vm.initSearchParameter('clickCount', 'day', 3, function () {
+
+                        });
+                        vm.getClickCountDevice();
+                        vm.getClickCountPageName();
+                        vm.clickCountTimes = 1;
+                        break;
+
                 }
                 // $(".flot-tick-label.tickLabel").addClass("rotate330");
                 //
@@ -1171,6 +1204,628 @@ define(['js/app'], function (myApp) {
         }
         //topup method rate end =======================================================
 
+        // demo player START ====================================================
+        vm.getDemoPlayerAnalysis = function () {
+            vm.isShowLoadingSpinner('#demoPlayerAnalysis', true);
+            var sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.demoPlayer.periodText,
+                startDate: vm.queryPara.demoPlayer.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.demoPlayer.endTime.data('datetimepicker').getLocalDate(),
+            };
+            console.log('sendData', sendData);
+
+            socketService.$socket($scope.AppSocket, 'getDemoPlayerAnalysis', sendData, function (data) {
+                console.log('getDemoPlayerAnalysis', data);
+                $scope.$evalAsync(() => {
+                    vm.demoPlayerDeviceData = data.data.deviceGroup;
+                    vm.demoPlayerStatusData = data.data.statusGroup;
+                    vm.isShowLoadingSpinner('#demoPlayerAnalysis', false);
+
+                    vm.drawDemoPlayerDevicePie(vm.demoPlayerDeviceData, '#demoPlayerAnalysis');
+                    vm.drawDemoPlayerDeviceTable(vm.demoPlayerDeviceData, '#demoPlayerDeviceAnalysisTable');
+                    vm.drawDemoPlayerStatusPie(vm.demoPlayerStatusData, '#demoPlayerStatusAnalysis');
+                    vm.drawDemoPlayerStatusTable(vm.demoPlayerStatusData);
+                    vm.drawDemoPlayerConvertRatePie(vm.demoPlayerStatusData, '#demoPlayerConvertRateAnalysis')
+                });
+            }, function (data) {
+                vm.isShowLoadingSpinner('#demoPlayerAnalysis', false);
+                console.log("demo player data not found?", data);
+            });
+        };
+
+        vm.drawDemoPlayerDevicePie = (srcData, pieChartName) => {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            let deviceTotal = {
+                "0": {label: $translate("BACKSTAGE"), data: 0},
+                "1": {label: "WEB", data: 0},
+                "3": {label: "H5", data: 0},
+                "5": {label: "APP", data: 0}
+            };
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(deviceData => {
+                            if (deviceData && deviceData._id && deviceData._id.device && deviceTotal[deviceData._id.device]) {
+                                deviceTotal[deviceData._id.device].data += deviceData.calc;
+                            }
+                        });
+                    }
+                });
+            }
+
+            finalizedPieData.push(deviceTotal["0"]);
+            finalizedPieData.push(deviceTotal["1"]);
+            finalizedPieData.push(deviceTotal["3"]);
+            finalizedPieData.push(deviceTotal["5"]);
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            var options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'demoPlayerSourceData');
+        };
+
+        vm.drawDemoPlayerDeviceTable = (srcData, tableName) => {
+            let deviceTotal = {
+                "0": {label: $translate("BACKSTAGE"), data: 0},
+                "1": {label: "WEB", data: 0},
+                "3": {label: "H5", data: 0},
+                "5": {label: "APP", data: 0}
+            };
+            let dailyDeviceData = [];
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    let dayData = {
+                        date: String(utilService.$getTimeFromStdTimeFormat(new Date(dateData.date))).substring(0, 10),
+                        total: 0,
+                        WEB: 0,
+                        H5: 0,
+                        APP: 0,
+                        BACKSTAGE: 0
+                    };
+
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(deviceData => {
+                            if (deviceData && deviceData._id && deviceData._id.device && deviceTotal[deviceData._id.device]) {
+                                deviceTotal[deviceData._id.device].data += deviceData.calc;
+                            }
+
+                            dayData.total += deviceData.calc;
+
+                            switch (deviceData._id.device) {
+                                case "0":
+                                    dayData.BACKSTAGE += deviceData.calc;
+                                    break;
+                                case "1":
+                                    dayData.WEB += deviceData.calc;
+                                    break;
+                                case "3":
+                                    dayData.H5 += deviceData.calc;
+                                    break;
+                                case "5":
+                                    dayData.APP += deviceData.calc;
+                                    break;
+                            }
+                        });
+
+                    }
+                    dailyDeviceData.push(dayData);
+                });
+            }
+
+            let numberOfPeriod = srcData.length;
+
+            let averageData = {
+                date: $translate("average value"),
+                total: ((deviceTotal["0"].data + deviceTotal["1"].data + deviceTotal["3"].data + deviceTotal["5"].data) / numberOfPeriod).toFixed(2),
+                BACKSTAGE: ((deviceTotal["0"].data) / numberOfPeriod).toFixed(2),
+                WEB: ((deviceTotal["1"].data) / numberOfPeriod).toFixed(2),
+                H5: ((deviceTotal["3"].data) / numberOfPeriod).toFixed(2),
+                APP: ((deviceTotal["5"].data) / numberOfPeriod).toFixed(2)
+            };
+
+            dailyDeviceData.splice(0, 0, averageData);
+
+            let dataOptions = {
+                data: dailyDeviceData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
+                columns: [
+                    {title: $translate(vm.queryPara.demoPlayer.periodText), data: "date"},
+                    {title: $translate("TOTAL_REGISTRATION"), data: "total"},
+                    {title: 'WEB', data: "WEB"},
+                    {title: 'H5', data: "H5"},
+                    {title: 'APP', data: "APP"},
+                    {title: $translate('BACKSTAGE'), data: "BACKSTAGE"}
+                ],
+                "paging": false,
+            };
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            let a = $(tableName).DataTable(dataOptions);
+            a.columns.adjust().draw();
+        };
+
+        vm.drawDemoPlayerStatusPie = (srcData, pieChartName) => {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            let statusTotal = {
+                "1": {label: $translate("OLD_PLAYER"), data: 0},
+                "2": {label: $translate("PRE_CONVERT"), data: 0},
+                "3": {label: $translate("POST_CONVERT"), data: 0},
+                "4": {label: $translate("CANNOT_CONVERT"), data: 0}
+            };
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(statusData => {
+                            if (statusData && statusData._id && statusData._id.status && statusTotal[statusData._id.status]) {
+                                statusTotal[statusData._id.status].data += statusData.calc;
+                            }
+                        });
+                    }
+                });
+            }
+
+            finalizedPieData.push(statusTotal["4"]);
+            finalizedPieData.push(statusTotal["1"]);
+            finalizedPieData.push(statusTotal["2"]);
+            finalizedPieData.push(statusTotal["3"]);
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            var options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'demoPlayerStatusData');
+        };
+
+        vm.drawDemoPlayerStatusTable = (srcData) => {
+            vm.averageData = {};
+            vm.dailyStatusData = [];
+            let statusTotal = {
+                "1": {label: "OLD_PLAYER", data: 0},
+                "2": {label: "PRE_CONVERT", data: 0},
+                "3": {label: "POST_CONVERT", data: 0},
+                "4": {label: "CANNOT_CONVERT", data: 0}
+            };
+            let dailyStatusData = [];
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    let dayData = {
+                        date: String(utilService.$getTimeFromStdTimeFormat(new Date(dateData.date))).substring(0, 10),
+                        total: 0,
+                        OLD_PLAYER: 0,
+                        PRE_CONVERT: 0,
+                        POST_CONVERT: 0,
+                        CANNOT_CONVERT: 0
+                    };
+
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(statusData => {
+                            if (statusData && statusData._id && statusData._id.status && statusTotal[statusData._id.status]) {
+                                statusTotal[statusData._id.status].data += statusData.calc;
+                            }
+
+                            dayData.total += statusData.calc;
+
+                            switch (statusData._id.status) {
+                                case "1":
+                                    dayData.OLD_PLAYER += statusData.calc;
+                                    break;
+                                case "2":
+                                    dayData.PRE_CONVERT += statusData.calc;
+                                    break;
+                                case "3":
+                                    dayData.POST_CONVERT += statusData.calc;
+                                    break;
+                                case "4":
+                                    dayData.CANNOT_CONVERT += statusData.calc;
+                                    break;
+                            }
+                        });
+
+                    }
+                    dailyStatusData.push(dayData);
+                });
+            }
+
+            let numberOfPeriod = srcData.length;
+
+            let averageData = {
+                date: $translate("average value"),
+                total: ((statusTotal["1"].data + statusTotal["2"].data + statusTotal["3"].data + statusTotal["4"].data) / numberOfPeriod).toFixed(2),
+                OLD_PLAYER: ((statusTotal["1"].data) / numberOfPeriod).toFixed(2),
+                PRE_CONVERT: ((statusTotal["2"].data) / numberOfPeriod).toFixed(2),
+                POST_CONVERT: ((statusTotal["3"].data) / numberOfPeriod).toFixed(2),
+                CANNOT_CONVERT: ((statusTotal["4"].data) / numberOfPeriod).toFixed(2)
+            };
+
+            vm.averageData = averageData;
+            vm.dailyStatusData = dailyStatusData;
+            $('#demoPlayerStatusTable').show();
+        };
+
+        vm.drawDemoPlayerConvertRatePie = (srcData, pieChartName) => {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+
+            let statusTotal = {
+                "1": {label: $translate("OLD_PLAYER"), data: 0},
+                "2": {label: $translate("PRE_CONVERT"), data: 0},
+                "3": {label: $translate("POST_CONVERT"), data: 0},
+                "4": {label: $translate("CANNOT_CONVERT"), data: 0}
+            };
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(statusData => {
+                            if (statusData && statusData._id && statusData._id.status && statusTotal[statusData._id.status]) {
+                                statusTotal[statusData._id.status].data += statusData.calc;
+                            }
+                        });
+                    }
+                });
+            }
+
+            // finalizedPieData.push(statusTotal["4"]);
+            // finalizedPieData.push(statusTotal["1"]);
+            finalizedPieData.push(statusTotal["2"]);
+            finalizedPieData.push(statusTotal["3"]);
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:8pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            var options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'demoPlayerStatusData');
+        };
+        // demo player END   ====================================================
+
+        // click count START ====================================================
+        vm.getClickCountDevice = function () {
+            let sendData = {
+                platformId: vm.selectedPlatform._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountDevice', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountDevice = {};
+                    vm.deviceData = data.data;
+
+                    // replace object key with device name
+                    for (let i = 0; i < Object.keys(vm.deviceData).length; i++) {
+                        vm.clickCountDevice[vm.deviceData[Object.keys(vm.deviceData)[i]]] = vm.deviceData[Object.keys(vm.deviceData)[i]];
+                    }
+
+                    // set first page name as default selected page name
+                    vm.queryPara.clickCount.inputDevice = vm.clickCountDevice[Object.keys(vm.clickCountDevice)[0]] || "";
+                });
+            }, function (data) {
+                console.log("clickCount device data not found?", data);
+            });
+        };
+
+        vm.getClickCountPageName = function () {
+            let sendData = {
+                platformId: vm.selectedPlatform._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountPageName', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountPageName = {};
+                    vm.pageNameData = data.data;
+
+                    // replace object key with page name
+                    for (let i = 0; i < Object.keys(vm.pageNameData).length; i++) {
+                        vm.clickCountPageName[vm.pageNameData[Object.keys(vm.pageNameData)[i]]] = vm.pageNameData[Object.keys(vm.pageNameData)[i]];
+                    }
+
+                    // set first page name as default selected page name
+                    vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[0]] || "";
+                });
+            }, function (data) {
+                console.log("clickCount page name data not found?", data);
+            });
+        };
+
+        vm.getClickCountButtonName = function (device, pageName) {
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                device: device,
+                pageName: pageName
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountButtonName', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountButtonName = data.data.sort();
+                });
+            }, function (data) {
+                console.log("clickCount button name data not found?", data);
+            });
+        };
+
+        vm.getClickCountAnalysis = function (device, pageName) {
+            vm.clickCountTable = "clickCountAnalysisTable"+vm.clickCountTimes;
+            vm.clickCountTimes2 = vm.clickCountTimes - 1;
+            vm.clickCountTable2 = vm.clickCountTable.slice(0, -1) + vm.clickCountTimes2;
+            vm.clickCountTableID = '#'+vm.clickCountTable; // new table ID (increment)
+            vm.clickCountTableID2 = '#'+vm.clickCountTable2; // previous table ID after first search (need to be replaced)
+
+            vm.getClickCountButtonName(device, pageName);
+            vm.isShowLoadingSpinner('#clickCountAnalysis', true);
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.clickCount.periodText,
+                startDate: vm.queryPara.clickCount.startTime.data('datetimepicker').getLocalDate(),
+                endDate: vm.queryPara.clickCount.endTime.data('datetimepicker').getLocalDate(),
+                device: device,
+                pageName: pageName
+            };
+
+            socketService.$socket($scope.AppSocket, 'getClickCountAnalysis', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.clickCountData = data.data;
+                    vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis'); // draw pie chart
+
+                    if (vm.clickCountTimes === 1) {
+                        vm.drawClickCountTable(vm.clickCountData, vm.clickCountTableID); // draw first table
+                        vm.clickCountTimes++;
+                    } else {
+                        $(vm.clickCountTableID2).DataTable().destroy(); // destroy previous table ID
+                        $(vm.clickCountTableID2).empty();
+                        document.getElementById(vm.clickCountTable2).setAttribute("id",vm.clickCountTable); // replace previous table ID
+                        vm.drawClickCountTable(vm.clickCountData, vm.clickCountTableID); // draw new table (2nd table onwards)
+                        vm.clickCountTimes++;
+                    }
+                });
+            }, function (data) {
+                vm.isShowLoadingSpinner('#clickCountAnalysis', false);
+                console.log("click count data not found?", data);
+            });
+        };
+
+        vm.drawClickCountPie = (srcData, pieChartName) => {
+            let placeholder = pieChartName + ' div.graphDiv';
+            let finalizedPieData = [];
+            let click = {};
+            let clickTotal = {};
+
+            for (let i = 0; i < vm.clickCountButtonName.length; i++) {
+                let buttonName = vm.clickCountButtonName[i];
+                click[i] = {label: $translate(buttonName), data: 0};
+            }
+
+            // replace object key with button label name
+            for (let i = 0; i < Object.keys(click).length; i++) {
+                clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
+            }
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(buttonData => {
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
+                                clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
+                            }
+                        });
+                    }
+                });
+            }
+
+            for (let index in clickTotal) {
+                finalizedPieData.push(clickTotal[index]);
+            }
+
+            function labelFormatter(label, series) {
+                return "<div style='font-size:12pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            }
+
+            let options = {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 1,
+                        label: {
+                            show: true,
+                            radius: 1,
+                            formatter: labelFormatter,
+                            background: {
+                                opacity: 0.8
+                            }
+                        },
+                        combine: {
+                            color: "#999",
+                            threshold: 0.0
+                        }
+                    }
+                },
+                grid: {
+                    hoverable: true,
+                    clickable: true
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            socketService.$plotPie(placeholder, finalizedPieData, options, 'clickCountData');
+        };
+
+        vm.drawClickCountTable = (srcData, tableName) => {
+            let dailyClickData = [];
+            let click = {};
+            let clickTotal = {};
+
+            for (let i = 0; i < vm.clickCountButtonName.length; i++) {
+                let buttonName = vm.clickCountButtonName[i];
+                click[i] = {label: $translate(buttonName), data: 0};
+            }
+
+            // replace object key with button label name
+            for (let i = 0; i < Object.keys(click).length; i++) {
+                clickTotal[click[Object.keys(click)[i]].label] = click[Object.keys(click)[i]];
+            }
+
+            if (srcData) {
+                srcData.map(dateData => {
+                    let dayData = {
+                        date: String(utilService.$getTimeFromStdTimeFormat(new Date(dateData.date))).substring(0, 10),
+                        total: 0,
+                    };
+
+                    for (let x = 0; x < vm.clickCountButtonName.length; x++) {
+                        let buttonName = vm.clickCountButtonName[x];
+                        dayData[$translate(buttonName)] = 0;
+                    }
+
+                    if (dateData && dateData.data instanceof Array) {
+                        dateData.data.map(buttonData => {
+                            if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
+                                clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
+                            }
+
+                            dayData.total += buttonData.total;
+                            dayData[$translate(buttonData._id.buttonName)] += buttonData.total;
+                        });
+                    }
+
+                    dailyClickData.push(dayData);
+                });
+            }
+
+            let numberOfPeriod = srcData.length;
+
+            let averageData = {
+                date: $translate("average value"),
+                total: 0,
+            };
+
+            for (let x = 0; x < vm.clickCountButtonName.length; x++) {
+                let buttonName = vm.clickCountButtonName[x];
+                averageData.total += clickTotal[$translate(buttonName)].data;
+                averageData[$translate(buttonName)] = ((clickTotal[$translate(buttonName)].data) / numberOfPeriod).toFixed(2);
+            }
+            averageData.total = (averageData.total / numberOfPeriod).toFixed(2);
+
+            dailyClickData.splice(0, 0, averageData);
+
+            let dataOptions = {
+                data: dailyClickData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false, sClass: "text-center"}
+                ],
+                columns: [
+                    {title: $translate(vm.queryPara.clickCount.periodText), data: "date", sTitle: $translate(vm.queryPara.clickCount.periodText), mData: "date"},
+                    {title: $translate('TOTAL_CLICK_COUNT'), data: "total", sTitle: $translate('TOTAL_CLICK_COUNT'), mData: "total"},
+                ],
+                "paging": false,
+            };
+
+            for (let x = 0; x < vm.clickCountButtonName.length; x++) {
+                let buttonName = vm.clickCountButtonName[x];
+                let buttonObj = {title: $translate(buttonName), data: $translate(buttonName), sTitle: $translate(buttonName), mData: $translate(buttonName)};
+                dataOptions.columns[x+2] = buttonObj; // first 2 columns already populated
+            }
+
+            dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
+            let aTable = $(tableName).DataTable(dataOptions);
+            aTable.columns.adjust().draw();
+        };
+        // click count END   ====================================================
+
         // new player start =============================================
         vm.getNextDateByPeriodAndDate = (period, startDate) => {
             let date = new Date(startDate);
@@ -1298,17 +1953,6 @@ define(['js/app'], function (myApp) {
             })
             return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
         };
-        vm.calculateLineDataAndAverageForDecimalPlaces = (data, key, label) => {
-            var graphData = [];
-            let averageData = [];
-            let average = data.length !== 0 ? $noRoundTwoDecimalPlaces(data.reduce((a, item) => a + (Number.isInteger(item[key]) ? item[key] : item[key]), 0) / data.length) : 0;
-            data.map(item => {
-                graphData.push([new Date(item.date), Number.isInteger(item[key]) ? item[key] : item[key]]);
-                averageData.push([new Date(item.date), average]);
-            })
-            return {lineData: [{label: $translate(label), data: graphData},{label: $translate('average line'), data: averageData}], average: average};
-        };
-
         vm.getPartnerLevelConfig = function () {
             return $scope.$socketPromise('getPartnerLevelConfig', {platform: vm.selectedPlatform._id})
                 .then(function (data) {
@@ -1533,7 +2177,7 @@ define(['js/app'], function (myApp) {
                 new Date(player._id.registrationTime).getTime() >= currentPeriodDate.getTime() &&
                 new Date(player._id.registrationTime).getTime() < nextPeriodDate.getTime());
             let growOldPlayer = growPlayerData.filter(player =>
-                new Date(player._id.registrationTime).getTime() < currentPeriodDate.getTime());
+                new Date(player._id.registrationTime).getTime() < previousPeriodDate.getTime());
             // Lost
             let lostPreviousPeriodNewPlayer = lostPlayerData.filter(player =>
                 new Date(player._id.registrationTime).getTime() >= previousPeriodDate.getTime() &&
@@ -2262,213 +2906,7 @@ define(['js/app'], function (myApp) {
                 });
             })
 
-
-            // var placeholder1 = "#line-reward-amount";
-            // var placeholder2 = "#line-reward-number";
-            // // var periodText = $('#analysisReward select').val();
-            // console.log('vm.selectReward', vm.selectReward);
-            // var sendData = {
-            //     platformId: vm.selectReward.platform,
-            //     period: vm.queryPara.reward.periodText,
-            //     // startTime: vm.queryPara.reward.startTime,
-            //     // endTime: vm.queryPara.reward.endTime,
-            //     startTime: vm.queryPara.reward.startTime.data('datetimepicker').getLocalDate(),
-            //     endTime: vm.queryPara.reward.endTime.data('datetimepicker').getLocalDate(),
-            //     type: vm.selectReward.type.name
-            // };
-            // socketService.$socket($scope.AppSocket, 'getPlatformRewardAnalysis', sendData, function success(data1) {
-            //     console.log('data1', data1);
-            //     var rewardGraphData = data1.data || [];
-            //     var rewardNumberData = {}, rewardAmountData = {};
-            //     // for (var i = 0; i < rewardGraphData.length; i++) {
-            //     //     switch (vm.queryPara.reward.periodText) {
-            //     //         case 'day':
-            //     //             rewardAmountData[rewardGraphData[i]._id.date] = rewardGraphData[i].amount;
-            //     //             rewardNumberData[rewardGraphData[i]._id.date] = rewardGraphData[i].number;
-            //     //             break;
-            //     //         case 'week':
-            //     //             rewardAmountData[rewardGraphData[i]._id.week] = rewardGraphData[i].amount;
-            //     //             rewardNumberData[rewardGraphData[i]._id.week] = rewardGraphData[i].number;
-            //     //             break;
-            //     //         case 'month':
-            //     //             rewardAmountData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].amount;
-            //     //             rewardNumberData[rewardGraphData[i]._id.year + '' + rewardGraphData[i]._id.month] = rewardGraphData[i].number;
-            //     //             break;
-            //     //     }
-            //     // }
-            //     var graphData1 = [], graphData2 = [];
-            //     rewardGraphData.map(item => {
-            //         graphData1.push([new Date(item._id.date), item.amount]);
-            //         graphData2.push([new Date(item._id.date), item.number]);
-            //     })
-            //     var newOptions = {};
-            //     // var nowDate = new Date(sendData.startTime);
-            //     switch (vm.queryPara.reward.periodText) {
-            //         case 'day':
-            //             // do {
-            //             //     var dateText = utilService.$getTimeFromStdTimeFormat(nowDate).substring(0, 10);
-            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[dateText] || 0)]);
-            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[dateText] || 0)]);
-            //             //     nowDate.setDate(nowDate.getDate() + 1);
-            //             // } while (nowDate <= sendData.endTime);
-            //             newOptions = {
-            //                 xaxis: {
-            //                     tickLength: 0,
-            //                     mode: "time",
-            //                     minTickSize: [1, "day"],
-            //                 }
-            //             };
-            //             break;
-            //         case 'week':
-            //             // var k = 0;
-            //             // do {
-            //             //     // var dateText = utilService.$getDateFromStdTimeFormat(nowDate.toLocaleString());
-            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[k] || 0)]);
-            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[k] || 0)]);
-            //             //     nowDate.setDate(nowDate.getDate() + 7);
-            //             //     k++;
-            //             // } while (nowDate <= sendData.endTime);
-            //             newOptions = {
-            //                 xaxes: [{
-            //                     position: 'bottom',
-            //                     axisLabel: $translate('WEEK'),
-            //                 }],
-            //                 xaxis: {
-            //                     tickLength: 0,
-            //                     mode: "time",
-            //                     minTickSize: [6, "day"],
-            //                 }
-            //             };
-            //             break;
-            //         case 'month' :
-            //             // nowDate.setDate(1);
-            //             // do {
-            //             //     var nowYear = nowDate.getFullYear();
-            //             //     var nowMonth = nowDate.getMonth() + 1;
-            //             //     console.log('nowMonth', nowYear + '' + nowMonth);
-            //             //     graphData1.push([nowDate.getTime(), (rewardAmountData[nowYear + '' + nowMonth] || 0)]);
-            //             //     graphData2.push([nowDate.getTime(), (rewardNumberData[nowYear + '' + nowMonth] || 0)]);
-            //             //     nowDate.setMonth(nowDate.getMonth() + 1);
-            //             //
-            //             // } while (nowDate <= sendData.endTime);
-            //             newOptions = {
-            //                 xaxis: {
-            //                     tickLength: 0,
-            //                     mode: "time",
-            //                     minTickSize: [1, "month"],
-            //                 }
-            //             };
-            //             break;
-            //     }
-            //     // console.log('graph', graphData);
-            //     newOptions.yaxes = [{
-            //         position: 'left',
-            //         axisLabel: $translate('Reward amount'),
-            //     }];
-            //     socketService.$plotLine(placeholder1, [{
-            //         label: $translate('Reward amount'),
-            //         data: graphData1
-            //     }], newOptions);
-            //     newOptions.yaxes = [{
-            //         position: 'left',
-            //         axisLabel: $translate('Reward number'),
-            //     }]
-            //     //draw table
-            //
-            //     var tableData = [];
-            //     for (var i in graphData1) {
-            //         var obj = {};
-            //         obj.date = utilService.$getTimeFromStdTimeFormat(graphData1[i][0]).substring(0, 10);
-            //         obj.amount = graphData1[i][1] || 0;
-            //         tableData.push(obj);
-            //     }
-            //     var dataOptions = {
-            //         data: tableData,
-            //         columns: [
-            //             {title: $translate(vm.queryPara.reward.periodText), data: "date"},
-            //             {title: $translate('Reward amount'), data: "amount"}
-            //         ],
-            //         "paging": false,
-            //     };
-            //     dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-            //     var a = $('#rewardAmountAnalysisTable').DataTable(dataOptions);
-            //     a.columns.adjust().draw();
-            //
-            //     socketService.$plotLine(placeholder2, [{
-            //         label: $translate('Reward number'),
-            //         data: graphData2
-            //     }], newOptions);
-            //     //draw table
-            //
-            //     var tableData2 = [];
-            //     for (var i in graphData2) {
-            //         var obj = {};
-            //         obj.date = utilService.$getTimeFromStdTimeFormat(graphData2[i][0]).substring(0, 10);
-            //         obj.amount = graphData2[i][1] || 0;
-            //         tableData2.push(obj);
-            //     }
-            //     var dataOptions2 = {
-            //         data: tableData2,
-            //         columns: [
-            //             {title: $translate(vm.queryPara.reward.periodText), data: "date"},
-            //             {title: $translate('Reward number'), data: "amount"}
-            //         ],
-            //         "paging": false,
-            //     };
-            //     dataOptions2 = $.extend({}, $scope.getGeneralDataTableOption, dataOptions2);
-            //     var b = $('#rewardNumberAnalysisTable').DataTable(dataOptions2);
-            //     b.columns.adjust().draw();
-            //
-            //     $(placeholder1).bind("plothover", function (event, pos, obj) {
-            //         var previousPoint;
-            //         // console.log('event, pos, obj', pos, obj);
-            //         if (!obj) {
-            //             $("#tooltip").hide();
-            //             previousPoint = null;
-            //             return;
-            //         } else {
-            //             if (previousPoint != obj.dataIndex) {
-            //                 previousPoint = obj.dataIndex;
-            //
-            //                 var x = obj.datapoint[0],
-            //                     y = obj.datapoint[1].toFixed(0);
-            //
-            //                 var date = new Date(x);
-            //                 var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-            //                 // console.log('date', x, date);
-            //                 $("#tooltip").html("Amount : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
-            //                     .css({top: obj.pageY + 5, left: obj.pageX + 5})
-            //                     .fadeIn(200);
-            //             }
-            //         }
-            //     });
-            //     $(placeholder2).bind("plothover", function (event, pos, obj) {
-            //         var previousPoint;
-            //         // console.log('event, pos, obj', pos, obj);
-            //         if (!obj) {
-            //             $("#tooltip").hide();
-            //             previousPoint = null;
-            //             return;
-            //         } else {
-            //             if (previousPoint != obj.dataIndex) {
-            //                 previousPoint = obj.dataIndex;
-            //
-            //                 var x = obj.datapoint[0],
-            //                     y = obj.datapoint[1].toFixed(0);
-            //
-            //                 var date = new Date(x);
-            //                 var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-            //                 // console.log('date', x, date);
-            //                 $("#tooltip").html("Number : " + y + '<br>' + $filter('capFirst')(vm.queryPara.reward.periodText) + " : " + dateString)
-            //                     .css({top: obj.pageY + 5, left: obj.pageX + 5})
-            //                     .fadeIn(200);
-            //             }
-            //         }
-            //     });
-            // });
         };
-        // vm.plotRewardNumberLine = function () {
-        // };
         //reward analysis clicked end ================================================
 
         //player device analysis clicked ================================================
@@ -2903,7 +3341,7 @@ define(['js/app'], function (myApp) {
                         });
                     });
 
-                    let calculatedConsumptionData = vm.calculateLineDataAndAverageForDecimalPlaces(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
+                    let calculatedConsumptionData = vm.calculateLineDataAndAverage(vm.platformConsumptionAnalysisAmount, 'consumptions', 'PLAYER_EXPENSES');
                     vm.platformConsumptionAmountAverage = calculatedConsumptionData.average;
                     vm.plotLineByElementId("#line-playerCredit", calculatedConsumptionData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
                     vm.isShowLoadingSpinner('#playerCreditAnalysis', false);
@@ -3246,110 +3684,15 @@ define(['js/app'], function (myApp) {
                     vm.plotLineByElementId("#line-bonusCount", calculatedBonusNumber.lineData, $translate('WITHDRAW_COUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.bonusAmount.periodText.toUpperCase()));
                     vm.isShowLoadingSpinner('#bonusAmountAnalysis', false);
                 });
-
-            //     vm.playerBonusData = data.data;
-            //
-            //     // $scope.safeApply();
-            //     return vm.drawPlayerBonusGraph(vm.playerBonusData, sendData);
-            // }, function (data) {
-            //     console.log("player credit data not", data);
             });
         }
-        // vm.drawPlayerBonusGraph = function (srcData, sendData) {
-        //     var placeholder = '#line-bonusAmount';
-        //     var playerCreditObjData = {};
-        //
-        //     var graphData = [];
-        //     srcData.map(item => {
-        //         graphData.push([new Date(item._id), item.number])
-        //     })
-        //     var newOptions = {};
-        //     // var nowDate = new Date(sendData.startDate);
-        //     var xText = '';
-        //     switch (vm.queryPara.bonusAmount.periodText) {
-        //         case 'day':
-        //             xText = 'DAY';
-        //             newOptions = {
-        //                 xaxis: {
-        //                     tickLength: 0,
-        //                     mode: "time",
-        //                     minTickSize: [1, "day"],
-        //                 }
-        //             };
-        //             break;
-        //         case 'week':
-        //             xText = 'WEEK';
-        //             newOptions = {
-        //                 xaxis: {
-        //                     tickLength: 0,
-        //                     mode: "time",
-        //                     minTickSize: [6, "day"],
-        //                 }
-        //             };
-        //             break;
-        //         case 'month' :
-        //             xText = 'MONTH';
-        //             newOptions = {
-        //                 xaxis: {
-        //                     tickLength: 0,
-        //                     mode: "time",
-        //                     minTickSize: [1, "month"],
-        //                 }
-        //             };
-        //             break;
-        //     }
-        //     newOptions.yaxes = [{
-        //         position: 'left',
-        //         axisLabel: $translate('AMOUNT'),
-        //     }]
-        //     newOptions.xaxes = [{
-        //         position: 'bottom',
-        //         axisLabel: $translate('PERIOD') + ' : ' + $translate(xText)
-        //     }]
-        //
-        //     socketService.$plotLine(placeholder, [{label: $translate(vm.showPageName), data: graphData}], newOptions);
-        //
-        //     vm.bindHover(placeholder, function (obj) {
-        //         var x = obj.datapoint[0],
-        //             y = obj.datapoint[1].toFixed(0);
-        //
-        //         var date = new Date(x);
-        //         var dateString = utilService.$getDateFromStdTimeFormat(date.toLocaleString())
-        //
-        //         var yText = $translate('AMOUNT');
-        //         var fre = $translate(vm.queryPara.bonusAmount.periodText.toUpperCase());
-        //         $("#tooltip").html(yText + " : " + y + '<br>' + fre + " : " + dateString)
-        //             .css({top: obj.pageY + 5, left: obj.pageX + 5})
-        //             .fadeIn(200);
-        //     })
-        //     //draw table
-        //     var tableData = [];
-        //     for (var i in graphData) {
-        //         var obj = {};
-        //         obj.date = String(utilService.$getTimeFromStdTimeFormat(new Date(graphData[i][0]))).substring(0, 10);
-        //         let amount = graphData[i][1] || 0;
-        //         obj.amount = amount.toFixed(2);
-        //         tableData.push(obj);
-        //     }
-        //     var dataOptions = {
-        //         data: tableData,
-        //         columns: [
-        //             {title: $translate(vm.queryPara.bonusAmount.periodText), data: "date"},
-        //             {title: $translate('amount'), data: "amount"}
-        //         ],
-        //         "paging": false,
-        //     };
-        //     dataOptions = $.extend({}, $scope.getGeneralDataTableOption, dataOptions);
-        //     var a = $('#bonusAmountAnalysisTable').DataTable(dataOptions);
-        //     a.columns.adjust().draw();
-        // }
         //player bonus end
 
         // top up manual
         vm.drawPlayerTopUp = function (type) {
             var opt = '';
             let socketName = null;
-            
+
             if (type == 'TOPUPMANUAL') {
                 opt = 'ManualPlayerTopUp';
                 vm.queryPara.topUp.amountTag = 'TOPUPMANUAL_AMOUNT';
@@ -3429,20 +3772,20 @@ define(['js/app'], function (myApp) {
                             if (item.data[0] && item.data[0].length > 0) {
 
                                 item.data[0].forEach(inputDeviceData => {
-
-                                    if (inputDeviceData._id == 3){
-                                        index = parseInt(inputDeviceData._id - 1);
-                                    }else if (inputDeviceData._id == 5){
-                                        index = parseInt(inputDeviceData._id - 2);
-                                    }else{
-                                        index = parseInt(inputDeviceData._id);
+                                    if (inputDeviceData._id != null){
+                                        if (inputDeviceData._id == 3){
+                                            index = parseInt(inputDeviceData._id - 1);
+                                        }else if (inputDeviceData._id == 5){
+                                            index = parseInt(inputDeviceData._id - 2);
+                                        }else{
+                                            index = parseInt(inputDeviceData._id);
+                                        }
+                                        defaultData[index].amount = inputDeviceData.amount ? Math.floor(inputDeviceData.amount) : 0;
+                                        defaultData[index].successCount = inputDeviceData.successCount ? inputDeviceData.successCount : 0;
+                                        defaultData[index].count = inputDeviceData.count ? inputDeviceData.count : 0;
+                                        defaultData[index].successRate = inputDeviceData.successCount/inputDeviceData.count == 'NaN' ? 0 : $noRoundTwoDecimalPlaces(inputDeviceData.successCount/inputDeviceData.count*100);
+                                        defaultData[index].headCount = inputDeviceData.userIds ? inputDeviceData.userIds.filter(a => a != 0).length : 0;
                                     }
-                                    defaultData[index].amount = inputDeviceData.amount ? inputDeviceData.amount : 0;
-                                    defaultData[index].successCount = inputDeviceData.successCount ? inputDeviceData.successCount : 0;
-                                    defaultData[index].count = inputDeviceData.count ? inputDeviceData.count : 0;
-                                    defaultData[index].successRate = inputDeviceData.successCount/inputDeviceData.count == 'NaN' ? 0 : $noRoundTwoDecimalPlaces(inputDeviceData.successCount/inputDeviceData.count*100);
-                                    defaultData[index].headCount = inputDeviceData.userIds ? inputDeviceData.userIds.filter(a => a != 0).length : 0;
-
                                 })
                             }
 
@@ -3521,7 +3864,6 @@ define(['js/app'], function (myApp) {
                                         if (data && data.data && data.data.data) {
                                             vm.allBankTypeList = {};
                                             vm.manualTopUpBankInfo = [];
-                                            let selectedBank = [];
                                             Object.assign(vm.allBankTypeList, data.data.data);
 
                                             bankData.forEach( bank => {
@@ -3530,15 +3872,16 @@ define(['js/app'], function (myApp) {
                                                     bank.data.forEach(bankData =>
                                                     {
                                                         let bankTypeName = null;
-                                                        for (let i = 0; i < Object.keys(vm.allBankTypeList).length; i++){
-                                                            if (vm.allBankTypeList[i].id == bankData._id){
+                                                        for (let i = 0; i < Object.keys(vm.allBankTypeList).length; i++) {
+                                                            if (vm.allBankTypeList[i].id == bankData._id) {
                                                                 bankTypeName = vm.allBankTypeList[i].name;
                                                                 break;
-                                                            }else {
-                                                                bankTypeName = $translate('Unknown');
                                                             }
                                                         }
-                                                        Info.push({bank: bankTypeName, amount: bankData.amount});
+
+                                                        if (bankTypeName != null){
+                                                            Info.push({bank: bankTypeName, amount: bankData.amount ? Math.floor(bankData.amount) : 0 });
+                                                        }
 
                                                     })
                                                 }
@@ -3576,23 +3919,39 @@ define(['js/app'], function (myApp) {
                                 let Counter = {amount: 0};
                                 let AliPayTransfer = {amount: 0};
                                 let wechatPayTransfer = {amount: 0};
-                                let defaultData = [Online, ATM, Counter, AliPayTransfer, wechatPayTransfer];
 
                                 if (method.data && method.data.length > 0) {
 
                                     method.data.forEach(methodDetail => {
-                                        defaultData[parseFloat(methodDetail._id) - 1].amount = methodDetail.amount ? methodDetail.amount : 0;
+                                        switch (parseInt(methodDetail._id,10)){
+                                            case (vm.constDepositMethod.Online):
+                                                Online.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+                                            case (vm.constDepositMethod.ATM):
+                                                ATM.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+                                            case (vm.constDepositMethod.Counter):
+                                                Counter.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+                                            case (vm.constDepositMethod.AliPayTransfer):
+                                                AliPayTransfer.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+                                            case (vm.constDepositMethod.WechatTransfer):
+                                                wechatPayTransfer.amount += methodDetail.amount ? Math.floor(methodDetail.amount) : 0;
+                                                break;
+
+                                        }
                                     })
                                 }
 
                                 vm.manualTopUpMethod.push({
                                     date: new Date(method.date),
-                                    totalSum: defaultData[0].amount + defaultData[1].amount + defaultData[2].amount + defaultData[3].amount + defaultData[4].amount,
-                                    Online: defaultData[0],
-                                    ATM: defaultData[1],
-                                    Counter: defaultData[2],
-                                    AliPayTransfer: defaultData[3],
-                                    weChatPayTransfer: defaultData[4]
+                                    totalSum: Online.amount + ATM.amount + Counter.amount + AliPayTransfer.amount + wechatPayTransfer.amount,
+                                    Online: Online,
+                                    ATM: ATM,
+                                    Counter: Counter,
+                                    AliPayTransfer: AliPayTransfer,
+                                    weChatPayTransfer: wechatPayTransfer
                                 })
 
                             })
@@ -4029,6 +4388,95 @@ define(['js/app'], function (myApp) {
             socketService.$plotPie(elementId, pieData, {});
         };
 
+        vm.initDemoPlayerLog = function (status, selectedDate) {
+            vm.status = status;
+            vm.selectedDate = selectedDate;
+            vm.demoPlayerLog = {};
+            utilService.actionAfterLoaded('#modalDemoPlayerLog.in #demoPlayerLogTblPage', function () {
+                vm.demoPlayerLog.pageObj = utilService.createPageForPagingTable("#demoPlayerLogTblPage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "demoPlayerLog", vm.getDemoPlayerLogData);
+                });
+                vm.getDemoPlayerLogData(true);
+            });
+        };
+
+        vm.getDemoPlayerLogData = function (newSearch) {
+
+            let sendQuery = {
+                platformId: vm.selectedPlatform._id,
+                period: vm.queryPara.demoPlayer.periodText,
+                status: vm.status,
+                selectedDate: vm.selectedDate,
+                index: newSearch ? 0 : vm.demoPlayerLog.index,
+                limit: newSearch ? 10 : vm.demoPlayerLog.limit,
+                sortCol: vm.demoPlayerLog.sortCol || null
+            };
+
+            socketService.$socket($scope.AppSocket, 'getDemoPlayerLog', sendQuery, function (data) {
+                console.log("getDemoPlayerLog", data);
+                let tblData = data && data.data ? data.data.data : [];
+                let total = data.data ? data.data.total : 0;
+                vm.demoPlayerLog.totalCount = total;
+                if (tblData && tblData.length > 0) {
+                    let count = sendQuery.index || 0;
+                    tblData.map(data => {
+                        if (data.status == vm.constDemoPlayerStatus.OLD_PLAYER || data.status == vm.constDemoPlayerStatus.POST_CONVERT) {
+                            if (data.phoneNumber) {
+                                let str = data.phoneNumber;
+                                data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+                            }
+                        }
+                        count += 1;
+                        data.rowNumber = count;
+                    });
+                }
+                vm.drawDemoPlayerLogTable(newSearch, tblData, total);
+            });
+        };
+
+        vm.drawDemoPlayerLogTable = function (newSearch, tblData, size) {
+            let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('order'), data: "rowNumber"},
+                    {title: $translate('Demo Player Account'), data: "name"},
+                    {title: $translate('phoneNumber'), data: "phoneNumber"},
+                ],
+                "paging": false,
+                "searching": false,
+                "info": false,
+                "destroy": true,
+                "scrollCollapse": true,
+                "language": {
+                    "emptyTable": $translate("No data available in table"),
+                }
+            });
+            let aTable = $("#demoPlayerLogTbl").DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            vm.demoPlayerLog.pageObj.init({maxCount: size}, newSearch);
+            $('#demoPlayerLogTbl').resize();
+            $('#demoPlayerLogTbl').off('order.dt');
+            $scope.safeApply();
+        };
+
+        vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+            var isChange = false;
+            if (!curP) {
+                curP = 1;
+            }
+            if (pageSize != vm[objKey].limit) {
+                isChange = true;
+                vm[objKey].limit = pageSize;
+            }
+            if ((curP - 1) * pageSize != vm[objKey].index) {
+                isChange = true;
+                vm[objKey].index = (curP - 1) * pageSize;
+            }
+            if (isChange) return searchFunc.call(this);
+        };
     };
     analysisController.$inject = injectParams;
     myApp.register.controller('analysisCtrl', analysisController);

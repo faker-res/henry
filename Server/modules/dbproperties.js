@@ -15,6 +15,7 @@ var dbConnections = require('./dbConnections');
 var db_admin = dbConnections.admindb;
 var db_player = dbConnections.playerdb;
 var dbLogs = dbConnections.logsdb;
+let dbLogs2 = dbConnections.logs2db;
 
 /////////////////////////Schemas/////////////////////////////////////
 
@@ -283,6 +284,12 @@ var playerClientSourceLogModel = dbLogs.model('playerClientSourceLog', playerCli
 var partnerLoginRecordSchema = require('./../schema/partnerLoginRecord');
 var partnerLoginRecordModel = dbLogs.model('partnerLoginRecord', partnerLoginRecordSchema, 'partnerLoginRecord');
 
+let createDemoPlayerLogSchema = require('./../schema/logs/createDemoPlayerLog');
+let createDemoPlayerLogModel = dbLogs2.model('createDemoPlayerLog', createDemoPlayerLogSchema, 'createDemoPlayerLog');
+
+let rewardPointsProgressSchema = require('./../schema/logs/rewardPointsProgress');
+let rewardPointsProgressModel = dbLogs2.model('rewardPointsProgress', rewardPointsProgressSchema, 'rewardPointsProgress');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -297,6 +304,10 @@ let rewardTaskGroupSchema = require('./../schema/logs/rewardTaskGroup');
 let rewardTaskGroupModel = dbLogs.model('rewardTaskGroup', rewardTaskGroupSchema, 'rewardTaskGroup');
 let promoCodeActiveTimeSchema = require('./../schema/logs/promoCodeActiveTime');
 let promoCodeActiveTimeModel = dbLogs.model('promoCodeActiveTime', promoCodeActiveTimeSchema, 'promoCodeActiveTime');
+let clickCountSchema = require('./../schema/logs2/clickCount');
+let clickCountModel = dbLogs2.model('clickCount', clickCountSchema, 'clickCount');
+let rewardTaskGroupUnlockedRecordSchema = require('./../schema/logs2/rewardTaskGroupUnlockedRecord');
+let rewardTaskGroupUnlockedRecordModel = dbLogs2.model('rewardTaskGroupUnlockedRecord', rewardTaskGroupUnlockedRecordSchema, 'rewardTaskGroupUnlockedRecord');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -489,6 +500,10 @@ var dbProperties = {
     collection_playerForbidTopUpLog: playerForbidTopUpLogModel,
     collection_rewardPointsLog: rewardPointsLogModel,
     collection_rewardTaskGroup: rewardTaskGroupModel,
+    collection_createDemoPlayerLog: createDemoPlayerLogModel,
+    collection_clickCount: clickCountModel,
+    collection_rewardTaskGroupUnlockedRecord: rewardTaskGroupUnlockedRecordModel,
+    collection_rewardPointsProgress: rewardPointsProgressModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,

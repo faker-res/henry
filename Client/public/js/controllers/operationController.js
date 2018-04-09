@@ -54,7 +54,8 @@ define(['js/app'], function (myApp) {
             1: 'Online',
             2: 'ATM',
             3: 'Counter',
-            4: 'AliPayTransfer'
+            4: 'AliPayTransfer',
+            5: 'weChatPayTransfer'
         };
         vm.inputDevice = {
             BACKSTAGE: 0,
@@ -421,9 +422,17 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            let totalProposalType = 0;
+            if (vm.rightPanelTitle == 'ALL_PROPOSAL') {
+                totalProposalType = $('select#selectProposalType option').length;
+            }
+            else if (vm.rightPanelTitle == 'APPROVAL_PROPOSAL') {
+                totalProposalType = $('select#selectProposalAuditType option').length;
+            }
+
             let proposalTypeNames = [];
 
-            if (vm.allProposalType.length != vm.proposalTypeSelected.length) {
+            if (totalProposalType != vm.proposalTypeSelected.length) {
                 vm.allProposalType.filter(item => {
                     if (vm.proposalTypeSelected.indexOf(item.name) > -1 && proposalTypeNames.indexOf(item.name) < 0) {
                         proposalTypeNames.push(item.name);
@@ -1909,10 +1918,11 @@ define(['js/app'], function (myApp) {
                     proposalDetail.providerGroup = proposalDetail[i] ? vm.getProviderGroupNameById(proposalDetail[i]) : $translate("LOCAL_CREDIT");
                 }
 
-                //remove objectIDs
-                if (checkForHexRegExp.test(proposalDetail[i])) {
+                //remove objectIDs/null/blank objects
+                if (checkForHexRegExp.test(proposalDetail[i]) || proposalDetail[i] === null || proposalDetail[i] === "") {
                     delete proposalDetail[i];
                 }
+
                 if (i == 'providers') {
                     var temp = [];
                     if (proposalDetail.providers) {
@@ -2858,6 +2868,10 @@ define(['js/app'], function (myApp) {
                     countDown--;
                     mark.text(countDown);
                 } else {
+                    if (window.location.pathname != '/operation') {
+                        clearInterval(vm.refreshInterval);
+                    }
+                    
                     countDown = -1;
                 }
             }, 1000);

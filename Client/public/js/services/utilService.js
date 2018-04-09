@@ -216,7 +216,7 @@ define([], function () {
                 minute: '2-digit',
                 second: '2-digit'
             };
-            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3/$1/$2')
                 .replace(',', ' ');
         }
 
@@ -226,7 +226,7 @@ define([], function () {
                 month: '2-digit',
                 day: '2-digit'
             };
-            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2')
+            return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3/$1/$2')
                 .replace(',', ' ');
         }
 
@@ -263,6 +263,14 @@ define([], function () {
             // var todayDate = new Date();
             // return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 23, 59, 59);
             return new Date(util.getTodayStartTime().getTime() + 24 * 3600 * 1000);
+        }
+        this.getThisMonthStartTime = function () {
+            var todayDate = new Date();
+            return new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+        }
+        this.getThisMonthEndTime = function () {
+            var todayDate = new Date();
+            return new Date(todayDate.getFullYear(), todayDate.getMonth()+1, 1, 0, 0, 0);
         }
         this.getYesterdayStartTime = function () {
             return new Date(util.getTodayStartTime().getTime() - 24 * 60 * 60 * 1000);

@@ -145,6 +145,7 @@ const dbPlayerMail = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             playerData => {
                 if (playerData) {
+                    let returnArr = [];
                     let mailQ = {
                         recipientId: playerData._id,
                         bDelete: false
@@ -164,8 +165,8 @@ const dbPlayerMail = {
 
                     return dbconfig.collection_playerMail.find(mailQ).lean().then(
                         playerMailData => {
-                            if(playerMailData && playerMailData.length > 0){
-                                playerMailData.map(playerMail => {
+                            if(playerMailData && playerMailData.length > 0) {
+                                returnArr = playerMailData.map(playerMail => {
                                     if(playerMail){
                                         if(playerMail.senderType){
                                             delete playerMail.senderType;
@@ -178,9 +179,9 @@ const dbPlayerMail = {
                                         return playerMail;
                                     }
                                 });
-
-                                return playerMailData;
                             }
+
+                            return returnArr;
                         }
                     );
                 }

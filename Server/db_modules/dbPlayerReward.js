@@ -137,7 +137,7 @@ let dbPlayerReward = {
             };
 
             if (isRewardAmountDynamic) {
-                listItem.promoRate = (selectedParam.rewardPercentage * 100) + "%";
+                listItem.promoRate = parseFloat((selectedParam.rewardPercentage * 100).toFixed(2)) + "%";
                 listItem.promoLimit = selectedParam.maxRewardInSingleTopUp;
                 listItem.betTimes = selectedParam.spendingTimes;
             }
@@ -2498,16 +2498,27 @@ let dbPlayerReward = {
                 data.map(grp => {
                     grp.platformObjId = platformObjId;
 
-                    let saveObj = {
-                        platformObjId: grp.platformObjId,
-                        name: grp.name,
-                        color: grp.color,
-                        playerNames: grp.playerNames || []
-                    };
+                    if (grp && grp._id) { // for existing group data
+                        let saveObj = {
+                            name: grp.name,
+                            color: grp.color,
+                            playerNames: grp.playerNames || []
+                        };
 
-                    saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
-                        name: grp.name
-                    }, saveObj, {upsert: true}));
+                        saveArr.push(dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({
+                            _id: grp._id
+                        }, saveObj, {upsert: true}));
+                    } else if (grp && !grp._id) { // for new group data
+                        let insertObj = {
+                            platformObjId: grp.platformObjId,
+                            name: grp.name,
+                            color: grp.color,
+                            playerNames: grp.playerNames || []
+                        };
+
+                        let newGroup = new dbConfig.collection_promoCodeUserGroup(insertObj);
+                        return newGroup.save();
+                    }
                 });
             }
         }
@@ -2779,7 +2790,10 @@ let dbPlayerReward = {
                     topUpAmount: newProp.data.applyAmount
                 })
             }
-        )
+        ).then(() => {
+            promoCodeObj.promoCodeTypeObjId = promoCodeObj.promoCodeTypeObjId._id;
+            return promoCodeObj;
+        })
     },
 
     getPromoCodesMonitor: (platformObjId, startAcceptedTime, endAcceptedTime, promoCodeType3Name) => {
@@ -3780,13 +3794,14 @@ let dbPlayerReward = {
 
     /**
      *
+     * @param userAgent
      * @param playerData
      * @param eventData
      * @param adminInfo
      * @param rewardData
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (playerData, eventData, adminInfo, rewardData) => {
+    applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData) => {
         rewardData = rewardData || {};
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
@@ -3894,7 +3909,7 @@ let dbPlayerReward = {
                 let withdrawPropQuery = {
                     'data.platformId': playerData.platform._id,
                     'data.playerObjId': playerData._id,
-                    settleTime: {$gt: selectedTopUp.createTime},
+                    createTime: {$gt: selectedTopUp.createTime},
                     status: {$nin: [constProposalStatus.PREPENDING, constProposalStatus.REJECTED, constProposalStatus.FAIL, constProposalStatus.CANCEL]}
                 };
 
@@ -4113,7 +4128,7 @@ let dbPlayerReward = {
                         },
                         {
                             $group: {
-                                _id: {playerId: "$data.playerObjId"},
+                                _id: null,
                                 amount: {$sum: "$data.rewardAmount"}
                             }
                         }
@@ -4452,6 +4467,7 @@ let dbPlayerReward = {
                                 spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
+                                selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
                                 spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimesOnReward;
                             }
 
@@ -4532,6 +4548,7 @@ let dbPlayerReward = {
                         let isReachedTopUpInPeriod = false;
 
                         if (eventInPeriodData && eventInPeriodData.length > 0) {
+                            console.log("lose return hit number of apply", playerData && playerData.name? playerData.name: "");
                             // player already applied the reward within the period timeframe
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -4585,12 +4602,14 @@ let dbPlayerReward = {
                             }
                             if (j == 0) {
                                 if (!isReachedTopUpInPeriod) {
+                                    console.log("lose return top up amount does not meet", playerData && playerData.name? playerData.name: "");
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
                                         message: "Player's top up amount does not meet condition in period"
                                     });
                                 } else {
+                                    console.log("lose return lose amount does not meet", playerData && playerData.name? playerData.name: "");
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
@@ -4910,6 +4929,7 @@ let dbPlayerReward = {
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS
                             };
+                            proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
 
                             if (applyDetail.consecutiveNumber) {
                                 proposalData.data.consecutiveNumber = applyDetail.consecutiveNumber;
@@ -4989,6 +5009,7 @@ let dbPlayerReward = {
                             entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS
                         };
+                        proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false);
 
                         // Custom proposal data field
                         if (applyAmount > 0) {
@@ -5089,7 +5110,11 @@ let dbPlayerReward = {
                                             });
                                     }
 
-                                    return Promise.all(postPropPromArr);
+                                    return Promise.all(postPropPromArr).then(() => {
+                                        return {
+                                            rewardAmount: rewardAmount
+                                        }
+                                    });
                                 }
                                 else {
                                     return proposalData;

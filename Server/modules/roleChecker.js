@@ -191,7 +191,7 @@ var roleChecker = {
 
             },
             Statistics: {
-                Read: ['countLoginPlayerAllPlatform', 'countTopUpORConsumptionAllPlatform', 'countNewPlayerAllPlatform']
+                Read: ['countLoginPlayerAllPlatform', 'countTopUpORConsumptionAllPlatform', 'countNewPlayerAllPlatform', 'getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform', 'countNewPlayers']
             }
         },
         Admin: {
@@ -233,7 +233,7 @@ var roleChecker = {
         Platform: {
             "Platform": {
                 Read: ['getAllPlatforms', 'getPlatform', 'getDepartmentsByPlatformId', 'getPlatformAnnouncementsByPlatformId', 'getPlatformAnnouncementById', 'getAllGameTypes', 'getPlayerLvlPeriodConst', 'getAllGameStatus', 'getAllMessageTypes', 'syncPlatform',
-                    'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup','getConsumptionRecordByGameProvider'],
+                    'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup','getConsumptionRecordByGameProvider','getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform'],
                 Create: ['createPlatform', 'getDepartmentTreeById'],
                 Delete: ['deletePlatformById'],
                 Edit: ['updatePlatform'],
@@ -259,7 +259,7 @@ var roleChecker = {
                 // Delete: ['deletePlayersById'],
                 ForbidTopupTypes: [],
                 AddFeedback: [],
-                FeedbackHistory: [],
+                FeedbackHistory: ['getPlayerFeedbackReport'],
                 Edit: ['createUpdatePlayerInfoProposal', 'updatePlayer', 'updatePlayerStatus', 'checkPlayerNameValidity', 'updatePlayerReferral','createUpdateTopUpGroupLog'],
                 EditContact: ['createUpdatePlayerEmailProposal', 'createUpdatePlayerPhoneProposal', 'createUpdatePlayerQQProposal','createUpdatePlayerWeChatProposal'],
                 PaymentInformation: ['updatePlayerPayment', 'createUpdatePlayerBankInfoProposal', 'verifyPlayerBankAccount'],
@@ -412,7 +412,7 @@ var roleChecker = {
                 Read: ['vertificationSMSQuery']
             },
             "promoCode": {
-                Read: ['getPromoCodeTypes', 'getPromoCodeUserGroup'],
+                Read: ['getPromoCodeTypes', 'getPromoCodeUserGroup', 'getBlockPromoCodeUserGroup', 'getAllPromoCodeUserGroup'],
                 createPromoCode: ['generatePromoCode', 'checkPlayerHasPromoCode'],
                 promoCodeHistory: ['getPromoCodesHistory'],
                 sendSMS: [],
@@ -566,6 +566,8 @@ var roleChecker = {
                 ValidActivePlayer: ['countValidActivePlayerbyPlatform'],
                 OnlineTopupSuccessRate: ['getOnlineTopupAnalysisByPlatform'],
                 TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform'],
+                DemoPlayer: ['getDemoPlayerAnalysis'],
+                ClickCount: ['getClickCountAnalysis'],
                 PlayerDomain: ['getPlayerDomainAnalysisData']
             }
         },

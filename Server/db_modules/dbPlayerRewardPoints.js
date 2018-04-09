@@ -24,6 +24,7 @@ var dbLogger = require("./../modules/dbLogger");
 let dbUtil = require('../modules/dbutility');
 
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
+let localization = require("../modules/localization");
 
 let dbPlayerRewardPoints = {
 
@@ -152,7 +153,7 @@ let dbPlayerRewardPoints = {
                         return Q.reject({
                             status: constServerCode.REWARD_POINTS_CONVERT_FAIL,
                             name: "DataError",
-                            errorMessage: "Redemption failed" + ", " + "daily reward point redemption limit is reach" + " (" + playerLvlRewardPointsConfig.pointToCreditManualMaxPoints + ") " + "reward points"
+                            errorMessage: localization.localization.translate("Redemption failed") + ", " + localization.localization.translate("daily reward point redemption limit is reach") + " (" + playerLvlRewardPointsConfig.pointToCreditManualMaxPoints + ") " + localization.localization.translate("reward points")
                         });
                     } else {
                         if (Number(todayConvertedRewardPoints) + Number(convertRewardPointsAmount) > playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
@@ -208,22 +209,36 @@ let dbPlayerRewardPoints = {
                             userType: constProposalUserType.PLAYERS,
                             inputDevice: userAgent
                         };
-                        return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
+                        return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData).then(
+                            data => {
+                                //minus from RP
+                                dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -actualConvertRewardPointsAmount,
+                                    constRewardPointsLogCategory.EARLY_POINT_CONVERSION, remark, userAgent, adminName || playerInfo.name);
+                                return data;
+                            },
+                            err => {return Q.reject(err);}
+                        );
                     }
                 }
             ).then(
                 result => {
                     if(typeof rewardPointsRemainder !== "undefined"){
                         if(rewardPointsRemainder == 0){
-                            return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit"});
+                            return Q.resolve({message: localization.localization.translate("Redemption succeeded: used") + " " +" (" +
+                            actualConvertRewardPointsAmount + ") " + localization.localization.translate("reward points, to redeem") +
+                            " (" + convertCredit + ") " + localization.localization.translate("credit")});
                         }else{
                             if(limitReach){
-                                return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
-                                    "Remaining" + "(" + rewardPointsRemainder + ") " + "reward points" + " " + "has exceed the redemption limit" + ", " + "has been returned to your account"});
+                                return Q.resolve({message: localization.localization.translate("Redemption succeeded: used")  + " " +" (" +
+                                actualConvertRewardPointsAmount + ") " + localization.localization.translate("reward points, to redeem") + " (" +
+                                convertCredit + ") " + localization.localization.translate("credit") + ". " + localization.localization.translate("Remaining") +
+                                " (" + rewardPointsRemainder + ") " + localization.localization.translate("reward points has exceed the redemption limit, has been returned to your account")});
                             }
 
-                            return Q.resolve({message: "Redemption succeeded" + ", " + "used" +" (" + actualConvertRewardPointsAmount + ") " + "reward points" + ", " + "to redeem" + " (" + convertCredit + ") " + "credit" + ". " +
-                                "Remaining" + " (" + rewardPointsRemainder + ") " + "reward points" + " " + "not enough to redeem (1) credit" + ", " + "has been returned to your account"});
+                            return Q.resolve({message: localization.localization.translate("Redemption succeeded: used")  +" (" + actualConvertRewardPointsAmount +
+                            ") " + localization.localization.translate("reward points, to redeem") + " (" + convertCredit + ") " +
+                            localization.localization.translate("credit") + ". " + localization.localization.translate("Remaining") + " (" +
+                            rewardPointsRemainder + ") " + localization.localization.translate("reward points not enough to redeem (1) credit, has been returned to your account")});
                         }
                     }
                 }
@@ -296,30 +311,33 @@ let dbPlayerRewardPoints = {
                 }
             ).then(
                 (rewardPoints) => {
-                    //proposalId not null mean proposal already create log, just need update status && rewardPointsTaskObjId
+                    if(category !== constRewardPointsLogCategory.EARLY_POINT_CONVERSION && category !== constRewardPointsLogCategory.PERIOD_POINT_CONVERSION) {
+                        if (proposalId && (category !== constRewardPointsLogCategory.POINT_REDUCTION
+                                && category !== constRewardPointsLogCategory.POINT_REDUCTION_CANCELLED
+                                && category !== constRewardPointsLogCategory.EARLY_POINT_CONVERSION_CANCELLED
+                                && category !== constRewardPointsLogCategory.PERIOD_POINT_CONVERSION_CANCELLED)) {
+                            dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
+                        } else {
+                            let logData = {
+                                rewardPointsObjId: playerRewardPoints._id,
+                                rewardPointsTaskObjId: rewardPointsTaskObjId,
+                                category: category,
+                                oldPoints: playerRewardPoints.points,
+                                newPoints: afterChangedRewardPoints,
+                                playerName: playerInfo.name,
+                                playerLevelName: playerInfo.playerLevel.name,
+                                amount: updateAmount,
+                                remark: remark,
+                                status: status,
+                                userAgent: userAgent,
+                                currentDayAppliedAmount: currentDayAppliedAmount,
+                                maxDayApplyAmount: maxDayApplyAmount,
+                                proposalId: proposalId,
+                                creator: creatorName
+                            };
 
-                    if (proposalId) {
-                        dbRewardPointsLog.updateConvertRewardPointsLog(proposalId, constRewardPointsLogStatus.PROCESSED, rewardPointsTaskObjId);
-                    } else {
-                        let logData = {
-                            rewardPointsObjId: playerRewardPoints._id,
-                            rewardPointsTaskObjId: rewardPointsTaskObjId,
-                            category: category,
-                            oldPoints: playerRewardPoints.points,
-                            newPoints: afterChangedRewardPoints,
-                            playerName: playerInfo.name,
-                            playerLevelName: playerInfo.playerLevel.name,
-                            amount: updateAmount,
-                            remark: remark,
-                            status: status,
-                            userAgent: userAgent,
-                            currentDayAppliedAmount: currentDayAppliedAmount,
-                            maxDayApplyAmount: maxDayApplyAmount,
-                            proposalId: proposalId,
-                            creator: creatorName
-                        };
-
-                        dbLogger.createRewardPointsLog(logData);
+                            dbLogger.createRewardPointsLog(logData);
+                        }
                     }
                     return rewardPoints;
                 }
@@ -388,6 +406,7 @@ let dbPlayerRewardPoints = {
     },
 
     startConvertPlayersRewardPoints: () => {
+        console.log("start Convert Players Reward Points");
         let AllRewardPointsLvlConfigs;
         let queryTime = dbUtil.getYesterdaySGTime();
         return dbConfig.collection_platform.find({usePointSystem : true}).lean().then(
@@ -416,6 +435,7 @@ let dbPlayerRewardPoints = {
                 if (dbUtil.isFirstDayOfYearSG()) {
                     queryObj.$or.push({"intervalPeriod": constRewardPointsPeriod.Yearly});
                 }
+                console.log("queryObj",queryObj);
                 //Get platform ids from rewardPointsLvlConfig, ignore platform without rewardPointsLvlConfig.
                 return dbConfig.collection_rewardPointsLvlConfig.find(queryObj).populate({
                     path: 'platformObjId',
@@ -424,6 +444,7 @@ let dbPlayerRewardPoints = {
             }
         ).then(
             rewardPointsLvlConfigs => {
+                console.log("rewardPointsLvlConfigs",rewardPointsLvlConfigs);
                 let settlePlayerRewardPoints = platformId => {
                     // System log
                     console.log('[Convert player reward points] Settling platform:', platformId, queryTime);
@@ -556,7 +577,16 @@ let dbPlayerRewardPoints = {
                                     },
                                     inputDevice: constPlayerRegistrationInterface.BACKSTAGE,
                                 };
-                                return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData);
+
+                                return dbProposal.createProposalWithTypeId(rewardPointsProposalType._id, proposalData).then(
+                                    data => {
+                                        //minus from RP
+                                        dbPlayerRewardPoints.changePlayerRewardPoint(playerInfo._id, playerInfo.platform._id, -convertRewardPoints,
+                                            constRewardPointsLogCategory.PERIOD_POINT_CONVERSION, null, constPlayerRegistrationInterface.BACKSTAGE, "system");
+                                        return data;
+                                    },
+                                    err => {return Q.reject(err);}
+                                );
                             }
                             return rewardPoints;
                         }

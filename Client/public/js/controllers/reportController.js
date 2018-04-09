@@ -63,7 +63,8 @@ define(['js/app'], function (myApp) {
             1: 'Online',
             2: 'ATM',
             3: 'Counter',
-            4: 'AliPayTransfer'
+            4: 'AliPayTransfer',
+            5: 'weChatPayTransfer'
         };
 
         vm.topUpField = {
@@ -465,7 +466,7 @@ define(['js/app'], function (myApp) {
                 result = val.playerId;
                 vm.selectedProposalDetailForDisplay.playerName = val.name;
             } else if (fieldName == 'bankTypeId' || fieldName == 'bankCardType' || fieldName == 'bankName') {
-                result = vm.allBankTypeList[val] || (val + " ! " + $translate("not in bank type list"));
+                result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
             } else if (fieldName == 'depositMethod') {
                 result = $translate(vm.getDepositMethodbyId[val])
             } else if (fieldName === 'playerStatus') {
@@ -760,19 +761,6 @@ define(['js/app'], function (myApp) {
         ]
 
         vm.loadPage = function (choice, pageName, code, eventObjId) {
-
-            function createMerGroupList(nameObj, listObj) {
-                if (!nameObj || !listObj) return [];
-                let obj = [];
-                $.each(listObj, (name, arr) => {
-                    obj.push({
-                        name: nameObj[name],
-                        list: arr.list
-                    });
-                });
-                return obj;
-            }
-
             socketService.clearValue();
             console.log('reward', choice, pageName, code);
             vm.seleDataType = {};
@@ -801,744 +789,7 @@ define(['js/app'], function (myApp) {
             vm.generalRewardReportTableProp = {};
             vm.operationReportLoadingStatus = '';
 
-            if (choice == "TOPUP_REPORT") {
-                vm.queryTopup = {};
-                vm.merchantNoNameObj = {};
-                vm.merchantGroupObj = [];
-                let merGroupName = {};
-                let merGroupList = {};
-                vm.queryTopup.totalCount = 0;
-                vm.resetTopupRecord();
-                // socketService.$socket($scope.AppSocket, 'getAllProposalStatus', {}, function (data) {
-                //     delete data.data.APPROVED;
-                //     delete data.data.REJECTED;
-                //     // delete data.data.PROCESSING;
-                //     console.log('proposalStatusList', data.data);
-                //     vm.proposalStatusList = data.data;
-                //     $scope.safeApply();
-                // }, function (data) {
-                //     console.log("cannot find proposal status", data);
-                // });
-                socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
-                    if (data && data.data && data.data.data) {
-                        vm.allBankTypeList = {};
-                        console.log('banktype', data.data.data);
-                        data.data.data.forEach(item => {
-                            if (item && item.bankTypeId) {
-                                vm.allBankTypeList[item.id] = item.name;
-                            }
-                        })
-                    }
-                    $scope.safeApply();
-                });
-
-
-                socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                    data.data.merchantTypes.forEach(mer => {
-                        merGroupName[mer.merchantTypeId] = mer.name;
-                    })
-                    vm.merchantTypes = data.data.merchantTypes;
-                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-
-                    $scope.safeApply();
-
-                }, function (data) {
-                    console.log("merchantList", data);
-                });
-
-                socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
-                    if (data.data && data.data.merchants) {
-                        vm.merchantLists = data.data.merchants;
-                        vm.merchantNoList = data.data.merchants.filter(mer => {
-                            vm.merchantNoNameObj[mer.merchantNo] = mer.name;
-                            return mer.status != 'DISABLED';
-                        });
-                        vm.merchantNoList.forEach(item => {
-                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
-                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
-                        }) || [];
-
-                        Object.keys(vm.merchantNoList).forEach(item => {
-                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
-                            if (merchantTypeId == "9999") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
-                            } else if (merchantTypeId == "9998") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
-                            } else if (merchantTypeId == "9997") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
-                            } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
-                                let merchantInfo = vm.merchantTypes.filter(mitem => {
-                                    return mitem.merchantTypeId == merchantTypeId;
-                                })
-                                vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
-                            } else {
-                                vm.merchantNoList[item].merchantTypeName = '';
-                            }
-                        });
-                        vm.merchantCloneList = angular.copy(vm.merchantNoList);
-                        vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                        // vm.merchantGroupCloneList = angular.copy(vm.merchantGroupObj);
-                        vm.merchantGroupCloneList = vm.merchantGroupObj;
-                    }
-
-                    $scope.safeApply();
-                }, function (data) {
-                    console.log("merchantList", data);
-                });
-
-                vm.initAccs();
-
-                utilService.actionAfterLoaded("#topupTablePage", function () {
-                    // $timeout(function(){
-                    //   $('.merchantNoList').selectpicker('refresh');
-                    // },50)
-                    vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
-                    vm.queryTopup.merchantType = null;
-                    vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
-                    });
-                    $scope.safeApply();
-
-                })
-
-            } else if (choice == "RewardReport") {
-                vm.rewardTypeName = 'ALL';
-                vm.currentRewardCode = 'ALL';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[3]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[1]);
-                vm.currentRewardTaskName = "ALL";
-            } else if (choice == "PROVIDER_REPORT") {
-                vm.queryOperation = {};
-                vm.queryOperation.providerId = 'all';
-                utilService.actionAfterLoaded("#operationTable", function () {
-                    vm.commonInitTime(vm.queryOperation, '#operationReportQuery')
-                    // vm.queryOperation.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, vm.topupTablePageChange);
-                });
-                $scope.safeApply();
-            } else if (choice == "FULL_ATTENDANCE_REPORT") {
-                vm.rewardTypeName = 'FULL_ATTENDANCE';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.currentRewardTaskName = "FULL_ATTENDANCE";
-                utilService.actionAfterLoadedDateTimePickers("#fullAttendanceRewardTask", function () {
-                    vm.fullAttendanceRewardQuery = {status: 'all'};
-                    vm.fullAttendanceResultQuery = {status: 'all'};
-                    $scope.safeApply();
-                });
-            }
-            // else if (choice == "PROVIDER_REPORT") {
-            //     vm.rewardTypeName = 'GAME_PROVIDER_REWARD';
-            //     vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[2]);
-            //     vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-            //     vm.currentRewardTaskName = "GAME_PROVIDER_REWARD";
-            //     utilService.actionAfterLoadedDateTimePickers("#providerRewardReport", function () {
-            //         $scope.safeApply();
-            //     });
-            // }
-            else if (choice == "PROPOSAL_REPORT") {
-                vm.proposalQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
-                vm.proposalQuery.status = 'all';
-                vm.proposalQuery.promoType = '';
-                vm.proposalQuery.totalCount = 0;
-                vm.proposalQuery.proposalTypeId = '';
-                utilService.actionAfterLoaded("#proposalTablePage", function () {
-                    vm.commonInitTime(vm.proposalQuery, '#proposalReportQuery')
-
-                    $('select#selectProposalType').multipleSelect({
-                        allSelected: $translate("All Selected"),
-                        selectAllText: $translate("Select All"),
-                        displayValues: true,
-                        countSelected: $translate('# of % selected'),
-                    });
-                    var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
-                    $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multi).text().split(',').map(item => {
-                            return $translate(item);
-                        }).join(',');
-                        $($multi).find('span').text(upText)
-                    });
-                    $("select#selectProposalType").multipleSelect("checkAll");
-
-                    $('select#selectPromoType').multipleSelect({
-                        allSelected: $translate("All Selected"),
-                        selectAllText: $translate("Select All"),
-                        displayValues: true,
-                        countSelected: $translate('# of % selected'),
-                    });
-                    var $multiPromo = ($('select#selectPromoType').next().find('.ms-choice'))[0];
-                    $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multiPromo).text().split(',').map(item => {
-                            return $translate(item);
-                        }).join(',');
-                        $($multiPromo).find('span').text(upText)
-                    });
-                    $("select#selectPromoType").multipleSelect("checkAll");
-
-                    $('select#selectRewardType').multipleSelect({
-                        allSelected: $translate("All Selected"),
-                        selectAllText: $translate("Select All"),
-                        displayValues: true,
-                        countSelected: $translate('# of % selected'),
-                    });
-                    var $multiReward = ($('select#selectRewardType').next().find('.ms-choice'))[0];
-                    $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multiReward).text().split(',').map(item => {
-                            return $translate(item);
-                        }).join(',');
-                        $($multiReward).find('span').text(upText)
-                    });
-                    $("select#selectRewardType").multipleSelect("checkAll");
-
-                    vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
-                });
-                $scope.safeApply();
-            } else if (choice == "PLAYER_REPORT") {
-                utilService.actionAfterLoaded('#playerReportTablePage', function () {
-                    // todo :: change date to yesterday
-                    var yesterday = utilService.setNDaysAgo(new Date(), 1);
-                    var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
-                    var todayEndTime = utilService.getTodayEndTime();
-                    vm.playerQuery = {};
-                    vm.playerQuery.sortCol = {validConsumptionAmount: -1};
-                    vm.playerQuery.limit = 5000;
-                    vm.playerQuery.consumptionTimesOperator = ">=";
-                    vm.playerQuery.profitAmountOperator = ">=";
-                    vm.playerQuery.topUpTimesOperator = ">=";
-                    vm.playerQuery.bonusTimesOperator = ">=";
-                    vm.playerQuery.topUpAmountOperator = ">=";
-                    vm.playerQuery.start = utilService.createDatePicker('#startingDateTimePicker');
-                    vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
-                    vm.playerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport);
-                    });
-                    vm.setupRemarksMultiInput();
-                    $scope.safeApply();
-                })
-            } else if (choice == "PLAYER_EXPENSE_REPORT") {
-                vm.playerExpenseQuery = {totalCount: 0};
-                utilService.actionAfterLoaded("#playerExpenseTablePage", function () {
-                    vm.commonInitTime(vm.playerExpenseQuery, '#playerExpenseReportQuery');
-                    vm.playerExpenseQuery.providerId = "all";
-                    vm.playerExpenseQuery.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerExpenseQuery", vm.searchProviderPlayerRecord)
-                    });
-                })
-            } else if (choice == "PLAYERDOMAIN_REPORT") {
-                vm.playerDomain = {totalCount: 0};
-                vm.playerDomain.topUpTimesOperator = ">=";
-                vm.playerDomain.playerValueOperator = ">=";
-                vm.playerDomain.registrationInterface = "";
-                vm.playerDomain.isNewSystem = "";
-                vm.playerDomain.playerType = "Real Player (all)";
-                utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
-                    // Get Promote CS and way lists
-                    vm.pdAllPromoteWay = {};
-                    let query = {
-                        platformId: vm.selectedPlatform._id
-                    };
-                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                            vm.pdAllPromoteWay = data.data;
-                            console.log("vm.pdAllPromoteWay", vm.pdAllPromoteWay);
-                            $scope.safeApply();
-                        },
-                        function (err) {
-                            console.log(err);
-                        });
-
-                    // Get Departments Detail
-                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                        console.log('getDepartmentTreeById', data);
-                        let parentId;
-                        vm.pdQueryDepartments = [];
-                        vm.pdQueryRoles = [];
-
-                        data.data.map(e => {
-                            if (e.departmentName == vm.selectedPlatform.name) {
-                                vm.pdQueryDepartments.push(e);
-                                parentId = e._id;
-                            }
-                        });
-
-                        data.data.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.pdQueryDepartments.push(e);
-                            }
-                        });
-
-                        $scope.$digest();
-                        if (typeof(callback) == 'function') {
-                            callback(data.data);
-                        }
-                    });
-
-                    vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
-                    vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
-                    });
-                    vm.searchPlayerDomainRepport(true);
-                });
-            } else if (choice == "NEWACCOUNT_REPORT") {
-                vm.newPlayerQuery = {totalCount: 0};
-                //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
-                utilService.actionAfterLoaded("#validPlayerPie", function () {
-                    vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
-                    vm.searchNewPlayerRecord(true);
-                });
-            } else if (choice == 'DX_NEWACCOUNT_REPORT') {
-                utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
-                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
-                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
-                    let todayEndTime = utilService.getTodayEndTime();
-
-                    // Get Promote CS and way lists
-                    vm.allPromoteWay = {};
-                    let query = {
-                        platformId: vm.selectedPlatform._id
-                    };
-                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                            vm.allPromoteWay = data.data;
-                            console.log("vm.allPromoteWay", vm.allPromoteWay);
-                            $scope.safeApply();
-                        },
-                        function (err) {
-                            console.log(err);
-                        });
-
-                    // Get Departments Detail
-                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                        console.log('getDepartmentTreeById', data);
-                        let parentId;
-                        vm.queryDepartments = [];
-                        vm.queryRoles = [];
-
-                        data.data.map(e => {
-                            if (e.departmentName == vm.selectedPlatform.name) {
-                                vm.queryDepartments.push(e);
-                                parentId = e._id;
-                            }
-                        });
-
-                        data.data.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.queryDepartments.push(e);
-                            }
-                        });
-
-                        $scope.$digest();
-                        if (typeof(callback) == 'function') {
-                            callback(data.data);
-                        }
-                    });
-
-                    vm.dxNewPlayerQuery = {
-                        days: 1,
-                        valueScoreOperator: ">=",
-                        topUpTimesOperator: ">=",
-                        bonusTimesOperator: ">=",
-                        topUpAmountOperator: ">="
-                    };
-                    vm.dxNewPlayerQuery.start = utilService.createDatePicker('#dxNewPlayerReportQuery .startTime');
-                    vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
-                    vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    $scope.safeApply();
-                })
-            } else if (choice == "WINRATE_REPORT") {
-                vm.winRateQuery = {};
-                vm.winRateSummaryData = {};
-                vm.winRateQuery.providerId = 'all';
-                utilService.actionAfterLoaded("#winRateTable", function () {
-                    vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
-                });
-                $scope.safeApply();
-            } else if (choice == "FEEDBACK_REPORT") {
-                utilService.actionAfterLoaded('#feedbackReportTable', function () {
-                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
-                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
-                    let todayEndTime = utilService.getTodayEndTime();
-
-                    vm.allFeedbackResults = {};
-                    vm.allFeedbackTopics = {};
-
-                    $scope.$socketPromise('getAllPlayerFeedbackResults').then(
-                        function (data) {
-                            vm.allFeedbackResults = data.data;
-                            console.log("vm.allFeedbackResults", data.data);
-                            $scope.safeApply();
-                        },
-                        function (err) {
-                            console.log("vm.allFeedbackResults", err);
-                        }
-                    ).catch(function (err) {
-                        console.log("vm.allFeedbackResults", err)
-                    });
-
-                    $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
-                        function (data) {
-                            vm.allFeedbackTopics = data.data;
-                            console.log("vm.allFeedbackTopics", data.data);
-                            $scope.safeApply();
-                        },
-                        function (err) {
-                            console.log("vm.allFeedbackTopics", err);
-                        }
-                    ).catch(function (err) {
-                        console.log("vm.allFeedbackTopics", err)
-                    });
-
-                    // Get Departments Detail
-                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                        console.log('getDepartmentTreeById', data);
-                        let parentId;
-                        vm.queryDepartments = [];
-                        vm.queryRoles = [];
-
-                        data.data.map(e => {
-                            if (e.departmentName == vm.selectedPlatform.name) {
-                                vm.queryDepartments.push(e);
-                                parentId = e._id;
-                            }
-                        });
-
-                        data.data.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.queryDepartments.push(e);
-                            }
-                        });
-
-                        $scope.$digest();
-                        if (typeof(callback) == 'function') {
-                            callback(data.data);
-                        }
-                    });
-
-                    vm.feedbackQuery = {
-                        userType: 'Real Player (all)',
-                        result: [],
-                        topic: [],
-                        days: 1,
-                        valueScoreOperator: ">=",
-                        topUpTimesOperator: ">=",
-                        bonusTimesOperator: ">=",
-                        topUpAmountOperator: ">="
-                    };
-                    vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
-                    vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
-                    vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    vm.feedbackQuery.limit = 10;
-                    vm.feedbackQuery.index = 0;
-                    vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
-                    });
-                    $scope.safeApply();
-                });
-
-            } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
-                vm.onlinePaymentMismatchQuery = {type: 'online'};
-                vm.proposalMismatchDetail = {};
-                utilService.actionAfterLoaded("#onlinePaymentMismatchTable", function () {
-                    vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
-                });
-                $scope.safeApply();
-            } else if (choice == "LIMITED_OFFER_REPORT") {
-                vm.limitedOfferQuery = {};
-                vm.limitedOfferDetail = {};
-                vm.limitedOfferQuery.limit = 10;
-                utilService.actionAfterLoaded("#limitedOfferTable", function () {
-                    vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
-                    vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "limitedOfferQuery", vm.drawLimitedOfferReport)
-                    });
-                });
-                $scope.safeApply();
-            } else if (choice == "PLAYERPARTNER_REPORT") {
-                vm.partnerQuery = {};
-                utilService.actionAfterLoaded("#playerPartnerTable", function () {
-                    vm.commonInitTime(vm.partnerQuery, '#playerPartnerReportQuery');
-                    vm.partnerQuery.pageObj = utilService.createPageForPagingTable("#playerPartnerTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "partnerQuery", vm.searchPlayerPartnerRecord)
-                    });
-                    $scope.safeApply();
-                })
-            } else if (choice == "PLAYER_CONSUMPTION_RETURN_REPORT") {
-                vm.consumptionReturnQuery = vm.initReportPara();
-                vm.rewardTypeName = 'PLAYER_CONSUMPTION_RETURN';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = "PLAYER_CONSUMPTION_RETURN";
-                utilService.actionAfterLoadedDateTimePickers("#consumptionReturnReport", function () {
-                    $scope.safeApply();
-                });
-            } else if (choice == "PLAYER_LEVEL_UP_REPORT") {
-                vm.rewardTypeName = 'PLAYER_LEVEL_UP';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = "PLAYER_LEVEL_UP";
-            } else if (choice == "PARTNER_TOP_UP_RETURN_REPORT") {
-                vm.rewardTypeName = 'PARTNER_TOP_UP_RETURN';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = "PARTNER_TOP_UP_RETURN";
-            } else if (choice == "PLAYER_TOP_UP_REWARD_REPORT") {
-                vm.rewardTypeName = 'PLAYER_TOP_UP_REWARD';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = "PLAYER_TOP_UP_REWARD";
-            } else if (choice == "PLAYER_REFERRAL_REWARD_REPORT") {
-                vm.rewardTypeName = 'PLAYER_REFERRAL_REWARD';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                // vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                // vm.currentRewardTaskName = "PLAYER_REFERRAL_REWARD";
-            } else if (choice == "FIRST_TOPUP_REWARD_REPORT") {
-                vm.rewardTypeName = 'FIRST_TOP_UP';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = "FIRST_TOP_UP";
-            } else if (choice == "TRANSACTION_REPORT") {
-                vm.rewardTypeName = 'PLATFORM_TRANSACTION_REWARD';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-            } else if (choice == "PARTNER_CONSUMPTION_REPORT") {
-                vm.rewardTypeName = 'PARTNER_CONSUMPTION_RETURN';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[1]);
-            } else if (choice == "PARTNER_INCENTIVE_REPORT") {
-                vm.rewardTypeName = 'PARTNER_INCENTIVE_REWARD';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[1]);
-            } else if (choice == "PARTNER_REFERRAL_REPORT") {
-                vm.rewardTypeName = 'PARTNER_REFERRAL_REWARD';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[1]);
-            } else if (choice == "PLAYER_FEEDBACK_REPORT") {
-                vm.playerFeedbackQuery.result = 'all';
-                vm.playerFeedbackQuery.totalCount = 0;
-                utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
-                    vm.commonInitTime(vm.playerFeedbackQuery, '#playerFeedbackReportQuery');
-                    vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {}, $translate, vm.feedbackTablePageChange);
-                })
-                $scope.safeApply();
-            } else if (choice == "CREDIT_CHANGE_REPORT") {
-                vm.creditChangeQuery = vm.creditChangeQuery || {};
-                utilService.actionAfterLoaded("#creditChangeTablePage", function () {
-                    vm.creditChangeQuery.totalCount = 0;
-                    vm.commonInitTime(vm.creditChangeQuery, '#creditChangeReportQuery');
-                    vm.creditChangeQuery.pageObj = utilService.createPageForPagingTable("#creditChangeTablePage", {}, $translate, vm.creditChangeTablePageChange);
-                })
-            } else if (choice == "PLAYER_TOP_UP_RETURN_REPORT") {
-                vm.rewardTypeName = 'PLAYER_TOP_UP_RETURN';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                vm.currentRewardTaskName = "PLAYER_TOP_UP_RETURN";
-            } else if (choice == "PLAYER_CONSUMPTION_INCENTIVE_REPORT") {
-                vm.rewardTypeName = 'PLAYER_CONSUMPTION_INCENTIVE';
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                vm.currentRewardTaskName = "PLAYER_CONSUMPTION_INCENTIVE";
-                $scope.safeApply();
-            } else if (choice == "PLAYER_ALMOST_LEVELUP_REPORT") {
-                vm.playerAlmostLevelUpQuery = vm.playerAlmostLevelUpQuery || {};
-                vm.playerAlmostLevelUpQuery.percentage = 0.9;
-                vm.playerAlmostLevelUpQuery.totalCount = 0;
-                utilService.actionAfterLoaded("#playerAlmostLevelUpTablePage", function () {
-                    vm.playerAlmostLevelUpQuery.pageObj = utilService.createPageForPagingTable("#playerAlmostLevelUpTablePage", {}, $translate, vm.playerAlmostLevelUpTablePageUpdate);
-                })
-                $scope.safeApply();
-            } else if (choice == "PARTNERPLAYERBOUNS_REPORT") {
-                vm.partnerPlayerBonusQuery = {};
-                vm.partnerPlayerBonusQuery.status = 'all';
-                vm.partnerPlayerBonusQuery.totalCount = 0;
-                vm.partnerPlayerBonusQuery.proposalTypeId = 'all';
-                utilService.actionAfterLoaded("#partnerPlayerBonusTablePage", function () {
-                    vm.commonInitTime(vm.partnerPlayerBonusQuery, '#partnerPlayerBonusQuery')
-                    vm.partnerPlayerBonusQuery.pageObj = utilService.createPageForPagingTable("#partnerPlayerBonusTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "partnerPlayerBonusQuery", vm.searchPartnerPlayerBonusData)
-                    });
-                })
-                $scope.safeApply();
-            } else if (choice == "PARTNERCOMMISSION_REPORT") {
-                vm.partnerCommissionQuery = {};
-                vm.partnerCommissionQuery.status = 'all';
-                vm.partnerCommissionQuery.totalCount = 0;
-                vm.partnerCommissionQuery.proposalTypeId = 'all';
-                utilService.actionAfterLoaded("#partnerCommissionTablePage", function () {
-                    vm.commonInitTime(vm.partnerCommissionQuery, '#partnerCommissionQuery')
-                    vm.partnerCommissionQuery.pageObj = utilService.createPageForPagingTable("#partnerCommissionTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "partnerCommissionQuery", vm.searchPartnerCommissionData)
-                    });
-                })
-                $scope.safeApply();
-            } else if (choice == "ACTIONLOG_REPORT") {
-                vm.actionLogQuery = vm.actionLogQuery || {};
-                vm.actionLogQuery.allActions = [
-                    {group: "DEPARTMENT", text: "ADD_DEPARTMENT", action: "createDepartment"},
-                    {group: "DEPARTMENT", text: "MOVE_DEPARTMENT", action: "updateDepartmentParent"},
-                    {group: "DEPARTMENT", text: "RENAME_DEPARTMENT", action: "updateDepartment"},
-                    {group: "DEPARTMENT", text: "DELETE_DEPARTMENT", action: "deleteDepartmentsById"},
-
-                    {group: "Role", text: "createRoleForDepartment", action: "createRoleForDepartment"},
-                    {group: "Role", text: "deleteRolesById", action: "deleteRolesById"},
-                    {group: "Role", text: "updateRole", action: "updateRole"},
-                    {group: "Role", text: "attachRolesToUsersById", action: "attachRolesToUsersById"},
-                    {group: "Role", text: "detachRolesFromUsersById", action: "detachRolesFromUsersById"},
-
-                    {group: "Admin", text: "createAdminForDepartment", action: "createAdminForDepartment"},
-                    {group: "Admin", text: "updateAdmin", action: "updateAdmin"},
-                    {group: "Admin", text: "deleteAdminInfosById", action: "deleteAdminInfosById"},
-                    {group: "Admin", text: "MOVE_USER", action: "updateAdminDepartment"},
-                    {group: "Admin", text: "RESET_PASSWORD", action: "resetAdminPassword"},
-
-                    {group: "PLATFORM", text: "createPlatform", action: "createPlatform"},
-                    {group: "PLATFORM", text: "DELETE_PLATFORM", action: "deletePlatformById"},
-                    {group: "PLATFORM", text: "updatePlatform", action: "updatePlatform"},
-                    {
-                        group: "PLATFORM",
-                        text: "Daily Settlement",
-                        action: ["startPlatformDailySettlement", "fixPlatformDailySettlement"]
-                    },
-                    {
-                        group: "PLATFORM",
-                        text: "Weekly Settlement",
-                        action: ["startPlatformWeeklySettlement", "fixPlatformWeeklySettlement"]
-                    },
-
-                    {group: "PLAYER", text: "CREATE_PLAYER", action: "createPlayer"},
-                    {group: "PLAYER", text: "createTestPlayerForPlatform", action: "createTestPlayerForPlatform"},
-                    {group: "PLAYER", text: "createUpdatePlayerInfoProposal", action: "createUpdatePlayerInfoProposal"},
-                    {group: "PLAYER", text: "Search referral", action: "getPlayerReferrals"},
-                    {
-                        group: "PLAYER",
-                        text: "createUpdatePlayerPhoneProposal",
-                        action: "createUpdatePlayerPhoneProposal"
-                    },
-                    {
-                        group: "PLAYER",
-                        text: "createUpdatePlayerEmailProposal",
-                        action: "createUpdatePlayerEmailProposal"
-                    },
-                    {
-                        group: "PLAYER",
-                        text: "createUpdatePlayerQQProposal",
-                        action: "createUpdatePlayerQQProposal"
-                    },
-                    {
-                        group: "PLAYER",
-                        text: "createUpdatePlayerWeChatProposal",
-                        action: "createUpdatePlayerWeChatProposal"
-                    },
-                    {group: "PLAYER", text: "UpdatePlayerBankInfo", action: "createUpdatePlayerBankInfoProposal"},
-                    {group: "PLAYER", text: "resetPlayerPassword", action: "resetPlayerPassword"},
-
-                    {group: "PLAYER", text: "Repair Payment", action: "submitRepairPaymentProposal"},
-                    {
-                        group: "PLAYER",
-                        text: "createUpdatePlayerCreditProposal",
-                        action: "createUpdatePlayerCreditProposal"
-                    },
-                    {group: "PLAYER", text: "Forbid TopUp Types", action: "updatePlayerPayment"},
-                    {group: "PLAYER", text: "createPlayerFeedback", action: "createPlayerFeedback"},
-
-                    {group: "PLAYER", text: "updatePlayerStatus", action: "updatePlayerStatus"},
-                    {
-                        group: "PLAYER",
-                        text: "transferPlayerCreditFromProvider",
-                        action: "transferPlayerCreditFromProvider"
-                    },
-                    {group: "PLAYER", text: "transferPlayerCreditToProvider", action: "transferPlayerCreditToProvider"},
-                    {group: "PLAYER", text: "PlayerPermission", action: "updatePlayerPermission"},
-
-                    {group: "PARTNER", text: "createPartner", action: "createPartner"},
-                    {group: "PARTNER", text: "createPartnerWithParent", action: "createPartnerWithParent"},
-                    {group: "PARTNER", text: "deletePartnersById", action: "deletePartnersById"},
-                    {group: "PARTNER", text: "updatePartner", action: "createUpdatePartnerInfoProposal"},
-                    {group: "PARTNER", text: "Update partner phone number", action: "createUpdatePartnerPhoneProposal"},
-                    {group: "PARTNER", text: "Update partner email", action: "createUpdatePartnerEmailProposal"},
-                    {group: "PARTNER", text: "Update partner QQ", action: "createUpdatePartnerQQProposal"},
-                    {
-                        group: "PARTNER",
-                        text: "Update partner bank information",
-                        action: "createUpdatePartnerBankInfoProposal"
-                    },
-                    {group: "PARTNER", text: "RESET_PASSWORD", action: "resetPartnerPassword"},
-
-                    {group: "Platform Game", text: "PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
-                    {group: "Platform Game", text: "ENABLE/DISABLE", action: "updateProviderFromPlatformById"},
-                    {group: "Platform Game", text: "updateGameStatusToPlatform", action: "updateGameStatusToPlatform"},
-                    {group: "Platform Game", text: "attachGameToPlatform", action: "attachGamesToPlatform"},
-                    {group: "Platform Game", text: "detachGameFromPlatform", action: "detachGamesFromPlatform"},
-
-                    {group: "GameGroup", text: "Add Game Group", action: "addPlatformGameGroup"},
-                    {group: "GameGroup", text: "Remove Game Group", action: "deleteGameGroup"},
-                    {group: "GameGroup", text: "Rename Game Group", action: "renamePlatformGameGroup"},
-                    {group: "GameGroup", text: "Move Game Group", action: "updateGameGroupParent"},
-                    {group: "GameGroup", text: "Update Game Group", action: "updatePlatformGameGroup"},
-
-                    {group: "REWARD", text: "createRewardEvent", action: "createRewardEvent"},
-                    {group: "REWARD", text: "deleteRewardEventByIds", action: "deleteRewardEventByIds"},
-                    {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
-
-                    {
-                        group: "Proposal",
-                        text: "updateProposalTypeProcessSteps",
-                        action: "updateProposalTypeProcessSteps"
-                    },
-                    {group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
-
-                    {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
-                    {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
-
-                    {group: "PartnerLevel", text: "createPartnerLevel", action: "createPartnerLevel"},
-                    {group: "PartnerLevel", text: "partnerLevel/update", action: "partnerLevel/update"},
-                    {group: "VALID_ACTIVE", text: "updatePartnerLevelConfig", action: "updatePartnerLevelConfig"},
-                    {
-                        group: "Partner Commission",
-                        text: "Partner Commission",
-                        action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
-                    },
-
-                    {group: "MessageTemplates", text: "ADD", action: "createMessageTemplate"},
-                    {group: "MessageTemplates", text: "UPDATE", action: "updateMessageTemplate"},
-
-                    {group: "ANNOUNCEMENTS", text: "ADD", action: "createPlatformAnnouncement"},
-                    {group: "ANNOUNCEMENTS", text: "UPDATE", action: "updatePlatformAnnouncement"},
-                    {group: "ANNOUNCEMENTS", text: "DELETE", action: "deletePlatformAnnouncementByIds"},
-
-                    {group: "Bankcard Group", text: "ADD", action: "addPlatformBankCardGroup"},
-                    {group: "Bankcard Group", text: "UPDATE", action: "updatePlatformBankCardGroup"},
-                    {group: "Bankcard Group", text: "DELETE", action: "deleteBankCardGroup"},
-                    {group: "Bankcard Group", text: "Default", action: "setPlatformDefaultBankCardGroup"},
-                    {group: "Bankcard Group", text: "ADD_PLAYER", action: "addPlayersToBankCardGroup"},
-
-                    {group: "MERCHANT_GROUP", text: "ADD", action: "addPlatformMerchantGroup"},
-                    {group: "MERCHANT_GROUP", text: "UPDATE", action: "renamePlatformMerchantGroup"},
-                    {group: "MERCHANT_GROUP", text: "DELETE", action: "deleteMerchantGroup"},
-                    {group: "MERCHANT_GROUP", text: "Default", action: "setPlatformDefaultMerchantGroup"},
-                    {group: "MERCHANT_GROUP", text: "ADD_PLAYER", action: "addPlayersToMerchantGroup"},
-
-                    {group: "AlipayGroup", text: "ADD", action: "addPlatformAlipayGroup"},
-                    {group: "AlipayGroup", text: "UPDATE", action: "renamePlatformAlipayGroup"},
-                    {group: "AlipayGroup", text: "DELETE", action: "deleteAlipayGroup"},
-                    {group: "AlipayGroup", text: "Default", action: "setPlatformDefaultAlipayGroup"},
-                    {group: "AlipayGroup", text: "ADD_PLAYER", action: "addPlayersToAlipayGroup"},
-
-                    {group: "Provider", text: "SETTLEMENT", action: "manualDailyProviderSettlement"},
-                    {group: "Provider", text: "UPDATE", action: "updateGameProvider"},
-                    {group: "Provider", text: "GameStatus", action: "updateGame"},
-                ];
-                utilService.actionAfterLoaded("#actionLogTablePage", function () {
-                    vm.commonInitTime(vm.actionLogQuery, '#actionLogReportQuery');
-                    vm.actionLogQuery.pageObj = utilService.createPageForPagingTable("#actionLogTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "actionLogQuery", vm.searchActionLogData)
-                    });
-                })
-                $scope.safeApply();
-            } else if (choice.indexOf('REWARD_REPORT') !== -1 || choice.indexOf('GROUP_REPORT') !== -1) {
-                // Unless customization is necessary, this should handle the rest of reward report & reward group reward
-                let rewardNameWithoutReport = choice.replace("_REPORT", "");
-                vm.rewardTypeName = rewardNameWithoutReport;
-                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
-                if(choice.indexOf('REWARD_REPORT') !== -1) {
-                    vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-                    vm.currentRewardTaskName = rewardNameWithoutReport;
-                }
-            }
+            drawReportQuery(choice);
 
             if (vm.currentRewardCode) {
                 vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
@@ -1614,12 +865,6 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.endLoadMultipleSelect = function () {
-            $timeout(function () {
-                $('.spicker').selectpicker('refresh');
-            }, 0);
-        };
-
         vm.setQueryRole = (modal) => {
             vm.queryRoles = [];
 
@@ -1629,7 +874,7 @@ define(['js/app'], function (myApp) {
                 }
             });
 
-            vm.endLoadMultipleSelect();
+            endLoadMultipleSelect('.spicker');
             $scope.safeApply();
         };
 
@@ -1642,7 +887,7 @@ define(['js/app'], function (myApp) {
                 }
             });
 
-            vm.endLoadMultipleSelect();
+            endLoadMultipleSelect('.spicker');
             $scope.safeApply();
         };
 
@@ -1655,7 +900,7 @@ define(['js/app'], function (myApp) {
                 }
             });
 
-            vm.endLoadMultipleSelect();
+            endLoadMultipleSelect('.spicker');
             $scope.safeApply();
         };
 
@@ -1668,7 +913,7 @@ define(['js/app'], function (myApp) {
                 }
             });
 
-            vm.endLoadMultipleSelect();
+            endLoadMultipleSelect('.spicker');
             $scope.safeApply();
         };
 
@@ -2227,7 +1472,7 @@ define(['js/app'], function (myApp) {
                     item.amount$ = parseFloat(item.amount).toFixed(2);
                     item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
+                    item.operationPercent$ = parseFloat((item.bonusAmount / item.validAmount * 100) * -1).toFixed(2) + '%'
                     return item;
                 }),
                 aoColumnDefs: [
@@ -2265,12 +1510,12 @@ define(['js/app'], function (myApp) {
                         sClass: "sumFloat alignRight",
                     },
                     {
-                        title: $translate('EARNINGS'),
+                        title: $translate('PLAYER PROFIT AMOUNT'),
                         data: "bonusAmount$",
                         sClass: "sumFloat alignRight",
                     },
                     {
-                        title: $translate('EARNINGS_RATIO'),
+                        title: $translate('COMPANY_PROFIT_POINT'),
                         data: "operationPercent$",
                     },
                 ],
@@ -2337,7 +1582,7 @@ define(['js/app'], function (myApp) {
                     item.amount$ = parseFloat(item.amount).toFixed(2);
                     item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
+                    item.operationPercent$ = parseFloat((item.bonusAmount / item.validAmount * 100) * -1).toFixed(2) + '%'
                     return item;
                 }) : [];
                 vm.drawProviderGameTable(playerData, id, data.data.size, data.data.summary, newSearch);
@@ -2384,12 +1629,12 @@ define(['js/app'], function (myApp) {
                         data: "validAmount$"
                     },
                     {
-                        title: $translate('EARNINGS'),
+                        title: $translate('PLAYER PROFIT AMOUNT'),
                         data: "bonusAmount$",
                         sClass: "sumFloat alignRight",
                     },
                     {
-                        title: $translate('EARNINGS_RATIO'),
+                        title: $translate('COMPANY_PROFIT_POINT'),
                         data: "operationPercent$",
                     },
 
@@ -2503,7 +1748,7 @@ define(['js/app'], function (myApp) {
                     item.amount$ = parseFloat(item.amount).toFixed(2);
                     item.validAmount$ = parseFloat(item.validAmount).toFixed(2);
                     item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.operationPercent$ = parseFloat(item.bonusAmount / item.validAmount * 100).toFixed(2) + '%'
+                    item.operationPercent$ = parseFloat((item.bonusAmount / item.validAmount * 100) * -1).toFixed(2) + '%'
                     return item;
                 }),
                 columns: [
@@ -2529,12 +1774,12 @@ define(['js/app'], function (myApp) {
                         data: "validAmount$"
                     },
                     {
-                        title: $translate('EARNINGS'),
+                        title: $translate('PLAYER PROFIT AMOUNT'),
                         data: "bonusAmount$",
                         sClass: "sumFloat alignRight",
                     },
                     {
-                        title: $translate('EARNINGS_RATIO'),
+                        title: $translate('COMPANY_PROFIT_POINT'),
                         data: "operationPercent$",
                     },
                 ],
@@ -6012,7 +5257,13 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate("adminName"), data: "adminName"},
                     {title: $translate('playerId'), data: "playerId"},
-                    {title: $translate('TYPE'), data: "action"},
+                    //{title: $translate('TYPE'), data: "action"},
+                    {
+                        title: $translate('TYPE'), data: "action", sClass: "sumText",
+                        render: function (data) {
+                            return $translate(data);
+                        }
+                    },
                     {title: $translate("Operation Time"), data: "operationTime$"},
                     {title: $translate("remark"), data: "error", bSortable: false}
                 ],
@@ -6035,6 +5286,9 @@ define(['js/app'], function (myApp) {
         /////////////////////////////////////////////////////////////////////////////////////////////////
 
         // start common functions//////////////////
+        vm.dateReformat = function (data) {
+            return utilService.$getTimeFromStdTimeFormat(data);
+        };
         vm.createInnerTable = function (id) {
             var content = $('<div>', {
                 style: "display:inline-block"
@@ -6397,6 +5651,760 @@ define(['js/app'], function (myApp) {
             };
         }
 
+        function drawReportQuery (choice) {
+            switch (choice) {
+                case "TOPUP_REPORT":
+                    vm.queryTopup = {};
+                    vm.merchantNoNameObj = {};
+                    vm.merchantGroupObj = [];
+                    let merGroupName = {};
+                    let merGroupList = {};
+                    vm.queryTopup.totalCount = 0;
+                    vm.resetTopupRecord();
+
+                    endLoadMultipleSelect('.merchantNoList');
+
+                    socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
+                        $scope.$evalAsync(() => {
+                            if (data && data.data && data.data.data) {
+                                vm.allBankTypeList = {};
+                                data.data.data.forEach(item => {
+                                    if (item && item.bankTypeId) {
+                                        vm.allBankTypeList[item.id] = item.name;
+                                    }
+                                })
+                            }
+                        })
+                    });
+
+                    socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+                        $scope.$evalAsync(() => {
+                            data.data.merchantTypes.forEach(mer => {
+                                merGroupName[mer.merchantTypeId] = mer.name;
+                            })
+                            vm.merchantTypes = data.data.merchantTypes;
+                            vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                        })
+                    }, function (data) {
+                        console.log("merchantList", data);
+                    });
+
+                    socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
+                        $scope.$evalAsync(() => {
+                            if (data.data && data.data.merchants) {
+                                vm.merchantLists = data.data.merchants;
+                                vm.merchantNoList = data.data.merchants.filter(mer => {
+                                    vm.merchantNoNameObj[mer.merchantNo] = mer.name;
+                                    return mer.status != 'DISABLED';
+                                });
+                                vm.merchantNoList.forEach(item => {
+                                    merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
+                                    merGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                                }) || [];
+
+                                Object.keys(vm.merchantNoList).forEach(item => {
+                                    let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
+                                    if (merchantTypeId == "9999") {
+                                        vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                                    } else if (merchantTypeId == "9998") {
+                                        vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                                    } else if (merchantTypeId == "9997") {
+                                        vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
+                                    } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
+                                        let merchantInfo = vm.merchantTypes.filter(mitem => {
+                                            return mitem.merchantTypeId == merchantTypeId;
+                                        })
+                                        vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
+                                    } else {
+                                        vm.merchantNoList[item].merchantTypeName = '';
+                                    }
+                                });
+                                vm.merchantCloneList = angular.copy(vm.merchantNoList);
+                                vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
+                                // vm.merchantGroupCloneList = angular.copy(vm.merchantGroupObj);
+                                vm.merchantGroupCloneList = vm.merchantGroupObj;
+                            }
+                        });
+                    }, function (data) {
+                        console.log("merchantList", data);
+                    });
+
+                    vm.initAccs();
+
+                    utilService.actionAfterLoaded("#topupTablePage", function () {
+                        // $timeout(function(){
+                        //   $('.merchantNoList').selectpicker('refresh');
+                        // },50)
+                        vm.commonInitTime(vm.queryTopup, '#topUpReportQuery')
+                        vm.queryTopup.merchantType = null;
+                        vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
+                        });
+                        $scope.safeApply();
+
+                    })
+                    break;
+                case "RewardReport":
+                    vm.rewardTypeName = 'ALL';
+                    vm.currentRewardCode = 'ALL';
+                    vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[3]);
+                    vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[1]);
+                    vm.currentRewardTaskName = "ALL";
+                    break;
+            }
+
+            function createMerGroupList(nameObj, listObj) {
+                if (!nameObj || !listObj) return [];
+                let obj = [];
+                $.each(listObj, (name, arr) => {
+                    obj.push({
+                        name: nameObj[name],
+                        list: arr.list
+                    });
+                });
+                return obj;
+            }
+
+            if (choice == "PROVIDER_REPORT") {
+                vm.queryOperation = {};
+                vm.queryOperation.providerId = 'all';
+                utilService.actionAfterLoaded("#operationTable", function () {
+                    vm.commonInitTime(vm.queryOperation, '#operationReportQuery')
+                    // vm.queryOperation.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, vm.topupTablePageChange);
+                });
+                $scope.safeApply();
+            } else if (choice == "FULL_ATTENDANCE_REPORT") {
+                vm.rewardTypeName = 'FULL_ATTENDANCE';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                vm.currentRewardTaskName = "FULL_ATTENDANCE";
+                utilService.actionAfterLoadedDateTimePickers("#fullAttendanceRewardTask", function () {
+                    vm.fullAttendanceRewardQuery = {status: 'all'};
+                    vm.fullAttendanceResultQuery = {status: 'all'};
+                    $scope.safeApply();
+                });
+            }
+            // else if (choice == "PROVIDER_REPORT") {
+            //     vm.rewardTypeName = 'GAME_PROVIDER_REWARD';
+            //     vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[2]);
+            //     vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+            //     vm.currentRewardTaskName = "GAME_PROVIDER_REWARD";
+            //     utilService.actionAfterLoadedDateTimePickers("#providerRewardReport", function () {
+            //         $scope.safeApply();
+            //     });
+            // }
+            else if (choice == "PROPOSAL_REPORT") {
+                vm.proposalQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
+                vm.proposalQuery.status = 'all';
+                vm.proposalQuery.promoType = '';
+                vm.proposalQuery.totalCount = 0;
+                vm.proposalQuery.proposalTypeId = '';
+                utilService.actionAfterLoaded("#proposalTablePage", function () {
+                    vm.commonInitTime(vm.proposalQuery, '#proposalReportQuery')
+
+                    $('select#selectProposalType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
+                    $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multi).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multi).find('span').text(upText)
+                    });
+                    $("select#selectProposalType").multipleSelect("checkAll");
+
+                    $('select#selectPromoType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multiPromo = ($('select#selectPromoType').next().find('.ms-choice'))[0];
+                    $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multiPromo).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multiPromo).find('span').text(upText)
+                    });
+                    $("select#selectPromoType").multipleSelect("checkAll");
+
+                    $('select#selectRewardType').multipleSelect({
+                        allSelected: $translate("All Selected"),
+                        selectAllText: $translate("Select All"),
+                        displayValues: true,
+                        countSelected: $translate('# of % selected'),
+                    });
+                    var $multiReward = ($('select#selectRewardType').next().find('.ms-choice'))[0];
+                    $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
+                        var upText = $($multiReward).text().split(',').map(item => {
+                            return $translate(item);
+                        }).join(',');
+                        $($multiReward).find('span').text(upText)
+                    });
+                    $("select#selectRewardType").multipleSelect("checkAll");
+
+                    vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
+                });
+                $scope.safeApply();
+            } else if (choice == "PLAYER_REPORT") {
+                utilService.actionAfterLoaded('#playerReportTablePage', function () {
+                    // todo :: change date to yesterday
+                    var yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                    var todayEndTime = utilService.getTodayEndTime();
+                    vm.playerQuery = {};
+                    vm.playerQuery.sortCol = {validConsumptionAmount: -1};
+                    vm.playerQuery.limit = 5000;
+                    vm.playerQuery.consumptionTimesOperator = ">=";
+                    vm.playerQuery.profitAmountOperator = ">=";
+                    vm.playerQuery.topUpTimesOperator = ">=";
+                    vm.playerQuery.bonusTimesOperator = ">=";
+                    vm.playerQuery.topUpAmountOperator = ">=";
+                    vm.playerQuery.start = utilService.createDatePicker('#startingDateTimePicker');
+                    vm.playerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.playerQuery.end = utilService.createDatePicker('#endingEndDateTimePicker');
+                    vm.playerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    vm.playerQuery.pageObj = utilService.createPageForPagingTable("#playerReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerQuery", vm.searchPlayerReport);
+                    });
+                    vm.setupRemarksMultiInput();
+                    $scope.safeApply();
+                })
+            } else if (choice == "PLAYER_EXPENSE_REPORT") {
+                vm.playerExpenseQuery = {totalCount: 0};
+                utilService.actionAfterLoaded("#playerExpenseTablePage", function () {
+                    vm.commonInitTime(vm.playerExpenseQuery, '#playerExpenseReportQuery');
+                    vm.playerExpenseQuery.providerId = "all";
+                    vm.playerExpenseQuery.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerExpenseQuery", vm.searchProviderPlayerRecord)
+                    });
+                })
+            } else if (choice == "PLAYERDOMAIN_REPORT") {
+                vm.playerDomain = {totalCount: 0};
+                vm.playerDomain.topUpTimesOperator = ">=";
+                vm.playerDomain.playerValueOperator = ">=";
+                vm.playerDomain.registrationInterface = "";
+                vm.playerDomain.isNewSystem = "";
+                vm.playerDomain.playerType = "Real Player (all)";
+                utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
+                    // Get Promote CS and way lists
+                    vm.pdAllPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                            vm.pdAllPromoteWay = data.data;
+                            console.log("vm.pdAllPromoteWay", vm.pdAllPromoteWay);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log(err);
+                        });
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                        console.log('getDepartmentTreeById', data);
+                        let parentId;
+                        vm.pdQueryDepartments = [];
+                        vm.pdQueryRoles = [];
+
+                        data.data.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.pdQueryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.pdQueryDepartments.push(e);
+                            }
+                        });
+
+                        $scope.$digest();
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+
+                    vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
+                    vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
+                    });
+                    vm.searchPlayerDomainRepport(true);
+                });
+            } else if (choice == "NEWACCOUNT_REPORT") {
+                vm.newPlayerQuery = {totalCount: 0};
+                //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
+                utilService.actionAfterLoaded("#validPlayerPie", function () {
+                    vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
+                    vm.searchNewPlayerRecord(true);
+                });
+            } else if (choice == 'DX_NEWACCOUNT_REPORT') {
+                utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
+                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                    let todayEndTime = utilService.getTodayEndTime();
+
+                    // Get Promote CS and way lists
+                    vm.allPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                            vm.allPromoteWay = data.data;
+                            console.log("vm.allPromoteWay", vm.allPromoteWay);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log(err);
+                        });
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                        console.log('getDepartmentTreeById', data);
+                        let parentId;
+                        vm.queryDepartments = [];
+                        vm.queryRoles = [];
+
+                        data.data.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.queryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.queryDepartments.push(e);
+                            }
+                        });
+
+                        $scope.$digest();
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+
+                    vm.dxNewPlayerQuery = {
+                        days: 1,
+                        valueScoreOperator: ">=",
+                        topUpTimesOperator: ">=",
+                        bonusTimesOperator: ">=",
+                        topUpAmountOperator: ">="
+                    };
+                    vm.dxNewPlayerQuery.start = utilService.createDatePicker('#dxNewPlayerReportQuery .startTime');
+                    vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
+                    vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    $scope.safeApply();
+                })
+            } else if (choice == "WINRATE_REPORT") {
+                vm.winRateQuery = {};
+                vm.winRateSummaryData = {};
+                vm.winRateQuery.providerId = 'all';
+                utilService.actionAfterLoaded("#winRateTable", function () {
+                    vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
+                });
+                $scope.safeApply();
+            } else if (choice == "FEEDBACK_REPORT") {
+                utilService.actionAfterLoaded('#feedbackReportTable', function () {
+                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                    let todayEndTime = utilService.getTodayEndTime();
+
+                    vm.allFeedbackResults = {};
+                    vm.allFeedbackTopics = {};
+
+                    $scope.$socketPromise('getAllPlayerFeedbackResults').then(
+                        function (data) {
+                            vm.allFeedbackResults = data.data;
+                            console.log("vm.allFeedbackResults", data.data);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log("vm.allFeedbackResults", err);
+                        }
+                    ).catch(function (err) {
+                        console.log("vm.allFeedbackResults", err)
+                    });
+
+                    $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
+                        function (data) {
+                            vm.allFeedbackTopics = data.data;
+                            console.log("vm.allFeedbackTopics", data.data);
+                            $scope.safeApply();
+                        },
+                        function (err) {
+                            console.log("vm.allFeedbackTopics", err);
+                        }
+                    ).catch(function (err) {
+                        console.log("vm.allFeedbackTopics", err)
+                    });
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                        console.log('getDepartmentTreeById', data);
+                        let parentId;
+                        vm.queryDepartments = [];
+                        vm.queryRoles = [];
+
+                        data.data.map(e => {
+                            if (e.departmentName == vm.selectedPlatform.name) {
+                                vm.queryDepartments.push(e);
+                                parentId = e._id;
+                            }
+                        });
+
+                        data.data.map(e => {
+                            if (String(parentId) == String(e.parent)) {
+                                vm.queryDepartments.push(e);
+                            }
+                        });
+
+                        $scope.$digest();
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+
+                    vm.feedbackQuery = {
+                        userType: 'Real Player (all)',
+                        result: [],
+                        topic: [],
+                        days: 1,
+                        valueScoreOperator: ">=",
+                        topUpTimesOperator: ">=",
+                        bonusTimesOperator: ">=",
+                        topUpAmountOperator: ">="
+                    };
+                    vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
+                    vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
+                    vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    vm.feedbackQuery.limit = 10;
+                    vm.feedbackQuery.index = 0;
+                    vm.feedbackQuery.pageObj = utilService.createPageForPagingTable("#feedbackReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
+                    });
+                    $scope.safeApply();
+                });
+
+            } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
+                vm.onlinePaymentMismatchQuery = {type: 'online'};
+                vm.proposalMismatchDetail = {};
+                utilService.actionAfterLoaded("#onlinePaymentMismatchTable", function () {
+                    vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
+                });
+                $scope.safeApply();
+            } else if (choice == "LIMITED_OFFER_REPORT") {
+                vm.limitedOfferQuery = {};
+                vm.limitedOfferDetail = {};
+                vm.limitedOfferQuery.limit = 10;
+                utilService.actionAfterLoaded("#limitedOfferTable", function () {
+                    vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
+                    vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "limitedOfferQuery", vm.drawLimitedOfferReport)
+                    });
+                });
+                $scope.safeApply();
+            } else if (choice == "PLAYERPARTNER_REPORT") {
+                vm.partnerQuery = {};
+                utilService.actionAfterLoaded("#playerPartnerTable", function () {
+                    vm.commonInitTime(vm.partnerQuery, '#playerPartnerReportQuery');
+                    vm.partnerQuery.pageObj = utilService.createPageForPagingTable("#playerPartnerTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "partnerQuery", vm.searchPlayerPartnerRecord)
+                    });
+                    $scope.safeApply();
+                })
+            } else if (choice == "PLAYER_CONSUMPTION_RETURN_REPORT") {
+                vm.consumptionReturnQuery = vm.initReportPara();
+                vm.rewardTypeName = 'PLAYER_CONSUMPTION_RETURN';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                vm.currentRewardTaskName = "PLAYER_CONSUMPTION_RETURN";
+                utilService.actionAfterLoadedDateTimePickers("#consumptionReturnReport", function () {
+                    $scope.safeApply();
+                });
+            } else if (choice == "PLAYER_LEVEL_UP_REPORT") {
+                vm.rewardTypeName = 'PLAYER_LEVEL_UP';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                vm.currentRewardTaskName = "PLAYER_LEVEL_UP";
+            } else if (choice == "PARTNER_TOP_UP_RETURN_REPORT") {
+                vm.rewardTypeName = 'PARTNER_TOP_UP_RETURN';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                vm.currentRewardTaskName = "PARTNER_TOP_UP_RETURN";
+            } else if (choice == "PLAYER_TOP_UP_REWARD_REPORT") {
+                vm.rewardTypeName = 'PLAYER_TOP_UP_REWARD';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                vm.currentRewardTaskName = "PLAYER_TOP_UP_REWARD";
+            } else if (choice == "PLAYER_REFERRAL_REWARD_REPORT") {
+                vm.rewardTypeName = 'PLAYER_REFERRAL_REWARD';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                // vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                // vm.currentRewardTaskName = "PLAYER_REFERRAL_REWARD";
+            } else if (choice == "FIRST_TOPUP_REWARD_REPORT") {
+                vm.rewardTypeName = 'FIRST_TOP_UP';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                vm.currentRewardTaskName = "FIRST_TOP_UP";
+            } else if (choice == "TRANSACTION_REPORT") {
+                vm.rewardTypeName = 'PLATFORM_TRANSACTION_REWARD';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+            } else if (choice == "PARTNER_CONSUMPTION_REPORT") {
+                vm.rewardTypeName = 'PARTNER_CONSUMPTION_RETURN';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[1]);
+            } else if (choice == "PARTNER_INCENTIVE_REPORT") {
+                vm.rewardTypeName = 'PARTNER_INCENTIVE_REWARD';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[1]);
+            } else if (choice == "PARTNER_REFERRAL_REPORT") {
+                vm.rewardTypeName = 'PARTNER_REFERRAL_REWARD';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[1]);
+            } else if (choice == "PLAYER_FEEDBACK_REPORT") {
+                vm.playerFeedbackQuery.result = 'all';
+                vm.playerFeedbackQuery.totalCount = 0;
+                utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
+                    vm.commonInitTime(vm.playerFeedbackQuery, '#playerFeedbackReportQuery');
+                    vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {}, $translate, vm.feedbackTablePageChange);
+                })
+                $scope.safeApply();
+            } else if (choice == "CREDIT_CHANGE_REPORT") {
+                vm.creditChangeQuery = vm.creditChangeQuery || {};
+                utilService.actionAfterLoaded("#creditChangeTablePage", function () {
+                    vm.creditChangeQuery.totalCount = 0;
+                    vm.commonInitTime(vm.creditChangeQuery, '#creditChangeReportQuery');
+                    vm.creditChangeQuery.pageObj = utilService.createPageForPagingTable("#creditChangeTablePage", {}, $translate, vm.creditChangeTablePageChange);
+                })
+            } else if (choice == "PLAYER_TOP_UP_RETURN_REPORT") {
+                vm.rewardTypeName = 'PLAYER_TOP_UP_RETURN';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                vm.currentRewardTaskName = "PLAYER_TOP_UP_RETURN";
+            } else if (choice == "PLAYER_CONSUMPTION_INCENTIVE_REPORT") {
+                vm.rewardTypeName = 'PLAYER_CONSUMPTION_INCENTIVE';
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                vm.currentRewardTaskName = "PLAYER_CONSUMPTION_INCENTIVE";
+                $scope.safeApply();
+            } else if (choice == "PLAYER_ALMOST_LEVELUP_REPORT") {
+                vm.playerAlmostLevelUpQuery = vm.playerAlmostLevelUpQuery || {};
+                vm.playerAlmostLevelUpQuery.percentage = 0.9;
+                vm.playerAlmostLevelUpQuery.totalCount = 0;
+                utilService.actionAfterLoaded("#playerAlmostLevelUpTablePage", function () {
+                    vm.playerAlmostLevelUpQuery.pageObj = utilService.createPageForPagingTable("#playerAlmostLevelUpTablePage", {}, $translate, vm.playerAlmostLevelUpTablePageUpdate);
+                })
+                $scope.safeApply();
+            } else if (choice == "PARTNERPLAYERBOUNS_REPORT") {
+                vm.partnerPlayerBonusQuery = {};
+                vm.partnerPlayerBonusQuery.status = 'all';
+                vm.partnerPlayerBonusQuery.totalCount = 0;
+                vm.partnerPlayerBonusQuery.proposalTypeId = 'all';
+                utilService.actionAfterLoaded("#partnerPlayerBonusTablePage", function () {
+                    vm.commonInitTime(vm.partnerPlayerBonusQuery, '#partnerPlayerBonusQuery')
+                    vm.partnerPlayerBonusQuery.pageObj = utilService.createPageForPagingTable("#partnerPlayerBonusTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "partnerPlayerBonusQuery", vm.searchPartnerPlayerBonusData)
+                    });
+                })
+                $scope.safeApply();
+            } else if (choice == "PARTNERCOMMISSION_REPORT") {
+                vm.partnerCommissionQuery = {};
+                vm.partnerCommissionQuery.status = 'all';
+                vm.partnerCommissionQuery.totalCount = 0;
+                vm.partnerCommissionQuery.proposalTypeId = 'all';
+                utilService.actionAfterLoaded("#partnerCommissionTablePage", function () {
+                    vm.commonInitTime(vm.partnerCommissionQuery, '#partnerCommissionQuery')
+                    vm.partnerCommissionQuery.pageObj = utilService.createPageForPagingTable("#partnerCommissionTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "partnerCommissionQuery", vm.searchPartnerCommissionData)
+                    });
+                })
+                $scope.safeApply();
+            } else if (choice == "ACTIONLOG_REPORT") {
+                vm.actionLogQuery = vm.actionLogQuery || {};
+                vm.actionLogQuery.allActions = [
+                    {group: "DEPARTMENT", text: "ADD_DEPARTMENT", action: "createDepartmentWithParent"},
+                    {group: "DEPARTMENT", text: "MOVE_DEPARTMENT", action: "updateDepartmentParent"},
+                    {group: "DEPARTMENT", text: "RENAME_DEPARTMENT", action: "updateDepartment"},
+                    {group: "DEPARTMENT", text: "DELETE_DEPARTMENT", action: "deleteDepartmentsById"},
+
+                    {group: "Role", text: "createRoleForDepartment", action: "createRoleForDepartment"},
+                    {group: "Role", text: "deleteRolesById", action: "deleteRolesById"},
+                    {group: "Role", text: "updateRole", action: "updateRole"},
+                    {group: "Role", text: "attachRolesToUsersById", action: "attachRolesToUsersById"},
+                    {group: "Role", text: "detachRolesFromUsersById", action: "detachRolesFromUsersById"},
+
+                    {group: "Admin", text: "createAdminForDepartment", action: "createAdminForDepartment"},
+                    {group: "Admin", text: "updateAdmin", action: "updateAdmin"},
+                    {group: "Admin", text: "deleteAdminInfosById", action: "deleteAdminInfosById"},
+                    {group: "Admin", text: "MOVE_USER", action: "updateAdminDepartment"},
+                    {group: "Admin", text: "RESET_PASSWORD", action: "resetAdminPassword"},
+
+                    {group: "PLATFORM", text: "createPlatform", action: "createPlatform"},
+                    {group: "PLATFORM", text: "DELETE_PLATFORM", action: "deletePlatformById"},
+                    {group: "PLATFORM", text: "updatePlatform", action: "updatePlatform"},
+                    {
+                        group: "PLATFORM",
+                        text: "Daily Settlement",
+                        action: ["startPlatformDailySettlement", "fixPlatformDailySettlement"]
+                    },
+                    {
+                        group: "PLATFORM",
+                        text: "Weekly Settlement",
+                        action: ["startPlatformWeeklySettlement", "fixPlatformWeeklySettlement"]
+                    },
+
+                    {group: "PLAYER", text: "CREATE_PLAYER", action: "createPlayer"},
+                    {group: "PLAYER", text: "createTestPlayerForPlatform", action: "createDemoPlayer"},
+                    {group: "PLAYER", text: "createUpdatePlayerInfoProposal", action: "createUpdatePlayerInfoProposal"},
+                    //{group: "PLAYER", text: "Search referral", action: "getPlayerReferrals"},
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerPhoneProposal",
+                        action: "createUpdatePlayerPhoneProposal"
+                    },
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerEmailProposal",
+                        action: "createUpdatePlayerEmailProposal"
+                    },
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerQQProposal",
+                        action: "createUpdatePlayerQQProposal"
+                    },
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerWeChatProposal",
+                        action: "createUpdatePlayerWeChatProposal"
+                    },
+                    {group: "PLAYER", text: "UpdatePlayerBankInfo", action: "createUpdatePlayerBankInfoProposal"},
+                    {group: "PLAYER", text: "resetPlayerPassword", action: "resetPlayerPassword"},
+
+                    {group: "PLAYER", text: "Repair Payment", action: "submitRepairPaymentProposal"},
+                    {
+                        group: "PLAYER",
+                        text: "createUpdatePlayerCreditProposal",
+                        action: "createUpdatePlayerCreditProposal"
+                    },
+                    {group: "PLAYER", text: "Forbid TopUp Types", action: "createForbidTopUpLog"},
+                    {group: "PLAYER", text: "createPlayerFeedback", action: "createPlayerFeedback"},
+
+                    // {group: "PLAYER", text: "updatePlayerStatus", action: "updatePlayerStatus"},
+                    // {
+                    //     group: "PLAYER",
+                    //     text: "transferPlayerCreditFromProvider",
+                    //     action: "transferPlayerCreditFromProvider"
+                    // },
+                    {group: "PLAYER", text: "transferPlayerCreditToProvider", action: "transferPlayerCreditToProvider"},
+                    {group: "PLAYER", text: "PlayerPermission", action: "updatePlayerPermission"},
+
+                    {group: "PARTNER", text: "createPartner", action: "createPartner"},
+                    {group: "PARTNER", text: "createPartnerWithParent", action: "createPartnerWithParent"},
+                    {group: "PARTNER", text: "deletePartnersById", action: "deletePartnersById"},
+                    {group: "PARTNER", text: "updatePartner", action: "createUpdatePartnerInfoProposal"},
+                    {group: "PARTNER", text: "Update partner phone number", action: "createUpdatePartnerPhoneProposal"},
+                    {group: "PARTNER", text: "Update partner email", action: "createUpdatePartnerEmailProposal"},
+                    {group: "PARTNER", text: "Update partner QQ", action: "createUpdatePartnerQQProposal"},
+                    {
+                        group: "PARTNER",
+                        text: "Update partner bank information",
+                        action: "createUpdatePartnerBankInfoProposal"
+                    },
+                    {group: "PARTNER", text: "RESET_PASSWORD", action: "resetPartnerPassword"},
+
+                    {group: "Platform Game", text: "PROVIDER_NICKNAME", action: "renameProviderInPlatformById"},
+                    {group: "Platform Game", text: "ENABLE/DISABLE", action: "updateProviderFromPlatformById"},
+                    {group: "Platform Game", text: "updateGameStatusToPlatform", action: "updateGameStatusToPlatform"},
+                    {group: "Platform Game", text: "attachGameToPlatform", action: "attachGamesToPlatform"},
+                    {group: "Platform Game", text: "detachGameFromPlatform", action: "detachGamesFromPlatform"},
+
+                    {group: "GameGroup", text: "Add Game Group", action: "addPlatformGameGroup"},
+                    {group: "GameGroup", text: "Remove Game Group", action: "deleteGameGroup"},
+                    {group: "GameGroup", text: "Rename Game Group", action: "renamePlatformGameGroup"},
+                    {group: "GameGroup", text: "Move Game Group", action: "updateGameGroupParent"},
+                    // {group: "GameGroup", text: "Update Game Group", action: "updatePlatformGameGroup"},
+
+                    {group: "REWARD", text: "createRewardEvent", action: "createRewardEvent"},
+                    {group: "REWARD", text: "deleteRewardEventByIds", action: "deleteRewardEventByIds"},
+                    {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
+
+                    {
+                        group: "Proposal",
+                        text: "updateProposalTypeProcessSteps",
+                        action: "updateProposalTypeProcessSteps"
+                    },
+                    {group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
+
+                    {group: "PlayerLevel", text: "createPlayerLevel", action: "createPlayerLevel"},
+                    {group: "PlayerLevel", text: "updatePlayerLevel", action: "updatePlayerLevel"},
+
+                    {group: "PartnerLevel", text: "createPartnerLevel", action: "createPartnerLevel"},
+                    {group: "PartnerLevel", text: "partnerLevel/update", action: "partnerLevel/update"},
+                    {group: "VALID_ACTIVE", text: "updatePartnerLevelConfig", action: "updatePartnerLevelConfig"},
+                    {
+                        group: "Partner Commission",
+                        text: "Partner Commission",
+                        action: ['createPartnerCommissionConfig', 'updatePartnerCommissionLevel', 'getPartnerCommissionConfig']
+                    },
+
+                    {group: "MessageTemplates", text: "ADD", action: "createMessageTemplate"},
+                    {group: "MessageTemplates", text: "UPDATE", action: "updateMessageTemplate"},
+
+                    {group: "ANNOUNCEMENTS", text: "ADD", action: "createPlatformAnnouncement"},
+                    {group: "ANNOUNCEMENTS", text: "UPDATE", action: "updatePlatformAnnouncement"},
+                    {group: "ANNOUNCEMENTS", text: "DELETE", action: "deletePlatformAnnouncementByIds"},
+
+                    {group: "Bankcard Group", text: "ADD", action: "addPlatformBankCardGroup"},
+                    {group: "Bankcard Group", text: "UPDATE", action: "updatePlatformBankCardGroup"},
+                    {group: "Bankcard Group", text: "DELETE", action: "deleteBankCardGroup"},
+                    {group: "Bankcard Group", text: "Default", action: "setPlatformDefaultBankCardGroup"},
+                    {group: "Bankcard Group", text: "ADD_PLAYER", action: "addPlayersToBankCardGroup"},
+
+                    {group: "MERCHANT_GROUP", text: "ADD", action: "addPlatformMerchantGroup"},
+                    {group: "MERCHANT_GROUP", text: "UPDATE", action: "renamePlatformMerchantGroup"},
+                    {group: "MERCHANT_GROUP", text: "DELETE", action: "deleteMerchantGroup"},
+                    {group: "MERCHANT_GROUP", text: "Default", action: "setPlatformDefaultMerchantGroup"},
+                    {group: "MERCHANT_GROUP", text: "ADD_PLAYER", action: "addPlayersToMerchantGroup"},
+
+                    {group: "AlipayGroup", text: "ADD", action: "addPlatformAlipayGroup"},
+                    {group: "AlipayGroup", text: "UPDATE", action: "renamePlatformAlipayGroup"},
+                    {group: "AlipayGroup", text: "DELETE", action: "deleteAlipayGroup"},
+                    {group: "AlipayGroup", text: "Default", action: "setPlatformDefaultAlipayGroup"},
+                    {group: "AlipayGroup", text: "ADD_PLAYER", action: "addPlayersToAlipayGroup"},
+
+                    {group: "Provider", text: "SETTLEMENT", action: "manualDailyProviderSettlement"},
+                    {group: "Provider", text: "UPDATE", action: "updateGameProvider"},
+                    {group: "Provider", text: "GameStatus", action: "updateGame"},
+                ];
+                utilService.actionAfterLoaded("#actionLogTablePage", function () {
+                    vm.commonInitTime(vm.actionLogQuery, '#actionLogReportQuery');
+                    vm.actionLogQuery.pageObj = utilService.createPageForPagingTable("#actionLogTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "actionLogQuery", vm.searchActionLogData)
+                    });
+                })
+                $scope.safeApply();
+            } else if (choice.indexOf('REWARD_REPORT') !== -1 || choice.indexOf('GROUP_REPORT') !== -1) {
+                // Unless customization is necessary, this should handle the rest of reward report & reward group reward
+                let rewardNameWithoutReport = choice.replace("_REPORT", "");
+                vm.rewardTypeName = rewardNameWithoutReport;
+                vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[0]);
+                if(choice.indexOf('REWARD_REPORT') !== -1) {
+                    vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
+                    vm.currentRewardTaskName = rewardNameWithoutReport;
+                }
+            }
+        }
+
+        function endLoadMultipleSelect (className) {
+            $timeout(function () {
+                $(className).selectpicker('refresh');
+            }, 0);
+        }
+
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";
         if (!$scope.AppSocket) {
@@ -6412,8 +6420,6 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync(loadPlatform());
         });
     };
-
-
 
     myApp.register.controller('reportCtrl', reportController);
 });

@@ -42,8 +42,9 @@
                         option(value='1') 网银转账(OnlineTransfer)
                         option(value='2') 自动取款机(ATM)
                         option(value='3') 银行柜台(Counter)
-                        option(value='4') 网银跨行(Online Banking - InterBank Transfer)
-                        option(value='5') 支付宝(AliPay)
+                        option(value='4') 支付宝转帐(AliPay Transfer)
+                        option(value='5') 微信转帐(WeChatPay Transfer)
+                        //option(value='5') 支付宝(AliPay)
 
 
                 div(style='max-width:125px')
@@ -67,6 +68,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchTopupRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -122,6 +124,7 @@
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchProposalRecord(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage(vm.showPageName)') {{'Reset' | translate}}
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -159,8 +162,8 @@
                         th {{'TOTAL_CONSUMPTION' | translate}}
                         th {{'VALID_CONSUMPTION' | translate}}
                         th {{'TIMES_CONSUMED' | translate}}
-                        th {{'TOTAL_EARNING' | translate}}
-                        th {{'EARNING_RATIO' | translate}}
+                        th {{'PLAYER PROFIT AMOUNT' | translate}}
+                        th {{'COMPANY_PROFIT_POINT' | translate}}
                 tbody
                     tr
                         td {{vm.operationSummaryData.total_player}}
@@ -168,7 +171,7 @@
                         td {{vm.operationSummaryData.validAmount | number : 2}}
                         td {{vm.operationSummaryData.total_consumption}}
                         td {{vm.operationSummaryData.bonusAmount | number : 2}}
-                        td {{(vm.operationSummaryData.bonusAmount/vm.operationSummaryData.validAmount*100 || 0) | number : 2 }}%
+                        td {{(vm.operationSummaryData.bonusAmount/vm.operationSummaryData.validAmount*100 || 0) * -1 | number : 2 }}%
 
         div(ng-if='vm.showPageName=="PLAYER_EXPENSE_REPORT"')
             #playerExpenseReportQuery.block-query.col-md-12.well
