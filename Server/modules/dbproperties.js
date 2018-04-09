@@ -306,6 +306,8 @@ let promoCodeActiveTimeSchema = require('./../schema/logs/promoCodeActiveTime');
 let promoCodeActiveTimeModel = dbLogs.model('promoCodeActiveTime', promoCodeActiveTimeSchema, 'promoCodeActiveTime');
 let clickCountSchema = require('./../schema/logs2/clickCount');
 let clickCountModel = dbLogs2.model('clickCount', clickCountSchema, 'clickCount');
+let rewardTaskGroupUnlockedRecordSchema = require('./../schema/logs2/rewardTaskGroupUnlockedRecord');
+let rewardTaskGroupUnlockedRecordModel = dbLogs2.model('rewardTaskGroupUnlockedRecord', rewardTaskGroupUnlockedRecordSchema, 'rewardTaskGroupUnlockedRecord');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -500,6 +502,7 @@ var dbProperties = {
     collection_rewardTaskGroup: rewardTaskGroupModel,
     collection_createDemoPlayerLog: createDemoPlayerLogModel,
     collection_clickCount: clickCountModel,
+    collection_rewardTaskGroupUnlockedRecord: rewardTaskGroupUnlockedRecordModel,
     collection_rewardPointsProgress: rewardPointsProgressModel,
 
     collection_qualityInspection: qualityInspectionModel,

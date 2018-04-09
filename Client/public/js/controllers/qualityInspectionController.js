@@ -471,7 +471,7 @@ define(['js/app'], function (myApp) {
                             return cv;
                         });
                         item.editable = false;
-
+                        item.createTime = utilService.getFormatTime(item.createTime);
 
                         return item;
                     });
@@ -861,6 +861,10 @@ define(['js/app'], function (myApp) {
                                         }
                                     });
                                 }
+
+                                if(data.createTime){
+                                    data.createTime = utilService.getFormatTime(data.createTime);
+                                }
                             }
 
                             return data;
@@ -924,30 +928,34 @@ define(['js/app'], function (myApp) {
                                     data.status = vm.constQualityInspectionStatus[data.status];
                                 }
 
-                                data.conversation.forEach(function(cv,i){
-                                    cv.roleName = vm.roleType[cv.roles];
-                                    cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+                                if(data.conversation){
+                                    data.conversation.forEach(function(cv,i){
+                                        cv.roleName = vm.roleType[cv.roles];
+                                        cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
-                                    cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+                                        cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
 
-                                    // load each platform overtimeSetting
-                                    let overtimeSetting = vm.getPlatformOvertimeSetting(data);
-                                    let otsLength = overtimeSetting.length -1;
-                                    let colors = '';
+                                        // load each platform overtimeSetting
+                                        let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                        let otsLength = overtimeSetting.length -1;
+                                        let colors = '';
 
-                                    // render with different color
-                                    overtimeSetting.forEach((ots,i) => {
-                                        if(cv.roles == 1 && cv.needRate){
-                                            if(cv.timeoutRate == ots.presetMark){
-                                                colors = ots.color;
+                                        // render with different color
+                                        overtimeSetting.forEach((ots,i) => {
+                                            if(cv.roles == 1 && cv.needRate){
+                                                if(cv.timeoutRate == ots.presetMark){
+                                                    colors = ots.color;
+                                                }
                                             }
-                                        }
+                                        });
+                                        cv.colors = colors;
+                                        return cv;
                                     });
-                                    cv.colors = colors;
-                                    return cv;
+                                }
 
-                                });
-
+                                if(data.createTime){
+                                    data.createTime = utilService.getFormatTime(data.createTime);
+                                }
                             }
 
                             return data;
@@ -1007,35 +1015,43 @@ define(['js/app'], function (myApp) {
                     if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+
+                                if(data.conversation){
+                                    data.conversation.forEach(function(cv,i){
+                                        cv.roleName = vm.roleType[cv.roles];
+                                        cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                        cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                        // load each platform overtimeSetting
+                                        let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                        let otsLength = overtimeSetting.length -1;
+                                        let colors = '';
+
+                                        // render with different color
+                                        overtimeSetting.forEach((ots,i) => {
+                                            if(cv.roles == 1 && cv.needRate){
+                                                if(cv.timeoutRate == ots.presetMark){
+                                                    colors = ots.color;
+                                                }
+                                            }
+                                        });
+                                        cv.colors = colors;
+                                        return cv;
+
+                                    });
+                                }
+
+                                if(data.createTime){
+                                    data.createTime = utilService.getFormatTime(data.createTime);
+                                }
+
+                                return data;
                             }
-
-                            data.conversation.forEach(function(cv,i){
-                                cv.roleName = vm.roleType[cv.roles];
-                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-
-                                cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
-
-                                // load each platform overtimeSetting
-                                let overtimeSetting = vm.getPlatformOvertimeSetting(data);
-                                let otsLength = overtimeSetting.length -1;
-                                let colors = '';
-
-                                // render with different color
-                                overtimeSetting.forEach((ots,i) => {
-                                    if(cv.roles == 1 && cv.needRate){
-                                        if(cv.timeoutRate == ots.presetMark){
-                                            colors = ots.color;
-                                        }
-                                    }
-                                });
-                                cv.colors = colors;
-                                return cv;
-
-                            });
-
-                            return data;
                         })
                         vm.appealEvaluationTable = data.data.data;
 
@@ -1091,35 +1107,43 @@ define(['js/app'], function (myApp) {
                     if(data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+
+                                if(data.conversation){
+                                    data.conversation.forEach(function(cv,i){
+                                        cv.roleName = vm.roleType[cv.roles];
+                                        cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                        cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                        // load each platform overtimeSetting
+                                        let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                        let otsLength = overtimeSetting.length -1;
+                                        let colors = '';
+
+                                        // render with different color
+                                        overtimeSetting.forEach((ots,i) => {
+                                            if(cv.roles == 1 && cv.needRate){
+                                                if(cv.timeoutRate == ots.presetMark){
+                                                    colors = ots.color;
+                                                }
+                                            }
+                                        });
+                                        cv.colors = colors;
+                                        return cv;
+
+                                    });
+                                }
+
+                                if(data.createTime){
+                                    data.createTime = utilService.getFormatTime(data.createTime);
+                                }
+
+                                return data;
                             }
-
-                            data.conversation.forEach(function(cv,i){
-                                cv.roleName = vm.roleType[cv.roles];
-                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-
-                                cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
-
-                                // load each platform overtimeSetting
-                                let overtimeSetting = vm.getPlatformOvertimeSetting(data);
-                                let otsLength = overtimeSetting.length -1;
-                                let colors = '';
-
-                                // render with different color
-                                overtimeSetting.forEach((ots,i) => {
-                                    if(cv.roles == 1 && cv.needRate){
-                                        if(cv.timeoutRate == ots.presetMark){
-                                            colors = ots.color;
-                                        }
-                                    }
-                                });
-                                cv.colors = colors;
-                                return cv;
-
-                            });
-
-                            return data;
                         })
                         vm.appealEvaluationTable = data.data.data;
 
@@ -1798,19 +1822,24 @@ define(['js/app'], function (myApp) {
 
 
             //****** CS Report Tab ******* START //
-
             vm.checkSelectedPlatformID = function(seletedProductsId){
                 vm.selectedCSAccount = [];
                 vm.selectedLive800Acc = [];
                 vm.selectedLive800 = [];
                 vm.allCSDepartmentId = [];
                 vm.selectedCS = [];
+                vm.selectedCompanyId = [];
 
                 if (seletedProductsId !== 'all') {
                     // select the CS account that bound to the selected platform
 
                     vm.platformWithCSDepartment.forEach(platform => {
                         if (platform.id === seletedProductsId) {
+                            if (platform.data.live800CompanyId && platform.data.live800CompanyId.length > 0){
+                                platform.data.live800CompanyId.forEach( companyId => {
+                                    vm.selectedCompanyId.push(companyId);
+                                })
+                            }
                             if (platform.data.csDepartment.length > 0) {
                                 platform.data.csDepartment.forEach(department => {
                                     vm.allCSDepartmentId.push(department._id);
@@ -1825,30 +1854,37 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
 
-                        if (data && data.data && data.data.length > 0){
-                            data.data.forEach(acc => {
-                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
-                                    vm.selectedCSAccount.push(acc);
-                                    vm.selectedCS.push(acc._id);
-                                    acc.live800Acc.forEach(liveAcc => {
-                                        vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
-                                        vm.selectedLive800.push(liveAcc);
-                                    });
-                                }
-                            });
-                        }else{
-                            // for null
-                            vm.selectedCSAccount.push("");
-                            vm.selectedLive800Acc.push("");
-                            vm.selectedCS.push("");
+                        $scope.$evalAsync(() => {
+                            if (data && data.data && data.data.length > 0){
+                                data.data.forEach(acc => {
+                                    if ( acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("") ){
 
-                        }
-                        $scope.safeApply();
+                                        acc.live800Acc.forEach(liveAcc => {
+                                            //check the operatorId is bound to the selected companyID (i.e., platform)
+                                            if( vm.selectedCompanyId.indexOf(liveAcc.split("-")[0]) > -1 ){
+                                                vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                                vm.selectedLive800.push(liveAcc);
+                                            }
+
+                                        });
+                                        if(vm.selectedLive800.length > 0){
+                                            vm.selectedCSAccount.push(acc);
+                                            vm.selectedCS.push(acc._id);
+                                        }
+                                    }
+                                });
+                            }
+                        })
                     });
 
                 } else {
                     // select all by default
                     vm.platformWithCSDepartment.forEach(platform => {
+                        if (platform.data.live800CompanyId && platform.data.live800CompanyId.length > 0){
+                            platform.data.live800CompanyId.forEach( companyId => {
+                                vm.selectedCompanyId.push(companyId);
+                            })
+                        }
                         if (platform.data.csDepartment.length >0) {
                             platform.data.csDepartment.forEach(department =>{
                                 vm.allCSDepartmentId.push(department._id);
@@ -1862,25 +1898,31 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
 
-                        if (data && data.data){
-                            data.data.forEach(acc => {
-                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
-                                    vm.selectedCSAccount.push(acc);
-                                    acc.live800Acc.forEach(liveAcc => {
-                                        vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
-                                        vm.selectedLive800.push(liveAcc);
-                                    });
-                                }
-                            });
+                        $scope.$evalAsync(() => {
+                            if (data && data.data){
+                                data.data.forEach(acc => {
+                                    if ( acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("") ){
 
-                        }
-                        if (vm.selectedCSAccount && vm.selectedCSAccount.length > 0){
-                            vm.selectedCS=[];
-                            vm.selectedCSAccount.forEach(acc => {
-                                vm.selectedCS.push(acc._id);
-                            });
-                        }
-                        $scope.safeApply();
+                                        //  vm.selectedCSAccount.push(acc);
+                                        acc.live800Acc.forEach(liveAcc => {
+                                            //check the operatorId is bound to the selected companyID (i.e., platform)
+                                            if( vm.selectedCompanyId.indexOf(liveAcc.split("-")[0]) > -1 ){
+                                                vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                                vm.selectedLive800.push(liveAcc);
+                                            }
+
+                                            // vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                            // vm.selectedLive800.push(liveAcc);
+                                        });
+                                        if(vm.selectedLive800.length > 0){
+                                            vm.selectedCSAccount.push(acc);
+                                            vm.selectedCS.push(acc._id);
+                                        }
+                                    }
+                                });
+
+                            }
+                        })
                     });
                 }
                 console.log("vm.selectedCSAccount", vm.selectedCSAccount);
@@ -1950,10 +1992,18 @@ define(['js/app'], function (myApp) {
                 vm.allCSDepartmentId=[];
                 vm.selectedCS = [];
                 vm.platformWithCSDepartment=[]; // to filter out the platform with CS Department for the Product Filter
+                vm.selectedCompanyId = [];
 
 
                 vm.platformList.forEach(platform => {
+                    // select the bounded companyId
+                    if (platform.data.live800CompanyId && platform.data.live800CompanyId.length > 0){
+                        platform.data.live800CompanyId.forEach( companyId => {
+                            vm.selectedCompanyId.push(companyId);
+                        })
+                    }
                     if (platform.data.csDepartment.length >0) {
+
                        platform.data.csDepartment.forEach(department =>{
                            vm.allCSDepartmentId.push(department._id);
                        });
@@ -1966,42 +2016,32 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'getAdminsInfo', sendQuery, function (data){
 
-                    if (data && data.data){
-                        data.data.forEach(acc => {
-                            if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
-                                vm.selectedCSAccount.push(acc);
-                                vm.selectedCS.push(acc._id);
-                            }
-                        });
+                    $scope.$evalAsync(() => {
+                        if (data && data.data){
+                            data.data.forEach(acc => {
+                                if (acc.live800Acc && acc.live800Acc.length > 0 && !acc.live800Acc.includes("")){
 
-                        console.log("vm.selectedCSAccount",vm.selectedCSAccount);
-                        console.log("vm.selectedCS",vm.selectedCS);
-
-                        //select the Live800 account that bound to the selected CS account
-                        vm.selectedCSAccount.forEach(acc => {
-                            if (acc.live800Acc.length>0) {
-                                acc.live800Acc.forEach(liveAcc => {
-                                    if (liveAcc != "") {
-                                        vm.selectedLive800Acc.push({
-                                            _id: acc._id,
-                                            adminName: acc.adminName,
-                                            live800Acc: liveAcc
-                                        });
-                                        vm.allLive800Acc.push({
-                                            _id: acc._id,
-                                            adminName: acc.adminName,
-                                            live800Acc: liveAcc
-                                        });
-                                        vm.selectedLive800.push(liveAcc);
+                                    acc.live800Acc.forEach(liveAcc => {
+                                        //check the operatorId is bound to the selected companyID (i.e., platform)
+                                        if( vm.selectedCompanyId.indexOf(liveAcc.split("-")[0]) > -1 ){
+                                            vm.selectedLive800Acc.push({_id: acc._id, adminName:acc.adminName, live800Acc:liveAcc});
+                                            vm.selectedLive800.push(liveAcc);
+                                        }
+                                    });
+                                    if(vm.selectedLive800.length > 0){
+                                        vm.selectedCSAccount.push(acc);
+                                        vm.selectedCS.push(acc._id);
                                     }
-                                });
-                            }
-                        });
+                                }
+                            });
 
-                        console.log("vm.selectedLive800Acc",vm.selectedLive800Acc);
-                        console.log("vm.selectedLive800",vm.selectedLive800);
-                    }
-                   $scope.safeApply();
+                            console.log("vm.selectedCSAccount",vm.selectedCSAccount);
+                            console.log("vm.selectedCS",vm.selectedCS);
+                            console.log("vm.selectedLive800Acc",vm.selectedLive800Acc);
+                            console.log("vm.selectedLive800",vm.selectedLive800);
+                        }
+                    })
+
                 });
 
                 vm.QIReportQuery ={};
@@ -2311,7 +2351,6 @@ define(['js/app'], function (myApp) {
                         vm[id] = {};
 
                         let selectedLiveAcc = [];
-                        let selectedCompanyId =[];
                         vm.displayDetailData = [];
 
                         socketService.$socket($scope.AppSocket, 'getAdminsInfo', {
@@ -2323,10 +2362,9 @@ define(['js/app'], function (myApp) {
                                     return;
                                 }
 
-                                selectedLiveAcc = data.data[0].live800Acc;
+                                selectedLiveAcc = data.data[0].live800Acc.filter( acc => {return vm.selectedCompanyId.indexOf(acc.split("-")[0]) != -1 });
                             
                                 let params= {
-                                    //'companyId': selectedCompanyId.length > 0 ? selectedCompanyId : [],
                                     'operatorId': selectedLiveAcc,
                                     'startTime':vm.QIReportQuery.startTime.data('datetimepicker').getLocalDate(),
                                     'endTime': vm.QIReportQuery.endTime.data('datetimepicker').getLocalDate()
@@ -2391,8 +2429,7 @@ define(['js/app'], function (myApp) {
 
                                                 return data;
                                             });
-
-
+                                        
                                         $scope.safeApply();
                                         vm.drawDetailQIReportTable(vm.displayDetailData, id, vm.displayDetailData.length, newSearch, []);
                                     }

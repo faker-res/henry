@@ -58,10 +58,20 @@ function socketActionRewardTask(socketIO, socket) {
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbRewardTask.getPlayerRewardTask, [data, data.index, data.limit, data.sortCol, data.useProviderGroup], actionName, isValidData);
         },
+        getPlayerRewardTaskUnlockedRecord: function getPlayerRewardTaskUnlockedRecord(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId);
+            socketUtil.emitter(self.socket, dbRewardTask.getPlayerRewardTaskUnlockedRecord, [data], actionName, isValidData);
+        },
         getRewardTaskGroupProposal: function getRewardTaskGroupProposal(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbRewardTask.getRewardTaskGroupProposal, [data], actionName, isValidData);
+        },
+        getRewardTaskGroupProposalById: function getRewardTaskGroupProposalById(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbRewardTask.getRewardTaskGroupProposalById, [data], actionName, isValidData);
         },
         manualUnlockRewardTask: function manualUnlockRewardTask(data) {
             // [0]: TaskData, [1]: PlayerData
@@ -119,6 +129,12 @@ function socketActionRewardTask(socketIO, socket) {
             let isValidData = Boolean(data && data.rewardTaskGroupId);
             // let isValidData = Boolean(data && data.rewardTaskGroupId && data.incRewardAmount && data.incConsumptionAmount);
             socketUtil.emitter(self.socket, dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup, [data.rewardTaskGroupId, data.incRewardAmount, data.incConsumptionAmount, getAdminId(), getAdminName()], actionName, isValidData);
+        },
+
+        createRewardTaskGroupUnlockedRecord: function createRewardTaskGroupUnlockedRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.unlockTime);
+            socketUtil.emitter(self.socket, dbRewardTaskGroup.createRewardTaskGroupUnlockedRecord, [data], actionName, isValidData);
         },
 
         startPlatformUnlockRewardTaskGroup: function startPlatformUnlockRewardTaskGroup(data) {

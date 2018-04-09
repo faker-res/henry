@@ -134,6 +134,7 @@ var WebSocketUtility = {
                     }
                 },
                 function (err) {
+                    console.error(err);
                     if (!customErrorHandler) {
                         if (err && err.status) {
                             if (err.errorMessage || err.message) {
