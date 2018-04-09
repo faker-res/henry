@@ -2139,125 +2139,139 @@ var dbQualityInspection = {
 
     getSummarizedLive800Record:function(queryString, connection){
         var deferred = Q.defer();
-
-        let resultProm = [];
-
         let counter = 0;
+        let queryList = [];
+        let promiseList = [];
+        
         if(connection){
-            connection.query(queryString, function (error, results, fields) {
-                //console.log("live 800 result",results)
-                if(error){
-                    console.log(error);
-                    console.log("LH CHECK QI SCHEDULER ERROR 111111111111",error);
-                }
+            let promise = new Promise((resolve,reject) => {
+                connection.query(queryString, function (error, results, fields) {
+                    if(error){
+                        console.log(error);
+                        return reject(error);
+                    }
 
-                if(results){
-                    console.log("LH CHECK QI SCHEDULER AAAAAAAAAAAA",results.length);
-                    results.forEach(result => {
-                        let totalInvalidConversation = 0;
-                        let totalValidConversation = 0;
-                        if(result){
-                            let ytdStartTime = new Date(result.storeTime);
-                            let ytdEndTime = new Date(result.storeTime);
-                            ytdEndTime.setHours(23, 59, 59, 999);
+                    if(results){
+                        console.log("LH CHECK QI SCHEDULER AAAAAAAAAAAA",results.length);
+                        results.forEach(result => {
+                            if(result){
+                                let ytdStartTime = new Date(result.storeTime);
+                                let ytdEndTime = new Date(result.storeTime);
+                                ytdEndTime.setHours(23, 59, 59, 999);
 
-                            ytdStartTime = dbUtility.getLocalTimeString(ytdStartTime);
-                            ytdEndTime = dbUtility.getLocalTimeString(ytdEndTime);
+                                ytdStartTime = dbUtility.getLocalTimeString(ytdStartTime);
+                                ytdEndTime = dbUtility.getLocalTimeString(ytdEndTime);
 
+                                let query = {
+                                    startTime: ytdStartTime,
+                                    endTime: ytdEndTime,
+                                    operatorId: result.operator_id,
+                                    companyId: result.company_id,
+                                    createTime: result.storeTime,
+                                    totalRecord: result.totalRecord,
+                                    operatorName: result.operator_name
+                                }
+
+                                queryList.push(query);
+                            }
+                        });
+
+                        resolve(queryList);
+                    }
+                });
+            })
+
+
+            return Q.all([promise]).then( queryData => {
+                if(queryData){
+                    queryData[0].forEach(queryDetail => {
+                        if(queryDetail){
                             let query = "SELECT CAST(store_time AS DATE) AS createTime, company_id, operator_id , operator_name, content   FROM chat_content " +
-                                "WHERE store_time BETWEEN CAST('"+ ytdStartTime + "' as DATETIME) AND CAST('"+ ytdEndTime + "' AS DATETIME) " +
-                                "AND company_id = '" + result.company_id + "' AND operator_id = '" + result.operator_id + "' ";
+                                "WHERE store_time BETWEEN CAST('"+ queryDetail.startTime + "' as DATETIME) AND CAST('"+ queryDetail.endTime + "' AS DATETIME) " +
+                                "AND company_id = '" + queryDetail.companyId + "' AND operator_id = '" + queryDetail.operatorId + "' ";
 
                             let proms = [];
-                            let a = connection.query(query, function (detailsError, detailsResults, fields) {
 
-                                if(detailsError){
-                                    console.log(detailsError);
-                                    console.log("LH CHECK QI SCHEDULER ERROR 2222222222222",detailsError);
-                                }
+                            let childPromise = new Promise((resolve,reject) => {
+                                connection.query(query, function (detailsError, detailsResults, fields) {
 
-                                if(detailsResults){
-                                    let calculatedResult = dbQualityInspection.RestructureConversationContent(detailsResults);
-                                    proms.push(calculatedResult);
-                                }
-
-                                return Promise.all(proms).then(
-                                    data => {
-                                        if(data && data.length > 0 && data[0] && data[0].length > 0){
-                                            let updateData = {
-                                                live800Acc: {}
-                                            };
-
-                                            totalInvalidConversation = data[0].filter(d => d.isValidConversation == false).length;
-                                            totalValidConversation = data[0].filter(d => d.isValidConversation == true).length;
-                                            updateData.effectiveRecord = totalValidConversation;
-                                            updateData.nonEffectiveRecord = totalInvalidConversation;
-
-                                            if(result.storeTime){
-                                                updateData.createTime = result.storeTime;
-                                            }
-
-                                            if(result.company_id){
-                                                updateData.companyId = result.company_id;
-                                            }
-
-                                            if(result.totalRecord){
-                                                updateData.totalRecord = result.totalRecord;
-                                            }
-
-                                            if(result.operator_id){
-                                                updateData.live800Acc.id = result.operator_id
-                                            }
-
-                                            if(result.operator_name){
-                                                updateData.live800Acc.name = result.operator_name
-                                            }
-
-                                            let query = {
-                                                createTime: {
-                                                    $gte: new Date(ytdStartTime),
-                                                    $lt: new Date(ytdEndTime)
-                                                },
-                                                companyId: result.company_id,
-                                                'live800Acc.id': result.operator_id
-                                            }
-
-                                            return dbconfig.collection_live800RecordDaySummary.find(query).lean().then(
-                                                data => {
-                                                    // if(data && data.length > 0){
-                                                    //     deferred.resolve();
-                                                    // }else{
-                                                    //     dbconfig.collection_live800RecordDaySummary(updateData).save();
-                                                    //     deferred.resolve(result);
-                                                    // }
-                                                    if(!data || data.length <= 0) {
-                                                        counter += 1;
-                                                        console.log("LH CHECK QI SCHEDULER BBBBBBBBBBBBB",counter);
-                                                        dbconfig.collection_live800RecordDaySummary(updateData).save();
-                                                        console.log("LH CHECK QI SCHEDULER CCCCCCCCCCCCC",updateData);
-                                                    }
-                                            });
-                                        }
+                                    if(detailsError){
+                                        console.log(detailsError);
+                                        reject(detailsError);
                                     }
-                                );
-                            })
 
-                            resultProm.push(a);
+                                    if(detailsResults){
+                                        let calculatedResult = dbQualityInspection.RestructureConversationContent(detailsResults);
+                                        proms.push(calculatedResult);
+                                    }
+                                    return Promise.all(proms).then(
+                                        data => {
+                                            if(data && data.length > 0 && data[0] && data[0].length > 0){
+                                                let updateData = {
+                                                    live800Acc: {}
+                                                };
+
+                                                totalInvalidConversation = data[0].filter(d => d.isValidConversation == false).length;
+                                                totalValidConversation = data[0].filter(d => d.isValidConversation == true).length;
+                                                updateData.effectiveRecord = totalValidConversation;
+                                                updateData.nonEffectiveRecord = totalInvalidConversation;
+
+                                                if(queryDetail.createTime){
+                                                    updateData.createTime = queryDetail.createTime;
+                                                }
+
+                                                if(queryDetail.companyId){
+                                                    updateData.companyId = queryDetail.companyId;
+                                                }
+
+                                                if(queryDetail.totalRecord){
+                                                    updateData.totalRecord = queryDetail.totalRecord;
+                                                }
+
+                                                if(queryDetail.operatorId){
+                                                    updateData.live800Acc.id = queryDetail.operatorId;
+                                                }
+
+                                                if(queryDetail.operatorName){
+                                                    updateData.live800Acc.name = queryDetail.operatorName;
+                                                }
+
+                                                let live800RecordQuery = {
+                                                    createTime: {
+                                                        $gte: new Date(queryDetail.startTime),
+                                                        $lt: new Date(queryDetail.endTime)
+                                                    },
+                                                    companyId: queryDetail.companyId,
+                                                    'live800Acc.id': queryDetail.operatorId
+                                                };
+
+                                                return dbconfig.collection_live800RecordDaySummary.find(live800RecordQuery).lean().then(
+                                                    data => {
+                                                        if(!data || data.length <= 0) {
+                                                            counter += 1;
+                                                            console.log("LH CHECK QI SCHEDULER BBBBBBBBBBBBBBBBBB",counter);
+                                                            dbconfig.collection_live800RecordDaySummary(updateData).save();
+                                                            console.log("LH CHECK QI SCHEDULER CCCCCCCCCCCCCCCCCCCCCCCCCCCC",updateData);
+                                                            resolve();
+                                                        }
+                                                });
+                                            }
+                                        }
+                                    );
+                                })
+                            });
+
+                            promiseList.push(childPromise);
                         }
-                    });
+                    })
+
+                    return Promise.all(promiseList);
                 }
-
-                // deferred.resolve();
-                // connection.end();
             });
-
-            return Promise.all(resultProm);
-
-            //return deferred.promise;
         }else{
             return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
         }
-    },
+     },
 
     RestructureConversationContent: function(dbResult){
         let proms = [];
