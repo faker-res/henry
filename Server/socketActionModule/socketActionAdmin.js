@@ -263,6 +263,12 @@ function socketActionAdmin(socketIO, socket) {
             socketUtil.emitter(self.socket, dbAdminInfo.getAdminNameByDepartment, [data.departmentId], actionName, isValidData);
         },
 
+        callTel400: function callTel400(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.url);
+            socketUtil.emitter(self.socket, dbAdminInfo.callTell400, [data.url], actionName, isValidData);
+        },
+
     };
 
     socketActionAdmin.actions = this.actions;

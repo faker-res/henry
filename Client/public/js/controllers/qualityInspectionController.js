@@ -471,7 +471,7 @@ define(['js/app'], function (myApp) {
                             return cv;
                         });
                         item.editable = false;
-
+                        item.createTime = utilService.getFormatTime(item.createTime);
 
                         return item;
                     });
@@ -861,6 +861,10 @@ define(['js/app'], function (myApp) {
                                         }
                                     });
                                 }
+
+                                if(data.createTime){
+                                    data.createTime = utilService.getFormatTime(data.createTime);
+                                }
                             }
 
                             return data;
@@ -924,30 +928,34 @@ define(['js/app'], function (myApp) {
                                     data.status = vm.constQualityInspectionStatus[data.status];
                                 }
 
-                                data.conversation.forEach(function(cv,i){
-                                    cv.roleName = vm.roleType[cv.roles];
-                                    cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+                                if(data.conversation){
+                                    data.conversation.forEach(function(cv,i){
+                                        cv.roleName = vm.roleType[cv.roles];
+                                        cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
 
-                                    cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+                                        cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
 
-                                    // load each platform overtimeSetting
-                                    let overtimeSetting = vm.getPlatformOvertimeSetting(data);
-                                    let otsLength = overtimeSetting.length -1;
-                                    let colors = '';
+                                        // load each platform overtimeSetting
+                                        let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                        let otsLength = overtimeSetting.length -1;
+                                        let colors = '';
 
-                                    // render with different color
-                                    overtimeSetting.forEach((ots,i) => {
-                                        if(cv.roles == 1 && cv.needRate){
-                                            if(cv.timeoutRate == ots.presetMark){
-                                                colors = ots.color;
+                                        // render with different color
+                                        overtimeSetting.forEach((ots,i) => {
+                                            if(cv.roles == 1 && cv.needRate){
+                                                if(cv.timeoutRate == ots.presetMark){
+                                                    colors = ots.color;
+                                                }
                                             }
-                                        }
+                                        });
+                                        cv.colors = colors;
+                                        return cv;
                                     });
-                                    cv.colors = colors;
-                                    return cv;
+                                }
 
-                                });
-
+                                if(data.createTime){
+                                    data.createTime = utilService.getFormatTime(data.createTime);
+                                }
                             }
 
                             return data;
@@ -1007,35 +1015,43 @@ define(['js/app'], function (myApp) {
                     if(data && data.data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+
+                                if(data.conversation){
+                                    data.conversation.forEach(function(cv,i){
+                                        cv.roleName = vm.roleType[cv.roles];
+                                        cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                        cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                        // load each platform overtimeSetting
+                                        let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                        let otsLength = overtimeSetting.length -1;
+                                        let colors = '';
+
+                                        // render with different color
+                                        overtimeSetting.forEach((ots,i) => {
+                                            if(cv.roles == 1 && cv.needRate){
+                                                if(cv.timeoutRate == ots.presetMark){
+                                                    colors = ots.color;
+                                                }
+                                            }
+                                        });
+                                        cv.colors = colors;
+                                        return cv;
+
+                                    });
+                                }
+
+                                if(data.createTime){
+                                    data.createTime = utilService.getFormatTime(data.createTime);
+                                }
+
+                                return data;
                             }
-
-                            data.conversation.forEach(function(cv,i){
-                                cv.roleName = vm.roleType[cv.roles];
-                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-
-                                cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
-
-                                // load each platform overtimeSetting
-                                let overtimeSetting = vm.getPlatformOvertimeSetting(data);
-                                let otsLength = overtimeSetting.length -1;
-                                let colors = '';
-
-                                // render with different color
-                                overtimeSetting.forEach((ots,i) => {
-                                    if(cv.roles == 1 && cv.needRate){
-                                        if(cv.timeoutRate == ots.presetMark){
-                                            colors = ots.color;
-                                        }
-                                    }
-                                });
-                                cv.colors = colors;
-                                return cv;
-
-                            });
-
-                            return data;
                         })
                         vm.appealEvaluationTable = data.data.data;
 
@@ -1091,35 +1107,43 @@ define(['js/app'], function (myApp) {
                     if(data && data.data && data.data.data && data.data.data.length > 0){
 
                         data.data.data.map(data => {
-                            if(data && data.status){
-                                data.status = vm.constQualityInspectionStatus[data.status];
+                            if(data){
+                                if(data.status){
+                                    data.status = vm.constQualityInspectionStatus[data.status];
+                                }
+
+                                if(data.conversation){
+                                    data.conversation.forEach(function(cv,i){
+                                        cv.roleName = vm.roleType[cv.roles];
+                                        cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
+
+                                        cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
+
+                                        // load each platform overtimeSetting
+                                        let overtimeSetting = vm.getPlatformOvertimeSetting(data);
+                                        let otsLength = overtimeSetting.length -1;
+                                        let colors = '';
+
+                                        // render with different color
+                                        overtimeSetting.forEach((ots,i) => {
+                                            if(cv.roles == 1 && cv.needRate){
+                                                if(cv.timeoutRate == ots.presetMark){
+                                                    colors = ots.color;
+                                                }
+                                            }
+                                        });
+                                        cv.colors = colors;
+                                        return cv;
+
+                                    });
+                                }
+
+                                if(data.createTime){
+                                    data.createTime = utilService.getFormatTime(data.createTime);
+                                }
+
+                                return data;
                             }
-
-                            data.conversation.forEach(function(cv,i){
-                                cv.roleName = vm.roleType[cv.roles];
-                                cv.displayTime = utilService.getFormatTime(parseInt(cv.time));
-
-                                cv.needRate = vm.avoidMultiRateCS(cv,i,data.conversation);
-
-                                // load each platform overtimeSetting
-                                let overtimeSetting = vm.getPlatformOvertimeSetting(data);
-                                let otsLength = overtimeSetting.length -1;
-                                let colors = '';
-
-                                // render with different color
-                                overtimeSetting.forEach((ots,i) => {
-                                    if(cv.roles == 1 && cv.needRate){
-                                        if(cv.timeoutRate == ots.presetMark){
-                                            colors = ots.color;
-                                        }
-                                    }
-                                });
-                                cv.colors = colors;
-                                return cv;
-
-                            });
-
-                            return data;
                         })
                         vm.appealEvaluationTable = data.data.data;
 
