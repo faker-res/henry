@@ -1464,6 +1464,7 @@
   "ClickCount": "埋点",
   "PAGE_NAME": "页面",
   "TOTAL_CLICK_COUNT": "总点击次数",
+  "Click Count (Total)": "次数（总计）",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",

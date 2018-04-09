@@ -1653,6 +1653,17 @@ define(['js/app'], function (myApp) {
             vm.clickCountTableID = '#'+vm.clickCountTable; // new table ID (increment)
             vm.clickCountTableID2 = '#'+vm.clickCountTable2; // previous table ID after first search (need to be replaced)
 
+            vm.newOptions = {
+                xaxes: [{
+                    position: 'bottom',
+                    axisLabel: $translate(device) + ", " + $translate(pageName),
+                }],
+                yaxes: [{
+                    position: 'left',
+                    axisLabel: $translate('Click Count (Total)'),
+                }],
+            };
+
             vm.getClickCountButtonName(device, pageName);
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
@@ -1668,7 +1679,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     vm.clickCountData = data.data;
                     vm.isShowLoadingSpinner('#clickCountAnalysis', false);
-                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis'); // draw pie chart
+                    // vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis'); // draw pie chart
                     vm.drawClickCountBar(vm.clickCountData, '#clickCountAnalysisBar'); // draw bar chart
 
                     if (vm.clickCountTimes === 1) {
