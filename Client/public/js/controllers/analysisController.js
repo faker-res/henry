@@ -1668,8 +1668,8 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     vm.clickCountData = data.data;
                     vm.isShowLoadingSpinner('#clickCountAnalysis', false);
-                    vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis'); // draw pie chart
-                    vm.drawClickCountBar(vm.clickCountData, '#clickCountAnalysisBar'); // draw bar chart
+                    // vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis'); // draw pie chart
+                    vm.drawClickCountBar(vm.clickCountData, '#clickCountAnalysisBar', device, pageName); // draw bar chart
 
                     if (vm.clickCountTimes === 1) {
                         vm.drawClickCountTable(vm.clickCountData, vm.clickCountTableID); // draw first table
@@ -1688,20 +1688,16 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.drawClickCountBar = (srcData, barChartName) => {
+        vm.drawClickCountBar = (srcData, barChartName, device, pageName) => {
             let placeholderBar = barChartName;
             let finalizedBarData = [];
             let click = {};
-            let barData = [];
             let clickTotal = {};
+            let totalClick = 0;
 
             for (let i = 0; i < vm.clickCountButtonName.length; i++) {
                 let buttonName = vm.clickCountButtonName[i];
                 click[i] = {label: $translate(buttonName), data: 0};
-            }
-
-            for (let index in click) {
-                barData.push(click[index]);
             }
 
             // replace object key with button label name
@@ -1715,6 +1711,7 @@ define(['js/app'], function (myApp) {
                         dateData.data.map(buttonData => {
                             if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
                                 clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
+                                totalClick += buttonData.total;
                             }
                         });
                     }
@@ -1725,40 +1722,48 @@ define(['js/app'], function (myApp) {
                 finalizedBarData.push(clickTotal[index]);
             }
 
-            function labelFormatter(label, series) {
-                return "<div style='font-size:12pt; text-align:center; padding:2px; color:white;'>" + label + "<br/>" + Math.round(series.percent) + "%</div>";
+            // bar chart: highest value on left side
+            function descendSort(b,a) {
+                if (a.data < b.data)
+                    return -1;
+                if (a.data > b.data)
+                    return 1;
+                return 0;
             }
 
-            let options = {
+            finalizedBarData.sort(descendSort);
+
+            function barNumberFormatter (value) {
+                if (value === 0) return '';
+                else return ((value / totalClick) * 100).toFixed(2) + '%';
+            }
+
+            let barOptions = {
                 series: {
-                    pie: {
-                        show: true,
-                        radius: 1,
-                        label: {
+                    bars: {
+                        numbers: {
                             show: true,
-                            radius: 1,
-                            formatter: labelFormatter,
-                            background: {
-                                opacity: 0.8
-                            }
+                            formatter: barNumberFormatter
                         },
-                        combine: {
-                            color: "#999",
-                            threshold: 0.0
+                        show: true,
+                        barWidth: 0.5,
+                        margin: {
+                            left: 50
                         }
                     }
                 },
-                grid: {
-                    hoverable: true,
-                    clickable: true
-                },
-                legend: {
-                    show: false
-                }
+                xaxes: [{
+                    position: 'bottom',
+                    axisLabel: $translate(device) + ", " + $translate(pageName),
+                }],
+                yaxes: [{
+                    position: 'left',
+                    axisLabel: $translate('Click Count (Total)'),
+                }],
             };
 
             utilService.actionAfterLoaded('#clickCountAnalysisBar', function () {
-                socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(finalizedBarData), vm.newOptions, vm.getXlabelsFromdata(finalizedBarData));
+                socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(finalizedBarData), barOptions, vm.getXlabelsFromdata(finalizedBarData));
             });
         };
 
