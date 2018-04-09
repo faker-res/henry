@@ -5663,6 +5663,7 @@ define(['js/app'], function (myApp) {
                     vm.resetTopupRecord();
 
                     endLoadMultipleSelect('.merchantNoList');
+                    $('#topupTable').remove();
 
                     socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                         $scope.$evalAsync(() => {
@@ -5742,7 +5743,67 @@ define(['js/app'], function (myApp) {
                         });
                         $scope.safeApply();
 
-                    })
+                    });
+                    break;
+                case "PROPOSAL_REPORT":
+                    vm.proposalQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
+                    vm.proposalQuery.status = 'all';
+                    vm.proposalQuery.promoType = '';
+                    vm.proposalQuery.totalCount = 0;
+                    vm.proposalQuery.proposalTypeId = '';
+
+                    endLoadMultipleSelect('.select');
+
+                    utilService.actionAfterLoaded("#proposalTablePage", function () {
+                        vm.commonInitTime(vm.proposalQuery, '#proposalReportQuery')
+
+                        $('select#selectProposalType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
+                        $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multi).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multi).find('span').text(upText)
+                        });
+                        $("select#selectProposalType").multipleSelect("checkAll");
+
+                        $('select#selectPromoType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiPromo = ($('select#selectPromoType').next().find('.ms-choice'))[0];
+                        $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiPromo).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multiPromo).find('span').text(upText)
+                        });
+                        $("select#selectPromoType").multipleSelect("checkAll");
+
+                        $('select#selectRewardType').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        var $multiReward = ($('select#selectRewardType').next().find('.ms-choice'))[0];
+                        $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
+                            var upText = $($multiReward).text().split(',').map(item => {
+                                return $translate(item);
+                            }).join(',');
+                            $($multiReward).find('span').text(upText)
+                        });
+                        $("select#selectRewardType").multipleSelect("checkAll");
+
+                        vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
+                    });
                     break;
                 case "RewardReport":
                     vm.rewardTypeName = 'ALL';
@@ -5783,73 +5844,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
-            // else if (choice == "PROVIDER_REPORT") {
-            //     vm.rewardTypeName = 'GAME_PROVIDER_REWARD';
-            //     vm.generalRewardReportTableProp = $.extend({}, constRewardReportTableProp[2]);
-            //     vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
-            //     vm.currentRewardTaskName = "GAME_PROVIDER_REWARD";
-            //     utilService.actionAfterLoadedDateTimePickers("#providerRewardReport", function () {
-            //         $scope.safeApply();
-            //     });
-            // }
-            else if (choice == "PROPOSAL_REPORT") {
-                vm.proposalQuery = {aaSorting: [[8, "desc"]], sortCol: {createTime: -1}};
-                vm.proposalQuery.status = 'all';
-                vm.proposalQuery.promoType = '';
-                vm.proposalQuery.totalCount = 0;
-                vm.proposalQuery.proposalTypeId = '';
-                utilService.actionAfterLoaded("#proposalTablePage", function () {
-                    vm.commonInitTime(vm.proposalQuery, '#proposalReportQuery')
-
-                    $('select#selectProposalType').multipleSelect({
-                        allSelected: $translate("All Selected"),
-                        selectAllText: $translate("Select All"),
-                        displayValues: true,
-                        countSelected: $translate('# of % selected'),
-                    });
-                    var $multi = ($('select#selectProposalType').next().find('.ms-choice'))[0];
-                    $('select#selectProposalType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multi).text().split(',').map(item => {
-                            return $translate(item);
-                        }).join(',');
-                        $($multi).find('span').text(upText)
-                    });
-                    $("select#selectProposalType").multipleSelect("checkAll");
-
-                    $('select#selectPromoType').multipleSelect({
-                        allSelected: $translate("All Selected"),
-                        selectAllText: $translate("Select All"),
-                        displayValues: true,
-                        countSelected: $translate('# of % selected'),
-                    });
-                    var $multiPromo = ($('select#selectPromoType').next().find('.ms-choice'))[0];
-                    $('select#selectPromoType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multiPromo).text().split(',').map(item => {
-                            return $translate(item);
-                        }).join(',');
-                        $($multiPromo).find('span').text(upText)
-                    });
-                    $("select#selectPromoType").multipleSelect("checkAll");
-
-                    $('select#selectRewardType').multipleSelect({
-                        allSelected: $translate("All Selected"),
-                        selectAllText: $translate("Select All"),
-                        displayValues: true,
-                        countSelected: $translate('# of % selected'),
-                    });
-                    var $multiReward = ($('select#selectRewardType').next().find('.ms-choice'))[0];
-                    $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
-                        var upText = $($multiReward).text().split(',').map(item => {
-                            return $translate(item);
-                        }).join(',');
-                        $($multiReward).find('span').text(upText)
-                    });
-                    $("select#selectRewardType").multipleSelect("checkAll");
-
-                    vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
-                });
-                $scope.safeApply();
-            } else if (choice == "PLAYER_REPORT") {
+            else if (choice == "PLAYER_REPORT") {
                 utilService.actionAfterLoaded('#playerReportTablePage', function () {
                     // todo :: change date to yesterday
                     var yesterday = utilService.setNDaysAgo(new Date(), 1);

@@ -10723,7 +10723,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }, function (error) {
                         vm.playerManualTopUp.responseMsg = $translate(error.error.errorMessage);
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     });
@@ -13358,7 +13358,7 @@ define(['js/app'], function (myApp) {
                     },
                     error => {
                         vm.playerAlipayTopUp.responseMsg = error.error.errorMessage;
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     }
@@ -13438,7 +13438,7 @@ define(['js/app'], function (myApp) {
                     },
                     error => {
                         vm.playerWechatPayTopUp.responseMsg = error.error.errorMessage;
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     }
