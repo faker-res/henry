@@ -110,7 +110,7 @@ var simplifiedChinese = {
     "Player is not enable": "用户没有发现或无效密码",
     "Player does not have enough credit.": "玩家额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",
-    "Apply Reward Fail, please try again later": "申请优惠异常, 请稍后再次尝试",
+    "Apply Reward Fail, please try again later": "请求处理中, 请稍后再次尝试",
     "Player does not have enough Expenses.": "玩家投注额度不够",
     "Player does not have this permission": "玩家无此权限",
     "Top up type is forbidden for this player": "支付服务维护中...",
