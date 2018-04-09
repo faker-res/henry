@@ -28,7 +28,7 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsConvert = {};
 
             // constants declaration
-            vm.constPartmerCommisionType = {
+            vm.constPartnerCommisionType = {
                 CLOSED_COMMISSION: 0,
                 DAILY_BONUS_AMOUNT: 1,
                 WEEKLY_BONUS_AMOUNT: 2,
@@ -21666,7 +21666,7 @@ define(['js/app'], function (myApp) {
 
             vm.partnerCommissionName = function getPartnerCommisionName () {
                 if (vm.partnerBasic.partnerDefaultCommissionGroup) {
-                    return Object.keys(vm.constPartmerCommisionType)[vm.partnerBasic.partnerDefaultCommissionGroup];
+                    return Object.keys(vm.constPartnerCommisionType)[vm.partnerBasic.partnerDefaultCommissionGroup];
                 } else {
                     return "CLOSED_COMMISSION";
                 }
