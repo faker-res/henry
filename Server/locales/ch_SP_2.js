@@ -127,7 +127,7 @@ var simplifiedChinese = {
     "Can not find player bonus proposal type": "无法找到相关数据",
     "Player does not have enough top up amount": "自身充值额度不够",
     "Player has too much credit": "玩家额度过多",
-    "Apply Reward Fail, please try again later": "申请优惠异常, 请稍后再次尝试",
+    "Apply Reward Fail, please try again later": "请求处理中, 请稍后再次尝试",
     "Not enough reward amount": "奖励额度不够",
     "Can not find player bonus proposal or provider credit": "无法找到相关数据",
     "Can not find player": "无法找到玩家",
