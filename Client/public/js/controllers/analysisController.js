@@ -1653,17 +1653,6 @@ define(['js/app'], function (myApp) {
             vm.clickCountTableID = '#'+vm.clickCountTable; // new table ID (increment)
             vm.clickCountTableID2 = '#'+vm.clickCountTable2; // previous table ID after first search (need to be replaced)
 
-            vm.newOptions = {
-                xaxes: [{
-                    position: 'bottom',
-                    axisLabel: $translate(device) + ", " + $translate(pageName),
-                }],
-                yaxes: [{
-                    position: 'left',
-                    axisLabel: $translate('Click Count (Total)'),
-                }],
-            };
-
             vm.getClickCountButtonName(device, pageName);
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
@@ -1680,7 +1669,7 @@ define(['js/app'], function (myApp) {
                     vm.clickCountData = data.data;
                     vm.isShowLoadingSpinner('#clickCountAnalysis', false);
                     // vm.drawClickCountPie(vm.clickCountData, '#clickCountAnalysis'); // draw pie chart
-                    vm.drawClickCountBar(vm.clickCountData, '#clickCountAnalysisBar'); // draw bar chart
+                    vm.drawClickCountBar(vm.clickCountData, '#clickCountAnalysisBar', device, pageName); // draw bar chart
 
                     if (vm.clickCountTimes === 1) {
                         vm.drawClickCountTable(vm.clickCountData, vm.clickCountTableID); // draw first table
@@ -1699,20 +1688,16 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.drawClickCountBar = (srcData, barChartName) => {
+        vm.drawClickCountBar = (srcData, barChartName, device, pageName) => {
             let placeholderBar = barChartName;
             let finalizedBarData = [];
             let click = {};
-            let barData = [];
             let clickTotal = {};
+            let totalClick = 0;
 
             for (let i = 0; i < vm.clickCountButtonName.length; i++) {
                 let buttonName = vm.clickCountButtonName[i];
                 click[i] = {label: $translate(buttonName), data: 0};
-            }
-
-            for (let index in click) {
-                barData.push(click[index]);
             }
 
             // replace object key with button label name
@@ -1726,6 +1711,7 @@ define(['js/app'], function (myApp) {
                         dateData.data.map(buttonData => {
                             if (buttonData && buttonData._id && buttonData._id.buttonName && clickTotal[$translate(buttonData._id.buttonName)]) {
                                 clickTotal[$translate(buttonData._id.buttonName)].data += buttonData.total;
+                                totalClick += buttonData.total;
                             }
                         });
                     }
@@ -1736,8 +1722,37 @@ define(['js/app'], function (myApp) {
                 finalizedBarData.push(clickTotal[index]);
             }
 
+            function barNumberFormatter (value) {
+                if (value === 0) return '';
+                else return ((value / totalClick) * 100).toFixed(2) + '%';
+            }
+
+            let barOptions = {
+                series: {
+                    bars: {
+                        numbers: {
+                            show: true,
+                            formatter: barNumberFormatter
+                        },
+                        show: true,
+                        barWidth: 0.5,
+                        margin: {
+                            left: 50
+                        }
+                    }
+                },
+                xaxes: [{
+                    position: 'bottom',
+                    axisLabel: $translate(device) + ", " + $translate(pageName),
+                }],
+                yaxes: [{
+                    position: 'left',
+                    axisLabel: $translate('Click Count (Total)'),
+                }],
+            };
+
             utilService.actionAfterLoaded('#clickCountAnalysisBar', function () {
-                socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(finalizedBarData), vm.newOptions, vm.getXlabelsFromdata(finalizedBarData));
+                socketService.$plotSingleBar(placeholderBar, vm.getBardataFromPiedata(finalizedBarData), barOptions, vm.getXlabelsFromdata(finalizedBarData));
             });
         };
 
