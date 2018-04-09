@@ -1304,7 +1304,7 @@
                                 ng-click='vm.applyPlayerReward(true)' style='vertical-align: bottom;margin-left: 10px;') {{"force submit" | translate}}
 
                         //#modalManualUnlockRewardTask
-                        table.simple-table(ng-show="vm.selectedRewardSettingsTab == 'unlock-reward'")
+                        table.simple-table(ng-if="vm.selectedRewardSettingsTab == 'unlock-reward'")
                             thead
                                 tr
                                     th {{'UNLOCK' | translate}}
@@ -1320,7 +1320,7 @@
                                 tr
                                     td
                                         input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)", ng-init="rewardTask.checked=true", ng-if="$index === 0")
-                                        input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)", ng-if="$index !== 0")
+                                        input(type='checkbox', ng-model="rewardTask.checked", ng-change="vm.updateManualUnlockRewardTaskIndexList($index, rewardTask.checked)")
                                     td {{rewardTask.type | translate}}
                                     td {{vm.dateReformat(rewardTask.createTime)}}
                                     td {{rewardTask.status | translate}}

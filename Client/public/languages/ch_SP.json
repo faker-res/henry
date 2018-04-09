@@ -2057,12 +2057,12 @@
   "proposalId": "提案号",
   "validTime": "有效时间",
   "lastBankcardNo": "付款银行卡号尾数",
-  "bankTypeId": "银行类别ID",
+  "bankTypeId": "派发银行卡",
   "depositMethod": "存储方式",
   "provinceId": "省份ID",
   "cityId": "城市ID",
   "districtId": "地区ID",
-  "bankCardType": "银行类别",
+  "bankCardType": "请求银行卡",
   "bankName": "银行名",
   "bankAccount": "银行账号",
   "bankAccountName": "银行用户名",
@@ -2570,6 +2570,7 @@
   "Top up amount is not enough": "充值额度不够",
   "Player has too much valid credit": "玩家额度过多",
   "Player has applied for this reward": "玩家已申请过该优惠",
+  "Apply Reward Fail, please try again later": "申请优惠异常, 请稍后再次尝试",
   "Amount is not enough 100": "申请提款数量过少100",
   "This proposal has been processed": "该提案已在处理中",
   "Invalid player bankcard group data": "玩家无可支付的银行卡",
@@ -3443,7 +3444,15 @@
   "AdminNameAdjunction": "添加创建者",
   "AdminName": "创建者",
   "Admin name is invalid, please try again": "创建者不存在，请再次输入",
-  "This Key is Exist，Please Choose Another Name": "此商户组名称已存在，请选择其他名字来储存"
-
+  "This Key is Exist，Please Choose Another Name": "此商户组名称已存在，请选择其他名字来储存",
+  "Top up device does not match, fail to claim reward": "存款装置不符，无法同时领取优惠",
+  "Top up type does not match, fail to claim reward": "存款类型不符，无法同时领取优惠",
+  "Bank card type does not match, fail to claim reward": "银行卡类型不符，无法同时领取优惠",
+  "Online top up type does not match, fail to claim reward": "在线充值类型不符，无法同时领取优惠",
+  "Reward claimed exceed limit, fail to claim reward": "超出周期内可领取优惠次数，无法同时领取优惠",
+  "Top up count does not meet period condition, fail to claim reward": "周期内存款笔数不符，无法同时领取优惠",
+  "Claimed reward reach daily max amount, fail to claim reward": "超出单日可领取最高优惠金额，无法同时领取优惠",
+  "Insufficient top up amount, fail to claim reward": "存款金额不足，无法同时领取优惠",
+  "Cannot apply 2 reward in 1 top up": "同一笔存款无法同时申请两种以上优惠"
 
 }
