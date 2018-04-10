@@ -149,6 +149,7 @@ var simplifiedChinese = {
     "Some top up records have been used": "充值记录已被使用",
     "Top up count has not met period condition": "未达到周期内存款笔数条件",
     "Error calculating player consumption return": "结算返点失败",
+    "Apply Reward Fail, please try again later": "请求处理中, 请稍后再次尝试",
     "Platform is not ready for settlement": "平台正在结算",
     "Payment is not available": "支付维护中",
     "Player is forbidden": "玩家被禁用",

@@ -11454,22 +11454,22 @@ let dbPlayerInfo = {
                             message: "Player do not have permission for reward"
                         });
                     }
-                    return dbPlayerUtil.setPlayerState(playerData._id, "ApplyRewardEvent").then(
+                    return dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true).then(
                         playerState => {
-                            if(playerState) {
+                            if (playerState) {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
                                     taskStatus => {
                                         return dbconfig.collection_rewardEvent.findOne({
                                             platform: playerData.platform,
                                             code: code
-                                        })
-                                            .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                                        }).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
                                     }
                                 );
                             } else {
                                 return Promise.reject({
                                     name: "DBError",
+                                    status: constServerCode.CONCURRENT_DETECTED,
                                     message: "Apply Reward Fail, please try again later"
                                 })
                             }
@@ -11677,6 +11677,23 @@ let dbPlayerInfo = {
                         message: "Can not find reward event"
                     });
                 }
+            }
+        ).then(
+            data => {
+                // Reset BState
+                dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                return data;
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
             }
         );
     },
@@ -13022,7 +13039,7 @@ let dbPlayerInfo = {
 
         let stream = dbconfig.collection_players.aggregate({
             $match: matchObj
-        }).cursor({batchSize: 100}).allowDiskUse(true).exec();
+        }).cursor({batchSize: 50}).allowDiskUse(true).exec();
 
         let balancer = new SettlementBalancer();
 
@@ -13031,7 +13048,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 100,
+                        batchSize: 50,
                         makeRequest: function (playerIdObjs, request) {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,

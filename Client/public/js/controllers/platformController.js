@@ -28,6 +28,15 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsConvert = {};
 
             // constants declaration
+            vm.constPartnerCommisionType = {
+                CLOSED_COMMISSION: 0,
+                DAILY_BONUS_AMOUNT: 1,
+                WEEKLY_BONUS_AMOUNT: 2,
+                BIWEEKLY_BONUS_AMOUNT: 3,
+                MONTHLY_BONUS_AMOUNT: 4,
+                WEEKLY_CONSUMPTION: 5,
+                OPTIONAL_REGISTRATION: 6
+            };
             vm.proposalStatusList = { // removed APPROVED and REJECTED
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
@@ -10341,14 +10350,14 @@ define(['js/app'], function (myApp) {
                         "aaSorting": vm.playerExpenseLog.aaSorting || [[7, 'desc']],
                         aoColumnDefs: [
                             {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'gameId', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [7]},
+                            {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'gameId', bSortable: true, 'aTargets': [5]},
                             // {'sortCol': 'gameType', bSortable: true, 'aTargets': [4]},
                             // {'sortCol': 'roundNo', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [8]},
+                            {'sortCol': 'amount', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [9]},
                             // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
                             // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [7]},
                             {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -10729,7 +10738,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }, function (error) {
                         vm.playerManualTopUp.responseMsg = $translate(error.error.errorMessage);
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     });
@@ -13364,7 +13373,7 @@ define(['js/app'], function (myApp) {
                     },
                     error => {
                         vm.playerAlipayTopUp.responseMsg = error.error.errorMessage;
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     }
@@ -13444,7 +13453,7 @@ define(['js/app'], function (myApp) {
                     },
                     error => {
                         vm.playerWechatPayTopUp.responseMsg = error.error.errorMessage;
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     }
@@ -21097,6 +21106,27 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic = vm.partnerBasic || {};
                 vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
                 vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
+                vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
+                vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
+                vm.partnerBasic.partnerWhiteListingPhoneNumbers = "";
+                vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
+                vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPasswordUpdate;
+                vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPaymentUpdate;
+                vm.partnerBasic.partnerSmsVerificationExpireTime = vm.selectedPlatform.data.partnerSmsVerificationExpireTime;
+                vm.partnerBasic.partnerRequireLogInCaptcha = vm.selectedPlatform.data.partnerRequireLogInCaptcha;
+                vm.partnerBasic.partnerRequireCaptchaInSMS = vm.selectedPlatform.data.partnerRequireCaptchaInSMS;
+                vm.partnerBasic.partnerUsePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.partnerUsePhoneNumberTwoStepsVerification;
+                vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
+                vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
+
+                if (vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers && vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers;
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i];
+                        vm.partnerBasic.partnerWhiteListingPhoneNumbers += phone;
+                        i !== (len - 1) ? vm.partnerBasic.partnerWhiteListingPhoneNumbers += "\n" : "";
+                    }
+                }
                 $scope.safeApply();
             }
 
@@ -21640,12 +21670,41 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.partnerCommissionName = function getPartnerCommisionName () {
+                if (vm.partnerBasic.partnerDefaultCommissionGroup) {
+                    return Object.keys(vm.constPartnerCommisionType)[vm.partnerBasic.partnerDefaultCommissionGroup];
+                } else {
+                    return "CLOSED_COMMISSION";
+                }
+            }
+
             function updatePartnerBasic(srcData) {
+                let whiteListingPhoneNumbers = [];
+
+                if (srcData.partnerWhiteListingPhoneNumbers) {
+                    let phones = srcData.partnerWhiteListingPhoneNumbers.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) whiteListingPhoneNumbers.push(phone);
+                    }
+                }
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         partnerNameMaxLength: srcData.partnerNameMaxLength,
                         partnerNameMinLength: srcData.partnerNameMinLength,
+                        partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
+                        partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
+                        partnerWhiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
+                        partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
+                        partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,
+                        partnerSmsVerificationExpireTime: srcData.partnerSmsVerificationExpireTime,
+                        partnerRequireLogInCaptcha: srcData.partnerRequireLogInCaptcha,
+                        partnerRequireCaptchaInSMS: srcData.partnerRequireCaptchaInSMS,
+                        partnerUsePhoneNumberTwoStepsVerification: srcData.partnerUsePhoneNumberTwoStepsVerification,
+                        partnerUnreadMailMaxDuration: srcData.partnerUnreadMailMaxDuration,
+                        partnerDefaultCommissionGroup: srcData.partnerDefaultCommissionGroup
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
