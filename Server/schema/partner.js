@@ -191,38 +191,64 @@ partnerSchema.methods.comparePassword = function (candidatePassword, cb) {
     });
 };
 
+var partnerPostFindUpdate = function (result) {
+    //hide middle 4 digits for phone number
+    if (result) {
+        if (result.phoneNumber && result.phoneNumber.length > 0) {
+            if (result.phoneNumber.length > 20) {
+                result.phoneNumber = rsaCrypto.decrypt(result.phoneNumber);
+            }
+            result.phoneNumber = dbUtil.encodePhoneNum(result.phoneNumber);
+            // let startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
+            // result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
+        }
+
+        // hide part of the e-mail
+        if (result.email && result.email.length > 0) {
+            let partnerEmail = result.email;
+            let emailParts = partnerEmail.split("@");
+            let emailLocal = emailParts[0];
+            let emailLocalChar = emailLocal.split('');
+            for (let i in emailLocalChar) {
+                if (i < 3) {
+                    continue;
+                }
+                emailLocalChar[i] = '*';
+            }
+            let hiddenEmailLocal = emailLocalChar.join('');
+            emailParts[0] = hiddenEmailLocal;
+            result.email = emailParts.join('@');
+        }
+    }
+}
+
 partnerSchema.post('find', function(result) {
     if( result && result.length > 0 ){
         for( var i = 0; i < result.length; i++ ){
-            //hide middle 4 digits for phone number
-            if(result[i].phoneNumber && result[i].phoneNumber.length > 0){
-                if (result[i].phoneNumber.length > 20) {
-                    result[i].phoneNumber = rsaCrypto.decrypt(result[i].phoneNumber);
-                }
-                result[i].phoneNumber = dbUtil.encodePhoneNum(result[i].phoneNumber);
-                // let startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
-                // result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
-            }
-
-            // hide part of the e-mail
-            if(result[i].email && result[i].email.length > 0){
-                let partnerEmail = result[i].email;
-                let emailParts = partnerEmail.split("@");
-                let emailLocal = emailParts[0];
-                let emailLocalChar = emailLocal.split('');
-                for(let i in emailLocalChar) {
-                    if(i < 3) {
-                        continue;
-                    }
-                    emailLocalChar[i] = '*';
-                }
-                let hiddenEmailLocal = emailLocalChar.join('');
-                emailParts[0] = hiddenEmailLocal;
-                result[i].email = emailParts.join('@');
-            }
+            partnerPostFindUpdate(result[i]);
         }
         return result;
     }
+});
+
+partnerSchema.post('findOne', function (result) {
+    partnerPostFindUpdate(result);
+});
+
+partnerSchema.pre('save', function (next) {
+    var partner = this;
+
+    if (!partner.isModified('phoneNumber')) {
+        return next();
+    }
+    // override the cleartext password with the hashed one
+    try {
+        partner.phoneNumber = rsaCrypto.encrypt(partner.phoneNumber);
+    }
+    catch (error) {
+        console.log(error);
+    }
+    next();
 });
 
 module.exports = partnerSchema;
