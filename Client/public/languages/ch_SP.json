@@ -3490,7 +3490,7 @@
   "SETTLED_COMMISSION": "已结佣金（总）",
   "SEND_MESSAGE_TO_PARTNER": "发站内信给代理",
   "SEND_SMS_TO_PARTNER": "发短信给代理",
-  "PARTNER_API_LOG": "代理事件记录",
+  "PARTNER_LOGIN_LOG": "代理登录记录",
   "LOGIN_TIME": "登录时间"
 
 }
