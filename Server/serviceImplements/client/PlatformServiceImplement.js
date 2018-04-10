@@ -7,6 +7,7 @@ const dbUtility = require('./../../modules/dbutility');
 const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
 const constSystemParam = require('../../const/constSystemParam');
 const constPlayerRegistrationInterface = require('../../const/constPlayerRegistrationInterface');
+const dbSmsGroup = require('./../../db_modules/dbSmsGroup');
 
 var PlatformServiceImplement = function () {
     PlatformService.call(this);
@@ -78,6 +79,11 @@ var PlatformServiceImplement = function () {
     this.clickCount.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && data.device && data.pageName && data.buttonName);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.createClickCountLog, [data.platformId, data.device, data.pageName, data.buttonName], isValidData, null, null, true);
+    };
+
+    this.getPlatformSmsGroups.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbSmsGroup.getPlatformSmsGroups, [data.platformObjId], isValidData, null, null, true);
     };
 };
 
