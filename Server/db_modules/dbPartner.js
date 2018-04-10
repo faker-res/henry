@@ -38,8 +38,10 @@ const constPlayerRegistrationInterface = require("../const/constPlayerRegistrati
 let dbPartner = {
 
     createPartnerAPI: function (partnerData) {
+        let platformData;
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
-            platformData => {
+            platformDataResult => {
+                platformData = platformDataResult;
                 if (platformData) {
                     partnerData.platform = platformData._id;
                     partnerData.isNewSystem = true;
@@ -48,65 +50,56 @@ let dbPartner = {
                     //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
                     // }
 
-                    return dbPartner.isPhoneNumberValidToRegister({
-                        phoneNumber: partnerData.phoneNumber,
-                        platform: platformData._id
-                    }).then(
-                        function (data) {
-                            if (("partnerAllowSamePhoneNumberToRegister" in platformData) && !platformData.partnerAllowSamePhoneNumberToRegister && !data.isPhoneNumberValid) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    message: "Phone number already exists"
-                                });
-                            }
-                            else {
-                                return dbPartner.isExceedPhoneNumberValidToRegister({
-                                    phoneNumber: partnerData.phoneNumber,
-                                    platform: partnerData.platform
-                                }, platformData.partnerSamePhoneNumberRegisterCount).then(
-                                    function (isValid) {
-                                        if (isValid.isPhoneNumberValid) {
-                                            if (partnerData.parent) {
-                                                return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
-                                                    parentData => {
-                                                        if (parentData) {
-                                                            partnerData.parent = parentData._id;
-                                                            return dbPartner.createPartnerWithParent(partnerData);
-                                                        }
-                                                        else {
-                                                            return Q.reject({
-                                                                name: "DataError",
-                                                                message: "Cannot find parent partner"
-                                                            });
-                                                        }
-                                                    }
-                                                );
-                                            }
-                                            else {
-                                                return dbPartner.createPartner(partnerData);
-                                            }
-                                        }
-                                        else {
-                                            return Q.reject({
-                                                name: "DataError",
-                                                message: "Phone number already exists"
-                                            });
-                                        }
-                                    }
-                                );
-                            }
-                        },
-                        function (error) {
-                            deferred.reject({
-                                name: "DBError",
-                                message: "Error when finding phone number",
-                                error: error
-                            });
-                        }
-                    );
+                    if (platformData.partnerWhiteListingPhoneNumbers
+                        && platformData.partnerWhiteListingPhoneNumbers.length > 0
+                        && partnerData.phoneNumber
+                        && platformData.partnerWhiteListingPhoneNumbers.indexOf(partnerData.phoneNumber) > -1)
+                        return {isPhoneNumberValid: true};
+
+                    if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
+                        return dbPartner.isExceedPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber),
+                            platform: partnerData.platform
+                        }, platformData.partnerSamePhoneNumberRegisterCount);
+                        // return {isPhoneNumberValid: true};
+                    } else {
+                        return dbPartner.isPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber),
+                            platform: partnerData.platform
+                        });
+                    }
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            (data) => {
+                if (data.isPhoneNumberValid) {
+                    if (partnerData.parent) {
+                        return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
+                            parentData => {
+                                if (parentData) {
+                                    partnerData.parent = parentData._id;
+                                    return dbPartner.createPartnerWithParent(partnerData);
+                                }
+                                else {
+                                    return Q.reject({
+                                        name: "DataError",
+                                        message: "Cannot find parent partner"
+                                    });
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        return dbPartner.createPartner(partnerData);
+                    }
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Phone number already exists"
+                    });
                 }
             }
         );
@@ -162,15 +155,21 @@ let dbPartner = {
                         return Promise.reject(new Error());
                     }
 
+                    if (platformData.partnerWhiteListingPhoneNumbers
+                        && platformData.partnerWhiteListingPhoneNumbers.length > 0
+                        && partnerdata.phoneNumber
+                        && platformData.partnerWhiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
+                        return {isPhoneNumberValid: true};
+
                     if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                         return dbPartner.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: partnerdata.phoneNumber,
+                            phoneNumber: rsaCrypto.encrypt(partnerdata.phoneNumber),
                             platform: partnerdata.platform
                         }, platformData.partnerSamePhoneNumberRegisterCount);
                         // return {isPhoneNumberValid: true};
                     } else {
                         return dbPartner.isPhoneNumberValidToRegister({
-                            phoneNumber: partnerdata.phoneNumber,
+                            phoneNumber: rsaCrypto.encrypt(partnerdata.phoneNumber),
                             platform: partnerdata.platform
                         });
                     }

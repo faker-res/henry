@@ -293,9 +293,11 @@ const dbPlayerMail = {
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
         let sameTelPermission = "allowSamePhoneNumberToRegister";
         let samTelCount = "samePhoneNumberRegisterCount";
+        let whiteListPhone = "whiteListingPhoneNumbers";
         if (isPartner) {
             sameTelPermission = "partnerAllowSamePhoneNumberToRegister";
             samTelCount = "partnerSamePhoneNumberRegisterCount";
+            whiteListPhone = "partnerWhiteListingPhoneNumbers"
         }
 
 
@@ -337,9 +339,9 @@ const dbPlayerMail = {
 
                     let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
                     if (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
-                        if (!(platform.whiteListingPhoneNumbers
-                            && platform.whiteListingPhoneNumbers.length > 0
-                            && platform.whiteListingPhoneNumbers.indexOf(telNum) > -1)) {
+                        if (!(platform[whiteListPhone]
+                            && platform[whiteListPhone].length > 0
+                            && platform[whiteListPhone].indexOf(telNum) > -1)) {
                             let query = {
                                 phoneNumber: rsaCrypto.encrypt(telNum),
                                 platform: platformObjId,
