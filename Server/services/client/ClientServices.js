@@ -116,6 +116,7 @@
                 "searchConsumptionRecord",
                 "verifyUserPasswordWithTransferIn",
                 "clickCount",
+                "getPlatformSmsGroups",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
