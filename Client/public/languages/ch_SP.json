@@ -3483,6 +3483,8 @@
   "TOTAL_CHILDREN_BALANCE": "下线总（余额）",
   "SETTLED_COMMISSION": "已结佣金（总）",
   "SEND_MESSAGE_TO_PARTNER": "发站内信给代理",
-  "SEND_SMS_TO_PARTNER": "发短信给代理"
+  "SEND_SMS_TO_PARTNER": "发短信给代理",
+  "PARTNER_API_LOG": "代理事件记录",
+  "LOGIN_TIME": "登录时间"
 
 }
