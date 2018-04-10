@@ -1735,22 +1735,17 @@ define(['js/app'], function (myApp) {
 
             function barNumberFormatter (value) {
                 if (value === 0) return '';
-                else return ((value / totalClick) * 100).toFixed(2) + '%';
+                else return value + ' (' + ((value / totalClick) * 100).toFixed(2) + '%)';
             }
 
             let barOptions = {
-                series: {
-                    bars: {
-                        numbers: {
-                            show: true,
-                            formatter: barNumberFormatter
-                        },
+                bars: {
+                    numbers: {
                         show: true,
-                        barWidth: 0.5,
-                        margin: {
-                            left: 50
-                        }
-                    }
+                        formatter: barNumberFormatter
+                    },
+                    show: true,
+                    barWidth: 0.7
                 },
                 xaxes: [{
                     position: 'bottom',

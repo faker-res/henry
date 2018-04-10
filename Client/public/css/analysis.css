@@ -202,11 +202,6 @@
     padding-right: 5px;
 }
 
-#clickCountAnalysisBar .flot-x-axis > .tickLabel {
-    text-align: center !important;
-    padding-left: 5% !important;
-}
-
 .rotate330 {
     transform: rotate(330deg);
 }
