@@ -20,6 +20,7 @@ const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constServerCode = require('../const/constServerCode');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const dbPartner = require('./../db_modules/dbPartner');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require('../modules/errorUtils');
 
@@ -281,7 +282,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData, isPartner) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -290,6 +291,12 @@ const dbPlayerMail = {
         let platform;
         let isFailedSms = false;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+        let sameTelPermission = "allowSamePhoneNumberToRegister";
+        let samTelCount = "samePhoneNumberRegisterCount";
+        if (isPartner) {
+            sameTelPermission = "partnerAllowSamePhoneNumberToRegister";
+            samTelCount = "partnerSamePhoneNumberRegisterCount";
+        }
 
 
         // if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
@@ -333,23 +340,23 @@ const dbPlayerMail = {
                         if (!(platform.whiteListingPhoneNumbers
                             && platform.whiteListingPhoneNumbers.length > 0
                             && platform.whiteListingPhoneNumbers.indexOf(telNum) > -1)) {
-                            if (platform.allowSamePhoneNumberToRegister === true) {
-                                validPhoneNumberProm =  dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                                    phoneNumber: rsaCrypto.encrypt(telNum),
-                                    platform: platformObjId,
-                                    isRealPlayer: true
-                                }, platform.samePhoneNumberRegisterCount);
+                            let query = {
+                                phoneNumber: rsaCrypto.encrypt(telNum),
+                                platform: platformObjId,
+                                isRealPlayer: true
+                            }
+                            if (isPartner) {
+                                delete query.isRealPlayer;
+                            }
+                            if (platform[sameTelPermission] === true) {
+                                validPhoneNumberProm =  dbPartner.isExceedPhoneNumberValidToRegister(query, platform[samTelCount]);
                             } else {
-                                validPhoneNumberProm = dbPlayerInfo.isPhoneNumberValidToRegister({
-                                    phoneNumber: rsaCrypto.encrypt(telNum),
-                                    platform: platformObjId,
-                                    isRealPlayer: true
-                                });
+                                validPhoneNumberProm = dbPartner.isPhoneNumberValidToRegister(query);
                             }
                         }
                     }
 
-                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm]);
+                    return Promise.all([validPhoneNumberProm]);
                 } else {
                     return Q.reject({
                         name: "DataError",

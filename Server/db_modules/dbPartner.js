@@ -53,7 +53,7 @@ let dbPartner = {
                         platform: platformData._id
                     }).then(
                         function (data) {
-                            if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data.isPhoneNumberValid) {
+                            if (("partnerAllowSamePhoneNumberToRegister" in platformData) && !platformData.partnerAllowSamePhoneNumberToRegister && !data.isPhoneNumberValid) {
                                 return Q.reject({
                                     name: "DataError",
                                     message: "Phone number already exists"
@@ -63,7 +63,7 @@ let dbPartner = {
                                 return dbPartner.isExceedPhoneNumberValidToRegister({
                                     phoneNumber: partnerData.phoneNumber,
                                     platform: partnerData.platform
-                                }, platformData.samePhoneNumberRegisterCount).then(
+                                }, platformData.partnerSamePhoneNumberRegisterCount).then(
                                     function (isValid) {
                                         if (isValid.isPhoneNumberValid) {
                                             if (partnerData.parent) {
@@ -162,11 +162,11 @@ let dbPartner = {
                         return Promise.reject(new Error());
                     }
 
-                    if (platformData.allowSamePhoneNumberToRegister === true) {
+                    if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                         return dbPartner.isExceedPhoneNumberValidToRegister({
                             phoneNumber: partnerdata.phoneNumber,
                             platform: partnerdata.platform
-                        }, platformData.samePhoneNumberRegisterCount);
+                        }, platformData.partnerSamePhoneNumberRegisterCount);
                         // return {isPhoneNumberValid: true};
                     } else {
                         return dbPartner.isPhoneNumberValidToRegister({
@@ -4418,8 +4418,31 @@ let dbPartner = {
                 return {data: data[1], size: data[0]}
             }
         )
-    }
+    },
 
+    isExceedPhoneNumberValidToRegister: function (query, count) {
+        return dbconfig.collection_partner.findOne(query).count().then(
+            playerDataCount => {
+                if (playerDataCount > count) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
+                }
+            }
+        );
+    },
+
+    isPhoneNumberValidToRegister: function (query) {
+        return dbconfig.collection_partner.findOne(query).then(
+            playerData => {
+                if (playerData) {
+                    return {isPhoneNumberValid: false};
+                } else {
+                    return {isPhoneNumberValid: true};
+                }
+            }
+        );
+    },
 
 };
 
