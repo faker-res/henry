@@ -14875,13 +14875,16 @@ define(['js/app'], function (myApp) {
                             // }
                         },
                         {
-                            title: $translate('LOGIN_TIMES'), data: "loginTimes", advSearch: true, "sClass": "",
+                            title: $translate('LOGIN_TIMES'), data: "loginTimes", advSearch: true,
                             render: function (data, type, row) {
-                                var link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
-                                }).text(data);
-                                return link.prop('outerHTML');
-                            }
+                                data = data || '0';
+                                return $('<a data-target="#modalPartnerApiLog" style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" type="button" ng-click="vm.initPartnerApiLog()" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text((data))
+                                    .prop('outerHTML');
+                            },
+                            "sClass": "alignRight"
                         },
                         {
                             title: $translate('DAILY_ACTIVE'), data: "dailyActivePlayer", advSearch: true, "sClass": "",
@@ -15603,6 +15606,74 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            vm.initPartnerApiLog = function () {
+                vm.partnerApiLog = {totalCount: 0, limit: 10, index: 0};
+                vm.partnerApiLog.apiAction = "login";
+                utilService.actionAfterLoaded('#modalPartnerApiLog.in #partnerApiLogQuery .endTime', function () {
+                    vm.partnerApiLog.startDate = utilService.createDatePicker('#partnerApiLogQuery .startTime');
+                    vm.partnerApiLog.endDate = utilService.createDatePicker('#partnerApiLogQuery .endTime');
+                    vm.partnerApiLog.startDate.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.partnerApiLog.endDate.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                    vm.partnerApiLog.pageObj = utilService.createPageForPagingTable("#partnerApiLogTblPage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "partnerApiLog", vm.getPartnerApiLogData);
+                    });
+                    vm.getPartnerApiLogData(true);
+                });
+            };
+
+            vm.getPartnerApiLogData = function (newSearch) {
+                vm.loadingPartnerApiLogTable = true;
+                if (!authService.checkViewPermission('Platform', 'Partner', 'partnerApiLog')) {
+                    return;
+                }
+
+                let sendQuery = {
+                    partnerObjId: vm.selectedSinglePartner._id,
+                    startDate: vm.partnerApiLog.startDate.data('datetimepicker').getLocalDate(),
+                    endDate: vm.partnerApiLog.endDate.data('datetimepicker').getLocalDate(),
+                    index: newSearch ? 0 : vm.partnerApiLog.index,
+                    limit: newSearch ? 10 : vm.partnerApiLog.limit,
+                    sortCol: vm.partnerApiLog.sortCol || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPartnerApiLog', sendQuery, function (data) {
+                    console.log("getPartnerApiLog", data);
+                    let tblData = data && data.data ? data.data.data.map(item => {
+                        item.loginTime$ = vm.dateReformat(item.loginTime);
+                        //item.action$ = $translate(item.action);
+                        return item;
+                    }) : [];
+                    let total = data.data ? data.data.total : 0;
+                    vm.partnerApiLog.totalCount = total;
+                    vm.drawPartnerApiLogTable(newSearch, tblData, total);
+                    vm.loadingPartnerApiLogTable = false;
+                });
+            };
+
+            vm.drawPartnerApiLogTable = function (newSearch, tblData, size) {
+                let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('LOGIN_TIME'), data: "loginTime$"},
+                        {title: $translate('IP_ADDRESS'), data: "loginIp"}
+                    ],
+                    "paging": false,
+                });
+                let aTable = $("#partnerApiLogTbl").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                vm.partnerApiLog.pageObj.init({maxCount: size}, newSearch);
+                $('#partnerApiLogTbl').resize();
+                $('#partnerApiLogTbl').off('order.dt');
+                $('#partnerApiLogTbl').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'partnerApiLog', vm.getPartnerApiLogData);
+                });
+
+                $scope.safeApply();
+            };
 
             vm.getGenderFromBool = function (genderBool) {
                 if (genderBool === true) {

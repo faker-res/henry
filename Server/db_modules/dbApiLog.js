@@ -94,6 +94,26 @@ let dbApiLog = {
         return Promise.all([a, b]).then(data => {
             return({total: data[0], data: data[1]});
         });
+    },
+
+    getPartnerApiLog: function (partnerObjId, startDate, endDate, index, limit, sortCol) {
+        index = index || 0;
+        let count = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
+        sortCol = sortCol || {loginTime: -1};
+
+        let query = {
+            partner: partnerObjId,
+            loginTime: {
+                $gte: new Date(startDate),
+                $lt: new Date(endDate)
+            }
+        };
+
+        let a = dbConfig.collection_partnerLoginRecord.find(query).count();
+        let b = dbConfig.collection_partnerLoginRecord.find(query).sort(sortCol).skip(index).limit(count).lean();
+        return Promise.all([a, b]).then(data => {
+            return({total: data[0], data: data[1]});
+        });
     }
 };
 
