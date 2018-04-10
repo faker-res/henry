@@ -308,6 +308,12 @@ define(['js/app'], function (myApp) {
                 UPDATE_BANK_INFO: 'updateBankInfo',
                 FREE_TRIAL_REWARD: 'freeTrialReward',
                 DEMO_PLAYER: 'demoPlayer',
+                PARTNER_REGISTRATION: 'Partner_registration',
+                PARTNER_OLD_PHONE_NUMBER: 'Partner_oldPhoneNumber',
+                PARTNER_NEW_PHONE_NUMBER: 'Partner_newPhoneNumber',
+                PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
+                PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
+                PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
                 // RESET_PASSWORD: 'resetPassword'
             };
 
