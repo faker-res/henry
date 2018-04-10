@@ -14795,6 +14795,13 @@ define(['js/app'], function (myApp) {
                     if (partner.lastAccessTime) {
                         partner.lastAccessTime = utilService.getFormatTime(partner.lastAccessTime)
                     }
+
+                    partner.dailyActivePlayer  = partner.dailyActivePlayer ? partner.dailyActivePlayer : 0;
+                    partner.weeklyActivePlayer  = partner.weeklyActivePlayer ? partner.weeklyActivePlayer : 0;
+                    partner.monthlyActivePlayer  = partner.monthlyActivePlayer ? partner.monthlyActivePlayer : 0;
+                    partner.totalChildrenDeposit  = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
+                    partner.totalChildrenBalance  = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
+                    partner.settledCommission  = partner.settledCommission ? partner.settledCommission : 0;
                 });
                 vm.partners = data.data;
                 vm.platformPartnerCount = data.size;
@@ -14827,91 +14834,13 @@ define(['js/app'], function (myApp) {
                             advSearch: true, "sClass": "wordWrap realNameCell"
                         },
                         {
-                            title: $translate('MOBILE'), data: 'phoneNumber',
+                            title: $translate('COMMISSION_TYPE'), data: "commissionType", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
-                                data = data || '';
-                                return $('<a class="telPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text(data)
-                                    .prop('outerHTML');
-                            },
-                            "sClass": "alignLeft"
-                        },
-                        {
-                            title: $translate('STATUS'), data: 'status',
-                            render: function (data, type, row) {
-                                var showText = $translate(vm.allPartnersStatusKeys[data - 1]) || 'No Value';
-                                var textClass = '';
-
-                                return $('<a class="partnerStatusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text(showText)
-                                    .addClass(textClass)
-                                    .prop('outerHTML');
-                            },
-                            advSearch: true,
-                            filterConfig: {
-                                type: "dropdown",
-                                options: vm.allPartnersStatusKeys.map(function (status) {
-                                    return {
-                                        value: vm.allPartnersStatusString[status],
-                                        text: $translate(status)
-                                    };
-                                })
-                            },
-                            "sClass": ""
-                        },
-                        {
-                            title: $translate('PARENT'),
-                            data: 'parent',
-                            orderable: false,
-                            "sClass": "sumText",
-                            render: function (data, type, row) {
-                                data = data ? data.partnerName : '';
-                                return data;
-                            }
-                        },
-                        {
-                            title: $translate('CHILDREN'),
-                            data: 'childrencount',
-                            "sClass": "alignRight sumInt",
-                            render: function (data, type, row) {
-                                data = data;
-                                //var showStr=$('<div>');
-                                var showStr = $('<a>', {
-                                    'class': "partnerChildrenPopover",
-                                    'style': "z-index: auto",
-                                    'data-toggle': "popover",
-                                    'data-container': "body",
-                                    'data-placement': "bottom",
-                                    'data-trigge': "focus",
-                                    'data-row': JSON.stringify(row),
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
                                 }).text(data);
-                                //return data.length;
-                                return showStr.prop('outerHTML');
+                                return link.prop('outerHTML');
                             }
-                        },
-                        {
-                            title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
-                            render: function (data, type, row) {
-                                var $a = $('<a>', {
-                                    // class: "totalReferralPopover",
-                                    // style: "z-index: auto",
-                                    // "data-toggle": "popover",
-                                    // "data-container": "body",
-                                    // "data-placement": "bottom",
-                                    // "data-trigger": "focus",
-                                    // "data-row": JSON.stringify(row),
-                                    "ng-click": "vm.preShowReferralPlayer(" + data + ")"
-                                    // type: "button",
-                                    // "data-html": "true",
-                                    // href: "#"
-                                }).text(data);
-                                return $a.prop('outerHTML');
-                            },
-                            "sClass": "alignRight sumInt",
                         },
                         {
                             title: $translate('CREDIT'),
@@ -14925,101 +14854,107 @@ define(['js/app'], function (myApp) {
                             // }
                         },
                         {
-                            title: $translate('PARTNER_LEVEL_SHORT'),
-                            data: 'level',
-                            render: function (level, type, row) {
-                                return level ? $('<a class="partnerLevelPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#">')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text($translate(level.name))
-                                    .prop('outerHTML') : "";
-                            },
-                            advSearch: true,
-                            filterConfig: {
-                                type: "dropdown",
-                                options: vm.allPartnerLevels.map(function (level) {
-                                    return {
-                                        value: level._id,
-                                        text: $translate(level.name)
-                                    };
-                                })
-                            },
-                            "sClass": ""
-                        },
-                        {
-                            title: $translate('PERMISSION'),
-                            orderable: false,
-                            render: function (data, type, row) {
-                                data = data || {permission: {}};
-
-                                let link = $('<a>', {
-                                    'class': 'partnerPermissionPopover',
-                                    'ng-click': "vm.permissionPartner = " + JSON.stringify(row), // @todo: escaping issue
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'popover',
-                                    'data-trigger': 'focus',
-                                    'data-placement': 'bottom',
-                                    'data-container': 'body',
-                                });
-                                let perm = (row && row.permission) ? row.permission : {};
-                                link.append($('<i>', {
-                                    'class': 'fa fa-user-times margin-right-5 ' + (perm.disableCommSettlement === true ? "text-primary" : "text-danger"),
-                                }));
-                                return link.prop('outerHTML');
-                            },
-                            "sClass": "alignLeft"
-                        },
-                        {
                             title: $translate('LAST_ACCESS_TIME'), data: 'lastAccessTime'
                             // render: function (data, type, row) {
                             //     return utilService.getFormatTime(data);
                             // }
                         },
                         {
-                            title: $translate('LAST_LOGIN_IP'), orderable: false,
-                            data: 'lastLoginIp'
+                            title: $translate('LOGIN_TIMES'), data: "loginTimes", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
                         },
                         {
-                            title: $translate('ACTIVE_PLAYER'), data: '_id',
+                            title: $translate('DAILY_ACTIVE'), data: "dailyActivePlayer", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
-                                var num = vm.partnerPlayerObj[data] ? vm.partnerPlayerObj[data].activePlayers : 0;
-                                var $a = $('<a>', {
-                                    class: "activeReferralPopover",
-                                    style: "z-index: auto",
-                                    "data-toggle": "popover",
-                                    "data-container": "body",
-                                    "data-placement": "bottom",
-                                    "data-trigger": "focus",
-                                    "data-row": JSON.stringify(row),
-                                    type: "button",
-                                    "data-html": "true",
-                                    href: "#"
-                                }).text(num);
-                                return $a.prop('outerHTML');
-                            },
-                            "sClass": "alignRight sumInt",
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
                         },
                         {
-                            title: $translate('VALID_PLAYER'), data: '_id',
+                            title: $translate('WEEKLY_ACTIVE'), data: "weeklyActivePlayer", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
-                                var num = vm.partnerPlayerObj[data] ? vm.partnerPlayerObj[data].validPlayers : 0;
-                                var $a = $('<a>', {
-                                    class: "validReferralPopover",
-                                    style: "z-index: auto",
-                                    "data-toggle": "popover",
-                                    "data-container": "body",
-                                    "data-placement": "bottom",
-                                    "data-trigger": "focus",
-                                    "data-row": JSON.stringify(row),
-                                    type: "button",
-                                    "data-html": "true",
-                                    href: "#"
-                                }).text(num);
-                                return $a.prop('outerHTML');
-                            },
-                            "sClass": "alignRight sumInt",
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
                         },
-                        {title: $translate('VALID_REWARD'), data: 'validReward', "sClass": "alignRight sumFloat"},
+                        {
+                            title: $translate('MONTHLY_ACTIVE'), data: "monthlyActivePlayer", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('VALID'), data: "validPlayers", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOTAL_CHILDREN_COUNT'), data: "childrencount", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOTAL_CHILDREN_DEPOSIT'), data: "totalChildrenDeposit", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOTAL_CHILDREN_BALANCE'), data: "totalChildrenBalance", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('SETTLED_COMMISSION'), data: "settledCommission", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('Function'), //data: 'phoneNumber',
+                            orderable: false,
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            title: $translate('MAIN') + $translate('PERMISSION'), //data: 'phoneNumber',
+                            orderable: false,
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            title: $translate('SECONDARY') + $translate('PERMISSION'),
+                            orderable: false,
+                            "sClass": "alignLeft"
+                        },
                     ],
                     "autoWidth": true,
                     "scrollX": true,

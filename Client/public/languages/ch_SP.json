@@ -3453,6 +3453,16 @@
   "Top up count does not meet period condition, fail to claim reward": "周期内存款笔数不符，无法同时领取优惠",
   "Claimed reward reach daily max amount, fail to claim reward": "超出单日可领取最高优惠金额，无法同时领取优惠",
   "Insufficient top up amount, fail to claim reward": "存款金额不足，无法同时领取优惠",
-  "Cannot apply 2 reward in 1 top up": "同一笔存款无法同时申请两种以上优惠"
+  "Cannot apply 2 reward in 1 top up": "同一笔存款无法同时申请两种以上优惠",
+  "COMMISSION_TYPE": "佣金模式",
+  "DAILY_ACTIVE": "日活",
+  "WEEKLY_ACTIVE": "周活",
+  "MONTHLY_ACTIVE": "月活",
+  "TOTAL_CHILDREN_COUNT": "下线总（人数）",
+  "TOTAL_CHILDREN_DEPOSIT": "下线总（存-提）",
+  "TOTAL_CHILDREN_BALANCE": "下线总（余额）",
+  "SETTLED_COMMISSION": "已结佣金（总）",
+  "SEND_MESSAGE_TO_PARTNER": "发站内信给代理",
+  "SEND_SMS_TO_PARTNER": "发短信给代理"
 
 }
