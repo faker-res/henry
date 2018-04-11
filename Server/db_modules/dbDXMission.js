@@ -6,6 +6,15 @@ var dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 var dbPlayerMail = require("./../db_modules/dbPlayerMail");
 var errorUtils = require("./../modules/errorUtils");
 const jwt = require('jsonwebtoken');
+var constSystemParam = require('../const/constSystemParam');
+const constServerCode = require('../const/constServerCode');
+const constProposalType = require('../const/constProposalType');
+const constProposalUserType = require('../const/constProposalUserType');
+const constProposalEntryType = require('../const/constProposalEntryType');
+const dbProposal = require('./../db_modules/dbProposal');
+
+var mongoose = require('mongoose');
+var ObjectId = mongoose.Types.ObjectId;
 
 var dbDXMission = {
 
@@ -17,7 +26,8 @@ var dbDXMission = {
         return dbconfig.collection_dxMission.find({'_id':id});
     },
     createDxMission: function(data){
-        var dxMission = new dbconfig.collection_dxMission(data);
+        data.platform = ObjectId(data.platform);
+        let dxMission = new dbconfig.collection_dxMission(data);
         return dxMission.save();
     },
     updateDxMission: function(id, updateData){
@@ -189,12 +199,14 @@ var dbDXMission = {
         }
         var dxPhone = {};
         var dxMission = {};
+        let dxPhoneObj;
 
         return dbconfig.collection_dxPhone.findOne({
             code: code,
             bUsed: false,
         }).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean().then(
             function (phoneDetail) {
+                dxPhoneObj = phoneDetail;
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
@@ -213,16 +225,17 @@ var dbDXMission = {
                 }
 
                 // todo :: handle what happen when player name already exist (e.g. case where another phone number have the same last X digits)
-                var playerName = phoneDetail.phoneNumber.slice(-(phoneDetail.dxMission.lastXDigit));
+                var playerName = phoneDetail.phoneNumber.toString().slice(-(phoneDetail.dxMission.lastXDigit));
 
                 var playerData = {
                     platform: phoneDetail.platform,
-                    name: (phoneDetail.dxMission.prefix || "") + (playerName),
+                    name: (phoneDetail.dxMission.playerPrefix || "") + (playerName),
                     password: phoneDetail.dxMission.password || "888888",
                     isTestPlayer: false,
                     isRealPlayer: true,
                     isLogin: true,
-                    phoneNumber: phoneDetail.phoneNumber,
+                    dxMission: phoneDetail.dxMission._id,
+                    phoneNumber: phoneDetail.phoneNumber.toString(),
                 };
 
                 if (deviceData) {
@@ -247,14 +260,74 @@ var dbDXMission = {
                 }
 
                 // todo :: 自动申请优惠，额度和锁定组根据dxMission处理
-
                 sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
+
+                dbDXMission.applyDxMissionReward(dxPhoneObj.dxMission, playerData).catch(errorUtils.reportError);
+                // todo :: 发欢迎站内信给此玩家，标题和内容根据dxMission处理
+
 
                 return {
                     redirect: dxMission.loginUrl + "?token=" + token
                 }
             }
         );
+    },
+
+    applyDxMissionReward: function (dxMission, playerData) {
+        if (dxMission && dxMission.creditAmount && dxMission.requiredConsumption) {
+                if (playerData.platform) {
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: playerData.platform,
+                        name: constProposalType.DX_REWARD
+                    }).lean().then(
+                        proposalTypeData => {
+                            if (proposalTypeData && proposalTypeData._id) {
+                                let proposalData = {
+                                    type: proposalTypeData._id,
+                                    creator: {
+                                            type: 'player',
+                                            name: playerData.name,
+                                            id: playerData._id
+                                        },
+                                    data: {
+                                        playerObjId: playerData._id,
+                                        playerId: playerData.playerId,
+                                        playerName: playerData.name,
+                                        realName: playerData.realName,
+                                        platformObjId: playerData.platform,
+                                        rewardAmount: dxMission.creditAmount,
+                                        spendingAmount: dxMission.requiredConsumption,
+                                        useLockedCredit: false,
+                                        eventName: "电销触击优惠",
+                                        eventCode: "DXCJYH",
+                                        eventId: "579196839b4ffcd65244e5e9" //hard code for DxReward
+                                    },
+                                    entryType: constProposalEntryType.SYSTEM,
+                                    userType: constProposalUserType.PLAYERS
+                                };
+                                if (dxMission.providerGroup) {
+                                    proposalData.data.providerGroup = dxMission.providerGroup;
+                                }
+                                return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+                            } else {
+                                return Promise.reject({
+                                    name: "DataError",
+                                    errorMessage: "Cannot find proposal type"
+                                });
+                            }
+                        }
+                    )
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+        } else {
+            return Promise.reject({
+                status: constServerCode.INVALID_DATA,
+                name: "DataError",
+                message: "Invalid DX mission data"
+            })
+        }
     }
 
 };
@@ -264,7 +337,7 @@ module.exports = dbDXMission;
 function sendWelcomeMessage(dxMission, dxPhone, player) {
     let providerGroupProm = Promise.resolve();
 
-    if (dxMission.providerGroup) {
+    if (dxMission.providerGroup && String(dxMission.providerGroup.length) === 24) {
         providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: dxMission.providerGroup}).lean();
     }
 
@@ -299,4 +372,37 @@ function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName)
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
     str = str.replace ('{{providerGroup}}', providerGroupName);
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
+}
+
+function generateDXCode(dxMission, platformId, tries) {
+    tries = (tries || 0) + 1;
+    if (tries > 5) {
+        return Promise.reject({
+            message: "Generate dian xiao code failure."
+        })
+    }
+    var randomString = Math.random().toString(36).substring(4,11); // generate random String
+    var dXCode = "";
+
+    let platformProm = Promise.resolve({platformId: platformId});
+    if (!platformId) {
+        platformProm = dbconfig.collection_platform.findOne({_id: dxMission.platform}, {platformId: 1}).lean();
+    }
+
+    return platformProm.then(
+        function (platform) {
+            platformId = platform.platformId;
+            dxCode = platform.platformId + randomString;
+            return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
+        }
+    ).then(
+        function (dxPhoneExist) {
+            if (dxPhoneExist) {
+                return generateDXCode(dxMission, platformId);
+            }
+            else {
+                return dxCode;
+            }
+        }
+    );
 }

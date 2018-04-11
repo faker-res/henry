@@ -304,6 +304,8 @@ var playerSchema = new Schema({
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
     // xima withdrawal check bypass
     ximaWithdraw: {type: Number, default: 0},
+    // dian xiao mission related player
+    dxMission: {type: Schema.ObjectId, ref: 'dxMission'},
 });
 
 //record is unique by name and platform
