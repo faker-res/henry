@@ -96,3 +96,66 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             #topupTablePage
 
                 div(ng-show="vm.teleMarketingTaskTab == 'CREATE_TELEMARKETING_TASK'")
+                    .col-md-12
+                        form(name='form_showReward', novalidate)
+                            div(ng-if='vm.showRewardTypeData.isGrouped !== true')
+                                //{{"REWARD_NAME" | translate}}
+                                .full-width-input-block
+                                    label 请输入该任务 名称：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.name', required)
+                                .full-width-input-block
+                                    label 请输入该任务 备注：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.description')
+
+                                .full-width-input-block
+                                    label 请输入帐号组合 前坠：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.playerPrefix', required)
+                                .full-width-input-block
+                                    label 请输入帐号组合 电话后X位：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.lastXDigit')
+
+                                .full-width-input-block
+                                    label 请输入预设密码：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.password')
+
+                                .full-width-input-block
+                                    label 请输入自动开户网址：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.domain')
+
+                                .full-width-input-block
+                                    label 请输入自动登入主站网址：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.loginUrl')
+
+                                .full-width-input-block
+                                    label 请输入免费金额：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.creditAmount')
+
+                                .full-width-input-block
+                                    label 请选择免费金额锁定大厅
+                                    select.form-control(ng-model='vm.teleMarketing.providerGroup', required)
+                                        option(ng-repeat='(i,v) in vm.allProviderGroups', value='{{v}}') {{i | translate}}
+
+                                .full-width-input-block
+                                    label 请选择免费金额提款总流水
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.requiredConsumption')
+
+                                .full-width-input-block
+                                    label 请编译短信发送内容：
+                                    textarea.form-control(ng-model='vm.teleMarketing.invitationTemplate', required)
+
+                                .full-width-input-block
+                                    label 请编译开户成功后站内信 标题：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.welcomeTitle')
+
+                                .full-width-input-block
+                                    label 请编译开户成功后站内信 内容：
+                                    textarea.form-control(ng-model='vm.teleMarketing.welcomeContent', required)
+
+                                .full-width-input-block
+                                    label 几日内触击变色提醒：
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.alertDays')
+
+                        br
+                        .pull-right
+                            button.common-button.btn.btn-success(ng-if="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Create')",
+                            ng-click="") {{'CREATE' | translate}}
