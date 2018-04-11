@@ -193,7 +193,29 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .full-width-input-block
                                     label {{"Please Enter Number of Days for Alert" | translate}}:
                                     input.form-control(type='number', ng-model='vm.createTeleMarketing.alertDays')
-
+                        br
+                        table.simple-table
+                            thead
+                                th {{'PARAMETER' | translate}}
+                                th {{'MESSAGE_TEMPLATE_PARAMETER_DESCRIPTION' | translate}}
+                            tbody
+                                td {{"\{\{username\}\}"}}
+                                td 账号
+                            tbody
+                                td {{"\{\{password\}\}"}}
+                                td 密码
+                            tbody
+                                td {{"\{\{loginUrl\}\}"}}
+                                td 登入主站网址
+                            tbody
+                                td {{"\{\{creditAmount\}\}"}}
+                                td 免费金额
+                            tbody
+                                td {{"\{\{providerGroup\}\}"}}
+                                td 大厅
+                            tbody
+                                td {{"\{\{requiredConsumption\}\}"}}
+                                td 流水需求
                         br
                         .pull-right
                             div(style='display:inline-block;font-weight:bold') {{vm.createTaskResult | translate}}
