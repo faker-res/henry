@@ -21,3 +21,91 @@
                             include ./teleMarketing-task
                         #Filter.tab-pane.fade
                             include ./teleMarketing-task
+
+
+#modalDXMission.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | 电销任务
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            .col-md-12
+                                form(name='form_edit_telemarketing_task', novalidate)
+                                    div
+                                        .full-width-input-block
+                                            label {{"Please Enter Task Name" | translate}}: (*)
+                                            input.form-control(type='text', ng-model='vm.editTeleMarketing.name', required)
+                                        .full-width-input-block
+                                            label {{"Please Enter Task Description" | translate}}:
+                                            input.form-control(type='text', ng-model='vm.editTeleMarketing.description')
+
+                                        .full-width-input-block
+                                            label {{"Please Enter Account Prefix" | translate}}: (*)
+                                            input.form-control(type='text', ng-model='vm.editTeleMarketing.playerPrefix', required)
+                                        .full-width-input-block
+                                            label {{"Please Enter Number of Last Digits of Phone Number as Account Name" | translate}}: (*)
+                                            input.form-control(type='number', ng-model='vm.editTeleMarketing.lastXDigit', required)
+
+                                        .full-width-input-block
+                                            label {{"Please Enter Default Password" | translate}}: (*)
+                                            input.form-control(type='text', ng-model='vm.editTeleMarketing.password', required)
+
+                                        .full-width-input-block
+                                            label {{"Please Enter Registration URL" | translate}}: (*)
+                                            input.form-control(type='text', ng-model='vm.editTeleMarketing.domain', required)
+
+                                        .full-width-input-block
+                                            label {{"Please Enter Login URL" | translate}}: (*)
+                                            input.form-control(type='text', ng-model='vm.editTeleMarketing.loginUrl', required)
+
+                                        .full-width-input-block
+                                            label {{"Please Enter Free Credit Amount" | translate}}:
+                                            input.form-control(type='number', ng-model='vm.editTeleMarketing.creditAmount')
+
+                                        .full-width-input-block
+                                            label {{"Please Choose Locking Provider Group" | translate}}: (*)
+                                            select.form-control(ng-model='vm.editTeleMarketing.providerGroup', required)
+                                                option(ng-repeat='(i,v) in vm.gameProviderGroupNames', value='{{i}}') {{v}}
+
+                                        .full-width-input-block
+                                            label {{"Please Enter Required Consumption Amount" | translate}}: (*)
+                                            input.form-control(type='number', ng-model='vm.editTeleMarketing.requiredConsumption', required)
+
+                                        .full-width-input-block
+                                            label {{"Please Update Invitation Template" | translate}}:
+                                            textarea.form-control(ng-model='vm.editTeleMarketing.invitationTemplate')
+
+                                        .full-width-input-block
+                                            label {{"Please Update Registration Succeed Message Title" | translate}}:
+                                            input.form-control(type='text', ng-model='vm.editTeleMarketing.welcomeTitle')
+
+                                        .full-width-input-block
+                                            label {{"Please Update Registration Succeed Message Template" | translate}}:
+                                            textarea.form-control(ng-model='vm.editTeleMarketing.welcomeContent')
+
+                                        .full-width-input-block
+                                            label {{"Please Enter Number of Days for Alert" | translate}}:
+                                            input.form-control(type='number', ng-model='vm.editTeleMarketing.alertDays')
+            .modal-footer
+                br
+                .pull-right
+                    div(style='display:inline-block;font-weight:bold') {{vm.editTaskResult | translate}}
+                    div(style='display:inline-block')
+                      button.common-button.btn.btn-primary(ng-click="vm.resetEditTeleMarketing()") {{'Reset' | translate}}
+                    div(style='display:inline-block')
+                      button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
+                    ng-click="vm.updateTeleMarketingTask()", ng-disabled="form_edit_telemarketing_task.$invalid") {{'EDIT' | translate}}

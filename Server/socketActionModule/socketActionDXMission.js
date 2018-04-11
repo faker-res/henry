@@ -59,8 +59,8 @@ function socketActionDXMission(socketIO, socket) {
          */
         updateDxMission: function updateDxMission(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbDXMission.updateDxMission, [data], actionName, isValidData);
+            var isValidData = Boolean(data._id);
+            socketUtil.emitter(self.socket, dbDXMission.updateDxMission, [data._id, data.data], actionName, isValidData);
         },
 
     };
