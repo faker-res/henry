@@ -20689,6 +20689,20 @@ define(['js/app'], function (myApp) {
                 };
             };
 
+            // import phone number to system
+            vm.importDiffPhoneNum = function (diffPhoneNum, dxMission) {
+                let sendData = {
+                    platform: vm.selectedPlatform.id,
+                    phoneNumber: diffPhoneNum,
+                    dxMission: dxMission
+                };
+
+                socketService.$socket($scope.AppSocket, 'importDiffPhoneNum', sendData, function (data) {
+
+                    $scope.safeApply();
+                });
+            };
+
             /****************** CSV - start ******************/
             // upload phone file: csv
             vm.uploadPhoneFileCSV = function (content) {
@@ -20762,8 +20776,7 @@ define(['js/app'], function (myApp) {
             };
 
             // export phone number as txt file
-
-        vm.saveTextAsFile = function (data, filename) {
+            vm.saveTextAsFile = function (data, filename) {
             if (!data) {
                     console.error('Console.save: No data');
                     return;
@@ -20931,10 +20944,14 @@ define(['js/app'], function (myApp) {
                         }
                     };
 
-                    var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
-                    // write workbook (use type 'binary')
-                    var wbout = XLSX.write(workbook, wopts);
-                    saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    if (importXLS) {
+                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
+                    } else {
+                        var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
+                        // write workbook (use type 'binary')
+                        var wbout = XLSX.write(workbook, wopts);
+                        saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    }
 
                     $scope.safeApply();
                 });
