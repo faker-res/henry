@@ -3519,5 +3519,7 @@
   "Please Update Invitation Template": "请编译短信发送内容",
   "Please Update Registration Succeed Message Title": "请编译开户成功后站内信 标题",
   "Please Update Registration Succeed Message Template": "请编译开户成功后站内信 内容",
-  "Please Enter Number of Days for Alert": "几日内触击变色提醒"
+  "Please Enter Number of Days for Alert": "几日内触击变色提醒",
+
+  "SUSPEND": "暂停"
 }
