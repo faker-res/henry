@@ -11,7 +11,7 @@ define(['js/app'], function (myApp) {
 
             // For debugging:
             window.VM = vm;
-            vm.abc = "hahaha"
+            vm.teleMarketingOverview = {};
 
             vm.updatePageTile = function () {
                 window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -207,6 +207,9 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
+
+                vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW';
+                vm.initTeleMarketingOverview();
             };
 
             //search and select platform node
