@@ -111,7 +111,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     input.form-control(type='text', ng-model='vm.createTeleMarketing.playerPrefix', required)
                                 .full-width-input-block
                                     label {{"Please Enter Number of Last Digits of Phone Number as Account Name" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.lastXDigit', required)
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.lastXDigit', required)
 
                                 .full-width-input-block
                                     label {{"Please Enter Default Password" | translate}}:
@@ -127,12 +127,12 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                                 .full-width-input-block
                                     label {{"Please Enter Free Credit Amount" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.creditAmount')
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.creditAmount')
 
                                 .full-width-input-block
                                     label {{"Please Choose Locking Provider Group" | translate}}:
                                     select.form-control(ng-model='vm.createTeleMarketing.providerGroup', required)
-                                        option(ng-repeat='(i,v) in vm.allProviderGroups', value='{{v}}') {{i | translate}}
+                                        option(ng-repeat='(i,v) in vm.gameProviderGroupNames', value='{{i}}') {{v}}
 
                                 .full-width-input-block
                                     label {{"Please Enter Required Consumption Amount" | translate}}:
@@ -152,7 +152,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                                 .full-width-input-block
                                     label {{"Please Enter Number of Days for Alert" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.alertDays')
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.alertDays')
 
                         br
                         .pull-right
