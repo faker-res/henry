@@ -230,10 +230,6 @@ define(['js/app'], function (myApp) {
                 vm.loadPlatformData();
             });
 
-            vm.configTabClicked = function (choice) {
-                vm.selectedConfigTab = choice;
-            };
-
         };
     teleMarketingController.$inject = injectParams;
         myApp.register.controller('teleMarketingCtrl', teleMarketingController);
