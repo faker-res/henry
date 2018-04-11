@@ -1733,9 +1733,6 @@ let dbRewardPoints = {
 
                 return Promise.all(gameRewardProm).then(
                     gameRewardPointsData => {
-
-                        console.log('test debug gameRewardPointsData', gameRewardPointsData);
-
                         if (gameRewardPointsData && gameRewardPointsData.length) {
                             for (let j = gameRewardPointsData.length - 1; j >= 0; j--) {
                                 if (!gameRewardPointsData[j]) {
