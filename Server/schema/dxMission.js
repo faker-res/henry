@@ -10,6 +10,8 @@ var dxMission = new Schema({
     description: {type: String, default: ""},
     // player name prefix
     playerPrefix: {type: String, default: ""},
+    // post fix of player name, last X number of digits from phone number
+    lastXDigit: {type: Number},
     // registration password
     password: {type: String},
     // registration url
