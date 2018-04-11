@@ -14250,6 +14250,19 @@ let dbPlayerInfo = {
         });
     },
 
+    importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
+        let phoneArr = phoneNumber.split(',').map((item) => { return parseInt(item) });
+
+        let importData = {
+            platform: platform,
+            phoneNumber: phoneArr[0],
+            dxMission: dxMission
+        };
+
+        let importPhone = new dbconfig.collection_dxPhone(importData);
+        return importPhone.save();
+    },
+
     getWithdrawalInfo: function (platformId, playerId) {
         let result = {
             freeTimes: 0,
