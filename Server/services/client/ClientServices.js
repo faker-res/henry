@@ -416,6 +416,7 @@
 
             //define functions
             var functionNames = [
+                "submitDXCode",
                 "getDxMission",
                 "createDxMission",
                 "updateDxMission"
