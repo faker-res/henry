@@ -12,6 +12,7 @@ var chance = new Chance();
 var constSystemParam = require('../const/constSystemParam');
 var constPartnerCommissionPeriod = require('./../const/constPartnerCommissionPeriod');
 var constPartnerStatus = require('./../const/constPartnerStatus');
+var dbApiLog = require('./../db_modules/dbApiLog');
 
 
 var mongoose = require('mongoose');
@@ -371,6 +372,11 @@ function socketActionPartner(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query && data.query.platform && data.query._id && data.admin && data.permission && data.remark);
             socketUtil.emitter(self.socket, dbPartner.updatePartnerPermission, [data.query, data.admin, data.permission, data.remark], actionName, isValidData);
+        },
+        getPartnerApiLog: function getPartnerApiLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerObjId && data.startDate && data.endDate);
+            socketUtil.emitter(self.socket, dbApiLog.getPartnerApiLog, [data.partnerObjId, data.startDate, data.endDate, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
     };
 

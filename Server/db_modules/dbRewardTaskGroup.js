@@ -189,7 +189,8 @@ let dbRewardTaskGroup = {
                 currentAmt: -incRewardAmount,
                 curConsumption: incConsumptionAmount
             },
-            unlockBy: adminName
+            unlockBy: adminName,
+            unlockTime: new Date()
         }, {
             new: true
         }).then(
@@ -246,16 +247,23 @@ let dbRewardTaskGroup = {
         });
     },
 
-    performUnlockPlatformProviderGroup: (rewardTaskGroup) => {
+    performUnlockPlatformProviderGroup: (rewardTaskGroup, adminInfo) => {
         let promsArr = [];
         rewardTaskGroup.map(reward => {
-            promsArr.push(dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup(reward._id,reward.targetConsumption,reward.targetConsumption + reward.forbidXIMAAmt).catch(errorUtils.reportError));
+            promsArr.push(
+                dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup(
+                    reward._id,
+                    reward.targetConsumption,
+                    reward.targetConsumption + reward.forbidXIMAAmt,
+                    adminInfo.id,
+                    adminInfo.name
+                ).catch(errorUtils.reportError));
         });
 
         return Promise.all(promsArr);
     },
 
-    unlockPlayerRewardTask: (playerObjId) => {
+    unlockPlayerRewardTask: (playerObjId, adminInfo) => {
         return dbconfig.collection_rewardTaskGroup.find(
             {
                 playerId: ObjectId(playerObjId),
@@ -263,7 +271,7 @@ let dbRewardTaskGroup = {
             }
         ).lean().then(
             rewardTaskGroups => {
-                return dbRewardTaskGroup.performUnlockPlatformProviderGroup(rewardTaskGroups);
+                return dbRewardTaskGroup.performUnlockPlatformProviderGroup(rewardTaskGroups, adminInfo);
             }
         );
     },
@@ -272,7 +280,7 @@ let dbRewardTaskGroup = {
         return dbconfig.collection_rewardTaskGroup.find({
             platformId: platformId,
             playerId: playerId
-        }).sort({createTime:-1}).limit(10).lean();
+        }).sort({createTime:-1}).limit(30).lean();
     },
 
 };

@@ -653,6 +653,42 @@ var roleChecker = {
                 queryByQualityInspectionDate: [],
                 queryByProduct: []
             }
+        },
+        TeleMarketing: {
+            "TeleMarketing": {
+                Read: [],
+                Create: [],
+                Update: [],
+                Delete: [],
+            },
+            "Task": {
+                Read: [],
+                Create: [],
+                Update: [],
+                Delete: [],
+            },
+            "Filter": {
+                Read: [],
+                Create: [],
+                Update: [],
+                Delete: [],
+            },
+            "Overview": {
+                Read: ["getTeleMarketingOverview"],
+                Create: [],
+                Update: [],
+                Delete: [],
+                queryByTaskName: [],
+                queryByCreationStartDate: [],
+                queryByCreationEndDate: [],
+                queryByTotalImportedList: [],
+                queryByTotalPlayerRegistration: [],
+                queryByTotalPlayerDeposit: [],
+                queryByTotalPlayerMultiDeposit: [],
+                queryByTotalValidPlayer: [],
+                queryByTotalDepositAmount: [],
+                queryByTotalValidConsumption: [],
+            }
         }
     },
 
