@@ -11,7 +11,7 @@ define(['js/app'], function (myApp) {
 
             // For debugging:
             window.VM = vm;
-            vm.abc = "hahaha"
+            vm.teleMarketingOverview = {};
 
             vm.updatePageTile = function () {
                 window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -207,6 +207,9 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
+
+                vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW';
+                vm.initTeleMarketingOverview();
             };
 
             //search and select platform node
@@ -229,6 +232,35 @@ define(['js/app'], function (myApp) {
             $scope.$on(eventName, function (e, d) {
                 vm.loadPlatformData();
             });
+
+            vm.initTeleMarketingOverview = function () {
+                if(vm.selectedPlatform){
+                    vm.teleMarketingTaskTab = 'TELEMARKETING_TASK_OVERVIEW';
+
+                    utilService.actionAfterLoaded('#teleMarketingOverviewEndDatetimePicker', function () {
+                        $('#teleMarketingOverviewStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#teleMarketingOverviewStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#teleMarketingOverviewEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#teleMarketingOverviewEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                    });
+                }
+            };
+
+            //search telemarketing overview
+            vm.getTeleMarketingOverview = function () {
+
+            };
 
         };
     teleMarketingController.$inject = injectParams;

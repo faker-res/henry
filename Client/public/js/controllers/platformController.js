@@ -723,7 +723,7 @@ define(['js/app'], function (myApp) {
                     $('#rewardTaskLogTbl').empty();
 
                     $scope.$socketPromise('getPrevious10PlayerRTG', {platformId: vm.selectedPlatform.id , playerId: vm.selectedSinglePlayer._id})
-                        .then(last10Data => console.log('Player last 10 RTG', last10Data));
+                        .then(last30Data => console.log('Player last 30 RTG', last30Data));
                 }
             };
 

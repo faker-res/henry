@@ -647,6 +647,7 @@
   "PARTNER_LEVEL": "代理等级",
   "NO_PROVIDER": "无提供商",
   "TeleMarketing": "电销",
+  "teleMarketing": "电销",
   "DX_NEWACCOUNT_REPORT": "电销开户报表",
   "PLAYERNAME": "会员帐号",
   "PLAYERS": "玩家",
@@ -3492,6 +3493,17 @@
   "SEND_MESSAGE_TO_PARTNER": "发站内信给代理",
   "SEND_SMS_TO_PARTNER": "发短信给代理",
   "PARTNER_LOGIN_LOG": "代理登录记录",
-  "LOGIN_TIME": "登录时间"
+  "LOGIN_TIME": "登录时间",
+  "TELEMARKETING_TASK": "电销任务",
+  "TELEMARKETING_TASK_OVERVIEW": "电销任务总览",
+  "CREATE_TELEMARKETING_TASK": "创建电销任务",
+  "TASK_NAME": "任务名称",
+  "TOTAL_IMPORTED_LIST": "导入名单总数",
+  "TOTAL_PLAYER_REGISTRATION": "总开户数",
+  "TOTAL_PLAYER_DEPOSIT": "存款人数",
+  "TOTAL_PLAYER_MULTI_DEPOSIT": "多笔存款人数",
+  "TOTAL_VALID_PLAYER": "有效户人数",
+  "TOTAL_DEPOSIT_AMOUNT": "总存-提",
+  "TOTAL_VALID_CONSUMPTION": "总有效投注额"
 
 }
