@@ -653,6 +653,14 @@ var roleChecker = {
                 queryByQualityInspectionDate: [],
                 queryByProduct: []
             }
+        },
+        TeleMarketing: {
+            "TeleMarketing": {
+                Read: [],
+                Create: [],
+                Update: [],
+                Delete: [],
+            }
         }
     },
 

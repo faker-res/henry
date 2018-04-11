@@ -145,7 +145,10 @@ var partnerSchema = new Schema({
     // url where the registree come from
     sourceUrl: {type: String},
     //social media info
-    qq: {type: String}
+    qq: {type: String},
+    //partner commission group type
+    commissionGroupType: {type: Number, default: 0}
+
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));
