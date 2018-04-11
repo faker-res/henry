@@ -40,6 +40,7 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
+let dbRewardTaskGroup = require("../db_modules/dbRewardTaskGroup");
 let dbOperation = require("../db_common/dbOperations");
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
@@ -3567,8 +3568,9 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
 }
 
 function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalData) {
-    let transferLog, providerGroup, player, provider, creditChangeLog;
-    let changedValidCredit = 0, changedLockedCredit = 0;
+    let transferLog, player, provider, creditChangeLog;
+    let changedValidCredit = 0, changedLockedCredit = 0, totalCreditAmount = creditAmount;
+
     return dbconfig.collection_playerCreditTransferLog.findOne({transferId}).lean().then(
         transferLogData => {
             if (!transferLogData) {
@@ -3587,11 +3589,6 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
 
             provider = providerData;
 
-            let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({
-                platform: transferLog.platformObjId,
-                providers: provider._id,
-            }).lean();
-
             let playerProm = dbconfig.collection_players.findOne({_id: transferLog.playerObjId}).lean();
 
             let creditChangeLogProm = dbconfig.collection_creditChangeLog.findOne({
@@ -3599,52 +3596,53 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                 transferId: transferId
             }).lean();
 
-            return Promise.all([gameProviderGroupProm, playerProm, creditChangeLogProm]);
+            return Promise.all([playerProm, creditChangeLogProm]);
         }
     ).then(
         data => {
-            if (!data || !data[0] || !data[1]) {
+            if (!data || !data[0]) {
                 return;
             }
-            providerGroup = data[0];
-            player = data[1];
-            creditChangeLog = data[2];
 
-            return dbconfig.collection_rewardTaskGroup.findOne({
-                platformId: transferLog.platformObjId,
-                playerId: transferLog.playerObjId,
-                providerGroup: providerGroup._id,
-                status: constRewardTaskStatus.STARTED
-            }).lean();
+            player = data[0];
+            creditChangeLog = data[1];
+
+            return dbRewardTaskGroup.getPlayerRewardTaskGroup(
+                transferLog.platformObjId,
+                provider._id,
+                transferLog.playerObjId,
+                transferLog.createTime
+            );
         }
     ).then(
         rewardTaskGroup => {
-            console.log("DEBUG LOG :: Getting reward task group for repair transfer ID: " + transferId + " as", rewardTaskGroup);
             if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
                 let inputFreeAmt = rewardTaskGroup._inputFreeAmt;
                 let inputRewardAmt = rewardTaskGroup._inputRewardAmt;
 
                 if (creditChangeLog) {
+                    // Transfer in money missing
                     inputFreeAmt = -creditChangeLog.amount;
                     inputRewardAmt = -creditChangeLog.changedLockedAmount;
+                } else {
+                    // Transfer out money missing
+                    if (creditAmount <= inputRewardAmt) {
+                        inputRewardAmt = creditAmount;
+                    } else {
+                        inputFreeAmt = creditAmount - inputRewardAmt;
+                    }
                 }
 
                 changedValidCredit = inputFreeAmt;
                 changedLockedCredit = inputRewardAmt;
-                let lockedAmount = inputRewardAmt;
-                let validCredit = inputFreeAmt;
 
                 let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                     _id: rewardTaskGroup._id,
                     platformId: rewardTaskGroup.platformId
                 }, {
-                    // rewardAmt: lockedAmount,
                     $inc: {
-                        rewardAmt: lockedAmount,
+                        rewardAmt: inputRewardAmt,
                     },
-                    // _inputRewardAmt: 0,
-                    // _inputFreeAmt: 0,
-                    // inProvider: false
                 }, {
                     new: true
                 }).lean();
@@ -3654,7 +3652,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                     platform: player.platform
                 }, {
                     $inc: {
-                        validCredit: validCredit > 0 ? validCredit : 0
+                        validCredit: inputFreeAmt > 0 ? inputFreeAmt : 0
                     }
                 }, {
                     new: true
