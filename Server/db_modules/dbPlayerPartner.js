@@ -434,11 +434,19 @@ let dbPlayerPartner = {
                 }
                 let phoneAlreadyExist = data[0];
                 if (phoneAlreadyExist && (phoneAlreadyExist[0] || phoneAlreadyExist[1])) {
-                    return Q.reject({
-                        status: constServerCode.INVALID_PHONE_NUMBER,
-                        name: "ValidationError",
-                        message: "Phone number already registered on platform"
-                    });
+
+                    if (platform.whiteListingPhoneNumbers
+                        && platform.whiteListingPhoneNumbers.length > 0
+                        && newPhoneNumber
+                        && platform.whiteListingPhoneNumbers.indexOf(newPhoneNumber.toString()) > -1) {
+                        //bypass error
+                    }else {
+                        return Q.reject({
+                            status: constServerCode.INVALID_PHONE_NUMBER,
+                            name: "ValidationError",
+                            message: "Phone number already registered on platform"
+                        });
+                    }
                 }
 
                 let verificationPhone = curPhoneNumber;
