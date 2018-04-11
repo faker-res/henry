@@ -10,14 +10,18 @@ var dbDXMission = {
      * get a mission
      * @param {json} data - The data of the role. Refer to role schema.
      */
-    getDxMission: function (){
-      
+    getDxMission: function (id){
+        return dbconfig.collection_dxMission.find({'_id':id});
     },
     createDxMission: function(){
-
+        var dxMission = new dbconfig.collection_dxMission(data);
+        return dxMission.save();
     },
     updateDxMission: function(){
-
+        return dbconfig.collection_dxMission.findOneAndUpdate(
+            {_id: data._id},
+            data
+        );
     },
 
     getTeleMarketingOverview: function(platform, query, index, limit, sortCol){
