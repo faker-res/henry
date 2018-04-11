@@ -28,6 +28,7 @@ let dbUtility = require('./../modules/dbutility');
 
 let dbGameProvider = require('../db_modules/dbGameProvider');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
+let dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -2186,7 +2187,7 @@ function updateRTG (oldData, newData) {
         incBonusAmt = newData.bonusAmount - oldData.bonusAmount;
         incValidAmt = newData.validAmount - oldData.validAmount;
 
-        return dbGameProvider.getProviderGroupByProviderId(oldData.platformId, oldData.providerId).then(
+        return dbRewardTaskGroup.getPlayerRewardTaskGroup(oldData.platformId, oldData.providerId, oldData.playerId, oldData.createTime).then(
             providerGroupObj => {
                 if (providerGroupObj) {
                     // Find available RTG to update

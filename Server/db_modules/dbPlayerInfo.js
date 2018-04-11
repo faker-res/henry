@@ -8950,7 +8950,7 @@ let dbPlayerInfo = {
                         if (player.platform && player.platform.useProviderGroup) {
                             let unlockAllGroups = Promise.resolve(true);
                             if (bForce) {
-                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id).catch(errorUtils.reportError);
+                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id, adminInfo).catch(errorUtils.reportError);
                             }
                             return unlockAllGroups.then(
                                 () => {
