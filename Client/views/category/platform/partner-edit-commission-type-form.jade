@@ -1,0 +1,6 @@
+form#formEditPartnerCommissionType(name="form_edit_partner_commission_type", novalidate)
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"Partner Commission Type" | translate}}
+            select.form-control(ng-model='newPartner.commissionType')
+                option(ng-repeat='(i,v) in commissionType', value='{{v}}') {{ i | translate}}
