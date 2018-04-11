@@ -1562,6 +1562,26 @@ let dbPartner = {
         );
     },
 
+    verifyPartnerBankAccount: function (partnerObjId, bankAccount) {
+        return dbconfig.collection_partner.findOne({_id: partnerObjId, bankAccount: bankAccount}).then(
+            partnerData => {
+                return Boolean(partnerData);
+            }
+        )
+    },
+
+    verifyPartnerPhoneNumber: function (partnerObjId, phoneNumber) {
+        var enPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+        return dbconfig.collection_partner.findOne({
+            _id: partnerObjId,
+            phoneNumber: {$in: [phoneNumber, enPhoneNumber]}
+        }).then(
+            partnerData => {
+                return Boolean(partnerData);
+            }
+        )
+    },
+
     getPlayerSimpleList: function (partnerId, queryType, startTime, endTime, startIndex, requestCount, sort) {
         var seq = sort ? -1 : 1;
         return dbconfig.collection_partner.findOne({partnerId: partnerId}).lean().then(

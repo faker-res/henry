@@ -137,6 +137,18 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.updatePartner, [data.query, data.updateData], actionName, isValidData);
         },
 
+        verifyPartnerBankAccount: function verifyPartnerBankAccount(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.partnerObjId != null && data.bankAccount != null);
+            socketUtil.emitter(self.socket, dbPartner.verifyPartnerBankAccount, [data.partnerObjId, data.bankAccount], actionName, isValidData);
+        },
+
+        verifyPartnerPhoneNumber: function verifyPartnerPhoneNumber(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.partnerObjId != null && data.phoneNumber != null);
+            socketUtil.emitter(self.socket, dbPartner.verifyPartnerPhoneNumber, [data.partnerObjId, data.phoneNumber], actionName, isValidData);
+        },
+
         /**
          * Delete partner infos by _ids
          * @param {json} data - It has to contain _ids(array of partner object id)
