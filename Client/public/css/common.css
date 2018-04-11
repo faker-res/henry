@@ -1818,7 +1818,8 @@ input[type='Number'] {
 .full-width-input-block > label,
 .full-width-input-block > input,
 .full-width-input-block > div,
-.full-width-input-block > select {
+.full-width-input-block > select,
+.full-width-input-block > textarea {
     width: 50%;
     vertical-align: top;
 }
