@@ -230,6 +230,35 @@ define(['js/app'], function (myApp) {
                 vm.loadPlatformData();
             });
 
+            vm.initTeleMarketingOverview = function () {
+                if(vm.selectedPlatform){
+                    vm.teleMarketingTaskTab = 'TELEMARKETING_TASK_OVERVIEW';
+
+                    utilService.actionAfterLoaded('#teleMarketingOverviewEndDatetimePicker', function () {
+                        $('#teleMarketingOverviewStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#teleMarketingOverviewStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#teleMarketingOverviewEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#teleMarketingOverviewEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                    });
+                }
+            };
+
+            //search telemarketing overview
+            vm.getTeleMarketingOverview = function () {
+
+            };
+
         };
     teleMarketingController.$inject = injectParams;
         myApp.register.controller('teleMarketingCtrl', teleMarketingController);
