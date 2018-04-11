@@ -879,7 +879,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
             function performPhoneCall(triedTimes) {
                 triedTimes = triedTimes || 0;
-                if (triedTimes >= urls.length) return;
+                if (triedTimes >= urls.length) {
+                    alert("呼叫失败。。。");
+                    return;
+                }
                 let nextTriedTimes = triedTimes + 1;
                 let url = urls[triedTimes];
 
@@ -889,6 +892,30 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let password = convertToMD5(firstLevelMd5 + formattedNow);
                 //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
                 let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + adminData.did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
+
+
+                socketService.$socket($scope.AppSocket, 'callTel400', {url: urlWithParams},
+                    function(res){
+                        console.log(res);
+                        // 1：成功
+                        // -1：失败，入参的参数不合法
+                        // -2：失败，坐席工号不存在
+                        // -3：失败，密码错误
+                        // -4：失败，系统错误
+                        // -5: 失败，URL错误
+                        if (res && res.data && res.data.result == "1") {
+                            alert("正在呼叫。。。");
+                        }
+                        else {
+                            performPhoneCall(nextTriedTimes);
+                        }
+                    },
+                    function(error){
+                        console.error(error);
+                        performPhoneCall(nextTriedTimes);
+                    },
+                    true
+                );
 
                 // let xhttp = new XMLHttpRequest();
                 // xhttp.onreadystatechange = function() {
@@ -901,64 +928,64 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 // xhttp.setRequestHeader("Access-Control-Allow-Origin", "*")
                 // xhttp.send();
 
-                $.ajax({
-                    url: urlWithParams,
-                    // contentType: "application/json; charset=utf-8",
-                    dataType: "text",
-                    type: "get",
-                    success: function (e) {
-                        console.log("ok", e);
-                        //{“result”:”1”}
-                        // 1：成功
-                        // -1：失败，入参的参数不合法
-                        // -2：失败，坐席工号不存在
-                        // -3：失败，密码错误
-                        // -4：失败，系统错误
-                        // -5: 失败，URL错误
-                        if (e.result && e.result == "1") {
-                            alert("正在呼叫。。。");
-                        }
-                        else if (e.result && e.result == "-1") {
-                            alert("失败，入参的参数不合法。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else if (e.result && e.result == "-2") {
-                            alert("失败，坐席工号不存在。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else if (e.result && e.result == "-3") {
-                            alert("失败，密码错误。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else if (e.result && e.result == "-4") {
-                            alert("失败，系统错误。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else if (e.result && e.result == "-5") {
-                            alert("失败，URL错误。");
-                            performPhoneCall(nextTriedTimes);
-                        }
-                        else {
-                            alert("失败，Uknown错误。" + e);
-                            performPhoneCall(nextTriedTimes);
-                        }
-                    },
-                    error: function (xhr,status,error) {
-                        console.log("error", error);
-                        console.log("error", xhr.responseText);
-                        console.log("error", xhr.responseJSON);
-                        if (error && error.result != "1") {
-                            alert("正在呼叫。。。");
-                            // alert("再次呼叫。。。");
-                            // performPhoneCall(nextTriedTimes);
-                        } else {
-                            alert("正在呼叫。。。");
-                        }
-                    },
-                    complete: function (xhr,status,e) {
-                        console.log("error", xhr);
-                    }
-                });
+                // $.ajax({
+                //     url: urlWithParams,
+                //     // contentType: "application/json; charset=utf-8",
+                //     dataType: "text",
+                //     type: "get",
+                //     success: function (e) {
+                //         console.log("ok", e);
+                //         //{“result”:”1”}
+                //         // 1：成功
+                //         // -1：失败，入参的参数不合法
+                //         // -2：失败，坐席工号不存在
+                //         // -3：失败，密码错误
+                //         // -4：失败，系统错误
+                //         // -5: 失败，URL错误
+                //         if (e.result && e.result == "1") {
+                //             alert("正在呼叫。。。");
+                //         }
+                //         else if (e.result && e.result == "-1") {
+                //             alert("失败，入参的参数不合法。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else if (e.result && e.result == "-2") {
+                //             alert("失败，坐席工号不存在。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else if (e.result && e.result == "-3") {
+                //             alert("失败，密码错误。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else if (e.result && e.result == "-4") {
+                //             alert("失败，系统错误。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else if (e.result && e.result == "-5") {
+                //             alert("失败，URL错误。");
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //         else {
+                //             alert("失败，Uknown错误。" + e);
+                //             performPhoneCall(nextTriedTimes);
+                //         }
+                //     },
+                //     error: function (xhr,status,error) {
+                //         console.log("error", error);
+                //         console.log("error", xhr.responseText);
+                //         console.log("error", xhr.responseJSON);
+                //         if (error && error.result != "1") {
+                //             alert("正在呼叫。。。");
+                //             // alert("再次呼叫。。。");
+                //             // performPhoneCall(nextTriedTimes);
+                //         } else {
+                //             alert("正在呼叫。。。");
+                //         }
+                //     },
+                //     complete: function (xhr,status,e) {
+                //         console.log("error", xhr);
+                //     }
+                // });
             }
 
             // urls.forEach(

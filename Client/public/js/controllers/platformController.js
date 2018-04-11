@@ -28,6 +28,15 @@ define(['js/app'], function (myApp) {
             vm.rewardPointsConvert = {};
 
             // constants declaration
+            vm.constPartnerCommisionType = {
+                CLOSED_COMMISSION: 0,
+                DAILY_BONUS_AMOUNT: 1,
+                WEEKLY_BONUS_AMOUNT: 2,
+                BIWEEKLY_BONUS_AMOUNT: 3,
+                MONTHLY_BONUS_AMOUNT: 4,
+                WEEKLY_CONSUMPTION: 5,
+                OPTIONAL_REGISTRATION: 6
+            };
             vm.proposalStatusList = { // removed APPROVED and REJECTED
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
@@ -299,6 +308,12 @@ define(['js/app'], function (myApp) {
                 UPDATE_BANK_INFO: 'updateBankInfo',
                 FREE_TRIAL_REWARD: 'freeTrialReward',
                 DEMO_PLAYER: 'demoPlayer',
+                PARTNER_REGISTRATION: 'Partner_registration',
+                PARTNER_OLD_PHONE_NUMBER: 'Partner_oldPhoneNumber',
+                PARTNER_NEW_PHONE_NUMBER: 'Partner_newPhoneNumber',
+                PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
+                PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
+                PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
                 // RESET_PASSWORD: 'resetPassword'
             };
 
@@ -708,7 +723,7 @@ define(['js/app'], function (myApp) {
                     $('#rewardTaskLogTbl').empty();
 
                     $scope.$socketPromise('getPrevious10PlayerRTG', {platformId: vm.selectedPlatform.id , playerId: vm.selectedSinglePlayer._id})
-                        .then(last10Data => console.log('Player last 10 RTG', last10Data));
+                        .then(last30Data => console.log('Player last 30 RTG', last30Data));
                 }
             };
 
@@ -10335,14 +10350,14 @@ define(['js/app'], function (myApp) {
                         "aaSorting": vm.playerExpenseLog.aaSorting || [[7, 'desc']],
                         aoColumnDefs: [
                             {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'gameId', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [7]},
+                            {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'gameId', bSortable: true, 'aTargets': [5]},
                             // {'sortCol': 'gameType', bSortable: true, 'aTargets': [4]},
                             // {'sortCol': 'roundNo', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [8]},
+                            {'sortCol': 'amount', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [9]},
                             // {'sortCol': 'commissionAmount', bSortable: true, 'aTargets': [8]},
                             // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [7]},
                             {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -10723,7 +10738,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }, function (error) {
                         vm.playerManualTopUp.responseMsg = $translate(error.error.errorMessage);
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     });
@@ -11523,6 +11538,7 @@ define(['js/app'], function (myApp) {
                     console.log('getCreditDetail', data);
                     vm.playerCreditDetails = data.data.lockedCreditList;
                     vm.currentFreeAmount = data.data ? data.data.credit : '';
+                    vm.currentFreeAmount =  $noRoundTwoDecimalPlaces(vm.currentFreeAmount);
                     vm.playerCreditDetails.map(d=>{
                         if(d.validCredit == 'unknown'){
                             d.validCredit = '';
@@ -13357,7 +13373,7 @@ define(['js/app'], function (myApp) {
                     },
                     error => {
                         vm.playerAlipayTopUp.responseMsg = error.error.errorMessage;
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     }
@@ -13437,7 +13453,7 @@ define(['js/app'], function (myApp) {
                     },
                     error => {
                         vm.playerWechatPayTopUp.responseMsg = error.error.errorMessage;
-                        socketService.showErrorMessage(error.error.errorMessage);
+                        // socketService.showErrorMessage(error.error.errorMessage);
                         vm.getPlatformPlayersData();
                         $scope.safeApply();
                     }
@@ -14794,6 +14810,13 @@ define(['js/app'], function (myApp) {
                     if (partner.lastAccessTime) {
                         partner.lastAccessTime = utilService.getFormatTime(partner.lastAccessTime)
                     }
+
+                    partner.dailyActivePlayer  = partner.dailyActivePlayer ? partner.dailyActivePlayer : 0;
+                    partner.weeklyActivePlayer  = partner.weeklyActivePlayer ? partner.weeklyActivePlayer : 0;
+                    partner.monthlyActivePlayer  = partner.monthlyActivePlayer ? partner.monthlyActivePlayer : 0;
+                    partner.totalChildrenDeposit  = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
+                    partner.totalChildrenBalance  = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
+                    partner.settledCommission  = partner.settledCommission ? partner.settledCommission : 0;
                 });
                 vm.partners = data.data;
                 vm.platformPartnerCount = data.size;
@@ -14826,91 +14849,13 @@ define(['js/app'], function (myApp) {
                             advSearch: true, "sClass": "wordWrap realNameCell"
                         },
                         {
-                            title: $translate('MOBILE'), data: 'phoneNumber',
+                            title: $translate('COMMISSION_TYPE'), data: "commissionType", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
-                                data = data || '';
-                                return $('<a class="telPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text(data)
-                                    .prop('outerHTML');
-                            },
-                            "sClass": "alignLeft"
-                        },
-                        {
-                            title: $translate('STATUS'), data: 'status',
-                            render: function (data, type, row) {
-                                var showText = $translate(vm.allPartnersStatusKeys[data - 1]) || 'No Value';
-                                var textClass = '';
-
-                                return $('<a class="partnerStatusPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text(showText)
-                                    .addClass(textClass)
-                                    .prop('outerHTML');
-                            },
-                            advSearch: true,
-                            filterConfig: {
-                                type: "dropdown",
-                                options: vm.allPartnersStatusKeys.map(function (status) {
-                                    return {
-                                        value: vm.allPartnersStatusString[status],
-                                        text: $translate(status)
-                                    };
-                                })
-                            },
-                            "sClass": ""
-                        },
-                        {
-                            title: $translate('PARENT'),
-                            data: 'parent',
-                            orderable: false,
-                            "sClass": "sumText",
-                            render: function (data, type, row) {
-                                data = data ? data.partnerName : '';
-                                return data;
-                            }
-                        },
-                        {
-                            title: $translate('CHILDREN'),
-                            data: 'childrencount',
-                            "sClass": "alignRight sumInt",
-                            render: function (data, type, row) {
-                                data = data;
-                                //var showStr=$('<div>');
-                                var showStr = $('<a>', {
-                                    'class': "partnerChildrenPopover",
-                                    'style': "z-index: auto",
-                                    'data-toggle': "popover",
-                                    'data-container': "body",
-                                    'data-placement': "bottom",
-                                    'data-trigge': "focus",
-                                    'data-row': JSON.stringify(row),
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
                                 }).text(data);
-                                //return data.length;
-                                return showStr.prop('outerHTML');
+                                return link.prop('outerHTML');
                             }
-                        },
-                        {
-                            title: $translate('REFERRAL_PLAYER'), data: 'totalReferrals',
-                            render: function (data, type, row) {
-                                var $a = $('<a>', {
-                                    // class: "totalReferralPopover",
-                                    // style: "z-index: auto",
-                                    // "data-toggle": "popover",
-                                    // "data-container": "body",
-                                    // "data-placement": "bottom",
-                                    // "data-trigger": "focus",
-                                    // "data-row": JSON.stringify(row),
-                                    "ng-click": "vm.preShowReferralPlayer(" + data + ")"
-                                    // type: "button",
-                                    // "data-html": "true",
-                                    // href: "#"
-                                }).text(data);
-                                return $a.prop('outerHTML');
-                            },
-                            "sClass": "alignRight sumInt",
                         },
                         {
                             title: $translate('CREDIT'),
@@ -14924,101 +14869,110 @@ define(['js/app'], function (myApp) {
                             // }
                         },
                         {
-                            title: $translate('PARTNER_LEVEL_SHORT'),
-                            data: 'level',
-                            render: function (level, type, row) {
-                                return level ? $('<a class="partnerLevelPopover" style="z-index: auto" data-toggle="popover" data-container="body" ' +
-                                    'data-placement="right" data-trigger="focus" type="button" data-html="true" href="#">')
-                                    .attr('data-row', JSON.stringify(row))
-                                    .text($translate(level.name))
-                                    .prop('outerHTML') : "";
-                            },
-                            advSearch: true,
-                            filterConfig: {
-                                type: "dropdown",
-                                options: vm.allPartnerLevels.map(function (level) {
-                                    return {
-                                        value: level._id,
-                                        text: $translate(level.name)
-                                    };
-                                })
-                            },
-                            "sClass": ""
-                        },
-                        {
-                            title: $translate('PERMISSION'),
-                            orderable: false,
-                            render: function (data, type, row) {
-                                data = data || {permission: {}};
-
-                                let link = $('<a>', {
-                                    'class': 'partnerPermissionPopover',
-                                    'ng-click': "vm.permissionPartner = " + JSON.stringify(row), // @todo: escaping issue
-                                    'data-row': JSON.stringify(row),
-                                    'data-toggle': 'popover',
-                                    'data-trigger': 'focus',
-                                    'data-placement': 'bottom',
-                                    'data-container': 'body',
-                                });
-                                let perm = (row && row.permission) ? row.permission : {};
-                                link.append($('<i>', {
-                                    'class': 'fa fa-user-times margin-right-5 ' + (perm.disableCommSettlement === true ? "text-primary" : "text-danger"),
-                                }));
-                                return link.prop('outerHTML');
-                            },
-                            "sClass": "alignLeft"
-                        },
-                        {
                             title: $translate('LAST_ACCESS_TIME'), data: 'lastAccessTime'
                             // render: function (data, type, row) {
                             //     return utilService.getFormatTime(data);
                             // }
                         },
                         {
-                            title: $translate('LAST_LOGIN_IP'), orderable: false,
-                            data: 'lastLoginIp'
+                            title: $translate('LOGIN_TIMES'), data: "loginTimes", advSearch: true,
+                            render: function (data, type, row) {
+                                data = data || '0';
+                                return $('<a data-target="#modalPartnerApiLog" style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" type="button" ng-click="vm.initPartnerApiLog()" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(row))
+                                    .text((data))
+                                    .prop('outerHTML');
+                            },
+                            "sClass": "alignRight"
                         },
                         {
-                            title: $translate('ACTIVE_PLAYER'), data: '_id',
+                            title: $translate('DAILY_ACTIVE'), data: "dailyActivePlayer", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
-                                var num = vm.partnerPlayerObj[data] ? vm.partnerPlayerObj[data].activePlayers : 0;
-                                var $a = $('<a>', {
-                                    class: "activeReferralPopover",
-                                    style: "z-index: auto",
-                                    "data-toggle": "popover",
-                                    "data-container": "body",
-                                    "data-placement": "bottom",
-                                    "data-trigger": "focus",
-                                    "data-row": JSON.stringify(row),
-                                    type: "button",
-                                    "data-html": "true",
-                                    href: "#"
-                                }).text(num);
-                                return $a.prop('outerHTML');
-                            },
-                            "sClass": "alignRight sumInt",
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
                         },
                         {
-                            title: $translate('VALID_PLAYER'), data: '_id',
+                            title: $translate('WEEKLY_ACTIVE'), data: "weeklyActivePlayer", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
-                                var num = vm.partnerPlayerObj[data] ? vm.partnerPlayerObj[data].validPlayers : 0;
-                                var $a = $('<a>', {
-                                    class: "validReferralPopover",
-                                    style: "z-index: auto",
-                                    "data-toggle": "popover",
-                                    "data-container": "body",
-                                    "data-placement": "bottom",
-                                    "data-trigger": "focus",
-                                    "data-row": JSON.stringify(row),
-                                    type: "button",
-                                    "data-html": "true",
-                                    href: "#"
-                                }).text(num);
-                                return $a.prop('outerHTML');
-                            },
-                            "sClass": "alignRight sumInt",
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
                         },
-                        {title: $translate('VALID_REWARD'), data: 'validReward', "sClass": "alignRight sumFloat"},
+                        {
+                            title: $translate('MONTHLY_ACTIVE'), data: "monthlyActivePlayer", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('VALID'), data: "validPlayers", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOTAL_CHILDREN_COUNT'), data: "childrencount", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOTAL_CHILDREN_DEPOSIT'), data: "totalChildrenDeposit", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOTAL_CHILDREN_BALANCE'), data: "totalChildrenBalance", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('SETTLED_COMMISSION'), data: "settledCommission", advSearch: true, "sClass": "",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('Function'), //data: 'phoneNumber',
+                            orderable: false,
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            title: $translate('MAIN') + $translate('PERMISSION'), //data: 'phoneNumber',
+                            orderable: false,
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            title: $translate('SECONDARY') + $translate('PERMISSION'),
+                            orderable: false,
+                            "sClass": "alignLeft"
+                        },
                     ],
                     "autoWidth": true,
                     "scrollX": true,
@@ -15652,6 +15606,74 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            vm.initPartnerApiLog = function () {
+                vm.partnerApiLog = {totalCount: 0, limit: 10, index: 0};
+                vm.partnerApiLog.apiAction = "login";
+                utilService.actionAfterLoaded('#modalPartnerApiLog.in #partnerApiLogQuery .endTime', function () {
+                    vm.partnerApiLog.startDate = utilService.createDatePicker('#partnerApiLogQuery .startTime');
+                    vm.partnerApiLog.endDate = utilService.createDatePicker('#partnerApiLogQuery .endTime');
+                    vm.partnerApiLog.startDate.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.partnerApiLog.endDate.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                    vm.partnerApiLog.pageObj = utilService.createPageForPagingTable("#partnerApiLogTblPage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "partnerApiLog", vm.getPartnerApiLogData);
+                    });
+                    vm.getPartnerApiLogData(true);
+                });
+            };
+
+            vm.getPartnerApiLogData = function (newSearch) {
+                vm.loadingPartnerApiLogTable = true;
+                if (!authService.checkViewPermission('Platform', 'Partner', 'partnerApiLog')) {
+                    return;
+                }
+
+                let sendQuery = {
+                    partnerObjId: vm.selectedSinglePartner._id,
+                    startDate: vm.partnerApiLog.startDate.data('datetimepicker').getLocalDate(),
+                    endDate: vm.partnerApiLog.endDate.data('datetimepicker').getLocalDate(),
+                    index: newSearch ? 0 : vm.partnerApiLog.index,
+                    limit: newSearch ? 10 : vm.partnerApiLog.limit,
+                    sortCol: vm.partnerApiLog.sortCol || null
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPartnerApiLog', sendQuery, function (data) {
+                    console.log("getPartnerApiLog", data);
+                    let tblData = data && data.data ? data.data.data.map(item => {
+                        item.loginTime$ = vm.dateReformat(item.loginTime);
+                        //item.action$ = $translate(item.action);
+                        return item;
+                    }) : [];
+                    let total = data.data ? data.data.total : 0;
+                    vm.partnerApiLog.totalCount = total;
+                    vm.drawPartnerApiLogTable(newSearch, tblData, total);
+                    vm.loadingPartnerApiLogTable = false;
+                });
+            };
+
+            vm.drawPartnerApiLogTable = function (newSearch, tblData, size) {
+                let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('LOGIN_TIME'), data: "loginTime$"},
+                        {title: $translate('IP_ADDRESS'), data: "loginIp"}
+                    ],
+                    "paging": false,
+                });
+                let aTable = $("#partnerApiLogTbl").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                vm.partnerApiLog.pageObj.init({maxCount: size}, newSearch);
+                $('#partnerApiLogTbl').resize();
+                $('#partnerApiLogTbl').off('order.dt');
+                $('#partnerApiLogTbl').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'partnerApiLog', vm.getPartnerApiLogData);
+                });
+
+                $scope.safeApply();
+            };
 
             vm.getGenderFromBool = function (genderBool) {
                 if (genderBool === true) {
@@ -21090,6 +21112,27 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic = vm.partnerBasic || {};
                 vm.partnerBasic.partnerNameMaxLength = vm.selectedPlatform.data.partnerNameMaxLength;
                 vm.partnerBasic.partnerNameMinLength = vm.selectedPlatform.data.partnerNameMinLength;
+                vm.partnerBasic.partnerAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.partnerAllowSamePhoneNumberToRegister;
+                vm.partnerBasic.partnerSamePhoneNumberRegisterCount = vm.selectedPlatform.data.partnerSamePhoneNumberRegisterCount;
+                vm.partnerBasic.partnerWhiteListingPhoneNumbers = "";
+                vm.partnerBasic.partnerRequireSMSVerification = vm.selectedPlatform.data.partnerRequireSMSVerification;
+                vm.partnerBasic.partnerRequireSMSVerificationForPasswordUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPasswordUpdate;
+                vm.partnerBasic.partnerRequireSMSVerificationForPaymentUpdate = vm.selectedPlatform.data.partnerRequireSMSVerificationForPaymentUpdate;
+                vm.partnerBasic.partnerSmsVerificationExpireTime = vm.selectedPlatform.data.partnerSmsVerificationExpireTime;
+                vm.partnerBasic.partnerRequireLogInCaptcha = vm.selectedPlatform.data.partnerRequireLogInCaptcha;
+                vm.partnerBasic.partnerRequireCaptchaInSMS = vm.selectedPlatform.data.partnerRequireCaptchaInSMS;
+                vm.partnerBasic.partnerUsePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.partnerUsePhoneNumberTwoStepsVerification;
+                vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
+                vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
+
+                if (vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers && vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers.length > 0) {
+                    let phones = vm.selectedPlatform.data.partnerWhiteListingPhoneNumbers;
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i];
+                        vm.partnerBasic.partnerWhiteListingPhoneNumbers += phone;
+                        i !== (len - 1) ? vm.partnerBasic.partnerWhiteListingPhoneNumbers += "\n" : "";
+                    }
+                }
                 $scope.safeApply();
             }
 
@@ -21633,12 +21676,41 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            vm.partnerCommissionName = function getPartnerCommisionName () {
+                if (vm.partnerBasic.partnerDefaultCommissionGroup) {
+                    return Object.keys(vm.constPartnerCommisionType)[vm.partnerBasic.partnerDefaultCommissionGroup];
+                } else {
+                    return "CLOSED_COMMISSION";
+                }
+            }
+
             function updatePartnerBasic(srcData) {
+                let whiteListingPhoneNumbers = [];
+
+                if (srcData.partnerWhiteListingPhoneNumbers) {
+                    let phones = srcData.partnerWhiteListingPhoneNumbers.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) whiteListingPhoneNumbers.push(phone);
+                    }
+                }
                 let sendData = {
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         partnerNameMaxLength: srcData.partnerNameMaxLength,
                         partnerNameMinLength: srcData.partnerNameMinLength,
+                        partnerAllowSamePhoneNumberToRegister: srcData.partnerAllowSamePhoneNumberToRegister,
+                        partnerSamePhoneNumberRegisterCount: srcData.partnerSamePhoneNumberRegisterCount,
+                        partnerWhiteListingPhoneNumbers: whiteListingPhoneNumbers,
+                        partnerRequireSMSVerification: srcData.partnerRequireSMSVerification,
+                        partnerRequireSMSVerificationForPasswordUpdate: srcData.partnerRequireSMSVerificationForPasswordUpdate,
+                        partnerRequireSMSVerificationForPaymentUpdate: srcData.partnerRequireSMSVerificationForPaymentUpdate,
+                        partnerSmsVerificationExpireTime: srcData.partnerSmsVerificationExpireTime,
+                        partnerRequireLogInCaptcha: srcData.partnerRequireLogInCaptcha,
+                        partnerRequireCaptchaInSMS: srcData.partnerRequireCaptchaInSMS,
+                        partnerUsePhoneNumberTwoStepsVerification: srcData.partnerUsePhoneNumberTwoStepsVerification,
+                        partnerUnreadMailMaxDuration: srcData.partnerUnreadMailMaxDuration,
+                        partnerDefaultCommissionGroup: srcData.partnerDefaultCommissionGroup
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

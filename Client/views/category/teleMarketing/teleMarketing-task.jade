@@ -1,0 +1,160 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-if="vm.curPlatformText", style='padding-left:0')
+    .panel.panel-primary(ng-if="checkViewPermission('TeleMarketing', 'Task','Read')")
+        .tab-content
+            //.panel.panel-primary
+            .panel-heading.common-left-panel-heading
+                ul.nav.nav-tabs.common-nav-tabs(id='ulMenu', style='background-color: #337AB7')
+                    #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
+                    li.active(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')" style="margin-left: 20px;")
+                        a.common-tab(data-toggle="tab", href="#Overview", ng-click="vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW'; vm.initTeleMarketingOverview();" )
+                            .fa.fa-wrench.margin-right-5
+                            text.span {{"TELEMARKETING_TASK_OVERVIEW" | translate}}
+                    li(ng-show="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Create')")
+                        a.common-tab(data-toggle="tab",, href="#Create" ng-click="vm.teleMarketingTaskTab ='CREATE_TELEMARKETING_TASK';")
+                            .fa.fa-file-text.margin-right-5
+                            text.span {{"CREATE_TELEMARKETING_TASK" | translate}}
+            .panel-body.common-right-panel-body
+                div(ng-show="vm.teleMarketingTaskTab == 'TELEMARKETING_TASK_OVERVIEW'")
+                    #teleMarketingOverviewDiv.tab-pane.fade.in.active
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTaskName')")
+                            label {{'TASK_NAME' | translate}}
+                            input.form-control(type='text', ng-model='vm.teleMarketingOverview.taskName')
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByCreationStartDate')")
+                            label {{'START_DATE' | translate}}
+                            #teleMarketingOverviewStartDatetimePicker.input-append.form-control
+                                input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByCreationEndDate')")
+                            label {{'END_DATE' | translate}}
+                            br
+                            #teleMarketingOverviewEndDatetimePicker.input-append.form-control
+                                input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTotalImportedList')")
+                            label {{"TOTAL_IMPORTED_LIST"|translate}}
+                            select.form-control(ng-model="vm.teleMarketingOverview.totalImportedList" style="width:75px;")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTotalPlayerRegistration')")
+                            label {{"TOTAL_PLAYER_REGISTRATION"|translate}}
+                            select.form-control(ng-model="vm.teleMarketingOverview.totalPlayerRegistration" style="width:75px;")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTotalPlayerDeposit')")
+                            label {{"TOTAL_PLAYER_DEPOSIT"|translate}}
+                            select.form-control(ng-model="vm.teleMarketingOverview.totalPlayerDeposit" style="width:75px;")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTotalPlayerMultiDeposit')")
+                            label {{"TOTAL_PLAYER_MULTI_DEPOSIT"|translate}}
+                            select.form-control(ng-model="vm.teleMarketingOverview.totalPlayerMultiDeposit" style="width:75px;")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTotalValidPlayer')")
+                            label {{"TOTAL_VALID_PLAYER"|translate}}
+                            select.form-control(ng-model="vm.teleMarketingOverview.totalValidPlayer" style="width:75px;")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTotalDepositAmount')")
+                            label {{"TOTAL_DEPOSIT_AMOUNT"|translate}}
+                            select.form-control(ng-model="vm.teleMarketingOverview.totalDepositAmount" style="width:75px;")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTotalValidConsumption')")
+                            label {{"TOTAL_VALID_CONSUMPTION"|translate}}
+                            select.form-control(ng-model="vm.teleMarketingOverview.totalValidConsumption" style="width:75px;")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                        .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
+                            button.common-button.btn.btn-primary(ng-click='vm.getTeleMarketingOverview()') {{'SEARCH' | translate}}
+                        .inlineBlk(ng-show='vm.loadingTeleMarketingOverviewTable')
+                            i.fa.fa-spin.fa-spinner
+
+                        .clearfix
+                            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}}
+                            table#topupTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                            #topupTablePage
+
+                div(ng-show="vm.teleMarketingTaskTab == 'CREATE_TELEMARKETING_TASK'")
+                    .col-md-12
+                        form(name='form_create_telemarketing_task', novalidate)
+                            div
+                                .full-width-input-block
+                                    label {{"Please Enter Task Name" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.name', required)
+                                .full-width-input-block
+                                    label {{"Please Enter Task Description" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.description')
+
+                                .full-width-input-block
+                                    label {{"Please Enter Account Prefix" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.playerPrefix', required)
+                                .full-width-input-block
+                                    label {{"Please Enter Number of Last Digits of Phone Number as Account Name" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.lastXDigit', required)
+
+                                .full-width-input-block
+                                    label {{"Please Enter Default Password" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.password', required)
+
+                                .full-width-input-block
+                                    label {{"Please Enter Registration URL" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.domain', required)
+
+                                .full-width-input-block
+                                    label {{"Please Enter Login URL" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.loginUrl', required)
+
+                                .full-width-input-block
+                                    label {{"Please Enter Free Credit Amount" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.creditAmount')
+
+                                .full-width-input-block
+                                    label {{"Please Choose Locking Provider Group" | translate}}:
+                                    select.form-control(ng-model='vm.teleMarketing.providerGroup', required)
+                                        option(ng-repeat='(i,v) in vm.allProviderGroups', value='{{v}}') {{i | translate}}
+
+                                .full-width-input-block
+                                    label {{"Please Enter Required Consumption Amount" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.requiredConsumption', required)
+
+                                .full-width-input-block
+                                    label {{"Please Update Invitation Template" | translate}}:
+                                    textarea.form-control(ng-model='vm.teleMarketing.invitationTemplate')
+
+                                .full-width-input-block
+                                    label {{"Please Update Registration Succeed Message Title" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.welcomeTitle')
+
+                                .full-width-input-block
+                                    label {{"Please Update Registration Succeed Message Template" | translate}}:
+                                    textarea.form-control(ng-model='vm.teleMarketing.welcomeContent')
+
+                                .full-width-input-block
+                                    label {{"Please Enter Number of Days for Alert" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.alertDays')
+
+                        br
+                        .pull-right
+                            button.common-button.btn.btn-success(ng-if="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Create')",
+                            ng-click="vm.createTeleMarketingTask") {{'CREATE' | translate}}

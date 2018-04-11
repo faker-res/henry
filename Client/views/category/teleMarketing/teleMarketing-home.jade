@@ -1,0 +1,23 @@
+.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('TeleMarketing')")
+    #marketingContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+        .padding-all-5
+            .panel.panel-primary
+                .panel-heading.common-left-panel-heading
+                    ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
+                        #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
+                        li.active(ng-show="checkViewPermission('TeleMarketing', 'Task', 'Read')" style="margin-left: 20px;")
+                            a.common-tab(data-toggle="tab", href="#Task", ng-click="vm.teleMarketingPageName='TELEMARKETING_TASK';vm.updatePageTile();")
+                                .fa.fa-wrench.margin-right-5
+                                text.span {{"TELEMARKETING_TASK" | translate}}
+                        li(ng-show="checkViewPermission('TeleMarketing', 'Filter', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Filter", ng-click="vm.teleMarketingPageName='phoneNumFilter';vm.updatePageTile();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"phoneNumFilter" | translate}}
+
+                .panel-body
+                    div.tab-content
+                        #Task.tab-pane.fade.in.active
+                            include ./teleMarketing-task
+                        #Filter.tab-pane.fade
+                            include ./teleMarketing-task

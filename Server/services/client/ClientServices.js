@@ -116,6 +116,7 @@
                 "searchConsumptionRecord",
                 "verifyUserPasswordWithTransferIn",
                 "clickCount",
+                "getPlatformSmsGroups",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -409,6 +410,25 @@
         rootObj.PartnerService = PartnerService;
     };
 
+    var defineDXMissionService = function (sinonet) {
+        var DXMissionService = function (connection) {
+            sinonet.WebSocketService.call(this, "dxmission", connection);
+
+            //define functions
+            var functionNames = [
+                "submitDXCode",
+                "getDxMission",
+                "createDxMission",
+                "updateDxMission"
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+        };
+
+        DXMissionService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        DXMissionService.prototype.constructor = DXMissionService;
+
+        rootObj.DXMissionService = DXMissionService;
+    };
     // Individual services should be declared above, and called in here
     var defineServices = function (sinonet) {
         defineConnectionService(sinonet);
@@ -423,6 +443,7 @@
         defineRewardPointsService(sinonet);
         defineGameService(sinonet);
         definePartnerService(sinonet);
+        defineDXMissionService(sinonet);
     };
 
     if (isNode) {
