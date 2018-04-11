@@ -15511,7 +15511,6 @@ define(['js/app'], function (myApp) {
                 vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
                 vm.prepareEditCritical('partner');
                 vm.prepareEditPartnerPayment();
-                //vm.prepareCommissionInfo();
                 dialogDetails();
 
                 function dialogDetails() {
