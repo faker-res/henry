@@ -172,6 +172,9 @@ let promoCodeTypeModel = db_admin.model('promoCodeType', promoCodeTypeSchema, 'p
 let promoCodeUserGroupSchema = require('./../schema/promoCodeUserGroup');
 let promoCodeUserGroupModel = db_admin.model('promoCodeUserGroup', promoCodeUserGroupSchema, 'promoCodeUserGroup');
 
+let dxMissionSchema = require('../schema/dxMission');
+let dxMissionModel = db_admin.model('dxMission', dxMissionSchema, 'dxMission');
+
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
@@ -311,6 +314,9 @@ let rewardTaskGroupUnlockedRecordModel = dbLogs2.model('rewardTaskGroupUnlockedR
 let playerBStateSchema = require('./../schema/logs2/playerBState');
 let playerBStateModel = dbLogs2.model('playerBState', playerBStateSchema, 'playerBState');
 
+let dxPhoneSchema = require('./../schema/logs2/dxPhone');
+let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
+
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
 
@@ -434,6 +440,9 @@ var dbProperties = {
     collection_geoIp: geoIpModel,
     collection_promoCodeType: promoCodeTypeModel,
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
+
+    collection_dxMission: dxMissionModel,
+    collection_dxPhone: dxPhoneModel,
 
     collection_csOfficer: csOfficerModel,
     collection_csOfficerUrl: csOfficerUrlModel,
