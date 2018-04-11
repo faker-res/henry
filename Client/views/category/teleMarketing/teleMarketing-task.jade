@@ -1,0 +1,26 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-if="vm.curPlatformText", style='padding-left:0')
+    .panel.panel-primary(ng-if="checkViewPermission('TeleMarketing', 'Task','Read')")
+        .tab-content
+            //.panel.panel-primary
+            .panel-heading.common-left-panel-heading
+                ul.nav.nav-tabs.common-nav-tabs(id='ulMenu', style='background-color: #337AB7')
+                    #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
+
+                    li.active(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')" style="margin-left: 20px;")
+                        a.common-tab(data-toggle="tab", href="#Overview", ng-click="vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW'; vm.initTeleMarketingOverview();" )
+                            .fa.fa-wrench.margin-right-5
+                            text.span {{"TELEMARKETING_TASK_OVERVIEW" | translate}}
+                    li(ng-show="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Create')")
+                        a.common-tab(data-toggle="tab",, href="#Create" ng-click="vm.teleMarketingTaskTab ='CREATE_TELEMARKETING_TASK';")
+                            .fa.fa-file-text.margin-right-5
+                            text.span {{"CREATE_TELEMARKETING_TASK" | translate}}
+
+            .panel-body
+                div.tab-content
+                    #Overview.tab-pane.fade.in.active
+                        include ./teleMarketing-overview
+                    #Create.tab-pane.fade
+                        include ./teleMarketing-overview
