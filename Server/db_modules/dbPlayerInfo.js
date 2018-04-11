@@ -14251,16 +14251,22 @@ let dbPlayerInfo = {
     },
 
     importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
-        let phoneArr = phoneNumber.split(',').map((item) => { return parseInt(item) });
+        let phoneArr = phoneNumber.split(',').map((item) => parseInt(item) );
 
-        let importData = {
-            platform: platform,
-            phoneNumber: phoneArr[0],
-            dxMission: dxMission
-        };
+        if(phoneArr.length > 0) {
+            for (let x = 0; x < phoneArr.length; x++) {
+                let importData = {
+                    platform: platform,
+                    phoneNumber: phoneArr[x],
+                    dxMission: dxMission
+                };
 
-        let importPhone = new dbconfig.collection_dxPhone(importData);
-        return importPhone.save();
+                let importPhone = new dbconfig.collection_dxPhone(importData);
+                importPhone.save();
+            }
+            return true;
+        }
+        return false;
     },
 
     getWithdrawalInfo: function (platformId, playerId) {
