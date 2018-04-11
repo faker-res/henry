@@ -6,3 +6,19 @@
                     ul.nav.nav-tabs.common-nav-tabs(id='ulMenu')
                         #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
 
+                        li.active(ng-show="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#Overview", ng-click="vm.teleMarketingPageName='TELEMARKETING_MISSION';vm.updatePageTile();")
+                                .fa.fa-volume-control-phone.margin-right-5
+                                text.span {{"TELEMARKETING_MISSION" | translate}}
+                        li(ng-show="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#PhoneFilter", ng-click="vm.teleMarketingPageName='phoneNumFilter';vm.updatePageTile();")
+                                .fa.fa-phone.margin-right-5
+                                text.span {{"phoneNumFilter" | translate}}
+
+
+                .panel-body.common-right-panel-body
+                    div.tab-content
+                        #Overview.tab-pane.fade.in.active
+                            include ./teleMarketing-container
+                        #PhoneFilter.tab-pane.fade
+                            include ./teleMarketing-phone-filter

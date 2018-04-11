@@ -60,7 +60,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                     | {{ 'Quality Inspection' | translate }}
             li(style="{{ checkViewPermission('TeleMarketing')? 'display:block; width: 60px' : 'display:none'}}")
                 a(href='', name='teleMarketing', ng-click="openHeaderPanel('teleMarketing'); setClickedHeaderIcon()" )
-                    i.fa.fa-phone
+                    i.fa.fa-volume-control-phone
                     | {{ 'TeleMarketing' | translate }}
             //li(style="{{ checkViewPermission('Test', 'test')? 'display:block' : 'display:none'}}")
             //    a(href='testPage')

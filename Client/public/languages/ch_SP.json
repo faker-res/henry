@@ -647,6 +647,10 @@
   "PARTNER_LEVEL": "代理等级",
   "NO_PROVIDER": "无提供商",
   "TeleMarketing": "电销",
+  "teleMarketing": "电销",
+  "MISSION_LIST": "任务列表",
+  "TELEMARKETING_OVERVIEW": "电销任务总览",
+  "TELEMARKETING_CREATE": "创建电销任务",
   "DX_NEWACCOUNT_REPORT": "电销开户报表",
   "PLAYERNAME": "会员帐号",
   "PLAYERS": "玩家",
@@ -3492,6 +3496,7 @@
   "SEND_MESSAGE_TO_PARTNER": "发站内信给代理",
   "SEND_SMS_TO_PARTNER": "发短信给代理",
   "PARTNER_LOGIN_LOG": "代理登录记录",
-  "LOGIN_TIME": "登录时间"
+  "LOGIN_TIME": "登录时间",
+  "TELEMARKETING_MISSION": "电销任务"
 
 }
