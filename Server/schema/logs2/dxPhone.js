@@ -5,9 +5,13 @@ var dxPhone = new Schema({
     // platform
     platform: {type: Schema.ObjectId, ref: 'platform', index: true},
     // mission name
-    phoneNumber: {type: Number, index: true, required: true},
+    phoneNumber: {type: Number, required: true},
     // relevant dx mission object Id
     dxMission: {type: Schema.ObjectId, ref: 'dxMission'},
+    // code use to retrieve account
+    code: {type: String, index: true},
+    // create time
+    createTime: {type: Date, default: Date.now}
 });
 
 
