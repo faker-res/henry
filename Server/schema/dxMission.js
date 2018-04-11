@@ -32,6 +32,8 @@ var dxMission = new Schema({
     welcomeContent: {type: String},
     // number of days that name shown in different color
     alertDays: {type: Number},
+    // creation time
+    createTime:{type: Date, default: null, index: true},
 });
 
 
