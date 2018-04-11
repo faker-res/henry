@@ -13,10 +13,12 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             vm.teleMarketingOverview = {};
-            vm.createTeleMarketing = {
+            vm.createTeleMarketingDefault = {
                 description: '',
                 creditAmount: 0
             };
+            vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
+            vm.createTaskResult = '';
 
             vm.updatePageTile = function () {
                 window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -253,6 +255,7 @@ define(['js/app'], function (myApp) {
             });
 
             vm.initTeleMarketingOverview = function () {
+                vm.createTaskResult = '';
                 if(vm.selectedPlatform){
                     vm.teleMarketingTaskTab = 'TELEMARKETING_TASK_OVERVIEW';
 
@@ -344,10 +347,19 @@ define(['js/app'], function (myApp) {
                     console.log("create DX Mission retData", data);
                     if(data.success && data.data) {
                         //display success
+                        vm.createTaskResult = 'SUCCESS';
+                        vm.resetTeleMarketing();
                     } else {
                         //display error
+                        vm.createTaskResult = 'FAIL';
+                        vm.resetTeleMarketing();
                     }
                 });
+            };
+
+            vm.resetTeleMarketing = function(){
+                vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
+                $scope.safeApply();
             };
         };
     teleMarketingController.$inject = injectParams;
