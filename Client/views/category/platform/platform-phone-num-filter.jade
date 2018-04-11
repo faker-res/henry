@@ -99,8 +99,11 @@
                         label(style="color:red") ({{vm.diffPhoneTotalTXT}})
                         p {{vm.diffPhoneTXT}}
                     .pull-right
+                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTXT')
+                            i.fa.fa-upload
+                            text {{"IMPORT_TXT" | translate}}
                         button.btn.btn-primary.common-button(ng-click="vm.exportTXTFile(vm.diffPhoneTXT);")
-                            i.fa.fa-check
+                            i.fa.fa-download
                             text {{"EXPORT_TXT" | translate}}
 
     .col-md-6
@@ -138,6 +141,9 @@
                         label(style="color:red") ({{vm.diffPhoneTotal}})
                         p#copyHere {{vm.diffPhoneList}}
                     .pull-right
+                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTextarea')
+                            i.fa.fa-upload
+                            text {{"IMPORT_PHONE_TEXTAREA" | translate}}
                         button.btn.btn-primary.common-button(ng-click="vm.copyToClipboard('copyHere'); vm.copyHere=true;")
                             i.fa.fa-copy
                             text {{"COPY_TO_CLIPBOARD" | translate}}
@@ -159,6 +165,10 @@
                     i.fa.fa-info-circle.margin-right-5
                     text
                         strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION" | translate}}
+                    br
+                    i.fa.fa-info-circle.margin-right-5
+                    text
+                        strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION_2" | translate}}
                 div
                     #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions', ui-grid-edit='', ui-grid-exporter='', ui-grid-resize-columns='', ui-grid-move-columns='')
                         .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')
@@ -181,9 +191,90 @@
                         | &nbsp;
                         label(style="color:red") {{vm.diffPhoneTotalXLS}}
                     .pull-right
+                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionXLS')
+                            i.fa.fa-upload
+                            text {{"FILTER_THEN_IMPORT_XLS" | translate}}
                         button.btn.btn-danger.common-button(type='button', ng-click='vm.resetUIGrid()')
                             i.fa.fa-refresh
                             text {{"RESET_GRID" | translate}}
                         button.btn.btn-primary.common-button(type='button', ng-click='vm.phoneNumXLSResult=true; vm.uploadPhoneFileXLS()')
-                            i.fa.fa-check
+                            i.fa.fa-download
                             text {{"FILTER_THEN_EXPORT_XLS" | translate}}
+
+#modalSelectDxMissionTXT.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"SELECT_DXMISSION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Please select dxMission:" | translate}}
+                                    select.form-control(ng-model="vm.dxMissionType" data-width="100%" data-actions-box="true")
+                                        option(value='dx1') {{'dx1' | translate}}
+                                        option(value='dx2') {{'dx2' | translate}}
+                                        option(value='dx3') {{'dx3' | translate}}
+                                        option(value='dx4') {{'dx4' | translate}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.importDiffPhoneNum(vm.diffPhoneTXT, vm.dxMissionType)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+
+#modalSelectDxMissionTextarea.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"SELECT_DXMISSION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Please select dxMission:" | translate}}
+                                    select.form-control(ng-model="vm.dxMissionType" data-width="100%" data-actions-box="true")
+                                        option(value='dx1') {{'dx1' | translate}}
+                                        option(value='dx2') {{'dx2' | translate}}
+                                        option(value='dx3') {{'dx3' | translate}}
+                                        option(value='dx4') {{'dx4' | translate}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.importDiffPhoneNum(vm.diffPhoneList, vm.dxMissionType)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+
+#modalSelectDxMissionXLS.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"SELECT_DXMISSION" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Please select dxMission:" | translate}}
+                                    select.form-control(ng-model="vm.dxMissionType" data-width="100%" data-actions-box="true")
+                                        option(value='dx1') {{'dx1' | translate}}
+                                        option(value='dx2') {{'dx2' | translate}}
+                                        option(value='dx3') {{'dx3' | translate}}
+                                        option(value='dx4') {{'dx4' | translate}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.uploadPhoneFileXLS('', true, vm.dxMissionType)")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
