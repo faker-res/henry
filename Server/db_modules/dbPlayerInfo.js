@@ -14250,6 +14250,25 @@ let dbPlayerInfo = {
         });
     },
 
+    importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
+        let phoneArr = phoneNumber.split(',').map((item) => parseInt(item) );
+
+        if(phoneArr.length > 0) {
+            for (let x = 0; x < phoneArr.length; x++) {
+                let importData = {
+                    platform: platform,
+                    phoneNumber: phoneArr[x],
+                    dxMission: dxMission
+                };
+
+                let importPhone = new dbconfig.collection_dxPhone(importData);
+                importPhone.save();
+            }
+            return true;
+        }
+        return false;
+    },
+
     getWithdrawalInfo: function (platformId, playerId) {
         let result = {
             freeTimes: 0,

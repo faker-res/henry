@@ -291,6 +291,7 @@ const dbPlayerMail = {
         let platform;
         let isFailedSms = false;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+        let seletedDb = dbPlayerInfo;
         let sameTelPermission = "allowSamePhoneNumberToRegister";
         let samTelCount = "samePhoneNumberRegisterCount";
         let whiteListPhone = "whiteListingPhoneNumbers";
@@ -298,7 +299,9 @@ const dbPlayerMail = {
             sameTelPermission = "partnerAllowSamePhoneNumberToRegister";
             samTelCount = "partnerSamePhoneNumberRegisterCount";
             whiteListPhone = "partnerWhiteListingPhoneNumbers"
+            seletedDb = dbPartner;
         }
+
 
 
         // if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
@@ -351,14 +354,14 @@ const dbPlayerMail = {
                                 delete query.isRealPlayer;
                             }
                             if (platform[sameTelPermission] === true) {
-                                validPhoneNumberProm =  dbPartner.isExceedPhoneNumberValidToRegister(query, platform[samTelCount]);
+                                validPhoneNumberProm =  seletedDb.isExceedPhoneNumberValidToRegister(query, platform[samTelCount]);
                             } else {
-                                validPhoneNumberProm = dbPartner.isPhoneNumberValidToRegister(query);
+                                validPhoneNumberProm = seletedDb.isPhoneNumberValidToRegister(query);
                             }
                         }
                     }
 
-                    return Promise.all([validPhoneNumberProm]);
+                    return Promise.all([smsChannelProm, smsVerificationLogProm, messageTemplateProm, validPhoneNumberProm]);
                 } else {
                     return Q.reject({
                         name: "DataError",

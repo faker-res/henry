@@ -136,3 +136,65 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             #topupTablePage
 
                 div(ng-show="vm.teleMarketingTaskTab == 'CREATE_TELEMARKETING_TASK'")
+                    .col-md-12
+                        form(name='form_create_telemarketing_task', novalidate)
+                            div
+                                .full-width-input-block
+                                    label {{"Please Enter Task Name" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.name', required)
+                                .full-width-input-block
+                                    label {{"Please Enter Task Description" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.description')
+
+                                .full-width-input-block
+                                    label {{"Please Enter Account Prefix" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.playerPrefix', required)
+                                .full-width-input-block
+                                    label {{"Please Enter Number of Last Digits of Phone Number as Account Name" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.lastXDigit', required)
+
+                                .full-width-input-block
+                                    label {{"Please Enter Default Password" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.password', required)
+
+                                .full-width-input-block
+                                    label {{"Please Enter Registration URL" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.domain', required)
+
+                                .full-width-input-block
+                                    label {{"Please Enter Login URL" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.loginUrl', required)
+
+                                .full-width-input-block
+                                    label {{"Please Enter Free Credit Amount" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.creditAmount')
+
+                                .full-width-input-block
+                                    label {{"Please Choose Locking Provider Group" | translate}}:
+                                    select.form-control(ng-model='vm.teleMarketing.providerGroup', required)
+                                        option(ng-repeat='(i,v) in vm.allProviderGroups', value='{{v}}') {{i | translate}}
+
+                                .full-width-input-block
+                                    label {{"Please Enter Required Consumption Amount" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.requiredConsumption', required)
+
+                                .full-width-input-block
+                                    label {{"Please Update Invitation Template" | translate}}:
+                                    textarea.form-control(ng-model='vm.teleMarketing.invitationTemplate')
+
+                                .full-width-input-block
+                                    label {{"Please Update Registration Succeed Message Title" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.welcomeTitle')
+
+                                .full-width-input-block
+                                    label {{"Please Update Registration Succeed Message Template" | translate}}:
+                                    textarea.form-control(ng-model='vm.teleMarketing.welcomeContent')
+
+                                .full-width-input-block
+                                    label {{"Please Enter Number of Days for Alert" | translate}}:
+                                    input.form-control(type='text', ng-model='vm.teleMarketing.alertDays')
+
+                        br
+                        .pull-right
+                            button.common-button.btn.btn-success(ng-if="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Create')",
+                            ng-click="vm.createTeleMarketingTask") {{'CREATE' | translate}}

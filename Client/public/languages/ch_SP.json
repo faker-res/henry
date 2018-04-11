@@ -1405,13 +1405,17 @@
   "RESET_CSV": "重置",
   "CONTENT_TXT": "TXT文件中的内容",
   "EXPORT_TXT": "导出TXT",
+  "IMPORT_TXT": "导入系统",
   "RESET_TXT": "重置",
   "RESET_TEXTAREA": "重置",
   "COPY_TO_CLIPBOARD": "复制",
+  "IMPORT_PHONE_TEXTAREA": "导入系统",
   "COPIED_SUCCESS": "复制成功",
   "ADD_PHONE_NUMBER_XLS_INSTRUCTION": "Excel文件中的第一行将被视为标题",
+  "ADD_PHONE_NUMBER_XLS_INSTRUCTION_2": "请将电话号码格式设置为『常规』",
   "RESET_GRID": "重置",
   "FILTER_THEN_EXPORT_XLS": "过滤和导出",
+  "FILTER_THEN_IMPORT_XLS": "过滤和导入系统",
   "SELECT_XLS_FILE": "选择Excel文件",
   "XLS_LENGTH": "总数据",
 
@@ -3504,6 +3508,23 @@
   "TOTAL_PLAYER_MULTI_DEPOSIT": "多笔存款人数",
   "TOTAL_VALID_PLAYER": "有效户人数",
   "TOTAL_DEPOSIT_AMOUNT": "总存-提",
-  "TOTAL_VALID_CONSUMPTION": "总有效投注额"
+  "TOTAL_VALID_CONSUMPTION": "总有效投注额",
 
+  "Please Enter Task Name": "请输入该任务 名称",
+  "Please Enter Task Description": "请输入该任务 备注",
+  "Please Enter Account Prefix": "请输入帐号组合 前坠",
+  "Please Enter Number of Last Digits of Phone Number as Account Name": "请输入帐号组合 电话后X位",
+  "Please Enter Default Password": "请输入预设密码",
+  "Please Enter Registration URL": "请输入自动开户网址",
+  "Please Enter Login URL": "请输入自动登入主站网址",
+  "Please Enter Free Credit Amount": "请输入免费金额",
+  "Please Choose Locking Provider Group": "请选择免费金额锁定大厅",
+  "Please Enter Required Consumption Amount": "请输入免费金额提款总流",
+  "Please Update Invitation Template": "请编译短信发送内容",
+  "Please Update Registration Succeed Message Title": "请编译开户成功后站内信 标题",
+  "Please Update Registration Succeed Message Template": "请编译开户成功后站内信 内容",
+  "Please Enter Number of Days for Alert": "几日内触击变色提醒",
+
+  "SUSPEND": "暂停",
+  "TOBEFOLLOWEDUP": "待跟进"
 }
