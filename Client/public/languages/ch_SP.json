@@ -3529,5 +3529,9 @@
   "Please Enter Number of Days for Alert": "几日内触击变色提醒",
 
   "SUSPEND": "暂停",
-  "TOBEFOLLOWEDUP": "待跟进"
+  "TOBEFOLLOWEDUP": "待跟进",
+  "TASK_REMARK": "任务备注",
+  "TASK_CREATE_TIME": "任务创建时间",
+  "TOTAL_SENT_MESSAGE": "已发短信数量",
+  "TOTAL_PLAYER_CLICKED": "总开户数（触击数量）"
 }
