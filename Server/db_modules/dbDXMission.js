@@ -276,7 +276,7 @@ let dbDXMission = {
                 updateDxPhoneBUsed(dxPhone).catch(errorUtils.reportError);
 
                 return {
-                    redirect: dxMission.loginUrl + "?token=" + token
+                    redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
                 }
             }
         );
