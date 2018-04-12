@@ -2,6 +2,8 @@ var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var DXMissionService = require("./../../services/client/ClientServices").DXMissionService;
 var dbDxMission = require('./../../db_modules/dbDXMission');
 var constServerCode = require('./../../const/constServerCode');
+const uaParser = require('ua-parser-js');
+const geoip = require('geoip-lite');
 
 var DXMissionServiceImplement = function () {
     DXMissionService.call(this);

@@ -5,6 +5,7 @@ var Q = require("q");
 var dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 var dbPlayerMail = require("./../db_modules/dbPlayerMail");
 var errorUtils = require("./../modules/errorUtils");
+const jwt = require('jsonwebtoken');
 
 var dbDXMission = {
 
