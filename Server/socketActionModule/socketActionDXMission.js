@@ -57,7 +57,9 @@ function socketActionDXMission(socketIO, socket) {
         createDxMission: function createDxMission(data) {
 
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platform && data.name && data.playerPrefix && data.lastXDigit && data.password && data.domain && data.loginUrl && data.providerGroup && data.requiredConsumption);
+            var isValidData = Boolean(data && data.platform && data.name && data.playerPrefix && data.lastXDigit
+                && data.password && data.domain && data.loginUrl && (data.providerGroup || data.providerGroup === '')
+                && data.requiredConsumption);
             socketUtil.emitter(self.socket, dbDXMission.createDxMission, [data], actionName, isValidData);
         },
 
