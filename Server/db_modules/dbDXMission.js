@@ -119,6 +119,7 @@ var dbDXMission = {
                     isRealPlayer: true,
                     isLogin: true,
                     phoneNumber: phoneDetail.phoneNumber,
+                    dxMission: phoneDetail.dxMission._id,
                 };
 
                 if (deviceData) {
