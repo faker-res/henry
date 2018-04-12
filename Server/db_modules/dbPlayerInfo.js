@@ -14282,7 +14282,7 @@ let dbPlayerInfo = {
 
             let platformProm = Promise.resolve({platformId: platformId});
             if (!platformId) {
-                platformProm = dbconfig.collection_platform.findOne({_id: dxMission.platform}, {platformId: 1}).lean();
+                platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}, {platform: 1}).lean();
             }
 
             return platformProm.then(
