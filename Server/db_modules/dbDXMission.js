@@ -212,13 +212,14 @@ let dbDXMission = {
         }).populate({path: "dxMission", model: dbconfig.collection_dxMission})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (phoneDetail) {
-                dxPhone = phoneDetail;
-                platform = dxPhone.platform;
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
                     });
                 }
+                
+                dxPhone = phoneDetail;
+                platform = dxPhone.platform;
 
                 if (!phoneDetail.dxMission) {
                     phoneDetail.dxMission = {
