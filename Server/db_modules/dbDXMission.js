@@ -196,3 +196,29 @@ function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName)
     str = str.replace ('{{providerGroup}}', providerGroupName);
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
 }
+
+function generateDXCode(dxMission, platformId) {
+    var randomString = Math.random().toString(36).substring(4,11); // generate random String
+    var dXCode = "";
+
+    let platformProm = Promise.resolve({platformId: platformId});
+    if (!platformId) {
+        platformProm = dbconfig.collection_platform.findOne({_id: dxMission.platform}, {platformId: 1}).lean();
+    }
+
+    return platformProm.then(
+        function (platform) {
+            dxCode = platform.platformId + randomString;
+            return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
+        }
+    ).then(
+        function (dxPhoneExist) {
+            if (dxPhoneExist) {
+                return generateDXCode(dxMission, platform.platformId);
+            }
+            else {
+                return dxCode;
+            }
+        }
+    );
+}
