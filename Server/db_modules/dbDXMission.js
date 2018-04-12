@@ -35,12 +35,9 @@ let dbDXMission = {
         let dxMission = new dbconfig.collection_dxMission(data);
         return dxMission.save();
     },
-
-    updateDxMission: function(data){
+    updateDxMission: function(id, updateData){
         return dbconfig.collection_dxMission.findOneAndUpdate(
-            {_id: data._id},
-            data
-        );
+            {_id: id}, updateData);
     },
 
     getTeleMarketingOverview: function(platform, query, index, limit, sortCol){

@@ -21,6 +21,7 @@ define(['js/app'], function (myApp) {
             };
             vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
             vm.createTaskResult = '';
+            vm.editTaskResult = '';
 
             vm.updatePageTile = function () {
                 window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -384,7 +385,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showTeleMarketingTaskModal("' + data + '")'
+                                    'ng-click': 'vm.showTeleMarketingTaskModal("' + row['_id'] + '")'
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -531,26 +532,24 @@ define(['js/app'], function (myApp) {
                 return utilService.getFormatTime(data);
             };
 
-            vm.showTeleMarketingTaskModal = function (taksId) {
-                socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+            vm.showTeleMarketingTaskModal = function (id) {
+                vm.editTeleMarketing = null;
+                vm.editTaskResult = ''
+                socketService.$socket($scope.AppSocket, 'getDxMission', {
                     platformId: vm.selectedPlatform.id,
-                    proposalId: proposalId
+                    '_id': id
                 }, function (data) {
-                    vm.selectedProposal = data.data;
-
+                    vm.editTeleMarketing = data.data[0];
+                    vm.editTeleMarketingDefault = data.data[0];
                     //let tmpt = vm.proposalTemplate[templateNo];
                     $("#modalDXMission").modal('show');
-                    if (templateNo == 1) {
-                        $("#modalDXMission").css('z-Index', 1051).modal();
-                    }
+                    $("#modalDXMission").css('z-Index', 1051).modal();
 
                     $("#modalDXMission").on('shown.bs.modal', function (e) {
                         $scope.safeApply();
                     })
-
                 })
             };
-
 
             //create teleMarketing task
             vm.createTeleMarketingTask = function () {
@@ -591,6 +590,65 @@ define(['js/app'], function (myApp) {
                 vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
                 $scope.safeApply();
             };
+
+            vm.resetEditTeleMarketing = function(){
+              vm.editTeleMarketing = Object.assign({}, vm.editTeleMarketingDefault);
+              $scope.safeApply();
+            }
+            //update teleMarketing task
+            vm.updateTeleMarketingTask = function () {
+                let updateData = {
+                    name: vm.editTeleMarketing.name,
+                    description: vm.editTeleMarketing.description,
+                    playerPrefix: vm.editTeleMarketing.playerPrefix,
+                    lastXDigit: vm.editTeleMarketing.lastXDigit,
+                    password: vm.editTeleMarketing.password,
+                    domain: vm.editTeleMarketing.domain,
+                    loginUrl: vm.editTeleMarketing.loginUrl,
+                    creditAmount: vm.editTeleMarketing.creditAmount,
+                    providerGroup: vm.editTeleMarketing.providerGroup,
+                    requiredConsumption: vm.editTeleMarketing.requiredConsumption,
+                    invitationTemplate: vm.editTeleMarketing.invitationTemplate,
+                    welcomeTitle: vm.editTeleMarketing.welcomeTitle,
+                    welcomeContent: vm.editTeleMarketing.welcomeContent,
+                    alertDays: vm.editTeleMarketing.alertDays,
+                };
+                let id = vm.editTeleMarketing._id ? vm.editTeleMarketing._id : null;
+                console.log("editTeleMarketingTask send", updateData);
+                socketService.$socket($scope.AppSocket, 'updateDxMission', { '_id': id , 'data': updateData }, function (data) {
+                    console.log("create DX Mission retData", data);
+                    if(data.success && data.data) {
+                        //display success
+                        vm.editTaskResult = 'SUCCESS';
+                        vm.resetEditTeleMarketing();
+                    } else {
+                        //display error
+                        vm.editTaskResult = 'FAIL';
+                        vm.resetEditTeleMarketing();
+                    }
+                    vm.showTeleMarketingOverview();
+                });
+            };
+
+            vm.commonSortChangeHandler = function (a, objName, searchFunc) {
+                if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
+                var sortCol = a.aaSorting[0][0];
+                var sortDire = a.aaSorting[0][1];
+                var temp = a.aoColumns[sortCol];
+                var sortKey = temp ? temp.sortCol : '';
+                // console.log(a, sortCol, sortKey);
+                vm[objName].aaSorting = a.aaSorting;
+                if (sortKey) {
+                    vm[objName].sortCol = vm[objName].sortCol || {};
+                    var preVal = vm[objName].sortCol[sortKey];
+                    vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                    if (vm[objName].sortCol[sortKey] != preVal) {
+                        vm[objName].sortCol = {};
+                        vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                        searchFunc.call(this);
+                    }
+                }
+            }
 
             // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {
