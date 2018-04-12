@@ -352,6 +352,7 @@ define(['js/app'], function (myApp) {
                         vm.teleMarketingOverview.totalCount = data.data.totalCount;
                         result.forEach((item,index) => {
                             item['createTime'] = vm.dateReformat(item.createTime);
+                            item.sentMessageListCount$ = item.sentMessageListCount + "/" + item.importedListCount;
                             //item['targetProviderGroup'] = $translate(item.targetProviderGroup);
                         });
 
@@ -388,11 +389,25 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('TASK_REMARK'), data: "description"},
                         {title: $translate('TASK_CREATE_TIME'), data: "createTime"},
-                        {title: $translate('TOTAL_IMPORTED_LIST'), data: "creditAmount"},
-                        {title: $translate('TOTAL_SENT_MESSAGE'), data: "creditAmount"},
-                        {title: $translate('TOTAL_PLAYER_CLICKED'), data: "creditAmount"},
-                        {title: $translate('TOTAL_PLAYER_DEPOSIT'), data: "creditAmount"},
-                        {title: $translate('TOTAL_PLAYER_MULTI_DEPOSIT'), data: "creditAmount"},
+                        {title: $translate('TOTAL_IMPORTED_LIST'), data: "importedListCount"},
+                        //{title: $translate('TOTAL_SENT_MESSAGE'), data: "sentMessageListCount"},
+                        {
+                            title: $translate('TOTAL_SENT_MESSAGE'),
+                            data: "sentMessageListCount$",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+
+                                    // 'ng-click': 'vm.showSendSMSTable("' + data + '")',
+                                    'ng-click': 'vm.showSendSMSTable(' + row + ')',
+                                    'href': '#sendSMSTable'
+
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {title: $translate('TOTAL_PLAYER_CLICKED'), data: "registeredPlayerCount"},
+                        {title: $translate('TOTAL_PLAYER_DEPOSIT'), data: "topUpPlayerCount"},
+                        {title: $translate('TOTAL_PLAYER_MULTI_DEPOSIT'), data: "multiTopUpPlayerCount"},
                         {title: $translate('TOTAL_VALID_PLAYER'), data: "creditAmount"},
                         {title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "creditAmount"},
                         {title: $translate('TOTAL_VALID_CONSUMPTION'), data: "creditAmount"},
@@ -488,6 +503,10 @@ define(['js/app'], function (myApp) {
                 });
                 $('#teleMarketingOverviewTable').resize();
 
+            };
+
+            vm.showSendSMSTable = function (data) {
+                vm.test = "true";
             };
 
             vm.generalDataTableOptions = {

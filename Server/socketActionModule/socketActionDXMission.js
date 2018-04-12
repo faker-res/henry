@@ -63,6 +63,16 @@ function socketActionDXMission(socketIO, socket) {
             socketUtil.emitter(self.socket, dbDXMission.updateDxMission, [data], actionName, isValidData);
         },
 
+        /**
+         * send SMS to player
+         * @param {json} data - Player data. It has to contain correct data format
+         */
+        sendSMSToPlayer: function sendSMSToPlayer(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbDXMission.sendSMSToPlayer, [getAdminId(), getAdminName(), data], actionName, isValidData);
+        },
+
     };
 
     socketActionDXMission.actions = this.actions;

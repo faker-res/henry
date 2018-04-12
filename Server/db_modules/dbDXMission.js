@@ -5,6 +5,7 @@ var Q = require("q");
 var dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 var dbPlayerMail = require("./../db_modules/dbPlayerMail");
 var errorUtils = require("./../modules/errorUtils");
+var dbLogger = require('./../modules/dbLogger');
 const jwt = require('jsonwebtoken');
 
 var dbDXMission = {
@@ -50,42 +51,62 @@ var dbDXMission = {
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxMission.find(matchObj).count();
-        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj).then(
-            missionData => {
-                if(missionData){
-                    missionData.forEach(data => {
-                        dataSummaryListProm.push(dbDXMission.getDataSummaryList(data._id));
-                        // importedListProm.push({dxMissionId: data._id, totalImportedList: dbconfig.collection_dxPhone.find({dxMission: data._id}).count()});
-                        // sentMessageListProm.push({dxMissionId: data._id, totalSentMessage: dbconfig.collection_smsLog.find({"data.dxMission": data._id}).count()});
-                        // registeredPlayerListProm.push({dxMissionId: data._id, totalSentMessage: dbconfig.collection_players.find({dxMission: data._id}).count()});
-                    })
-
-                    console.log("BBBBBBBBBBBBBBBBBBBBBBBB",missionData);
-                    return Promise.all([dataSummaryListProm]).then(
-                        data => {
-                            ///return {missionData: missionData, summaryData: data};
-                            return missionData;
-                        }
-                    );
-                }
-            }
-        );
+        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj)
         let totalCount = 0;
         let dxMissionData = {};
 
         return Promise.all([totalCountProm, dxMissionDataProm]).then(
             result => {
                 if(result){
-                    // console.log("AAAAAAAAAAAAAAAAAAAAAAa",result[1].missionData);
-                    // console.log("AAAAAAAAAAAAAAAAAAAAAAa222222",result[1].summaryData);
                     totalCount = result[0] ? result[0] : 0;
                     dxMissionData = result[1] ? result[1] : {};
 
                     return {totalCount: totalCount, dxMissionData: dxMissionData};
-                    //return dxMissionData
                 }
             }
-        )
+        ).then(
+            data => {
+                data.dxMissionData.forEach(
+                    missionData => {
+                        if(missionData){
+                            dataSummaryListProm.push(dbDXMission.getDataSummaryList(missionData._id));
+                        }
+                    }
+                )
+
+                return Promise.all(dataSummaryListProm).then(
+                    summaryData => {
+                        let resultData = JSON.parse(JSON.stringify(data));
+                        if(summaryData){
+                            summaryData.forEach(
+                                summary => {
+                                    if(summary){
+
+                                        resultData.dxMissionData.forEach(
+                                            missionData => {
+                                                if(missionData){
+                                                    if(missionData._id && missionData._id == summary.dxMissionId){
+                                                        missionData.importedListCount = summary.importedListCount;
+                                                        missionData.sentMessageListCount = summary.sentMessageListCount;
+                                                        missionData.registeredPlayerCount = summary.registeredPlayerCount;
+                                                        missionData.topUpPlayerCount = summary.topUpPlayerCount;
+                                                        missionData.multiTopUpPlayerCount = summary.multiTopUpPlayerCount;
+                                                    }
+
+                                                    return;
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        return {totalCount: data.totalCount, dxMissionData: resultData.dxMissionData}
+                    }
+                )
+            }
+        );
 
         // return dbconfig.collection_dxMission.find(matchObj).then(
         //     missionDetails => {
@@ -128,40 +149,69 @@ var dbDXMission = {
         let importedListProm = [];
         let sentMessageListProm = [];
         let registeredPlayerListProm = [];
-        //let playerTopUpListProm = [];
+        let topUpPlayerProm = [];
+        let playerConsumptionProm = [];
         let totalRegisteredPlayer = 0;
         let noOfPlayerTopUp = 0;
         let noOfPlayerMultiTopUp = 0;
-        let topUpPlayerProm = [];
+        let validPlayer = 0;
+        let totalTopUpAmount = 0;
+        let totalTopUpCount = 0;
+        let totalValidConsumptionAmount = 0;
+        let totalValidConsumptionCount = 0;
 
-        importedListProm.push(dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count());
-        sentMessageListProm.push(dbconfig.collection_smsLog.find({"data.dxMission": dxMissionId}).count());
-        registeredPlayerListProm.push(dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
+        importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
+        sentMessageListProm = dbconfig.collection_smsLog.find({"data.dxMission": dxMissionId}).count();
+        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
             playerData => {
                 if(playerData){
                     totalRegisteredPlayer = playerData.length ? playerData.length : 0;
 
                     playerData.forEach(playerId => {
                        if(playerId){
+                           console.log("FFFFFFFFFFFFFFFFF",playerId);
                            topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId}).then(
                                topUpRecord => {
                                    if(topUpRecord){
                                        noOfPlayerTopUp += 1;
+                                       totalTopUpCount = topUpRecord.length;
+                                       totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
+                                           return previousValue.amount + currentValue.amount;
+                                       });
 
                                        if(topUpRecord.length > 1){
                                            noOfPlayerMultiTopUp += 1;
                                        }
+
+                                       return;
+                                   }
+                               }
+                           ));
+
+                           playerConsumptionProm.push(dbconfig.collection_playerConsumptionRecord.find({playerId: playerId}).then(
+                               consumptionRecord => {
+                                   if(consumptionRecord){
+                                       //totalValidConsumptionCount = consumptionRecord.length;
+                                       totalValidConsumptionCount = 2;
+                                       totalValidConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
+                                           return previousValue.validAmount + currentValue.validAmount;
+                                       });
+
+                                       return;
                                    }
                                }
                            ));
                        }
                     });
 
-                    return Promise.all(topUpPlayerProm);
-                    //noOfPlayerTopUpProm.push()
+                    return Promise.all([topUpPlayerProm,playerConsumptionProm]).then(
+                        returnData => {
+                            return returnData;
+                        }
+                    );
                 }
             }
-        ));
+        );
 
         return Promise.all([importedListProm, sentMessageListProm, registeredPlayerListProm]).then(
             result => {
@@ -175,8 +225,21 @@ var dbDXMission = {
                         sentMessageListCount: sentMessageListCount,
                         registeredPlayerCount: totalRegisteredPlayer,
                         topUpPlayerCount: noOfPlayerTopUp,
-                        multiTopUpPlayerCount: noOfPlayerMultiTopUp
+                        multiTopUpPlayerCount: noOfPlayerMultiTopUp,
+                        totalValidConsumptionAmount: totalValidConsumptionAmount,
+                        totalValidConsumptionCount : totalValidConsumptionCount
                     }
+                }
+            }
+        )
+
+    },
+
+    getValidPlayer: function (platformId, dxMissionId) {
+        return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).then(
+            partnerLevelConfig => {
+                if(partnerLevelConfig){
+
                 }
             }
         )
@@ -257,8 +320,33 @@ var dbDXMission = {
                 }
             }
         );
-    }
+    },
 
+    sendSMSToPlayer: function (adminObjId, adminName, data) {
+
+        var sendObj = {
+            tel: data.phoneNumber,
+            channel: 2,
+            platformId: data.platformId,
+            message: data.message,
+            delay: data.delay,
+            'data.dxMission': data.dxMissionId,
+        };
+        var recipientName = data.name || '';
+
+        return dbconfig.collection_dxMission.find()
+        return smsAPI.sending_sendMessage(sendObj).then(
+            retData => {
+                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'success');
+                return retData;
+            },
+            retErr => {
+                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'failure', retErr);
+                return Q.reject({message: retErr, data: data});
+            }
+        );
+
+    },
 };
 
 module.exports = dbDXMission;
