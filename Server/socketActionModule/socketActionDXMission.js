@@ -29,7 +29,7 @@ function socketActionDXMission(socketIO, socket) {
         getTeleMarketingOverview: function getTeleMarketingOverview(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.query);
-            socketUtil.emitter(self.socket, dbDXMission.getTeleMarketingOverview, [data.platform, data, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDXMission.getTeleMarketingOverview, [data.platform, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
         /**
