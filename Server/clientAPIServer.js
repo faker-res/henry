@@ -16,6 +16,7 @@ var ConsumptionServiceImplement = require("./serviceImplements/client/Consumptio
 var PaymentServiceImplement = require("./serviceImplements/client/PaymentServiceImplement");
 var ConnectionServiceImplement = require("./serviceImplements/client/ConnectionServiceImplement");
 var PartnerServiceImplement = require("./serviceImplements/client/PartnerServiceImplement");
+var DxMissionServiceImplement = require("./serviceImplements/client/DXServiceImplement");
 var dbPlatform = require("./db_modules/dbPlatform");
 
 var services = require("./modules/services");
@@ -31,7 +32,10 @@ env.messageClient = constMessageClientTypes.CLIENT;
 var ClientAPIServer = serviceUtils.buildWSServer(
     [PlayerServiceImplement, PlatformServiceImplement, RegistrationIntentionServiceImplement,
         TopUpIntentionServiceImplement, PlayerLevelServiceImplement, ConnectionServiceImplement,
-        RewardServiceImplement, RewardPointsServiceImplement, GameServiceImplement, ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement],
+        RewardServiceImplement, RewardPointsServiceImplement, GameServiceImplement,
+        ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement,
+        DxMissionServiceImplement
+    ],
     process.env.USE_SSL
 );
 
