@@ -204,13 +204,16 @@ let dbDXMission = {
         }
         let dxPhone = {};
         let dxMission = {};
+        let platform = {};
 
         return dbconfig.collection_dxPhone.findOne({
             code: code,
             bUsed: false,
-        }).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean().then(
+        }).populate({path: "dxMission", model: dbconfig.collection_dxMission})
+        .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (phoneDetail) {
                 dxPhone = phoneDetail;
+                platform = dxPhone.platform;
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
@@ -229,13 +232,14 @@ let dbDXMission = {
                 }
 
                 dxMission = phoneDetail.dxMission;
+                let platformPrefix = platform.prefix || "";
 
-                return generateDXPlayerName(dxMission.lastXDigit, dxMission.playerPrefix, dxPhone);
+                return generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone);
             }
         ).then(
             function (playerName) {
                 let playerData = {
-                    platform: dxPhone.platform,
+                    platform: platform._id,
                     name: playerName,
                     password: dxPhone.dxMission.password || "888888",
                     isTestPlayer: false,
@@ -417,19 +421,19 @@ function updateDxPhoneBUsed (dxPhone) {
     return dbconfig.collection_dxPhone.update({_id: dxPhone._id}, {bUsed: true});
 }
 
-function generateDXPlayerName (lastXDigit, prefix, dxPhone, tries) {
+function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tries) {
     tries = (Number(tries) || 0) + 1;
     if (tries > 13) {
         return Promise.reject({
             message: "Generate dian xiao code failure."
         })
     }
-    let playerName = prefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
+    let playerName = platformPrefix + dxPrefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
 
     return dbconfig.collection_players.findOne({name: playerName, platform: dxPhone.platform}).lean().then(
         playerExist => {
             if (playerExist) {
-                return generateDXPlayerName(lastXDigit + 1, prefix, dxPhone, tries);
+                return generateDXPlayerName(lastXDigit + 1, platformPrefix, dxPrefix, dxPhone, tries);
             }
             else {
                 return playerName;
