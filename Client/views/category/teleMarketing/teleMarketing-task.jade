@@ -196,5 +196,5 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                         br
                         .pull-right
-                            button.common-button.btn.btn-success(ng-if="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Create')",
-                            ng-click="vm.createTeleMarketingTask") {{'CREATE' | translate}}
+                            button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
+                            ng-click="vm.createTeleMarketingTask()", ng-disabled="form_create_telemarketing_task.$invalid") {{'CREATE' | translate}}
