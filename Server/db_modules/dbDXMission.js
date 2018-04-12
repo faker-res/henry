@@ -413,7 +413,7 @@ let dbDXMission = {
                         tel: data.tel,
                         channel: 2,
                         platformId: ObjectId(data.platformId),
-                        message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission),
+                        message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData),
                         //delay: data.delay,
                         'data.dxMission': phoneData.dxMission,
                     };
