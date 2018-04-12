@@ -306,7 +306,13 @@ function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName)
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
 }
 
-function generateDXCode(dxMission, platformId) {
+function generateDXCode(dxMission, platformId, tries) {
+    tries = (tries || 0) + 1;
+    if (tries > 5) {
+        return Promise.reject({
+            message: "Generate dian xiao code failure."
+        })
+    }
     var randomString = Math.random().toString(36).substring(4,11); // generate random String
     var dXCode = "";
 
@@ -317,13 +323,14 @@ function generateDXCode(dxMission, platformId) {
 
     return platformProm.then(
         function (platform) {
+            platformId = platform.platformId;
             dxCode = platform.platformId + randomString;
             return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
         }
     ).then(
         function (dxPhoneExist) {
             if (dxPhoneExist) {
-                return generateDXCode(dxMission, platform.platformId);
+                return generateDXCode(dxMission, platformId);
             }
             else {
                 return dxCode;
