@@ -5,7 +5,6 @@
 var dbDXMission = require('./../db_modules/dbDXMission');
 var socketUtil = require('./../modules/socketutility');
 
-
 function socketActionDXMission(socketIO, socket) {
 
     this.socketIO = socketIO;
@@ -40,7 +39,7 @@ function socketActionDXMission(socketIO, socket) {
         getDxMission: function getDxMission(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
-            socketUtil.emitterWithoutRoleCheck(self.socket, dbDxMission.getDxMission, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDXMission.getDxMission, [data], actionName, isValidData);
         },
 
         /**
@@ -48,9 +47,10 @@ function socketActionDXMission(socketIO, socket) {
          * @param {json} data - Player data. It has to contain correct data format
          */
         createDxMission: function createDxMission(data) {
+
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.name && data.playerPrefix && data.lastXDigit && data.password && data.domain && data.loginUrl && data.providerGroup && data.requiredConsumption);
-            socketUtil.emitterWithoutRoleCheck(self.socket, dbDxMission.createDxMission, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDXMission.createDxMission, [data], actionName, isValidData);
         },
 
         /**
@@ -60,7 +60,7 @@ function socketActionDXMission(socketIO, socket) {
         updateDxMission: function updateDxMission(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data);
-            socketUtil.emitterWithoutRoleCheck(self.socket, dbDxMission.updateDxMission, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDXMission.updateDxMission, [data], actionName, isValidData);
         },
 
     };
