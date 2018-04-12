@@ -21183,10 +21183,21 @@ define(['js/app'], function (myApp) {
                         vm.gridApi = api;
                     }
                 };
+                vm.allDxMission = [];
+                vm.getAllDxMission();
+            };
+
+            vm.getAllDxMission = function () {
+                socketService.$socket($scope.AppSocket, 'getAllDxMission', {}, function (data) {
+                    vm.allDxMission = data.data;
+                    $scope.safeApply();
+                });
             };
 
             // import phone number to system
             vm.importDiffPhoneNum = function (diffPhoneNum, dxMission) {
+                vm.selectedDxMission = '';
+
                 let sendData = {
                     platform: vm.selectedPlatform.id,
                     phoneNumber: diffPhoneNum,
@@ -21316,6 +21327,7 @@ define(['js/app'], function (myApp) {
                 vm.diffPhoneTXT = '';
                 vm.samePhoneTotalTXT = '';
                 vm.diffPhoneTotalTXT = '';
+                vm.selectedDxMission = '';
             };
             /****************** TXT - end ******************/
 
@@ -21347,6 +21359,7 @@ define(['js/app'], function (myApp) {
                 vm.phoneNumListResult = false;
                 vm.samePhoneList = '';
                 vm.diffPhoneList = '';
+                vm.selectedDxMission = '';
             };
 
             // copy phone number list
@@ -21499,6 +21512,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneTotalXLS = '';
                 vm.diffPhoneTotalXLS = '';
                 vm.phoneNumXLSResult = false;
+                vm.selectedDxMission = '';
             };
             /****************** XLS - end ******************/
             // phone number filter codes==============end===============================
