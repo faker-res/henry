@@ -3522,12 +3522,16 @@
   "Please Enter Login URL": "请输入自动登入主站网址",
   "Please Enter Free Credit Amount": "请输入免费金额",
   "Please Choose Locking Provider Group": "请选择免费金额锁定大厅",
-  "Please Enter Required Consumption Amount": "请输入免费金额提款总流",
+  "Please Enter Required Consumption Amount": "请输入免费金额提款总流水",
   "Please Update Invitation Template": "请编译短信发送内容",
   "Please Update Registration Succeed Message Title": "请编译开户成功后站内信 标题",
   "Please Update Registration Succeed Message Template": "请编译开户成功后站内信 内容",
   "Please Enter Number of Days for Alert": "几日内触击变色提醒",
 
   "SUSPEND": "暂停",
-  "TOBEFOLLOWEDUP": "待跟进"
+  "TOBEFOLLOWEDUP": "待跟进",
+  "TASK_REMARK": "任务备注",
+  "TASK_CREATE_TIME": "任务创建时间",
+  "TOTAL_SENT_MESSAGE": "已发短信数量",
+  "TOTAL_PLAYER_CLICKED": "总开户数（触击数量）"
 }
