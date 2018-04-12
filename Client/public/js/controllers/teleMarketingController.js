@@ -1424,7 +1424,7 @@ define(['js/app'], function (myApp) {
                             dxMission: data[4]
                         }
                         socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
-
+                            console.log("SMS SENT");
                         })
 
                     })

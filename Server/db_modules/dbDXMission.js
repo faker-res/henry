@@ -6,6 +6,7 @@ var dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 var dbPlayerMail = require("./../db_modules/dbPlayerMail");
 var errorUtils = require("./../modules/errorUtils");
 var dbLogger = require('./../modules/dbLogger');
+var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
 const constSystemParam = require('../const/constSystemParam');
 const constServerCode = require('../const/constServerCode');
@@ -421,10 +422,12 @@ let dbDXMission = {
                     return smsAPI.sending_sendMessage(sendObj).then(
                         retData => {
                             dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
+                            console.log("SMS SENT SUCCESSFULLY");
                             return retData;
                         },
                         retErr => {
                             dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
+                            console.log("SMS SENT FAILED");
                             return Q.reject({message: retErr, data: data});
                         }
                     );
