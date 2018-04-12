@@ -14290,13 +14290,15 @@ let dbPlayerInfo = {
 
             let platformProm = Promise.resolve({platformId: platformId});
             if (!platformId) {
-                platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}, {platform: 1}).lean();
+                platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+                    path: "platform", model: dbconfig.collection_platform
+                }).lean();
             }
 
             return platformProm.then(
-                function (platform) {
-                    platformId = platform.platformId;
-                    dxCode = platform.platformId + randomString;
+                function (missionProm) {
+                    platformId = missionProm.platform.platformId;
+                    dxCode = missionProm.platform.platformId + randomString;
                     return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
                 }
             ).then(
