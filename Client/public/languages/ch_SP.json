@@ -3437,6 +3437,7 @@
   "createUpdatePartnerInfoProposal": "创建更新代理资料提案",
   "createUpdatePartnerEmailProposal": "创建更新代理电子邮件提案",
   "createUpdatePartnerQQProposal": "创建更新代理QQ提案",
+  "createUpdatePartnerWeChatProposal": "创建更新代理微信提案",
   "renameProviderInPlatformById": "重命名平台提供商",
   "updateProviderFromPlatformById": "更新平台提供商",
   "attachGamesToPlatform": "添加平台游戏",

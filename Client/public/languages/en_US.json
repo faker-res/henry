@@ -785,6 +785,8 @@
   "createUpdatePlayerCreditProposal":"Create Update Player Credit Proposal",
   "partnerLevel/update":"Partner Level Update",
   "createUpdatePartnerPhoneProposal":"Create Update Partner Phone Proposal",
+  "createUpdatePartnerWeChatProposal":"Create Update Partner WeChat Proposal",
+  "createUpdatePartnerQQProposal":"Create Update Partner QQ Proposal",
   "ALL_CONDITIONS_MUST_MATCH_SHORT":"All",
   "ADD_NEW_LEVEL_UP_CONDITION":"Add new level-up condition",
   "REMOVE_THIS_LEVEL_UP_CONDITION":"Remove this level-up condition",
