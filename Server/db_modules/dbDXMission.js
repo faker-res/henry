@@ -233,6 +233,7 @@ var dbDXMission = {
                     isTestPlayer: false,
                     isRealPlayer: true,
                     isLogin: true,
+                    dxMission: phoneDetail.dxMission._id,
                     phoneNumber: phoneDetail.phoneNumber.toString(),
                 };
 
@@ -370,4 +371,37 @@ function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName)
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
     str = str.replace ('{{providerGroup}}', providerGroupName);
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
+}
+
+function generateDXCode(dxMission, platformId, tries) {
+    tries = (tries || 0) + 1;
+    if (tries > 5) {
+        return Promise.reject({
+            message: "Generate dian xiao code failure."
+        })
+    }
+    var randomString = Math.random().toString(36).substring(4,11); // generate random String
+    var dXCode = "";
+
+    let platformProm = Promise.resolve({platformId: platformId});
+    if (!platformId) {
+        platformProm = dbconfig.collection_platform.findOne({_id: dxMission.platform}, {platformId: 1}).lean();
+    }
+
+    return platformProm.then(
+        function (platform) {
+            platformId = platform.platformId;
+            dxCode = platform.platformId + randomString;
+            return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
+        }
+    ).then(
+        function (dxPhoneExist) {
+            if (dxPhoneExist) {
+                return generateDXCode(dxMission, platformId);
+            }
+            else {
+                return dxCode;
+            }
+        }
+    );
 }
