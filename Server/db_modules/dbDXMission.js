@@ -6,6 +6,8 @@ var dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 var dbPlayerMail = require("./../db_modules/dbPlayerMail");
 var errorUtils = require("./../modules/errorUtils");
 const jwt = require('jsonwebtoken');
+var constSystemParam = require('../const/constSystemParam');
+
 
 var dbDXMission = {
 
@@ -108,17 +110,17 @@ var dbDXMission = {
                     phoneDetail.dxMission.lastXDigit = 5;
                 }
 
-                // todo :: handle what happen when player name already exist (e.g. case where another phone number have the same last X digits)
-                var playerName = phoneDetail.phoneNumber.slice(-(phoneDetail.dxMission.lastXDigit));
+                // todo :: handle what happen when player name already exist (e.g. case where ansother phone number have the same last X digits)
+                var playerName = phoneDetail.phoneNumber.toString().slice(-(phoneDetail.dxMission.lastXDigit));
 
                 var playerData = {
                     platform: phoneDetail.platform,
-                    name: (phoneDetail.dxMission.prefix || "") + (playerName),
+                    name: (phoneDetail.dxMission.playerPrefix || "") + (playerName),
                     password: phoneDetail.dxMission.password || "888888",
                     isTestPlayer: false,
                     isRealPlayer: true,
                     isLogin: true,
-                    phoneNumber: phoneDetail.phoneNumber,
+                    phoneNumber: phoneDetail.phoneNumber.toString(),
                 };
 
                 if (deviceData) {
