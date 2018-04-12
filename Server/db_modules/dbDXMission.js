@@ -478,11 +478,11 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
 
 function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
     str = String(str);
-    let loginUrl = dxMission.loginUrl + "?=" + dxPhone.code;
+    let registrationUrl = dxMission.domain + "?=" + dxPhone.code;
 
     str = str.replace ('{{username}}', player && player.name ? player.name : "");
     str = str.replace ('{{password}}', dxMission.password);
-    str = str.replace ('{{loginUrl}}', loginUrl);
+    str = str.replace ('{{registrationUrl}}', registrationUrl);
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
     str = str.replace ('{{providerGroup}}', providerGroupName || "");
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
