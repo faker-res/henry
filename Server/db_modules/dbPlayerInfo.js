@@ -14259,7 +14259,7 @@ let dbPlayerInfo = {
                     platform: platform,
                     phoneNumber: phoneArr[x],
                     dxMission: dxMission,
-                    code: 'random123'
+                    code: generateDXCode(dxMission)
                 };
 
                 let importPhone = new dbconfig.collection_dxPhone(importData);
@@ -14269,6 +14269,39 @@ let dbPlayerInfo = {
             return true;
         }
         return false;
+
+        function generateDXCode(dxMission, platformId, tries) {
+            tries = (Number(tries) || 0) + 1;
+            if (tries > 5) {
+                return Promise.reject({
+                    message: "Generate dian xiao code failure."
+                })
+            }
+            let randomString = Math.random().toString(36).substring(4,11); // generate random String
+            let dxCode = "";
+
+            let platformProm = Promise.resolve({platformId: platformId});
+            if (!platformId) {
+                platformProm = dbconfig.collection_platform.findOne({_id: dxMission.platform}, {platformId: 1}).lean();
+            }
+
+            return platformProm.then(
+                function (platform) {
+                    platformId = platform.platformId;
+                    dxCode = platform.platformId + randomString;
+                    return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
+                }
+            ).then(
+                function (dxPhoneExist) {
+                    if (dxPhoneExist) {
+                        return generateDXCode(dxMission, platformId);
+                    }
+                    else {
+                        return dxCode;
+                    }
+                }
+            );
+        }
     },
 
     getWithdrawalInfo: function (platformId, playerId) {
