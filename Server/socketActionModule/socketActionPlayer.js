@@ -1180,6 +1180,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.uploadPhoneFileXLS, [data.filterAllPlatform, data.platformObjId, data.arrayPhoneXLS], actionName, isValidData);
         },
 
+        importDiffPhoneNum: function importDiffPhoneNum(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.phoneNumber && data.dxMission);
+            socketUtil.emitter(self.socket, dbPlayerInfo.importDiffPhoneNum, [ObjectId(data.platform), data.phoneNumber, ObjectId(data.dxMission)], actionName, isValidData);
+        },
+
         downloadTranslationCSV: function downloadTranslationCSV(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);

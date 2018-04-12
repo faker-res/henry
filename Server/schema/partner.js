@@ -20,6 +20,10 @@ var partnerSchema = new Schema({
     realName: {type: String, index: true},
     //partner password
     password: String,
+    //gender - true=male, false=female
+    gender:{type: Boolean, default: true},
+    //DOB
+    DOB:{type: Date, default: null},
     //email
     email: {type: String, default: ""},
     //mobile Number
@@ -62,8 +66,12 @@ var partnerSchema = new Schema({
     bankAccountName: {type: String},
     //bank account type
     bankAccountType: {type: String},
+    //bank account province
+    bankAccountProvince: {type: String},
     //bank account city
     bankAccountCity: {type: String},
+    //bank account district
+    bankAccountDistrict: {type: String},
     //full bank address
     bankAddress: {type: String},
     //bank branch
@@ -146,6 +154,7 @@ var partnerSchema = new Schema({
     sourceUrl: {type: String},
     //social media info
     qq: {type: String},
+    wechat: {type: String},
     // commission type
     commissionType: {type: String}
 });

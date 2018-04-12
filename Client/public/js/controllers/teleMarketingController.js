@@ -12,6 +12,10 @@ define(['js/app'], function (myApp) {
             // For debugging:
             window.VM = vm;
             vm.teleMarketingOverview = {};
+            vm.createTeleMarketing = {
+                description: '',
+                creditAmount: 0
+            };
 
             vm.updatePageTile = function () {
                 window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -197,6 +201,19 @@ define(['js/app'], function (myApp) {
                 return obj;
             };
 
+            vm.getPlatformProviderGroup = () => {
+                return $scope.$socketPromise('getPlatformProviderGroup', {platformObjId: vm.selectedPlatform.data._id}).then(function (data) {
+                    vm.gameProviderGroup = data.data;
+                    vm.gameProviderGroupNames = {};
+                    for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                        let providerGroup = vm.gameProviderGroup[i];
+                        vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                    }
+
+                    $scope.safeApply();
+                });
+            };
+
             //set selected platform node
             vm.selectPlatformNode = function (node, option) {
                 vm.selectedPlatform = node;
@@ -207,6 +224,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                     return;
                 }
+                vm.getPlatformProviderGroup();
 
                 vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW';
                 vm.initTeleMarketingOverview();
@@ -258,10 +276,72 @@ define(['js/app'], function (myApp) {
             };
 
             //search telemarketing overview
-            vm.getTeleMarketingOverview = function () {
+            vm.getTeleMarketingOverview = function (newSearch) {
+                let sendquery = {
+                    platform: vm.selectedPlatform.id,
+                    query: {
+                    },
+                    index: newSearch ? 0 : (vm.teleMarketingOverview.index || 0),
+                    limit: vm.teleMarketingOverview.limit || 5000,
+                    sortCol: vm.teleMarketingOverview.sortCol || {validConsumptionAmount: -1},
+                };
 
+                if(vm.teleMarketingOverview){
+                    sendquery.query.start = $('#teleMarketingOverviewStartDatetimePicker').data('datetimepicker').getLocalDate(),
+                    sendquery.query.end = $('#teleMarketingOverviewEndDatetimePicker').data('datetimepicker').getLocalDate()
+                    sendquery.query.name = vm.teleMarketingOverview.taskName ? vm.teleMarketingOverview.taskName : "";
+                    sendquery.query.totalImportedListOperator = vm.teleMarketingOverview.totalImportedListOperator ? vm.teleMarketingOverview.totalImportedListOperator : "";
+                    sendquery.query.totalImportedListValue = vm.teleMarketingOverview.totalImportedListValue ? vm.teleMarketingOverview.totalImportedListValue : "";
+                    sendquery.query.totalImportedListValueTwo = vm.teleMarketingOverview.totalImportedListValueTwo ? vm.teleMarketingOverview.totalImportedListValueTwo : "";
+                    sendquery.query.totalPlayerRegistrationOperator = vm.teleMarketingOverview.totalPlayerRegistrationOperator ? vm.teleMarketingOverview.totalPlayerRegistrationOperator : "";
+                    sendquery.query.totalPlayerRegistrationValue = vm.teleMarketingOverview.totalPlayerRegistrationValue ? vm.teleMarketingOverview.totalPlayerRegistrationValue : "";
+                    sendquery.query.totalPlayerRegistrationValueTwo = vm.teleMarketingOverview.totalPlayerRegistrationValueTwo ? vm.teleMarketingOverview.totalPlayerRegistrationValueTwo : "";
+                    sendquery.query.totalPlayerDepositOperator = vm.teleMarketingOverview.totalPlayerDepositOperator ? vm.teleMarketingOverview.totalPlayerDepositOperator : "";
+                    sendquery.query.totalPlayerDepositValue = vm.teleMarketingOverview.totalPlayerDepositValue ? vm.teleMarketingOverview.totalPlayerDepositValue : "";
+                    sendquery.query.totalPlayerDepositValueTwo = vm.teleMarketingOverview.totalPlayerDepositValueTwo ? vm.teleMarketingOverview.totalPlayerDepositValueTwo : "";
+                    sendquery.query.totalPlayerMultiDepositOperator = vm.teleMarketingOverview.totalPlayerMultiDepositOperator ? vm.teleMarketingOverview.totalPlayerMultiDepositOperator : "";
+                    sendquery.query.totalPlayerMultiDepositValue = vm.teleMarketingOverview.totalPlayerMultiDepositValue ? vm.teleMarketingOverview.totalPlayerMultiDepositValue : "";
+                    sendquery.query.totalPlayerMultiDepositValueTwo = vm.teleMarketingOverview.totalPlayerMultiDepositValueTwo ? vm.teleMarketingOverview.totalPlayerMultiDepositValueTwo : "";
+                    sendquery.query.totalValidPlayerOperator = vm.teleMarketingOverview.totalValidPlayerOperator ? vm.teleMarketingOverview.totalValidPlayerOperator : "";
+                    sendquery.query.totalValidPlayerValue = vm.teleMarketingOverview.totalValidPlayerValue ? vm.teleMarketingOverview.totalValidPlayerValue : "";
+                    sendquery.query.totalValidPlayerValueTwo = vm.teleMarketingOverview.totalValidPlayerValueTwo ? vm.teleMarketingOverview.totalValidPlayerValueTwo : "";
+                    sendquery.query.totalDepositAmountOperator = vm.teleMarketingOverview.totalDepositAmountOperator ? vm.teleMarketingOverview.totalDepositAmountOperator : "";
+                    sendquery.query.totalDepositAmountValue = vm.teleMarketingOverview.totalDepositAmountValue ? vm.teleMarketingOverview.totalDepositAmountValue : "";
+                    sendquery.query.totalDepositAmountValueTwo = vm.teleMarketingOverview.totalDepositAmountValueTwo ? vm.teleMarketingOverview.totalDepositAmountValueTwo : "";
+                    sendquery.query.totalValidConsumptionOperator = vm.teleMarketingOverview.totalValidConsumptionOperator ? vm.teleMarketingOverview.totalValidConsumptionOperator : "";
+                    sendquery.query.totalValidConsumptionValue = vm.teleMarketingOverview.totalValidConsumptionValue ? vm.teleMarketingOverview.totalValidConsumptionValue : "";
+                    sendquery.query.totalValidConsumptionValueTwo = vm.teleMarketingOverview.totalValidConsumptionValueTwo ? vm.teleMarketingOverview.totalValidConsumptionValueTwo : "";
+                }
+
+                socketService.$socket($scope.AppSocket, 'getTeleMarketingOverview', sendquery, function (data) {
+                    //console.log("AAAAAAAAAAAaa",data);
+                });
             };
 
+
+            //create teleMarketing task
+            vm.createTeleMarketingTask = function () {
+                let sendData = {
+                    name: vm.createTeleMarketing.name,
+                    description: vm.createTeleMarketing.description,
+                    playerPrefix: vm.createTeleMarketing.playerPrefix,
+                    lastXDigit: vm.createTeleMarketing.lastXDigit,
+                    password: vm.createTeleMarketing.password,
+                    domain: vm.createTeleMarketing.domain,
+                    loginUrl: vm.createTeleMarketing.loginUrl,
+                    creditAmount: vm.createTeleMarketing.creditAmount,
+                    providerGroup: vm.createTeleMarketing.providerGroup,
+                    requiredConsumption: vm.createTeleMarketing.requiredConsumption,
+                    invitationTemplate: vm.createTeleMarketing.invitationTemplate,
+                    welcomeTitle: vm.createTeleMarketing.welcomeTitle,
+                    welcomeContent: vm.createTeleMarketing.welcomeContent,
+                    alertDays: vm.createTeleMarketing.alertDays,
+                };
+
+                socketService.$socket($scope.AppSocket, 'createDxMission', sendData, function (data) {
+                    console.log("create DX Mission retData", data);
+                });
+            };
         };
     teleMarketingController.$inject = injectParams;
         myApp.register.controller('teleMarketingCtrl', teleMarketingController);

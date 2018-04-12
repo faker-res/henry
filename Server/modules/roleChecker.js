@@ -320,6 +320,7 @@ var roleChecker = {
                 Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
                 EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal'],
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPlayerBankAccount'],
+                EditCommission: ['updatePartner', 'checkPartnerFieldValidity', 'createUpdatePartnerInfoProposal'],
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
                 PartnerPermission: ['updatePartnerPermission'],

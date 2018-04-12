@@ -438,6 +438,14 @@ define(['js/app'], function (myApp) {
                 5: 'weChatPayTransfer'
             };
 
+            vm.commissionType = {
+                'DAILY_BONUS_AMOUNT' : 1,
+                'WEEKLY_BONUS_AMOUNT' : 2,
+                'BIWEEKLY_BONUS_AMOUNT' : 3,
+                'MONTHLY_BONUS_AMOUNT' : 4,
+                'WEEKLY_CONSUMPTION' : 5
+            };
+
             vm.prepareToBeDeletedProviderGroupId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
@@ -11277,13 +11285,24 @@ define(['js/app'], function (myApp) {
                     console.log('playerpayment', data);
                 }, null, true);
             }
-            vm.getPaymentInfoHistory = function () {
+            vm.getPaymentInfoHistory = function (isPlayer) {
                 vm.paymetHistoryCount = 0;
+                let objId;
+                let type;
+                let modalType;
+
+                if (isPlayer) {
+                    objId = vm.isOneSelectedPlayer()._id;
+                    type = "PLAYERS";
+                } else {
+                    objId = vm.isOneSelectedPartner()._id;
+                    type = "PARTNERS";
+                }
                 socketService.$socket($scope.AppSocket, 'getPaymentHistory', {
-                    objectId: vm.isOneSelectedPlayer()._id,
-                    type: "PLAYERS"
+                    objectId: objId,
+                    type: type
                 }, function (data) {
-                    console.log('playerpayment', data);
+                    console.log('payment history', data);
                     var drawData = data.data.map(item => {
                         item.province = item.provinceData || item.bankAccountProvince;
                         item.city = item.cityData || item.bankAccountCity;
@@ -11294,11 +11313,19 @@ define(['js/app'], function (myApp) {
                         return item;
                     });
                     vm.paymetHistoryCount = data.data.length;
-                    vm.drawPlayerPaymentHistory(drawData);
+                    vm.drawPaymentHistory(drawData, isPlayer);
+
                 }, null, true);
-                $('#modalPlayerPaymentHistory').modal();
+                if (isPlayer) {
+                    modalType = '#modalPlayerPaymentHistory';
+                } else {
+                    modalType = '#modalPartnerPaymentHistory';
+                }
+                $(modalType).modal();
             }
-            vm.drawPlayerPaymentHistory = function (tblData) {
+
+            vm.drawPaymentHistory = function (tblData, isPlayer) {
+                let tableType;
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
@@ -11318,11 +11345,18 @@ define(['js/app'], function (myApp) {
                     ],
                     "paging": true,
                 });
-                var aTable = $("#playerPaymentHistoryTbl").DataTable(tableOptions);
+
+                if (isPlayer) {
+                    tableType = '#playerPaymentHistoryTbl';
+                } else {
+                    tableType = '#partnerPaymentHistoryTbl';
+                }
+
+                var aTable = $(tableType).DataTable(tableOptions);
                 aTable.columns.adjust().draw();
-                $('#playerPaymentHistoryTbl').resize();
+                $(tableType).resize();
                 $scope.safeApply();
-            }
+            };
 
             // vm.initMailLog = function () {
             //     vm.mailLog = vm.mailLog || {};
@@ -12581,7 +12615,7 @@ define(['js/app'], function (myApp) {
                             changeType: 'email',
                             curEmail: vm.selectedSinglePartner.email,
                             curQQ: vm.selectedSinglePartner.qq,
-                            // curWeChat: vm.selectedSinglePlayer.wechat,
+                            curWeChat: vm.selectedSinglePartner.wechat,
                             phoneNumber: vm.selectedSinglePartner.phoneNumber,
                         }
                     } else {
@@ -12590,7 +12624,7 @@ define(['js/app'], function (myApp) {
                         vm.modifyCritical.changeType = 'email';
                         vm.modifyCritical.curEmail = vm.selectedSinglePartner.email;
                         vm.modifyCritical.curQQ = vm.selectedSinglePartner.qq;
-                        // vm.modifyCritical.curWeChat = vm.selectedSinglePlayer.wechat;
+                        vm.modifyCritical.curWeChat = vm.selectedSinglePartner.wechat;
                         vm.modifyCritical.phoneNumber = vm.selectedSinglePartner.phoneNumber;
                     }
                 }
@@ -15297,7 +15331,6 @@ define(['js/app'], function (myApp) {
                 // Row click
                 $compile(nRow)($scope);
 
-
                 var status = aData.status;
                 aData.credits = parseFloat(aData.credits);
                 var statusKey = '';
@@ -15325,57 +15358,98 @@ define(['js/app'], function (myApp) {
                 $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
                     $(v).find('a').eq(0).css('color', colorObj[statusKey]);
                 })
-
                 $(nRow).off('click');
                 $(nRow).on('click', function () {
-                    // $('#partnerDataTable tbody tr').removeClass('partnerSelected');
                     $('#partnerDataTable tbody tr').removeClass('selected');
-                    // $(this).toggleClass('partnerSelected');
                     $(this).toggleClass('selected');
-                    //$(this).find('input').each(function () {
-                    //    this.checked = !this.checked;
-                    //});
-                    //vm.selectedPartnerCount = vm.partnerTable.rows('.partnerSelected').data().length;
-                    //if (vm.selectedPartner[aData._id]) {
-                    //    delete vm.selectedPartner[aData._id];
-                    //    //vm.selectedSinglePartner = {};
-                    //}
-                    //else {
-                    //    vm.selectedPartner[aData._id] = aData;
-                    //    //vm.selectedSinglePartner = aData;
-                    //}
-                    //if (vm.selectedPartnerCount == 1) {
-                    //    $.each(vm.selectedPartner, function (i, v) {
-                    //        vm.selectedSinglePartner = v;
-                    //    })
-                    //    console.log('single partner selected', vm.selectedSinglePartner);
-                    //}
                     vm.selectedSinglePartner = aData;
-
                     vm.isOneSelectedPartner = function () {
                         return vm.selectedSinglePartner;
                     };
-
                     // Mask partners bank account
-                    vm.selectedSinglePartner.bankAccount =
-                        vm.selectedSinglePartner.bankAccount ?
-                            vm.selectedSinglePartner.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePartner.bankAccount.slice(-4)
-                            : null;
-
+                    vm.selectedSinglePartner.encodedBankAccount = vm.selectedSinglePartner.bankAccount ?
+                            vm.selectedSinglePartner.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePartner.bankAccount.slice(-4) : null;
                     vm.selectedPartnerCount = 1;
                     console.log('partner selected', vm.selectedSinglePartner);
+                    vm.getProvince();
+                    vm.getCity();
+                    vm.getDistrict();
+
+                    vm.editPartner = {
+                        partnerName: vm.selectedSinglePartner.partnerName,
+                        partnerId: vm.selectedSinglePartner.partnerId,
+                        registrationTime: vm.selectedSinglePartner.registrationTime,
+                        email: vm.selectedSinglePartner.email,
+                        realName: vm.selectedSinglePartner.realName,
+                        platform: vm.selectedSinglePartner.platform,
+                        phoneNumber: vm.selectedSinglePartner.phoneNumber,
+                        gender: vm.selectedSinglePartner.gender,
+                        DOB: vm.selectedSinglePartner.DOB,
+                        ownDomain: vm.selectedSinglePartner.ownDomain,
+                        bankAccount: vm.selectedSinglePartner.bankAccount,
+                        bankAccountCity: vm.selectedSinglePartner.bankAccountCity,
+                        bankAccountDistrict: vm.selectedSinglePartner.bankAccountDistrict,
+                        bankAccountProvince: vm.selectedSinglePartner.bankAccountProvince,
+                        commissionType: vm.selectedSinglePartner.commissionType
+                    };
                     $scope.safeApply();
-                    //vm.partnerTableRowClicked(aData);
                 });
             };
             //show partner info modal
             vm.showPartnerInfoModal = function (partnerName) {
                 $('#modalPartnerInfo').modal().show();
-                // $scope.safeApply();
             };
+
+            vm.getProvince = function () {
+                vm.showProvinceStr = '';
+                $scope.getProvinceStr(vm.selectedSinglePartner.bankAccountProvince).then(data => {
+                    if (data.data.province) {
+                        vm.showProvinceStr = data.data.province.name;
+                    }
+                    else {
+                        vm.showProvinceStr = vm.selectedSinglePartner.bankAccountProvince;
+                    }
+                    $scope.safeApply();
+                }, err => {
+                    vm.showProvinceStr = vm.selectedSinglePartner.bankAccountProvince || $translate("Unknown");
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getCity = function () {
+                vm.showCityStr = '';
+                $scope.getCityStr(vm.selectedSinglePartner.bankAccountCity).then(data => {
+                    if (data.data.city) {
+                        vm.showCityStr = data.data.city.name;
+                    } else {
+                        vm.showCityStr = vm.selectedSinglePartner.bankAccountCity;
+                    }
+                    $scope.safeApply();
+                }, err => {
+                    vm.showCityStr = vm.selectedSinglePartner.bankAccountCity || $translate("Unknown");
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getDistrict = function() {
+                vm.showDistrictStr = '';
+
+                $scope.getDistrictStr(vm.selectedSinglePartner.bankAccountDistrict).then(data => {
+                    vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePartner.bankAccountDistrict;
+                    $scope.safeApply();
+                    }, err => {
+                    vm.showProvinceStr = vm.selectedSinglePartner.bankAccountDistrict || $translate("Unknown");
+                    $scope.safeApply();
+                });
+            }
+
             //Create new partner
             vm.prepareCreatePartner = function () {
+                vm.partnerDOB = utilService.createDatePicker('#datepickerPartnerDOB', {language: 'en', format: 'yyyy/MM/dd', endDate: new Date(), maxDate: new Date()});
+                vm.partnerDOB.data('datetimepicker').setDate(utilService.getLocalTime( new Date("January 01, 1990")));
+
                 vm.newPartner = {};
+                vm.newPartner.gender= "true";
                 vm.tempPassword = "";
                 $(".partnerParentFalse").hide();
                 $(".partnerParentTrue").hide();
@@ -15415,6 +15489,9 @@ define(['js/app'], function (myApp) {
             vm.createNewPartner = function () {
                 var str = 'createPartner';
                 vm.newPartner.platform = vm.selectedPlatform.id;
+                vm.newPartner.DOB = vm.partnerDOB.data('datetimepicker').getLocalDate();
+                vm.newPartner.DOB = vm.newPartner.DOB.toISOString();
+                vm.newPartner.gender = (vm.newPartner.gender && vm.newPartner.gender == "true") ? true : false ;
                 if (vm.newPartner.parent) {
                     str = 'createPartnerWithParent'
                 }
@@ -15428,6 +15505,433 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformPartnersData();
                 });
             };
+
+            vm.openEditPartnerDialog = function (selectedTab) {
+                vm.editPartnerSelectedTab = "";
+                vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
+                vm.prepareEditCritical('partner');
+                vm.prepareEditPartnerPayment();
+                dialogDetails();
+
+                function dialogDetails() {
+                    let selectedPartner = vm.isOneSelectedPartner();
+                    let editPartner = vm.editPartner;
+                    vm.editPartner.DOB = new Date(vm.editPartner.DOB);
+
+                    let option = {
+                        $scope: $scope,
+                        $compile: $compile,
+                        childScope: {
+                            editPartnerPermission: $scope.checkViewPermission('Platform', 'Partner', 'Edit'),
+                            editPartnerContactPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditContact'),
+                            editPartnerWithdrawPermission: $scope.checkViewPermission('Platform', 'Partner', 'BankDetail'),
+                            editPartnerCommissionPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditCommission'),
+                            selectedTab: vm.editPartnerSelectedTab,
+                            modifyCritical: vm.modifyCritical,
+                            verifyPartnerPhoneNumber: vm.verifyPartnerPhoneNumber,
+                            correctVerifyPhoneNumber: vm.correctVerifyPhoneNumber,
+                            platformPageName: vm.platformPageName,
+                            prepareEditCritical: vm.prepareEditCritical,
+                            submitCriticalUpdate: vm.submitCriticalUpdate,
+                            isEditingPartnerPayment: vm.isEditingPartnerPayment,
+                            partnerPayment: vm.partnerPayment,
+                            allBankTypeList: vm.allBankTypeList,
+                            filteredBankTypeList: vm.filteredBankTypeList,
+                            filterBankName: vm.filterBankName,
+                            isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
+                            correctVerifyBankAccount: vm.correctVerifyBankAccount,
+                            currentProvince: vm.currentProvince,
+                            provinceList: vm.provinceList,
+                            changeProvince: vm.changeProvince,
+                            currentCity: vm.currentCity,
+                            cityList: vm.cityList,
+                            changeCity: vm.changeCity,
+                            currentDistrict: vm.currentDistrict,
+                            districtList: vm.districtList,
+                            verifyBankAccount: vm.verifyBankAccount,
+                            verifyPartnerBankAccount: vm.verifyPartnerBankAccount,
+                            updatePartnerPayment: vm.updatePartnerPayment,
+                            today: new Date().toISOString(),
+                            commissionType: vm.commissionType,
+                            partnerId: selectedPartner._id,
+                            partnerBeforeEditing: _.clone(editPartner),
+                            newPartner: _.clone(editPartner),
+                            updateEditedPartner: function () {
+                                // this ng-model has to be in date object
+                                this.newPartner.DOB = new Date(this.newPartner.DOB);
+                                sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
+                            },
+                            // checkPlayerNameValidity: function (a, b, c) {
+                            //     vm.checkPlayerNameValidity(a, b, c);
+                            // },
+                            // duplicateNameFound: function () {
+                            //     return vm.duplicateNameFound;
+                            // },
+                        }
+                    };
+
+                    option.childScope.prepareEditPartnerPayment = function () {
+                        vm.prepareEditPartnerPayment();
+                        this.isEditingPartnerPayment = vm.isEditingPartnerPayment;
+                        this.partnerPayment = vm.partnerPayment;
+                        this.allBankTypeList = vm.allBankTypeList;
+                        this.filteredBankTypeList = vm.filteredBankTypeList;
+                        this.filterBankName = vm.filterBankName;
+                        this.isEditingPartnerPaymentShowVerify = vm.isEditingPartnerPaymentShowVerify;
+                        this.correctVerifyBankAccount = vm.correctVerifyBankAccount;
+                        this.verifyBankAccount = "";
+                    };
+                    $('#dialogEditPartner').floatingDialog(option);
+                    $('#dialogEditPartner').focus();
+                    $scope.safeApply();
+                };
+            };
+
+            vm.partnerPaymentKeys = [
+                "bankName", "bankAccount", "encodedBankAccount", "bankAccountName", "bankAccountType", "bankAccountProvince", "bankAccountCity", "bankAccountDistrict", "bankAddress", "bankBranch"
+            ];
+
+            vm.prepareEditPartnerPayment = function () {
+                return new Promise(function (resolve) {
+                    console.log('partnerID', vm.isOneSelectedPartner()._id);
+                    if (!vm.currentCity) {
+                        vm.currentCity = {};
+                    }
+                    if (!vm.currentProvince) {
+                        vm.currentProvince = {};
+                    }
+                    if (!vm.currentDistrict) {
+                        vm.currentDistrict = {};
+                    }
+                    vm.correctVerifyBankAccount = undefined;
+                    vm.isEditingPartnerPayment = false;
+                    vm.isEditingPartnerPaymentShowVerify = false;
+                    vm.partnerPayment = utilService.assignObjKeys(vm.isOneSelectedPartner(), vm.partnerPaymentKeys);
+                    vm.partnerPayment.bankAccountName = (vm.partnerPayment.bankAccountName) ? vm.partnerPayment.bankAccountName : vm.isOneSelectedPartner().realName;
+                    vm.partnerPayment.newBankAccount = vm.partnerPayment.bankAccount;
+                    vm.partnerPayment.showNewAccountNo = false;
+                    vm.filteredBankTypeList = $.extend({}, vm.allBankTypeList);
+                    vm.filterBankName = '';
+                    vm.currentProvince.province = vm.partnerPayment.bankAccountProvince;
+                    vm.currentCity.city = vm.partnerPayment.bankAccountCity;
+                    vm.currentDistrict.district = vm.partnerPayment.bankAccountDistrict;
+                    socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
+                        if (data) {
+                            vm.provinceList.length = 0;
+                            for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                                let province = data.data.provinces[i];
+                                province.id = province.id.toString();
+                                vm.provinceList.push(province);
+                            }
+                            vm.changeProvince(false);
+                            vm.changeCity(false);
+                            $scope.safeApply();
+                            resolve(vm.provinceList);
+                        }
+                    }, null, true);
+                    $scope.safeApply();
+                })
+            };
+
+            vm.verifyPartnerBankAccount = function () {
+                socketService.$socket($scope.AppSocket, 'verifyPartnerBankAccount', {
+                    playerObjId: vm.selectedSinglePartner._id,
+                    bankAccount: vm.verifyBankAccount
+                }, function (data) {
+                    console.log("verifyPlayerBankAccount:", data);
+                    vm.correctVerifyBankAccount = data.data;
+                    $scope.safeApply();
+                });
+            };
+
+            function sendPartnerUpdate(partnerId, oldPartnerData, newPartnerData, partnerPermission) {
+                var updateData = newAndModifiedFields(oldPartnerData, newPartnerData);
+                let updatedKeys = Object.keys(updateData);
+                var updateBankData = {};
+
+                if (Object.keys(updateData).length > 0) {
+                    updateData._id = partnerId;
+                    var isUpdate = false;
+
+                    updateData.partnerName = newPartnerData.name || vm.editPartner.name;
+                    updatedKeys.forEach(function (key) {
+                        if (key == "bankCardGroup" || key == "alipayGroup" || key == "wechatPayGroup" || key == "merchantGroup" || key == "quickPayGroup" || key == "referralName") {
+                            //do nothing
+                        }  else {
+                            isUpdate = true;
+                    }
+                    });
+
+                    updateData.remark = "";
+                    if (updateData.realName) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("realName");
+                    }
+                    if (updateData.DOB) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("DOB");
+                    }
+                    if (updateData.hasOwnProperty("gender")) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("GENDER");
+                    }
+
+                    if (isUpdate) {
+                        if (updateData) {
+                            updateData.updateData = $.extend({}, updateData);
+                            updateData.partnerObjId = partnerId;
+                            updateData.partnerName = vm.selectedSinglePartner.partnerName;
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'createUpdatePartnerInfoProposal', {
+                            creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                            data: updateData,
+                            platformId: vm.selectedPlatform.id
+                        }, function (data) {
+                            if (data.data && data.data.stepInfo) {
+                                socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                            }
+                            vm.getPlatformPartnersData();
+                        }, null, true);
+                    }
+                }
+                if (Object.keys(updateBankData).length > 0) {
+                    socketService.$socket($scope.AppSocket, 'updatePartner', {
+                        query: {_id: partnerId},
+                        updateData: updateBankData
+                    }, function (updated) {
+                        console.log('updated', updated);
+                        vm.getPlatformPlayersData();
+                    });
+                }
+            };
+
+            vm.updatePartnerPayment = function () {
+                console.log('before after', vm.selectedSinglePartner, vm.partnerPayment);
+                var result = socketService.$compareObj(vm.selectedSinglePartner, vm.partnerPayment);
+
+                var sendData = {
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                    platformId: vm.selectedPlatform.id,
+                    data: {
+                        partnerName: vm.selectedSinglePartner.partnerName,
+                        _id: vm.selectedSinglePartner._id,
+                        partnerId: vm.selectedSinglePartner.partnerId,
+                        bankAccountProvince: vm.currentProvince.province,
+                        bankAccountCity: vm.currentCity.city,
+                        bankAccountDistrict: vm.currentDistrict.district,
+                        bankAddress: vm.selectedSinglePartner.bankAddress,
+                        bankAccountName: vm.selectedSinglePartner.bankAddress,
+                        bankName: vm.selectedSinglePartner.bankName,
+                        curData: result.before,
+                        updateData: result.after
+                    }
+                }
+
+                if (sendData.data && sendData.data.updateData && sendData.data.updateData.newBankAccount) {
+                    sendData.data.bankAccount = sendData.data.updateData.newBankAccount;
+                }
+
+                console.log('sendData', sendData);
+
+                socketService.$socket($scope.AppSocket, 'createUpdatePartnerBankInfoProposal', sendData, function (data) {
+                    console.log('valid', data);
+                    if (data.data && data.data.stepInfo) {
+                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                    }
+                    vm.getPlatformPartnersData();
+                    $scope.safeApply();
+                });
+            };
+
+            vm.verifyPartnerPhoneNumber = function () {
+                socketService.$socket($scope.AppSocket, 'verifyPartnerPhoneNumber', {
+                    playerObjId: vm.isOneSelectedPartner()._id,
+                    phoneNumber: vm.modifyCritical.verifyPhoneNumber
+                }, function (data) {
+                    console.log("verifyPartnerPhoneNumber:", data);
+                    vm.correctVerifyPhoneNumber.str = data.data;
+                    $scope.safeApply();
+                });
+            };
+
+            vm.getPartnerInfoHistory = function () {
+                vm.partnerInfoHistoryCount = 0;
+                $scope.$socketPromise('getProposalTypeByType', {platformId: vm.selectedSinglePartner.platform, type:"UPDATE_PARTNER_INFO" })
+                    .then(data => {
+
+                        let sendData = {
+                            type: data.data._id,
+                            partnerObjId: vm.selectedSinglePartner._id,
+                        };
+                        socketService.$socket($scope.AppSocket, 'getProposalByPartnerIdAndType', sendData, function (data) {
+                            console.log('partnerInfo', data);
+                            var drawData = data.data.map(item => {
+                                item.createTime$ = vm.dateReformat(item.createTime);
+                                item.realName$ = item.data.realName ? item.data.realName : $translate('UNCHANGED');
+                                item.DOB$ = item.data.DOB ? utilService.getFormatDate(item.data.DOB) : $translate('UNCHANGED');
+                                item.gender$ = item.data.gender === undefined ? $translate('UNCHANGED') : item.data.gender? $translate('Male') : $translate('Female');
+                                item.updatePassword$ = item.data.updatePassword ? $translate('CHANGED') : $translate('UNCHANGED');
+                                item.commissionType$ = item.data.commissionType ? $translate('CHANGED') : $translate('UNCHANGED');
+                                return item;
+                            })
+                            vm.partnerInfoHistoryCount = data.data.length;
+                            vm.drawPartnerInfoHistory(drawData);
+                        }, null, true);
+                        $('#modalPartnerInfoHistory').modal();
+                    })
+            };
+
+            vm.drawPartnerInfoHistory = function (tblData) {
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    order: [[1, 'desc']],
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('PROPOSAL_NO'), data: "proposalId"},
+                        {title: $translate('CREATION TIME'), data: "createTime$"},
+                        {
+                            title: $translate('CREATOR'),
+                            data: null,
+                            render: function (data, type, row) {
+                                if (data.hasOwnProperty('creator')) {
+                                    return data.creator.name;
+                                } else {
+                                    var creator = $translate('System');
+                                    if (data && data.data && data.data.playerName) {
+                                        creator += "(" + data.data.playerName + ")";
+                                    }
+                                    return creator;
+                                }
+                            }
+                        },
+                        {title: $translate('REAL_NAME'), data: "realName$"},
+                        {title: $translate('DOB'), data: "DOB$"},
+                        {title: $translate('GENDER'), data: "gender$"},
+                        {title: $translate('WEBSITE_PASS'), data: "updatePassword$"},
+                        {title: $translate('Partner Commission Type'), data: "commissionType$"},
+                        {
+                            "title": $translate('STATUS'),
+                            "data": 'process',
+                            render: function (data, type, row) {
+                                let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                                text = text === "approved" ? "Approved" : text;
+
+                                let textClass = '';
+                                let fontStyle = {};
+                                if (row.status === 'Pending') {
+                                    textClass = "text-danger";
+                                    fontStyle = {'font-weight': 'bold'};
+                                }
+
+                                let $link = $('<span>').text(text).addClass(textClass).css(fontStyle);
+                                return $link.prop('outerHTML');
+                            },
+                        }
+                    ],
+                    "paging": true,
+                });
+                var aTable = $("#partnerInfoHistoryTbl").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                $('#partnerInfoHistoryTbl').resize();
+                $scope.safeApply();
+            };
+
+            vm.getPartnerContactHistory = function () {
+                vm.partnerContactHistoryCount = 0;
+                let sendData = {
+                    adminId: authService.adminId,
+                    platformId: vm.selectedSinglePartner.platform,
+                    type: ["UpdatePartnerEmail", "UpdatePartnerPhone", "UpdatePartnerQQ", "UpdatePartnerWeChat"],
+                    size: 2000,
+                    status: vm.allProposalStatus,
+                    partnerId: vm.selectedSinglePartner._id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getQueryProposalsForAdminId', sendData, function (data) {
+                    console.log('partnercontact', data);
+
+                    var drawData = data.data.data.map(item => {
+                        item.createTime$ = vm.dateReformat(item.createTime);
+                        if (item.data.curData) {
+                            item.contentBeforeEdited = item.data.curData[Object.keys(item.data.curData)[0]];
+                        } else {
+                            item.contentBeforeEdited = '';
+                        }
+                        if (item.data.updateData) {
+                            item.fieldEdited = Object.keys(item.data.updateData)[0];
+                            item.contentEdited = item.data.updateData[Object.keys(item.data.updateData)[0]];
+                        }
+                        return item;
+                    })
+                    vm.partnerContactHistoryCount = data.data.data.length;
+                    vm.drawPartnerContactHistory(drawData);
+                }, null, true);
+                $('#modalPartnerContactHistory').modal();
+            }
+
+            vm.drawPartnerContactHistory = function (tblData) {
+
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('PROPOSAL_NO'), data: "proposalId"},
+                        {title: $translate('CREATION TIME'), data: "createTime$"},
+                        {
+                            title: $translate('CREATOR'),
+                            data: null,
+                            render: function (data, type, row) {
+                                if (data.hasOwnProperty('creator')) {
+                                    return data.creator.name;
+                                } else {
+                                    var creator = $translate('System');
+                                    if (data && data.data && data.data.partnerName) {
+                                        creator += "(" + data.data.partnerName + ")";
+                                    }
+                                    return creator;
+                                }
+                            }
+                        },
+                        {title: $translate('CONTENT_CHANGED'), data: "fieldEdited"},
+                        {title: $translate('curData'), data: "contentBeforeEdited"},
+                        {title: $translate('updateData'), data: "contentEdited"},
+                        {
+                            "title": $translate('STATUS'),
+                            "data": 'process',
+                            render: function (data, type, row) {
+                                let text = $translate(row.status ? row.status : (data.status ? data.status : 'UNKNOWN'));
+                                text = text === "approved" ? "Approved" : text;
+
+                                let textClass = '';
+                                let fontStyle = {};
+                                if (row.status === 'Pending') {
+                                    textClass = "text-danger";
+                                    fontStyle = {'font-weight': 'bold'};
+                                }
+
+                                let $link = $('<span>').text(text).addClass(textClass).css(fontStyle);
+                                return $link.prop('outerHTML');
+                            },
+                        }
+                    ],
+                    "paging": true,
+                });
+                var aTable = $("#partnerContactHistoryTbl").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                $('#partnerContactHistoryTbl').resize();
+                $scope.safeApply();
+            }
 
             //Delete selected partners
             vm.deletePartners = function () {
@@ -15925,14 +16429,6 @@ define(['js/app'], function (myApp) {
                         callback();
                     }
                 });
-            }
-            vm.prepareEditPartnerPayment = function () {
-                console.log('partnerID', vm.selectedSinglePartner._id);
-                vm.correctVerifyBankAccount = undefined;
-                vm.isEditingPartnerPayment = false;
-                vm.isEditingPartnerPaymentShowVerify = false;
-                vm.partnerBank = utilService.assignObjKeys(vm.selectedSinglePartner, vm.playerPaymentKeys);
-                $scope.safeApply();
             }
             vm.updatePartnerBank = function () {
                 console.log('before after', vm.selectedSinglePartner, vm.partnerBank);
@@ -20689,6 +21185,20 @@ define(['js/app'], function (myApp) {
                 };
             };
 
+            // import phone number to system
+            vm.importDiffPhoneNum = function (diffPhoneNum, dxMission) {
+                let sendData = {
+                    platform: vm.selectedPlatform.id,
+                    phoneNumber: diffPhoneNum,
+                    dxMission: dxMission
+                };
+
+                socketService.$socket($scope.AppSocket, 'importDiffPhoneNum', sendData, function (data) {
+
+                    $scope.safeApply();
+                });
+            };
+
             /****************** CSV - start ******************/
             // upload phone file: csv
             vm.uploadPhoneFileCSV = function (content) {
@@ -20762,8 +21272,7 @@ define(['js/app'], function (myApp) {
             };
 
             // export phone number as txt file
-
-        vm.saveTextAsFile = function (data, filename) {
+            vm.saveTextAsFile = function (data, filename) {
             if (!data) {
                     console.error('Console.save: No data');
                     return;
@@ -20931,10 +21440,14 @@ define(['js/app'], function (myApp) {
                         }
                     };
 
-                    var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
-                    // write workbook (use type 'binary')
-                    var wbout = XLSX.write(workbook, wopts);
-                    saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    if (importXLS) {
+                        vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
+                    } else {
+                        var wopts = {bookType: 'xlsx', bookSST: false, type: 'binary'};
+                        // write workbook (use type 'binary')
+                        var wbout = XLSX.write(workbook, wopts);
+                        saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
+                    }
 
                     $scope.safeApply();
                 });

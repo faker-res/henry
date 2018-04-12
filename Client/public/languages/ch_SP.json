@@ -740,6 +740,9 @@
   "FAILURE": "失败",
   "Last hour": "上小时",
   "Player Information": "玩家信息",
+  "Partner Information": "代理信息",
+  "Partner Commission Info": "佣金设置",
+  "Partner Commission Type": "佣金类别",
   "Last day": "昨天",
   "Last week": "上周",
   "Last month": "上月",
@@ -1405,13 +1408,17 @@
   "RESET_CSV": "重置",
   "CONTENT_TXT": "TXT文件中的内容",
   "EXPORT_TXT": "导出TXT",
+  "IMPORT_TXT": "导入系统",
   "RESET_TXT": "重置",
   "RESET_TEXTAREA": "重置",
   "COPY_TO_CLIPBOARD": "复制",
+  "IMPORT_PHONE_TEXTAREA": "导入系统",
   "COPIED_SUCCESS": "复制成功",
   "ADD_PHONE_NUMBER_XLS_INSTRUCTION": "Excel文件中的第一行将被视为标题",
+  "ADD_PHONE_NUMBER_XLS_INSTRUCTION_2": "请将电话号码格式设置为『常规』",
   "RESET_GRID": "重置",
   "FILTER_THEN_EXPORT_XLS": "过滤和导出",
+  "FILTER_THEN_IMPORT_XLS": "过滤和导入系统",
   "SELECT_XLS_FILE": "选择Excel文件",
   "XLS_LENGTH": "总数据",
 
@@ -3519,5 +3526,8 @@
   "Please Update Invitation Template": "请编译短信发送内容",
   "Please Update Registration Succeed Message Title": "请编译开户成功后站内信 标题",
   "Please Update Registration Succeed Message Template": "请编译开户成功后站内信 内容",
-  "Please Enter Number of Days for Alert": "几日内触击变色提醒"
+  "Please Enter Number of Days for Alert": "几日内触击变色提醒",
+
+  "SUSPEND": "暂停",
+  "TOBEFOLLOWEDUP": "待跟进"
 }

@@ -508,6 +508,10 @@ var proposal = {
         return dbconfig.collection_proposal.find({type: ObjectId(query.type), "data._id": {$in: [query.playerObjId, ObjectId(query.playerObjId)]}}).exec();
     },
 
+    getProposalByPartnerIdAndType: function (query) {
+        return dbconfig.collection_proposal.find({type: ObjectId(query.type), "data._id": {$in: [query.partnerObjId, ObjectId(query.partnerObjId)]}}).exec();
+    },
+
     /**
      * Get multiple proposal by ids
      * @param {json} ids - Array of proposal ids
@@ -1419,7 +1423,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice, partnerId) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
         return dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean().then(//removed , prom2
@@ -1485,6 +1489,13 @@ var proposal = {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
                                 {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
+                            ];
+                        }
+
+                        if (partnerId) {
+                            queryObj["$or"] = [
+                                {"data._id": {$in: [partnerId, ObjectId(partnerId)]}},
+                                {"data.partnerObjId": {$in: [partnerId, ObjectId(partnerId)]}}
                             ];
                         }
 
