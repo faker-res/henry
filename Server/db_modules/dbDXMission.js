@@ -160,7 +160,7 @@ module.exports = dbDXMission;
 function sendWelcomeMessage(dxMission, dxPhone, player) {
     let providerGroupProm = Promise.resolve();
 
-    if (dxMission.providerGroup) {
+    if (dxMission.providerGroup && String(dxMission.providerGroup.length) === 24) {
         providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: dxMission.providerGroup}).lean();
     }
 
