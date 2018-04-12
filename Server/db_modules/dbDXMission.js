@@ -379,6 +379,8 @@ function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName)
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
     str = str.replace ('{{providerGroup}}', providerGroupName);
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
+
+    return str;
 }
 
 function generateDXCode(dxMission, platformId, tries) {
