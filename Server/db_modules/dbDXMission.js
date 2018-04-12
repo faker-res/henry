@@ -417,8 +417,6 @@ let dbDXMission = {
                     };
                     var recipientName = data.name || '';
 
-                    console.log("1111111111111111",sendObj)
-
                     return smsAPI.sending_sendMessage(sendObj).then(
                         retData => {
                             dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
@@ -439,8 +437,19 @@ let dbDXMission = {
 
     getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
         var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
+        let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission});
 
-        return dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission});
+        return Promise.all([sizeProm, dxPhoneDataProm]).then(
+            result => {
+                if(result){
+                    let size = result[0] ? result[0] : 0;
+                    let dxPhoneData = result[1] ? result[1] : {};
+
+                    return {size: size, dxPhoneData: dxPhoneData};
+                }
+            }
+        )
     },
 };
 

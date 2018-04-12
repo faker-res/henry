@@ -13,6 +13,7 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             vm.teleMarketingOverview = {};
+            vm.teleMarketingSendSMS = {};
             vm.createTeleMarketingDefault = {
                 description: '',
                 creditAmount: 0,
@@ -511,7 +512,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showSendSMSTable = function (data) {
-                vm.showSendSMSTable = true;
+                vm.showSMSTable = true;
             };
 
             vm.generalDataTableOptions = {
@@ -1319,19 +1320,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
+                    if(data){
+                        vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
+                        vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : 0;
 
-                    // console.log('', data.data[1]);
-                    // let result = data.data[1];
-                    // vm.telePlayerTable.totalCount = data.data[0];
-
-                    let result = data.data
-                    result.forEach((item) => {
+                    }
+                    vm.showSMSTable = true;
+                    vm.teleMarketingSendSMS.data.forEach((item) => {
                         item['registrationTime'] = vm.dateReformat(item.registrationTime);
                     });
 
-                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, result, 6));
-                    // $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, result, vm.telePlayerTable.totalCount));
-                    //vm.playerRewardTaskLog.loading = false;
+                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, 6));
                 })
             };
 
