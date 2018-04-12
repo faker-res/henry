@@ -2081,6 +2081,7 @@
   "periodType": "周期类别",
   "providers": "提供商",
   "above":"以上",
+  "IMPORTED_PHONE_NUMBER": "导入电话",
   "minTopUpAmount": "最小充值额",
   "PROMO_minTopUpAmount": "最低存款(D)",
   "maxTopUpAmount": "最大充值额",
