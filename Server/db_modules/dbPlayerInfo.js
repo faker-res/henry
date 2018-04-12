@@ -14254,19 +14254,27 @@ let dbPlayerInfo = {
         let phoneArr = phoneNumber.split(',').map((item) => parseInt(item) );
 
         if(phoneArr.length > 0) {
-            for (let x = 0; x < phoneArr.length; x++) {
-                let importData = {
-                    platform: platform,
-                    phoneNumber: phoneArr[x],
-                    dxMission: dxMission,
-                    code: generateDXCode(dxMission)
-                };
+            let promArr = [];
 
-                let importPhone = new dbconfig.collection_dxPhone(importData);
-                importPhone.save();
+            for (let x = 0; x < phoneArr.length; x++) {
+                promArr.push(
+                    generateDXCode(dxMission).then(
+                        randomCode => {
+                            let importData = {
+                                platform: platform,
+                                phoneNumber: phoneArr[x],
+                                dxMission: dxMission,
+                                code: randomCode
+                            };
+
+                            let importPhone = new dbconfig.collection_dxPhone(importData);
+                            importPhone.save();
+                        }
+                    )
+                )
             }
 
-            return true;
+            return Promise.all(promArr).then(() => true);
         }
         return false;
 
