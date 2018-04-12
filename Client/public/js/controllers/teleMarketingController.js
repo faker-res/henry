@@ -554,6 +554,7 @@ define(['js/app'], function (myApp) {
             //create teleMarketing task
             vm.createTeleMarketingTask = function () {
                 let sendData = {
+                    platform: vm.selectedPlatform.data._id,
                     name: vm.createTeleMarketing.name,
                     description: vm.createTeleMarketing.description,
                     playerPrefix: vm.createTeleMarketing.playerPrefix,

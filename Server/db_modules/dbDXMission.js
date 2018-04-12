@@ -13,6 +13,8 @@ const constProposalUserType = require('../const/constProposalUserType');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const dbProposal = require('./../db_modules/dbProposal');
 
+var mongoose = require('mongoose');
+var ObjectId = mongoose.Types.ObjectId;
 
 var dbDXMission = {
 
@@ -24,7 +26,8 @@ var dbDXMission = {
         return dbconfig.collection_dxMission.find({'_id':id});
     },
     createDxMission: function(data){
-        var dxMission = new dbconfig.collection_dxMission(data);
+        data.platform = ObjectId(data.platform);
+        let dxMission = new dbconfig.collection_dxMission(data);
         return dxMission.save();
     },
     updateDxMission: function(data){
