@@ -11,10 +11,13 @@ define(['js/app'], function (myApp) {
 
             // For debugging:
             window.VM = vm;
+
             vm.teleMarketingOverview = {};
             vm.createTeleMarketing = {
                 description: '',
-                creditAmount: 0
+                creditAmount: 0,
+                invitationTemplate: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}",
+                welcomeContent: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}"
             };
 
             vm.updatePageTile = function () {
@@ -338,8 +341,14 @@ define(['js/app'], function (myApp) {
                     alertDays: vm.createTeleMarketing.alertDays,
                 };
 
+                console.log("creteTeleMarketingTask send", sendData);
                 socketService.$socket($scope.AppSocket, 'createDxMission', sendData, function (data) {
                     console.log("create DX Mission retData", data);
+                    if(data.success && data.data) {
+                        //display success
+                    } else {
+                        //display error
+                    }
                 });
             };
         };
