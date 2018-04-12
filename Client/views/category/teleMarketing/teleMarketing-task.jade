@@ -135,6 +135,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
 
+                    #sendSMSTable(ng-show="vm.showSendSMSTable")
                         div
                             label {{"Total" | translate}} {{1}} {{"records" | translate}}
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")

@@ -402,30 +402,41 @@ let dbDXMission = {
     },
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
+        return dbconfig.collection_dxMission.findOne({_id: ObjectId(data.dxMission)}).then(
+            missionData => {
+                if(missionData){
+                    var sendObj = {
+                        tel: data.tel,
+                        channel: 2,
+                        platformId: ObjectId(data.platformId),
+                        message: missionData.invitationTemplate,
+                        //delay: data.delay,
+                        'data.dxMission': data.dxMission,
+                    };
+                    var recipientName = data.name || '';
 
+                    console.log("1111111111111111",sendObj)
 
-        var sendObj = {
-            tel: data.phoneNumber,
-            channel: 2,
-            platformId: data.platformId,
-            message: data.message,
-            delay: data.delay,
-            'data.dxMission': data.dxMissionId,
-        };
-        var recipientName = data.name || '';
-
-        return dbconfig.collection_dxMission.find()
-        return smsAPI.sending_sendMessage(sendObj).then(
-            retData => {
-                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'success');
-                return retData;
-            },
-            retErr => {
-                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'failure', retErr);
-                return Q.reject({message: retErr, data: data});
+                    return smsAPI.sending_sendMessage(sendObj).then(
+                        retData => {
+                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
+                            return retData;
+                        },
+                        retErr => {
+                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
+                            return Q.reject({message: retErr, data: data});
+                        }
+                    );
+                }
             }
-        );
+        )
 
+    },
+
+    getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
+        var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
+
+        return dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission});
     },
 };
 

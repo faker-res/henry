@@ -403,7 +403,7 @@ define(['js/app'], function (myApp) {
                                 var link = $('<a>', {
 
                                     // 'ng-click': 'vm.showSendSMSTable("' + data + '")',
-                                    'ng-click': 'vm.showSendSMSTable(' + row + ')',
+                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -511,7 +511,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showSendSMSTable = function (data) {
-                vm.test = "true";
+                vm.showSendSMSTable = true;
             };
 
             vm.generalDataTableOptions = {
@@ -1286,7 +1286,7 @@ define(['js/app'], function (myApp) {
             // generate telePlayer function table ====================End==================
 
             // generate telePlayer Sending Message function table ====================Start==================
-            vm.showTelePlayerSendingMsgTable = function () {
+            vm.showTelePlayerSendingMsgTable = function (dxMission) {
                 vm.telePlayerSendingMsgTable = {};
 
                 // vm.telePlayerTable.type = 'none';
@@ -1295,12 +1295,12 @@ define(['js/app'], function (myApp) {
                     vm.telePlayerSendingMsgTable.pageObj = utilService.createPageForPagingTable("#telePlayerSendingMsgTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "telePlayerSendingMsgTable", vm.getTelePlayerSendingMsgTable)
                     });
-                    vm.getTelePlayerSendingMsgTable(true);
+                    vm.getTelePlayerSendingMsgTable(true, dxMission);
                 });
             }
 
 
-            vm.getTelePlayerSendingMsgTable = function (newSearch) {
+            vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission) {
                 //vm.playerRewardTaskLog.loading = true;
                 // var sendQuery = {
                 //     //playerId: vm.isOneSelectedPlayer()._id,
@@ -1314,10 +1314,11 @@ define(['js/app'], function (myApp) {
 
                 let sendQuery = {
                     platform: "5733e26ef8c8a9355caf49d8" ,
-                    count: 5
+                    count: 5,
+                    dxMission: dxMission
                 }
 
-                socketService.$socket($scope.AppSocket, 'getPlayersByPlatform', sendQuery, function (data) {
+                socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
 
                     // console.log('', data.data[1]);
                     // let result = data.data[1];
@@ -1354,7 +1355,7 @@ define(['js/app'], function (myApp) {
                         },
                         { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
                         { title: $translate('Account Number'), data: "playerId"},
-                        { title: $translate('Imported Tel Time'), data: "registrationTime",  sClass: "sumText wordWrap"},
+                        { title: $translate('Imported Tel Time'), data: "createTime",  sClass: "sumText wordWrap"},
                         { title: $translate('Last Msg Sending Time'), data: "loginTimes"},
                         { title: $translate('Msg Sending Times'), data: "topUpTimes"},
                         { title: $translate('loginTimes'), data: "topUpSum"},
@@ -1370,7 +1371,7 @@ define(['js/app'], function (myApp) {
                                 if (row.bUsed) {
                                     text = '<span>'+ '-' +'</span>';
                                 } else {
-                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.platform, row.playerId, row.phoneNumber, rowId] + '" ng-click="vm.setSendingMsgGroup(\'' + rowId + '\')">';
+                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.platform, row.playerId, row.phoneNumber, rowId, row.dxMission] + '" ng-click="vm.setSendingMsgGroup(\'' + rowId + '\')">';
                                 }
 
                                 return "<div>" + text + "</div>";
@@ -1420,9 +1421,9 @@ define(['js/app'], function (myApp) {
                             platformId: data[0],
                             channel: 2,
                             tel: data[2],
-
+                            dxMission: data[4]
                         }
-                        socketService.$socket($scope.AppSocket, 'sendNewPlayerSMS', sendObj, function (data) {
+                        socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
 
                         })
 
