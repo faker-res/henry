@@ -761,3 +761,15 @@ p
         .panel-body
             .col-md-12(style='max-height:300px')
                 table#partnerIpHistoryTable.common-table.display(style="width:100%")
+
+#duplicatePhoneNumberLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                div
+                    label {{"Total" | translate}} {{vm.duplicatePhoneNumber.totalCount}} {{"records" | translate}}
+                    table#duplicatePhoneNumberLogTable.common-table.display(style='min-width:100%')
+                    #duplicatePhoneNumberLogTablePage.height30

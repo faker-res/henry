@@ -21,6 +21,7 @@ define(['js/app'], function (myApp) {
             };
             vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
             vm.createTaskResult = '';
+            vm.editTaskResult = '';
 
             vm.updatePageTile = function () {
                 window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -356,6 +357,7 @@ define(['js/app'], function (myApp) {
                         vm.teleMarketingOverview.totalCount = data.data.totalCount;
                         result.forEach((item,index) => {
                             item['createTime'] = vm.dateReformat(item.createTime);
+                            item.sentMessageListCount$ = item.sentMessageListCount + "/" + item.importedListCount;
                             //item['targetProviderGroup'] = $translate(item.targetProviderGroup);
                         });
 
@@ -384,7 +386,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showTeleMarketingTaskModal("' + data + '")'
+                                    'ng-click': 'vm.showTeleMarketingTaskModal("' + row['_id'] + '")'
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -392,11 +394,25 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('TASK_REMARK'), data: "description"},
                         {title: $translate('TASK_CREATE_TIME'), data: "createTime"},
-                        {title: $translate('TOTAL_IMPORTED_LIST'), data: "creditAmount"},
-                        {title: $translate('TOTAL_SENT_MESSAGE'), data: "creditAmount"},
-                        {title: $translate('TOTAL_PLAYER_CLICKED'), data: "creditAmount"},
-                        {title: $translate('TOTAL_PLAYER_DEPOSIT'), data: "creditAmount"},
-                        {title: $translate('TOTAL_PLAYER_MULTI_DEPOSIT'), data: "creditAmount"},
+                        {title: $translate('TOTAL_IMPORTED_LIST'), data: "importedListCount"},
+                        //{title: $translate('TOTAL_SENT_MESSAGE'), data: "sentMessageListCount"},
+                        {
+                            title: $translate('TOTAL_SENT_MESSAGE'),
+                            data: "sentMessageListCount$",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+
+                                    // 'ng-click': 'vm.showSendSMSTable("' + data + '")',
+                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '")',
+                                    'href': '#sendSMSTable'
+
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {title: $translate('TOTAL_PLAYER_CLICKED'), data: "registeredPlayerCount"},
+                        {title: $translate('TOTAL_PLAYER_DEPOSIT'), data: "topUpPlayerCount"},
+                        {title: $translate('TOTAL_PLAYER_MULTI_DEPOSIT'), data: "multiTopUpPlayerCount"},
                         {title: $translate('TOTAL_VALID_PLAYER'), data: "creditAmount"},
                         {title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "creditAmount"},
                         {title: $translate('TOTAL_VALID_CONSUMPTION'), data: "creditAmount"},
@@ -494,6 +510,10 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.showSendSMSTable = function (data) {
+                vm.showSendSMSTable = true;
+            };
+
             vm.generalDataTableOptions = {
                 "paging": true,
                 columnDefs: [{targets: '_all', defaultContent: ' '}],
@@ -531,26 +551,24 @@ define(['js/app'], function (myApp) {
                 return utilService.getFormatTime(data);
             };
 
-            vm.showTeleMarketingTaskModal = function (taksId) {
-                socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+            vm.showTeleMarketingTaskModal = function (id) {
+                vm.editTeleMarketing = null;
+                vm.editTaskResult = ''
+                socketService.$socket($scope.AppSocket, 'getDxMission', {
                     platformId: vm.selectedPlatform.id,
-                    proposalId: proposalId
+                    '_id': id
                 }, function (data) {
-                    vm.selectedProposal = data.data;
-
+                    vm.editTeleMarketing = data.data[0];
+                    vm.editTeleMarketingDefault = data.data[0];
                     //let tmpt = vm.proposalTemplate[templateNo];
                     $("#modalDXMission").modal('show');
-                    if (templateNo == 1) {
-                        $("#modalDXMission").css('z-Index', 1051).modal();
-                    }
+                    $("#modalDXMission").css('z-Index', 1051).modal();
 
                     $("#modalDXMission").on('shown.bs.modal', function (e) {
                         $scope.safeApply();
                     })
-
                 })
             };
-
 
             //create teleMarketing task
             vm.createTeleMarketingTask = function () {
@@ -591,6 +609,65 @@ define(['js/app'], function (myApp) {
                 vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
                 $scope.safeApply();
             };
+
+            vm.resetEditTeleMarketing = function(){
+              vm.editTeleMarketing = Object.assign({}, vm.editTeleMarketingDefault);
+              $scope.safeApply();
+            }
+            //update teleMarketing task
+            vm.updateTeleMarketingTask = function () {
+                let updateData = {
+                    name: vm.editTeleMarketing.name,
+                    description: vm.editTeleMarketing.description,
+                    playerPrefix: vm.editTeleMarketing.playerPrefix,
+                    lastXDigit: vm.editTeleMarketing.lastXDigit,
+                    password: vm.editTeleMarketing.password,
+                    domain: vm.editTeleMarketing.domain,
+                    loginUrl: vm.editTeleMarketing.loginUrl,
+                    creditAmount: vm.editTeleMarketing.creditAmount,
+                    providerGroup: vm.editTeleMarketing.providerGroup,
+                    requiredConsumption: vm.editTeleMarketing.requiredConsumption,
+                    invitationTemplate: vm.editTeleMarketing.invitationTemplate,
+                    welcomeTitle: vm.editTeleMarketing.welcomeTitle,
+                    welcomeContent: vm.editTeleMarketing.welcomeContent,
+                    alertDays: vm.editTeleMarketing.alertDays,
+                };
+                let id = vm.editTeleMarketing._id ? vm.editTeleMarketing._id : null;
+                console.log("editTeleMarketingTask send", updateData);
+                socketService.$socket($scope.AppSocket, 'updateDxMission', { '_id': id , 'data': updateData }, function (data) {
+                    console.log("create DX Mission retData", data);
+                    if(data.success && data.data) {
+                        //display success
+                        vm.editTaskResult = 'SUCCESS';
+                        vm.resetEditTeleMarketing();
+                    } else {
+                        //display error
+                        vm.editTaskResult = 'FAIL';
+                        vm.resetEditTeleMarketing();
+                    }
+                    vm.showTeleMarketingOverview();
+                });
+            };
+
+            vm.commonSortChangeHandler = function (a, objName, searchFunc) {
+                if (!a.aaSorting[0] || !objName || !vm[objName] || !searchFunc) return;
+                var sortCol = a.aaSorting[0][0];
+                var sortDire = a.aaSorting[0][1];
+                var temp = a.aoColumns[sortCol];
+                var sortKey = temp ? temp.sortCol : '';
+                // console.log(a, sortCol, sortKey);
+                vm[objName].aaSorting = a.aaSorting;
+                if (sortKey) {
+                    vm[objName].sortCol = vm[objName].sortCol || {};
+                    var preVal = vm[objName].sortCol[sortKey];
+                    vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                    if (vm[objName].sortCol[sortKey] != preVal) {
+                        vm[objName].sortCol = {};
+                        vm[objName].sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
+                        searchFunc.call(this);
+                    }
+                }
+            }
 
             // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {
@@ -941,6 +1018,418 @@ define(['js/app'], function (myApp) {
             };
             /****************** XLS - end ******************/
             // phone number filter codes==============end===============================
+
+
+
+            // generate telePlayer function table ====================Start==================
+
+            vm.initMessageModal = function () {
+
+                $('#sendMessageToPlayerTab').addClass('active');
+                $('#messageLogTab').removeClass('active');
+                $scope.safeApply();
+                vm.messageModalTab = "sendMessageToPlayerPanel";
+            }
+
+            vm.sendMessageToPlayerBtn = function (type, data) {
+                vm.telphonePlayer = data;
+                $('#messagePlayerModal').modal('show');
+            }
+
+            vm.initSMSModal = function () {
+                $('#smsToPlayerTab').addClass('active');
+                $('#smsLogTab').removeClass('active');
+                $('#smsSettingTab').removeClass('active');
+                vm.smsModalTab = "smsToPlayerPanel";
+                vm.playerSmsSetting = {smsGroup:{}};
+                vm.getPlatformSmsGroups();
+                vm.getAllMessageTypes();
+                $scope.safeApply();
+            }
+
+            vm.showPagedTelePlayerTable = function () {
+                vm.telePlayerTable = {};
+
+                // vm.telePlayerTable.type = 'none';
+                utilService.actionAfterLoaded(('#telePlayerTable'), function () {
+
+                    vm.telePlayerTable.pageObj = utilService.createPageForPagingTable("#telePlayerTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "telePlayerTable", vm.getPagedTelePlayerTable)
+                    });
+                    vm.getPagedTelePlayerTable(true);
+                });
+            }
+
+
+            vm.getPagedTelePlayerTable = function (newSearch) {
+                //vm.playerRewardTaskLog.loading = true;
+                // var sendQuery = {
+                //     //playerId: vm.isOneSelectedPlayer()._id,
+                //     // startTime: vm.playerRewardTaskLog.startTime.data('datetimepicker').getLocalDate(),
+                //     // endTime: vm.playerRewardTaskLog.endTime.data('datetimepicker').getLocalDate(),
+                //
+                //     index: newSearch ? 0 : vm.telePlayerTable.index,
+                //     limit: newSearch ? 10 : vm.telePlayerTable.limit,
+                //     sortCol: vm.telePlayerTable.sortCol,
+                // }
+
+                let sendQuery = {
+                    platform: "5733e26ef8c8a9355caf49d8" ,
+                    count: 5
+                }
+
+                socketService.$socket($scope.AppSocket, 'getPlayersByPlatform', sendQuery, function (data) {
+
+                    // console.log('', data.data[1]);
+                    // let result = data.data[1];
+                    // vm.telePlayerTable.totalCount = data.data[0];
+
+                    let result = data.data
+                    result.forEach((item) => {
+                        item['registrationTime'] = vm.dateReformat(item.registrationTime);
+                    });
+
+                    $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, result, 6));
+                    // $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, result, vm.telePlayerTable.totalCount));
+                    //vm.playerRewardTaskLog.loading = false;
+                })
+            };
+
+            vm.drawTelePlayerTable = function (newSearch, tblData, size) {
+                console.log("telePlayerTable",tblData);
+
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    "aaSorting": vm.telePlayerTable.sortCol || [[0]],
+                    aoColumnDefs: [
+                        // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ORDER'),
+                            render: function(data, type, row, index){
+                                return index.row+1 ;
+                            }
+
+                        },
+                        { title: $translate('Imported Telephone Number'), data: "phoneNumber"},
+                        { title: $translate('Account Number'), data: "playerId"},
+                        { title: $translate('Account Opening Time (Init Time)'), data: "registrationTime",  sClass: "sumText wordWrap"},
+                        { title: $translate('Login Time'), data: "loginTimes"},
+                        { title: $translate('Topup Time'), data: "topUpTimes"},
+                        { title: $translate('Topup Amount'), data: "topUpSum"},
+                        { title: $translate('Bet'), data: "consumptionTimes"},
+                        { title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "creditBalance"},
+                        { title: $translate('Effective Betting Amount'), data: "effectiveBettingAmount"},
+
+                        {
+                            title: $translate('Function'), //data: 'phoneNumber',
+                            orderable: false,
+                            render: function (data, type, row) {
+                                data = data || '';
+                                var playerObjId = row._id ? row._id : "";
+                                var link = $('<div>', {});
+                                link.append($('<a>', {
+                                    'class': 'fa fa-envelope margin-right-5',
+                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("SEND_MESSAGE_TO_PLAYER"),
+                                    'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.initSMSModal();' + "vm.onClickPlayerCheck('" +
+                                    playerObjId + "', " + "vm.telorMessageToPlayerBtn" +
+                                    ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("Send SMS to Player"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                }));
+                                if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
+                                    link.append($('<a>', {
+                                        'class': 'fa fa-commenting margin-right-5',
+                                        'ng-click': 'vm.initFeedbackModal();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalAddPlayerFeedback',
+                                        'title': $translate("ADD_FEEDBACK"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
+                                if(row.isRealPlayer) {
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
+                                        link.append($('<a>', {
+                                            'class': 'fa fa-plus-circle',
+                                            'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerTopUp',
+                                            'title': $translate("TOP_UP"),
+                                            'data-placement': 'left',
+                                            'style': 'color: #68C60C'
+                                        }));
+                                    }
+                                    link.append($('<br>'));
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5 margin-right-5',
+                                            'src': "images/icon/withdrawBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.initPlayerBonus();',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerBonus',
+                                            'title': $translate("Bonus"),
+                                            'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5 margin-right-5',
+                                            'src': "images/icon/rewardBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.initRewardSettings();vm.initPlayerAddRewardTask();',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerAddRewardTask',
+                                            'title': $translate("REWARD_ACTION"),
+                                            'data-placement': 'left',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/reapplyBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'title': $translate("ALL_REAPPLY_ORDER"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/creditAdjustBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerCreditAdjustment',
+                                            'title': $translate("CREDIT_ADJUSTMENT"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/rewardPointsBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerRewardPointsAdjustment',
+                                            'title': $translate("REWARD_POINTS_ADJUSTMENT"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                }
+                                return link.prop('outerHTML');
+                            },
+                            "sClass": "alignLeft"
+                        },
+
+
+                    ],
+                    "paging": false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                tableOptions.language.emptyTable=$translate("No data available in table");
+
+                utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {
+                    // 4: summary.loginTimeSum ? summary.loginTimeSum: 0,
+                    // 5: summary.topupTimeSum ? summary.topupTimeSum: 0,
+                    // 6: summary.topupAmountSum ? summary.topupAmountSum: 0,
+                    // 7: summary.betSum ? summary.betSum: 0,
+                    // 8: summary.balanceSum ? summary.balanceSum :0,
+                    // 9: summary.effectiveBetAmount ? summary.effectiveBetAmount: 0,
+                });
+
+                vm.telePlayerTable.pageObj.init({maxCount: size}, newSearch);
+                $('#telePlayerTable').off('order.dt');
+                $('#telePlayerTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'telePlayerTable', vm.getPagedTelePlayerTable);
+                });
+                $('#telePlayerTable').resize();
+
+            }
+
+            // generate telePlayer function table ====================End==================
+
+            // generate telePlayer Sending Message function table ====================Start==================
+            vm.showTelePlayerSendingMsgTable = function (dxMission) {
+                vm.telePlayerSendingMsgTable = {};
+
+                // vm.telePlayerTable.type = 'none';
+                utilService.actionAfterLoaded(('#telePlayerSendingMsgTable'), function () {
+
+                    vm.telePlayerSendingMsgTable.pageObj = utilService.createPageForPagingTable("#telePlayerSendingMsgTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "telePlayerSendingMsgTable", vm.getTelePlayerSendingMsgTable)
+                    });
+                    vm.getTelePlayerSendingMsgTable(true, dxMission);
+                });
+            }
+
+
+            vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission) {
+                //vm.playerRewardTaskLog.loading = true;
+                // var sendQuery = {
+                //     //playerId: vm.isOneSelectedPlayer()._id,
+                //     // startTime: vm.playerRewardTaskLog.startTime.data('datetimepicker').getLocalDate(),
+                //     // endTime: vm.playerRewardTaskLog.endTime.data('datetimepicker').getLocalDate(),
+                //
+                //     index: newSearch ? 0 : vm.telePlayerTable.index,
+                //     limit: newSearch ? 10 : vm.telePlayerTable.limit,
+                //     sortCol: vm.telePlayerTable.sortCol,
+                // }
+
+                let sendQuery = {
+                    platform: vm.selectedPlatform.id ,
+                    count: 5,
+                    dxMission: dxMission
+                }
+
+                socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
+
+                    // console.log('', data.data[1]);
+                    // let result = data.data[1];
+                    // vm.telePlayerTable.totalCount = data.data[0];
+
+                    let result = data.data
+                    result.forEach((item) => {
+                        item['registrationTime'] = vm.dateReformat(item.registrationTime);
+                    });
+
+                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, result, 6));
+                    // $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, result, vm.telePlayerTable.totalCount));
+                    //vm.playerRewardTaskLog.loading = false;
+                })
+            };
+
+            vm.drawTelePlayerMsgTable = function (newSearch, tblData, size) {
+                console.log("telePlayerSendingMsgTable",tblData);
+
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    "aaSorting": vm.telePlayerSendingMsgTable.sortCol || [[0]],
+                    aoColumnDefs: [
+                        // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ORDER'),
+                            render: function(data, type, row, index){
+                                return index.row+1 ;
+                            }
+
+                        },
+                        { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
+                        { title: $translate('Account Number'), data: "playerId"},
+                        { title: $translate('Imported Tel Time'), data: "createTime",  sClass: "sumText wordWrap"},
+                        { title: $translate('Last Msg Sending Time'), data: "loginTimes"},
+                        { title: $translate('Msg Sending Times'), data: "topUpTimes"},
+                        { title: $translate('loginTimes'), data: "topUpSum"},
+                        { title: $translate('tupUpTimes'), data: "consumptionTimes"},
+
+                        {
+                            //"title": $translate('UnlockStatus'),data:"status",
+                            render: function (data, type, row, meta) {
+                                let text;
+                                let rowId = String(meta.row);
+                                // let adminName = row.creator ? row.creator.name : '';
+
+                                if (row.bUsed) {
+                                    text = '<span>'+ '-' +'</span>';
+                                } else {
+                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.platform, row.playerId, row.phoneNumber, rowId, row._id] + '" ng-click="vm.setSendingMsgGroup(\'' + rowId + '\')">';
+                                }
+
+                                return "<div>" + text + "</div>";
+                            }
+                        },
+
+                    ],
+                    "paging": false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                tableOptions.language.emptyTable=$translate("No data available in table");
+
+                utilService.createDatatableWithFooter('#telePlayerSendingMsgTable', tableOptions, {
+                    // 4: summary.loginTimeSum ? summary.loginTimeSum: 0,
+                    // 5: summary.topupTimeSum ? summary.topupTimeSum: 0,
+                    // 6: summary.topupAmountSum ? summary.topupAmountSum: 0,
+                    // 7: summary.betSum ? summary.betSum: 0,
+                    // 8: summary.balanceSum ? summary.balanceSum :0,
+                    // 9: summary.effectiveBetAmount ? summary.effectiveBetAmount: 0,
+                });
+
+                vm.telePlayerSendingMsgTable.pageObj.init({maxCount: size}, newSearch);
+                $('#telePlayerSendingMsgTable').off('order.dt');
+                $('#telePlayerSendingMsgTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'telePlayerSendingMsgTable', vm.getTelePlayerSendingMsgTable);
+                });
+                $('#telePlayerSendingMsgTable').resize();
+
+            }
+
+            // generate telePlayer Sending Message function table ====================End==================
+
+            vm.setSendingMsgGroup = function (index) {
+                vm.msgSendingGroupData = [];
+                $('.unlockTaskGroupProposal:checked').each(function () {
+                    let result = $(this).val().split(',');
+                    vm.msgSendingGroupData.push(result);
+                })
+            }
+
+            vm.sendMsgToTelePlayer = function (){
+                if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0){
+                    vm.msgSendingGroupData.forEach( data => {
+                        let sendObj = {
+                            platformId: data[0],
+                            channel: 2,
+                            tel: data[2],
+                            dxPhone: data[4]
+                        }
+                        socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
+                            console.log("SMS SENT");
+                        })
+
+                    })
+                }
+            }
 
         };
     teleMarketingController.$inject = injectParams;

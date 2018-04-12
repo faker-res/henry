@@ -132,6 +132,7 @@ var proposalExecutor = {
             this.executions.executeUpdatePartnerCredit.des = "Update partner credit";
             this.executions.executeUpdatePartnerEmail.des = "Update partner email";
             this.executions.executeUpdatePartnerQQ.des = "Update partner QQ";
+            this.executions.executeUpdatePartnerWeChat.des = "Update partner WeChat";
             this.executions.executeUpdatePartnerPhone.des = "Update partner phone number";
             this.executions.executeUpdatePartnerInfo.des = "Update partner information";
             this.executions.executePlayerTopUp.des = "Help player top up";
@@ -887,6 +888,31 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update partner email proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update partner weChat proposal type
+             */
+            executeUpdatePartnerWeChat: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.wechat) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_partner,
+                        {partnerName: proposalData.data.partnerName},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_partner
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update partner weChat", error: err});
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update partner weChat proposal data"});
                 }
             },
 

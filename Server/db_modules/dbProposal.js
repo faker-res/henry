@@ -2039,6 +2039,51 @@ var proposal = {
             });
     },
 
+    getDuplicatePhoneNumber: function (platformId, phoneNumber, index, limit, sortCol, isPlayer) {
+        index = index || 0;
+        sortCol = sortCol || {createTime: 1};
+        let duplicatePhoneNumberCount = 0;
+        let duplicatePhoneNumberCountProm, duplicatePhoneNumberProm;
+
+        if (isPlayer) {
+            duplicatePhoneNumberCountProm = dbconfig.collection_players.find({platform: platformId, phoneNumber: phoneNumber}).count();
+            duplicatePhoneNumberProm = dbconfig.collection_players.find({platform: platformId, phoneNumber: phoneNumber})
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+                .sort(sortCol).skip(index).limit(limit).lean();
+        } else {
+            duplicatePhoneNumberCountProm = dbconfig.collection_partner.find({platform: platformId, phoneNumber: phoneNumber}).count();
+            duplicatePhoneNumberProm = dbconfig.collection_partner.find({platform: platformId, phoneNumber: phoneNumber})
+                .sort(sortCol).skip(index).limit(limit).lean();
+        }
+
+
+        return Promise.all([duplicatePhoneNumberCountProm, duplicatePhoneNumberProm]).then(
+            data => {
+                let phoneNumberIpArea = [];
+                let duplicatePhoneNumberRecord = data && data[1] ? data[1] : [];
+                duplicatePhoneNumberCount = data[0];
+
+                if (duplicatePhoneNumberRecord && duplicatePhoneNumberRecord.length > 0) {
+                    if (isPlayer) {
+                        phoneNumberIpArea = proposal.getPlayerIpAreaFromRecord(platformId, duplicatePhoneNumberRecord);
+                    } else {
+                        phoneNumberIpArea = proposal.getPartnerIpAreaFromRecord(platformId, duplicatePhoneNumberRecord);
+                    }
+                }
+
+                return Promise.all([phoneNumberIpArea]).then(
+                    data => {
+                        let duplicatePhoneNumberList = data && data[0] ? data[0] : [];
+                        let result = {data: duplicatePhoneNumberList, size: duplicatePhoneNumberCount};
+
+                        return result;
+                    },
+                    err => {
+                        console.log(err);
+                    });
+            });
+    },
+
     getPlayerProposalsForPlatformId: function (platformId, typeArr, statusArr, userName, phoneNumber, startTime, endTime, index, size, sortCol, displayPhoneNum, proposalId, attemptNo = 0, unlockSizeLimit = false) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
         //check proposal without process

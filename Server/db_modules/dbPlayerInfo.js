@@ -14254,21 +14254,64 @@ let dbPlayerInfo = {
         let phoneArr = phoneNumber.split(',').map((item) => parseInt(item) );
 
         if(phoneArr.length > 0) {
-            for (let x = 0; x < phoneArr.length; x++) {
-                let importData = {
-                    platform: platform,
-                    phoneNumber: phoneArr[x],
-                    dxMission: dxMission,
-                    code: 'random123'
-                };
+            let promArr = [];
 
-                let importPhone = new dbconfig.collection_dxPhone(importData);
-                importPhone.save();
+            for (let x = 0; x < phoneArr.length; x++) {
+                promArr.push(
+                    generateDXCode(dxMission).then(
+                        randomCode => {
+                            let importData = {
+                                platform: platform,
+                                phoneNumber: phoneArr[x],
+                                dxMission: dxMission,
+                                code: randomCode
+                            };
+
+                            let importPhone = new dbconfig.collection_dxPhone(importData);
+                            importPhone.save();
+                        }
+                    )
+                )
             }
 
-            return true;
+            return Promise.all(promArr).then(() => true);
         }
         return false;
+
+        function generateDXCode(dxMission, platformId, tries) {
+            tries = (Number(tries) || 0) + 1;
+            if (tries > 5) {
+                return Promise.reject({
+                    message: "Generate dian xiao code failure."
+                })
+            }
+            let randomString = Math.random().toString(36).substring(4,11); // generate random String
+            let dxCode = "";
+
+            let platformProm = Promise.resolve({platformId: platformId});
+            if (!platformId) {
+                platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+                    path: "platform", model: dbconfig.collection_platform
+                }).lean();
+            }
+
+            return platformProm.then(
+                function (missionProm) {
+                    platformId = missionProm.platform.platformId;
+                    dxCode = missionProm.platform.platformId + randomString;
+                    return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
+                }
+            ).then(
+                function (dxPhoneExist) {
+                    if (dxPhoneExist) {
+                        return generateDXCode(dxMission, platformId);
+                    }
+                    else {
+                        return dxCode;
+                    }
+                }
+            );
+        }
     },
 
     getWithdrawalInfo: function (platformId, playerId) {

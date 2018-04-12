@@ -5,18 +5,20 @@ var Q = require("q");
 var dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 var dbPlayerMail = require("./../db_modules/dbPlayerMail");
 var errorUtils = require("./../modules/errorUtils");
+var dbLogger = require('./../modules/dbLogger');
+var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
-var constSystemParam = require('../const/constSystemParam');
+const constSystemParam = require('../const/constSystemParam');
 const constServerCode = require('../const/constServerCode');
 const constProposalType = require('../const/constProposalType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const dbProposal = require('./../db_modules/dbProposal');
 
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
-var dbDXMission = {
+let dbDXMission = {
 
     /**
      * get a mission
@@ -35,12 +37,9 @@ var dbDXMission = {
         let dxMission = new dbconfig.collection_dxMission(data);
         return dxMission.save();
     },
-
-    updateDxMission: function(data){
+    updateDxMission: function(id, updateData){
         return dbconfig.collection_dxMission.findOneAndUpdate(
-            {_id: data._id},
-            data
-        );
+            {_id: id}, updateData);
     },
 
     getTeleMarketingOverview: function(platform, query, index, limit, sortCol){
@@ -66,42 +65,62 @@ var dbDXMission = {
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxMission.find(matchObj).count();
-        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj).then(
-            missionData => {
-                if(missionData){
-                    missionData.forEach(data => {
-                        dataSummaryListProm.push(dbDXMission.getDataSummaryList(data._id));
-                        // importedListProm.push({dxMissionId: data._id, totalImportedList: dbconfig.collection_dxPhone.find({dxMission: data._id}).count()});
-                        // sentMessageListProm.push({dxMissionId: data._id, totalSentMessage: dbconfig.collection_smsLog.find({"data.dxMission": data._id}).count()});
-                        // registeredPlayerListProm.push({dxMissionId: data._id, totalSentMessage: dbconfig.collection_players.find({dxMission: data._id}).count()});
-                    })
-
-                    console.log("BBBBBBBBBBBBBBBBBBBBBBBB",missionData);
-                    return Promise.all([dataSummaryListProm]).then(
-                        data => {
-                            ///return {missionData: missionData, summaryData: data};
-                            return missionData;
-                        }
-                    );
-                }
-            }
-        );
+        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj)
         let totalCount = 0;
         let dxMissionData = {};
 
         return Promise.all([totalCountProm, dxMissionDataProm]).then(
             result => {
                 if(result){
-                    // console.log("AAAAAAAAAAAAAAAAAAAAAAa",result[1].missionData);
-                    // console.log("AAAAAAAAAAAAAAAAAAAAAAa222222",result[1].summaryData);
                     totalCount = result[0] ? result[0] : 0;
                     dxMissionData = result[1] ? result[1] : {};
 
                     return {totalCount: totalCount, dxMissionData: dxMissionData};
-                    //return dxMissionData
                 }
             }
-        )
+        ).then(
+            data => {
+                data.dxMissionData.forEach(
+                    missionData => {
+                        if(missionData){
+                            dataSummaryListProm.push(dbDXMission.getDataSummaryList(missionData._id));
+                        }
+                    }
+                )
+
+                return Promise.all(dataSummaryListProm).then(
+                    summaryData => {
+                        let resultData = JSON.parse(JSON.stringify(data));
+                        if(summaryData){
+                            summaryData.forEach(
+                                summary => {
+                                    if(summary){
+
+                                        resultData.dxMissionData.forEach(
+                                            missionData => {
+                                                if(missionData){
+                                                    if(missionData._id && missionData._id == summary.dxMissionId){
+                                                        missionData.importedListCount = summary.importedListCount;
+                                                        missionData.sentMessageListCount = summary.sentMessageListCount;
+                                                        missionData.registeredPlayerCount = summary.registeredPlayerCount;
+                                                        missionData.topUpPlayerCount = summary.topUpPlayerCount;
+                                                        missionData.multiTopUpPlayerCount = summary.multiTopUpPlayerCount;
+                                                    }
+
+                                                    return;
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        return {totalCount: data.totalCount, dxMissionData: resultData.dxMissionData}
+                    }
+                )
+            }
+        );
 
         // return dbconfig.collection_dxMission.find(matchObj).then(
         //     missionDetails => {
@@ -144,40 +163,69 @@ var dbDXMission = {
         let importedListProm = [];
         let sentMessageListProm = [];
         let registeredPlayerListProm = [];
-        //let playerTopUpListProm = [];
+        let topUpPlayerProm = [];
+        let playerConsumptionProm = [];
         let totalRegisteredPlayer = 0;
         let noOfPlayerTopUp = 0;
         let noOfPlayerMultiTopUp = 0;
-        let topUpPlayerProm = [];
+        let validPlayer = 0;
+        let totalTopUpAmount = 0;
+        let totalTopUpCount = 0;
+        let totalValidConsumptionAmount = 0;
+        let totalValidConsumptionCount = 0;
 
-        importedListProm.push(dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count());
-        sentMessageListProm.push(dbconfig.collection_smsLog.find({"data.dxMission": dxMissionId}).count());
-        registeredPlayerListProm.push(dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
+        importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
+        sentMessageListProm = dbconfig.collection_smsLog.find({"data.dxMission": dxMissionId}).count();
+        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
             playerData => {
                 if(playerData){
                     totalRegisteredPlayer = playerData.length ? playerData.length : 0;
 
                     playerData.forEach(playerId => {
                        if(playerId){
+                           console.log("FFFFFFFFFFFFFFFFF",playerId);
                            topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId}).then(
                                topUpRecord => {
                                    if(topUpRecord){
                                        noOfPlayerTopUp += 1;
+                                       totalTopUpCount = topUpRecord.length;
+                                       totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
+                                           return previousValue.amount + currentValue.amount;
+                                       });
 
                                        if(topUpRecord.length > 1){
                                            noOfPlayerMultiTopUp += 1;
                                        }
+
+                                       return;
+                                   }
+                               }
+                           ));
+
+                           playerConsumptionProm.push(dbconfig.collection_playerConsumptionRecord.find({playerId: playerId}).then(
+                               consumptionRecord => {
+                                   if(consumptionRecord){
+                                       //totalValidConsumptionCount = consumptionRecord.length;
+                                       totalValidConsumptionCount = 2;
+                                       totalValidConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
+                                           return previousValue.validAmount + currentValue.validAmount;
+                                       });
+
+                                       return;
                                    }
                                }
                            ));
                        }
                     });
 
-                    return Promise.all(topUpPlayerProm);
-                    //noOfPlayerTopUpProm.push()
+                    return Promise.all([topUpPlayerProm,playerConsumptionProm]).then(
+                        returnData => {
+                            return returnData;
+                        }
+                    );
                 }
             }
-        ));
+        );
 
         return Promise.all([importedListProm, sentMessageListProm, registeredPlayerListProm]).then(
             result => {
@@ -191,8 +239,21 @@ var dbDXMission = {
                         sentMessageListCount: sentMessageListCount,
                         registeredPlayerCount: totalRegisteredPlayer,
                         topUpPlayerCount: noOfPlayerTopUp,
-                        multiTopUpPlayerCount: noOfPlayerMultiTopUp
+                        multiTopUpPlayerCount: noOfPlayerMultiTopUp,
+                        totalValidConsumptionAmount: totalValidConsumptionAmount,
+                        totalValidConsumptionCount : totalValidConsumptionCount
                     }
+                }
+            }
+        )
+
+    },
+
+    getValidPlayer: function (platformId, dxMissionId) {
+        return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).then(
+            partnerLevelConfig => {
+                if(partnerLevelConfig){
+
                 }
             }
         )
@@ -205,21 +266,24 @@ var dbDXMission = {
                 errorMessage: "Invalid code for creating player"
             });
         }
-        var dxPhone = {};
-        var dxMission = {};
-        let dxPhoneObj;
+        let dxPhone = {};
+        let dxMission = {};
+        let platform = {};
 
         return dbconfig.collection_dxPhone.findOne({
             code: code,
             bUsed: false,
-        }).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean().then(
+        }).populate({path: "dxMission", model: dbconfig.collection_dxMission})
+        .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (phoneDetail) {
-                dxPhoneObj = phoneDetail;
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
                     });
                 }
+                
+                dxPhone = phoneDetail;
+                platform = dxPhone.platform;
 
                 if (!phoneDetail.dxMission) {
                     phoneDetail.dxMission = {
@@ -232,18 +296,22 @@ var dbDXMission = {
                     phoneDetail.dxMission.lastXDigit = 5;
                 }
 
-                // todo :: handle what happen when player name already exist (e.g. case where another phone number have the same last X digits)
-                var playerName = phoneDetail.phoneNumber.toString().slice(-(phoneDetail.dxMission.lastXDigit));
+                dxMission = phoneDetail.dxMission;
+                let platformPrefix = platform.prefix || "";
 
-                var playerData = {
-                    platform: phoneDetail.platform,
-                    name: (phoneDetail.dxMission.playerPrefix || "") + (playerName),
-                    password: phoneDetail.dxMission.password || "888888",
+                return generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone);
+            }
+        ).then(
+            function (playerName) {
+                let playerData = {
+                    platform: platform._id,
+                    name: playerName,
+                    password: dxPhone.dxMission.password || "888888",
                     isTestPlayer: false,
                     isRealPlayer: true,
                     isLogin: true,
-                    dxMission: phoneDetail.dxMission._id,
-                    phoneNumber: phoneDetail.phoneNumber.toString(),
+                    dxMission: dxPhone.dxMission._id,
+                    phoneNumber: dxPhone.phoneNumber.toString(),
                 };
 
                 if (deviceData) {
@@ -254,28 +322,25 @@ var dbDXMission = {
                     playerData.domain = domain;
                 }
 
-                dxPhone = phoneDetail;
-                dxMission = phoneDetail.dxMission;
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
         ).then(
             function (playerData) {
-                var profile = {name: playerData.name, password: playerData.password};
-                var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                let profile = {name: playerData.name, password: playerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
                 if (!dxMission.loginUrl) {
                     dxMission.loginUrl = "localhost:3000";
                 }
 
-                // todo :: 自动申请优惠，额度和锁定组根据dxMission处理
                 sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
 
-                dbDXMission.applyDxMissionReward(dxPhoneObj.dxMission, playerData).catch(errorUtils.reportError);
-                // todo :: 发欢迎站内信给此玩家，标题和内容根据dxMission处理
+                dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
 
+                updateDxPhoneBUsed(dxPhone).catch(errorUtils.reportError);
 
                 return {
-                    redirect: dxMission.loginUrl + "?token=" + token
+                    redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
                 }
             }
         );
@@ -336,8 +401,49 @@ var dbDXMission = {
                 message: "Invalid DX mission data"
             })
         }
-    }
+    },
 
+    sendSMSToPlayer: function (adminObjId, adminName, data) {
+        return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
+            path: "dxMission", model: dbconfig.collection_dxMission
+        }).then(
+            phoneData => {
+                if(phoneData){
+                    let sendObj = {
+                        tel: data.tel,
+                        channel: 2,
+                        platformId: ObjectId(data.platformId),
+                        message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData),
+                        //delay: data.delay,
+                        'data.dxMission': phoneData.dxMission,
+                    };
+                    let recipientName = data.name || '';
+
+                    console.log("1111111111111111",sendObj);
+
+                    return smsAPI.sending_sendMessage(sendObj).then(
+                        retData => {
+                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
+                            console.log("SMS SENT SUCCESSFULLY");
+                            return retData;
+                        },
+                        retErr => {
+                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
+                            console.log("SMS SENT FAILED");
+                            return Q.reject({message: retErr, data: data});
+                        }
+                    );
+                }
+            }
+        )
+
+    },
+
+    getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
+        var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
+
+        return dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission});
+    },
 };
 
 module.exports = dbDXMission;
@@ -351,13 +457,13 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
 
     return providerGroupProm.then(
         function (providerGroup) {
-            var providerGroupName = "自由大厅";
+            let providerGroupName = "自由大厅";
             if (providerGroup) {
                 providerGroupName = providerGroup.name;
             }
 
-            var title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player, providerGroupName);
-            var content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player, providerGroupName);
+            let title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player, providerGroupName);
+            let content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player, providerGroupName);
 
             return dbPlayerMail.createPlayerMail({
                 platformId: dxPhone.platform,
@@ -372,44 +478,39 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
 
 function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
     str = String(str);
-    var loginUrl = dxMission.loginUrl + "?=" + dxPhone.code;
+    let registrationUrl = dxMission.domain + "?=" + dxPhone.code;
 
-    str = str.replace ('{{username}}', player.name);
+    str = str.replace ('{{username}}', player && player.name ? player.name : "");
     str = str.replace ('{{password}}', dxMission.password);
-    str = str.replace ('{{loginUrl}}', loginUrl);
+    str = str.replace ('{{registrationUrl}}', registrationUrl);
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
-    str = str.replace ('{{providerGroup}}', providerGroupName);
+    str = str.replace ('{{providerGroup}}', providerGroupName || "");
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
+
+    return str;
 }
 
-function generateDXCode(dxMission, platformId, tries) {
+function updateDxPhoneBUsed (dxPhone) {
+    return dbconfig.collection_dxPhone.update({_id: dxPhone._id}, {bUsed: true});
+}
+
+function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tries) {
     tries = (Number(tries) || 0) + 1;
-    if (tries > 5) {
+    if (tries > 13) {
         return Promise.reject({
             message: "Generate dian xiao code failure."
         })
     }
-    var randomString = Math.random().toString(36).substring(4,11); // generate random String
-    var dXCode = "";
+    let playerName = dxPrefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
+    let fullPlayerName = platformPrefix + playerName;
 
-    let platformProm = Promise.resolve({platformId: platformId});
-    if (!platformId) {
-        platformProm = dbconfig.collection_platform.findOne({_id: dxMission.platform}, {platformId: 1}).lean();
-    }
-
-    return platformProm.then(
-        function (platform) {
-            platformId = platform.platformId;
-            dxCode = platform.platformId + randomString;
-            return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
-        }
-    ).then(
-        function (dxPhoneExist) {
-            if (dxPhoneExist) {
-                return generateDXCode(dxMission, platformId);
+    return dbconfig.collection_players.findOne({name: fullPlayerName, platform: dxPhone.platform}).lean().then(
+        playerExist => {
+            if (playerExist) {
+                return generateDXPlayerName(lastXDigit + 1, platformPrefix, dxPrefix, dxPhone, tries);
             }
             else {
-                return dxCode;
+                return playerName;
             }
         }
     );

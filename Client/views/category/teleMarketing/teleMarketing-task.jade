@@ -135,6 +135,17 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
 
+                    #sendSMSTable(ng-show="vm.showSendSMSTable")
+                        div
+                            label {{"Total" | translate}} {{1}} {{"records" | translate}}
+                            table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                            #telePlayerTablePage
+                        div(ng-init="vm.showTelePlayerSendingMsgTable()")
+                            label {{"Total" | translate}} {{2}} {{"records" | translate}}
+                            table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                            #telePlayerSendingMsgTablePage
+
+
                 div(ng-show="vm.teleMarketingTaskTab == 'CREATE_TELEMARKETING_TASK'")
                     .col-md-12
                         form(name='form_create_telemarketing_task', novalidate)
@@ -171,7 +182,8 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                                 .full-width-input-block
                                     label {{"Please Choose Locking Provider Group" | translate}}: (*)
-                                    select.form-control(ng-model='vm.createTeleMarketing.providerGroup', required)
+                                    select.form-control(ng-model='vm.createTeleMarketing.providerGroup')
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
                                         option(ng-repeat='(i,v) in vm.gameProviderGroupNames', value='{{i}}') {{v}}
 
                                 .full-width-input-block
@@ -224,3 +236,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             div(style='display:inline-block')
                               button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
                             ng-click="vm.createTeleMarketingTask()", ng-disabled="form_create_telemarketing_task.$invalid") {{'CREATE' | translate}}
+
+
+            .panel-footer
+                  //#modalPlayerAddRewardTask
+                  div(ng-if="true")
+                      button.common-button.margin-right-5.btn.btn-success(ng-click="vm.sendMsgToTelePlayer()") {{'SEND' | translate}}

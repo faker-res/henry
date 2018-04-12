@@ -5,7 +5,7 @@ var dxPhone = new Schema({
     // platform
     platform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},
     // mission name
-    phoneNumber: {type: Number, required: true},
+    phoneNumber: {type: String, required: true},
     // relevant dx mission object Id
     dxMission: {type: Schema.ObjectId, ref: 'dxMission', required: true},
     // code use to retrieve account
