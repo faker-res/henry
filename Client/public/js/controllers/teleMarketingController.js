@@ -626,6 +626,7 @@ define(['js/app'], function (myApp) {
                         vm.editTaskResult = 'FAIL';
                         vm.resetEditTeleMarketing();
                     }
+                    vm.showTeleMarketingOverview();
                 });
             };
 
@@ -998,7 +999,7 @@ define(['js/app'], function (myApp) {
             };
             /****************** XLS - end ******************/
             // phone number filter codes==============end===============================
-            
+
         };
     teleMarketingController.$inject = injectParams;
         myApp.register.controller('teleMarketingCtrl', teleMarketingController);

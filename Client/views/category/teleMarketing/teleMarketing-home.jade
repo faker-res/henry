@@ -105,8 +105,7 @@
                 .pull-right
                     div(style='display:inline-block;font-weight:bold') {{vm.editTaskResult | translate}}
                     div(style='display:inline-block')
-                      button.common-button.btn.btn-primary(ng-click="vm.resetEditTeleMarketing()") {{'Reset' | translate}}
+                      button.common-button.btn.btn-primary(style="float:none !important",data-dismiss='modal') {{'CANCEL' | translate}}
                     div(style='display:inline-block')
-                      button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
+                      button.common-button.btn.btn-primary(style="float:none !important", ng-if="checkViewPermission('TeleMarketing', 'Task', 'Update')",
                     ng-click="vm.updateTeleMarketingTask()", ng-disabled="form_edit_telemarketing_task.$invalid") {{'EDIT' | translate}}
-
