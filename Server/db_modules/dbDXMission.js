@@ -404,14 +404,16 @@ let dbDXMission = {
     },
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
-        return dbconfig.collection_dxMission.findOne({_id: ObjectId(data.dxMission)}).then(
-            missionData => {
-                if(missionData){
-                    var sendObj = {
+        return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
+            path: "dxMission", model: dbconfig.collection_dxMission
+        }).then(
+            phoneData => {
+                if(phoneData){
+                    let sendObj = {
                         tel: data.tel,
                         channel: 2,
                         platformId: ObjectId(data.platformId),
-                        message: replaceMailKeywords(missionData.invitationTemplate, data.dxMission),
+                        message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission),
                         //delay: data.delay,
                         'data.dxMission': data.dxMission,
                     };
@@ -478,11 +480,11 @@ function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName)
     str = String(str);
     let loginUrl = dxMission.loginUrl + "?=" + dxPhone.code;
 
-    str = str.replace ('{{username}}', player.name);
+    str = str.replace ('{{username}}', player.name || "");
     str = str.replace ('{{password}}', dxMission.password);
     str = str.replace ('{{loginUrl}}', loginUrl);
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
-    str = str.replace ('{{providerGroup}}', providerGroupName);
+    str = str.replace ('{{providerGroup}}', providerGroupName || "");
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
 
     return str;

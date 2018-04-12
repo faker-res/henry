@@ -1371,7 +1371,7 @@ define(['js/app'], function (myApp) {
                                 if (row.bUsed) {
                                     text = '<span>'+ '-' +'</span>';
                                 } else {
-                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.platform, row.playerId, row.phoneNumber, rowId, row.dxMission] + '" ng-click="vm.setSendingMsgGroup(\'' + rowId + '\')">';
+                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.platform, row.playerId, row.phoneNumber, rowId, row._id] + '" ng-click="vm.setSendingMsgGroup(\'' + rowId + '\')">';
                                 }
 
                                 return "<div>" + text + "</div>";
@@ -1421,7 +1421,7 @@ define(['js/app'], function (myApp) {
                             platformId: data[0],
                             channel: 2,
                             tel: data[2],
-                            dxMission: data[4]
+                            dxPhone: data[4]
                         }
                         socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
                             console.log("SMS SENT");
