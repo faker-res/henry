@@ -1,22 +1,22 @@
-var dbUtil = require('./../modules/dbutility');
-var dbconfig = require('./../modules/dbproperties');
-var log = require("./../modules/logger");
-var Q = require("q");
-var dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
-var dbPlayerMail = require("./../db_modules/dbPlayerMail");
-var errorUtils = require("./../modules/errorUtils");
+const dbUtil = require('./../modules/dbutility');
+const dbconfig = require('./../modules/dbproperties');
+const log = require("./../modules/logger");
+const Q = require("q");
+const dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
+const dbPlayerMail = require("./../db_modules/dbPlayerMail");
+const errorUtils = require("./../modules/errorUtils");
 const jwt = require('jsonwebtoken');
-var constSystemParam = require('../const/constSystemParam');
+const constSystemParam = require('../const/constSystemParam');
 const constServerCode = require('../const/constServerCode');
 const constProposalType = require('../const/constProposalType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const dbProposal = require('./../db_modules/dbProposal');
 
-var mongoose = require('mongoose');
-var ObjectId = mongoose.Types.ObjectId;
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
-var dbDXMission = {
+let dbDXMission = {
 
     /**
      * get a mission
@@ -202,16 +202,15 @@ var dbDXMission = {
                 errorMessage: "Invalid code for creating player"
             });
         }
-        var dxPhone = {};
-        var dxMission = {};
-        let dxPhoneObj;
+        let dxPhone = {};
+        let dxMission = {};
 
         return dbconfig.collection_dxPhone.findOne({
             code: code,
             bUsed: false,
         }).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean().then(
             function (phoneDetail) {
-                dxPhoneObj = phoneDetail;
+                dxPhone = phoneDetail;
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
@@ -229,18 +228,21 @@ var dbDXMission = {
                     phoneDetail.dxMission.lastXDigit = 5;
                 }
 
-                // todo :: handle what happen when player name already exist (e.g. case where another phone number have the same last X digits)
-                var playerName = phoneDetail.phoneNumber.toString().slice(-(phoneDetail.dxMission.lastXDigit));
+                dxMission = phoneDetail.dxMission;
 
-                var playerData = {
-                    platform: phoneDetail.platform,
-                    name: (phoneDetail.dxMission.playerPrefix || "") + (playerName),
-                    password: phoneDetail.dxMission.password || "888888",
+                return generateDXPlayerName(dxMission.lastXDigit, dxMission.playerPrefix, dxPhone);
+            }
+        ).then(
+            function (playerName) {
+                let playerData = {
+                    platform: dxPhone.platform,
+                    name: playerName,
+                    password: dxPhone.dxMission.password || "888888",
                     isTestPlayer: false,
                     isRealPlayer: true,
                     isLogin: true,
-                    dxMission: phoneDetail.dxMission._id,
-                    phoneNumber: phoneDetail.phoneNumber.toString(),
+                    dxMission: dxPhone.dxMission._id,
+                    phoneNumber: dxPhone.phoneNumber.toString(),
                 };
 
                 if (deviceData) {
@@ -251,25 +253,22 @@ var dbDXMission = {
                     playerData.domain = domain;
                 }
 
-                dxPhone = phoneDetail;
-                dxMission = phoneDetail.dxMission;
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
         ).then(
             function (playerData) {
-                var profile = {name: playerData.name, password: playerData.password};
-                var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                let profile = {name: playerData.name, password: playerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
                 if (!dxMission.loginUrl) {
                     dxMission.loginUrl = "localhost:3000";
                 }
 
-                // todo :: 自动申请优惠，额度和锁定组根据dxMission处理
                 sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
 
-                dbDXMission.applyDxMissionReward(dxPhoneObj.dxMission, playerData).catch(errorUtils.reportError);
-                // todo :: 发欢迎站内信给此玩家，标题和内容根据dxMission处理
+                dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
 
+                updateDxPhoneBUsed(dxPhone).catch(errorUtils.reportError);
 
                 return {
                     redirect: dxMission.loginUrl + "?token=" + token
@@ -348,13 +347,13 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
 
     return providerGroupProm.then(
         function (providerGroup) {
-            var providerGroupName = "自由大厅";
+            let providerGroupName = "自由大厅";
             if (providerGroup) {
                 providerGroupName = providerGroup.name;
             }
 
-            var title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player, providerGroupName);
-            var content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player, providerGroupName);
+            let title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player, providerGroupName);
+            let content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player, providerGroupName);
 
             return dbPlayerMail.createPlayerMail({
                 platformId: dxPhone.platform,
@@ -369,7 +368,7 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
 
 function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
     str = String(str);
-    var loginUrl = dxMission.loginUrl + "?=" + dxPhone.code;
+    let loginUrl = dxMission.loginUrl + "?=" + dxPhone.code;
 
     str = str.replace ('{{username}}', player.name);
     str = str.replace ('{{password}}', dxMission.password);
@@ -388,8 +387,8 @@ function generateDXCode(dxMission, platformId, tries) {
             message: "Generate dian xiao code failure."
         })
     }
-    var randomString = Math.random().toString(36).substring(4,11); // generate random String
-    var dXCode = "";
+    let randomString = Math.random().toString(36).substring(4,11); // generate random String
+    let dXCode = "";
 
     let platformProm = Promise.resolve({platformId: platformId});
     if (!platformId) {
@@ -412,4 +411,29 @@ function generateDXCode(dxMission, platformId, tries) {
             }
         }
     );
+}
+
+function updateDxPhoneBUsed (dxPhone) {
+    return dbconfig.collection_dxPhone.update({_id: dxPhone._id}, {bUsed: true});
+}
+
+function generateDXPlayerName (lastXDigit, prefix, dxPhone, tries) {
+    tries = (Number(tries) || 0) + 1;
+    if (tries > 13) {
+        return Promise.reject({
+            message: "Generate dian xiao code failure."
+        })
+    }
+    let playerName = prefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
+
+    return dbconfig.collection_players.findOne({name: playerName, platform: dxPhone.platform}).lean().then(
+        playerExist => {
+            if (playerExist) {
+                return generateDXPlayerName(lastXDigit + 1, prefix, dxPhone, tries);
+            }
+            else {
+                return playerName;
+            }
+        }
+    )
 }
