@@ -33,7 +33,7 @@ var dxMission = new Schema({
     // number of days that name shown in different color
     alertDays: {type: Number},
     // creation time
-    createTime:{type: Date, default: null, index: true},
+    createTime: {type: Date, default: null, index: true},
 });
 
 
