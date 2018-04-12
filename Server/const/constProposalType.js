@@ -51,6 +51,7 @@ const constProposalType = {
     PLAYER_CONSECUTIVE_CONSUMPTION_REWARD: "PlayerConsecutiveConsumptionReward",
     PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward",
     PLAYER_PROMO_CODE_REWARD: "PlayerPromoCodeReward",
+    DX_REWARD: "DxReward",
     PLAYER_LIMITED_OFFER_INTENTION: "PlayerLimitedOfferIntention",
     PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
     PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
