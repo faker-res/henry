@@ -428,9 +428,10 @@ function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tr
             message: "Generate dian xiao code failure."
         })
     }
-    let playerName = platformPrefix + dxPrefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
+    let playerName = dxPrefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
+    let fullPlayerName = platformPrefix + playerName;
 
-    return dbconfig.collection_players.findOne({name: playerName, platform: dxPhone.platform}).lean().then(
+    return dbconfig.collection_players.findOne({name: fullPlayerName, platform: dxPhone.platform}).lean().then(
         playerExist => {
             if (playerExist) {
                 return generateDXPlayerName(lastXDigit + 1, platformPrefix, dxPrefix, dxPhone, tries);
@@ -439,5 +440,5 @@ function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tr
                 return playerName;
             }
         }
-    )
+    );
 }
