@@ -152,10 +152,7 @@ function socketActionProposal(socketIO, socket) {
          */
         createUpdatePartnerBankInfoProposal: function createUpdatePartnerBankInfoProposal(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(
-                data && data.platformId && data.data &&
-                data.data.partnerName && data.data.curData && data.data.updateData
-            );
+            var isValidData = Boolean(data && data.platformId && data.data);
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_BANK_INFO, data], actionName, isValidData);
         },
 
@@ -238,6 +235,12 @@ function socketActionProposal(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.type && data.playerObjId);
             socketUtil.emitter(self.socket, dbProposal.getProposalByPlayerIdAndType, [data], actionName, isValidData);
+        },
+
+        getProposalByPartnerIdAndType: function getProposalByPartnerIdAndType(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbProposal.getProposalByPartnerIdAndType, [data], actionName, isValidData);
         },
 
         getPlatformProposal: function getPlatformProposal(data) {
@@ -327,7 +330,7 @@ function socketActionProposal(socketIO, socket) {
             var index = data.index || 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.playerId, data.eventName, data.promoTypeName, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.playerId, data.eventName, data.promoTypeName, data.inputDevice, data.partnerId], actionName, isValidData);
         },
 
         getPlayerProposalsForAdminId: function getPlayerProposalsForAdminId(data) {

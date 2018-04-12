@@ -742,18 +742,66 @@ var proposalExecutor = {
                 //data validation
                 //todo::update by using partner name for now since it is unique
                 if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData) {
-                    dbUtil.findOneAndUpdateForShard(
-                        dbconfig.collection_partner,
-                        {partnerName: proposalData.data.partnerName},
-                        proposalData.data.updateData,
-                        constShardKeys.collection_partner
+                    dbconfig.collection_partner.findOne({partnerName: proposalData.data.partnerName}).then(
+                        function (data) {
+                            if (data) {
+                                var partnerUpdate = Object.assign({}, proposalData.data);
+                                delete partnerUpdate.platformId;
+                                delete partnerUpdate.partnerId;
+                                delete partnerUpdate.partnerName;
+                                delete partnerUpdate._id;
+
+                                return dbconfig.collection_partner.findOneAndUpdate(
+                                    {_id: data._id, platform: data.platform},
+                                    partnerUpdate,
+                                    {returnNewDocument: true}
+                                );
+                            }
+                            else {
+                                deferred.reject({name: "DataError", message: "Failed to find partner"});
+                            }
+                        },
+                        function (error) {
+                            deferred.reject({name: "DBError", message: "Failed to find partner", error: error});
+                        }
                     ).then(
                         function (data) {
+                            var loggerInfo = {
+                                source: constProposalEntryType.ADMIN,
+                                bankName: proposalData.data.bankName,
+                                bankAccount: proposalData.data.bankAccount,
+                                bankAccountName: proposalData.data.bankAccountName,
+                                bankAccountType: proposalData.data.bankAccountType,
+                                bankAccountProvince: proposalData.data.bankAccountProvince,
+                                bankAccountCity: proposalData.data.bankAccountCity,
+                                bankAccountDistrict: proposalData.data.bankAccountDistrict,
+                                bankAddress: proposalData.data.bankAddress,
+                                bankBranch: proposalData.data.bankBranch,
+                                targetObjectId: proposalData.data._id,
+                                targetType: constProposalUserType.PARTNERS,
+                                creatorType: constProposalUserType.SYSTEM_USERS,
+                                creatorObjId: proposalData.creator ? proposalData.creator.id : null
+                            }
+                            dbLogger.createBankInfoLog(loggerInfo);
                             deferred.resolve(data);
                         },
-                        function (err) {
-                            deferred.reject({name: "DataError", message: "Failed to update partner bank info", error: err});
+                        function (error) {
+                            deferred.reject({name: "DBError", message: "Failed to update player info", error: error});
                         }
+                    ).then(
+                        dbUtil.findOneAndUpdateForShard(
+                            dbconfig.collection_partner,
+                            {partnerName: proposalData.data.partnerName},
+                            proposalData.data.updateData,
+                            constShardKeys.collection_partner
+                        ).then(
+                            function (data) {
+                                deferred.resolve(data);
+                            },
+                            function (err) {
+                                deferred.reject({name: "DataError", message: "Failed to update partner bank info", error: err});
+                            }
+                        )
                     );
                 }
                 else {
