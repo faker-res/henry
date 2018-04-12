@@ -230,13 +230,13 @@ let dbDXMission = {
 
                 dxMission = phoneDetail.dxMission;
 
-                return generateDXPlayerName(dxMission.lastXDigit, dxPhone);
+                return generateDXPlayerName(dxMission.lastXDigit, dxMission.playerPrefix, dxPhone);
             }
         ).then(
             function (playerName) {
                 let playerData = {
                     platform: dxPhone.platform,
-                    name: (dxPhone.dxMission.playerPrefix || "") + (playerName),
+                    name: playerName,
                     password: dxPhone.dxMission.password || "888888",
                     isTestPlayer: false,
                     isRealPlayer: true,
@@ -417,19 +417,19 @@ function updateDxPhoneBUsed (dxPhone) {
     return dbconfig.collection_dxPhone.update({_id: dxPhone._id}, {bUsed: true});
 }
 
-function generateDXPlayerName (lastXDigit, dxPhone, tries) {
+function generateDXPlayerName (lastXDigit, prefix, dxPhone, tries) {
     tries = (Number(tries) || 0) + 1;
     if (tries > 13) {
         return Promise.reject({
             message: "Generate dian xiao code failure."
         })
     }
-    let playerName = String(dxPhone.phoneNumber).slice(-(lastXDigit));
+    let playerName = prefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
 
     return dbconfig.collection_players.findOne({name: playerName, platform: dxPhone.platform}).lean().then(
         playerExist => {
             if (playerExist) {
-                return generateDXPlayerName(lastXDigit + 1, dxPhone, tries);
+                return generateDXPlayerName(lastXDigit + 1, prefix, dxPhone, tries);
             }
             else {
                 return playerName;
