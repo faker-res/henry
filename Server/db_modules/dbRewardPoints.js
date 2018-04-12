@@ -1423,8 +1423,15 @@ let dbRewardPoints = {
                         player = playerData;
                         platform = playerData.platform;
                         platformObjId = playerData.platform._id;
-                        rewardPoints = playerData.rewardPointsObjId.points;
-                        rewardPointsObjId = playerData.rewardPointsObjId._id;
+                        if (playerData.rewardPointsObjId) {
+                            if (playerData.rewardPointsObjId.points) {
+                                rewardPoints = playerData.rewardPointsObjId.points;
+                            }
+
+                            if (playerData.rewardPointsObjId._id) {
+                                rewardPointsObjId = playerData.rewardPointsObjId._id;
+                            }
+                        }
                     }
                 );
             firstProm = playerProm;
@@ -1515,7 +1522,7 @@ let dbRewardPoints = {
                         preDailyAppliedPoint: dailyAppliedPoints,
                         userCurrentPoint: rewardPoints,
                         refreshPeriod: intervalPeriod,
-                        list: list
+                        list: list.sort(function (a, b) {return a - b})
                     };
                     return outputObject;
                 }

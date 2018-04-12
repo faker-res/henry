@@ -141,60 +141,83 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             div
                                 .full-width-input-block
                                     label {{"Please Enter Task Name" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.name', required)
+                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.name', required)
                                 .full-width-input-block
                                     label {{"Please Enter Task Description" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.description')
+                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.description')
 
                                 .full-width-input-block
                                     label {{"Please Enter Account Prefix" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.playerPrefix', required)
+                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.playerPrefix', required)
                                 .full-width-input-block
                                     label {{"Please Enter Number of Last Digits of Phone Number as Account Name" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.lastXDigit', required)
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.lastXDigit', required)
 
                                 .full-width-input-block
                                     label {{"Please Enter Default Password" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.password', required)
+                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.password', required)
 
                                 .full-width-input-block
                                     label {{"Please Enter Registration URL" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.domain', required)
+                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.domain', required)
 
                                 .full-width-input-block
                                     label {{"Please Enter Login URL" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.loginUrl', required)
+                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.loginUrl', required)
 
                                 .full-width-input-block
                                     label {{"Please Enter Free Credit Amount" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.creditAmount')
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.creditAmount')
 
                                 .full-width-input-block
                                     label {{"Please Choose Locking Provider Group" | translate}}:
-                                    select.form-control(ng-model='vm.teleMarketing.providerGroup', required)
-                                        option(ng-repeat='(i,v) in vm.allProviderGroups', value='{{v}}') {{i | translate}}
+                                    select.form-control(ng-model='vm.createTeleMarketing.providerGroup', required)
+                                        option(ng-repeat='(i,v) in vm.gameProviderGroupNames', value='{{i}}') {{v}}
 
                                 .full-width-input-block
                                     label {{"Please Enter Required Consumption Amount" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.requiredConsumption', required)
+                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.requiredConsumption', required)
 
                                 .full-width-input-block
                                     label {{"Please Update Invitation Template" | translate}}:
-                                    textarea.form-control(ng-model='vm.teleMarketing.invitationTemplate')
+                                    textarea.form-control(ng-model='vm.createTeleMarketing.invitationTemplate')
 
                                 .full-width-input-block
                                     label {{"Please Update Registration Succeed Message Title" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.welcomeTitle')
+                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.welcomeTitle')
 
                                 .full-width-input-block
                                     label {{"Please Update Registration Succeed Message Template" | translate}}:
-                                    textarea.form-control(ng-model='vm.teleMarketing.welcomeContent')
+                                    textarea.form-control(ng-model='vm.createTeleMarketing.welcomeContent')
 
                                 .full-width-input-block
                                     label {{"Please Enter Number of Days for Alert" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.teleMarketing.alertDays')
-
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.alertDays')
+                        br
+                        table.simple-table
+                            thead
+                                th {{'PARAMETER' | translate}}
+                                th {{'MESSAGE_TEMPLATE_PARAMETER_DESCRIPTION' | translate}}
+                            tbody
+                                td {{"\{\{username\}\}"}}
+                                td 账号
+                            tbody
+                                td {{"\{\{password\}\}"}}
+                                td 密码
+                            tbody
+                                td {{"\{\{loginUrl\}\}"}}
+                                td 登入主站网址
+                            tbody
+                                td {{"\{\{creditAmount\}\}"}}
+                                td 免费金额
+                            tbody
+                                td {{"\{\{providerGroup\}\}"}}
+                                td 大厅
+                            tbody
+                                td {{"\{\{requiredConsumption\}\}"}}
+                                td 流水需求
                         br
                         .pull-right
-                            button.common-button.btn.btn-success(ng-if="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Create')",
-                            ng-click="vm.createTeleMarketingTask") {{'CREATE' | translate}}
+                            button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
+                            ng-click="vm.createTeleMarketingTask()", ng-disabled="form_create_telemarketing_task.$invalid") {{'CREATE' | translate}}
+

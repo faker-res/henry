@@ -3,6 +3,9 @@ var dbconfig = require('./../modules/dbproperties');
 var log = require("./../modules/logger");
 var Q = require("q");
 var dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
+var dbPlayerMail = require("./../db_modules/dbPlayerMail");
+var errorUtils = require("./../modules/errorUtils");
+const jwt = require('jsonwebtoken');
 
 var dbDXMission = {
 
@@ -10,14 +13,18 @@ var dbDXMission = {
      * get a mission
      * @param {json} data - The data of the role. Refer to role schema.
      */
-    getDxMission: function (){
-      
+    getDxMission: function (id){
+        return dbconfig.collection_dxMission.find({'_id':id});
     },
-    createDxMission: function(){
-
+    createDxMission: function(data){
+        var dxMission = new dbconfig.collection_dxMission(data);
+        return dxMission.save();
     },
-    updateDxMission: function(){
-
+    updateDxMission: function(data){
+        return dbconfig.collection_dxMission.findOneAndUpdate(
+            {_id: data._id},
+            data
+        );
     },
 
     getTeleMarketingOverview: function(platform, query, index, limit, sortCol){
@@ -199,8 +206,6 @@ var dbDXMission = {
                 if (!phoneDetail.dxMission) {
                     phoneDetail.dxMission = {
                         loginUrl: "eu99999.com",
-                        // creditAmount: "50",
-                        // password: "888888",
                         playerPrefix: "test",
                     };
                 }
@@ -245,15 +250,55 @@ var dbDXMission = {
 
                 // todo :: 自动申请优惠，额度和锁定组根据dxMission处理
 
-                // todo :: 发欢迎站内信给此玩家，标题和内容根据dxMission处理
+                sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
 
                 return {
                     redirect: dxMission.loginUrl + "?token=" + token
                 }
             }
         );
-    },
+    }
 
 };
 
 module.exports = dbDXMission;
+
+function sendWelcomeMessage(dxMission, dxPhone, player) {
+    let providerGroupProm = Promise.resolve();
+
+    if (dxMission.providerGroup) {
+        providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: dxMission.providerGroup}).lean();
+    }
+
+    return providerGroupProm.then(
+        function (providerGroup) {
+            var providerGroupName = "自由大厅";
+            if (providerGroup) {
+                providerGroupName = providerGroup.name;
+            }
+
+            var title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player, providerGroupName);
+            var content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player, providerGroupName);
+
+            return dbPlayerMail.createPlayerMail({
+                platformId: dxPhone.platform,
+                recipientType: 'player',
+                recipientId: player._id,
+                title: title,
+                content: content
+            });
+        }
+    );
+}
+
+function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
+    str = String(str);
+    var loginUrl = dxMission.loginUrl + "?=" + dxPhone.code;
+
+    str = str.replace ('{{username}}', player.name);
+    str = str.replace ('{{password}}', dxMission.password);
+    str = str.replace ('{{loginUrl}}', loginUrl);
+    str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
+    str = str.replace ('{{providerGroup}}', providerGroupName);
+    str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
+}
