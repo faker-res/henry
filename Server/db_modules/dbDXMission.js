@@ -415,11 +415,11 @@ let dbDXMission = {
                         platformId: ObjectId(data.platformId),
                         message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission),
                         //delay: data.delay,
-                        'data.dxMission': data.dxMission,
+                        'data.dxMission': phoneData.dxMission,
                     };
-                    var recipientName = data.name || '';
+                    let recipientName = data.name || '';
 
-                    console.log("1111111111111111",sendObj)
+                    console.log("1111111111111111",sendObj);
 
                     return smsAPI.sending_sendMessage(sendObj).then(
                         retData => {
