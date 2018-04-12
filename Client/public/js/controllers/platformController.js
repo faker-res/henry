@@ -20691,6 +20691,8 @@ define(['js/app'], function (myApp) {
 
             // import phone number to system
             vm.importDiffPhoneNum = function (diffPhoneNum, dxMission) {
+                vm.dxMissionType = '';
+
                 let sendData = {
                     platform: vm.selectedPlatform.id,
                     phoneNumber: diffPhoneNum,
@@ -20820,6 +20822,7 @@ define(['js/app'], function (myApp) {
                 vm.diffPhoneTXT = '';
                 vm.samePhoneTotalTXT = '';
                 vm.diffPhoneTotalTXT = '';
+                vm.dxMissionType = '';
             };
             /****************** TXT - end ******************/
 
@@ -20851,6 +20854,7 @@ define(['js/app'], function (myApp) {
                 vm.phoneNumListResult = false;
                 vm.samePhoneList = '';
                 vm.diffPhoneList = '';
+                vm.dxMissionType = '';
             };
 
             // copy phone number list
@@ -21003,6 +21007,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneTotalXLS = '';
                 vm.diffPhoneTotalXLS = '';
                 vm.phoneNumXLSResult = false;
+                vm.dxMissionType = '';
             };
             /****************** XLS - end ******************/
             // phone number filter codes==============end===============================
