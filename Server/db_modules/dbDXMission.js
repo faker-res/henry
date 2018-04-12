@@ -207,14 +207,13 @@ let dbDXMission = {
         }
         let dxPhone = {};
         let dxMission = {};
-        let dxPhoneObj;
 
         return dbconfig.collection_dxPhone.findOne({
             code: code,
             bUsed: false,
         }).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean().then(
             function (phoneDetail) {
-                dxPhoneObj = phoneDetail;
+                dxPhone = phoneDetail;
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
@@ -232,18 +231,21 @@ let dbDXMission = {
                     phoneDetail.dxMission.lastXDigit = 5;
                 }
 
-                // todo :: handle what happen when player name already exist (e.g. case where another phone number have the same last X digits)
-                let playerName = phoneDetail.phoneNumber.toString().slice(-(phoneDetail.dxMission.lastXDigit));
+                dxMission = phoneDetail.dxMission;
 
+                return generateDXPlayerName(dxMission.lastXDigit, dxPhone);
+            }
+        ).then(
+            function (playerName) {
                 let playerData = {
-                    platform: phoneDetail.platform,
-                    name: (phoneDetail.dxMission.playerPrefix || "") + (playerName),
-                    password: phoneDetail.dxMission.password || "888888",
+                    platform: dxPhone.platform,
+                    name: (dxPhone.dxMission.playerPrefix || "") + (playerName),
+                    password: dxPhone.dxMission.password || "888888",
                     isTestPlayer: false,
                     isRealPlayer: true,
                     isLogin: true,
-                    dxMission: phoneDetail.dxMission._id,
-                    phoneNumber: phoneDetail.phoneNumber.toString(),
+                    dxMission: dxPhone.dxMission._id,
+                    phoneNumber: dxPhone.phoneNumber.toString(),
                 };
 
                 if (deviceData) {
@@ -254,8 +256,6 @@ let dbDXMission = {
                     playerData.domain = domain;
                 }
 
-                dxPhone = phoneDetail;
-                dxMission = phoneDetail.dxMission;
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
         ).then(
@@ -269,7 +269,7 @@ let dbDXMission = {
 
                 sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
 
-                dbDXMission.applyDxMissionReward(dxPhoneObj.dxMission, playerData).catch(errorUtils.reportError);
+                dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
 
                 updateDxPhoneBUsed(dxPhone).catch(errorUtils.reportError);
 
@@ -418,4 +418,25 @@ function generateDXCode(dxMission, platformId, tries) {
 
 function updateDxPhoneBUsed (dxPhone) {
     return dbconfig.collection_dxPhone.update({_id: dxPhone._id}, {bUsed: true});
+}
+
+function generateDXPlayerName (lastXDigit, dxPhone, tries) {
+    tries = (Number(tries) || 0) + 1;
+    if (tries > 13) {
+        return Promise.reject({
+            message: "Generate dian xiao code failure."
+        })
+    }
+    let playerName = String(dxPhone.phoneNumber).slice(-(lastXDigit));
+
+    return dbconfig.collection_players.findOne({name: playerName, platform: dxPhone.platform}).lean().then(
+        playerExist => {
+            if (playerExist) {
+                return generateDXPlayerName(lastXDigit + 1, dxPhone, tries);
+            }
+            else {
+                return playerName;
+            }
+        }
+    )
 }
