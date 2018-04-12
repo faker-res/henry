@@ -256,7 +256,7 @@ var dbDXMission = {
 
                 dxPhone = phoneDetail;
                 dxMission = phoneDetail.dxMission;
-                return dbPlayerInfo.createPlayerInfo(playerData, true, true);
+                return dbPlayerInfo.createPlayerInfo(playerData);
             }
         ).then(
             function (playerData) {
