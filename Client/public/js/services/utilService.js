@@ -789,6 +789,7 @@ define([], function () {
                 case "AddPlayerRewardTask":
                 case "PlayerLevelUp":
                 case "PlayerPromoCodeReward":
+                case "DxReward":
                 case "PlatformTransactionReward":
                 case "PlayerTopUpReturn":
                 case "PlayerConsumptionIncentive":

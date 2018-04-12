@@ -7,6 +7,11 @@ var dbPlayerMail = require("./../db_modules/dbPlayerMail");
 var errorUtils = require("./../modules/errorUtils");
 const jwt = require('jsonwebtoken');
 var constSystemParam = require('../const/constSystemParam');
+const constServerCode = require('../const/constServerCode');
+const constProposalType = require('../const/constProposalType');
+const constProposalUserType = require('../const/constProposalUserType');
+const constProposalEntryType = require('../const/constProposalEntryType');
+const dbProposal = require('./../db_modules/dbProposal');
 
 
 var dbDXMission = {
@@ -193,12 +198,14 @@ var dbDXMission = {
         }
         var dxPhone = {};
         var dxMission = {};
+        let dxPhoneObj;
 
         return dbconfig.collection_dxPhone.findOne({
             code: code,
             bUsed: false,
         }).populate({path: "dxMission", model: dbconfig.collection_dxMission}).lean().then(
             function (phoneDetail) {
+                dxPhoneObj = phoneDetail;
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
@@ -251,14 +258,74 @@ var dbDXMission = {
                 }
 
                 // todo :: 自动申请优惠，额度和锁定组根据dxMission处理
-
                 sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
+
+                dbDXMission.applyDxMissionReward(dxPhoneObj.dxMission, playerData).catch(errorUtils.reportError);
+                // todo :: 发欢迎站内信给此玩家，标题和内容根据dxMission处理
+
 
                 return {
                     redirect: dxMission.loginUrl + "?token=" + token
                 }
             }
         );
+    },
+
+    applyDxMissionReward: function (dxMission, playerData) {
+        if (dxMission && dxMission.creditAmount && dxMission.requiredConsumption) {
+                if (playerData.platform) {
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: playerData.platform,
+                        name: constProposalType.DX_REWARD
+                    }).lean().then(
+                        proposalTypeData => {
+                            if (proposalTypeData && proposalTypeData._id) {
+                                let proposalData = {
+                                    type: proposalTypeData._id,
+                                    creator: {
+                                            type: 'player',
+                                            name: playerData.name,
+                                            id: playerData._id
+                                        },
+                                    data: {
+                                        playerObjId: playerData._id,
+                                        playerId: playerData.playerId,
+                                        playerName: playerData.name,
+                                        realName: playerData.realName,
+                                        platformObjId: playerData.platform,
+                                        rewardAmount: dxMission.creditAmount,
+                                        spendingAmount: dxMission.requiredConsumption,
+                                        useLockedCredit: false,
+                                        eventName: "电销触击优惠",
+                                        eventCode: "DXCJYH",
+                                        eventId: "579196839b4ffcd65244e5e9" //hard code for DxReward
+                                    },
+                                    entryType: constProposalEntryType.SYSTEM,
+                                    userType: constProposalUserType.PLAYERS
+                                };
+                                if (dxMission.providerGroup) {
+                                    proposalData.data.providerGroup = dxMission.providerGroup;
+                                }
+                                return dbProposal.createProposalWithTypeId(proposalTypeData._id, proposalData);
+                            } else {
+                                return Promise.reject({
+                                    name: "DataError",
+                                    errorMessage: "Cannot find proposal type"
+                                });
+                            }
+                        }
+                    )
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+        } else {
+            return Promise.reject({
+                status: constServerCode.INVALID_DATA,
+                name: "DataError",
+                message: "Invalid DX mission data"
+            })
+        }
     }
 
 };

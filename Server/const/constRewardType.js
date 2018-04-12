@@ -25,6 +25,7 @@ const constRewardType = {
     PLAYER_CONSECUTIVE_CONSUMPTION_REWARD: "PlayerConsecutiveConsumptionReward",
     PLAYER_PACKET_RAIN_REWARD: "PlayerPacketRainReward",
     PLAYER_PROMO_CODE_REWARD: "PlayerPromoCodeReward",
+    DX_REWARD: "DxReward",
     PLAYER_LIMITED_OFFERS_REWARD: "PlayerLimitedOfferReward",
     PLAYER_TOP_UP_RETURN_GROUP: "PlayerTopUpReturnGroup",
     PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",
