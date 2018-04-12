@@ -14258,12 +14258,14 @@ let dbPlayerInfo = {
                 let importData = {
                     platform: platform,
                     phoneNumber: phoneArr[x],
-                    dxMission: dxMission
+                    dxMission: dxMission,
+                    code: 'random123'
                 };
 
                 let importPhone = new dbconfig.collection_dxPhone(importData);
                 importPhone.save();
             }
+
             return true;
         }
         return false;

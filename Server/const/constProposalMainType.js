@@ -50,6 +50,7 @@ const constProposalMainType = {
     "PlayerConsecutiveConsumptionReward": constMainType.REWARD,
     "PlayerPacketRainReward": constMainType.REWARD,
     "PlayerPromoCodeReward": constMainType.REWARD,
+    "DxReward": constMainType.REWARD,
     "PlayerLimitedOfferReward": constMainType.REWARD,
     "PlayerTopUpReturnGroup": constMainType.REWARD,
     "PlayerFreeTrialRewardGroup": constMainType.REWARD,
