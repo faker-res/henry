@@ -13,10 +13,16 @@ var dbDXMission = {
     getDxMission: function (id){
         return dbconfig.collection_dxMission.find({'_id':id});
     },
+
+    getAllDxMission: function () {
+        return dbconfig.collection_dxMission.find();
+    },
+
     createDxMission: function(data){
         var dxMission = new dbconfig.collection_dxMission(data);
         return dxMission.save();
     },
+
     updateDxMission: function(data){
         return dbconfig.collection_dxMission.findOneAndUpdate(
             {_id: data._id},

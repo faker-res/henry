@@ -43,6 +43,14 @@ function socketActionDXMission(socketIO, socket) {
         },
 
         /**
+         * get All DX Mission
+         */
+        getAllDxMission: function getAllDxMission() {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbDXMission.getAllDxMission, [], actionName);
+        },
+
+        /**
          * Create New DX Mission
          * @param {json} data - Player data. It has to contain correct data format
          */
