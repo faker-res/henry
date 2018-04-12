@@ -24,7 +24,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                     //    span {{"CREATE_TELEMARKETING_TASK" | translate}}
             .panel-body.common-right-panel-body
                 div(ng-show="vm.teleMarketingTaskTab == 'TELEMARKETING_TASK_OVERVIEW'")
-                    #teleMarketingOverviewDiv.tab-pane.fade.in.active
+                    #teleMarketingOverview.tab-pane.fade.in.active
                         .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByTaskName')")
                             label {{'TASK_NAME' | translate}}
                             input.form-control(type='text', ng-model='vm.teleMarketingOverview.taskName')
@@ -126,43 +126,43 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             div.text-center(style="width:15px;display:inline-block" ng-if="vm.teleMarketingOverview.totalValidConsumptionOperator === 'range'") ~
                             input.form-control(type="number" ng-model="vm.teleMarketingOverview.totalValidConsumptionValueTwo" style="width:80px;display:inline-block" ng-if="vm.teleMarketingOverview.totalValidConsumptionOperator === 'range'")
                         .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
-                            button.common-button.btn.btn-primary(ng-click='vm.getTeleMarketingOverview()') {{'SEARCH' | translate}}
+                            button.common-button.btn.btn-primary(ng-click='vm.showTeleMarketingOverview()') {{'SEARCH' | translate}}
                         .inlineBlk(ng-show='vm.loadingTeleMarketingOverviewTable')
                             i.fa.fa-spin.fa-spinner
 
                         .clearfix
-                            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}}
-                            table#topupTable.common-table.display(style="min-width:100% ;overflow: scroll")
-                            #topupTablePage
+                            label {{"Total" | translate}} {{vm.teleMarketingOverview.totalCount}} {{"records" | translate}}
+                            table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                            #teleMarketingOverviewTablePage
 
                 div(ng-show="vm.teleMarketingTaskTab == 'CREATE_TELEMARKETING_TASK'")
                     .col-md-12
                         form(name='form_create_telemarketing_task', novalidate)
                             div
                                 .full-width-input-block
-                                    label {{"Please Enter Task Name" | translate}}:
+                                    label {{"Please Enter Task Name" | translate}}: (*)
                                     input.form-control(type='text', ng-model='vm.createTeleMarketing.name', required)
                                 .full-width-input-block
                                     label {{"Please Enter Task Description" | translate}}:
                                     input.form-control(type='text', ng-model='vm.createTeleMarketing.description')
 
                                 .full-width-input-block
-                                    label {{"Please Enter Account Prefix" | translate}}:
+                                    label {{"Please Enter Account Prefix" | translate}}: (*)
                                     input.form-control(type='text', ng-model='vm.createTeleMarketing.playerPrefix', required)
                                 .full-width-input-block
-                                    label {{"Please Enter Number of Last Digits of Phone Number as Account Name" | translate}}:
+                                    label {{"Please Enter Number of Last Digits of Phone Number as Account Name" | translate}}: (*)
                                     input.form-control(type='number', ng-model='vm.createTeleMarketing.lastXDigit', required)
 
                                 .full-width-input-block
-                                    label {{"Please Enter Default Password" | translate}}:
+                                    label {{"Please Enter Default Password" | translate}}: (*)
                                     input.form-control(type='text', ng-model='vm.createTeleMarketing.password', required)
 
                                 .full-width-input-block
-                                    label {{"Please Enter Registration URL" | translate}}:
+                                    label {{"Please Enter Registration URL" | translate}}: (*)
                                     input.form-control(type='text', ng-model='vm.createTeleMarketing.domain', required)
 
                                 .full-width-input-block
-                                    label {{"Please Enter Login URL" | translate}}:
+                                    label {{"Please Enter Login URL" | translate}}: (*)
                                     input.form-control(type='text', ng-model='vm.createTeleMarketing.loginUrl', required)
 
                                 .full-width-input-block
@@ -170,13 +170,13 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     input.form-control(type='number', ng-model='vm.createTeleMarketing.creditAmount')
 
                                 .full-width-input-block
-                                    label {{"Please Choose Locking Provider Group" | translate}}:
+                                    label {{"Please Choose Locking Provider Group" | translate}}: (*)
                                     select.form-control(ng-model='vm.createTeleMarketing.providerGroup', required)
                                         option(ng-repeat='(i,v) in vm.gameProviderGroupNames', value='{{i}}') {{v}}
 
                                 .full-width-input-block
-                                    label {{"Please Enter Required Consumption Amount" | translate}}:
-                                    input.form-control(type='text', ng-model='vm.createTeleMarketing.requiredConsumption', required)
+                                    label {{"Please Enter Required Consumption Amount" | translate}}: (*)
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.requiredConsumption', required)
 
                                 .full-width-input-block
                                     label {{"Please Update Invitation Template" | translate}}:
@@ -218,6 +218,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 td 流水需求
                         br
                         .pull-right
-                            button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
+                            div(style='display:inline-block;font-weight:bold') {{vm.createTaskResult | translate}}
+                            div(style='display:inline-block')
+                              button.common-button.btn.btn-primary(ng-click="vm.resetTeleMarketing()") {{'Reset' | translate}}
+                            div(style='display:inline-block')
+                              button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
                             ng-click="vm.createTeleMarketingTask()", ng-disabled="form_create_telemarketing_task.$invalid") {{'CREATE' | translate}}
-

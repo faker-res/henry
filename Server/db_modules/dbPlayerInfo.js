@@ -14251,19 +14251,41 @@ let dbPlayerInfo = {
     },
 
     importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
+        console.log('platform===', platform);
+        console.log('TYPEOF platform===', typeof platform);
+        console.log('phoneNumber===', phoneNumber);
+        console.log('TYPEOF phoneNumber===', typeof phoneNumber);
+        console.log('dxMission===', dxMission);
+        console.log('TYPEOF dxMission===', typeof dxMission);
+
         let phoneArr = phoneNumber.split(',').map((item) => parseInt(item) );
+        let phoneCheck = phoneArr.map(item => {
+            console.log('item===', item);
+            console.log('TYPEOF item===', typeof item);
+            return item;
+        });
+        console.log('phoneArr===', phoneArr);
+        console.log('phoneArr.length===', phoneArr.length);
+        console.log('phoneArr[0]===', phoneArr[0]);
+        console.log('TYPEOF phoneArr[0]===', typeof phoneArr[0]);
+        console.log('phoneArr[1]===', phoneArr[1]);
+        console.log('phoneCheck===', phoneCheck);
 
         if(phoneArr.length > 0) {
             for (let x = 0; x < phoneArr.length; x++) {
+                console.log('phoneArr[x]===', phoneArr[x]);
+                console.log('TYPEOF phoneArr[x]===', typeof phoneArr[x]);
                 let importData = {
                     platform: platform,
                     phoneNumber: phoneArr[x],
-                    dxMission: dxMission
+                    dxMission: dxMission,
+                    code: 'random123'
                 };
 
                 let importPhone = new dbconfig.collection_dxPhone(importData);
                 importPhone.save();
             }
+
             return true;
         }
         return false;

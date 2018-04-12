@@ -157,7 +157,7 @@
 
                                     tr(ng-repeat='(j,oneConfig) in level.levelUpConfig')
                                         td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelUpConfig.length}}')
-                                            a.fa.fa-plus-circle(ng-click='level.levelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
+                                            a.fa.fa-plus-circle(ng-click='level.levelUpConfig.push({andConditions: true});vm.endLoadWeekDay();' title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
                                             br
                                             label(ng-if='level.levelUpConfig.length > 1') {{"OR" | translate}}
                                         td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")

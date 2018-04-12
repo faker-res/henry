@@ -167,6 +167,7 @@ var proposalExecutor = {
             this.executions.executePlayerLevelMigration.des = "Player Level Migration";
             this.executions.executePlayerPacketRainReward.des = "Player Packet Rain Reward";
             this.executions.executePlayerPromoCodeReward.des = "Player Promo Code Reward";
+            this.executions.executeDxReward.des = "Player Promo Code Reward";
             this.executions.executePlayerLimitedOfferReward.des = "Player Limited Offer Reward";
             this.executions.executePlayerTopUpReturnGroup.des = "Player Top Up Return Group Reward";
             this.executions.executePlayerRandomRewardGroup.des = "Player Random Reward Group Reward";
@@ -227,6 +228,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerLevelMigration.des = "Reject Player Level Migration";
             this.rejections.rejectPlayerPacketRainReward.des = "Reject Player Packet Rain Reward";
             this.rejections.rejectPlayerPromoCodeReward.des = "Reject Player Promo Code Reward";
+            this.rejections.rejectDxReward.des = "Reject Player Promo Code Reward";
             this.rejections.rejectPlayerLimitedOfferReward.des = "Reject Player Limited Offer Reward";
             this.rejections.rejectPlayerTopUpReturnGroup.des = "Reject Player Top Up Return Group Reward";
             this.rejections.rejectPlayerRandomRewardGroup.des = "Reject Player Random Reward Group Reward";
@@ -2222,6 +2224,33 @@ var proposalExecutor = {
                 }
             },
 
+            executeDxReward: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.DX_REWARD,
+                        rewardType: constRewardType.DX_REWARD,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
+                        eventId: proposalData.data.eventId,
+                        useLockedCredit: proposalData.data.useLockedCredit,
+                    };
+
+                    if (proposalData.data.providerGroup) {
+                        taskData.providerGroup = proposalData.data.providerGroup;
+                    }
+                    createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.DX_REWARD, proposalData);
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect player DX reward proposal data"
+                    });
+                }
+            },
+
             executePlayerLimitedOfferReward: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
                     let taskData = {
@@ -3210,6 +3239,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerPromoCodeReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectDxReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
