@@ -216,7 +216,7 @@ var dbDXMission = {
                     phoneDetail.dxMission.lastXDigit = 5;
                 }
 
-                // todo :: handle what happen when player name already exist (e.g. case where ansother phone number have the same last X digits)
+                // todo :: handle what happen when player name already exist (e.g. case where another phone number have the same last X digits)
                 var playerName = phoneDetail.phoneNumber.toString().slice(-(phoneDetail.dxMission.lastXDigit));
 
                 var playerData = {
