@@ -10,7 +10,7 @@
                             a.common-tab(data-toggle="tab", href="#Task", ng-click="vm.teleMarketingPageName='TELEMARKETING_TASK';vm.updatePageTile();")
                                 .fa.fa-wrench.margin-right-5
                                 text.span {{"TELEMARKETING_TASK" | translate}}
-                        li(ng-show="checkViewPermission('TeleMarketing', 'Filter', 'Read')")
+                        li(ng-show="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')")
                             a.common-tab(data-toggle="tab", href="#Filter", ng-click="vm.teleMarketingPageName='phoneNumFilter';vm.updatePageTile();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"phoneNumFilter" | translate}}
@@ -109,3 +109,4 @@
                     div(style='display:inline-block')
                       button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
                     ng-click="vm.updateTeleMarketingTask()", ng-disabled="form_edit_telemarketing_task.$invalid") {{'EDIT' | translate}}
+

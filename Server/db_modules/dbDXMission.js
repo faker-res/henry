@@ -25,6 +25,11 @@ var dbDXMission = {
     getDxMission: function (id){
         return dbconfig.collection_dxMission.find({'_id':id});
     },
+
+    getAllDxMission: function () {
+        return dbconfig.collection_dxMission.find();
+    },
+
     createDxMission: function(data){
         data.platform = ObjectId(data.platform);
         let dxMission = new dbconfig.collection_dxMission(data);
@@ -375,7 +380,7 @@ function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName)
 }
 
 function generateDXCode(dxMission, platformId, tries) {
-    tries = (tries || 0) + 1;
+    tries = (Number(tries) || 0) + 1;
     if (tries > 5) {
         return Promise.reject({
             message: "Generate dian xiao code failure."

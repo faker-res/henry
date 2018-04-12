@@ -668,11 +668,9 @@ var roleChecker = {
                 Update: [],
                 Delete: [],
             },
-            "Filter": {
+            "phoneNumFilter": {
                 Read: [],
-                Create: [],
-                Update: [],
-                Delete: [],
+                FilterAllPlatform: [],
             },
             "Overview": {
                 Read: ["getTeleMarketingOverview"],
