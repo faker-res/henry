@@ -11,6 +11,7 @@ define(['js/app'], function (myApp) {
 
             // For debugging:
             window.VM = vm;
+
             vm.teleMarketingOverview = {};
             vm.createTeleMarketing = {
                 description: '',
@@ -338,8 +339,14 @@ define(['js/app'], function (myApp) {
                     alertDays: vm.createTeleMarketing.alertDays,
                 };
 
+                console.log("creteTeleMarketingTask send", sendData);
                 socketService.$socket($scope.AppSocket, 'createDxMission', sendData, function (data) {
                     console.log("create DX Mission retData", data);
+                    if(data.success && data.data) {
+                        //display success
+                    } else {
+                        //display error
+                    }
                 });
             };
         };
