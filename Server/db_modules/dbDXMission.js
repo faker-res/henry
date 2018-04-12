@@ -307,7 +307,7 @@ function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName)
 }
 
 function generateDXCode(dxMission, platformId, tries) {
-    tries = (tries || 0) + 1;
+    tries = (Number(tries) || 0) + 1;
     if (tries > 5) {
         return Promise.reject({
             message: "Generate dian xiao code failure."
