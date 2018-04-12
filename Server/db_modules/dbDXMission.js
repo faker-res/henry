@@ -275,13 +275,14 @@ let dbDXMission = {
         }).populate({path: "dxMission", model: dbconfig.collection_dxMission})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (phoneDetail) {
-                dxPhone = phoneDetail;
-                platform = dxPhone.platform;
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
                     });
                 }
+                
+                dxPhone = phoneDetail;
+                platform = dxPhone.platform;
 
                 if (!phoneDetail.dxMission) {
                     phoneDetail.dxMission = {
@@ -338,7 +339,7 @@ let dbDXMission = {
                 updateDxPhoneBUsed(dxPhone).catch(errorUtils.reportError);
 
                 return {
-                    redirect: dxMission.loginUrl + "?token=" + token
+                    redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
                 }
             }
         );
@@ -528,9 +529,10 @@ function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tr
             message: "Generate dian xiao code failure."
         })
     }
-    let playerName = platformPrefix + dxPrefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
+    let playerName = dxPrefix + String(dxPhone.phoneNumber).slice(-(lastXDigit));
+    let fullPlayerName = platformPrefix + playerName;
 
-    return dbconfig.collection_players.findOne({name: playerName, platform: dxPhone.platform}).lean().then(
+    return dbconfig.collection_players.findOne({name: fullPlayerName, platform: dxPhone.platform}).lean().then(
         playerExist => {
             if (playerExist) {
                 return generateDXPlayerName(lastXDigit + 1, platformPrefix, dxPrefix, dxPhone, tries);
@@ -539,5 +541,5 @@ function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tr
                 return playerName;
             }
         }
-    )
+    );
 }
