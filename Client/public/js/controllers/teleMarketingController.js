@@ -281,15 +281,44 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+
+            vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
+                var isChange = false;
+                if (!curP) {
+                    curP = 1;
+                }
+                if (pageSize != vm[objKey].limit) {
+                    isChange = true;
+                    vm[objKey].limit = pageSize;
+                }
+                if ((curP - 1) * pageSize != vm[objKey].index) {
+                    isChange = true;
+                    vm[objKey].index = (curP - 1) * pageSize;
+                }
+                if (isChange) return searchFunc.call(this);
+            };
+
             //search telemarketing overview
+
+            vm.showTeleMarketingOverview = function () {
+                utilService.actionAfterLoaded(('#teleMarketingOverview'), function () {
+                    vm.teleMarketingOverview.pageObj = utilService.createPageForPagingTable("#teleMarketingOverviewTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "teleMarketingOverview", vm.getTeleMarketingOverview);
+                    });
+                    vm.getTeleMarketingOverview(true);
+                });
+            }
+
             vm.getTeleMarketingOverview = function (newSearch) {
+                vm.loadingTeleMarketingOverviewTable = true;
+
                 let sendquery = {
                     platform: vm.selectedPlatform.id,
                     query: {
                     },
                     index: newSearch ? 0 : (vm.teleMarketingOverview.index || 0),
                     limit: vm.teleMarketingOverview.limit || 5000,
-                    sortCol: vm.teleMarketingOverview.sortCol || {validConsumptionAmount: -1},
+                    sortCol: vm.teleMarketingOverview.sortCol || -1,
                 };
 
                 if(vm.teleMarketingOverview){
@@ -320,8 +349,205 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getTeleMarketingOverview', sendquery, function (data) {
-                    //console.log("AAAAAAAAAAAaa",data);
+                    if(data && data.data){
+                        console.log('getTeleMarketingOverview', data.data.dxMissionData);
+                        let result = data.data.dxMissionData;
+                        vm.teleMarketingOverview.totalCount = data.data.totalCount;
+                        result.forEach((item,index) => {
+                            item['createTime'] = vm.dateReformat(item.createTime);
+                            //item['targetProviderGroup'] = $translate(item.targetProviderGroup);
+                        });
+
+                        $scope.$evalAsync(vm.drawTeleMarketingOverviewTable(newSearch, result, vm.teleMarketingOverview.totalCount));
+                        vm.loadingTeleMarketingOverviewTable = false;
+                    }
                 });
+            };
+
+            vm.drawTeleMarketingOverviewTable = function (newSearch, tblData, size) {
+                console.log("teleMarketingOverviewTable",tblData);
+
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    "aaSorting": vm.teleMarketingOverview.sortCol || [[2, 'desc']],
+                    aoColumnDefs: [
+                        // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+
+                        {title: $translate('ORDER'), data: "size"},
+                        {
+                            title: $translate('TASK_NAME'),
+                            data: "name",
+                            render: function (data, type, row) {
+                                var link = $('<a>', {
+
+                                    'ng-click': 'vm.showTeleMarketingTaskModal("' + data + '")'
+
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {title: $translate('TASK_REMARK'), data: "description"},
+                        {title: $translate('TASK_CREATE_TIME'), data: "createTime"},
+                        {title: $translate('TOTAL_IMPORTED_LIST'), data: "creditAmount"},
+                        {title: $translate('TOTAL_SENT_MESSAGE'), data: "creditAmount"},
+                        {title: $translate('TOTAL_PLAYER_CLICKED'), data: "creditAmount"},
+                        {title: $translate('TOTAL_PLAYER_DEPOSIT'), data: "creditAmount"},
+                        {title: $translate('TOTAL_PLAYER_MULTI_DEPOSIT'), data: "creditAmount"},
+                        {title: $translate('TOTAL_VALID_PLAYER'), data: "creditAmount"},
+                        {title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "creditAmount"},
+                        {title: $translate('TOTAL_VALID_CONSUMPTION'), data: "creditAmount"},
+                        // {
+                        //     title: $translate('RewardProposalId'),
+                        //     data: "proposalNumber",
+                        //     render: function (data, type, row) {
+                        //         var link = $('<a>', {
+                        //
+                        //             'ng-click': 'vm.showProposalModal("' + data + '",1)'
+                        //
+                        //         }).text(data);
+                        //         return link.prop('outerHTML');
+                        //     }
+                        // },
+                        // {title: $translate('SubRewardType'), data: "rewardTask.type",
+                        //     render: function(data,type,row){
+                        //         var text = $translate(data);
+                        //         return text;
+                        //     }
+                        //
+                        // },
+                        // {title: $translate('UNLOCKTIME'), data: "unlockTime"},
+                        // //相關存款金額
+                        // {title: $translate('Deposit Amount'), data: "topupAmount"},
+                        // {title: $translate('Deposit ProposalId'),
+                        //     data: "topupProposalNumber",
+                        //     render: function (data, type, row) {
+                        //         var link = $('<a>', {
+                        //             'ng-click': 'vm.showProposalModal("' + data + '",1)'
+                        //         }).text(data);
+                        //         return link.prop('outerHTML');
+                        //     }
+                        // },
+                        // //相關存款提案號
+                        // {title: $translate('REWARD_AMOUNT'), data: "bonusAmount"},
+                        // {
+                        //     //解锁进度（投注额）
+                        //     "title": $translate('CONSUMPTION_UNLOCK'),data:"currentConsumption",
+                        //     render: function (data, type, row, meta) {
+                        //         let text = row.currentConsumption +"/"+row.maxConsumption;
+                        //         return "<div>" + text + "</div>";
+                        //     }
+                        // },
+                        // // 解鎖進度
+                        // {
+                        //     //解锁进度（输赢值）
+                        //     "title": $translate('WINLOSE_UNLOCK'),data:"currentAmount",
+                        //     render: function (data, type, row ,meta) {
+                        //         // let spendingAmt = vm.calSpendingAmt(meta.row);
+                        //         // let isSubmit = vm.isSubmitProposal(meta.row);
+                        //         let text = -row.currentAmount + "/-" + row.targetAmount;
+                        //
+                        //         return "<div>" + text + "</div>";
+                        //     }
+                        // },
+                        // {title: $translate('GAME LOBBY / REWARD TASK GROUP'), data: "targetProviderGroup"},
+                        // {
+                        //     "title": $translate('IsConsumption'),data: "useConsumption",
+                        //     render: function (data, type, row) {
+                        //         var text = $translate(data);
+                        //         return "<div>" + text + "</div>";
+                        //     }
+                        // },
+                        // {
+                        //     "title": $translate('creator'),data: "creator.name",
+                        //
+                        // },
+                    ],
+                    "paging": false,
+                    // "scrollX": true,
+                    // "autoWidth": true,
+                    // "sScrollY": 350,
+                    // "scrollCollapse": true,
+                    // "destroy": true,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                tableOptions.language.emptyTable=$translate("No data available in table");
+
+                utilService.createDatatableWithFooter('#teleMarketingOverviewTable', tableOptions, {
+                    //4: topUpAmountSum,
+                    // 6: summary ? summary.bonusAmountSum: 0,
+                    // 7: summary ? summary.requiredBonusAmountSum: 0,
+                    // 8: summary ? summary.currentAmountSum :0
+                });
+
+                vm.teleMarketingOverview.pageObj.init({maxCount: size}, newSearch);
+                $('#teleMarketingOverviewTable').off('order.dt');
+                $('#teleMarketingOverviewTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'teleMarketingOverview', vm.getTeleMarketingOverview);
+                });
+                $('#teleMarketingOverviewTable').resize();
+
+            };
+
+            vm.generalDataTableOptions = {
+                "paging": true,
+                columnDefs: [{targets: '_all', defaultContent: ' '}],
+                dom: 'tpl',
+                "aaSorting": [],
+                destroy: true,
+                "scrollX": true,
+                // sScrollY: 350,
+                scrollCollapse: true,
+                // order: [[0, "desc"]],
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    ['10', '25', '50', $translate('Show All')]
+                ],
+                "language": {
+                    "info": "",
+                    "emptyTable": "",
+                    "paginate": {
+                        "previous": $translate("PREVIOUS_PAGE"),
+                        "next": $translate("NEXT_PAGE"),
+                    },
+                    "lengthMenu": $translate("lengthMenuText"),
+                    sZeroRecords: ""
+                },
+                "drawCallback": function (settings) {
+                    setTimeout(function () {
+                        $(window).trigger('resize');
+                    }, 100)
+                }
+            };
+
+
+            vm.dateReformat = function (data) {
+                if (!data) return '';
+                return utilService.getFormatTime(data);
+            };
+
+            vm.showTeleMarketingTaskModal = function (taksId) {
+                socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
+                    platformId: vm.selectedPlatform.id,
+                    proposalId: proposalId
+                }, function (data) {
+                    vm.selectedProposal = data.data;
+
+                    //let tmpt = vm.proposalTemplate[templateNo];
+                    $("#modalDXMission").modal('show');
+                    if (templateNo == 1) {
+                        $("#modalDXMission").css('z-Index', 1051).modal();
+                    }
+
+                    $("#modalDXMission").on('shown.bs.modal', function (e) {
+                        $scope.safeApply();
+                    })
+
+                })
             };
 
 
