@@ -1313,7 +1313,7 @@ define(['js/app'], function (myApp) {
                 // }
 
                 let sendQuery = {
-                    platform: "5733e26ef8c8a9355caf49d8" ,
+                    platform: vm.selectedPlatform.id ,
                     count: 5,
                     dxMission: dxMission
                 }
