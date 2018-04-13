@@ -703,18 +703,20 @@ function loginDefaultPasswordPlayer (dxPhone) {
                 return Promise.reject({message: "Player not found"}); // will go to catch and handle it anyway
             }
 
-            bcrypt.compare(String(dxMission.password), String(player.password), function (err, isMatch) {
-                if (err || !isMatch) {
-                    return Promise.reject({message: "Password changed"});
-                }
+            return new Promise((resolve, reject) => {
+                bcrypt.compare(String(dxMission.password), String(player.password), function (err, isMatch) {
+                    if (err || !isMatch) {
+                        return reject({message: "Password changed"});
+                    }
+
+                    let profile = {name: player.name, password: player.password};
+                    let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                    resolve({
+                        redirect: dxMission.loginUrl + "?playerId=" + player.playerId + "&token=" + token
+                    });
+                });
             });
-
-            let profile = {name: player.name, password: player.password};
-            let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
-
-            return {
-                redirect: dxMission.loginUrl + "?playerId=" + player.playerId + "&token=" + token
-            }
         }
     ).catch(
         err => {
