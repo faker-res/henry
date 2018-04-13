@@ -16,6 +16,7 @@ define(['js/app'], function (myApp) {
             vm.createTeleMarketingDefault = {
                 description: '',
                 creditAmount: 0,
+                providerGroup: '',
                 invitationTemplate: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}",
                 welcomeContent: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}"
             };
