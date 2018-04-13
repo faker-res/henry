@@ -13,6 +13,7 @@ const constServerCode = require('../const/constServerCode');
 const constProposalType = require('../const/constProposalType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constProposalEntryType = require('../const/constProposalEntryType');
+const constProposalStatus = require('../const/constProposalStatus');
 const dbProposal = require('./../db_modules/dbProposal');
 
 const mongoose = require('mongoose');
@@ -83,7 +84,7 @@ let dbDXMission = {
                 data.dxMissionData.forEach(
                     missionData => {
                         if(missionData){
-                            dataSummaryListProm.push(dbDXMission.getDataSummaryList(missionData._id));
+                            dataSummaryListProm.push(dbDXMission.getDataSummaryList(missionData._id, missionData.platform));
                         }
                     }
                 )
@@ -105,6 +106,9 @@ let dbDXMission = {
                                                         missionData.registeredPlayerCount = summary.registeredPlayerCount;
                                                         missionData.topUpPlayerCount = summary.topUpPlayerCount;
                                                         missionData.multiTopUpPlayerCount = summary.multiTopUpPlayerCount;
+                                                        missionData.totalValidConsumptionCount = summary.totalValidConsumptionCount;
+                                                        missionData.totalValidConsumptionAmount = summary.totalValidConsumptionAmount;
+                                                        missionData.totalPlayerDepositAmount = summary.totalPlayerDepositAmount;
                                                     }
 
                                                     return;
@@ -155,7 +159,7 @@ let dbDXMission = {
         // }
     },
 
-    getDataSummaryList: function (dxMissionId) {
+    getDataSummaryList: function (dxMissionId, platformObjId) {
         if(!dxMissionId){
             return;
         }
@@ -165,14 +169,18 @@ let dbDXMission = {
         let registeredPlayerListProm = [];
         let topUpPlayerProm = [];
         let playerConsumptionProm = [];
+        let partnerLevel = {};
         let totalRegisteredPlayer = 0;
         let noOfPlayerTopUp = 0;
         let noOfPlayerMultiTopUp = 0;
         let validPlayer = 0;
         let totalTopUpAmount = 0;
         let totalTopUpCount = 0;
-        let totalValidConsumptionAmount = 0;
         let totalValidConsumptionCount = 0;
+        let totalValidConsumptionAmount = 0;
+        let totalPlayerBonusAmount = 0;
+        let totalPlayerTopUpAmount = 0;
+
 
         importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
         sentMessageListProm = dbconfig.collection_smsLog.find({"data.dxMission": dxMissionId}).count();
@@ -183,10 +191,9 @@ let dbDXMission = {
 
                     playerData.forEach(playerId => {
                        if(playerId){
-                           console.log("FFFFFFFFFFFFFFFFF",playerId);
                            topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId}).then(
                                topUpRecord => {
-                                   if(topUpRecord){
+                                   if(topUpRecord && topUpRecord.length > 0){
                                        noOfPlayerTopUp += 1;
                                        totalTopUpCount = topUpRecord.length;
                                        totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
@@ -201,24 +208,10 @@ let dbDXMission = {
                                    }
                                }
                            ));
-
-                           playerConsumptionProm.push(dbconfig.collection_playerConsumptionRecord.find({playerId: playerId}).then(
-                               consumptionRecord => {
-                                   if(consumptionRecord){
-                                       //totalValidConsumptionCount = consumptionRecord.length;
-                                       totalValidConsumptionCount = 2;
-                                       totalValidConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
-                                           return previousValue.validAmount + currentValue.validAmount;
-                                       });
-
-                                       return;
-                                   }
-                               }
-                           ));
                        }
                     });
 
-                    return Promise.all([topUpPlayerProm,playerConsumptionProm]).then(
+                    return Promise.all(topUpPlayerProm).then(
                         returnData => {
                             return returnData;
                         }
@@ -227,7 +220,121 @@ let dbDXMission = {
             }
         );
 
-        return Promise.all([importedListProm, sentMessageListProm, registeredPlayerListProm]).then(
+        let totalValidPlayerProm = dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).then(
+            partnerLevelConfig => {
+                partnerLevel = partnerLevelConfig ? partnerLevelConfig : {};
+                let resultProm = [];
+                return dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
+                    playerData => {
+                        if(playerData){
+                            playerData.forEach(player => {
+                                let totalTopUpAmount = 0;
+                                let totalConsumptionAmount = 0;
+                                let totalTopUpTime = 0;
+                                let totalConsumptionTime = 0;
+                                let topUpProm = [];
+                                let consumptionProm = [];
+                                let bonusProm = [];
+                                let playerBonusAmount = 0;
+
+
+                                if(player){
+                                    topUpProm = dbconfig.collection_playerTopUpRecord.find({playerId: player._id}).then(
+                                        topUpRecord => {
+                                            if(topUpRecord && topUpRecord.length > 0){
+                                                totalTopUpTime = topUpRecord.length;
+                                                if(topUpRecord.length > 1){
+                                                    totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
+                                                        return (previousValue.amount || previousValue) + currentValue.amount;
+
+                                                    });
+                                                }else{
+                                                    totalTopUpAmount = topUpRecord[0].amount;
+                                                }
+
+                                                return;
+                                            }
+                                        }
+                                    );
+
+                                    consumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: player._id}).then(
+                                        consumptionRecord => {
+                                            if(consumptionRecord && consumptionRecord.length > 0){
+                                                totalConsumptionTime = consumptionRecord.length;
+                                                if(consumptionRecord.length > 1){
+                                                    totalConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
+                                                        return (previousValue.validAmount || previousValue) + currentValue.validAmount;
+                                                    });
+                                                }else{
+                                                    totalConsumptionAmount = consumptionRecord[0].validAmount;
+                                                }
+
+                                                return;
+                                            }
+                                        }
+                                    );
+
+                                    bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: constProposalType.PLAYER_BONUS}).then(
+                                        proposalType => {
+                                            if(proposalType){
+                                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': player._id, status: constProposalStatus.APPROVED}).then(
+                                                    proposalData => {
+                                                        if(proposalData && proposalData.length > 0){
+                                                            if(proposalData.length > 1){
+                                                                playerBonusAmount = proposalData.reduce(function(previousValue, currentValue) {
+                                                                    if(previousValue.data){
+                                                                        return previousValue.data.amount + currentValue.data.amount;
+                                                                    }else{
+                                                                        return previousValue + currentValue.data.amount;
+                                                                    }
+
+                                                                });
+                                                            }else{
+                                                                playerBonusAmount = proposalData[0].data.amount;
+                                                            }
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    );
+
+                                    resultProm.push(Promise.all([topUpProm, consumptionProm, bonusProm]).then(
+                                        result => {
+                                            if(partnerLevel){
+
+                                                totalValidConsumptionAmount += totalConsumptionAmount;
+                                                totalPlayerTopUpAmount += totalTopUpAmount;
+                                                totalPlayerBonusAmount += playerBonusAmount;
+
+                                                if(totalTopUpTime < partnerLevel.validPlayerTopUpTimes){
+                                                    return;
+                                                }
+                                                if(totalTopUpAmount < partnerLevel.validPlayerTopUpAmount) {
+                                                    return;
+                                                }
+                                                if(totalConsumptionTime < partnerLevel.validPlayerConsumptionTimes){
+                                                    return;
+                                                }
+                                                if(totalConsumptionAmount < partnerLevel.validPlayerConsumptionAmount){
+                                                    return;
+                                                }
+
+                                                totalValidConsumptionCount += 1;
+                                            }
+                                        }
+                                    ));
+                                }
+                            })
+
+                            return Promise.all(resultProm);
+                        }
+                    }
+                );
+            }
+        )
+
+        return Promise.all([importedListProm, sentMessageListProm, registeredPlayerListProm, totalValidPlayerProm]).then(
             result => {
                 if(result){
                     let importedListCount = result[0] ? result[0] : 0;
@@ -241,19 +348,9 @@ let dbDXMission = {
                         topUpPlayerCount: noOfPlayerTopUp,
                         multiTopUpPlayerCount: noOfPlayerMultiTopUp,
                         totalValidConsumptionAmount: totalValidConsumptionAmount,
-                        totalValidConsumptionCount : totalValidConsumptionCount
+                        totalValidConsumptionCount : totalValidConsumptionCount,
+                        totalPlayerDepositAmount: totalPlayerTopUpAmount - totalPlayerBonusAmount
                     }
-                }
-            }
-        )
-
-    },
-
-    getValidPlayer: function (platformId, dxMissionId) {
-        return dbconfig.collection_partnerLevelConfig.findOne({platform: platformId}).then(
-            partnerLevelConfig => {
-                if(partnerLevelConfig){
-
                 }
             }
         )
@@ -350,6 +447,12 @@ let dbDXMission = {
                         return {
                             redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
                         }
+                    },
+                    function(error){
+                        //if already created player, redirect to login url
+                        return {
+                            redirect: dxMission.loginUrl;
+                        }
                     }
                 );
 
@@ -431,7 +534,10 @@ let dbDXMission = {
                         platformId: phoneData.platform.platformId,
                         message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData),
                         //delay: data.delay,
-                        'data.dxMission': phoneData.dxMission,
+                        data: {
+                            dxMission: phoneData.dxMission
+                        }
+                        //'data.dxMission': phoneData.dxMission,
                     };
                     let recipientName = data.name || '';
 
