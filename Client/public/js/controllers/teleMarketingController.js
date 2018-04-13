@@ -410,7 +410,7 @@ define(['js/app'], function (myApp) {
                                 var link = $('<a>', {
 
                                     // 'ng-click': 'vm.showSendSMSTable("' + data + '")',
-                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -1329,20 +1329,24 @@ define(['js/app'], function (myApp) {
                     if(data){
                         vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
                         vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : 0;
-                        // vm.msgTemplate = data.data.
+                        vm.msgTemplate = data.data && data.data.dxMissionData ? data.data.dxMissionData : 0
 
                     }
                     vm.showSMSTable = true;
                     vm.teleMarketingSendSMS.data.forEach((item, index) => {
                         item['createTime'] = vm.dateReformat(item.createTime);
+                        item['lastTime'] = vm.dateReformat(item.lastTime);
                         item['playerName'] = item.playerObjId && item.playerObjId.name ? item.playerObjId.name : '-';
                         item['topupTimes'] = item.playerObjId && item.playerObjId.topUpTimes ? item.playerObjId.topUpTimes : 0;
                         item['loginTimes'] = item.playerObjId && item.playerObjId.loginTimes ? item.playerObjId.loginTimes : 0;
-                        // if (index ==2) {
-                        //     item['isLocked'] = true;
+                        item['lastTime'] = item.lastTime ? item.lastTime : '-';
+                        item['count'] = item.count ? item.count : 0;
+
+                        // if ( item['playerName'] == '-') {
+                        //     item['isLocked'] = false;
                         // }
                         // else {
-                        //     item['isLocked'] = false;
+                        //     item['isLocked'] = true;
                         // }
                     });
 
@@ -1355,7 +1359,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
-                    "aaSorting": vm.telePlayerSendingMsgTable.sortCol || [[0]],
+                    "aaSorting": vm.telePlayerSendingMsgTable.sortCol || [[4, 'desc']],
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -1363,9 +1367,9 @@ define(['js/app'], function (myApp) {
                     columns: [
                         {
                             title: $translate('ORDER'),
-                            render: function(data, type, row, index){
-                                return index.row+1 ;
-                            }
+                            // render: function(data, type, rowrow, index){
+                            //     return index.row+1 ;
+                            // }
 
                         },
                         { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
@@ -1373,7 +1377,7 @@ define(['js/app'], function (myApp) {
                         { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
                         { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "createTime"},
                         { title: $translate('LAST_SENDING'), data: "lastTime"},
-                        { title: $translate('SENDING_TIMES'), data: "sendingTimes"},
+                        { title: $translate('SENDING_TIMES'), data: "count"},
                         { title: $translate('loginTimes'), data: "loginTimes"},
                         { title: $translate('TOP_UP_TIMES'), data: "topupTimes"},
 
@@ -1409,11 +1413,16 @@ define(['js/app'], function (myApp) {
                 });
                 tableOptions.language.emptyTable=$translate("No data available in table");
 
-                utilService.createDatatableWithFooter('#telePlayerSendingMsgTable', tableOptions, {
+                let telePlayerSendingMsg = utilService.createDatatableWithFooter('#telePlayerSendingMsgTable', tableOptions, {
 
                 });
 
                 vm.telePlayerSendingMsgTable.pageObj.init({maxCount: size}, newSearch);
+                telePlayerSendingMsg.on( 'order.dt', function () {
+                    telePlayerSendingMsg.column(0, {order:'applied'}).nodes().each( function (cell, i) {
+                        cell.innerHTML = i+1;
+                    } );
+                } ).draw();
 
                 var $checkAll = $(".dataTables_scrollHead thead .customerSelected");
                 if ($checkAll.length == 1) {
