@@ -14304,7 +14304,7 @@ let dbPlayerInfo = {
                 function (missionProm) {
                     platformId = missionProm.platform.platformId;
                     dxCode = missionProm.platform.platformId + randomString;
-                    return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
+                    return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
                 }
             ).then(
                 function (dxPhoneExist) {
