@@ -336,6 +336,8 @@
   "TIME": "时间",
   "ACTION": "行动",
   "PARAMETER": "参数",
+  "MESSAGE_PREVIEW": "短信预览",
+  "Words/Message": "字/条",
   "SendGroupMessage": "群发短信",
   "bonusAmount1": "输赢值",
   "RewardTask Progress Log": "优惠解锁进度",
