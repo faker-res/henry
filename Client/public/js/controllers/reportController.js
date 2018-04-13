@@ -5805,6 +5805,126 @@ define(['js/app'], function (myApp) {
                         vm.proposalQuery.pageObj = utilService.createPageForPagingTable("#proposalTablePage", {}, $translate, vm.proposalTablePageChange);
                     });
                     break;
+                case "DX_NEWACCOUNT_REPORT":
+                    utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
+                        let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                        let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                        let todayEndTime = utilService.getTodayEndTime();
+
+                        // Get Promote CS and way lists
+                        vm.allPromoteWay = {};
+                        let query = {
+                            platformId: vm.selectedPlatform._id
+                        };
+                        socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
+                            function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.allPromoteWay = data.data;
+                                })
+                            },
+                            function (err) {
+                                console.log(err);
+                            }
+                        );
+
+                        // Get Departments Detail
+                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                            console.log('getDepartmentTreeById', data);
+                            let parentId;
+                            vm.queryDepartments = [];
+                            vm.queryRoles = [];
+
+                            data.data.map(e => {
+                                if (e.departmentName == vm.selectedPlatform.name) {
+                                    vm.queryDepartments.push(e);
+                                    parentId = e._id;
+                                }
+                            });
+
+                            data.data.map(e => {
+                                if (String(parentId) == String(e.parent)) {
+                                    vm.queryDepartments.push(e);
+                                }
+                            });
+
+                            $scope.$digest();
+                            if (typeof(callback) == 'function') {
+                                callback(data.data);
+                            }
+                        });
+
+                        vm.dxNewPlayerQuery = {
+                            days: 1,
+                            valueScoreOperator: ">=",
+                            topUpTimesOperator: ">=",
+                            bonusTimesOperator: ">=",
+                            topUpAmountOperator: ">="
+                        };
+                        vm.dxNewPlayerQuery.start = utilService.createDatePicker('#dxNewPlayerReportQuery .startTime');
+                        vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                        vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
+                        vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+
+                        endLoadMultipleSelect('.spicker');
+                    });
+                    break;
+                case "PLAYERDOMAIN_REPORT":
+                    vm.playerDomain = {totalCount: 0};
+                    vm.playerDomain.topUpTimesOperator = ">=";
+                    vm.playerDomain.playerValueOperator = ">=";
+                    vm.playerDomain.registrationInterface = "";
+                    vm.playerDomain.isNewSystem = "";
+                    vm.playerDomain.playerType = "Real Player (all)";
+
+                    utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
+                        // Get Promote CS and way lists
+                        vm.pdAllPromoteWay = {};
+                        let query = {
+                            platformId: vm.selectedPlatform._id
+                        };
+                        socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+                                $scope.$evalAsync(() => {
+                                    vm.pdAllPromoteWay = data.data;
+                                });
+                            },
+                            function (err) {
+                                console.log(err);
+                            });
+
+                        // Get Departments Detail
+                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
+                            console.log('getDepartmentTreeById', data);
+                            let parentId;
+                            vm.pdQueryDepartments = [];
+                            vm.pdQueryRoles = [];
+
+                            data.data.map(e => {
+                                if (e.departmentName == vm.selectedPlatform.name) {
+                                    vm.pdQueryDepartments.push(e);
+                                    parentId = e._id;
+                                }
+                            });
+
+                            data.data.map(e => {
+                                if (String(parentId) == String(e.parent)) {
+                                    vm.pdQueryDepartments.push(e);
+                                }
+                            });
+
+                            $scope.$digest();
+                            if (typeof(callback) == 'function') {
+                                callback(data.data);
+                            }
+                        });
+
+                        vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
+                        vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
+                        });
+                        vm.searchPlayerDomainRepport(true);
+                        endLoadMultipleSelect('.spicker');
+                    });
+                    break;
                 case "RewardReport":
                     vm.rewardTypeName = 'ALL';
                     vm.currentRewardCode = 'ALL';
@@ -5877,60 +5997,6 @@ define(['js/app'], function (myApp) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerExpenseQuery", vm.searchProviderPlayerRecord)
                     });
                 })
-            } else if (choice == "PLAYERDOMAIN_REPORT") {
-                vm.playerDomain = {totalCount: 0};
-                vm.playerDomain.topUpTimesOperator = ">=";
-                vm.playerDomain.playerValueOperator = ">=";
-                vm.playerDomain.registrationInterface = "";
-                vm.playerDomain.isNewSystem = "";
-                vm.playerDomain.playerType = "Real Player (all)";
-                utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
-                    // Get Promote CS and way lists
-                    vm.pdAllPromoteWay = {};
-                    let query = {
-                        platformId: vm.selectedPlatform._id
-                    };
-                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                            vm.pdAllPromoteWay = data.data;
-                            console.log("vm.pdAllPromoteWay", vm.pdAllPromoteWay);
-                            $scope.safeApply();
-                        },
-                        function (err) {
-                            console.log(err);
-                        });
-
-                    // Get Departments Detail
-                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                        console.log('getDepartmentTreeById', data);
-                        let parentId;
-                        vm.pdQueryDepartments = [];
-                        vm.pdQueryRoles = [];
-
-                        data.data.map(e => {
-                            if (e.departmentName == vm.selectedPlatform.name) {
-                                vm.pdQueryDepartments.push(e);
-                                parentId = e._id;
-                            }
-                        });
-
-                        data.data.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.pdQueryDepartments.push(e);
-                            }
-                        });
-
-                        $scope.$digest();
-                        if (typeof(callback) == 'function') {
-                            callback(data.data);
-                        }
-                    });
-
-                    vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
-                    vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
-                    });
-                    vm.searchPlayerDomainRepport(true);
-                });
             } else if (choice == "NEWACCOUNT_REPORT") {
                 vm.newPlayerQuery = {totalCount: 0};
                 //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
@@ -5938,65 +6004,6 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
                     vm.searchNewPlayerRecord(true);
                 });
-            } else if (choice == 'DX_NEWACCOUNT_REPORT') {
-                utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
-                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
-                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
-                    let todayEndTime = utilService.getTodayEndTime();
-
-                    // Get Promote CS and way lists
-                    vm.allPromoteWay = {};
-                    let query = {
-                        platformId: vm.selectedPlatform._id
-                    };
-                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
-                            vm.allPromoteWay = data.data;
-                            console.log("vm.allPromoteWay", vm.allPromoteWay);
-                            $scope.safeApply();
-                        },
-                        function (err) {
-                            console.log(err);
-                        });
-
-                    // Get Departments Detail
-                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                        console.log('getDepartmentTreeById', data);
-                        let parentId;
-                        vm.queryDepartments = [];
-                        vm.queryRoles = [];
-
-                        data.data.map(e => {
-                            if (e.departmentName == vm.selectedPlatform.name) {
-                                vm.queryDepartments.push(e);
-                                parentId = e._id;
-                            }
-                        });
-
-                        data.data.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.queryDepartments.push(e);
-                            }
-                        });
-
-                        $scope.$digest();
-                        if (typeof(callback) == 'function') {
-                            callback(data.data);
-                        }
-                    });
-
-                    vm.dxNewPlayerQuery = {
-                        days: 1,
-                        valueScoreOperator: ">=",
-                        topUpTimesOperator: ">=",
-                        bonusTimesOperator: ">=",
-                        topUpAmountOperator: ">="
-                    };
-                    vm.dxNewPlayerQuery.start = utilService.createDatePicker('#dxNewPlayerReportQuery .startTime');
-                    vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
-                    vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                    $scope.safeApply();
-                })
             } else if (choice == "WINRATE_REPORT") {
                 vm.winRateQuery = {};
                 vm.winRateSummaryData = {};
@@ -6304,6 +6311,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "Update partner phone number", action: "createUpdatePartnerPhoneProposal"},
                     {group: "PARTNER", text: "Update partner email", action: "createUpdatePartnerEmailProposal"},
                     {group: "PARTNER", text: "Update partner QQ", action: "createUpdatePartnerQQProposal"},
+                    {group: "PARTNER", text: "Update partner WeChat", action: "createUpdatePartnerWeChatProposal"},
                     {
                         group: "PARTNER",
                         text: "Update partner bank information",

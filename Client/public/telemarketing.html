@@ -21,13 +21,14 @@
     }
 
     let returnedCode = null;
+    let curLocation = location;
     if ("WebSocket" in window) {
 
         let domain = window.location.toString().replace(/\%22/g,"");
         returnedCode = getQueryVariable("code");
 
         // Let us open a web socket
-        var ws = new WebSocket("ws://localhost:9280");
+        var ws = new WebSocket("ws://cstest-eu.neweb.me/websocket");
 
         ws.onopen = function() {
             // Web Socket is connected, send data using send()
@@ -42,10 +43,16 @@
         ws.onmessage = function (evt) {
             if (evt.data){
                 let receivedMsg = JSON.parse(evt.data);
-                console.log("returned message",receivedMsg)
+                console.log("returned message",receivedMsg);
+//                curLocation.assign("");
                 if (receivedMsg.data.data && receivedMsg.data.data.redirect){
                     // redirect to the desired link
-                    window.location.href = receivedMsg.data.data.redirect;
+//                    window.location.href = receivedMsg.data.data.redirect;
+                    //alert(receivedMsg.data.data.redirect);
+                    let newPage = "https://" + receivedMsg.data.data.redirect;
+//                    alert(newPage);
+//                    window.open(newPage);
+                    curLocation.assign(newPage);
                 }
             }
 

@@ -111,22 +111,21 @@ let dbPartner = {
      */
     createPartner: function (partnerdata) {
         let deferred = Q.defer();
-        // let partnerName = partnerdata.partnerName;
+
         let platformData = null;
 
-        if (partnerdata.parent === '') {
-            partnerdata.parent = null;
-        }
         if (!partnerdata.platform) {
             return Q.reject({
                 name: "DataError",
                 message: "You did not provide the 'platform' (ObjectId) field for the new partner"
             });
         }
+
         partnerdata.isNewSystem = true;
+
         // Player name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        if (/*partnerdata.partnerName.length > 20 ||*/ !partnerdata.partnerName.match(alphaNumRegex)) {
+        if (!partnerdata.partnerName.match(alphaNumRegex)) {
             // ignore for unit test
             if (env.mode !== "local" && env.mode !== "qa") {
                 return Q.reject({
@@ -211,13 +210,7 @@ let dbPartner = {
             }
         ).then(
             function (data) {
-                if (data.isPartnerNameValid) {
-                    // If level was provided then use that, otherwise select the first level on the platform
-                    return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
-                        platform: partnerdata.platform,
-                        value: partnerdata.level || 0
-                    });
-                } else {
+                if (!data.isPartnerNameValid) {
                     deferred.reject({
                         name: "DataError",
                         message: "Username already exists"
@@ -233,8 +226,7 @@ let dbPartner = {
                 });
                 return Promise.reject(new Error());
             }
-        ).then(
-            function (level) {
+        ).then(() => {
                 return dbPartner.createPartnerDomain(partnerdata).then(
                     () => {
                         // determine registrationInterface
@@ -277,7 +269,6 @@ let dbPartner = {
                         }
 
                         let partner = new dbconfig.collection_partner(partnerdata);
-                        partner.level = level;
                         partner.partnerName = partnerdata.partnerName.toLowerCase();
                         return partner.save();
                     },
@@ -289,12 +280,6 @@ let dbPartner = {
                         });
                     }
                 );
-            }, function (error) {
-                deferred.reject({
-                    name: "DataError",
-                    message: "Error in getting partner level",
-                    error: error
-                });
             }
         ).then(
             function (data) {
@@ -4179,7 +4164,7 @@ let dbPartner = {
     },
 
     isPartnerNameValidToRegister: function (query) {
-        return dbconfig.collection_partner.findOne({$or:[{partnerName:query.partnerName},{realName:query.realName}], platform: query.platform}).then(
+        return dbconfig.collection_partner.findOne({partnerName:query.partnerName, platform: query.platform}).then(
             partnerData => {
                 if (partnerData) {
                     return {isPartnerNameValid: false};

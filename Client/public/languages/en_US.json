@@ -785,6 +785,8 @@
   "createUpdatePlayerCreditProposal":"Create Update Player Credit Proposal",
   "partnerLevel/update":"Partner Level Update",
   "createUpdatePartnerPhoneProposal":"Create Update Partner Phone Proposal",
+  "createUpdatePartnerWeChatProposal":"Create Update Partner WeChat Proposal",
+  "createUpdatePartnerQQProposal":"Create Update Partner QQ Proposal",
   "ALL_CONDITIONS_MUST_MATCH_SHORT":"All",
   "ADD_NEW_LEVEL_UP_CONDITION":"Add new level-up condition",
   "REMOVE_THIS_LEVEL_UP_CONDITION":"Remove this level-up condition",
@@ -935,6 +937,7 @@
   "FILTER_THEN_IMPORT_XLS": "Filter and Import",
   "SELECT_XLS_FILE": "Select Excel File",
   "XLS_LENGTH": "Data length",
+  "SELECT_DXMISSION_INSTRUCTION": "Please select dxMission:",
 
   "PlayerFreeTrialRewardGroup": "Player Free Trial Reward (Group)",
   "FREE_TRIAL_REWARD_AMOUNT": "Reward Amount",

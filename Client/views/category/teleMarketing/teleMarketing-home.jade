@@ -20,7 +20,7 @@
                         #Task.tab-pane.fade.in.active
                             include ./teleMarketing-task
                         #Filter.tab-pane.fade
-                            include ./teleMarketing-task
+                            include ./teleMarketing-phone-num-filter
 
 
 #modalDXMission.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -78,7 +78,8 @@
 
                                         .full-width-input-block
                                             label {{"Please Choose Locking Provider Group" | translate}}: (*)
-                                            select.form-control(ng-model='vm.editTeleMarketing.providerGroup', required)
+                                            select.form-control(ng-model='vm.editTeleMarketing.providerGroup')
+                                                option(value='') {{'LOCAL_CREDIT' | translate}}
                                                 option(ng-repeat='(i,v) in vm.gameProviderGroupNames', value='{{i}}') {{v}}
 
                                         .full-width-input-block
@@ -87,7 +88,7 @@
 
                                         .full-width-input-block
                                             label {{"Please Update Invitation Template" | translate}}:
-                                            textarea.form-control(ng-model='vm.editTeleMarketing.invitationTemplate')
+                                            textarea.form-control(style="min-height:150px;",ng-model='vm.editTeleMarketing.invitationTemplate')
 
                                         .full-width-input-block
                                             label {{"Please Update Registration Succeed Message Title" | translate}}:
@@ -95,7 +96,7 @@
 
                                         .full-width-input-block
                                             label {{"Please Update Registration Succeed Message Template" | translate}}:
-                                            textarea.form-control(ng-model='vm.editTeleMarketing.welcomeContent')
+                                            textarea.form-control(style="min-height:150px;", ng-model='vm.editTeleMarketing.welcomeContent')
 
                                         .full-width-input-block
                                             label {{"Please Enter Number of Days for Alert" | translate}}:
