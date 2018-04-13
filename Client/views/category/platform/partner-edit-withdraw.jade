@@ -25,11 +25,11 @@ form(name='form_partnerPaymentInfo').well
         .panel.panel-default.margin-top-10(ng-if='isEditingPartnerPaymentShowVerify')
             .panel-body
                 label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
-                input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="verifyBankAccount")
+                input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="partnerPayment.verifyBankAccount")
                 p
-                button.btn.btn-primary.common-button(ng-disabled='!verifyBankAccount', ng-click="verifyPartnerBankAccount()") {{"VERIFY" | translate}}
-                label.fa.fa-check.colorGreen(ng-if='correctVerifyBankAccount')
-                label.fa.fa-times.colorRed(ng-if='(!correctVerifyBankAccount && (correctVerifyBankAccount !== undefined))')
+                button.btn.btn-primary.common-button(ng-disabled='!partnerPayment.verifyBankAccount', ng-click="verifyPartnerBankAccount()") {{"VERIFY" | translate}}
+                label.fa.fa-check.colorGreen(ng-if='partnerPayment.correctVerifyBankAccount')
+                label.fa.fa-times.colorRed(ng-if='(!partnerPayment.correctVerifyBankAccount && (partnerPayment.correctVerifyBankAccount !== undefined))')
         .form-group-col-md-6
             label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
             select.form-control(ng-model='partnerPayment.bankAccountType', ng-disabled='!isEditingPartnerPayment')

@@ -12630,6 +12630,9 @@ define(['js/app'], function (myApp) {
                         vm.modifyCritical.curWeChat = vm.selectedSinglePartner.wechat;
                         vm.modifyCritical.phoneNumber = vm.selectedSinglePartner.phoneNumber;
                     }
+
+                    delete vm.modifyCritical.correctVerifyPhoneNumber;
+                    delete vm.modifyCritical.verifyPhoneNumber;
                 }
                 $scope.safeApply();
             }
@@ -15747,7 +15750,6 @@ define(['js/app'], function (myApp) {
                             tabClicked: vm.tabClicked,
                             modifyCritical: vm.modifyCritical,
                             verifyPartnerPhoneNumber: vm.verifyPartnerPhoneNumber,
-                            correctVerifyPhoneNumber: vm.correctVerifyPhoneNumber,
                             platformPageName: vm.platformPageName,
                             prepareEditCritical: vm.prepareEditCritical,
                             submitCriticalUpdate: vm.submitCriticalUpdate,
@@ -15757,7 +15759,6 @@ define(['js/app'], function (myApp) {
                             filteredBankTypeList: vm.filteredBankTypeList,
                             filterBankName: vm.filterBankName,
                             isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
-                            correctVerifyBankAccount: vm.correctVerifyBankAccount,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -15766,7 +15767,6 @@ define(['js/app'], function (myApp) {
                             changeCity: vm.changeCity,
                             currentDistrict: vm.currentDistrict,
                             districtList: vm.districtList,
-                            verifyBankAccount: vm.verifyBankAccount,
                             verifyPartnerBankAccount: vm.verifyPartnerBankAccount,
                             updatePartnerPayment: vm.updatePartnerPayment,
                             today: new Date().toISOString(),
@@ -15779,12 +15779,6 @@ define(['js/app'], function (myApp) {
                                 this.newPartner.DOB = new Date(this.newPartner.DOB);
                                 sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
                             },
-                            // checkPlayerNameValidity: function (a, b, c) {
-                            //     vm.checkPlayerNameValidity(a, b, c);
-                            // },
-                            // duplicateNameFound: function () {
-                            //     return vm.duplicateNameFound;
-                            // },
                         }
                     };
 
@@ -15796,8 +15790,6 @@ define(['js/app'], function (myApp) {
                         this.filteredBankTypeList = vm.filteredBankTypeList;
                         this.filterBankName = vm.filterBankName;
                         this.isEditingPartnerPaymentShowVerify = vm.isEditingPartnerPaymentShowVerify;
-                        this.correctVerifyBankAccount = vm.correctVerifyBankAccount;
-                        this.verifyBankAccount = "";
                     };
                     $('#dialogEditPartner').floatingDialog(option);
                     $('#dialogEditPartner').focus();
@@ -15821,7 +15813,6 @@ define(['js/app'], function (myApp) {
                     if (!vm.currentDistrict) {
                         vm.currentDistrict = {};
                     }
-                    vm.correctVerifyBankAccount = undefined;
                     vm.isEditingPartnerPayment = false;
                     vm.isEditingPartnerPaymentShowVerify = false;
                     vm.partnerPayment = utilService.assignObjKeys(vm.isOneSelectedPartner(), vm.partnerPaymentKeys);
@@ -15853,11 +15844,11 @@ define(['js/app'], function (myApp) {
 
             vm.verifyPartnerBankAccount = function () {
                 socketService.$socket($scope.AppSocket, 'verifyPartnerBankAccount', {
-                    playerObjId: vm.selectedSinglePartner._id,
-                    bankAccount: vm.verifyBankAccount
+                    partnerObjId: vm.selectedSinglePartner._id,
+                    bankAccount: vm.partnerPayment.verifyBankAccount
                 }, function (data) {
-                    console.log("verifyPlayerBankAccount:", data);
-                    vm.correctVerifyBankAccount = data.data;
+                    console.log("verifyPartnerBankAccount:", data);
+                    vm.partnerPayment.correctVerifyBankAccount = data.data;
                     $scope.safeApply();
                 });
             };
@@ -15866,6 +15857,9 @@ define(['js/app'], function (myApp) {
                 var updateData = newAndModifiedFields(oldPartnerData, newPartnerData);
                 let updatedKeys = Object.keys(updateData);
                 var updateBankData = {};
+
+                delete updateData.verifyPhoneNumber;
+                delete updateData.correctVerifyPhoneNumber;
 
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = partnerId;
@@ -15947,6 +15941,10 @@ define(['js/app'], function (myApp) {
 
             vm.updatePartnerPayment = function () {
                 console.log('before after', vm.selectedSinglePartner, vm.partnerPayment);
+
+                delete vm.partnerPayment.verifyBankAccount;
+                delete vm.partnerPayment.correctVerifyBankAccount;
+
                 var result = socketService.$compareObj(vm.selectedSinglePartner, vm.partnerPayment);
 
                 var sendData = {
@@ -15985,11 +15983,11 @@ define(['js/app'], function (myApp) {
 
             vm.verifyPartnerPhoneNumber = function () {
                 socketService.$socket($scope.AppSocket, 'verifyPartnerPhoneNumber', {
-                    playerObjId: vm.isOneSelectedPartner()._id,
+                    partnerObjId: vm.isOneSelectedPartner()._id,
                     phoneNumber: vm.modifyCritical.verifyPhoneNumber
                 }, function (data) {
                     console.log("verifyPartnerPhoneNumber:", data);
-                    vm.correctVerifyPhoneNumber.str = data.data;
+                    vm.modifyCritical.correctVerifyPhoneNumber = data.data;
                     $scope.safeApply();
                 });
             };
