@@ -673,7 +673,7 @@ var roleChecker = {
                 FilterAllPlatform: [],
             },
             "Overview": {
-                Read: ["getTeleMarketingOverview","getDXPhoneNumberInfo","sendSMSToDXPlayer"],
+                Read: ["getTeleMarketingOverview","getDXPhoneNumberInfo","sendSMSToDXPlayer","getDXPlayerInfo"],
                 Create: [],
                 Update: [],
                 Delete: [],
