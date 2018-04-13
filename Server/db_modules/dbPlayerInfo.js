@@ -14267,7 +14267,7 @@ let dbPlayerInfo = {
                                         phoneNumber: phoneArr[x],
                                         dxMission: dxMission,
                                         code: randomCode,
-                                        url: dxMissionRes.domain + "?code=" + randomCode
+                                        url: dxMissionRes.domain + "/" + randomCode
                                     };
 
                                     let importPhone = new dbconfig.collection_dxPhone(importData);
