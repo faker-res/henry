@@ -503,13 +503,15 @@ let dbDXMission = {
     sendSMSToPlayer: function (adminObjId, adminName, data) {
         return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
             path: "dxMission", model: dbconfig.collection_dxMission
+        }).populate({
+            path: "platform", model: dbconfig.collection_platform
         }).then(
             phoneData => {
                 if(phoneData){
                     let sendObj = {
                         tel: data.tel,
                         channel: 2,
-                        platformId: ObjectId(data.platformId),
+                        platformId: phoneData.platform.platformId,
                         message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData),
                         //delay: data.delay,
                         data: {
@@ -587,11 +589,13 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
 
 function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
     str = String(str);
-    let registrationUrl = dxMission.domain + "?=" + dxPhone.code;
+    let registrationUrl = dxMission.domain + "?code=" + dxPhone.code;
+    let loginUrl = dxMission.loginUrl;
 
     str = str.replace ('{{username}}', player && player.name ? player.name : "");
     str = str.replace ('{{password}}', dxMission.password);
     str = str.replace ('{{registrationUrl}}', registrationUrl);
+    str = str.replace ('{{loginUrl}}', loginUrl);
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
     str = str.replace ('{{providerGroup}}', providerGroupName || "");
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
