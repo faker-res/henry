@@ -1328,10 +1328,23 @@ define(['js/app'], function (myApp) {
                     // console.log('', data.data[1]);
                     // let result = data.data[1];
                     // vm.telePlayerTable.totalCount = data.data[0];
+                // let sendQuery = {
+                //     platform: vm.selectedPlatform.id ,
+                //     count: 5
+                // }
+                //
+                // socketService.$socket($scope.AppSocket, 'getPlayersByPlatform', sendQuery, function (data) {
+
 
                     let result = data.data
-                    result.forEach((item) => {
+                    result.forEach((item, index) => {
                         item['registrationTime'] = vm.dateReformat(item.registrationTime);
+                        if (index ==2) {
+                            item['isLocked'] = true;
+                        }
+                        else {
+                            item['isLocked'] = false;
+                        }
                     });
 
                     $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, result, 6));
@@ -1367,21 +1380,28 @@ define(['js/app'], function (myApp) {
                         { title: $translate('TOP_UP_TIMES'), data: "consumptionTimes"},
 
                         {
-                            //"title": $translate('UnlockStatus'),data:"status",
-                            render: function (data, type, row, meta) {
-                                let text;
-                                let rowId = String(meta.row);
-                                // let adminName = row.creator ? row.creator.name : '';
-
-                                if (row.bUsed) {
-                                    text = '<span>'+ '-' +'</span>';
+                            "title": $translate('Multiselect'),
+                            bSortable: false,
+                            sClass: "customerSelected",
+                            render: function (data, type, row) {
+                                // if (!row.isLocked || row.isLocked._id == authService.adminId) {
+                                if (!row.isLocked) {
+                                    var link = $('<input>', {
+                                        type: 'checkbox',
+                                        "data-platformId": row.platform,
+                                       // "data-playerId": row.platform,
+                                        "data-phoneNumber": row.phoneNumber,
+                                        "data-_id": row._id,
+                                        class: "transform150"
+                                    })
+                                    return link.prop('outerHTML');
                                 } else {
-                                    text = '<input type="checkbox" class="unlockTaskGroupProposal" value="' + [row.platform, row.playerId, row.phoneNumber, rowId, row._id] + '" ng-click="vm.setSendingMsgGroup(\'' + rowId + '\')">';
-                                }
-
-                                return "<div>" + text + "</div>";
-                            }
+                                    let text = '<span>'+ '-' +'</span>';
+                                    return "<div>" + text + "</div>";
+                                };
+                            },
                         },
+
 
                     ],
                     "paging": false,
@@ -1396,6 +1416,37 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.telePlayerSendingMsgTable.pageObj.init({maxCount: size}, newSearch);
+
+                var $checkAll = $(".dataTables_scrollHead thead .customerSelected");
+                if ($checkAll.length == 1) {
+                    var $showBtn = $('<input>', {
+                        type: 'checkbox',
+                        class: "customerSelected transform150 checkAllProposal"
+                    });
+                    $checkAll.html($showBtn);
+                    $('.customerSelected.checkAllProposal').on('click', function () {
+                        var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+                        setCheckAllProposal($checkAll.checked);
+                    })
+                }
+                function setCheckAllProposal(flag) {
+                    var s = $("#telePlayerSendingMsgTable tbody td.customerSelected input").each(function () {
+                        $(this).prop("checked", flag);
+                    });
+                    vm.updateMultiselectCustomer();
+                }
+
+                function tableRowClicked(event) {
+                    if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
+                        var flagAllChecked = $("#telePlayerSendingMsgTable tbody td.customerSelected input[type='checkbox']:not(:checked)");
+                        $('.customerSelected.checkAllProposal').prop('checked', flagAllChecked.length == 0);
+                        vm.updateMultiselectCustomer();
+                    }
+                    
+                }
+                $('#telePlayerSendingMsgTable tbody').off('click', "**");
+                $('#telePlayerSendingMsgTable tbody').on('click', 'tr', tableRowClicked);
+
                 $('#telePlayerSendingMsgTable').off('order.dt');
                 $('#telePlayerSendingMsgTable').on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'telePlayerSendingMsgTable', vm.getTelePlayerSendingMsgTable);
@@ -1405,6 +1456,24 @@ define(['js/app'], function (myApp) {
             }
 
             // generate telePlayer Sending Message function table ====================End==================
+
+            vm.updateMultiselectCustomer = function () {
+                var allClicked = $("#telePlayerSendingMsgTable tr input:checked[type='checkbox']");
+                vm.msgSendingGroupData = [];
+                if (allClicked.length > 0) {
+                    allClicked.each(function () {
+                        let dxMissionId = $(this)[0].dataset._id;
+                        let platformId = $(this)[0].dataset.platformid;
+                        let phoneNumber = $(this)[0].dataset.phonenumber;
+                        if (dxMissionId && platformId && phoneNumber) {
+                            vm.msgSendingGroupData.push({dxMissionId: dxMissionId, platformId: platformId, phoneNumber: phoneNumber});
+                        }
+                    })
+                }
+                console.log(vm.msgSendingGroupData);
+                vm.totalmsg = vm.msgSendingGroupData.length;
+                $scope.safeApply();
+            };
 
             vm.setSendingMsgGroup = function (index) {
                 vm.msgSendingGroupData = [];
@@ -1421,13 +1490,13 @@ define(['js/app'], function (myApp) {
                 if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0){
                     vm.msgSendingGroupData.forEach( data => {
                         let sendObj = {
-                            platformId: data[0],
+                            platformId: data.platformId,
                             channel: 2,
-                            tel: data[2],
-                            dxPhone: data[4]
+                            tel: data.phoneNumber,
+                            dxPhone: data.dxMissionId
                         }
                         socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
-                            console.log("SMS SENT");
+                            console.log("SMS Sent:", data);
                         })
 
                     })
