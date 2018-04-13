@@ -362,9 +362,10 @@ let dbDXMission = {
 
     createPlayerFromCode: function (code, deviceData, domain) {
         if (!code) {
-            return Promise.reject({
-                errorMessage: "Invalid code for creating player"
-            });
+            // return Promise.reject({
+            //     errorMessage: "Invalid code for creating player"
+            // });
+            return {redirect: "www.kbl8888.com"};
         }
 
         return dbconfig.collection_dxPhone.findOne({code: code})
@@ -372,9 +373,10 @@ let dbDXMission = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (dxPhone) {
                 if (!dxPhone) {
-                    return Promise.reject({
-                        errorMessage: "Invalid code for creating player"
-                    });
+                    // return Promise.reject({
+                    //     errorMessage: "Invalid code for creating player"
+                    // });
+                    return {redirect: "www.kbl8888.com"};
                 }
 
                 if (dxPhone.bUsed) {
