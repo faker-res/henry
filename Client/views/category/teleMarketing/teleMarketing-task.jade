@@ -135,14 +135,16 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
 
-                        div
+                        div(style="margin-top:60px;")
                             label {{"Total" | translate}} {{1}} {{"records" | translate}}
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerTablePage
-                        div(ng-init="vm.showTelePlayerSendingMsgTable()")
+                        div(ng-init="vm.showTelePlayerSendingMsgTable()", style="margin-top:100px;")
                             label {{"Total" | translate}} {{2}} {{"records" | translate}}
                             table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerSendingMsgTablePage
+                            div#tempanchor(style="text-align:right;margin-top:60px;")
+                                button.common-button.btn.btn-success.margin-right-5(ng-click="vm.sendMsgToTelePlayer();", style="height:40px;") {{'SEND_TO_SELECTED_CUSTOMER' | translate}} ({{vm.totalmsg || 0}})
 
 
                 div(ng-show="vm.teleMarketingTaskTab == 'CREATE_TELEMARKETING_TASK'")
@@ -236,8 +238,8 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                               button.common-button.btn.btn-primary(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Create')",
                             ng-click="vm.createTeleMarketingTask()", ng-disabled="form_create_telemarketing_task.$invalid") {{'CREATE' | translate}}
 
-
-            .panel-footer
-                  //#modalPlayerAddRewardTask
-                  div(ng-if="true")
-                      button.common-button.margin-right-5.btn.btn-success(ng-click="vm.sendMsgToTelePlayer()") {{'SEND' | translate}}
+            //
+            //.panel-footer
+            //      //#modalPlayerAddRewardTask
+            //      div(ng-if="true")
+            //          button.common-button.margin-right-5.btn.btn-success(ng-click="vm.sendMsgToTelePlayer()") {{'SEND' | translate}}
