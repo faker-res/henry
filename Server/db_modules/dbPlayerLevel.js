@@ -40,7 +40,7 @@ let dbPlayerLevelInfo = {
      * @param {String}  query - The query string
      */
     getPlayerLevel: function (query) {
-        return dbconfig.collection_playerLevel.find(query);
+        return dbconfig.collection_playerLevel.find(query).sort({value: 1});
     },
 
     /**
