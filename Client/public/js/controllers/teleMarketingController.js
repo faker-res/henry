@@ -420,9 +420,9 @@ define(['js/app'], function (myApp) {
                         {title: $translate('TOTAL_PLAYER_CLICKED'), data: "registeredPlayerCount"},
                         {title: $translate('TOTAL_PLAYER_DEPOSIT'), data: "topUpPlayerCount"},
                         {title: $translate('TOTAL_PLAYER_MULTI_DEPOSIT'), data: "multiTopUpPlayerCount"},
-                        {title: $translate('TOTAL_VALID_PLAYER'), data: "creditAmount"},
-                        {title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "creditAmount"},
-                        {title: $translate('TOTAL_VALID_CONSUMPTION'), data: "creditAmount"},
+                        {title: $translate('TOTAL_VALID_PLAYER'), data: "totalValidConsumptionCount"},
+                        {title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "totalPlayerDepositAmount"},
+                        {title: $translate('TOTAL_VALID_CONSUMPTION'), data: "totalValidConsumptionAmount"},
                         // {
                         //     title: $translate('RewardProposalId'),
                         //     data: "proposalNumber",
@@ -517,9 +517,9 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.showSendSMSTable = function (data) {
-                vm.showSMSTable = true;
-            };
+            // vm.showSendSMSTable = function (data) {
+            //     vm.showSMSTable = true;
+            // };
 
             vm.generalDataTableOptions = {
                 "paging": true,
