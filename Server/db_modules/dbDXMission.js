@@ -577,7 +577,7 @@ let dbDXMission = {
                 if(result){
                     let size = result[0] ? result[0] : 0;
                     let dxPhoneData = result[1] ? result[1] : {};
-                    //let dxMissionData = result[2] ? result[2] : {};
+                   // let dxMissionData = result[2] ? result[2] : {};
 
 
                     // return dbDXMission.retrieveSMSLogInfo(dxPhoneData).then( smsLog => {
@@ -594,16 +594,14 @@ let dbDXMission = {
 
         let smsLogProm = [];
         if (dxPhoneData && dxPhoneData.length > 0){
-            let phoneNumberCollection = [];
+            // let phoneNumberCollection = [];
             dxPhoneData.forEach ( data => {
                 phoneNumberCollection.push(data.phoneNumber);
             });
 
             if (phoneNumberCollection && phoneNumberCollection.length > 0){
 
-
-
-              // smsLogProm.push(dbconfig.collection_smsLog.find() );
+              smsLogProm.push(dbconfig.collection_smsLog.find() );
             }
 
             return Q.all(smsLogProm);
