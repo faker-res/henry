@@ -451,7 +451,7 @@ let dbDXMission = {
                     function(error){
                         //if already created player, redirect to login url
                         return {
-                            redirect: dxMission.loginUrl;
+                            redirect: dxMission.loginUrl
                         }
                     }
                 );
