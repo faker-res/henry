@@ -14251,7 +14251,7 @@ let dbPlayerInfo = {
     },
 
     importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
-        let phoneArr = phoneNumber.split(',').map((item) => parseInt(item) );
+        let phoneArr = phoneNumber.split(',');
 
         if(phoneArr.length > 0) {
             let promArr = [];

@@ -614,16 +614,25 @@ let dbDXMission = {
 module.exports = dbDXMission;
 
 function sendWelcomeMessage(dxMission, dxPhone, player) {
-    let title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player);
-    let content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player);
+    let titleProm = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player);
+    let contentProm = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player);
 
-    return dbPlayerMail.createPlayerMail({
-        platformId: dxPhone.platform,
-        recipientType: 'player',
-        recipientId: player._id,
-        title: title,
-        content: content
-    });
+    return Promise.all([titleProm, contentProm]).then(
+        data => {
+            if (data) {
+                let title = data[0] ? data[0] : "";
+                let content = data[1] ? data[1] : "";
+
+                return dbPlayerMail.createPlayerMail({
+                    platformId: dxPhone.platform,
+                    recipientType: 'player',
+                    recipientId: player._id,
+                    title: title,
+                    content: content
+                });
+            }
+        }
+    )
 }
 
 function replaceMailKeywords(str, dxMission, dxPhone, player) {
