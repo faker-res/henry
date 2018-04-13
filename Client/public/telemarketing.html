@@ -10,14 +10,7 @@
 <script type = "text/javascript">
 
     function getQueryVariable(variable) {
-        let query = window.location.search.substring(1);
-        let vars = query.split("&");
-        for (let i=0;i<vars.length;i++) {
-            let pair = vars[i].split("=");
-
-            if(pair[0] == variable){return pair[1].replace(/\%22/g,"");}
-        }
-        return(false);
+        return window.location.pathname.replace("/", "");
     }
 
     let returnedCode = null;
@@ -43,11 +36,16 @@
         ws.onmessage = function (evt) {
             if (evt.data){
                 let receivedMsg = JSON.parse(evt.data);
-                console.log("returned message",receivedMsg)
+                console.log("returned message",receivedMsg);
+//                curLocation.assign("");
                 if (receivedMsg.data.data && receivedMsg.data.data.redirect){
                     // redirect to the desired link
 //                    window.location.href = receivedMsg.data.data.redirect;
-                    curLocation.assign(receivedMsg.data.data.redirect);
+                    //alert(receivedMsg.data.data.redirect);
+                    let newPage = "https://" + receivedMsg.data.data.redirect;
+//                    alert(newPage);
+//                    window.open(newPage);
+                    curLocation.assign(newPage);
                 }
             }
 

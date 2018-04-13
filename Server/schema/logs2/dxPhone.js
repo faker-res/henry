@@ -15,7 +15,9 @@ var dxPhone = new Schema({
     // whether this code is used
     bUsed: {type: Boolean, default: false},
     // generated url
-    url: {type: String}
+    url: {type: String},
+    // player info after creation
+    playerObjId: {type: Schema.ObjectId, ref: 'player'}
 });
 
 
