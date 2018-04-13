@@ -11,7 +11,7 @@ var roleChecker = {
     filterActions: [
         'createDepartment', 'createDepartmentWithParent', 'deleteDepartmentsById', 'updateDepartmentParent', 'updateAdminDepartment', 'updateDepartment',
         'createAdmin', 'fixPlatformDailySettlement', 'fixPlatformWeeklySettlement', 'createAdminForDepartment', 'deleteAdminInfosById', 'addUsersToDepartmentsById', 'removeUsersFromDepartmentsById', 'getUnAttachedUsersForDepartment',
-        'updateAdmin', 'attachRolesToUsersById', 'createUpdatePartnerInfoProposal', 'attachRoleToUserByName', 'resetAdminPassword',
+        'updateAdmin', 'attachRolesToUsersById', 'createUpdatePartnerInfoProposal', 'createUpdatePartnerCommissionTypeProposal', 'attachRoleToUserByName', 'resetAdminPassword',
         'detachRolesFromUsersById', 'detachRoleFromUserByName',
         'createRole', 'createRoleForDepartment', 'attachRolesToDepartmentsById',
         'deleteRolesById', 'updateRole',
@@ -320,7 +320,7 @@ var roleChecker = {
                 Edit: ['updatePartner', 'checkPartnerFieldValidity', 'checkOwnDomainValidity', 'createUpdatePartnerInfoProposal'],
                 EditContact: ['createUpdatePartnerPhoneProposal', 'createUpdatePartnerEmailProposal', 'createUpdatePartnerQQProposal','createUpdatePartnerWeChatProposal'],
                 BankDetail: ['createUpdatePartnerBankInfoProposal', 'verifyPlayerBankAccount'],
-                EditCommission: ['updatePartner', 'checkPartnerFieldValidity', 'createUpdatePartnerInfoProposal'],
+                EditCommission: ['updatePartner', 'checkPartnerFieldValidity', 'createUpdatePartnerCommissionTypeProposal'],
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
                 PartnerPermission: ['updatePartnerPermission'],
