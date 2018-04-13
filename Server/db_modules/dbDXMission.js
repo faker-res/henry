@@ -445,39 +445,45 @@ let dbDXMission = {
     },
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
+        let phoneData = {};
+
         return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
             path: "dxMission", model: dbconfig.collection_dxMission
         }).populate({
             path: "platform", model: dbconfig.collection_platform
         }).then(
-            phoneData => {
-                if(phoneData){
-                    let sendObj = {
-                        tel: data.tel,
-                        channel: 2,
-                        platformId: phoneData.platform.platformId,
-                        message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData),
-                        //delay: data.delay,
-                        data: {
-                            dxMission: phoneData.dxMission
-                        }
-                        //'data.dxMission': phoneData.dxMission,
-                    };
-                    let recipientName = data.name || '';
+            dxPhoneRes => {
+                if (dxPhoneRes) {
+                    phoneData = dxPhoneRes;
 
-                    return smsAPI.sending_sendMessage(sendObj).then(
-                        retData => {
-                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
-                            console.log("SMS SENT SUCCESSFULLY");
-                            return retData;
-                        },
-                        retErr => {
-                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
-                            console.log("SMS SENT FAILED");
-                            return Q.reject({message: retErr, data: data});
-                        }
-                    );
+                    return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
                 }
+            }
+        ).then(
+            message => {
+                let sendObj = {
+                    tel: data.tel,
+                    channel: 2,
+                    platformId: phoneData.platform.platformId,
+                    message: message,
+                    data: {
+                        dxMission: phoneData.dxMission
+                    }
+                };
+                let recipientName = data.name || '';
+
+                return smsAPI.sending_sendMessage(sendObj).then(
+                    retData => {
+                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
+                        console.log("SMS SENT SUCCESSFULLY");
+                        return retData;
+                    },
+                    retErr => {
+                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
+                        console.log("SMS SENT FAILED");
+                        return Q.reject({message: retErr, data: data});
+                    }
+                );
             }
         )
 
@@ -486,34 +492,71 @@ let dbDXMission = {
     getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
         var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
         let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission});
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players});
+        //let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission});
+
 
         return Promise.all([sizeProm, dxPhoneDataProm]).then(
             result => {
                 if(result){
                     let size = result[0] ? result[0] : 0;
                     let dxPhoneData = result[1] ? result[1] : {};
+                    //let dxMissionData = result[2] ? result[2] : {};
+
+
+                    // return dbDXMission.retrieveSMSLogInfo(dxPhoneData).then( smsLog => {
+                    //
+                    // })
 
                     return {size: size, dxPhoneData: dxPhoneData};
                 }
             }
         )
     },
+
+    retrieveSMSLogInfo: function (dxPhoneData) {
+
+        let smsLogProm = [];
+        if (dxPhoneData && dxPhoneData.length > 0){
+            let phoneNumberCollection = [];
+            dxPhoneData.forEach ( data => {
+                phoneNumberCollection.push(data.phoneNumber);
+            });
+
+            if (phoneNumberCollection && phoneNumberCollection.length > 0){
+
+
+
+              // smsLogProm.push(dbconfig.collection_smsLog.find() );
+            }
+
+            return Q.all(smsLogProm);
+        }
+    },
 };
 
 module.exports = dbDXMission;
 
 function sendWelcomeMessage(dxMission, dxPhone, player) {
-    let title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player);
-    let content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player);
+    let titleProm = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player);
+    let contentProm = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player);
 
-    return dbPlayerMail.createPlayerMail({
-        platformId: dxPhone.platform,
-        recipientType: 'player',
-        recipientId: player._id,
-        title: title,
-        content: content
-    });
+    return Promise.all([titleProm, contentProm]).then(
+        data => {
+            if (data) {
+                let title = data[0] ? data[0] : "";
+                let content = data[1] ? data[1] : "";
+
+                return dbPlayerMail.createPlayerMail({
+                    platformId: dxPhone.platform,
+                    recipientType: 'player',
+                    recipientId: player._id,
+                    title: title,
+                    content: content
+                });
+            }
+        }
+    )
 }
 
 function replaceMailKeywords(str, dxMission, dxPhone, player) {
@@ -537,7 +580,7 @@ function replaceMailKeywords(str, dxMission, dxPhone, player) {
                 let providerGroupName = data[1] ? data[1].name : "自由大厅";
 
                 str = String(str);
-                let registrationUrl = dxMission.domain + "?code=" + dxPhone.code;
+                let registrationUrl = dxMission.domain + "/" + dxPhone.code;
                 let loginUrl = dxMission.loginUrl;
 
                 str = str.replace ('{{username}}', playerName);
@@ -555,12 +598,7 @@ function replaceMailKeywords(str, dxMission, dxPhone, player) {
 }
 
 function updateDxPhoneBUsed (dxPhone, usedPlayerObjId) {
-    return dbconfig.collection_dxPhone.update({
-        _id: dxPhone._id,
-    }, {
-        bUsed: true,
-        playerObjId: usedPlayerObjId
-    });
+    return dbconfig.collection_dxPhone.findOneAndUpdate({_id: dxPhone._id}, {playerObjId: usedPlayerObjId, bUsed: true});
 }
 
 function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tries) {
