@@ -134,9 +134,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             label {{"Total" | translate}} {{vm.teleMarketingOverview.totalCount}} {{"records" | translate}}
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
-                            
+
+                        
+            
                     #overViewSubTable(ng-show="vm.showOverviewSubTable")
-                        div
+                         div(style="margin-top:60px;")
                             label {{"Total" | translate}} {{1}} {{"records" | translate}}
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerTablePage
@@ -145,7 +147,22 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
                             table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerSendingMsgTablePage
-                            div#tempanchor(style="text-align:right;margin-top:60px;")
+                            #msgPreview(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:60px;")
+                                table.simple-table#actionLogDataTable(style='max-width:100%;')
+                                    thead
+                                        tr
+                                            th(style='width:15%') {{'MESSAGE_PREVIEW' | translate}}
+                                            th(style='width:70%; background-color: white; border-top: none;border-right: none; color: black;')
+                                                span(style="margin-right: 30px;") {{ 'Word Count' | translate}} : {{}},
+                                                span(style="margin-right: 30px;") {{ 'Total' | translate }} : {{vm.totalmsg}} {{ 'message(s)' | translate }},
+                                                span(style="margin-right: 30px;") {{ 'Current channel allow' | translate }} : 100 {{ 'Words/Message' | translate}}
+                                            th(style='width:15%;background-color: white; border: none;')
+                                    tbody
+                                        tr
+                                            td(colspan=2) testing sample
+                                            td(style="border:none;") {{ 'Channel' | translate }} : {{ }}
+
+                            #tempanchor(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:20px;")
                                 button.common-button.btn.btn-success.margin-right-5(ng-click="vm.sendMsgToTelePlayer();", style="height:40px;") {{'SEND_TO_SELECTED_CUSTOMER' | translate}} ({{vm.totalmsg || 0}})
 
 
