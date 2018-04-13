@@ -568,18 +568,46 @@ let dbDXMission = {
     getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
         var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
         let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission});
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players});
+        //let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission});
+
 
         return Promise.all([sizeProm, dxPhoneDataProm]).then(
             result => {
                 if(result){
                     let size = result[0] ? result[0] : 0;
                     let dxPhoneData = result[1] ? result[1] : {};
+                    //let dxMissionData = result[2] ? result[2] : {};
+
+
+                    // return dbDXMission.retrieveSMSLogInfo(dxPhoneData).then( smsLog => {
+                    //
+                    // })
 
                     return {size: size, dxPhoneData: dxPhoneData};
                 }
             }
         )
+    },
+
+    retrieveSMSLogInfo: function (dxPhoneData) {
+
+        let smsLogProm = [];
+        if (dxPhoneData && dxPhoneData.length > 0){
+            let phoneNumberCollection = [];
+            dxPhoneData.forEach ( data => {
+                phoneNumberCollection.push(data.phoneNumber);
+            });
+
+            if (phoneNumberCollection && phoneNumberCollection.length > 0){
+
+
+
+              // smsLogProm.push(dbconfig.collection_smsLog.find() );
+            }
+
+            return Q.all(smsLogProm);
+        }
     },
 };
 
