@@ -460,47 +460,54 @@ let dbDXMission = {
 module.exports = dbDXMission;
 
 function sendWelcomeMessage(dxMission, dxPhone, player) {
+    let title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player);
+    let content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player);
+
+    return dbPlayerMail.createPlayerMail({
+        platformId: dxPhone.platform,
+        recipientType: 'player',
+        recipientId: player._id,
+        title: title,
+        content: content
+    });
+}
+
+function replaceMailKeywords(str, dxMission, dxPhone, player) {
+    let playerNameProm;
     let providerGroupProm = Promise.resolve();
 
-    if (dxMission.providerGroup && String(dxMission.providerGroup.length) === 24) {
+    if (player && player.name) {
+        playerNameProm = Promise.resolve(player.name);
+    } else {
+        playerNameProm = generateDXPlayerName(dxMission.lastXDigit, dxMission.platform.prefix, dxMission.playerPrefix, dxPhone)
+    }
+
+    if (dxMission.providerGroup && String(dxMission.providerGroup).length === 24) {
         providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: dxMission.providerGroup}).lean();
     }
 
-    return providerGroupProm.then(
-        function (providerGroup) {
-            let providerGroupName = "自由大厅";
-            if (providerGroup) {
-                providerGroupName = providerGroup.name;
+    return Promise.all([playerNameProm, providerGroupProm]).then(
+        data => {
+            if (data) {
+                let playerName = data[0];
+                let providerGroupName = data[1] ? data[1].name : "自由大厅";
+
+                str = String(str);
+                let registrationUrl = dxMission.domain + "?code=" + dxPhone.code;
+                let loginUrl = dxMission.loginUrl;
+
+                str = str.replace ('{{username}}', playerName);
+                str = str.replace ('{{password}}', dxMission.password);
+                str = str.replace ('{{registrationUrl}}', registrationUrl);
+                str = str.replace ('{{loginUrl}}', loginUrl);
+                str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
+                str = str.replace ('{{providerGroup}}', providerGroupName);
+                str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
+
+                return str;
             }
-
-            let title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player, providerGroupName);
-            let content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player, providerGroupName);
-
-            return dbPlayerMail.createPlayerMail({
-                platformId: dxPhone.platform,
-                recipientType: 'player',
-                recipientId: player._id,
-                title: title,
-                content: content
-            });
         }
-    );
-}
-
-function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
-    str = String(str);
-    let registrationUrl = dxMission.domain + "?code=" + dxPhone.code;
-    let loginUrl = dxMission.loginUrl;
-
-    str = str.replace ('{{username}}', player && player.name ? player.name : "");
-    str = str.replace ('{{password}}', dxMission.password);
-    str = str.replace ('{{registrationUrl}}', registrationUrl);
-    str = str.replace ('{{loginUrl}}', loginUrl);
-    str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
-    str = str.replace ('{{providerGroup}}', providerGroupName || "");
-    str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
-
-    return str;
+    )
 }
 
 function updateDxPhoneBUsed (dxPhone) {
