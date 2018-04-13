@@ -21,6 +21,7 @@
     }
 
     let returnedCode = null;
+    let curLocation = location;
     if ("WebSocket" in window) {
 
         let domain = window.location.toString().replace(/\%22/g,"");
@@ -45,7 +46,8 @@
                 console.log("returned message",receivedMsg)
                 if (receivedMsg.data.data && receivedMsg.data.data.redirect){
                     // redirect to the desired link
-                    window.location.href = receivedMsg.data.data.redirect;
+//                    window.location.href = receivedMsg.data.data.redirect;
+                    curLocation.assign(receivedMsg.data.data.redirect);
                 }
             }
 
