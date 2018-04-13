@@ -633,8 +633,10 @@ function replaceMailKeywords(str, dxMission, dxPhone, player) {
 function updateDxPhoneBUsed (dxPhone, usedPlayerObjId) {
     return dbconfig.collection_dxPhone.update({
         _id: dxPhone._id,
+    }, {
+        bUsed: true,
         playerObjId: usedPlayerObjId
-    }, {bUsed: true});
+    });
 }
 
 function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tries) {
