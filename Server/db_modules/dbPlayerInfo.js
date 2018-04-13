@@ -14256,25 +14256,30 @@ let dbPlayerInfo = {
         if(phoneArr.length > 0) {
             let promArr = [];
 
-            for (let x = 0; x < phoneArr.length; x++) {
-                promArr.push(
-                    generateDXCode(dxMission).then(
-                        randomCode => {
-                            let importData = {
-                                platform: platform,
-                                phoneNumber: phoneArr[x],
-                                dxMission: dxMission,
-                                code: randomCode
-                            };
+            return dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
+                dxMissionRes => {
+                    for (let x = 0; x < phoneArr.length; x++) {
+                        promArr.push(
+                            generateDXCode(dxMission).then(
+                                randomCode => {
+                                    let importData = {
+                                        platform: platform,
+                                        phoneNumber: phoneArr[x],
+                                        dxMission: dxMission,
+                                        code: randomCode,
+                                        url: dxMissionRes.domain + "?code=" + randomCode
+                                    };
 
-                            let importPhone = new dbconfig.collection_dxPhone(importData);
-                            importPhone.save();
-                        }
-                    )
-                )
-            }
+                                    let importPhone = new dbconfig.collection_dxPhone(importData);
+                                    importPhone.save();
+                                }
+                            )
+                        )
+                    }
 
-            return Promise.all(promArr).then(() => true);
+                    return Promise.all(promArr).then(() => true);
+                }
+            )
         }
         return false;
 

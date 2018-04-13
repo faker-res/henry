@@ -14,6 +14,8 @@ var dxPhone = new Schema({
     createTime: {type: Date, default: Date.now},
     // whether this code is used
     bUsed: {type: Boolean, default: false},
+    // generated url
+    url: {type: String}
 });
 
 
