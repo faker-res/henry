@@ -516,7 +516,7 @@ let dbDXMission = {
                                     details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
                                     details.count = smsLogDetail[phoneData.phoneNumber].count;
                                     let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
-                                    phoneDataWithDetails.phoneNumber = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
+                                    phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
                                     dxPhoneDataWithDetails.push(phoneDataWithDetails);
                                 }
 

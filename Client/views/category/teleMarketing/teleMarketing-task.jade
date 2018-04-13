@@ -164,6 +164,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                             div(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:20px;")
                                 button.common-button.btn.btn-success.margin-right-5(ng-click="vm.sendMsgToTelePlayer();", style="height:40px;") {{'SEND_TO_SELECTED_CUSTOMER' | translate}} ({{vm.totalmsg || 0}})
+                                //label.inlineBlk.wordWrap(ng-if='vm.responseMsg', style="width: calc(100% - 210px)") {{vm.responseMsg}}
 
 
                 div(ng-show="vm.teleMarketingTaskTab == 'CREATE_TELEMARKETING_TASK'")

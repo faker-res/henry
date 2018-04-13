@@ -1352,7 +1352,7 @@ define(['js/app'], function (myApp) {
                             // }
 
                         },
-                        { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
+                        { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber$"},
                         { title: $translate('SMS URL'), data: "url"},
                         { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
                         { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "createTime"},
@@ -1477,6 +1477,7 @@ define(['js/app'], function (myApp) {
 
             vm.sendMsgToTelePlayer = function (){
                 if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0){
+                   // let counter = 0;
                     vm.msgSendingGroupData.forEach( data => {
                         let sendObj = {
                             platformId: data.platformId,
@@ -1484,11 +1485,26 @@ define(['js/app'], function (myApp) {
                             tel: data.phoneNumber,
                             dxPhone: data.dxMissionId
                         }
+
                         socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
+                            // counter += 1;
                             console.log("SMS Sent:", data);
-                        })
+
+                        }, function (error) {
+                                console.log("error", error);
+                            }
+                        );
 
                     })
+
+
+                    // if (counter == vm.msgSendingGroupData.length){
+                    //     vm.responseMsg = $translate("SUCCESS");
+                    // }
+                    // else{
+                    //     vm.responseMsg = '(' + vm.msgSendingGroupData.length-counter + ')' + $translate("FAIL");
+                    // }
+
                 }
             }
 
