@@ -8,6 +8,8 @@ var errorUtils = require("./../modules/errorUtils");
 var dbLogger = require('./../modules/dbLogger');
 var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
+
+
 const constSystemParam = require('../const/constSystemParam');
 const constServerCode = require('../const/constServerCode');
 const constProposalType = require('../const/constProposalType');
@@ -518,7 +520,9 @@ let dbDXMission = {
 
         let smsLogProm = [];
         if (dxPhoneData && dxPhoneData.length > 0){
-            // let phoneNumberCollection = [];
+
+            let phoneNumberCollection = [];
+
             dxPhoneData.forEach ( data => {
                 phoneNumberCollection.push(data.phoneNumber);
             });
@@ -526,6 +530,7 @@ let dbDXMission = {
             if (phoneNumberCollection && phoneNumberCollection.length > 0){
 
               smsLogProm.push(dbconfig.collection_smsLog.find() );
+
             }
 
             return Q.all(smsLogProm);
