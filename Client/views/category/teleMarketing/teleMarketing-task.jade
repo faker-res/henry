@@ -135,6 +135,8 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
 
+                        
+                    #sendSMSTable(ng-show="vm.showSendSMSTable")
                         div(style="margin-top:60px;")
                             label {{"Total" | translate}} {{1}} {{"records" | translate}}
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
@@ -183,7 +185,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                                 .full-width-input-block
                                     label {{"Please Choose Locking Provider Group" | translate}}: (*)
-                                    select.form-control(ng-model='vm.createTeleMarketing.providerGroup', required)
+                                    select.form-control(ng-model='vm.createTeleMarketing.providerGroup')
                                         option(value='') {{'LOCAL_CREDIT' | translate}}
                                         option(ng-repeat='(i,v) in vm.gameProviderGroupNames', value='{{i}}') {{v}}
 
