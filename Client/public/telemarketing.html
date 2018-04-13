@@ -27,7 +27,7 @@
         returnedCode = getQueryVariable("code");
 
         // Let us open a web socket
-        let ws = new WebSocket("wss://www.kbl6666.com/websocket");
+        var ws = new WebSocket("ws://cstest-eu.neweb.me/websocket");
 
         ws.onopen = function() {
             // Web Socket is connected, send data using send()
