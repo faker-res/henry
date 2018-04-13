@@ -16050,7 +16050,6 @@ define(['js/app'], function (myApp) {
                         {title: $translate('DOB'), data: "DOB$"},
                         {title: $translate('GENDER'), data: "gender$"},
                         {title: $translate('WEBSITE_PASS'), data: "updatePassword$"},
-                        {title: $translate('Partner Commission Type'), data: "commissionType$"},
                         {
                             "title": $translate('STATUS'),
                             "data": 'process',
