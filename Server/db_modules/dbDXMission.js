@@ -626,7 +626,7 @@ function createPlayer (dxPhone, deviceData, domain) {
 
     if (!dxPhone.dxMission) {
         dxPhone.dxMission = {
-            loginUrl: "eu99999.com",
+            loginUrl: "www.kbl8888.com",
             playerPrefix: "test",
         };
     }
