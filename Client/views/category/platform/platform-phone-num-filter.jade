@@ -214,13 +214,10 @@
                             .col-md-12
                                 .well
                                     label {{"Please select dxMission:" | translate}}
-                                    select.form-control(ng-model="vm.dxMissionType" data-width="100%" data-actions-box="true")
-                                        option(value='dx1') {{'dx1' | translate}}
-                                        option(value='dx2') {{'dx2' | translate}}
-                                        option(value='dx3') {{'dx3' | translate}}
-                                        option(value='dx4') {{'dx4' | translate}}
+                                    select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
+                                        option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
             .modal-footer
-                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.importDiffPhoneNum(vm.diffPhoneTXT, vm.dxMissionType)")
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.importDiffPhoneNum(vm.diffPhoneTXT, vm.selectedDxMission)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
@@ -240,13 +237,10 @@
                             .col-md-12
                                 .well
                                     label {{"Please select dxMission:" | translate}}
-                                    select.form-control(ng-model="vm.dxMissionType" data-width="100%" data-actions-box="true")
-                                        option(value='dx1') {{'dx1' | translate}}
-                                        option(value='dx2') {{'dx2' | translate}}
-                                        option(value='dx3') {{'dx3' | translate}}
-                                        option(value='dx4') {{'dx4' | translate}}
+                                    select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
+                                        option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
             .modal-footer
-                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.importDiffPhoneNum(vm.diffPhoneList, vm.dxMissionType)")
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.importDiffPhoneNum(vm.diffPhoneList, vm.selectedDxMission)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
@@ -266,13 +260,10 @@
                             .col-md-12
                                 .well
                                     label {{"Please select dxMission:" | translate}}
-                                    select.form-control(ng-model="vm.dxMissionType" data-width="100%" data-actions-box="true")
-                                        option(value='dx1') {{'dx1' | translate}}
-                                        option(value='dx2') {{'dx2' | translate}}
-                                        option(value='dx3') {{'dx3' | translate}}
-                                        option(value='dx4') {{'dx4' | translate}}
+                                    select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
+                                        option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
             .modal-footer
-                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.uploadPhoneFileXLS('', true, vm.dxMissionType)")
+                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.uploadPhoneFileXLS('', true, vm.selectedDxMission)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')

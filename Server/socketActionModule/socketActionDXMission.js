@@ -43,13 +43,23 @@ function socketActionDXMission(socketIO, socket) {
         },
 
         /**
+         * get All DX Mission
+         */
+        getAllDxMission: function getAllDxMission() {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbDXMission.getAllDxMission, [], actionName);
+        },
+
+        /**
          * Create New DX Mission
          * @param {json} data - Player data. It has to contain correct data format
          */
         createDxMission: function createDxMission(data) {
 
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.name && data.playerPrefix && data.lastXDigit && data.password && data.domain && data.loginUrl && data.providerGroup && data.requiredConsumption);
+            var isValidData = Boolean(data && data.platform && data.name && data.playerPrefix && data.lastXDigit
+                && data.password && data.domain && data.loginUrl && (data.providerGroup || data.providerGroup === '')
+                && data.requiredConsumption);
             socketUtil.emitter(self.socket, dbDXMission.createDxMission, [data], actionName, isValidData);
         },
 
@@ -59,9 +69,25 @@ function socketActionDXMission(socketIO, socket) {
          */
         updateDxMission: function updateDxMission(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbDXMission.updateDxMission, [data], actionName, isValidData);
+            var isValidData = Boolean(data._id);
+            socketUtil.emitter(self.socket, dbDXMission.updateDxMission, [data._id, data.data], actionName, isValidData);
         },
+
+        /**
+         * send SMS to player
+         * @param {json} data - Player data. It has to contain correct data format
+         */
+        sendSMSToDXPlayer: function sendSMSToDXPlayer(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbDXMission.sendSMSToPlayer, [getAdminId(), getAdminName(), data], actionName, isValidData);
+        },
+
+        getDXPhoneNumberInfo: function getDXPhoneNumberInfo(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbDXMission.getDXPhoneNumberInfo, [data.platform, data.count, data.dxMission], actionName, isValidData);
+        }
 
     };
 

@@ -199,6 +199,19 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update partner WeChat
+         * @param {json} data - proposal data
+         */
+        createUpdatePartnerWeChatProposal: function createUpdatePartnerWeChatProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.partnerName && data.data.curData && data.data.updateData && data.data.updateData.wechat
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_WECHAT, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal to update partner credit
          * @param {json} data - proposal data
          */
@@ -362,6 +375,15 @@ function socketActionProposal(socketIO, socket) {
             var limit = data.limit || 10;
             var sortCol = data.sortCol || {"createTime": -1};
             socketUtil.emitter(self.socket, dbProposal.getDuplicatePlayerRealName, [data.platformId, data.realName, index, limit, sortCol], actionName, isValidData);
+        },
+
+        getDuplicatePhoneNumber: function getDuplicatePhoneNumber(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.phoneNumber);
+            var index = data.index || 0;
+            var limit = data.limit || 10;
+            var sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbProposal.getDuplicatePhoneNumber, [data.platformId, data.phoneNumber, index, limit, sortCol, data.isPlayer], actionName, isValidData);
         },
 
         /**

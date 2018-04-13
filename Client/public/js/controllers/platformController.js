@@ -132,6 +132,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_PARTNER_PHONE: "UpdatePartnerPhone",
                 UPDATE_PARTNER_EMAIL: "UpdatePartnerEmail",
                 UPDATE_PARTNER_QQ: "UpdatePartnerQQ",
+                UPDATE_PARTNER_WECHAT: "UpdatePartnerWeChat",
                 UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
                 FULL_ATTENDANCE: "FullAttendance",
                 PLAYER_CONSUMPTION_RETURN: "PlayerConsumptionReturn",
@@ -12706,6 +12707,9 @@ define(['js/app'], function (myApp) {
                     case 22:
                         sendString = 'createUpdatePartnerQQProposal';
                         break;
+                    case 23:
+                        sendString = 'createUpdatePartnerWeChatProposal';
+                        break;
 
                 }
                 console.log(sendData, 'sendData', sendString);
@@ -15402,43 +15406,36 @@ define(['js/app'], function (myApp) {
 
             vm.getProvince = function () {
                 vm.showProvinceStr = '';
+                let province = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountProvince ? vm.selectedSinglePartner.bankAccountProvince : '';
                 $scope.getProvinceStr(vm.selectedSinglePartner.bankAccountProvince).then(data => {
-                    if (data.data.province) {
-                        vm.showProvinceStr = data.data.province.name;
-                    }
-                    else {
-                        vm.showProvinceStr = vm.selectedSinglePartner.bankAccountProvince;
-                    }
+                    vm.showProvinceStr = data.data.province ? data.data.province.name : province;
                     $scope.safeApply();
                 }, err => {
-                    vm.showProvinceStr = vm.selectedSinglePartner.bankAccountProvince || $translate("Unknown");
+                    vm.showProvinceStr = province || $translate("Unknown");
                     $scope.safeApply();
                 });
             };
 
             vm.getCity = function () {
                 vm.showCityStr = '';
-                $scope.getCityStr(vm.selectedSinglePartner.bankAccountCity).then(data => {
-                    if (data.data.city) {
-                        vm.showCityStr = data.data.city.name;
-                    } else {
-                        vm.showCityStr = vm.selectedSinglePartner.bankAccountCity;
-                    }
+                let city = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountCity ? vm.selectedSinglePartner.bankAccountCity : '';
+                $scope.getCityStr(city).then(data => {
+                    vm.showCityStr = data.data.city ? data.data.city.name : city;
                     $scope.safeApply();
                 }, err => {
-                    vm.showCityStr = vm.selectedSinglePartner.bankAccountCity || $translate("Unknown");
+                    vm.showCityStr = city || $translate("Unknown");
                     $scope.safeApply();
                 });
             };
 
             vm.getDistrict = function() {
                 vm.showDistrictStr = '';
-
-                $scope.getDistrictStr(vm.selectedSinglePartner.bankAccountDistrict).then(data => {
-                    vm.showDistrictStr = data.data.district ? data.data.district.name : vm.selectedSinglePartner.bankAccountDistrict;
+                let district = vm.selectedSinglePartner && vm.selectedSinglePartner.bankAccountDistrict ? vm.selectedSinglePartner.bankAccountDistrict : '';
+                $scope.getDistrictStr(district).then(data => {
+                    vm.showDistrictStr = data.data.district ? data.data.district.name : district;
                     $scope.safeApply();
                     }, err => {
-                    vm.showProvinceStr = vm.selectedSinglePartner.bankAccountDistrict || $translate("Unknown");
+                    vm.showProvinceStr = district || $translate("Unknown");
                     $scope.safeApply();
                 });
             }
@@ -15486,15 +15483,14 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.safeApply();
             }
+
             vm.createNewPartner = function () {
                 var str = 'createPartner';
                 vm.newPartner.platform = vm.selectedPlatform.id;
                 vm.newPartner.DOB = vm.partnerDOB.data('datetimepicker').getLocalDate();
                 vm.newPartner.DOB = vm.newPartner.DOB.toISOString();
                 vm.newPartner.gender = (vm.newPartner.gender && vm.newPartner.gender == "true") ? true : false ;
-                if (vm.newPartner.parent) {
-                    str = 'createPartnerWithParent'
-                }
+
                 console.log(vm.newPartner);
 
                 socketService.$socket($scope.AppSocket, str, vm.newPartner, function (data) {
@@ -15504,6 +15500,193 @@ define(['js/app'], function (myApp) {
                     console.log("create not", data);
                     vm.getPlatformPartnersData();
                 });
+            };
+
+            vm.duplicatePhoneNumberDetector = function (newSearch, isPlayer) {
+                let phoneNum = '';
+                if (isPlayer) {
+                    if (!vm.newPlayer.phoneNumber) {
+                        return;
+                    } else {
+                        phoneNum = vm.newPlayer.phoneNumber;
+                    }
+                } else {
+                    if (!vm.newPartner.phoneNumber) {
+                        return;
+                    } else {
+                        phoneNum = vm.newPartner.phoneNumber;
+                    }
+                }
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    phoneNumber: phoneNum,
+                    limit: newSearch ? 10 : (vm.duplicatePhoneNumber.limit || 10),
+                    index: newSearch ? 0 : (vm.duplicatePhoneNumber.index || 0),
+                    isPlayer: isPlayer
+                }
+
+                socketService.$socket($scope.AppSocket, 'getDuplicatePhoneNumber', sendData, function (data) {
+                    let duplicatePhoneNumberCount = data.data.size || 0;
+
+                    if (duplicatePhoneNumberCount == 0) {
+                        vm.existPhone = false;
+                    } else {
+                        vm.existPhone = true;
+                    }
+
+                    $scope.safeApply();
+
+                });
+            };
+
+            vm.initPhoneNumberRecord = function () {
+                vm.duplicatePhoneNumber = {};
+                utilService.actionAfterLoaded('#duplicatePhoneNumberLog.in #duplicatePhoneNumberLogTablePage', function () {
+                    vm.duplicatePhoneNumber.pageObj = utilService.createPageForPagingTable("#duplicatePhoneNumberLogTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "duplicatePhoneNumber", vm.loadPhoneNumberRecord);
+                    });
+                    vm.loadPhoneNumberRecord(true);
+                });
+            }
+
+            vm.loadPhoneNumberRecord = function (newSearch, isPlayer) {
+                let phoneNum = '';
+
+                if (isPlayer) {
+                    if (!vm.newPlayer.phoneNumber) {
+                        return;
+                    } else {
+                        phoneNum = vm.newPlayer.phoneNumber;
+                    }
+                } else {
+                    if (!vm.newPartner.phoneNumber) {
+                        return;
+                    } else {
+                        phoneNum = vm.newPartner.phoneNumber;
+                    }
+                }
+
+                vm.getCredibilityRemarks();
+
+                let sendData = {
+                    platformId: vm.selectedPlatform.id,
+                    phoneNumber: phoneNum,
+                    limit: newSearch ? 10 : (vm.duplicatePhoneNumber.limit || 10),
+                    index: newSearch ? 0 : (vm.duplicatePhoneNumber.index || 0),
+                    sortCol: vm.duplicatePhoneNumber.sortCol || null,
+                    isPlayer: isPlayer
+                }
+
+                socketService.$socket($scope.AppSocket, 'getDuplicatePhoneNumber', sendData, function (data) {
+                    console.log("getDuplicatePhoneNumber", data);
+                    let tblData = data && data.data ? data.data.data : [];
+                    let total = data.data ? data.data.size : 0;
+                    vm.duplicatePhoneNumber.totalCount = total;
+
+                    if (tblData && tblData.length > 0) {
+                        tblData.map(
+                            record => {
+                                let credibilityRemarksTXT = '';
+                                record.name = record.data.name ? record.data.name : "";
+                                record.realName = record.data.realName ? record.data.realName : "";
+                                record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                                record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                                record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                                record.playerLevelName = record.data.playerLevel ? $translate(record.data.playerLevel.name) : "";
+                                record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
+                                    return record.data.credibilityRemarks.includes(item._id);
+                                }) : [];
+                                record.credibilityRemarksName = record.credibilityRemarks.map(function (value, index) {
+                                    let colon = '';
+                                    credibilityRemarksTXT += value.name + colon;
+                                    return credibilityRemarksTXT;
+                                }) || '';
+                                record.valueScore = record.data.valueScore ? record.data.valueScore : "";
+                                record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea) : '';
+                                record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime) : "";
+                                Object.keys(vm.allPlayersStatusString).filter(item => {
+                                    return record.data.playerStatus == vm.allPlayersStatusString[item];
+                                })[0];
+                                record.playerStatusName = $translate("Enable");
+                                if (record.data.forbidPlayerFromLogin == true) {
+                                    record.playerStatusName = $translate("Disable")
+                                }
+                                return record;
+                            }
+                        );
+                    }
+                    vm.prepareDuplicatePhoneNumberRecords(newSearch, tblData, total, isPlayer);
+                });
+            };
+
+            vm.prepareDuplicatePhoneNumberRecords = function (newSearch, tblData, size, isPlayer) {
+                let columns = [];
+                if (isPlayer) {
+                    columns = [
+                        {title: $translate('PLAYERNAME'), data: "name"},
+                        {title: $translate('Real Name'), data: "realName"},
+                        {title: $translate('CREDIBILITY'), data: "credibilityRemarksName"},
+                        {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                        {
+                            title: $translate('STATUS'), data: "playerStatusName",
+                            render: function (data, type, row) {
+                                let color = "black";
+                                if (row.data.forbidPlayerFromLogin  == true) {
+                                    color = "red";
+                                }
+                                return '<div style="color:' + color + '">' + data + '</div>';
+                            }
+                        },
+                        {title: $translate('PlayerLevel'), data: "playerLevelName"},
+                        {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
+                        {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                        {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                        {title: $translate('last_access_time'), data: "lastAccessTime"}
+                    ]
+                } else {
+                    columns = [
+                        {title: $translate('PARTNER_NAME'), data: "name"},
+                        {title: $translate('Real Name'), data: "realName"},
+                        {title: $translate('CREDIBILITY'), data: "credibilityRemarksName"},
+                        {
+                            title: $translate('STATUS'), data: "playerStatusName",
+                            render: function (data, type, row) {
+                                let color = "black";
+                                if (row.data.forbidPlayerFromLogin  == true) {
+                                    color = "red";
+                                }
+                                return '<div style="color:' + color + '">' + data + '</div>';
+                            }
+                        },
+                        {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
+                        {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                        {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                        {title: $translate('last_access_time'), data: "lastAccessTime"}
+                    ]
+                }
+
+                let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
+                    ],
+                    columns: columns,
+                    destroy: true,
+                    paging: false,
+                    autoWidth: true,
+                });
+                let aTable = $("#duplicatePhoneNumberLogTable").DataTable(tableOptions);
+                aTable.columns.adjust().draw();
+                vm.duplicatePhoneNumber.pageObj.init({maxCount: size}, newSearch);
+                $('#duplicatePhoneNumberLogTable').resize();
+                $('#duplicatePhoneNumberLogTable').off('order.dt');
+                $scope.safeApply();
             };
 
             vm.openEditPartnerDialog = function (selectedTab) {
@@ -21183,10 +21366,21 @@ define(['js/app'], function (myApp) {
                         vm.gridApi = api;
                     }
                 };
+                vm.allDxMission = [];
+                vm.getAllDxMission();
+            };
+
+            vm.getAllDxMission = function () {
+                socketService.$socket($scope.AppSocket, 'getAllDxMission', {}, function (data) {
+                    vm.allDxMission = data.data;
+                    $scope.safeApply();
+                });
             };
 
             // import phone number to system
             vm.importDiffPhoneNum = function (diffPhoneNum, dxMission) {
+                vm.selectedDxMission = '';
+
                 let sendData = {
                     platform: vm.selectedPlatform.id,
                     phoneNumber: diffPhoneNum,
@@ -21316,6 +21510,7 @@ define(['js/app'], function (myApp) {
                 vm.diffPhoneTXT = '';
                 vm.samePhoneTotalTXT = '';
                 vm.diffPhoneTotalTXT = '';
+                vm.selectedDxMission = '';
             };
             /****************** TXT - end ******************/
 
@@ -21347,6 +21542,7 @@ define(['js/app'], function (myApp) {
                 vm.phoneNumListResult = false;
                 vm.samePhoneList = '';
                 vm.diffPhoneList = '';
+                vm.selectedDxMission = '';
             };
 
             // copy phone number list
@@ -21499,6 +21695,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneTotalXLS = '';
                 vm.diffPhoneTotalXLS = '';
                 vm.phoneNumXLSResult = false;
+                vm.selectedDxMission = '';
             };
             /****************** XLS - end ******************/
             // phone number filter codes==============end===============================
@@ -24855,6 +25052,9 @@ define(['js/app'], function (myApp) {
                                 break;
                             case "UpdatePartnerQQ":
                                 vm.allProposalType[x].seq = 5.05;
+                                break;
+                            case "UpdatePartnerWeChat":
+                                vm.allProposalType[x].seq = 5.06;
                                 break;
                             case "UpdatePlayerCredit":
                                 vm.allProposalType[x].seq = 6.01;
