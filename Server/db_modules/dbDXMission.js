@@ -418,36 +418,44 @@ let dbDXMission = {
     },
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
+        let phoneData = {};
+
         return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
             path: "dxMission", model: dbconfig.collection_dxMission
         }).populate({
             path: "platform", model: dbconfig.collection_platform
         }).then(
-            phoneData => {
-                if(phoneData){
-                    let sendObj = {
-                        tel: data.tel,
-                        channel: 2,
-                        platformId: phoneData.platform.platformId,
-                        message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData),
-                        //delay: data.delay,
-                        'data.dxMission': phoneData.dxMission,
-                    };
-                    let recipientName = data.name || '';
+            dxPhoneRes => {
+                if (dxPhoneRes) {
+                    phoneData = dxPhoneRes;
 
-                    return smsAPI.sending_sendMessage(sendObj).then(
-                        retData => {
-                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
-                            console.log("SMS SENT SUCCESSFULLY");
-                            return retData;
-                        },
-                        retErr => {
-                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
-                            console.log("SMS SENT FAILED");
-                            return Q.reject({message: retErr, data: data});
-                        }
-                    );
+                    return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
                 }
+            }
+        ).then(
+            message => {
+                let sendObj = {
+                    tel: data.tel,
+                    channel: 2,
+                    platformId: phoneData.platform.platformId,
+                    message: message,
+                    //delay: data.delay,
+                    'data.dxMission': phoneData.dxMission,
+                };
+                let recipientName = data.name || '';
+
+                return smsAPI.sending_sendMessage(sendObj).then(
+                    retData => {
+                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
+                        console.log("SMS SENT SUCCESSFULLY");
+                        return retData;
+                    },
+                    retErr => {
+                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
+                        console.log("SMS SENT FAILED");
+                        return Q.reject({message: retErr, data: data});
+                    }
+                );
             }
         )
 
