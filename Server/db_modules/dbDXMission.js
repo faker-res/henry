@@ -66,7 +66,7 @@ let dbDXMission = {
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxMission.find(matchObj).count();
-        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj)
+        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj).skip(index).limit(limit).lean();
         let totalCount = 0;
         let dxMissionData = {};
 
@@ -561,7 +561,7 @@ let dbDXMission = {
                     }
                 );
             }
-        )
+        );
 
     },
 
@@ -581,6 +581,191 @@ let dbDXMission = {
             }
         )
     },
+
+    getDXPlayerInfo: function (platformObjId, count, dxMission, index, limit, sortCol) {
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
+
+        let result = [];
+        let matchObj = {
+            platform: platformObjId,
+            dxMission: dxMission,
+            playerObjId: {$exists: true}
+        };
+
+        let dataSummaryListProm = [];
+
+        let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
+        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().lean();
+        let size = 0;
+        let dxPhoneData = {};
+
+        return Promise.all([totalCountProm, phoneDataProm]).then(
+            result => {
+                if(result){
+                    size = result[0] ? result[0] : 0;
+                    dxPhoneData = result[1] ? result[1] : {};
+
+                    return {size: size, dxPhoneData: dxPhoneData};
+                }
+            }
+        ).then(
+            data => {
+                data.dxPhoneData.forEach(
+                    phoneData => {
+                        if(phoneData){
+                            dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform));
+                        }
+                    }
+                )
+
+                return Promise.all(dataSummaryListProm).then(
+                    summaryData => {
+                        let resultData = JSON.parse(JSON.stringify(data));
+                        if(summaryData){
+                            summaryData.forEach(
+                                summary => {
+                                    if(summary){
+
+                                        resultData.dxPhoneData.forEach(
+                                            phoneData => {
+                                                if(phoneData){
+                                                    if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
+                                                        phoneData.playerName = summary.playerName;
+                                                        phoneData.registrationTime = summary.registrationTime;
+                                                        phoneData.totalTopUpCount = summary.totalTopUpCount;
+                                                        phoneData.totalTopUpAmount = summary.totalTopUpAmount;
+                                                        phoneData.totalLoginTimes = summary.totalLoginTimes;
+                                                        phoneData.totalConsumptionTime = summary.totalConsumptionTime;
+                                                        phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
+                                                        phoneData.totalDepositAmount = summary.totalDepositAmount;
+                                                    }
+
+                                                    return;
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData}
+                    }
+                )
+            }
+        );
+    },
+
+    getPlayerInfo: function (playerObjId, platform) {
+        if(!playerObjId){
+            return;
+        }
+
+        let playerName = "";
+        let registrationTime = new Date();
+        let totalTopUpCount = 0;
+        let totalLoginTimes = 0;
+        let totalConsumptionTime = 0;
+        let totalConsumptionAmount = 0;
+        let playerBonusAmount = 0;
+        let totalTopUpAmount = 0;
+        let bonusProm = [];
+        let topUpPlayerProm = [];
+        let playerConsumptionProm = [];
+
+        return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+            playerData => {
+                if(playerData){
+                    if(playerData.topUpTimes){
+                        totalTopUpCount = playerData.topUpTimes;
+                    }
+
+                    if(playerData.loginTimes){
+                        totalLoginTimes = playerData.loginTimes;
+                    }
+
+                    if(playerData.name){
+                        playerName = playerData.name;
+                    }
+
+                    if(playerData.registrationTime){
+                        registrationTime = new Date(playerData.registrationTime);
+                    }
+
+                    topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).then(
+                        topUpRecord => {
+                            if(topUpRecord && topUpRecord.length > 0){
+                                totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
+                                    return (previousValue.amount || previousValue) + currentValue.amount;
+                                });
+
+                                return;
+                            }
+                        }
+                    );
+
+                    playerConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerData._id}).then(
+                        consumptionRecord => {
+                            if(consumptionRecord && consumptionRecord.length > 0){
+                                totalConsumptionTime = consumptionRecord.length;
+                                if(consumptionRecord.length > 1){
+                                    totalConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
+                                        return (previousValue.validAmount || previousValue) + currentValue.validAmount;
+                                    });
+                                }else{
+                                    totalConsumptionAmount = consumptionRecord[0].validAmount;
+                                }
+
+                                return;
+                            }
+                        }
+                    );
+
+                    bonusProm = dbconfig.collection_proposalType.findOne({platformId: platform, name: constProposalType.PLAYER_BONUS}).then(
+                        proposalType => {
+                            if(proposalType){
+                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerData._id, status: constProposalStatus.APPROVED}).then(
+                                    proposalData => {
+                                        if(proposalData && proposalData.length > 0){
+                                            if(proposalData.length > 1){
+                                                playerBonusAmount = proposalData.reduce(function(previousValue, currentValue) {
+                                                    if(previousValue.data){
+                                                        return previousValue.data.amount + currentValue.data.amount;
+                                                    }else{
+                                                        return previousValue + currentValue.data.amount;
+                                                    }
+
+                                                });
+                                            }else{
+                                                playerBonusAmount = proposalData[0].data.amount;
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    );
+
+                    return Promise.all([topUpPlayerProm, playerConsumptionProm, bonusProm]).then(
+                        returnData => {
+                            return {
+                                playerObjId: playerObjId,
+                                playerName: playerName,
+                                registrationTime: registrationTime,
+                                totalTopUpCount: totalTopUpCount,
+                                totalTopUpAmount: totalTopUpAmount,
+                                totalLoginTimes: totalLoginTimes,
+                                totalConsumptionTime: totalConsumptionTime,
+                                totalConsumptionAmount: totalConsumptionAmount,
+                                totalDepositAmount: totalTopUpAmount - playerBonusAmount
+                            }
+                        }
+                    );
+                }
+            }
+        );
+    }
 };
 
 module.exports = dbDXMission;

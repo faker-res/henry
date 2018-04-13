@@ -137,9 +137,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                         
             
-                    #overViewSubTable(ng-show="vm.showOverviewSubTable")
+                    #overViewSubTable(ng-show="vm.showPlayerTable")
                          div(style="margin-top:60px;")
-                            label {{"Total" | translate}} {{1}} {{"records" | translate}}
+                            label {{"totalCount" | translate}} {{vm.teleMarketingPlayerInfo.count}} {{"records" | translate}}
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerTablePage
                     #sendSMSTable(ng-show="vm.showSMSTable")
