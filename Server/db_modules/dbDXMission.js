@@ -374,9 +374,7 @@ let dbDXMission = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (dxPhone) {
                 if (!dxPhone) {
-                    return Promise.reject({
-                        errorMessage: "Invalid code for creating player"
-                    });
+                    return {redirect: "https://www.kbl8888.com"};
                 }
 
                 if (dxPhone.bUsed) {
