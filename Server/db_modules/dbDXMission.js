@@ -404,18 +404,20 @@ let dbDXMission = {
     },
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
-        return dbconfig.collection_dxMission.findOne({_id: ObjectId(data.dxMission)}).then(
-            missionData => {
-                if(missionData){
-                    var sendObj = {
+        return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
+            path: "dxMission", model: dbconfig.collection_dxMission
+        }).then(
+            phoneData => {
+                if(phoneData){
+                    let sendObj = {
                         tel: data.tel,
                         channel: 2,
                         platformId: ObjectId(data.platformId),
-                        message: replaceMailKeywords(missionData.invitationTemplate),
+                        message: replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData),
                         //delay: data.delay,
-                        'data.dxMission': data.dxMission,
+                        'data.dxMission': phoneData.dxMission,
                     };
-                    var recipientName = data.name || '';
+                    let recipientName = data.name || '';
 
                     return smsAPI.sending_sendMessage(sendObj).then(
                         retData => {
@@ -485,49 +487,16 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
 
 function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
     str = String(str);
-    let loginUrl = dxMission.loginUrl + "?=" + dxPhone.code;
+    let registrationUrl = dxMission.domain + "?=" + dxPhone.code;
 
-    str = str.replace ('{{username}}', player.name);
+    str = str.replace ('{{username}}', player && player.name ? player.name : "");
     str = str.replace ('{{password}}', dxMission.password);
-    str = str.replace ('{{loginUrl}}', loginUrl);
+    str = str.replace ('{{registrationUrl}}', registrationUrl);
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
-    str = str.replace ('{{providerGroup}}', providerGroupName);
+    str = str.replace ('{{providerGroup}}', providerGroupName || "");
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
 
     return str;
-}
-
-function generateDXCode(dxMission, platformId, tries) {
-    tries = (Number(tries) || 0) + 1;
-    if (tries > 5) {
-        return Promise.reject({
-            message: "Generate dian xiao code failure."
-        })
-    }
-    let randomString = Math.random().toString(36).substring(4,11); // generate random String
-    let dXCode = "";
-
-    let platformProm = Promise.resolve({platformId: platformId});
-    if (!platformId) {
-        platformProm = dbconfig.collection_platform.findOne({_id: dxMission.platform}, {platformId: 1}).lean();
-    }
-
-    return platformProm.then(
-        function (platform) {
-            platformId = platform.platformId;
-            dxCode = platform.platformId + randomString;
-            return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
-        }
-    ).then(
-        function (dxPhoneExist) {
-            if (dxPhoneExist) {
-                return generateDXCode(dxMission, platformId);
-            }
-            else {
-                return dxCode;
-            }
-        }
-    );
 }
 
 function updateDxPhoneBUsed (dxPhone) {
