@@ -2588,6 +2588,7 @@
   "Error in creating partner": "创建渠道失败",
   "Top up amount is not enough": "充值额度不够",
   "Player has too much valid credit": "玩家额度过多",
+  "SMS URL": "短信链接",
   "Player has applied for this reward": "玩家已申请过该优惠",
   "Apply Reward Fail, please try again later": "请求处理中, 请稍后再次尝试",
   "Amount is not enough 100": "申请提款数量过少100",

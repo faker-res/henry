@@ -13,9 +13,11 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             vm.teleMarketingOverview = {};
+            vm.teleMarketingSendSMS = {};
             vm.createTeleMarketingDefault = {
                 description: '',
                 creditAmount: 0,
+                providerGroup: '',
                 invitationTemplate: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}",
                 welcomeContent: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}"
             };
@@ -516,7 +518,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showSendSMSTable = function (data) {
-                vm.showSendSMSTable = true;
+                vm.showSMSTable = true;
             };
 
             vm.generalDataTableOptions = {
@@ -1324,20 +1326,13 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
+                    if(data){
+                        vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
+                        vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : 0;
 
-                    // console.log('', data.data[1]);
-                    // let result = data.data[1];
-                    // vm.telePlayerTable.totalCount = data.data[0];
-                // let sendQuery = {
-                //     platform: vm.selectedPlatform.id ,
-                //     count: 5
-                // }
-                //
-                // socketService.$socket($scope.AppSocket, 'getPlayersByPlatform', sendQuery, function (data) {
-
-
-                    let result = data.data
-                    result.forEach((item, index) => {
+                    }
+                    vm.showSMSTable = true;
+                    vm.teleMarketingSendSMS.data.forEach((item, index) => {
                         item['registrationTime'] = vm.dateReformat(item.registrationTime);
                         if (index ==2) {
                             item['isLocked'] = true;
@@ -1347,9 +1342,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
-                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, result, 6));
-                    // $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, result, vm.telePlayerTable.totalCount));
-                    //vm.playerRewardTaskLog.loading = false;
+                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, 6));
                 })
             };
 
@@ -1372,6 +1365,7 @@ define(['js/app'], function (myApp) {
 
                         },
                         { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
+                        { title: $translate('SMS URL'), data: "url"},
                         { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerId"},
                         { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "registrationTime"},
                         { title: $translate('LAST_SENDING'), data: "loginTimes"},
