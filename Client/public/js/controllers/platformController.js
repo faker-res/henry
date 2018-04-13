@@ -21564,7 +21564,7 @@ define(['js/app'], function (myApp) {
             /****************** List - end ******************/
 
             /****************** XLS - start ******************/
-            vm.uploadPhoneFileXLS = function (data) {
+            vm.uploadPhoneFileXLS = function (data, importXLS, dxMission) {
                 var data = [
                     [] // header row
                 ];
