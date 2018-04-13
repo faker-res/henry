@@ -15,6 +15,9 @@ const constProposalUserType = require('../const/constProposalUserType');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalStatus = require('../const/constProposalStatus');
 const dbProposal = require('./../db_modules/dbProposal');
+const dbUtility = require('./../modules/dbutility');
+const bcrypt = require('bcrypt');
+
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
@@ -363,102 +366,23 @@ let dbDXMission = {
                 errorMessage: "Invalid code for creating player"
             });
         }
-        let dxPhone = {};
-        let dxMission = {};
-        let platform = {};
 
-        return dbconfig.collection_dxPhone.findOne({
-            code: code
-        }).populate({path: "dxMission", model: dbconfig.collection_dxMission})
-        .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
-            function (phoneDetail) {
-                let playerProm = Promise.resolve();
-                let isNew = false;
-
-                if (!phoneDetail) {
+        return dbconfig.collection_dxPhone.findOne({code: code})
+            .populate({path: "dxMission", model: dbconfig.collection_dxMission})
+            .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+            function (dxPhone) {
+                if (!dxPhone) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
                     });
                 }
 
-                dxPhone = phoneDetail;
-                platform = dxPhone.platform;
-
-                if (!phoneDetail.dxMission) {
-                    phoneDetail.dxMission = {
-                        loginUrl: "eu99999.com",
-                        playerPrefix: "test",
-                    };
+                if (dxPhone.bUsed) {
+                    return loginDefaultPasswordPlayer(dxPhone);
                 }
-
-                if (!phoneDetail.dxMission.lastXDigit instanceof Number) {
-                    phoneDetail.dxMission.lastXDigit = 5;
+                else {
+                    return createPlayer(dxPhone, deviceData, domain);
                 }
-
-                dxMission = phoneDetail.dxMission;
-                let platformPrefix = platform.prefix || "";
-
-                if (phoneDetail.playerObjId) {
-                    playerProm = dbconfig.collection_players.findOne({_id: phoneDetail.playerObjId}).lean();
-                } else {
-                    playerProm = generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone).then(
-                        playerName => {
-                            isNew = true;
-
-                            let playerData = {
-                                platform: platform._id,
-                                name: playerName,
-                                password: dxPhone.dxMission.password || "888888",
-                                isTestPlayer: false,
-                                isRealPlayer: true,
-                                isLogin: true,
-                                dxMission: dxPhone.dxMission._id,
-                                phoneNumber: dxPhone.phoneNumber.toString(),
-                            };
-
-                            if (deviceData) {
-                                playerData = Object.assign({}, playerData, deviceData);
-                            }
-
-                            if (domain) {
-                                playerData.domain = domain;
-                            }
-
-                            return dbPlayerInfo.createPlayerInfo(playerData);
-                        }
-                    )
-                }
-
-                return playerProm.then(
-                    function (playerData) {
-                        let profile = {name: playerData.name, password: playerData.password};
-                        let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
-
-                        if (!dxMission.loginUrl) {
-                            dxMission.loginUrl = "localhost:3000";
-                        }
-
-                        if (isNew) {
-                            sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
-                            dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
-                            updateDxPhoneBUsed(dxPhone, playerData._id).catch(errorUtils.reportError);
-                        }
-
-                        return {
-                            redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
-                        }
-                    },
-                    function(error){
-                        //if already created player, redirect to login url
-                        return {
-                            redirect: dxMission.loginUrl
-                        }
-                    }
-                );
-
-
-
-
             }
         )
     },
@@ -657,6 +581,108 @@ function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tr
             else {
                 return playerName;
             }
+        }
+    );
+}
+
+function createPlayer (dxPhone, deviceData, domain) {
+    let platform = dxPhone.platform;
+
+    if (!dxPhone.dxMission) {
+        dxPhone.dxMission = {
+            loginUrl: "eu99999.com",
+            playerPrefix: "test",
+        };
+    }
+
+    if (!dxPhone.dxMission.lastXDigit instanceof Number) {
+        dxPhone.dxMission.lastXDigit = 5;
+    }
+
+    let dxMission = dxPhone.dxMission;
+    let platformPrefix = platform.prefix || "";
+
+    return generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone).then(
+        playerName => {
+            isNew = true;
+
+            let playerData = {
+                platform: platform._id,
+                name: playerName,
+                password: dxPhone.dxMission.password || "888888",
+                isTestPlayer: false,
+                isRealPlayer: true,
+                isLogin: true,
+                dxMission: dxPhone.dxMission._id,
+                phoneNumber: dxPhone.phoneNumber.toString(),
+            };
+
+            if (deviceData) {
+                playerData = Object.assign({}, playerData, deviceData);
+            }
+
+            if (domain) {
+                playerData.domain = domain;
+            }
+
+            return dbPlayerInfo.createPlayerInfo(playerData);
+        }
+    ).then(
+        function (playerData) {
+            let profile = {name: playerData.name, password: playerData.password};
+            let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+            if (!dxMission.loginUrl) {
+                dxMission.loginUrl = "localhost:3000";
+            }
+
+            if (isNew) {
+                sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
+                dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
+                updateDxPhoneBUsed(dxPhone, playerData._id).catch(errorUtils.reportError);
+            }
+
+            return {
+                redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
+            }
+        }
+    ).catch(
+        err => {
+            return {redirect: dxMission.loginUrl};
+        }
+    );
+}
+
+function loginDefaultPasswordPlayer (dxPhone) {
+    let playerProm = Promise.resolve();
+    let dxMission = dxPhone.dxMission;
+
+    if (dxPhone.playerObjId) {
+        playerProm = dbconfig.collection_players.findOne({_id: dxPhone.playerObjId}).lean();
+    }
+
+    return playerProm.then(
+        player => {
+            if (!player) {
+                return Promise.reject({message: "Player not found"}); // will go to catch and handle it anyway
+            }
+
+            bcrypt.compare(String(dxMission.password), String(player.password), function (err, isMatch) {
+                if (err || !isMatch) {
+                    return Promise.reject({message: "Password changed"});
+                }
+            });
+
+            let profile = {name: player.name, password: player.password};
+            let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+            return {
+                redirect: dxMission.loginUrl + "?playerId=" + player.playerId + "&token=" + token
+            }
+        }
+    ).catch(
+        err => {
+            return {redirect: dxMission.loginUrl};
         }
     );
 }
