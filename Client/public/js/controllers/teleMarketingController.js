@@ -1334,12 +1334,12 @@ define(['js/app'], function (myApp) {
                     vm.showSMSTable = true;
                     vm.teleMarketingSendSMS.data.forEach((item, index) => {
                         item['registrationTime'] = vm.dateReformat(item.registrationTime);
-                        if (index ==2) {
-                            item['isLocked'] = true;
-                        }
-                        else {
-                            item['isLocked'] = false;
-                        }
+                        // if (index ==2) {
+                        //     item['isLocked'] = true;
+                        // }
+                        // else {
+                        //     item['isLocked'] = false;
+                        // }
                     });
 
                     $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, 6));
