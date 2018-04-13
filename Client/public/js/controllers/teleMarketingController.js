@@ -1359,6 +1359,7 @@ define(['js/app'], function (myApp) {
 
                         },
                         { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
+                        { title: $translate('SMS URL'), data: "url"},
                         { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerId"},
                         { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "registrationTime"},
                         { title: $translate('LAST_SENDING'), data: "loginTimes"},
