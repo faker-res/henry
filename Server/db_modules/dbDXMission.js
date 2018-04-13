@@ -350,6 +350,12 @@ let dbDXMission = {
                         return {
                             redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
                         }
+                    },
+                    function(error){
+                        //if already created player, redirect to login url
+                        return {
+                            redirect: dxMission.loginUrl;
+                        }
                     }
                 );
 
