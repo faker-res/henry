@@ -507,7 +507,7 @@ function replaceMailKeywords(str, dxMission, dxPhone, player) {
                 let providerGroupName = data[1] ? data[1].name : "自由大厅";
 
                 str = String(str);
-                let registrationUrl = dxMission.domain + "?code=" + dxPhone.code;
+                let registrationUrl = dxMission.domain + "/" + dxPhone.code;
                 let loginUrl = dxMission.loginUrl;
 
                 str = str.replace ('{{username}}', playerName);
