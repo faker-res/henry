@@ -13,9 +13,11 @@ define(['js/app'], function (myApp) {
             window.VM = vm;
 
             vm.teleMarketingOverview = {};
+            vm.teleMarketingSendSMS = {};
             vm.createTeleMarketingDefault = {
                 description: '',
                 creditAmount: 0,
+                providerGroup: '',
                 invitationTemplate: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}",
                 welcomeContent: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}"
             };
@@ -39,6 +41,11 @@ define(['js/app'], function (myApp) {
                 }
                 $cookies.put("teleMarketShowLeft", vm.showPlatformList);
                 $scope.safeApply();
+            };
+
+            vm.setAnchor = function (anchor) {
+                location.hash = '';
+                location.hash = anchor.toString();
             };
 
             $scope.$on('switchPlatform', () => {
@@ -511,7 +518,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showSendSMSTable = function (data) {
-                vm.showSendSMSTable = true;
+                vm.showSMSTable = true;
             };
 
             vm.generalDataTableOptions = {
@@ -1113,15 +1120,15 @@ define(['js/app'], function (myApp) {
                             }
 
                         },
-                        { title: $translate('Imported Telephone Number'), data: "phoneNumber"},
-                        { title: $translate('Account Number'), data: "playerId"},
-                        { title: $translate('Account Opening Time (Init Time)'), data: "registrationTime",  sClass: "sumText wordWrap"},
-                        { title: $translate('Login Time'), data: "loginTimes"},
-                        { title: $translate('Topup Time'), data: "topUpTimes"},
-                        { title: $translate('Topup Amount'), data: "topUpSum"},
-                        { title: $translate('Bet'), data: "consumptionTimes"},
+                        { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
+                        { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerId"},
+                        { title: $translate('TIME_OPENING_ACCOUNT'), data: "registrationTime",  sClass: "sumText wordWrap"},
+                        { title: $translate('loginTimes'), data: "loginTimes"},
+                        { title: $translate('TOP_UP_TIMES'), data: "topUpTimes"},
+                        { title: $translate('TOP_UP_AMOUNT'), data: "topUpSum"},
+                        { title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
                         { title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "creditBalance"},
-                        { title: $translate('Effective Betting Amount'), data: "effectiveBettingAmount"},
+                        { title: $translate('VALID_CONSUMPTION'), data: "effectiveBettingAmount"},
 
                         {
                             title: $translate('Function'), //data: 'phoneNumber',
@@ -1319,19 +1326,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
+                    if(data){
+                        vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
+                        vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : 0;
 
-                    // console.log('', data.data[1]);
-                    // let result = data.data[1];
-                    // vm.telePlayerTable.totalCount = data.data[0];
-
-                    let result = data.data
-                    result.forEach((item) => {
+                    }
+                    vm.showSMSTable = true;
+                    vm.teleMarketingSendSMS.data.forEach((item) => {
                         item['registrationTime'] = vm.dateReformat(item.registrationTime);
                     });
 
-                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, result, 6));
-                    // $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, result, vm.telePlayerTable.totalCount));
-                    //vm.playerRewardTaskLog.loading = false;
+                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, 6));
                 })
             };
 
@@ -1354,12 +1359,12 @@ define(['js/app'], function (myApp) {
 
                         },
                         { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
-                        { title: $translate('Account Number'), data: "playerId"},
-                        { title: $translate('Imported Tel Time'), data: "createTime",  sClass: "sumText wordWrap"},
-                        { title: $translate('Last Msg Sending Time'), data: "loginTimes"},
-                        { title: $translate('Msg Sending Times'), data: "topUpTimes"},
+                        { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerId"},
+                        { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "registrationTime"},
+                        { title: $translate('LAST_SENDING'), data: "loginTimes"},
+                        { title: $translate('SENDING_TIMES'), data: "topUpTimes"},
                         { title: $translate('loginTimes'), data: "topUpSum"},
-                        { title: $translate('tupUpTimes'), data: "consumptionTimes"},
+                        { title: $translate('TOP_UP_TIMES'), data: "consumptionTimes"},
 
                         {
                             //"title": $translate('UnlockStatus'),data:"status",
@@ -1387,12 +1392,7 @@ define(['js/app'], function (myApp) {
                 tableOptions.language.emptyTable=$translate("No data available in table");
 
                 utilService.createDatatableWithFooter('#telePlayerSendingMsgTable', tableOptions, {
-                    // 4: summary.loginTimeSum ? summary.loginTimeSum: 0,
-                    // 5: summary.topupTimeSum ? summary.topupTimeSum: 0,
-                    // 6: summary.topupAmountSum ? summary.topupAmountSum: 0,
-                    // 7: summary.betSum ? summary.betSum: 0,
-                    // 8: summary.balanceSum ? summary.balanceSum :0,
-                    // 9: summary.effectiveBetAmount ? summary.effectiveBetAmount: 0,
+
                 });
 
                 vm.telePlayerSendingMsgTable.pageObj.init({maxCount: size}, newSearch);
@@ -1412,6 +1412,9 @@ define(['js/app'], function (myApp) {
                     let result = $(this).val().split(',');
                     vm.msgSendingGroupData.push(result);
                 })
+
+                vm.totalmsg = vm.msgSendingGroupData.length;
+                $scope.safeApply();
             }
 
             vm.sendMsgToTelePlayer = function (){

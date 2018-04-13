@@ -1522,7 +1522,7 @@ let dbRewardPoints = {
                         preDailyAppliedPoint: dailyAppliedPoints,
                         userCurrentPoint: rewardPoints,
                         refreshPeriod: intervalPeriod,
-                        list: list.sort(function (a, b) {return a - b})
+                        list: list
                     };
                     return outputObject;
                 }
