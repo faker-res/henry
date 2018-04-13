@@ -134,15 +134,15 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             label {{"Total" | translate}} {{vm.teleMarketingOverview.totalCount}} {{"records" | translate}}
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
-
-                        
-                    #sendSMSTable(ng-show="vm.showSendSMSTable")
-                        div(style="margin-top:60px;")
+                            
+                    #overViewSubTable(ng-show="vm.showOverviewSubTable")
+                        div
                             label {{"Total" | translate}} {{1}} {{"records" | translate}}
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerTablePage
-                        div(ng-init="vm.showTelePlayerSendingMsgTable()", style="margin-top:100px;")
-                            label {{"Total" | translate}} {{2}} {{"records" | translate}}
+                    #sendSMSTable(ng-show="vm.showSMSTable")
+                        div
+                            label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
                             table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerSendingMsgTablePage
                             div#tempanchor(style="text-align:right;margin-top:60px;")
