@@ -1310,11 +1310,15 @@ define(['js/app'], function (myApp) {
                     if(data){
                         vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
                         vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : 0;
+                        // vm.msgTemplate = data.data.
 
                     }
                     vm.showSMSTable = true;
                     vm.teleMarketingSendSMS.data.forEach((item, index) => {
-                        item['registrationTime'] = vm.dateReformat(item.registrationTime);
+                        item['createTime'] = vm.dateReformat(item.createTime);
+                        item['playerName'] = item.playerObjId && item.playerObjId.name ? item.playerObjId.name : '-';
+                        item['topupTimes'] = item.playerObjId && item.playerObjId.topUpTimes ? item.playerObjId.topUpTimes : 0;
+                        item['loginTimes'] = item.playerObjId && item.playerObjId.loginTimes ? item.playerObjId.loginTimes : 0;
                         // if (index ==2) {
                         //     item['isLocked'] = true;
                         // }
@@ -1347,12 +1351,12 @@ define(['js/app'], function (myApp) {
                         },
                         { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
                         { title: $translate('SMS URL'), data: "url"},
-                        { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerId"},
-                        { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "registrationTime"},
-                        { title: $translate('LAST_SENDING'), data: "loginTimes"},
-                        { title: $translate('SENDING_TIMES'), data: "topUpTimes"},
-                        { title: $translate('loginTimes'), data: "topUpSum"},
-                        { title: $translate('TOP_UP_TIMES'), data: "consumptionTimes"},
+                        { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
+                        { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "createTime"},
+                        { title: $translate('LAST_SENDING'), data: "lastTime"},
+                        { title: $translate('SENDING_TIMES'), data: "sendingTimes"},
+                        { title: $translate('loginTimes'), data: "loginTimes"},
+                        { title: $translate('TOP_UP_TIMES'), data: "topupTimes"},
 
                         {
                             "title": $translate('Multiselect'),
