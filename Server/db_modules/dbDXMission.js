@@ -419,8 +419,6 @@ let dbDXMission = {
                     };
                     let recipientName = data.name || '';
 
-                    console.log("1111111111111111",sendObj);
-
                     return smsAPI.sending_sendMessage(sendObj).then(
                         retData => {
                             dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
@@ -441,8 +439,19 @@ let dbDXMission = {
 
     getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
         var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
+        let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission});
 
-        return dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission});
+        return Promise.all([sizeProm, dxPhoneDataProm]).then(
+            result => {
+                if(result){
+                    let size = result[0] ? result[0] : 0;
+                    let dxPhoneData = result[1] ? result[1] : {};
+
+                    return {size: size, dxPhoneData: dxPhoneData};
+                }
+            }
+        )
     },
 };
 
@@ -478,11 +487,13 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
 
 function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
     str = String(str);
-    let registrationUrl = dxMission.domain + "?=" + dxPhone.code;
+    let registrationUrl = dxMission.domain + "?code=" + dxPhone.code;
+    let loginUrl = dxMission.loginUrl;
 
     str = str.replace ('{{username}}', player && player.name ? player.name : "");
     str = str.replace ('{{password}}', dxMission.password);
     str = str.replace ('{{registrationUrl}}', registrationUrl);
+    str = str.replace ('{{loginUrl}}', loginUrl);
     str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
     str = str.replace ('{{providerGroup}}', providerGroupName || "");
     str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
