@@ -48,10 +48,10 @@
                 if (receivedMsg.data.data && receivedMsg.data.data.redirect){
                     // redirect to the desired link
 //                    window.location.href = receivedMsg.data.data.redirect;
-                    alert(receivedMsg.data.data.redirect);
+                    /alert(receivedMsg.data.data.redirect);
                     let newPage = "https://" + receivedMsg.data.data.redirect;
-                    alert(newPage);
-                    window.open(newPage);
+//                    alert(newPage);
+//                    window.open(newPage);
                     curLocation.assign(newPage);
                 }
             }
