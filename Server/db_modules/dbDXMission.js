@@ -368,17 +368,19 @@ let dbDXMission = {
         let platform = {};
 
         return dbconfig.collection_dxPhone.findOne({
-            code: code,
-            bUsed: false,
+            code: code
         }).populate({path: "dxMission", model: dbconfig.collection_dxMission})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (phoneDetail) {
+                let playerProm = Promise.resolve();
+                let isNew = false;
+
                 if (!phoneDetail) {
                     return Promise.reject({
                         errorMessage: "Invalid code for creating player"
                     });
                 }
-                
+
                 dxPhone = phoneDetail;
                 platform = dxPhone.platform;
 
@@ -396,51 +398,69 @@ let dbDXMission = {
                 dxMission = phoneDetail.dxMission;
                 let platformPrefix = platform.prefix || "";
 
-                return generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone);
+                if (phoneDetail.playerObjId) {
+                    playerProm = dbconfig.collection_players.findOne({_id: phoneDetail.playerObjId}).lean();
+                } else {
+                    playerProm = generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone).then(
+                        playerName => {
+                            isNew = true;
+
+                            let playerData = {
+                                platform: platform._id,
+                                name: playerName,
+                                password: dxPhone.dxMission.password || "888888",
+                                isTestPlayer: false,
+                                isRealPlayer: true,
+                                isLogin: true,
+                                dxMission: dxPhone.dxMission._id,
+                                phoneNumber: dxPhone.phoneNumber.toString(),
+                            };
+
+                            if (deviceData) {
+                                playerData = Object.assign({}, playerData, deviceData);
+                            }
+
+                            if (domain) {
+                                playerData.domain = domain;
+                            }
+
+                            return dbPlayerInfo.createPlayerInfo(playerData);
+                        }
+                    )
+                }
+
+                return playerProm.then(
+                    function (playerData) {
+                        let profile = {name: playerData.name, password: playerData.password};
+                        let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                        if (!dxMission.loginUrl) {
+                            dxMission.loginUrl = "localhost:3000";
+                        }
+
+                        if (isNew) {
+                            sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
+                            dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
+                            updateDxPhoneBUsed(dxPhone, playerData._id).catch(errorUtils.reportError);
+                        }
+
+                        return {
+                            redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
+                        }
+                    },
+                    function(error){
+                        //if already created player, redirect to login url
+                        return {
+                            redirect: dxMission.loginUrl;
+                        }
+                    }
+                );
+
+
+
+
             }
-        ).then(
-            function (playerName) {
-                let playerData = {
-                    platform: platform._id,
-                    name: playerName,
-                    password: dxPhone.dxMission.password || "888888",
-                    isTestPlayer: false,
-                    isRealPlayer: true,
-                    isLogin: true,
-                    dxMission: dxPhone.dxMission._id,
-                    phoneNumber: dxPhone.phoneNumber.toString(),
-                };
-
-                if (deviceData) {
-                    playerData = Object.assign({}, playerData, deviceData);
-                }
-
-                if (domain) {
-                    playerData.domain = domain;
-                }
-
-                return dbPlayerInfo.createPlayerInfo(playerData);
-            }
-        ).then(
-            function (playerData) {
-                let profile = {name: playerData.name, password: playerData.password};
-                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
-
-                if (!dxMission.loginUrl) {
-                    dxMission.loginUrl = "localhost:3000";
-                }
-
-                sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
-
-                dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
-
-                updateDxPhoneBUsed(dxPhone).catch(errorUtils.reportError);
-
-                return {
-                    redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
-                }
-            }
-        );
+        )
     },
 
     applyDxMissionReward: function (dxMission, playerData) {
@@ -560,51 +580,61 @@ let dbDXMission = {
 module.exports = dbDXMission;
 
 function sendWelcomeMessage(dxMission, dxPhone, player) {
+    let title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player);
+    let content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player);
+
+    return dbPlayerMail.createPlayerMail({
+        platformId: dxPhone.platform,
+        recipientType: 'player',
+        recipientId: player._id,
+        title: title,
+        content: content
+    });
+}
+
+function replaceMailKeywords(str, dxMission, dxPhone, player) {
+    let playerNameProm;
     let providerGroupProm = Promise.resolve();
 
-    if (dxMission.providerGroup && String(dxMission.providerGroup.length) === 24) {
+    if (player && player.name) {
+        playerNameProm = Promise.resolve(player.name);
+    } else {
+        playerNameProm = generateDXPlayerName(dxMission.lastXDigit, dxMission.platform.prefix, dxMission.playerPrefix, dxPhone)
+    }
+
+    if (dxMission.providerGroup && String(dxMission.providerGroup).length === 24) {
         providerGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: dxMission.providerGroup}).lean();
     }
 
-    return providerGroupProm.then(
-        function (providerGroup) {
-            let providerGroupName = "自由大厅";
-            if (providerGroup) {
-                providerGroupName = providerGroup.name;
+    return Promise.all([playerNameProm, providerGroupProm]).then(
+        data => {
+            if (data) {
+                let playerName = data[0];
+                let providerGroupName = data[1] ? data[1].name : "自由大厅";
+
+                str = String(str);
+                let registrationUrl = dxMission.domain + "?code=" + dxPhone.code;
+                let loginUrl = dxMission.loginUrl;
+
+                str = str.replace ('{{username}}', playerName);
+                str = str.replace ('{{password}}', dxMission.password);
+                str = str.replace ('{{registrationUrl}}', registrationUrl);
+                str = str.replace ('{{loginUrl}}', loginUrl);
+                str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
+                str = str.replace ('{{providerGroup}}', providerGroupName);
+                str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
+
+                return str;
             }
-
-            let title = replaceMailKeywords(dxMission.welcomeTitle, dxMission, dxPhone, player, providerGroupName);
-            let content = replaceMailKeywords(dxMission.welcomeContent, dxMission, dxPhone, player, providerGroupName);
-
-            return dbPlayerMail.createPlayerMail({
-                platformId: dxPhone.platform,
-                recipientType: 'player',
-                recipientId: player._id,
-                title: title,
-                content: content
-            });
         }
-    );
+    )
 }
 
-function replaceMailKeywords(str, dxMission, dxPhone, player, providerGroupName) {
-    str = String(str);
-    let registrationUrl = dxMission.domain + "?code=" + dxPhone.code;
-    let loginUrl = dxMission.loginUrl;
-
-    str = str.replace ('{{username}}', player && player.name ? player.name : "");
-    str = str.replace ('{{password}}', dxMission.password);
-    str = str.replace ('{{registrationUrl}}', registrationUrl);
-    str = str.replace ('{{loginUrl}}', loginUrl);
-    str = str.replace ('{{creditAmount}}', dxMission.creditAmount);
-    str = str.replace ('{{providerGroup}}', providerGroupName || "");
-    str = str.replace ('{{requiredConsumption}}', dxMission.requiredConsumption);
-
-    return str;
-}
-
-function updateDxPhoneBUsed (dxPhone) {
-    return dbconfig.collection_dxPhone.update({_id: dxPhone._id}, {bUsed: true});
+function updateDxPhoneBUsed (dxPhone, usedPlayerObjId) {
+    return dbconfig.collection_dxPhone.update({
+        _id: dxPhone._id,
+        playerObjId: usedPlayerObjId
+    }, {bUsed: true});
 }
 
 function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tries) {
