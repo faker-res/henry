@@ -9668,7 +9668,7 @@ let dbPlayerInfo = {
                 }).then(
                     playerData => {
                         if (playerData) {
-                            if (playerData.lastLoginIp == playerIp) {
+                            // if (playerData.lastLoginIp == playerIp) {
                                 if (playerData.isTestPlayer && isDemoPlayerExpire(playerData, playerData.platform.demoPlayerValidDays)) {
                                     deferred.reject({
                                         name: "DataError",
@@ -9683,10 +9683,10 @@ let dbPlayerInfo = {
                                 conn.playerObjId = playerData._id;
                                 conn.platformId = playerData.platform.platformId;
                                 deferred.resolve(true);
-                            }
-                            else {
-                                deferred.reject({name: "DataError", message: "Player ip doesn't match!"});
-                            }
+                            // }
+                            // else {
+                            //     deferred.reject({name: "DataError", message: "Player ip doesn't match!"});
+                            // }
                         }
                         else {
                             deferred.reject({name: "DataError", message: "Can't find player"});
@@ -14304,7 +14304,7 @@ let dbPlayerInfo = {
                 function (missionProm) {
                     platformId = missionProm.platform.platformId;
                     dxCode = missionProm.platform.platformId + randomString;
-                    return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
+                    return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
                 }
             ).then(
                 function (dxPhoneExist) {
