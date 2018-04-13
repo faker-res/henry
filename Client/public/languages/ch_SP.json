@@ -1423,6 +1423,7 @@
   "FILTER_THEN_IMPORT_XLS": "过滤和导入系统",
   "SELECT_XLS_FILE": "选择Excel文件",
   "XLS_LENGTH": "总数据",
+  "SELECT_DXMISSION_INSTRUCTION": "请选择电销任务：",
 
   "PlayerFreeTrialRewardGroup": "免费体验金（组）",
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",
