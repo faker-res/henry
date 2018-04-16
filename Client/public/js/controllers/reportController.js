@@ -1031,6 +1031,12 @@ define(['js/app'], function (myApp) {
                         case "UpdatePartnerQQ":
                             vm.allProposalType[x].seq = 5.05;
                             break;
+                        case "UpdatePartnerWeChat":
+                            vm.allProposalType[x].seq = 5.06;
+                            break;
+                        case "UpdatePartnerCommissionType":
+                            vm.allProposalType[x].seq = 5.07;
+                            break;
                         case "UpdatePlayerCredit":
                             vm.allProposalType[x].seq = 6.01;
                             break;
@@ -6312,6 +6318,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "Update partner email", action: "createUpdatePartnerEmailProposal"},
                     {group: "PARTNER", text: "Update partner QQ", action: "createUpdatePartnerQQProposal"},
                     {group: "PARTNER", text: "Update partner WeChat", action: "createUpdatePartnerWeChatProposal"},
+                    {group: "PARTNER", text: "Update partner commission type", action: "createUpdatePartnerCommissionTypeProposal"},
                     {
                         group: "PARTNER",
                         text: "Update partner bank information",

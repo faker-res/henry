@@ -69,7 +69,7 @@ let dbDXMission = {
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxMission.find(matchObj).count();
-        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj)
+        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj).skip(index).limit(limit).lean();
         let totalCount = 0;
         let dxMissionData = {};
 
@@ -372,9 +372,7 @@ let dbDXMission = {
             .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (dxPhone) {
                 if (!dxPhone) {
-                    return Promise.reject({
-                        errorMessage: "Invalid code for creating player"
-                    });
+                    return {redirect: "www.kbl8888.com"};
                 }
 
                 if (dxPhone.bUsed) {
@@ -485,7 +483,7 @@ let dbDXMission = {
                     }
                 );
             }
-        )
+        );
 
     },
 
@@ -493,44 +491,254 @@ let dbDXMission = {
         var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
         let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
         let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players});
-        //let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission});
+        let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
-        return Promise.all([sizeProm, dxPhoneDataProm]).then(
+        return Promise.all([sizeProm, dxPhoneDataProm, dxMissionProm]).then(
             result => {
                 if(result){
                     let size = result[0] ? result[0] : 0;
                     let dxPhoneData = result[1] ? result[1] : {};
-                   // let dxMissionData = result[2] ? result[2] : {};
+                    let dxMissionData = result[2] ? result[2] : {};
+                    let dxPhoneDataWithDetails = [];
+
+                    //let dxPhoneDataDetail = [];
+                    return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission)).then( smsLog => {
+                        if (smsLog && smsLog.length > 0){
+                            let smsLogDetail = {};
+                            smsLog.forEach( data => {
+                                smsLogDetail[data.phoneNumber] = data;
+                            })
+
+                            dxPhoneData.forEach( (phoneData,i) => {
+                                if (smsLogDetail && smsLogDetail[phoneData.phoneNumber]){
+                                    let details = {};
+                                    details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
+                                    details.count = smsLogDetail[phoneData.phoneNumber].count;
+                                    let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
+                                    phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
+                                    dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                }
+
+                            })
+
+                        }
+                        return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                    })
 
 
-                    // return dbDXMission.retrieveSMSLogInfo(dxPhoneData).then( smsLog => {
-                    //
-                    // })
-
-                    return {size: size, dxPhoneData: dxPhoneData};
                 }
             }
         )
     },
+    getDXPlayerInfo: function (platformObjId, count, dxMission, index, limit, sortCol) {
+        limit = limit ? limit : 20;
+        index = index ? index : 0;
 
-    retrieveSMSLogInfo: function (dxPhoneData) {
+        let result = [];
+        let matchObj = {
+            platform: platformObjId,
+            dxMission: dxMission,
+            playerObjId: {$exists: true}
+        };
 
+        let dataSummaryListProm = [];
+
+        let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
+        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().lean();
+        let size = 0;
+        let dxPhoneData = {};
+
+        return Promise.all([totalCountProm, phoneDataProm]).then(
+            result => {
+                if(result){
+                    size = result[0] ? result[0] : 0;
+                    dxPhoneData = result[1] ? result[1] : {};
+
+                    return {size: size, dxPhoneData: dxPhoneData};
+                }
+            }
+        ).then(
+            data => {
+                data.dxPhoneData.forEach(
+                    phoneData => {
+                        if(phoneData){
+                            dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform));
+                        }
+                    }
+                )
+
+                return Promise.all(dataSummaryListProm).then(
+                    summaryData => {
+                        let resultData = JSON.parse(JSON.stringify(data));
+                        if(summaryData){
+                            summaryData.forEach(
+                                summary => {
+                                    if(summary){
+
+                                        resultData.dxPhoneData.forEach(
+                                            phoneData => {
+                                                if(phoneData){
+                                                    if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
+                                                        phoneData.playerName = summary.playerName;
+                                                        phoneData.registrationTime = summary.registrationTime;
+                                                        phoneData.totalTopUpCount = summary.totalTopUpCount;
+                                                        phoneData.totalTopUpAmount = summary.totalTopUpAmount;
+                                                        phoneData.totalLoginTimes = summary.totalLoginTimes;
+                                                        phoneData.totalConsumptionTime = summary.totalConsumptionTime;
+                                                        phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
+                                                        phoneData.totalDepositAmount = summary.totalDepositAmount;
+                                                    }
+
+                                                    return;
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+
+                        return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData}
+                    }
+                )
+            }
+        );
+    },
+
+    getPlayerInfo: function (playerObjId, platform) {
+        if(!playerObjId){
+            return;
+        }
+
+        let playerName = "";
+        let registrationTime = new Date();
+        let totalTopUpCount = 0;
+        let totalLoginTimes = 0;
+        let totalConsumptionTime = 0;
+        let totalConsumptionAmount = 0;
+        let playerBonusAmount = 0;
+        let totalTopUpAmount = 0;
+        let bonusProm = [];
+        let topUpPlayerProm = [];
+        let playerConsumptionProm = [];
+
+        return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+            playerData => {
+                if(playerData){
+                    if(playerData.topUpTimes){
+                        totalTopUpCount = playerData.topUpTimes;
+                    }
+
+                    if(playerData.loginTimes){
+                        totalLoginTimes = playerData.loginTimes;
+                    }
+
+                    if(playerData.name){
+                        playerName = playerData.name;
+                    }
+
+                    if(playerData.registrationTime){
+                        registrationTime = new Date(playerData.registrationTime);
+                    }
+
+                    topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).then(
+                        topUpRecord => {
+                            if(topUpRecord && topUpRecord.length > 0){
+                                totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
+                                    return (previousValue.amount || previousValue) + currentValue.amount;
+                                });
+
+                                return;
+                            }
+                        }
+                    );
+
+                    playerConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerData._id}).then(
+                        consumptionRecord => {
+                            if(consumptionRecord && consumptionRecord.length > 0){
+                                totalConsumptionTime = consumptionRecord.length;
+                                if(consumptionRecord.length > 1){
+                                    totalConsumptionAmount = consumptionRecord.reduce(function(previousValue, currentValue) {
+                                        return (previousValue.validAmount || previousValue) + currentValue.validAmount;
+                                    });
+                                }else{
+                                    totalConsumptionAmount = consumptionRecord[0].validAmount;
+                                }
+
+                                return;
+                            }
+                        }
+                    );
+
+                    bonusProm = dbconfig.collection_proposalType.findOne({platformId: platform, name: constProposalType.PLAYER_BONUS}).then(
+                        proposalType => {
+                            if(proposalType){
+                                return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerData._id, status: constProposalStatus.APPROVED}).then(
+                                    proposalData => {
+                                        if(proposalData && proposalData.length > 0){
+                                            if(proposalData.length > 1){
+                                                playerBonusAmount = proposalData.reduce(function(previousValue, currentValue) {
+                                                    if(previousValue.data){
+                                                        return previousValue.data.amount + currentValue.data.amount;
+                                                    }else{
+                                                        return previousValue + currentValue.data.amount;
+                                                    }
+
+                                                });
+                                            }else{
+                                                playerBonusAmount = proposalData[0].data.amount;
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    );
+
+                    return Promise.all([topUpPlayerProm, playerConsumptionProm, bonusProm]).then(
+                        returnData => {
+                            return {
+                                playerObjId: playerObjId,
+                                playerName: playerName,
+                                registrationTime: registrationTime,
+                                totalTopUpCount: totalTopUpCount,
+                                totalTopUpAmount: totalTopUpAmount,
+                                totalLoginTimes: totalLoginTimes,
+                                totalConsumptionTime: totalConsumptionTime,
+                                totalConsumptionAmount: totalConsumptionAmount,
+                                totalDepositAmount: totalTopUpAmount - playerBonusAmount
+                            }
+                        }
+                    );
+                }
+            }
+        );
+    },
+
+    retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId) {
         let smsLogProm = [];
         if (dxPhoneData && dxPhoneData.length > 0){
             // let phoneNumberCollection = [];
             dxPhoneData.forEach ( data => {
-                phoneNumberCollection.push(data.phoneNumber);
+                smsLogProm.push( dbconfig.collection_smsLog.find({tel: data.phoneNumber, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
+                    smsLogData => {
+                        if (smsLogData && smsLogData.length > 0){
+                            return {phoneNumber: smsLogData[0].tel, lastTime: smsLogData[0].createTime, count: smsLogData.length}
+                        }
+                        else{
+                            return {}
+                        }
+
+                    }
+                ) );
             });
 
-            if (phoneNumberCollection && phoneNumberCollection.length > 0){
-
-              smsLogProm.push(dbconfig.collection_smsLog.find() );
-            }
 
             return Q.all(smsLogProm);
         }
-    },
+    }
+
 };
 
 module.exports = dbDXMission;
@@ -702,19 +910,21 @@ function loginDefaultPasswordPlayer (dxPhone) {
             if (!player) {
                 return Promise.reject({message: "Player not found"}); // will go to catch and handle it anyway
             }
+            
+            return new Promise((resolve, reject) => {
+                bcrypt.compare(String(dxMission.password), String(player.password), function (err, isMatch) {
+                    if (err || !isMatch) {
+                        return reject({message: "Password changed"});
+                    }
 
-            bcrypt.compare(String(dxMission.password), String(player.password), function (err, isMatch) {
-                if (err || !isMatch) {
-                    return Promise.reject({message: "Password changed"});
-                }
+                    let profile = {name: player.name, password: player.password};
+                    let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                    resolve({
+                        redirect: dxMission.loginUrl + "?playerId=" + player.playerId + "&token=" + token
+                    });
+                });
             });
-
-            let profile = {name: player.name, password: player.password};
-            let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
-
-            return {
-                redirect: dxMission.loginUrl + "?playerId=" + player.playerId + "&token=" + token
-            }
         }
     ).catch(
         err => {
