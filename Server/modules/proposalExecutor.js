@@ -1623,6 +1623,7 @@ var proposalExecutor = {
                             accountName: player.bankAccountName || "",
                             accountType: player.bankAccountType || "",
                             accountCity: player.bankAccountCity || "",
+                            accountProvince: player.bankAccountProvince || "",
                             accountNo: player.bankAccount || "",
                             bankAddress: player.bankAddress || "",
                             bankName: player.bankName || "",
