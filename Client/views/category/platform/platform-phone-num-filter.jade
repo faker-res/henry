@@ -99,7 +99,7 @@
                         label(style="color:red") ({{vm.diffPhoneTotalTXT}})
                         p {{vm.diffPhoneTXT}}
                     .pull-right
-                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTXT')
+                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTXT' ng-click="vm.importPhoneResult = '';")
                             i.fa.fa-upload
                             text {{"IMPORT_TXT" | translate}}
                         button.btn.btn-primary.common-button(ng-click="vm.exportTXTFile(vm.diffPhoneTXT);")
@@ -141,7 +141,7 @@
                         label(style="color:red") ({{vm.diffPhoneTotal}})
                         p#copyHere {{vm.diffPhoneList}}
                     .pull-right
-                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTextarea')
+                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionTextarea' ng-click="vm.importPhoneResult = '';")
                             i.fa.fa-upload
                             text {{"IMPORT_PHONE_TEXTAREA" | translate}}
                         button.btn.btn-primary.common-button(ng-click="vm.copyToClipboard('copyHere'); vm.copyHere=true;")
@@ -191,7 +191,7 @@
                         | &nbsp;
                         label(style="color:red") {{vm.diffPhoneTotalXLS}}
                     .pull-right
-                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionXLS')
+                        button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionXLS' ng-click="vm.importPhoneResult = '';")
                             i.fa.fa-upload
                             text {{"FILTER_THEN_IMPORT_XLS" | translate}}
                         button.btn.btn-danger.common-button(type='button', ng-click='vm.resetUIGrid()')
@@ -217,7 +217,8 @@
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
                                         option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
             .modal-footer
-                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.importDiffPhoneNum(vm.diffPhoneTXT, vm.selectedDxMission)")
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
+                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.importDiffPhoneNum(vm.diffPhoneTXT, vm.selectedDxMission)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
@@ -240,7 +241,8 @@
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
                                         option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
             .modal-footer
-                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.importDiffPhoneNum(vm.diffPhoneList, vm.selectedDxMission)")
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
+                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.importDiffPhoneNum(vm.diffPhoneList, vm.selectedDxMission)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
@@ -263,7 +265,8 @@
                                     select.form-control(ng-model='vm.selectedDxMission', data-width='100%')
                                         option(ng-repeat='v in vm.allDxMission', value='{{v._id}}') {{v.name || translate}}
             .modal-footer
-                button.btn.btn-success.common-button(data-dismiss='modal', ng-click="vm.uploadPhoneFileXLS('', true, vm.selectedDxMission)")
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
+                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, vm.selectedDxMission)")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
