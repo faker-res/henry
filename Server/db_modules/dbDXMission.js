@@ -484,6 +484,7 @@ let dbDXMission = {
                         return Q.reject({message: retErr, data: data});
                     }
                 );
+                //return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
             }
         );
 
@@ -518,6 +519,11 @@ let dbDXMission = {
                                     details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
                                     details.count = smsLogDetail[phoneData.phoneNumber].count;
                                     let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
+                                    phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
+                                    dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                }
+                                else{
+                                    let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)));
                                     phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
                                     dxPhoneDataWithDetails.push(phoneDataWithDetails);
                                 }
