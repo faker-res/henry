@@ -727,14 +727,8 @@ let dbDXMission = {
     retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId) {
         let smsLogProm = [];
         if (dxPhoneData && dxPhoneData.length > 0) {
-
-            let phoneNumberCollection = [];
-
-            dxPhoneData.forEach(data => {
-                smsLogProm.push(dbconfig.collection_smsLog.find({
-                    tel: data.phoneNumber,
-                    "data.dxMission": dxMissionObjId
-                }).sort({createTime: -1}).then(
+            dxPhoneData.forEach (data => {
+                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
                     smsLogData => {
                         if (smsLogData && smsLogData.length > 0) {
                             return {
@@ -746,8 +740,10 @@ let dbDXMission = {
                         else {
                             return {}
                         }
-                    }))
-            })
+                    }
+                ))
+            });
+
             return Q.all(smsLogProm);
         }
     }
