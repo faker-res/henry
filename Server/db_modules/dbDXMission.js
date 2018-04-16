@@ -460,7 +460,7 @@ let dbDXMission = {
         ).then(
             message => {
                 let sendObj = {
-                    tel: data.tel,
+                    tel: data.tel.trim(),
                     channel: 2,
                     platformId: phoneData.platform.platformId,
                     message: message,
