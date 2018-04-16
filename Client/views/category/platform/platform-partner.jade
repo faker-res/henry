@@ -675,16 +675,16 @@ p
                             .panel-heading.common-left-panel-heading
                                 ul.nav.nav-tabs.common-nav-tabs
                                     li(ng-show="editPartnerPermission",ng-class="selectedTab=='basicInfo'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='basicInfo';")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='basicInfo';tabClicked('basicInfo')")
                                             text.span {{"Basic" | translate}}
                                     li(ng-show="editPartnerContactPermission",ng-class="selectedTab=='contactInfo'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='contactInfo';prepareEditCritical('partner');")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='contactInfo';tabClicked('contactInfo');prepareEditCritical('partner');")
                                             text.span {{"CONTACT_INFO" | translate}}
                                     li(ng-show="editPartnerWithdrawPermission",ng-class="selectedTab=='withdrawInfo'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';prepareEditPartnerPayment();")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='withdrawInfo';tabClicked('withdrawInfo');prepareEditPartnerPayment();")
                                             text.span {{"WITHDRAW_INFO" | translate}}
                                     li(ng-show="editPartnerCommissionPermission",ng-class="selectedTab=='commissionInfo'?'active':''")
-                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='commissionInfo';")
+                                        a.common-tab(data-toggle="tab", ng-click="selectedTab ='commissionInfo';tabClicked('commissionInfo')")
                                             text.span {{"Partner Commission Info" | translate}}
 
                             .panel-body.common-right-panel-body
@@ -699,8 +699,6 @@ p
                                         include partner-edit-withdraw
                                     #commissionGroup.tab-pane.fade(ng-class="selectedTab =='commissionInfo'?'in active':''")
                                         include partner-edit-commission-type-form
-                                        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-                                        button.dialogEditPartnerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_partner_commission_type.$invalid || form_edit_partner_commission_type.$pristine', ng-click="updateEditedPartner();") {{"UPDATE" | translate}}
 
 #modalPartnerInfoHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:90%;')

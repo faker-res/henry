@@ -228,7 +228,7 @@ var simplifiedChinese = {
     "Provider group is not used.": "没有开启锁大厅（组），暂无提款进度展示",
     "Invalid top up": "无法找到此存款记录，详情请联系客服",
     "Incorrect player top up return group proposal data": "提案资料错误，详情请联系客服",
-    "This top up did not happen within reward interval time": "此提款记录并不在奖励周期内",
+    "This top up did not happen within reward interval time": "此存款记录并不在奖励周期内",
     "Player's top up amount does not meet condition in period": "玩家的周期内的累积存款金额不足",
     "Player's lose amount does not meet condition in period": "玩家的周期内的累积输值金额不足",
     "Phone number already registered on platform": "该手机号码已被注册，请更换或联系客服。",

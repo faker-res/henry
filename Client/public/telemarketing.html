@@ -10,14 +10,7 @@
 <script type = "text/javascript">
 
     function getQueryVariable(variable) {
-        let query = window.location.search.substring(1);
-        let vars = query.split("&");
-        for (let i=0;i<vars.length;i++) {
-            let pair = vars[i].split("=");
-
-            if(pair[0] == variable){return pair[1].replace(/\%22/g,"");}
-        }
-        return(false);
+        return window.location.pathname.replace("/", "");
     }
 
     let returnedCode = null;
@@ -28,7 +21,8 @@
         returnedCode = getQueryVariable("code");
 
         // Let us open a web socket
-        var ws = new WebSocket("ws://cstest-eu.neweb.me/websocket");
+//        var ws = new WebSocket("ws://cstest-eu.neweb.me/websocket");
+        var ws = new WebSocket("wss://www.kbl8888.com/websocket");
 
         ws.onopen = function() {
             // Web Socket is connected, send data using send()

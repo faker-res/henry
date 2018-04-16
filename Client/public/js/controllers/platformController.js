@@ -134,6 +134,7 @@ define(['js/app'], function (myApp) {
                 UPDATE_PARTNER_QQ: "UpdatePartnerQQ",
                 UPDATE_PARTNER_WECHAT: "UpdatePartnerWeChat",
                 UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
+                UPDATE_PARTNER_COMMISSION_TYPE: "UpdatePartnerCommissionType",
                 FULL_ATTENDANCE: "FullAttendance",
                 PLAYER_CONSUMPTION_RETURN: "PlayerConsumptionReturn",
                 PARTNER_CONSUMPTION_RETURN: "PartnerConsumptionReturn",
@@ -440,11 +441,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.commissionType = {
-                'DAILY_BONUS_AMOUNT' : 1,
-                'WEEKLY_BONUS_AMOUNT' : 2,
-                'BIWEEKLY_BONUS_AMOUNT' : 3,
-                'MONTHLY_BONUS_AMOUNT' : 4,
-                'WEEKLY_CONSUMPTION' : 5
+                0 : 'CLOSED_COMMISSION',
+                1 : 'DAILY_BONUS_AMOUNT',
+                2 : 'WEEKLY_BONUS_AMOUNT',
+                3 : 'BIWEEKLY_BONUS_AMOUNT',
+                4 : 'MONTHLY_BONUS_AMOUNT',
+                5 : 'WEEKLY_CONSUMPTION'
             };
 
             vm.prepareToBeDeletedProviderGroupId = [];
@@ -12628,6 +12630,9 @@ define(['js/app'], function (myApp) {
                         vm.modifyCritical.curWeChat = vm.selectedSinglePartner.wechat;
                         vm.modifyCritical.phoneNumber = vm.selectedSinglePartner.phoneNumber;
                     }
+
+                    delete vm.modifyCritical.correctVerifyPhoneNumber;
+                    delete vm.modifyCritical.verifyPhoneNumber;
                 }
                 $scope.safeApply();
             }
@@ -14887,13 +14892,24 @@ define(['js/app'], function (myApp) {
                             advSearch: true, "sClass": "wordWrap realNameCell"
                         },
                         {
-                            title: $translate('COMMISSION_TYPE'), data: "commissionType", advSearch: true, "sClass": "",
+                            title: $translate('COMMISSION_TYPE'), "data": 'commissionType',
                             render: function (data, type, row) {
-                                var link = $('<a>', {
-                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
-                                }).text(data);
-                                return link.prop('outerHTML');
-                            }
+                                data = data || '';
+                                if ($scope.checkViewPermission('Platform', 'Partner', 'EditCommission')) {
+                                    return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                        'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
+                                        'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
+                                        .attr('data-row', JSON.stringify(row))
+                                        .text($translate(vm.commissionType[data]))
+                                        .prop('outerHTML');
+                                } else {
+                                    return $('<span style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                        'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ></span>')
+                                        .attr('data-row', JSON.stringify(row))
+                                        .text($translate(vm.commissionType[data]))
+                                        .prop('outerHTML');
+                                }
+                            },
                         },
                         {
                             title: $translate('CREDIT'),
@@ -15334,7 +15350,7 @@ define(['js/app'], function (myApp) {
             vm.partnerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 // Row click
                 $compile(nRow)($scope);
-
+                vm.currentSelectedPartnerObjId = '';
                 var status = aData.status;
                 aData.credits = parseFloat(aData.credits);
                 var statusKey = '';
@@ -15378,7 +15394,7 @@ define(['js/app'], function (myApp) {
                     vm.getProvince();
                     vm.getCity();
                     vm.getDistrict();
-
+                    vm.currentSelectedPartnerObjId = vm.selectedSinglePartner._id;
                     vm.editPartner = {
                         partnerName: vm.selectedSinglePartner.partnerName,
                         partnerId: vm.selectedSinglePartner.partnerId,
@@ -15689,11 +15705,32 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            //check if value is pass in before data table function is call
+            vm.onClickPartnerCheck = function (recordId, callback, param) {
+                if (!(param instanceof Array)) {
+                    param = param ? [param] : [];
+                }
+
+                if (vm.currentSelectedPartnerObjId && recordId === vm.currentSelectedPartnerObjId) {
+                    callback.apply(null, param);
+                }
+                else {
+                    setTimeout(function () {
+                        vm.onClickPartnerCheck(recordId, callback, param);
+                    }, 50);
+                }
+            };
+
+            vm.tabClicked = function(tab) {
+                vm.editPartnerSelectedTab = tab;
+            }
+
             vm.openEditPartnerDialog = function (selectedTab) {
                 vm.editPartnerSelectedTab = "";
                 vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
                 vm.prepareEditCritical('partner');
                 vm.prepareEditPartnerPayment();
+                vm.tabClicked(selectedTab);
                 dialogDetails();
 
                 function dialogDetails() {
@@ -15710,9 +15747,9 @@ define(['js/app'], function (myApp) {
                             editPartnerWithdrawPermission: $scope.checkViewPermission('Platform', 'Partner', 'BankDetail'),
                             editPartnerCommissionPermission: $scope.checkViewPermission('Platform', 'Partner', 'EditCommission'),
                             selectedTab: vm.editPartnerSelectedTab,
+                            tabClicked: vm.tabClicked,
                             modifyCritical: vm.modifyCritical,
                             verifyPartnerPhoneNumber: vm.verifyPartnerPhoneNumber,
-                            correctVerifyPhoneNumber: vm.correctVerifyPhoneNumber,
                             platformPageName: vm.platformPageName,
                             prepareEditCritical: vm.prepareEditCritical,
                             submitCriticalUpdate: vm.submitCriticalUpdate,
@@ -15722,7 +15759,6 @@ define(['js/app'], function (myApp) {
                             filteredBankTypeList: vm.filteredBankTypeList,
                             filterBankName: vm.filterBankName,
                             isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
-                            correctVerifyBankAccount: vm.correctVerifyBankAccount,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -15731,11 +15767,10 @@ define(['js/app'], function (myApp) {
                             changeCity: vm.changeCity,
                             currentDistrict: vm.currentDistrict,
                             districtList: vm.districtList,
-                            verifyBankAccount: vm.verifyBankAccount,
                             verifyPartnerBankAccount: vm.verifyPartnerBankAccount,
                             updatePartnerPayment: vm.updatePartnerPayment,
                             today: new Date().toISOString(),
-                            commissionType: vm.commissionType,
+                            commissionType: vm.constPartnerCommisionType,
                             partnerId: selectedPartner._id,
                             partnerBeforeEditing: _.clone(editPartner),
                             newPartner: _.clone(editPartner),
@@ -15744,12 +15779,6 @@ define(['js/app'], function (myApp) {
                                 this.newPartner.DOB = new Date(this.newPartner.DOB);
                                 sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
                             },
-                            // checkPlayerNameValidity: function (a, b, c) {
-                            //     vm.checkPlayerNameValidity(a, b, c);
-                            // },
-                            // duplicateNameFound: function () {
-                            //     return vm.duplicateNameFound;
-                            // },
                         }
                     };
 
@@ -15761,8 +15790,6 @@ define(['js/app'], function (myApp) {
                         this.filteredBankTypeList = vm.filteredBankTypeList;
                         this.filterBankName = vm.filterBankName;
                         this.isEditingPartnerPaymentShowVerify = vm.isEditingPartnerPaymentShowVerify;
-                        this.correctVerifyBankAccount = vm.correctVerifyBankAccount;
-                        this.verifyBankAccount = "";
                     };
                     $('#dialogEditPartner').floatingDialog(option);
                     $('#dialogEditPartner').focus();
@@ -15786,7 +15813,6 @@ define(['js/app'], function (myApp) {
                     if (!vm.currentDistrict) {
                         vm.currentDistrict = {};
                     }
-                    vm.correctVerifyBankAccount = undefined;
                     vm.isEditingPartnerPayment = false;
                     vm.isEditingPartnerPaymentShowVerify = false;
                     vm.partnerPayment = utilService.assignObjKeys(vm.isOneSelectedPartner(), vm.partnerPaymentKeys);
@@ -15818,11 +15844,11 @@ define(['js/app'], function (myApp) {
 
             vm.verifyPartnerBankAccount = function () {
                 socketService.$socket($scope.AppSocket, 'verifyPartnerBankAccount', {
-                    playerObjId: vm.selectedSinglePartner._id,
-                    bankAccount: vm.verifyBankAccount
+                    partnerObjId: vm.selectedSinglePartner._id,
+                    bankAccount: vm.partnerPayment.verifyBankAccount
                 }, function (data) {
-                    console.log("verifyPlayerBankAccount:", data);
-                    vm.correctVerifyBankAccount = data.data;
+                    console.log("verifyPartnerBankAccount:", data);
+                    vm.partnerPayment.correctVerifyBankAccount = data.data;
                     $scope.safeApply();
                 });
             };
@@ -15831,6 +15857,9 @@ define(['js/app'], function (myApp) {
                 var updateData = newAndModifiedFields(oldPartnerData, newPartnerData);
                 let updatedKeys = Object.keys(updateData);
                 var updateBankData = {};
+
+                delete updateData.verifyPhoneNumber;
+                delete updateData.correctVerifyPhoneNumber;
 
                 if (Object.keys(updateData).length > 0) {
                     updateData._id = partnerId;
@@ -15844,6 +15873,10 @@ define(['js/app'], function (myApp) {
                             isUpdate = true;
                     }
                     });
+
+                    if (vm.editPartnerSelectedTab != 'commissionInfo') {
+                        delete updateData.commissionType;
+                    }
 
                     updateData.remark = "";
                     if (updateData.realName) {
@@ -15864,6 +15897,12 @@ define(['js/app'], function (myApp) {
                         }
                         updateData.remark += $translate("GENDER");
                     }
+                    if (updateData.commissionType) {
+                        if(updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate(vm.commissionType[updateData.commissionType]);
+                    }
 
                     if (isUpdate) {
                         if (updateData) {
@@ -15872,7 +15911,12 @@ define(['js/app'], function (myApp) {
                             updateData.partnerName = vm.selectedSinglePartner.partnerName;
                         }
 
-                        socketService.$socket($scope.AppSocket, 'createUpdatePartnerInfoProposal', {
+                        let updateString = 'createUpdatePartnerInfoProposal';
+                        if (vm.editPartnerSelectedTab == 'commissionInfo') {
+                            updateString = 'createUpdatePartnerCommissionTypeProposal';
+                        }
+
+                        socketService.$socket($scope.AppSocket, updateString, {
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                             data: updateData,
                             platformId: vm.selectedPlatform.id
@@ -15897,6 +15941,10 @@ define(['js/app'], function (myApp) {
 
             vm.updatePartnerPayment = function () {
                 console.log('before after', vm.selectedSinglePartner, vm.partnerPayment);
+
+                delete vm.partnerPayment.verifyBankAccount;
+                delete vm.partnerPayment.correctVerifyBankAccount;
+
                 var result = socketService.$compareObj(vm.selectedSinglePartner, vm.partnerPayment);
 
                 var sendData = {
@@ -15935,11 +15983,11 @@ define(['js/app'], function (myApp) {
 
             vm.verifyPartnerPhoneNumber = function () {
                 socketService.$socket($scope.AppSocket, 'verifyPartnerPhoneNumber', {
-                    playerObjId: vm.isOneSelectedPartner()._id,
+                    partnerObjId: vm.isOneSelectedPartner()._id,
                     phoneNumber: vm.modifyCritical.verifyPhoneNumber
                 }, function (data) {
                     console.log("verifyPartnerPhoneNumber:", data);
-                    vm.correctVerifyPhoneNumber.str = data.data;
+                    vm.modifyCritical.correctVerifyPhoneNumber = data.data;
                     $scope.safeApply();
                 });
             };
@@ -16000,7 +16048,6 @@ define(['js/app'], function (myApp) {
                         {title: $translate('DOB'), data: "DOB$"},
                         {title: $translate('GENDER'), data: "gender$"},
                         {title: $translate('WEBSITE_PASS'), data: "updatePassword$"},
-                        {title: $translate('Partner Commission Type'), data: "commissionType$"},
                         {
                             "title": $translate('STATUS'),
                             "data": 'process',
@@ -16138,58 +16185,58 @@ define(['js/app'], function (myApp) {
             };
 
             //Edit selected partner
-            vm.preUpdatePartner = function () {
-                vm.newPartner = $.extend({}, vm.selectedSinglePartner);
-                vm.newPartner.ownDomain$ = vm.newPartner.ownDomain.join('\n');
-                vm.newPartner.registrationTime$ = vm.dateReformat(vm.newPartner.registrationTime);
-                vm.isEditingPartner = false;
-                vm.partnerValidity = {};
-                vm.tempPlayerId = null;
-                vm.partnerParentChange("id");
-                if (vm.newPartner.player) {
-                    vm.getPlayerInfo({_id: vm.newPartner.player});
-                }
-                // $scope["form_edit_partner"].$setValidity('invalidOwnDomain', false)
-                $scope.safeApply();
-            }
-            vm.updatePartner = function () {
-                if (vm.selectedSinglePartner) {
-                    delete vm.newPartner.phoneNumber;
-                    if (vm.tempPlayerId && vm.partnerValidity.player.validPlayerId
-                        && vm.partnerValidity.player.exists === false && vm.partnerValidity.player.playerId == vm.tempPlayerId) {
-                        vm.newPartner.player = vm.partnerValidity.player.id;
-                    }
-                    if (vm.newPartner.ownDomain$) {
-                        vm.newPartner.ownDomain = vm.newPartner.ownDomain$.split('\n');
-                    } else {
-                        vm.newPartner.ownDomain = [];
-                    }
-                    delete vm.newPartner.ownDomain$;
-                    delete vm.newPartner.registrationTime$;
-                    delete vm.newPartner.parentName;
-                    var updateData = newAndModifiedFields(vm.selectedSinglePartner, vm.newPartner);
-                    updatePartnerData(vm.selectedSinglePartner._id, updateData);
-                }
-            };
-
-            function updatePartnerData(partnerId, newData) {
-                if (newData) {
-                    newData.updateData = $.extend({}, newData);
-                    newData.partnerObjId = partnerId;
-                    newData.partnerName = vm.selectedSinglePartner.partnerName;
-                }
-                socketService.$socket($scope.AppSocket, 'createUpdatePartnerInfoProposal', {
-                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                    data: newData,
-                    platformId: vm.selectedPlatform.id
-
-                }, function (data) {
-                    if (data.data && data.data.stepInfo) {
-                        socketService.showProposalStepInfo(data.data.stepInfo, $translate);
-                    }
-                    vm.getPlatformPartnersData();
-                }, null, true);
-            }
+            // vm.preUpdatePartner = function () {
+            //     vm.newPartner = $.extend({}, vm.selectedSinglePartner);
+            //     vm.newPartner.ownDomain$ = vm.newPartner.ownDomain.join('\n');
+            //     vm.newPartner.registrationTime$ = vm.dateReformat(vm.newPartner.registrationTime);
+            //     vm.isEditingPartner = false;
+            //     vm.partnerValidity = {};
+            //     vm.tempPlayerId = null;
+            //     vm.partnerParentChange("id");
+            //     if (vm.newPartner.player) {
+            //         vm.getPlayerInfo({_id: vm.newPartner.player});
+            //     }
+            //     // $scope["form_edit_partner"].$setValidity('invalidOwnDomain', false)
+            //     $scope.safeApply();
+            // }
+            // vm.updatePartner = function () {
+            //     if (vm.selectedSinglePartner) {
+            //         delete vm.newPartner.phoneNumber;
+            //         if (vm.tempPlayerId && vm.partnerValidity.player.validPlayerId
+            //             && vm.partnerValidity.player.exists === false && vm.partnerValidity.player.playerId == vm.tempPlayerId) {
+            //             vm.newPartner.player = vm.partnerValidity.player.id;
+            //         }
+            //         if (vm.newPartner.ownDomain$) {
+            //             vm.newPartner.ownDomain = vm.newPartner.ownDomain$.split('\n');
+            //         } else {
+            //             vm.newPartner.ownDomain = [];
+            //         }
+            //         delete vm.newPartner.ownDomain$;
+            //         delete vm.newPartner.registrationTime$;
+            //         delete vm.newPartner.parentName;
+            //         var updateData = newAndModifiedFields(vm.selectedSinglePartner, vm.newPartner);
+            //         updatePartnerData(vm.selectedSinglePartner._id, updateData);
+            //     }
+            // };
+            //
+            // function updatePartnerData(partnerId, newData) {
+            //     if (newData) {
+            //         newData.updateData = $.extend({}, newData);
+            //         newData.partnerObjId = partnerId;
+            //         newData.partnerName = vm.selectedSinglePartner.partnerName;
+            //     }
+            //     socketService.$socket($scope.AppSocket, 'createUpdatePartnerInfoProposal', {
+            //         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+            //         data: newData,
+            //         platformId: vm.selectedPlatform.id
+            //
+            //     }, function (data) {
+            //         if (data.data && data.data.stepInfo) {
+            //             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+            //         }
+            //         vm.getPlatformPartnersData();
+            //     }, null, true);
+            // }
 
             //Enable or disable selected partner
             vm.updatePartnerStatus = function (rowData, sendData) {
@@ -25055,6 +25102,9 @@ define(['js/app'], function (myApp) {
                                 break;
                             case "UpdatePartnerWeChat":
                                 vm.allProposalType[x].seq = 5.06;
+                                break;
+                            case "UpdatePartnerCommissionType":
+                                vm.allProposalType[x].seq = 5.07;
                                 break;
                             case "UpdatePlayerCredit":
                                 vm.allProposalType[x].seq = 6.01;

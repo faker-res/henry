@@ -9668,7 +9668,7 @@ let dbPlayerInfo = {
                 }).then(
                     playerData => {
                         if (playerData) {
-                            if (playerData.lastLoginIp == playerIp) {
+                            // if (playerData.lastLoginIp == playerIp) {
                                 if (playerData.isTestPlayer && isDemoPlayerExpire(playerData, playerData.platform.demoPlayerValidDays)) {
                                     deferred.reject({
                                         name: "DataError",
@@ -9683,10 +9683,10 @@ let dbPlayerInfo = {
                                 conn.playerObjId = playerData._id;
                                 conn.platformId = playerData.platform.platformId;
                                 deferred.resolve(true);
-                            }
-                            else {
-                                deferred.reject({name: "DataError", message: "Player ip doesn't match!"});
-                            }
+                            // }
+                            // else {
+                            //     deferred.reject({name: "DataError", message: "Player ip doesn't match!"});
+                            // }
                         }
                         else {
                             deferred.reject({name: "DataError", message: "Can't find player"});
@@ -14251,7 +14251,7 @@ let dbPlayerInfo = {
     },
 
     importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
-        let phoneArr = phoneNumber.split(',').map((item) => parseInt(item) );
+        let phoneArr = phoneNumber.split(',');
 
         if(phoneArr.length > 0) {
             let promArr = [];
@@ -14267,7 +14267,7 @@ let dbPlayerInfo = {
                                         phoneNumber: phoneArr[x],
                                         dxMission: dxMission,
                                         code: randomCode,
-                                        url: dxMissionRes.domain + "?code=" + randomCode
+                                        url: dxMissionRes.domain + "/" + randomCode
                                     };
 
                                     let importPhone = new dbconfig.collection_dxPhone(importData);
@@ -14304,7 +14304,7 @@ let dbPlayerInfo = {
                 function (missionProm) {
                     platformId = missionProm.platform.platformId;
                     dxCode = missionProm.platform.platformId + randomString;
-                    return dbconfig.collection_dxPhone.findOne({code: dxCode, bUsed: false}).lean();
+                    return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
                 }
             ).then(
                 function (dxPhoneExist) {
