@@ -425,7 +425,7 @@ define(['js/app'], function (myApp) {
                 }) : '';
                 result = result.join(',');
             } else if (fieldName.indexOf('providerGroup') > -1) {
-                result = getProviderGroupNameById(val);
+                result = vm.getProviderGroupNameById(val);
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
             } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
@@ -5542,24 +5542,8 @@ define(['js/app'], function (myApp) {
                 let proposalDetail = $.extend({}, vm.selectedProposal.data);
                 let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
                 for (let i in proposalDetail) {
-                    // Add provider group name
-                    if (i == "providerGroup") {
-                        proposalDetail.providerGroup = proposalDetail[i] ? vm.getProviderGroupNameById(proposalDetail[i]) : $translate("LOCAL_CREDIT");
-                    }
-
-                    //remove objectIDs/null/blank objects
-                    if (checkForHexRegExp.test(proposalDetail[i]) || proposalDetail[i] === null || proposalDetail[i] === "") {
+                    if (checkForHexRegExp.test(proposalDetail[i])) {
                         delete proposalDetail[i];
-                    }
-
-                    if (i == 'providers') {
-                        var temp = [];
-                        if (proposalDetail.providers) {
-                            proposalDetail.providers.map(item => {
-                                temp.push(item.name);
-                            });
-                            proposalDetail.providers = temp;
-                        }
                     }
                 }
                 vm.selectedProposal.data = $.extend({}, proposalDetail);
