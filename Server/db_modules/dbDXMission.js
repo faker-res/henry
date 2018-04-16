@@ -517,7 +517,8 @@ let dbDXMission = {
                                 })
 
                                 dxPhoneData.forEach( (phoneData,i) => {
-                                    if (smsLogDetail && smsLogDetail[phoneData.phoneNumber]){
+                                    if (smsLogDetail && smsLogDetail[phoneData.phoneNumber.trim()]){
+                                        phoneData.phoneNumber = phoneData.phoneNumber.trim();
                                         let details = {};
                                         details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
                                         details.count = smsLogDetail[phoneData.phoneNumber].count;
@@ -526,6 +527,7 @@ let dbDXMission = {
                                         dxPhoneDataWithDetails.push(phoneDataWithDetails);
                                     }
                                     else{
+                                        phoneData.phoneNumber = phoneData.phoneNumber.trim();
                                         let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)));
                                         phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
                                         dxPhoneDataWithDetails.push(phoneDataWithDetails);
@@ -748,8 +750,7 @@ let dbDXMission = {
         if (dxPhoneData && dxPhoneData.length > 0) {
 
             dxPhoneData.forEach (data => {
-
-                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
+                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber.trim(), "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
                     smsLogData => {
                         if (smsLogData && smsLogData.length > 0) {
                             return {
