@@ -17,6 +17,7 @@ const constProposalType = {
     UPDATE_PARTNER_QQ: "UpdatePartnerQQ",
     UPDATE_PARTNER_WECHAT: "UpdatePartnerWeChat",
     UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
+    UPDATE_PARTNER_COMMISSION_TYPE: "UpdatePartnerCommissionType",
     FULL_ATTENDANCE: "FullAttendance",
     PLAYER_CONSUMPTION_RETURN: "PlayerConsumptionReturn",
     PARTNER_CONSUMPTION_RETURN: "PartnerConsumptionReturn",
