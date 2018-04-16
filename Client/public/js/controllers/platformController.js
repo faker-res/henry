@@ -12313,7 +12313,10 @@ define(['js/app'], function (myApp) {
 
                 for (let i = 0; i < vm.allPlayerLvl.length; i++) {
                     for (let j = 0; j < vm.allPlayerLvl[i].levelUpConfig.length; j++) {
-                        let providerSourceCompare = vm.allPlayerLvl[i].levelUpConfig[j].consumptionSourceProviderId.sort();
+                        let providerSourceCompare = [];
+                        if (vm.allPlayerLvl[i].levelUpConfig[j].consumptionSourceProviderId) {
+                            providerSourceCompare = vm.allPlayerLvl[i].levelUpConfig[j].consumptionSourceProviderId.sort();
+                        }
                         if (JSON.stringify(providerSourceArr) != JSON.stringify(providerSourceCompare)) {
                             isDiff = true;
                             break;

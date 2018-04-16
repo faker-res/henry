@@ -6854,9 +6854,11 @@ let dbPlayerInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
-                                        levelUpObjId[levelUpCounter] = level._id;
-                                        levelUpObjArr[levelUpCounter] = level;
-                                        levelUpCounter++;
+                                        if (levelUpObjId.indexOf(level._id) < 0 ) {
+                                            levelUpObjId[levelUpCounter] = level._id;
+                                            levelUpObjArr[levelUpCounter] = level;
+                                            levelUpCounter++;
+                                        }
                                     } else {
 
                                         if (!levelUpEnd) {
