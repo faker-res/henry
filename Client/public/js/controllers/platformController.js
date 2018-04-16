@@ -21418,6 +21418,7 @@ define(['js/app'], function (myApp) {
                 };
                 vm.allDxMission = [];
                 vm.getAllDxMission();
+                vm.importPhoneResult = '';
             };
 
             vm.getAllDxMission = function () {
@@ -21438,6 +21439,13 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'importDiffPhoneNum', sendData, function (data) {
+                    if (data.success && data.data) {
+                        //display success
+                        vm.importPhoneResult = 'IMPORT_SUCCESS';
+                    } else {
+                        //display error
+                        vm.importPhoneResult = 'IMPORT_FAIL';
+                    }
 
                     $scope.safeApply();
                 });
@@ -21562,6 +21570,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneTotalTXT = '';
                 vm.diffPhoneTotalTXT = '';
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
             /****************** TXT - end ******************/
 
@@ -21595,6 +21604,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneList = '';
                 vm.diffPhoneList = '';
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
 
             // copy phone number list
@@ -21748,6 +21758,7 @@ define(['js/app'], function (myApp) {
                 vm.diffPhoneTotalXLS = '';
                 vm.phoneNumXLSResult = false;
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
             /****************** XLS - end ******************/
             // phone number filter codes==============end===============================

@@ -938,6 +938,8 @@
   "SELECT_XLS_FILE": "Select Excel File",
   "XLS_LENGTH": "Data length",
   "SELECT_DXMISSION_INSTRUCTION": "Please select dxMission:",
+  "IMPORT_SUCCESS": "Import Successful",
+  "IMPORT_FAIL": "Import Fail",
 
   "PlayerFreeTrialRewardGroup": "Player Free Trial Reward (Group)",
   "FREE_TRIAL_REWARD_AMOUNT": "Reward Amount",
