@@ -380,7 +380,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
-                    "aaSorting": vm.teleMarketingOverview.sortCol || [[2, 'desc']],
+                    "aaSorting": vm.teleMarketingOverview.sortCol || {},
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -1101,7 +1101,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
-                    "aaSorting": vm.telePlayerTable.sortCol || [[0]],
+                    "aaSorting": vm.telePlayerTable.sortCol || {},
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}

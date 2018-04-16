@@ -71,7 +71,7 @@ let dbDXMission = {
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxMission.find(matchObj).count();
-        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj).skip(index).limit(limit).lean();
+        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj).skip(index).limit(limit).sort({createTime: -1}).lean();
         let totalCount = 0;
         let dxMissionData = {};
 
@@ -548,7 +548,7 @@ let dbDXMission = {
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
-        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().lean();
+        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().sort({createTime: -1}).lean();
         let size = 0;
         let dxPhoneData = {};
 
