@@ -834,6 +834,7 @@ define([], function () {
                 case "UpdatePartnerPhone":
                 case "UpdatePartnerQQ":
                 case "UpdatePartnerWeChat":
+                case "UpdatePartnerCommissionType":
                     groupName = "PARTNER_INFORMATION";
                     break;
                 case "UpdatePlayerCredit":
