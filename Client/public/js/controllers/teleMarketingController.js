@@ -381,7 +381,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
-                    "aaSorting": vm.teleMarketingOverview.sortCol || [[2, 'desc']],
+                    "aaSorting": vm.teleMarketingOverview.sortCol || {},
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -429,7 +429,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayer")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -442,7 +442,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerTopUp")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -455,7 +455,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerMultiTopUp")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -773,6 +773,7 @@ define(['js/app'], function (myApp) {
             // upload phone file: txt
             vm.uploadPhoneFileTXT = function (content) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
+                vm.arrayPhoneTXT = vm.arrayPhoneTXT.filter(Boolean); //filter out empty strings (due to extra comma)
 
                 let sendData = {
                     filterAllPlatform: vm.filterAllPlatform,
@@ -850,6 +851,7 @@ define(['js/app'], function (myApp) {
             // generate a new list of phone numbers without existing player phone number
             vm.comparePhoneNum = function () {
                 vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
+                vm.arrayInputPhone = vm.arrayInputPhone.filter(Boolean); //filter out empty strings (due to extra comma)
 
                 let sendData = {
                     filterAllPlatform: vm.filterAllPlatform,
@@ -1059,7 +1061,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
 
-            vm.showPagedTelePlayerTable = function (dxMissionId) {
+            vm.showPagedTelePlayerTable = function (dxMissionId, type) {
                 vm.telePlayerTable = {};
 
                 utilService.actionAfterLoaded(('#telePlayerTable'), function () {
@@ -1067,16 +1069,16 @@ define(['js/app'], function (myApp) {
                     vm.telePlayerTable.pageObj = utilService.createPageForPagingTable("#telePlayerTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "telePlayerTable", vm.getPagedTelePlayerTable)
                     });
-                    vm.getPagedTelePlayerTable(true, dxMissionId);
+                    vm.getPagedTelePlayerTable(true, dxMissionId, type);
                 });
             }
 
 
-            vm.getPagedTelePlayerTable = function (newSearch, dxMission) {
+            vm.getPagedTelePlayerTable = function (newSearch, dxMission, type) {
                 let sendQuery = {
                     platform: vm.selectedPlatform.id ,
-                    count: 5,
-                    dxMission: dxMission
+                    dxMission: dxMission,
+                    type: type
                 }
 
                 socketService.$socket($scope.AppSocket, 'getDXPlayerInfo', sendQuery, function (data) {
@@ -1088,7 +1090,9 @@ define(['js/app'], function (myApp) {
 
                     vm.showPlayerTable = true;
                     vm.teleMarketingPlayerInfo.data.forEach((item) => {
-                        item['registrationTime'] = vm.dateReformat(item.registrationTime);
+                        if(item){
+                            item['registrationTime'] = item.registrationTime ? vm.dateReformat(item.registrationTime) : "";
+                        }
                     });
 
                     $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, 6));
@@ -1100,7 +1104,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
-                    "aaSorting": vm.telePlayerTable.sortCol || [[0]],
+                    "aaSorting": vm.telePlayerTable.sortCol || {},
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
