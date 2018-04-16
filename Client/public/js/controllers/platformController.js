@@ -21492,6 +21492,7 @@ define(['js/app'], function (myApp) {
             // upload phone file: txt
             vm.uploadPhoneFileTXT = function (content) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
+                vm.arrayPhoneTXT = vm.arrayPhoneTXT.filter(Boolean); //filter out empty strings (due to extra comma)
 
                 let sendData = {
                     filterAllPlatform: vm.filterAllPlatform,
@@ -21569,6 +21570,7 @@ define(['js/app'], function (myApp) {
             // generate a new list of phone numbers without existing player phone number
             vm.comparePhoneNum = function () {
                 vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
+                vm.arrayInputPhone = vm.arrayInputPhone.filter(Boolean); //filter out empty strings (due to extra comma)
 
                 let sendData = {
                     filterAllPlatform: vm.filterAllPlatform,
