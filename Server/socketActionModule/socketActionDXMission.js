@@ -92,7 +92,7 @@ function socketActionDXMission(socketIO, socket) {
         getDXPlayerInfo: function getDXPlayerInfo(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbDXMission.getDXPlayerInfo, [data.platform, data.count, data.dxMission], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDXMission.getDXPlayerInfo, [data.platform, data.dxMission, data.type], actionName, isValidData);
         }
 
     };
