@@ -512,14 +512,14 @@ let dbDXMission = {
         )
     },
 
-    getDXPlayerInfo: function (platformObjId, count, dxMission, index, limit, sortCol) {
+    getDXPlayerInfo: function (platformObjId, dxMission, type, index, limit, sortCol) {
         limit = limit ? limit : 20;
         index = index ? index : 0;
 
         let result = [];
         let matchObj = {
             platform: platformObjId,
-            dxMission: dxMission,
+            dxMission: ObjectId(dxMission),
             playerObjId: {$exists: true}
         };
 
@@ -544,7 +544,7 @@ let dbDXMission = {
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
-                            dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform));
+                            dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
                         }
                     }
                 )
@@ -556,22 +556,25 @@ let dbDXMission = {
                             summaryData.forEach(
                                 summary => {
                                     if(summary){
-
                                         resultData.dxPhoneData.forEach(
-                                            phoneData => {
+                                            (phoneData,i) => {
                                                 if(phoneData){
-                                                    if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
-                                                        phoneData.playerName = summary.playerName;
-                                                        phoneData.registrationTime = summary.registrationTime;
-                                                        phoneData.totalTopUpCount = summary.totalTopUpCount;
-                                                        phoneData.totalTopUpAmount = summary.totalTopUpAmount;
-                                                        phoneData.totalLoginTimes = summary.totalLoginTimes;
-                                                        phoneData.totalConsumptionTime = summary.totalConsumptionTime;
-                                                        phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
-                                                        phoneData.totalDepositAmount = summary.totalDepositAmount;
-                                                    }
+                                                    if(summaryData.find(s => s && s.playerObjId == phoneData.playerObjId)){
+                                                        if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
+                                                            phoneData.playerName = summary.playerName;
+                                                            phoneData.registrationTime = summary.registrationTime;
+                                                            phoneData.totalTopUpCount = summary.totalTopUpCount;
+                                                            phoneData.totalTopUpAmount = summary.totalTopUpAmount;
+                                                            phoneData.totalLoginTimes = summary.totalLoginTimes;
+                                                            phoneData.totalConsumptionTime = summary.totalConsumptionTime;
+                                                            phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
+                                                            phoneData.totalDepositAmount = summary.totalDepositAmount;
 
-                                                    return;
+                                                        }
+                                                    }else{
+                                                        resultData.dxPhoneData.splice(i,1);
+                                                        return;
+                                                    }
                                                 }
                                             }
                                         )
@@ -587,7 +590,7 @@ let dbDXMission = {
         );
     },
 
-    getPlayerInfo: function (playerObjId, platform) {
+    getPlayerInfo: function (playerObjId, platform, type) {
         if(!playerObjId){
             return;
         }
@@ -604,7 +607,19 @@ let dbDXMission = {
         let topUpPlayerProm = [];
         let playerConsumptionProm = [];
 
-        return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+        let query = {
+            _id: playerObjId
+        }
+
+        if(type == "TotalPlayerTopUp"){
+            query.topUpTimes = {$gte: 1}
+        }
+
+        if(type == "TotalPlayerMultiTopUp"){
+            query.topUpTimes = {$gt: 1}
+        }
+
+        return dbconfig.collection_players.findOne(query).then(
             playerData => {
                 if(playerData){
                     if(playerData.topUpTimes){
@@ -714,7 +729,6 @@ let dbDXMission = {
             return Q.all(smsLogProm);
         }
     }
-
 };
 
 module.exports = dbDXMission;
