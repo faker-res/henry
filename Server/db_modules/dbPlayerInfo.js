@@ -1668,7 +1668,7 @@ let dbPlayerInfo = {
                                 console.log(err);
                             }
                         }
-                        return playerData.phoneNumber;
+                        return playerData.phoneNumber.trim();
                     } else {
                         return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
                     }
