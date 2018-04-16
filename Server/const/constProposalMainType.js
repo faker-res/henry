@@ -79,6 +79,7 @@ const constProposalMainType = {
     "UpdatePartnerPhone": constMainType.UPDATE_PARTNER,
     "UpdatePartnerQQ": constMainType.UPDATE_PARTNER,
     "UpdatePartnerWeChat": constMainType.UPDATE_PARTNER,
+    "UpdatePartnerCommissionType": constMainType.UPDATE_PARTNER,
     //"PartnerCommission": constMainType.UPDATE_PARTNER,
     //"UpdatePartnerCredit":constMainType.UPDATE_PARTNER,
 
