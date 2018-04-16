@@ -143,9 +143,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerTablePage
                     #sendSMSTable(ng-show="vm.showSMSTable")
-                        div
+                        div(style="position:relative;margin-top:10px;")
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
-                            table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                            label(style="margin-left:100px;") {{vm.msgTemplate.name}} - {{vm.msgTemplate.description}}
+                            button.common-button.btn.btn-primary(ng-click="vm.showSMSTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
+                            table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll;margin-top:10px;")
                             #telePlayerSendingMsgTablePage
                             #msgPreview(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:60px;")
                                 table.simple-table#actionLogDataTable(style='max-width:100%;')
@@ -164,7 +166,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
 
                             div(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:20px;")
                                 button.common-button.btn.btn-success.margin-right-5(ng-click="vm.sendMsgToTelePlayer();", style="height:40px;") {{'SEND_TO_SELECTED_CUSTOMER' | translate}} ({{vm.totalmsg || 0}})
-                                //label.inlineBlk.wordWrap(ng-if='vm.responseMsg', style="width: calc(100% - 210px)") {{vm.responseMsg}}
+                                label.inlineBlk.wordWrap(ng-if='vm.responseMsg') {{vm.responseMsg}}
 
 
                 div(ng-show="vm.teleMarketingTaskTab == 'CREATE_TELEMARKETING_TASK'")

@@ -484,16 +484,19 @@ let dbDXMission = {
                         return Q.reject({message: retErr, data: data});
                     }
                 );
-                //return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
+                // return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
             }
         );
 
     },
 
-    getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
-        var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
+    getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol) {
+        let Qindex = index || 0;
+        let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        let QsortCol = sortCol || {'createTime': -1};
+
         let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players});
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players}).sort(QsortCol).skip(Qindex).limit(Qlimit);
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
@@ -505,35 +508,37 @@ let dbDXMission = {
                     let dxMissionData = result[2] ? result[2] : {};
                     let dxPhoneDataWithDetails = [];
 
-                    //let dxPhoneDataDetail = [];
-                    return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission)).then( smsLog => {
-                        if (smsLog && smsLog.length > 0){
-                            let smsLogDetail = {};
-                            smsLog.forEach( data => {
-                                smsLogDetail[data.phoneNumber] = data;
-                            })
+                    if (dxPhoneData && dxPhoneData.length > 0){
+                        return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission)).then( smsLog => {
+                            if (smsLog && smsLog.length > 0){
+                                let smsLogDetail = {};
+                                smsLog.forEach( data => {
+                                    smsLogDetail[data.phoneNumber] = data;
+                                })
 
-                            dxPhoneData.forEach( (phoneData,i) => {
-                                if (smsLogDetail && smsLogDetail[phoneData.phoneNumber]){
-                                    let details = {};
-                                    details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
-                                    details.count = smsLogDetail[phoneData.phoneNumber].count;
-                                    let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
-                                    phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
-                                    dxPhoneDataWithDetails.push(phoneDataWithDetails);
-                                }
-                                else{
-                                    let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)));
-                                    phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
-                                    dxPhoneDataWithDetails.push(phoneDataWithDetails);
-                                }
+                                dxPhoneData.forEach( (phoneData,i) => {
+                                    if (smsLogDetail && smsLogDetail[phoneData.phoneNumber.trim()]){
+                                        phoneData.phoneNumber = phoneData.phoneNumber.trim();
+                                        let details = {};
+                                        details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
+                                        details.count = smsLogDetail[phoneData.phoneNumber].count;
+                                        let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
+                                        phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
+                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                    }
+                                    else{
+                                        phoneData.phoneNumber = phoneData.phoneNumber.trim();
+                                        let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)));
+                                        phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
+                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                    }
 
-                            })
+                                })
 
-                        }
-                        return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
-                    })
-
+                            }
+                            return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                        })
+                    }
 
                 }
             }
@@ -743,8 +748,9 @@ let dbDXMission = {
     retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId) {
         let smsLogProm = [];
         if (dxPhoneData && dxPhoneData.length > 0) {
+
             dxPhoneData.forEach (data => {
-                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
+                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber.trim(), "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
                     smsLogData => {
                         if (smsLogData && smsLogData.length > 0) {
                             return {

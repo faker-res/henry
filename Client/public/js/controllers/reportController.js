@@ -5542,8 +5542,24 @@ define(['js/app'], function (myApp) {
                 let proposalDetail = $.extend({}, vm.selectedProposal.data);
                 let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
                 for (let i in proposalDetail) {
-                    if (checkForHexRegExp.test(proposalDetail[i])) {
+                    // Add provider group name
+                    if (i == "providerGroup") {
+                        proposalDetail.providerGroup = proposalDetail[i] ? vm.getProviderGroupNameById(proposalDetail[i]) : $translate("LOCAL_CREDIT");
+                    }
+
+                    //remove objectIDs/null/blank objects
+                    if (checkForHexRegExp.test(proposalDetail[i]) || proposalDetail[i] === null || proposalDetail[i] === "") {
                         delete proposalDetail[i];
+                    }
+
+                    if (i == 'providers') {
+                        var temp = [];
+                        if (proposalDetail.providers) {
+                            proposalDetail.providers.map(item => {
+                                temp.push(item.name);
+                            });
+                            proposalDetail.providers = temp;
+                        }
                     }
                 }
                 vm.selectedProposal.data = $.extend({}, proposalDetail);
