@@ -482,6 +482,7 @@ let dbDXMission = {
                         return Q.reject({message: retErr, data: data});
                     }
                 );
+                //return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
             }
         );
 
@@ -490,7 +491,8 @@ let dbDXMission = {
     getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
         var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
         let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players});
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission})
+            //.populate({path: "playerObjId", model: dbconfig.collection_players});
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
@@ -516,6 +518,11 @@ let dbDXMission = {
                                     details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
                                     details.count = smsLogDetail[phoneData.phoneNumber].count;
                                     let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
+                                    phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
+                                    dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                }
+                                else{
+                                    let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)));
                                     phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
                                     dxPhoneDataWithDetails.push(phoneDataWithDetails);
                                 }

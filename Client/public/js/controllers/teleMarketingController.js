@@ -1316,7 +1316,7 @@ define(['js/app'], function (myApp) {
                     vm.showSMSTable = true;
                     vm.teleMarketingSendSMS.data.forEach((item, index) => {
                         item['createTime'] = vm.dateReformat(item.createTime);
-                        item['lastTime'] = vm.dateReformat(item.lastTime);
+                        item['lastTime'] = item.lastTime ? vm.dateReformat(item.lastTime) : '-';
                         item['playerName'] = item.playerObjId && item.playerObjId.name ? item.playerObjId.name : '-';
                         item['topupTimes'] = item.playerObjId && item.playerObjId.topUpTimes ? item.playerObjId.topUpTimes : 0;
                         item['loginTimes'] = item.playerObjId && item.playerObjId.loginTimes ? item.playerObjId.loginTimes : 0;
