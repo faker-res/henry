@@ -2838,14 +2838,14 @@ let dbPlayerInfo = {
                             break;
                     }
                     var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
+                    // var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
                     let promArr;
 
                     if (useProviderGroup) {
                         var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
-                        promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
+                        promArr = [recordProm, logProm, freeAmountRewardTaskGroupProm];
                     } else {
-                        promArr = [recordProm, logProm, levelProm];
+                        promArr = [recordProm, logProm];
                     }
 
                     // Check any limited offer matched
@@ -2870,6 +2870,7 @@ let dbPlayerInfo = {
                     // Async - Check reward group task to apply on player top up
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
+                    dbPlayerInfo.checkPlayerLevelUp(playerId, playerData.platform).catch(console.log);
                     deferred.resolve(data && data[0]);
                 }
             },
