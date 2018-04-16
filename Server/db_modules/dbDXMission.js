@@ -8,6 +8,8 @@ var errorUtils = require("./../modules/errorUtils");
 var dbLogger = require('./../modules/dbLogger');
 var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
+
+
 const constSystemParam = require('../const/constSystemParam');
 const constServerCode = require('../const/constServerCode');
 const constProposalType = require('../const/constProposalType');
@@ -718,22 +720,23 @@ let dbDXMission = {
 
     retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId) {
         let smsLogProm = [];
-        if (dxPhoneData && dxPhoneData.length > 0){
-            // let phoneNumberCollection = [];
-            dxPhoneData.forEach ( data => {
-                smsLogProm.push( dbconfig.collection_smsLog.find({tel: data.phoneNumber, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
+        if (dxPhoneData && dxPhoneData.length > 0) {
+            dxPhoneData.forEach (data => {
+                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
                     smsLogData => {
-                        if (smsLogData && smsLogData.length > 0){
-                            return {phoneNumber: smsLogData[0].tel, lastTime: smsLogData[0].createTime, count: smsLogData.length}
+                        if (smsLogData && smsLogData.length > 0) {
+                            return {
+                                phoneNumber: smsLogData[0].tel,
+                                lastTime: smsLogData[0].createTime,
+                                count: smsLogData.length
+                            }
                         }
-                        else{
+                        else {
                             return {}
                         }
-
                     }
-                ) );
+                ))
             });
-
 
             return Q.all(smsLogProm);
         }
