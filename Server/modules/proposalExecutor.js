@@ -135,6 +135,7 @@ var proposalExecutor = {
             this.executions.executeUpdatePartnerWeChat.des = "Update partner WeChat";
             this.executions.executeUpdatePartnerPhone.des = "Update partner phone number";
             this.executions.executeUpdatePartnerInfo.des = "Update partner information";
+            this.executions.executeUpdatePartnerCommissionType.des = "Update partner commission type";
             this.executions.executePlayerTopUp.des = "Help player top up";
             this.executions.executeFullAttendance.des = "Player full attendance reward";
             this.executions.executeGameProviderReward.des = "Player top up for Game Provider reward";
@@ -197,6 +198,7 @@ var proposalExecutor = {
             this.rejections.rejectUpdatePartnerEmail.des = "Reject partner update email";
             this.rejections.rejectUpdatePartnerWeChat.des = "Reject partner update weChat";
             this.rejections.rejectUpdatePartnerInfo.des = "Reject partner update information";
+            this.rejections.rejectUpdatePartnerCommissionType.des = "Reject partner update commission type";
             this.rejections.rejectFullAttendance.des = "Reject player full attendance reward";
             this.rejections.rejectGameProviderReward.des = "Reject player for Game Provider Reward";
             this.rejections.rejectFirstTopUp.des = "Reject First Top up reward";
@@ -1015,6 +1017,35 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update partner info proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update partner email proposal type
+             */
+            executeUpdatePartnerCommissionType: function (proposalData, deferred) {
+                //data validation
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.updateData) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_partner,
+                        {_id: proposalData.data.partnerObjId},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_partner
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({
+                                name: "DataError",
+                                message: "Failed to update partner commission type",
+                                error: err
+                            });
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update partner commission type proposal data"});
                 }
             },
 
@@ -2788,6 +2819,13 @@ var proposalExecutor = {
              * reject function for UpdatePartnerInfo proposal
              */
             rejectUpdatePartnerInfo: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for UpdatePartnerCommissionType proposal
+             */
+            rejectUpdatePartnerCommissionType: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

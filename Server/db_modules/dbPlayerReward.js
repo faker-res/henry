@@ -3846,6 +3846,7 @@ let dbPlayerReward = {
             createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
 
+        let eventQueryPeriodTime = dbRewardUtil.getRewardEventIntervalTime({applyTargetDate: new Date()}, eventData);
         let eventQuery = {
             "data.platformObjId": playerData.platform._id,
             "data.playerObjId": playerData._id,
@@ -3894,7 +3895,11 @@ let dbPlayerReward = {
 
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-            eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            if (rewardData.applyTargetDate) {
+                eventQuery.settleTime = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
+            } else {
+                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
         }
 
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
