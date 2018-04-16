@@ -1668,7 +1668,7 @@ let dbPlayerInfo = {
                                 console.log(err);
                             }
                         }
-                        return playerData.phoneNumber;
+                        return playerData.phoneNumber.trim();
                     } else {
                         return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
                     }
@@ -6854,9 +6854,11 @@ let dbPlayerInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
-                                        levelUpObjId[levelUpCounter] = level._id;
-                                        levelUpObjArr[levelUpCounter] = level;
-                                        levelUpCounter++;
+                                        if (levelUpObjId.indexOf(level._id) < 0 ) {
+                                            levelUpObjId[levelUpCounter] = level._id;
+                                            levelUpObjArr[levelUpCounter] = level;
+                                            levelUpCounter++;
+                                        }
                                     } else {
 
                                         if (!levelUpEnd) {
