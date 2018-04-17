@@ -500,13 +500,7 @@ let dbDXMission = {
                 ))
             })
 
-
-
-            // );
-
             return Q.all(prom)
-
-
         }
         // return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
         //     path: "dxMission", model: dbconfig.collection_dxMission
@@ -548,7 +542,6 @@ let dbDXMission = {
         //         // return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
         //     }
         // );
-
     },
 
     getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol) {
