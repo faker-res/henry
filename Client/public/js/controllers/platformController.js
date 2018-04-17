@@ -5508,7 +5508,7 @@ define(['js/app'], function (myApp) {
                                     if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5 margin-right-5',
-                                            'src': "images/icon/withdrawBlue.png",
+                                            'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                             'height': "14px",
                                             'width': "14px",
                                             'ng-click': 'vm.initPlayerBonus();',
@@ -5563,7 +5563,7 @@ define(['js/app'], function (myApp) {
                                     if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5',
-                                            'src': "images/icon/rewardPointsBlue.png",
+                                            'src': (row.permission.rewardPointsTask === false ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
                                             'height': "14px",
                                             'width': "14px",
                                             'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
@@ -15070,7 +15070,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Platform', 'Partner', 'ApplyBonus')) {
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/withdrawBlue.png",
+                                        'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.initPartnerBonus();',
