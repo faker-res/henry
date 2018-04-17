@@ -140,6 +140,10 @@ var partnerSchema = new Schema({
     // Partner permission
     permission: {
         _id: false,
+        applyBonus: {type: Boolean, default: true},
+        forbidPartnerFromLogin: {type: Boolean, default: false},
+        phoneCallFeedback: {type: Boolean, default: true},
+        SMSFeedBack: {type: Boolean, default: true},
         disableCommSettlement: {type: Boolean, default: false}
     },
     // partner status normal or forbid
@@ -156,7 +160,7 @@ var partnerSchema = new Schema({
     qq: {type: String},
     wechat: {type: String},
     // commission type
-    commissionType: {type: String}
+    commissionType: {type: Number, default: 0}
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));
@@ -200,14 +204,16 @@ partnerSchema.methods.comparePassword = function (candidatePassword, cb) {
     });
 };
 
-var partnerPostFindUpdate = function (result) {
+var partnerPostFindUpdate = function (result, bOne) {
     //hide middle 4 digits for phone number
     if (result) {
         if (result.phoneNumber && result.phoneNumber.length > 0) {
             if (result.phoneNumber.length > 20) {
                 result.phoneNumber = rsaCrypto.decrypt(result.phoneNumber);
             }
-            result.phoneNumber = dbUtil.encodePhoneNum(result.phoneNumber);
+            if (!bOne) {
+                result.phoneNumber = dbUtil.encodePhoneNum(result.phoneNumber);
+            }
             // let startIndex = Math.max(Math.floor((result[i].phoneNumber.length - 4)/2), 0);
             // result[i].phoneNumber = result[i].phoneNumber.substr(0, startIndex) + "****" + result[i].phoneNumber.substr(startIndex+4);
         }
@@ -241,7 +247,7 @@ partnerSchema.post('find', function(result) {
 });
 
 partnerSchema.post('findOne', function (result) {
-    partnerPostFindUpdate(result);
+    partnerPostFindUpdate(result, true);
 });
 
 partnerSchema.pre('save', function (next) {

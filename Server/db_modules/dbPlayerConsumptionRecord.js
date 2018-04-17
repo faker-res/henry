@@ -723,6 +723,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
+                    recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
                     delete recordData.name;
 
                     if (isProviderGroup) {
@@ -854,6 +855,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
                     recordData.updateTime = new Date();
+                    recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
 
                     let consumptionRecordQuery = {
                         _id: oldData._id,
@@ -1082,6 +1084,7 @@ var dbPlayerConsumptionRecord = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if( platformData ){
+                    let sortObj = {createTime: 1};
                     let queryObj = {
                         platformId: platformData._id,
                         createTime: {$gte: startTime, $lt: endTime},
@@ -1094,9 +1097,16 @@ var dbPlayerConsumptionRecord = {
                         queryObj.validAmount = {$gte: minValidAmount};
                     }
 
-                    console.log('searchPlatformConsumption queryObj', queryObj);
+                    if (isRanking && (isRanking === true || isRanking === "true")) {
+                        queryObj = {
+                            platformId: platformData._id,
+                            createTime: {$gte: startTime, $lt: endTime}
+                        };
 
-                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(Number(requestCount)).lean().populate({
+                        sortObj = {winRatio: -1};
+                    }
+
+                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort(sortObj).skip(startIndex).limit(Number(requestCount)).lean().populate({
                         path: "gameId",
                         model: dbconfig.collection_game
                     }).populate({
@@ -1121,6 +1131,7 @@ var dbPlayerConsumptionRecord = {
                             playerBonusListObj.bonusAmount = record.bonusAmount;
                             playerBonusListObj.providerId = record.providerId || "";
                             playerBonusListObj.cpGameType = record.cpGameType || "";
+                            playerBonusListObj.winRatio = record.winRatio || record.bonusAmount / record.validAmount;
 
                             playerBonusListArray.push(playerBonusListObj);
                             delete record.playerId;
@@ -1128,19 +1139,9 @@ var dbPlayerConsumptionRecord = {
                     );
                 }
 
-                if(isRanking && (isRanking == "true" || isRanking == true)){
-                    playerBonusListArray.sort(function (a, b) {
-                        if(a[Object.keys(a)[2]] >  b[Object.keys(b)[2]]){
-                            return -1;
-                        }else if(a[Object.keys(a)[2]] <  b[Object.keys(b)[2]]){
-                            return 1;
-                        }else {
-                            return 0;
-                        }
-                    });
-
+                if (isRanking && (isRanking === true || isRanking === "true")) {
                     return playerBonusListArray;
-                }else{
+                } else {
                     return recordData;
                 }
             }
