@@ -429,8 +429,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayer")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayer"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -442,8 +441,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerTopUp")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerTopUp"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -455,8 +453,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerMultiTopUp")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerMultiTopUp"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -468,8 +465,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -481,8 +477,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -494,8 +489,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -1564,7 +1558,7 @@ define(['js/app'], function (myApp) {
                                 vm.responseMsg = $translate("SUCCESS");
                             }
                             else {
-                                vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
+                                vm.responseMsg = $translate("FAIL") + '(' + counterFailure + ')' ;
                             }
 
                             $scope.safeApply();

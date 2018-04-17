@@ -475,6 +475,7 @@ let dbDXMission = {
                                 dxMission: phoneData.dxMission
                             }
                         };
+
                         let recipientName = msg.name || '';
                         
                         return smsAPI.sending_sendMessage(sendObj).then(
@@ -486,7 +487,7 @@ let dbDXMission = {
                             retErr => {
                                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'failure', retErr);
                                 console.log("SMS SENT FAILED");
-                                return {message: retErr, data: data.msgDetail, failure: true};
+                                return {message: retErr, data: msg, failure: true};
                             }
                         );
 

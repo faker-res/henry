@@ -135,15 +135,14 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
 
-                        
-            
                     #overViewSubTable(ng-show="vm.showPlayerTable")
-                         div(style="margin-top:60px;")
+                         div(style="margin-top:60px; position:relative;")
                             label {{"totalCount" | translate}} {{vm.teleMarketingPlayerInfo.count}} {{"records" | translate}}
+                             button.common-button.btn.btn-primary(ng-click="vm.showPlayerTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerTablePage
                     #sendSMSTable(ng-show="vm.showSMSTable")
-                        div(style="position:relative;margin-top:10px;")
+                        div(style="position:relative; margin-top:100px;")
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
                             label(style="margin-left:100px;") {{vm.msgTemplate.name}} - {{vm.msgTemplate.description}}
                             button.common-button.btn.btn-primary(ng-click="vm.showSMSTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
