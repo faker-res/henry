@@ -18546,9 +18546,10 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'partnerCommission':
                         vm.partnerCommission = vm.partnerCommission || {};
+                        vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
                         // vm.getPartnerCommissionPeriodConst();
                         // vm.getPartnerCommissionSettlementModeConst();
-                        vm.getPartnerCommisionConfig();
+                        //vm.getPartnerCommisionConfig();
                         break;
                     case 'announcement':
                         vm.getAllPlatformAnnouncements();
@@ -21938,13 +21939,106 @@ define(['js/app'], function (myApp) {
             }
             vm.getPartnerCommisionConfig = function () {
                 vm.partnerCommission.loading = true;
-                socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfig', {query: {platform: vm.selectedPlatform.id}}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfig', {query: {platform: vm.selectedPlatform.id, commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]}}, function (data) {
                     vm.partnerCommission.srcConfig = data.data;
-                    vm.partnerCommission.showConfig = data.data ? $.extend({}, data.data) : false;
+                    vm.partnerCommission.showConfig = data.data ? $.extend({}, data.data) : {};
+                    if(!Object.keys(vm.partnerCommission.showConfig).length) {
+                        vm.partnerCommission.showConfig = {};
+                        vm.partnerCommission.showConfig.commissionSetting = [];
+                        vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting);
+
+                    }
+                    if (!vm.partnerCommission.srcConfig) {
+                        vm.partnerCommission.isEditing = true;
+                    }
                     vm.partnerCommission.loading = false;
                     $scope.safeApply();
                 });
             }
+            vm.selectedCommissionTab = function (tab) {
+                vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
+                vm.partnerCommission.isEditing = false;
+
+                if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
+                    vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
+                } else {
+                    vm.playerConsumptionTableHeader = 'TotalPlayerValidAmount';
+                }
+
+                switch (vm.commissionSettingTab) {
+                    case 'DAILY_BONUS_AMOUNT':
+                        vm.activePlayerTableHeader = 'DAILY_ACTIVE_PLAYER';
+                        break;
+                    case 'WEEKLY_BONUS_AMOUNT':
+                    case 'WEEKLY_CONSUMPTION':
+                        vm.activePlayerTableHeader = 'WEEKLY_ACTIVE_PLAYER';
+                        break;
+                    case 'BIWEEKLY_BONUS_AMOUNT':
+                        vm.activePlayerTableHeader = 'HALFMONTH_ACTIVE_PLAYER';
+                        break;
+                    case 'MONTHLY_BONUS_AMOUNT':
+                        vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
+                        break;
+                }
+
+                vm.getPartnerCommisionConfig();
+            };
+            vm.commissionSettingNewRow = (valueCollection) => {
+                valueCollection.push({playerConsumptionAmountFrom: "", playerConsumptionAmountTo: "", activePlayerValueFrom: "", activePlayerValueTo: "", commissionRate: "", isEditing: true, isCreateNew: true});
+                vm.partnerCommission.showConfig.platform = vm.selectedPlatform.id;
+                vm.partnerCommission.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                vm.partnerCommission.isEditing = true;
+            };
+            vm.commissionSettingDeleteRow = (idx,valueCollection) => {
+                valueCollection.splice(idx,1);
+                if (vm.partnerCommission.showConfig != vm.partnerCommission.srcConfig) {
+                    vm.partnerCommission.isEditing = true;
+                } else {
+                    vm.showHideSubmitCommissionConfigButton(valueCollection);
+                }
+            };
+            vm.commissionSettingEditRow = (idx, valueCollection) => {
+                valueCollection[idx].isEditing = true;
+                vm.partnerCommission.isEditing = true;
+            };
+            vm.commissionSettingCancelRow = (idx, valueCollection) => {
+                if (valueCollection[idx].isCreateNew) {
+                    valueCollection[idx].isCreateNew = false;
+                    valueCollection.splice(idx,1);
+                }
+
+                if (valueCollection[idx] && valueCollection[idx].isEditing) {
+                    valueCollection[idx].isEditing = false;
+                }
+
+                vm.showHideSubmitCommissionConfigButton(valueCollection);
+                vm.partnerCommission.showConfig = vm.partnerCommission.srcConfig;
+            };
+            vm.showHideSubmitCommissionConfigButton = (valueCollection) => {
+                if  (valueCollection && valueCollection.length > 0) {
+                    vm.partnerCommission.isEditing = false;
+                    for(let i= 0; i < valueCollection.length; i++){
+                        if(valueCollection[i] && valueCollection[i].isEditing) {
+                            vm.partnerCommission.isEditing = true;
+                        }
+                    }
+                }
+            };
+            vm.createUpdatePartnerCommissionConfig = function () {
+                var sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id,
+                        commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
+                    },
+                    updateData: vm.partnerCommission.showConfig
+                }
+                socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionConfig', sendData, function (data) {
+                    console.log('createUpdatePartnerCommissionConfig success:',data);
+                    vm.partnerCommission.isEditing = false;
+                    vm.getPartnerCommisionConfig();
+                    $scope.safeApply();
+                });
+            };
             vm.addCommissionLevel = function (key) {
                 vm.partnerCommission.showConfig[key] = vm.partnerCommission.showConfig[key] || [];
                 var length = vm.partnerCommission.showConfig[key].length;
@@ -21958,6 +22052,12 @@ define(['js/app'], function (myApp) {
             }
             vm.submitUpdatePartnerCommision = function () {
                 console.log(vm.partnerCommission.showConfig);
+                if (vm.partnerCommission.showConfig) {
+                    if (vm.commissionSettingTab) {
+                        vm.partnerCommission.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                    }
+                }
+
                 var sendData = {
                     query: {
                         _id: vm.partnerCommission.showConfig._id

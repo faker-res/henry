@@ -2890,6 +2890,20 @@ let dbPartner = {
         return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, update);
     },
 
+    createUpdatePartnerCommissionConfig: function  (query, data) {
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType}).lean().then(
+           configData => {
+               //check if config exist
+               if (!configData) {
+                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
+                    return newCommissionConfig.save();
+               }
+               else {
+                   return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
+               }
+           });
+    },
+
     startPlatformPartnerCommissionSettlement: function (platformObjId, bUpdateSettlementTime, isToday) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: platformObjId}).lean().then(
             configData => {
