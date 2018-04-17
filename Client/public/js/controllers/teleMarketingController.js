@@ -421,10 +421,7 @@ define(['js/app'], function (myApp) {
                             data: "sentMessageListCount$",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-
-                                    // 'ng-click': 'vm.showSendSMSTable("' + data + '")',
-                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage")',
-
+                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -434,10 +431,7 @@ define(['js/app'], function (myApp) {
                             data: "registeredPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer"); vm.showPagedTelePlayerTable()',
-                                    'href': '#sendSMSTable'
-
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer"); vm.showPagedTelePlayerTable(); vm.setAnchor("telePlayerTablePage"'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -447,10 +441,7 @@ define(['js/app'], function (myApp) {
                             data: "topUpPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerTopUp"); vm.showPagedTelePlayerTable()',
-                                    'href': '#sendSMSTable'
-
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerTopUp"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage"'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -460,10 +451,7 @@ define(['js/app'], function (myApp) {
                             data: "multiTopUpPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerMultiTopUp"); vm.showPagedTelePlayerTable()',
-                                    'href': '#sendSMSTable'
-
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerMultiTopUp"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage"'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -473,10 +461,7 @@ define(['js/app'], function (myApp) {
                             data: "totalValidConsumptionCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'"); vm.showPagedTelePlayerTable()',
-                                    'href': '#sendSMSTable'
-
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage"'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -486,10 +471,7 @@ define(['js/app'], function (myApp) {
                             data: "totalPlayerDepositAmount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'"); vm.showPagedTelePlayerTable()',
-                                    'href': '#sendSMSTable'
-
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage"'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -499,10 +481,7 @@ define(['js/app'], function (myApp) {
                             data: "totalValidConsumptionAmount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'"); vm.showPagedTelePlayerTable()',
-                                    'href': '#sendSMSTable'
-
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage"'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -1580,7 +1559,7 @@ define(['js/app'], function (myApp) {
                                 vm.responseMsg = $translate("SUCCESS");
                             }
                             else {
-                                vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
+                                vm.responseMsg = $translate("FAIL") + '(' + counterFailure + ')' ;
                             }
 
                             $scope.safeApply();

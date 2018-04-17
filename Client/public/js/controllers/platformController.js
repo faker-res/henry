@@ -37,6 +37,14 @@ define(['js/app'], function (myApp) {
                 WEEKLY_CONSUMPTION: 5,
                 OPTIONAL_REGISTRATION: 6
             };
+
+            vm.constPartnerCommisionTypeOption = {
+                DAILY_BONUS_AMOUNT: 1,
+                WEEKLY_BONUS_AMOUNT: 2,
+                BIWEEKLY_BONUS_AMOUNT: 3,
+                MONTHLY_BONUS_AMOUNT: 4,
+                WEEKLY_CONSUMPTION: 5,
+            };
             vm.proposalStatusList = { // removed APPROVED and REJECTED
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
@@ -5500,7 +5508,7 @@ define(['js/app'], function (myApp) {
                                     if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5 margin-right-5',
-                                            'src': "images/icon/withdrawBlue.png",
+                                            'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                             'height': "14px",
                                             'width': "14px",
                                             'ng-click': 'vm.initPlayerBonus();',
@@ -5555,7 +5563,7 @@ define(['js/app'], function (myApp) {
                                     if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                         link.append($('<img>', {
                                             'class': 'margin-right-5',
-                                            'src': "images/icon/rewardPointsBlue.png",
+                                            'src': (row.permission.rewardPointsTask === false ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
                                             'height': "14px",
                                             'width': "14px",
                                             'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
@@ -11379,7 +11387,7 @@ define(['js/app'], function (myApp) {
                 vm.mailLog.query = {};
                 vm.mailLog.receivedMails = [{}];
                 vm.mailLog.isAdmin = true;
-                vm.mailLog.isSystem = false;
+                vm.mailLog.isSystem = true;
                 utilService.actionAfterLoaded('#messagePlayerModal.in #messageLogPanel #mailLogQuery .endTime', function () {
                     vm.mailLog.startTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .startTime');
                     vm.mailLog.endTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .endTime');
@@ -11390,7 +11398,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.searchMailLog = function () {
-                var requestData = {
+                let requestData = {
                     recipientId: vm.selectedSinglePlayer._id,
                     startTime: vm.mailLog.startTime.data('datetimepicker').getLocalDate() || new Date(0),
                     endTime: vm.mailLog.endTime.data('datetimepicker').getLocalDate() || new Date()
@@ -15016,13 +15024,121 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('Function'), //data: 'phoneNumber',
+                            title: $translate('Function'),
                             orderable: false,
+                            render: function (data, type, row) {
+                                data = data || '';
+                                let partnerObjId = row._id ? row._id : "";
+                                let link = $('<div>', {});
+                                link.append($('<a>', {
+                                    'class': 'fa fa-envelope margin-right-5',
+                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPartnerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("SEND_MESSAGE_TO_PARTNER"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.initSMSModal();' + "vm.onClickPartnerCheck('" +
+                                    partnerObjId + "', " + "vm.telorMessageToPartnerBtn" +
+                                    ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("SEND_SMS_TO_PARTNER"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.telorMessageToPartnerBtn(' + '"tel", "' + partnerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                }));
+                                if ($scope.checkViewPermission('Platform', 'Partner', 'AddFeedback')) {
+                                    link.append($('<a>', {
+                                        'class': 'fa fa-commenting margin-right-5',
+                                        'ng-click': 'vm.initFeedbackModal();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalAddPartnerFeedback',
+                                        'title': $translate("ADD_FEEDBACK"),
+                                        'data-placement': 'left',
+                                    }));
+                                }
+                                if ($scope.checkViewPermission('Platform', 'Partner', 'ApplyBonus')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 margin-right-5',
+                                        'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.initPartnerBonus();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPartnerBonus',
+                                        'title': $translate("Bonus"),
+                                        'data-placement': 'left',
+                                    }));
+                                }
+                                if ($scope.checkViewPermission('Platform', 'Partner', 'CreditAdjustment')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5',
+                                        'src': "images/icon/creditAdjustBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.onClickPartnerCheck("' + partnerObjId + '", vm.prepareShowPartnerCreditAdjustment, \'adjust\')',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPartnerCreditAdjustment',
+                                        'title': $translate("CREDIT_ADJUSTMENT"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
+                                return link.prop('outerHTML');
+                            },
                             "sClass": "alignLeft"
                         },
                         {
-                            title: $translate('MAIN') + $translate('PERMISSION'), //data: 'phoneNumber',
+                            title: $translate('MAIN') + $translate('PERMISSION'),
                             orderable: false,
+                            render: function (data, type, row) {
+                                data = data || {permission: {}};
+
+                                let link = $('<a>', {
+                                    'class': 'partnerPermissionPopover',
+                                    'ng-click': "vm.permissionPartner = " + JSON.stringify(row)
+                                    + "; vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;",
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    'data-trigger': 'focus',
+                                    'data-placement': 'left',
+                                    'data-container': 'body',
+                                });
+
+                                let perm = (row && row.permission) ? row.permission : {};
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa margin-right-5 ' + (perm.forbidPartnerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5 ' + (perm.phoneCallFeedback === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-comment margin-right-5 ' + (perm.SMSFeedBack === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                return link.prop('outerHTML') + "&nbsp;";
+                            },
                             "sClass": "alignLeft"
                         },
                         {
@@ -15273,9 +15389,31 @@ define(['js/app'], function (myApp) {
                                 let that = this;
                                 let row = JSON.parse(this.dataset.row);
                                 vm.partnerPermissionTypes = {
-                                    disableCommSettlement: {imgType: 'i', iconClass: "fa fa-user-times"}
+                                    applyBonus: {
+                                        imgType: 'img',
+                                        src: "images/icon/withdrawBlue.png",
+                                        width: '26px',
+                                        height: '26px'
+                                    },
+                                    forbidPartnerFromLogin: {
+                                        imgType: 'i',
+                                        iconClass: "fa fa-sign-in"
+                                    },
+                                    phoneCallFeedback: {
+                                        imgType: 'i',
+                                        iconClass: "fa fa-volume-control-phone"
+                                    },
+                                    SMSFeedBack: {
+                                        imgType: 'i',
+                                        iconClass: "fa fa-comment"
+                                    },
+                                    // disableCommSettlement: {imgType: 'i', iconClass: "fa fa-user-times"}
                                 };
                                 $("#partnerPermissionTable td").removeClass('hide');
+
+                                // Invert second render
+                                row.permission.forbidPartnerFromLogin = !row.permission.forbidPartnerFromLogin;
+
                                 $.each(vm.partnerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key]) {
                                         $("#partnerPermissionTable .permitOff." + key).addClass('hide');
@@ -15306,8 +15444,13 @@ define(['js/app'], function (myApp) {
 
                                 $submit.on('click', function () {
                                     $submit.off('click');
-                                    $(thisPopover + " .togglePlayer").off('click');
+                                    $(thisPopover + " .togglePartner").off('click');
                                     $remark.off('input selectionchange propertychange');
+
+                                    if (changeObj.hasOwnProperty('forbidPartnerFromLogin')) {
+                                        changeObj.forbidPartnerFromLogin = !changeObj.forbidPartnerFromLogin;
+                                    }
+
                                     socketService.$socket($scope.AppSocket, 'updatePartnerPermission', {
                                         query: {
                                             platform: vm.permissionPartner.platform,
@@ -15509,6 +15652,9 @@ define(['js/app'], function (myApp) {
                 vm.newPartner.DOB = vm.partnerDOB.data('datetimepicker').getLocalDate();
                 vm.newPartner.DOB = vm.newPartner.DOB.toISOString();
                 vm.newPartner.gender = (vm.newPartner.gender && vm.newPartner.gender == "true") ? true : false ;
+                if (vm.newPartner.commissionType) {
+                    vm.newPartner.commissionType = Number(vm.newPartner.commissionType);
+                }
 
                 console.log(vm.newPartner);
 
@@ -18400,9 +18546,10 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'partnerCommission':
                         vm.partnerCommission = vm.partnerCommission || {};
+                        vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
                         // vm.getPartnerCommissionPeriodConst();
                         // vm.getPartnerCommissionSettlementModeConst();
-                        vm.getPartnerCommisionConfig();
+                        //vm.getPartnerCommisionConfig();
                         break;
                     case 'announcement':
                         vm.getAllPlatformAnnouncements();
@@ -21792,13 +21939,106 @@ define(['js/app'], function (myApp) {
             }
             vm.getPartnerCommisionConfig = function () {
                 vm.partnerCommission.loading = true;
-                socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfig', {query: {platform: vm.selectedPlatform.id}}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfig', {query: {platform: vm.selectedPlatform.id, commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]}}, function (data) {
                     vm.partnerCommission.srcConfig = data.data;
-                    vm.partnerCommission.showConfig = data.data ? $.extend({}, data.data) : false;
+                    vm.partnerCommission.showConfig = data.data ? $.extend({}, data.data) : {};
+                    if(!Object.keys(vm.partnerCommission.showConfig).length) {
+                        vm.partnerCommission.showConfig = {};
+                        vm.partnerCommission.showConfig.commissionSetting = [];
+                        vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting);
+
+                    }
+                    if (!vm.partnerCommission.srcConfig) {
+                        vm.partnerCommission.isEditing = true;
+                    }
                     vm.partnerCommission.loading = false;
                     $scope.safeApply();
                 });
             }
+            vm.selectedCommissionTab = function (tab) {
+                vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
+                vm.partnerCommission.isEditing = false;
+
+                if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
+                    vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
+                } else {
+                    vm.playerConsumptionTableHeader = 'TotalPlayerValidAmount';
+                }
+
+                switch (vm.commissionSettingTab) {
+                    case 'DAILY_BONUS_AMOUNT':
+                        vm.activePlayerTableHeader = 'DAILY_ACTIVE_PLAYER';
+                        break;
+                    case 'WEEKLY_BONUS_AMOUNT':
+                    case 'WEEKLY_CONSUMPTION':
+                        vm.activePlayerTableHeader = 'WEEKLY_ACTIVE_PLAYER';
+                        break;
+                    case 'BIWEEKLY_BONUS_AMOUNT':
+                        vm.activePlayerTableHeader = 'HALFMONTH_ACTIVE_PLAYER';
+                        break;
+                    case 'MONTHLY_BONUS_AMOUNT':
+                        vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
+                        break;
+                }
+
+                vm.getPartnerCommisionConfig();
+            };
+            vm.commissionSettingNewRow = (valueCollection) => {
+                valueCollection.push({playerConsumptionAmountFrom: "", playerConsumptionAmountTo: "", activePlayerValueFrom: "", activePlayerValueTo: "", commissionRate: "", isEditing: true, isCreateNew: true});
+                vm.partnerCommission.showConfig.platform = vm.selectedPlatform.id;
+                vm.partnerCommission.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                vm.partnerCommission.isEditing = true;
+            };
+            vm.commissionSettingDeleteRow = (idx,valueCollection) => {
+                valueCollection.splice(idx,1);
+                if (vm.partnerCommission.showConfig != vm.partnerCommission.srcConfig) {
+                    vm.partnerCommission.isEditing = true;
+                } else {
+                    vm.showHideSubmitCommissionConfigButton(valueCollection);
+                }
+            };
+            vm.commissionSettingEditRow = (idx, valueCollection) => {
+                valueCollection[idx].isEditing = true;
+                vm.partnerCommission.isEditing = true;
+            };
+            vm.commissionSettingCancelRow = (idx, valueCollection) => {
+                if (valueCollection[idx].isCreateNew) {
+                    valueCollection[idx].isCreateNew = false;
+                    valueCollection.splice(idx,1);
+                }
+
+                if (valueCollection[idx] && valueCollection[idx].isEditing) {
+                    valueCollection[idx].isEditing = false;
+                }
+
+                vm.showHideSubmitCommissionConfigButton(valueCollection);
+                vm.partnerCommission.showConfig = vm.partnerCommission.srcConfig;
+            };
+            vm.showHideSubmitCommissionConfigButton = (valueCollection) => {
+                if  (valueCollection && valueCollection.length > 0) {
+                    vm.partnerCommission.isEditing = false;
+                    for(let i= 0; i < valueCollection.length; i++){
+                        if(valueCollection[i] && valueCollection[i].isEditing) {
+                            vm.partnerCommission.isEditing = true;
+                        }
+                    }
+                }
+            };
+            vm.createUpdatePartnerCommissionConfig = function () {
+                var sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id,
+                        commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
+                    },
+                    updateData: vm.partnerCommission.showConfig
+                }
+                socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionConfig', sendData, function (data) {
+                    console.log('createUpdatePartnerCommissionConfig success:',data);
+                    vm.partnerCommission.isEditing = false;
+                    vm.getPartnerCommisionConfig();
+                    $scope.safeApply();
+                });
+            };
             vm.addCommissionLevel = function (key) {
                 vm.partnerCommission.showConfig[key] = vm.partnerCommission.showConfig[key] || [];
                 var length = vm.partnerCommission.showConfig[key].length;
@@ -21812,6 +22052,12 @@ define(['js/app'], function (myApp) {
             }
             vm.submitUpdatePartnerCommision = function () {
                 console.log(vm.partnerCommission.showConfig);
+                if (vm.partnerCommission.showConfig) {
+                    if (vm.commissionSettingTab) {
+                        vm.partnerCommission.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                    }
+                }
+
                 var sendData = {
                     query: {
                         _id: vm.partnerCommission.showConfig._id

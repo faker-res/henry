@@ -1140,6 +1140,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
                 proposalData.playerLevel = player.playerLevel._id;
+                proposalData.playerRealName = player.realName;
                 proposalData.bankCardType = inputData.bankTypeId;
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
@@ -1147,9 +1148,13 @@ var dbPlayerTopUpRecord = {
                 proposalData.realName = inputData.realName;
                 proposalData.remark = inputData.remark || "";
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
+                proposalData.bankCardGroupName = player.bankCardGroup && player.bankCardGroup.name || "";
                 proposalData.depositTime = inputData.createTime || "";
                 proposalData.inputData = inputData;
                 proposalData.userAgent = userAgent ? userAgent : "";
+                proposalData.bPMSGroup = Boolean(bPMSGroup);
+                proposalData.promoCode = inputData.bonusCode;
+                proposalData.topUpReturnCode = topUpReturnCode;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -1166,8 +1171,11 @@ var dbPlayerTopUpRecord = {
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                     proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
-                    if (inputData.limitedOfferObjId)
-                        proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
+                    if (inputData.limitedOfferObjId) {
+                        proposalData.remark += '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
+                        proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName;
+                    }
+
                 }
 
                 var newProposal = {
@@ -1297,6 +1305,7 @@ var dbPlayerTopUpRecord = {
                     updateData.data.cardOwner = request.result.cardOwner;
                     updateData.data.bankTypeId = request.result.bankTypeId;
                     updateData.data.resultData = request.result;
+                    updateData.data.cardQuota = 0;
                     if (request.result && request.result.changeAmount) {
                         updateData.data.inputAmount = inputData.amount;
                         updateData.data.amount = request.result.changeAmount;
@@ -1305,8 +1314,13 @@ var dbPlayerTopUpRecord = {
                     if (resultData[0]) {
                         updateData.data.cardQuota = resultData[0].totalAmount || 0;
                     }
+
+                    let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
+
+                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo).catch(errorUtils.reportError);
+
                     return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposal._id, createTime: proposal.createTime},
+                        proposalQuery,
                         updateData,
                         {new: true}
                     );
@@ -3624,3 +3638,13 @@ proto = Object.assign(proto, dbPlayerTopUpRecord);
 
 // This make WebStorm navigation work
 module.exports = dbPlayerTopUpRecord;
+
+function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo) {
+    return pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo}).then(
+        bankCard => {
+            if (bankCard && bankCard.data && bankCard.data.quota) {
+                return dbconfig.collection_proposal.update(proposalQuery, {"data.dailyCardQuotaCap": bankCard.data.quota});
+            }
+        }
+    );
+}

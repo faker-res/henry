@@ -324,6 +324,7 @@ var roleChecker = {
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
                 PartnerPermission: ['updatePartnerPermission'],
+                AddFeedback: [],
                 CreditAdjustment: ['createUpdatePartnerCreditProposal']
             },
             "Game": {
@@ -580,7 +581,7 @@ var roleChecker = {
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
-                NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData'],
+                NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData', 'getAllAdminInfo'],
                 DX_NEWACCOUNT_REPORT: ['getDXNewPlayerReport', 'getAllPromoteWay', 'getDepartmentDetailsByPlatformObjId'],
                 PLAYERPARTNER_REPORT: ['getPartnerPlayers', 'getPartnerSummaryReport', 'getPartnerPlayerBonusReport'],
                 PARTNERPLAYERBOUNS_REPORT: ['getPartnerPlayerBonusReport'],
