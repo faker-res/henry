@@ -1112,7 +1112,11 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             if (data.hasOwnProperty('creator')) {
                                 if(data.creator && data.creator.type && data.creator.type == "partner"){
-                                    return $translate('PARTNER') + ": " + data.creator.id;
+                                    if (data.creator.name) {
+                                        return $translate('PARTNER') + ": " + data.creator.name;
+                                    } else {
+                                        return $translate('PARTNER') + ": " + data.creator.id;
+                                    }
                                 }
                                 return data.creator.name;
                             } else {
@@ -1943,7 +1947,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
                 proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                 proposalDetail["SINGLE_LIMIT"] = " ";
-                proposalDetail["DAY_LIMIT"] = " "; // todo :: day limit need to be {"already used value" / "total value"}
+                proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
                 proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
             }
 
