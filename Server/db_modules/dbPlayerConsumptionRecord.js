@@ -1097,7 +1097,7 @@ var dbPlayerConsumptionRecord = {
                         queryObj.validAmount = {$gte: minValidAmount};
                     }
 
-                    if (isRanking) {
+                    if (isRanking && (isRanking === true || isRanking === "true")) {
                         queryObj = {
                             platformId: platformData._id,
                             createTime: {$gte: startTime, $lt: endTime}
