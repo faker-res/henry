@@ -434,8 +434,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayer")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayer"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -447,8 +446,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerTopUp")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerTopUp"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -460,8 +458,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerMultiTopUp")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerMultiTopUp"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -473,8 +470,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -486,8 +482,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -499,8 +494,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'")',
-                                    'href': '#sendSMSTable'
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'"); vm.setAnchor("telePlayerTablePage")',
 
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -1570,7 +1564,7 @@ define(['js/app'], function (myApp) {
                                 vm.responseMsg = $translate("SUCCESS");
                             }
                             else {
-                                vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
+                                vm.responseMsg = $translate("FAIL") + '(' + counterFailure + ')' ;
                             }
 
                             $scope.safeApply();
