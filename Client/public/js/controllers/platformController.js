@@ -15366,7 +15366,7 @@ define(['js/app'], function (myApp) {
 
                                 $submit.on('click', function () {
                                     $submit.off('click');
-                                    $(thisPopover + " .togglePlayer").off('click');
+                                    $(thisPopover + " .togglePartner").off('click');
                                     $remark.off('input selectionchange propertychange');
 
                                     if (changeObj.hasOwnProperty('forbidPartnerFromLogin')) {
