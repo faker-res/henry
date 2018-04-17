@@ -1947,7 +1947,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
                 proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                 proposalDetail["SINGLE_LIMIT"] = " ";
-                proposalDetail["DAY_LIMIT"] = " "; // todo :: day limit need to be {"already used value" / "total value"}
+                proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
                 proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
             }
 
