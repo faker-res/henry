@@ -372,6 +372,11 @@ define(['js/app'], function (myApp) {
 
                         $scope.$evalAsync(vm.drawTeleMarketingOverviewTable(newSearch, result, vm.teleMarketingOverview.totalCount));
                         vm.loadingTeleMarketingOverviewTable = false;
+
+                        //hide sub table after search
+                        vm.showPlayerTable = false;
+                        vm.showSMSTable = false;
+
                     }
                 });
             };
@@ -468,7 +473,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -481,7 +486,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -494,7 +499,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -1072,7 +1077,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
 
-            vm.showPagedTelePlayerTable = function (dxMissionId, type) {
+            vm.showPagedTelePlayerTable = function (dxMissionId, type, searchCriteria) {
                 vm.telePlayerTable = {};
 
                 utilService.actionAfterLoaded(('#telePlayerTable'), function () {
@@ -1080,23 +1085,24 @@ define(['js/app'], function (myApp) {
                     vm.telePlayerTable.pageObj = utilService.createPageForPagingTable("#telePlayerTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "telePlayerTable", vm.getPagedTelePlayerTable)
                     });
-                    vm.getPagedTelePlayerTable(true, dxMissionId, type);
+                    vm.getPagedTelePlayerTable(true, dxMissionId, type, searchCriteria);
                 });
             }
 
 
-            vm.getPagedTelePlayerTable = function (newSearch, dxMission, type) {
+            vm.getPagedTelePlayerTable = function (newSearch, dxMission, type, searchCriteria) {
                 let sendQuery = {
                     platform: vm.selectedPlatform.id ,
                     dxMission: dxMission,
-                    type: type
+                    type: type,
+                    searchCriteria: searchCriteria
                 }
 
                 socketService.$socket($scope.AppSocket, 'getDXPlayerInfo', sendQuery, function (data) {
                     if(data){
                         vm.teleMarketingPlayerInfo.count = data.data && data.data.size ? data.data.size : 0;
                         vm.teleMarketingPlayerInfo.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : {};
-
+                        vm.teleMarketingPlayerInfo.missionData = data.data && data.data.dxMissionData ? data.data.dxMissionData : {};
                     }
 
                     vm.showPlayerTable = true;

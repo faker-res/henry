@@ -65,8 +65,6 @@ let dbDXMission = {
         if(query.name){
             matchObj.name = query.name;
         }
-        let importedListProm = [];
-        let sentMessageListProm = [];
         let registeredPlayerListProm = [];
         let dataSummaryListProm = [];
 
@@ -114,6 +112,9 @@ let dbDXMission = {
                                                         missionData.totalValidConsumptionCount = summary.totalValidConsumptionCount;
                                                         missionData.totalValidConsumptionAmount = summary.totalValidConsumptionAmount;
                                                         missionData.totalPlayerDepositAmount = summary.totalPlayerDepositAmount;
+                                                        missionData.validPlayerArr = summary.validPlayerArr;
+                                                        missionData.depositPlayerArr = summary.depositPlayerArr;
+                                                        missionData.consumptionPlayerArr = summary.consumptionPlayerArr;
                                                     }
 
                                                     return;
@@ -174,11 +175,13 @@ let dbDXMission = {
         let registeredPlayerListProm = [];
         let topUpPlayerProm = [];
         let playerConsumptionProm = [];
+        let validPlayerArr = [];
+        let depositPlayerArr = [];
+        let consumptionPlayerArr = [];
         let partnerLevel = {};
         let totalRegisteredPlayer = 0;
         let noOfPlayerTopUp = 0;
         let noOfPlayerMultiTopUp = 0;
-        let validPlayer = 0;
         let totalTopUpAmount = 0;
         let totalTopUpCount = 0;
         let totalValidConsumptionCount = 0;
@@ -186,9 +189,8 @@ let dbDXMission = {
         let totalPlayerBonusAmount = 0;
         let totalPlayerTopUpAmount = 0;
 
-
         importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
-        sentMessageListProm = dbconfig.collection_smsLog.find({"data.dxMission": dxMissionId}).count();
+        sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)});
         registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
             playerData => {
                 if(playerData){
@@ -257,6 +259,12 @@ let dbDXMission = {
                                                     totalTopUpAmount = topUpRecord[0].amount;
                                                 }
 
+                                                //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
+                                                var indexNo = depositPlayerArr.findIndex(d => d == player._id);
+                                                if(indexNo == -1){
+                                                    depositPlayerArr.push(player._id);
+                                                }
+
                                                 return;
                                             }
                                         }
@@ -272,6 +280,12 @@ let dbDXMission = {
                                                     });
                                                 }else{
                                                     totalConsumptionAmount = consumptionRecord[0].validAmount;
+                                                }
+
+                                                //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
+                                                var indexNo = consumptionPlayerArr.findIndex(c => c == player._id);
+                                                if(indexNo == -1){
+                                                    consumptionPlayerArr.push(player._id);
                                                 }
 
                                                 return;
@@ -296,6 +310,12 @@ let dbDXMission = {
                                                                 });
                                                             }else{
                                                                 playerBonusAmount = proposalData[0].data.amount;
+                                                            }
+
+                                                            //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
+                                                            var indexNo = depositPlayerArr.findIndex(d => d == player._id);
+                                                            if(indexNo == -1){
+                                                                depositPlayerArr.push(player._id);
                                                             }
                                                         }
                                                     }
@@ -326,6 +346,12 @@ let dbDXMission = {
                                                 }
 
                                                 totalValidConsumptionCount += 1;
+
+                                                //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
+                                                var indexNo = validPlayerArr.findIndex(v => v == player._id);
+                                                if(indexNo == -1){
+                                                    validPlayerArr.push(player._id);
+                                                }
                                             }
                                         }
                                     ));
@@ -343,8 +369,7 @@ let dbDXMission = {
             result => {
                 if(result){
                     let importedListCount = result[0] ? result[0] : 0;
-                    let sentMessageListCount = result[1] ? result[1] : 0;
-
+                    let sentMessageListCount = result[1] ? result[1].length : 0;
                     return {
                         dxMissionId: dxMissionId,
                         importedListCount: importedListCount,
@@ -354,7 +379,10 @@ let dbDXMission = {
                         multiTopUpPlayerCount: noOfPlayerMultiTopUp,
                         totalValidConsumptionAmount: totalValidConsumptionAmount,
                         totalValidConsumptionCount : totalValidConsumptionCount,
-                        totalPlayerDepositAmount: totalPlayerTopUpAmount - totalPlayerBonusAmount
+                        totalPlayerDepositAmount: totalPlayerTopUpAmount - totalPlayerBonusAmount,
+                        validPlayerArr: validPlayerArr,
+                        depositPlayerArr: depositPlayerArr,
+                        consumptionPlayerArr: consumptionPlayerArr
                     }
                 }
             }
@@ -599,7 +627,7 @@ let dbDXMission = {
         )
     },
 
-    getDXPlayerInfo: function (platformObjId, dxMission, type, index, limit, sortCol) {
+    getDXPlayerInfo: function (platformObjId, dxMission, type, searchCriteria, index, limit, sortCol) {
         limit = limit ? limit : 20;
         index = index ? index : 0;
 
@@ -614,16 +642,19 @@ let dbDXMission = {
 
         let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
         let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().sort({createTime: -1}).lean();
+        let dxMissionProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
         let size = 0;
         let dxPhoneData = {};
+        let dxMissionData = {};
 
-        return Promise.all([totalCountProm, phoneDataProm]).then(
+        return Promise.all([totalCountProm, phoneDataProm, dxMissionProm]).then(
             result => {
                 if(result){
                     size = result[0] ? result[0] : 0;
                     dxPhoneData = result[1] ? result[1] : {};
+                    dxMissionData = result[2] ? result[2] : {};
 
-                    return {size: size, dxPhoneData: dxPhoneData};
+                    return {size: size, dxPhoneData: dxPhoneData, dxMissionData: dxMissionData};
                 }
             }
         ).then(
@@ -631,7 +662,16 @@ let dbDXMission = {
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
-                            dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
+                            // filter the search result of second table by different source from main table
+                            if(type == "TotalValidPlayer" || type == "TotalDepositAmount" || type == "TotalValidConsumption"){
+                                if(searchCriteria && searchCriteria != ""){
+                                    if(searchCriteria.includes(phoneData.playerObjId.toString())){
+                                        dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
+                                    }
+                                }
+                            }else{
+                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
+                            }
                         }
                     }
                 )
@@ -639,14 +679,15 @@ let dbDXMission = {
                 return Promise.all(dataSummaryListProm).then(
                     summaryData => {
                         let resultData = JSON.parse(JSON.stringify(data));
+                        let dataToBeDeleted = [];
                         if(summaryData){
                             summaryData.forEach(
                                 summary => {
                                     if(summary){
-                                        resultData.dxPhoneData.forEach(
+                                        resultData.dxPhoneData.map(
                                             (phoneData,i) => {
                                                 if(phoneData){
-                                                    if(summaryData.find(s => s && s.playerObjId == phoneData.playerObjId)){
+                                                    if(summaryData && summaryData.find(s => s && s.playerObjId == phoneData.playerObjId)){
                                                         if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
                                                             phoneData.playerName = summary.playerName;
                                                             phoneData.registrationTime = summary.registrationTime;
@@ -659,8 +700,7 @@ let dbDXMission = {
 
                                                         }
                                                     }else{
-                                                        resultData.dxPhoneData.splice(i,1);
-                                                        return;
+                                                        dataToBeDeleted.push(i);
                                                     }
                                                 }
                                             }
@@ -670,7 +710,12 @@ let dbDXMission = {
                             )
                         }
 
-                        return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData}
+                        // remove the data without playerinfo details
+                        dataToBeDeleted.forEach(index => {
+                            resultData.dxPhoneData.splice(index,1);
+                        })
+
+                        return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData, dxMissionData: data.dxMissionData}
                     }
                 )
             }
@@ -700,9 +745,7 @@ let dbDXMission = {
 
         if(type == "TotalPlayerTopUp"){
             query.topUpTimes = {$gte: 1}
-        }
-
-        if(type == "TotalPlayerMultiTopUp"){
+        }else if(type == "TotalPlayerMultiTopUp"){
             query.topUpTimes = {$gt: 1}
         }
 
@@ -728,9 +771,13 @@ let dbDXMission = {
                     topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).then(
                         topUpRecord => {
                             if(topUpRecord && topUpRecord.length > 0){
-                                totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
-                                    return (previousValue.amount || previousValue) + currentValue.amount;
-                                });
+                                if(topUpRecord.length > 1){
+                                    totalTopUpAmount = topUpRecord.reduce(function(previousValue, currentValue) {
+                                        return (previousValue.amount || previousValue) + currentValue.amount;
+                                    });
+                                }else{
+                                    totalTopUpAmount = topUpRecord[0].amount;
+                                }
 
                                 return;
                             }
