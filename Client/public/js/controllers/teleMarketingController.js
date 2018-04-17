@@ -19,7 +19,7 @@ define(['js/app'], function (myApp) {
                 description: '',
                 creditAmount: 0,
                 providerGroup: '',
-                invitationTemplate: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}",
+                invitationTemplate: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{registrationUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}",
                 welcomeContent: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}"
             };
             vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
@@ -311,6 +311,7 @@ define(['js/app'], function (myApp) {
             //search telemarketing overview
 
             vm.showTeleMarketingOverview = function () {
+                vm.responseMsg = false;
                 utilService.actionAfterLoaded(('#teleMarketingOverview'), function () {
                     vm.teleMarketingOverview.pageObj = utilService.createPageForPagingTable("#teleMarketingOverviewTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "teleMarketingOverview", vm.getTeleMarketingOverview);
@@ -380,7 +381,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
-                    "aaSorting": vm.teleMarketingOverview.sortCol || [[2, 'desc']],
+                    "aaSorting": vm.teleMarketingOverview.sortCol || {},
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -428,7 +429,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayer")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -441,7 +442,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerTopUp")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -454,7 +455,7 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 var link = $('<a>', {
 
-                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '")',
+                                    'ng-click': 'vm.showPagedTelePlayerTable("' + row['_id'] + '","TotalPlayerMultiTopUp")',
                                     'href': '#sendSMSTable'
 
                                 }).text(data);
@@ -698,6 +699,7 @@ define(['js/app'], function (myApp) {
                 };
                 vm.allDxMission = [];
                 vm.getAllDxMission();
+                vm.importPhoneResult = '';
             };
 
             vm.getAllDxMission = function () {
@@ -718,6 +720,13 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'importDiffPhoneNum', sendData, function (data) {
+                    if (data.success && data.data) {
+                        //display success
+                        vm.importPhoneResult = 'IMPORT_SUCCESS';
+                    } else {
+                        //display error
+                        vm.importPhoneResult = 'IMPORT_FAIL';
+                    }
 
                     $scope.safeApply();
                 });
@@ -772,6 +781,7 @@ define(['js/app'], function (myApp) {
             // upload phone file: txt
             vm.uploadPhoneFileTXT = function (content) {
                 vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
+                vm.arrayPhoneTXT = vm.arrayPhoneTXT.filter(Boolean); //filter out empty strings (due to extra comma)
 
                 let sendData = {
                     filterAllPlatform: vm.filterAllPlatform,
@@ -841,6 +851,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneTotalTXT = '';
                 vm.diffPhoneTotalTXT = '';
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
             /****************** TXT - end ******************/
 
@@ -849,6 +860,7 @@ define(['js/app'], function (myApp) {
             // generate a new list of phone numbers without existing player phone number
             vm.comparePhoneNum = function () {
                 vm.arrayInputPhone = vm.inputNewPhoneNum.split(/,|, /).map((item) => item.trim());
+                vm.arrayInputPhone = vm.arrayInputPhone.filter(Boolean); //filter out empty strings (due to extra comma)
 
                 let sendData = {
                     filterAllPlatform: vm.filterAllPlatform,
@@ -873,6 +885,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneList = '';
                 vm.diffPhoneList = '';
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
 
             // copy phone number list
@@ -1026,6 +1039,7 @@ define(['js/app'], function (myApp) {
                 vm.diffPhoneTotalXLS = '';
                 vm.phoneNumXLSResult = false;
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
             /****************** XLS - end ******************/
             // phone number filter codes==============end===============================
@@ -1058,7 +1072,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
 
-            vm.showPagedTelePlayerTable = function (dxMissionId) {
+            vm.showPagedTelePlayerTable = function (dxMissionId, type) {
                 vm.telePlayerTable = {};
 
                 utilService.actionAfterLoaded(('#telePlayerTable'), function () {
@@ -1066,16 +1080,16 @@ define(['js/app'], function (myApp) {
                     vm.telePlayerTable.pageObj = utilService.createPageForPagingTable("#telePlayerTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "telePlayerTable", vm.getPagedTelePlayerTable)
                     });
-                    vm.getPagedTelePlayerTable(true, dxMissionId);
+                    vm.getPagedTelePlayerTable(true, dxMissionId, type);
                 });
             }
 
 
-            vm.getPagedTelePlayerTable = function (newSearch, dxMission) {
+            vm.getPagedTelePlayerTable = function (newSearch, dxMission, type) {
                 let sendQuery = {
                     platform: vm.selectedPlatform.id ,
-                    count: 5,
-                    dxMission: dxMission
+                    dxMission: dxMission,
+                    type: type
                 }
 
                 socketService.$socket($scope.AppSocket, 'getDXPlayerInfo', sendQuery, function (data) {
@@ -1087,7 +1101,9 @@ define(['js/app'], function (myApp) {
 
                     vm.showPlayerTable = true;
                     vm.teleMarketingPlayerInfo.data.forEach((item) => {
-                        item['registrationTime'] = vm.dateReformat(item.registrationTime);
+                        if(item){
+                            item['registrationTime'] = item.registrationTime ? vm.dateReformat(item.registrationTime) : "";
+                        }
                     });
 
                     $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, 6));
@@ -1099,7 +1115,7 @@ define(['js/app'], function (myApp) {
 
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
-                    "aaSorting": vm.telePlayerTable.sortCol || [[0]],
+                    "aaSorting": vm.telePlayerTable.sortCol || {},
                     aoColumnDefs: [
                         // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
@@ -1288,22 +1304,25 @@ define(['js/app'], function (myApp) {
             vm.showTelePlayerSendingMsgTable = function (dxMission) {
                 vm.telePlayerSendingMsgTable = {};
 
+                vm.telePlayerSendingMsgTable.dxMissionId = dxMission;
                 // vm.telePlayerTable.type = 'none';
                 utilService.actionAfterLoaded(('#telePlayerSendingMsgTable'), function () {
 
                     vm.telePlayerSendingMsgTable.pageObj = utilService.createPageForPagingTable("#telePlayerSendingMsgTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "telePlayerSendingMsgTable", vm.getTelePlayerSendingMsgTable)
                     });
-                    vm.getTelePlayerSendingMsgTable(true, dxMission);
+                    vm.getTelePlayerSendingMsgTable(dxMission, true);
                 });
             }
 
-
-            vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission) {
+            vm.getTelePlayerSendingMsgTable = function (dxMission, newSearch) {
                 let sendQuery = {
                     platform: vm.selectedPlatform.id ,
-                    count: 5,
-                    dxMission: dxMission
+                   // count: 5,
+                    dxMission: dxMission ? dxMission : vm.telePlayerSendingMsgTable.dxMissionId,
+                    index: newSearch ? 0 : vm.telePlayerSendingMsgTable.index,
+                    limit: newSearch ? 10 : vm.telePlayerSendingMsgTable.limit,
+                    sortCol: vm.telePlayerSendingMsgTable.sortCol,
                 }
 
                 socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
@@ -1314,23 +1333,25 @@ define(['js/app'], function (myApp) {
 
                     }
                     vm.showSMSTable = true;
-                    vm.teleMarketingSendSMS.data.forEach((item, index) => {
-                        item['createTime'] = vm.dateReformat(item.createTime);
-                        item['lastTime'] = vm.dateReformat(item.lastTime);
-                        item['playerName'] = item.playerObjId && item.playerObjId.name ? item.playerObjId.name : '-';
-                        item['topupTimes'] = item.playerObjId && item.playerObjId.topUpTimes ? item.playerObjId.topUpTimes : 0;
-                        item['loginTimes'] = item.playerObjId && item.playerObjId.loginTimes ? item.playerObjId.loginTimes : 0;
-                        item['count'] = item.count ? item.count : 0;
+                    if ( vm.teleMarketingSendSMS.data &&  vm.teleMarketingSendSMS.data.length > 0){
+                        vm.teleMarketingSendSMS.data.forEach((item, index) => {
+                            item['createTime'] = vm.dateReformat(item.createTime);
+                            item['lastTime'] = item.lastTime ? vm.dateReformat(item.lastTime) : '-';
+                            item['playerName'] = item.playerObjId && item.playerObjId.name ? item.playerObjId.name : '-';
+                            item['topupTimes'] = item.playerObjId && item.playerObjId.topUpTimes ? item.playerObjId.topUpTimes : 0;
+                            item['loginTimes'] = item.playerObjId && item.playerObjId.loginTimes ? item.playerObjId.loginTimes : 0;
+                            item['count'] = item.count ? item.count : 0;
 
-                        // if ( item['playerName'] == '-') {
-                        //     item['isLocked'] = false;
-                        // }
-                        // else {
-                        //     item['isLocked'] = true;
-                        // }
-                    });
+                            // if ( item['playerName'] == '-') {
+                            //     item['isLocked'] = false;
+                            // }
+                            // else {
+                            //     item['isLocked'] = true;
+                            // }
+                        });
+                    }
 
-                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, 6));
+                    $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, vm.teleMarketingSendSMS.count));
                 })
             };
 
@@ -1477,33 +1498,40 @@ define(['js/app'], function (myApp) {
 
             vm.sendMsgToTelePlayer = function (){
                 if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0){
-                   // let counter = 0;
+                    let counterSuccess = 0, counterFailure = 0;
                     vm.msgSendingGroupData.forEach( data => {
                         let sendObj = {
                             platformId: data.platformId,
                             channel: 2,
                             tel: data.phoneNumber,
                             dxPhone: data.dxMissionId
-                        }
+                        };
 
                         socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
-                            // counter += 1;
-                            console.log("SMS Sent:", data);
+                            if(data.success) {
+                                counterSuccess++;
+                                console.log("SMS Sent:", data);
+                                if (counterSuccess == vm.msgSendingGroupData.length) {
+                                    vm.responseMsg = $translate("SUCCESS");
+                                }
+                            } else {
+                                counterFailure++;
+                                vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
+                            }
+                            $scope.safeApply();
 
                         }, function (error) {
                                 console.log("error", error);
+                                counterFailure++;
+                                vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
+                                $scope.safeApply();
                             }
                         );
 
-                    })
+                    });
+              
 
 
-                    // if (counter == vm.msgSendingGroupData.length){
-                    //     vm.responseMsg = $translate("SUCCESS");
-                    // }
-                    // else{
-                    //     vm.responseMsg = '(' + vm.msgSendingGroupData.length-counter + ')' + $translate("FAIL");
-                    // }
 
                 }
             }

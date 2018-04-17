@@ -1425,6 +1425,8 @@
   "SELECT_XLS_FILE": "选择Excel文件",
   "XLS_LENGTH": "总数据",
   "SELECT_DXMISSION_INSTRUCTION": "请选择电销任务：",
+  "IMPORT_SUCCESS": "导入成功",
+  "IMPORT_FAIL": "导入失败",
 
   "PlayerFreeTrialRewardGroup": "免费体验金（组）",
   "Check if this IP address has received free trial": "（领优惠前）检查该IP是否曾经领过",

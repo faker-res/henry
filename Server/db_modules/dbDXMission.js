@@ -71,7 +71,7 @@ let dbDXMission = {
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxMission.find(matchObj).count();
-        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj).skip(index).limit(limit).lean();
+        let dxMissionDataProm = dbconfig.collection_dxMission.find(matchObj).skip(index).limit(limit).sort({createTime: -1}).lean();
         let totalCount = 0;
         let dxMissionData = {};
 
@@ -484,15 +484,19 @@ let dbDXMission = {
                         return Q.reject({message: retErr, data: data});
                     }
                 );
+                // return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
             }
         );
 
     },
 
-    getDXPhoneNumberInfo: function (platformObjId, count, dxMission) {
-        var count = count === 0 ? 0 : (parseInt(count) || constSystemParam.MAX_RECORD_NUM);
+    getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol) {
+        let Qindex = index || 0;
+        let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        let QsortCol = sortCol || {'createTime': -1};
+
         let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players});
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players}).sort(QsortCol).skip(Qindex).limit(Qlimit);
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
@@ -504,50 +508,58 @@ let dbDXMission = {
                     let dxMissionData = result[2] ? result[2] : {};
                     let dxPhoneDataWithDetails = [];
 
-                    //let dxPhoneDataDetail = [];
-                    return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission)).then( smsLog => {
-                        if (smsLog && smsLog.length > 0){
-                            let smsLogDetail = {};
-                            smsLog.forEach( data => {
-                                smsLogDetail[data.phoneNumber] = data;
-                            })
+                    if (dxPhoneData && dxPhoneData.length > 0){
+                        return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission)).then( smsLog => {
+                            if (smsLog && smsLog.length > 0){
+                                let smsLogDetail = {};
+                                smsLog.forEach( data => {
+                                    smsLogDetail[data.phoneNumber] = data;
+                                })
 
-                            dxPhoneData.forEach( (phoneData,i) => {
-                                if (smsLogDetail && smsLogDetail[phoneData.phoneNumber]){
-                                    let details = {};
-                                    details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
-                                    details.count = smsLogDetail[phoneData.phoneNumber].count;
-                                    let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
-                                    phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
-                                    dxPhoneDataWithDetails.push(phoneDataWithDetails);
-                                }
+                                dxPhoneData.forEach( (phoneData,i) => {
+                                    if (smsLogDetail && smsLogDetail[phoneData.phoneNumber.trim()]){
+                                        phoneData.phoneNumber = phoneData.phoneNumber.trim();
+                                        let details = {};
+                                        details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
+                                        details.count = smsLogDetail[phoneData.phoneNumber].count;
+                                        let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
+                                        phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
+                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                    }
+                                    else{
+                                        phoneData.phoneNumber = phoneData.phoneNumber.trim();
+                                        let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)));
+                                        phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
+                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                    }
 
-                            })
+                                })
 
-                        }
-                        return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
-                    })
-
+                            }
+                            return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                        })
+                    }
 
                 }
             }
         )
     },
-    getDXPlayerInfo: function (platformObjId, count, dxMission, index, limit, sortCol) {
+
+    getDXPlayerInfo: function (platformObjId, dxMission, type, index, limit, sortCol) {
         limit = limit ? limit : 20;
         index = index ? index : 0;
 
         let result = [];
         let matchObj = {
             platform: platformObjId,
-            dxMission: dxMission,
+            dxMission: ObjectId(dxMission),
             playerObjId: {$exists: true}
         };
 
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
-        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().lean();
+        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().sort({createTime: -1}).lean();
         let size = 0;
         let dxPhoneData = {};
 
@@ -565,7 +577,7 @@ let dbDXMission = {
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
-                            dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform));
+                            dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
                         }
                     }
                 )
@@ -577,22 +589,25 @@ let dbDXMission = {
                             summaryData.forEach(
                                 summary => {
                                     if(summary){
-
                                         resultData.dxPhoneData.forEach(
-                                            phoneData => {
+                                            (phoneData,i) => {
                                                 if(phoneData){
-                                                    if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
-                                                        phoneData.playerName = summary.playerName;
-                                                        phoneData.registrationTime = summary.registrationTime;
-                                                        phoneData.totalTopUpCount = summary.totalTopUpCount;
-                                                        phoneData.totalTopUpAmount = summary.totalTopUpAmount;
-                                                        phoneData.totalLoginTimes = summary.totalLoginTimes;
-                                                        phoneData.totalConsumptionTime = summary.totalConsumptionTime;
-                                                        phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
-                                                        phoneData.totalDepositAmount = summary.totalDepositAmount;
-                                                    }
+                                                    if(summaryData.find(s => s && s.playerObjId == phoneData.playerObjId)){
+                                                        if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
+                                                            phoneData.playerName = summary.playerName;
+                                                            phoneData.registrationTime = summary.registrationTime;
+                                                            phoneData.totalTopUpCount = summary.totalTopUpCount;
+                                                            phoneData.totalTopUpAmount = summary.totalTopUpAmount;
+                                                            phoneData.totalLoginTimes = summary.totalLoginTimes;
+                                                            phoneData.totalConsumptionTime = summary.totalConsumptionTime;
+                                                            phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
+                                                            phoneData.totalDepositAmount = summary.totalDepositAmount;
 
-                                                    return;
+                                                        }
+                                                    }else{
+                                                        resultData.dxPhoneData.splice(i,1);
+                                                        return;
+                                                    }
                                                 }
                                             }
                                         )
@@ -608,7 +623,7 @@ let dbDXMission = {
         );
     },
 
-    getPlayerInfo: function (playerObjId, platform) {
+    getPlayerInfo: function (playerObjId, platform, type) {
         if(!playerObjId){
             return;
         }
@@ -625,7 +640,19 @@ let dbDXMission = {
         let topUpPlayerProm = [];
         let playerConsumptionProm = [];
 
-        return dbconfig.collection_players.findOne({_id: playerObjId}).then(
+        let query = {
+            _id: playerObjId
+        }
+
+        if(type == "TotalPlayerTopUp"){
+            query.topUpTimes = {$gte: 1}
+        }
+
+        if(type == "TotalPlayerMultiTopUp"){
+            query.topUpTimes = {$gt: 1}
+        }
+
+        return dbconfig.collection_players.findOne(query).then(
             playerData => {
                 if(playerData){
                     if(playerData.topUpTimes){
@@ -721,8 +748,9 @@ let dbDXMission = {
     retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId) {
         let smsLogProm = [];
         if (dxPhoneData && dxPhoneData.length > 0) {
+
             dxPhoneData.forEach (data => {
-                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
+                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber.trim(), "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
                     smsLogData => {
                         if (smsLogData && smsLogData.length > 0) {
                             return {
@@ -741,7 +769,6 @@ let dbDXMission = {
             return Q.all(smsLogProm);
         }
     }
-
 };
 
 module.exports = dbDXMission;
