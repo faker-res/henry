@@ -425,7 +425,7 @@ define(['js/app'], function (myApp) {
                 }) : '';
                 result = result.join(',');
             } else if (fieldName.indexOf('providerGroup') > -1) {
-                result = getProviderGroupNameById(val);
+                result = vm.getProviderGroupNameById(val) ? vm.getProviderGroupNameById(val) : $translate("LOCAL_CREDIT");
             } else if ((fieldName.indexOf('time') > -1 || fieldName.indexOf('Time') > -1) && val) {
                 result = utilService.getFormatTime(val);
             } else if ((fieldName.indexOf('amount') > -1 || fieldName.indexOf('Amount') > -1) && val) {
