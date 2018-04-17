@@ -40,6 +40,10 @@ form(name="form_new_partner", novalidate)
         .form-group.col-md-6
             label.control-label {{"Registration Domain" | translate}}
             label.form-control {{vm.newPartner.domain}}
+        .form-group.col-md-6(ng-if = "vm.selectedPlatform.data.partnerDefaultCommissionGroup == vm.constPartnerCommisionType.OPTIONAL_REGISTRATION")
+            label.control-label {{"COMMISSION_TYPE" | translate}}
+            select.form-control(ng-model = "vm.newPartner.commissionType")
+                option(ng-repeat='(i,j) in vm.constPartnerCommisionTypeOption', value= '{{j}}') {{i | translate}}
     p
     .form-group.col-md-12
         label.control-label {{"REMARKS" | translate}}

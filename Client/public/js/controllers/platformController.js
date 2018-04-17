@@ -37,6 +37,14 @@ define(['js/app'], function (myApp) {
                 WEEKLY_CONSUMPTION: 5,
                 OPTIONAL_REGISTRATION: 6
             };
+
+            vm.constPartnerCommisionTypeOption = {
+                DAILY_BONUS_AMOUNT: 1,
+                WEEKLY_BONUS_AMOUNT: 2,
+                BIWEEKLY_BONUS_AMOUNT: 3,
+                MONTHLY_BONUS_AMOUNT: 4,
+                WEEKLY_CONSUMPTION: 5,
+            };
             vm.proposalStatusList = { // removed APPROVED and REJECTED
                 PREPENDING: "PrePending",
                 PENDING: "Pending",
@@ -15644,6 +15652,9 @@ define(['js/app'], function (myApp) {
                 vm.newPartner.DOB = vm.partnerDOB.data('datetimepicker').getLocalDate();
                 vm.newPartner.DOB = vm.newPartner.DOB.toISOString();
                 vm.newPartner.gender = (vm.newPartner.gender && vm.newPartner.gender == "true") ? true : false ;
+                if (vm.newPartner.commissionType) {
+                    vm.newPartner.commissionType = Number(vm.newPartner.commissionType);
+                }
 
                 console.log(vm.newPartner);
 

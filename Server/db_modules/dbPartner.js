@@ -24,6 +24,7 @@ var constProposalMainType = require('../const/constProposalMainType');
 let rsaCrypto = require("../modules/rsaCrypto");
 let dbutility = require("./../modules/dbutility");
 let dbPlayerMail = require("../db_modules/dbPlayerMail");
+var localization = require("../modules/localization");
 
 let env = require('../config/env').config();
 
@@ -157,7 +158,7 @@ let dbPartner = {
                 if (platform) {
                     platformData = platform;
 
-                    if (platformData.partnerDefaultCommissionGroup) {
+                    if (platformData.partnerDefaultCommissionGroup && !partnerdata.commissionType) {
                         partnerdata.commissionType = platformData.partnerDefaultCommissionGroup;
                     };
                     // attach platform prefix to player name if available
@@ -1568,7 +1569,7 @@ let dbPartner = {
                             parternId: partnerData.partnerId,
                             updateData: bankData
                         },
-                        inputDeivce: inputDevice
+                        inputDevice: inputDevice? inputDevice: 0
                     });
                 }
                 else {
@@ -1579,6 +1580,37 @@ let dbPartner = {
                 }
             }
         );
+    },
+
+    updatePartnerCommissionType: function (userAgent, partnerId, data) {
+        return dbconfig.collection_partner.findOne({partnerId: partnerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+                partnerData => {
+                    if (partnerData && partnerData.platform) {
+                        if (partnerData.commissionType == constPartnerCommissionType.OPTIONAL_REGISTRATION) {
+                            data.commissionType = Number(data.commissionType);
+                            let inputDevice = dbutility.getInputDevice(userAgent,true);
+                            return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform._id, constProposalType.UPDATE_PARTNER_COMMISSION_TYPE, {
+                                creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
+                                data: {
+                                    _id: partnerData._id || "",
+                                    partnerName: partnerData.partnerName,
+                                    parternId: partnerData.partnerId,
+                                    partnerObjId: partnerData._id,
+                                    updateData: data,
+                                    remark: localization.localization.translate(Object.keys(constPartnerCommissionType)[data.commissionType])
+                                },
+                                inputDevice: inputDevice? inputDevice: 0
+                            });
+                        } else {
+                            return Q.reject({name: "DataError", message: "Fail to update commission type"});
+                        }
+                    } else {
+                        return Q.reject({name: "DataError", message: "Cannot find partner"});
+                    }
+                }
+            );
+
     },
 
     verifyPartnerBankAccount: function (partnerObjId, bankAccount) {
