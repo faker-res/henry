@@ -324,6 +324,7 @@ var roleChecker = {
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
                 PartnerPermission: ['updatePartnerPermission'],
+                AddFeedback: [],
                 CreditAdjustment: ['createUpdatePartnerCreditProposal']
             },
             "Game": {
