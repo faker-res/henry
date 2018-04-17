@@ -223,11 +223,11 @@ var PartnerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
-    this.updatePartnerCommisionType.expectsData = 'partnerId: String, token: String';
-    this.updatePartnerCommisionType.onRequest = function (wsFunc, conn, data) {
+    this.updatePartnerCommissionType.expectsData = 'partnerId: String, token: String';
+    this.updatePartnerCommissionType.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         var isValidData = Boolean(conn.partnerId && data && data.commissionType);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.updatePartnerCommisionType, [userAgent, conn.partnerId, data], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.updatePartnerCommissionType, [userAgent, conn.partnerId, data], isValidData);
     };
 
     this.fillBankInformation.expectsData = 'partnerId: String';

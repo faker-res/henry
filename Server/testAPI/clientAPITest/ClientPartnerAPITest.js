@@ -31,10 +31,10 @@
         this.partnerService.isValidUsername.once(callback);
     };
 
-    proto.updatePartnerCommisionType = function (callback, requestData) {
+    proto.updatePartnerCommissionType = function (callback, requestData) {
         var data = requestData || {};
-        this.partnerService.updatePartnerCommisionType.request(data);
-        this.partnerService.updatePartnerCommisionType.once(callback);
+        this.partnerService.updatePartnerCommissionType.request(data);
+        this.partnerService.updatePartnerCommissionType.once(callback);
     };
 
     proto.captcha = function (callback, requestData) {

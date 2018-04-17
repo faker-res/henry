@@ -1582,7 +1582,7 @@ let dbPartner = {
         );
     },
 
-    updatePartnerCommisionType: function (userAgent, partnerId, data) {
+    updatePartnerCommissionType: function (userAgent, partnerId, data) {
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform}).then(
                 partnerData => {
