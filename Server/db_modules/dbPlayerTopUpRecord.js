@@ -1305,6 +1305,7 @@ var dbPlayerTopUpRecord = {
                     updateData.data.cardOwner = request.result.cardOwner;
                     updateData.data.bankTypeId = request.result.bankTypeId;
                     updateData.data.resultData = request.result;
+                    updateData.data.cardQuota = 0;
                     if (request.result && request.result.changeAmount) {
                         updateData.data.inputAmount = inputData.amount;
                         updateData.data.amount = request.result.changeAmount;
@@ -1313,8 +1314,13 @@ var dbPlayerTopUpRecord = {
                     if (resultData[0]) {
                         updateData.data.cardQuota = resultData[0].totalAmount || 0;
                     }
+
+                    let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
+
+                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo).catch(errorUtils.reportError);
+
                     return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposal._id, createTime: proposal.createTime},
+                        proposalQuery,
                         updateData,
                         {new: true}
                     );
@@ -3632,3 +3638,13 @@ proto = Object.assign(proto, dbPlayerTopUpRecord);
 
 // This make WebStorm navigation work
 module.exports = dbPlayerTopUpRecord;
+
+function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo) {
+    return pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo}).then(
+        bankCard => {
+            if (bankCard && bankCard.data && bankCard.data.quota) {
+                return dbconfig.collection_proposal.update(proposalQuery, {"data.dailyCardQuotaCap": bankCard.data.quota});
+            }
+        }
+    );
+}
