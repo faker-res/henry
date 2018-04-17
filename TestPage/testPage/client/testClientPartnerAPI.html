@@ -655,6 +655,18 @@
     </div>
 </div>
 
+<h3>Update Partner Commission Type(更新代理佣金模式)</h3>
+<div class="test-container">
+    <div>
+        <label>Commission Type
+            <input name="commissionType">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="updatePartnerCommissionType">Update</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {

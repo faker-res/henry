@@ -18,6 +18,12 @@ var simplifiedChinese = {
     "Player ip doesn't match!": "玩家IP不匹配",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
+    "DAILY_BONUS_AMOUNT": "1天-输赢值",
+    "WEEKLY_BONUS_AMOUNT": "7天-输赢值",
+    "BIWEEKLY_BONUS_AMOUNT": "半月-输赢值",
+    "MONTHLY_BONUS_AMOUNT": "1月-输赢值",
+    "WEEKLY_CONSUMPTION": "7天-投注额",
+    "Fail to update commission type": "佣金模式更新失败",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
