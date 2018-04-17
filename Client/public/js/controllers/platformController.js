@@ -15016,12 +15016,83 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('Function'), //data: 'phoneNumber',
+                            title: $translate('Function'),
                             orderable: false,
+                            render: function (data, type, row) {
+                                data = data || '';
+                                let partnerObjId = row._id ? row._id : "";
+                                let link = $('<div>', {});
+                                link.append($('<a>', {
+                                    'class': 'fa fa-envelope margin-right-5',
+                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPartnerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("SEND_MESSAGE_TO_PARTNER"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.initSMSModal();' + "vm.onClickPartnerCheck('" +
+                                    partnerObjId + "', " + "vm.telorMessageToPartnerBtn" +
+                                    ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("SEND_SMS_TO_PARTNER"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.telorMessageToPartnerBtn(' + '"tel", "' + partnerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                }));
+                                if ($scope.checkViewPermission('Platform', 'Partner', 'AddFeedback')) {
+                                    link.append($('<a>', {
+                                        'class': 'fa fa-commenting margin-right-5',
+                                        'ng-click': 'vm.initFeedbackModal();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalAddPartnerFeedback',
+                                        'title': $translate("ADD_FEEDBACK"),
+                                        'data-placement': 'left',
+                                    }));
+                                }
+                                if ($scope.checkViewPermission('Platform', 'Partner', 'ApplyBonus')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 margin-right-5',
+                                        'src': "images/icon/withdrawBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.initPartnerBonus();',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPartnerBonus',
+                                        'title': $translate("Bonus"),
+                                        'data-placement': 'left',
+                                    }));
+                                }
+                                if ($scope.checkViewPermission('Platform', 'Partner', 'CreditAdjustment')) {
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5',
+                                        'src': "images/icon/creditAdjustBlue.png",
+                                        'height': "14px",
+                                        'width': "14px",
+                                        'ng-click': 'vm.onClickPartnerCheck("' + partnerObjId + '", vm.prepareShowPartnerCreditAdjustment, \'adjust\')',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalPartnerCreditAdjustment',
+                                        'title': $translate("CREDIT_ADJUSTMENT"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
+                                return link.prop('outerHTML');
+                            },
                             "sClass": "alignLeft"
                         },
                         {
-                            title: $translate('MAIN') + $translate('PERMISSION'), //data: 'phoneNumber',
+                            title: $translate('MAIN') + $translate('PERMISSION'),
                             orderable: false,
                             render: function (data, type, row) {
                                 data = data || {permission: {}};
