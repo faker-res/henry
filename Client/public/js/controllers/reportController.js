@@ -4446,12 +4446,18 @@ define(['js/app'], function (myApp) {
                         // ============ cs analysis valid player ===========
                         vm.newPlayerQuery.csAnalysisNewPlayerData = vm.allAdmin.map(
                             admin => {
-                                let adminNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.accAdmin == admin.adminName);
+                                let adminNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => {
+                                    if (player.csOfficer == admin._id) {
+                                        player.csOfficerName = admin.adminName;
+                                        return true;
+                                    }
+                                    return false;
+                                });
                                 return vm.calculateNewPlayerData(adminNewPlayers, admin.adminName);
                             }
                         );
                         // no admin new player
-                        let noAdminAccPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.accAdmin == null);
+                        let noAdminAccPlayers = vm.newPlayerQuery.newPlayers.filter(player => Boolean(!player.csOfficer));
                         vm.newPlayerQuery.csAnalysisNewPlayerData.push(vm.calculateNewPlayerData(noAdminAccPlayers, $translate('No admin acc')));
                         // ============ partner analysis new player ===========
                         vm.newPlayerQuery.partnerNewPlayerData = vm.calculateNewPlayerData(partnerPlayers, $translate('total'), partnerPlayers.length);
