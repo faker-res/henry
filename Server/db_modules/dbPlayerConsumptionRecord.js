@@ -1131,9 +1131,12 @@ var dbPlayerConsumptionRecord = {
                             playerBonusListObj.bonusAmount = record.bonusAmount;
                             playerBonusListObj.providerId = record.providerId || "";
                             playerBonusListObj.cpGameType = record.cpGameType || "";
-                            playerBonusListObj.winRatio = record.winRatio || record.bonusAmount / record.validAmount;
+                            playerBonusListObj.winRatio = record.winRatio || record.bonusAmount / record.validAmount || 0;
 
-                            playerBonusListArray.push(playerBonusListObj);
+                            if (!playerBonusListArray.some(el => el.playerName === record.playerName) && playerBonusListArray.length < 10) {
+                                playerBonusListArray.push(playerBonusListObj);
+                            }
+
                             delete record.playerId;
                         }
                     );
