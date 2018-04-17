@@ -19,7 +19,7 @@ define(['js/app'], function (myApp) {
                 description: '',
                 creditAmount: 0,
                 providerGroup: '',
-                invitationTemplate: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}",
+                invitationTemplate: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{registrationUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}",
                 welcomeContent: "尊贵的客户，你的帐号{{username}}，密码{{password}}，请点击{{loginUrl}}登入，送您{{creditAmount}}元，可在{{providerGroup}}游戏，流水{{requiredConsumption}}"
             };
             vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
@@ -699,6 +699,7 @@ define(['js/app'], function (myApp) {
                 };
                 vm.allDxMission = [];
                 vm.getAllDxMission();
+                vm.importPhoneResult = '';
             };
 
             vm.getAllDxMission = function () {
@@ -719,6 +720,13 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'importDiffPhoneNum', sendData, function (data) {
+                    if (data.success && data.data) {
+                        //display success
+                        vm.importPhoneResult = 'IMPORT_SUCCESS';
+                    } else {
+                        //display error
+                        vm.importPhoneResult = 'IMPORT_FAIL';
+                    }
 
                     $scope.safeApply();
                 });
@@ -843,6 +851,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneTotalTXT = '';
                 vm.diffPhoneTotalTXT = '';
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
             /****************** TXT - end ******************/
 
@@ -876,6 +885,7 @@ define(['js/app'], function (myApp) {
                 vm.samePhoneList = '';
                 vm.diffPhoneList = '';
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
 
             // copy phone number list
@@ -1029,6 +1039,7 @@ define(['js/app'], function (myApp) {
                 vm.diffPhoneTotalXLS = '';
                 vm.phoneNumXLSResult = false;
                 vm.selectedDxMission = '';
+                vm.importPhoneResult = '';
             };
             /****************** XLS - end ******************/
             // phone number filter codes==============end===============================
