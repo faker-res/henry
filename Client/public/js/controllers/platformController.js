@@ -15100,7 +15100,6 @@ define(['js/app'], function (myApp) {
                                 let link = $('<a>', {
                                     'class': 'partnerPermissionPopover',
                                     'ng-click': "vm.permissionPartner = " + JSON.stringify(row)
-                                    + "; vm.permissionPartner.permission.banReward = !vm.permissionPartner.permission.banReward;"
                                     + "; vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;",
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
