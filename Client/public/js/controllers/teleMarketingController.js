@@ -1328,7 +1328,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
                     if(data){
                         vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
-                        vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : 0;
+                        vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : [];
                         vm.msgTemplate = data.data && data.data.dxMissionData ? data.data.dxMissionData : 0
 
                     }
@@ -1496,43 +1496,82 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
 
-            vm.sendMsgToTelePlayer = function (){
-                if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0){
+            // vm.sendMsgToTelePlayer = function (){
+            //     if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0){
+            //         let counterSuccess = 0, counterFailure = 0;
+            //         vm.msgSendingGroupData.forEach( data => {
+            //             let sendObj = {
+            //                 platformId: data.platformId,
+            //                 channel: 2,
+            //                 tel: data.phoneNumber,
+            //                 dxPhone: data.dxMissionId
+            //             };
+            //
+            //             socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
+            //                 if(data.success) {
+            //                     counterSuccess++;
+            //                     console.log("SMS Sent:", data);
+            //                     if (counterSuccess == vm.msgSendingGroupData.length) {
+            //                         vm.responseMsg = $translate("SUCCESS");
+            //                     }
+            //                 } else {
+            //                     counterFailure++;
+            //                     vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
+            //                 }
+            //                 $scope.safeApply();
+            //
+            //             }, function (error) {
+            //                     console.log("error", error);
+            //                     counterFailure++;
+            //                     vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
+            //                     $scope.safeApply();
+            //                 }
+            //             );
+            //
+            //         });
+            //
+            //
+            //
+            //
+            //     }
+            // }
+            vm.sendMsgToTelePlayer = function () {
+                if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0) {
+
                     let counterSuccess = 0, counterFailure = 0;
-                    vm.msgSendingGroupData.forEach( data => {
-                        let sendObj = {
-                            platformId: data.platformId,
-                            channel: 2,
-                            tel: data.phoneNumber,
-                            dxPhone: data.dxMissionId
-                        };
+                    //vm.msgSendingGroupData.forEach( data => {
+                    let sendObj = {
+                        //platformId: data.platformId,
+                        channel: 2,
+                        msgDetail: vm.msgSendingGroupData,
+                        //tel: data.phoneNumber,
+                        //dxPhone: data.dxMissionId
+                    };
 
-                        socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
-                            if(data.success) {
-                                counterSuccess++;
-                                console.log("SMS Sent:", data);
-                                if (counterSuccess == vm.msgSendingGroupData.length) {
-                                    vm.responseMsg = $translate("SUCCESS");
+                    socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
+                        console.log("sendSMSToDXPlayer RET Data", data.data)
+                        if (data.data && data.data.length > 0) {
+                            data.data.forEach(inData => {
+                                if (inData.failure) {
+                                    counterFailure++;
                                 }
-                            } else {
-                                counterFailure++;
+                                else {
+                                    counterSuccess++;
+                                }
+                            })
+
+                            if (counterSuccess == vm.msgSendingGroupData.length) {
+                                vm.responseMsg = $translate("SUCCESS");
+                            }
+                            else {
                                 vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
                             }
+
                             $scope.safeApply();
-
-                        }, function (error) {
-                                console.log("error", error);
-                                counterFailure++;
-                                vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
-                                $scope.safeApply();
-                            }
-                        );
-
-                    });
-              
-
-
-
+                        }
+                    }, function (error) {
+                        console.log("error", error);
+                    })
                 }
             }
 
