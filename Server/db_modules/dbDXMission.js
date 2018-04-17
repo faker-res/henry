@@ -446,47 +446,108 @@ let dbDXMission = {
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
         let phoneData = {};
+        let prom = [];
 
-        return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
-            path: "dxMission", model: dbconfig.collection_dxMission
-        }).populate({
-            path: "platform", model: dbconfig.collection_platform
-        }).then(
-            dxPhoneRes => {
-                if (dxPhoneRes) {
-                    phoneData = dxPhoneRes;
+        if (data && data.msgDetail && data.msgDetail.length > 0){
 
-                    return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
-                }
-            }
-        ).then(
-            message => {
-                let sendObj = {
-                    tel: data.tel.trim(),
-                    channel: 2,
-                    platformId: phoneData.platform.platformId,
-                    message: message,
-                    data: {
-                        dxMission: phoneData.dxMission
+            data.msgDetail.forEach( msg => {
+
+                prom.push( dbconfig.collection_dxPhone.findOne({_id: msg.dxMissionId}).populate({
+                    path: "dxMission", model: dbconfig.collection_dxMission
+                }).populate({
+                    path: "platform", model: dbconfig.collection_platform
+                }).then(
+                    dxPhoneRes => {
+                        if (dxPhoneRes) {
+                            phoneData = dxPhoneRes;
+
+                            return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
+                        }
                     }
-                };
-                let recipientName = data.name || '';
+                ).then(
+                    message => {
+                        let sendObj = {
+                            tel: msg.phoneNumber.trim(),
+                            channel: 2,
+                            platformId: phoneData.platform.platformId,
+                            message: message,
+                            data: {
+                                dxMission: phoneData.dxMission
+                            }
+                        };
+                        let recipientName = msg.name || '';
+                        
+                        return smsAPI.sending_sendMessage(sendObj).then(
+                            retData => {
+                                dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'success');
+                                console.log("SMS SENT SUCCESSFULLY");
+                                return retData;
+                            },
+                            retErr => {
+                                dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'failure', retErr);
+                                console.log("SMS SENT FAILED");
+                                return {message: retErr, data: data.msgDetail, failure: true};
+                            }
+                        );
 
-                return smsAPI.sending_sendMessage(sendObj).then(
-                    retData => {
-                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
-                        console.log("SMS SENT SUCCESSFULLY");
-                        return retData;
-                    },
-                    retErr => {
-                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
-                        console.log("SMS SENT FAILED");
-                        return Q.reject({message: retErr, data: data});
+                        // dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'success');
+                        // if (sendObj.tel == "11112365258"){
+                        //     return {failure: true};
+                        // }else{
+                        //     return {}
+                        // }
                     }
-                );
-                // return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
-            }
-        );
+                ))
+            })
+
+
+
+            // );
+
+            return Q.all(prom)
+
+
+        }
+        // return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
+        //     path: "dxMission", model: dbconfig.collection_dxMission
+        // }).populate({
+        //     path: "platform", model: dbconfig.collection_platform
+        // }).then(
+        //     dxPhoneRes => {
+        //         if (dxPhoneRes) {
+        //             phoneData = dxPhoneRes;
+        //
+        //             return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
+        //         }
+        //     }
+        // ).then(
+        //     message => {
+        //         let sendObj = {
+        //             tel: data.tel.trim(),
+        //             channel: 2,
+        //             platformId: phoneData.platform.platformId,
+        //             message: message,
+        //             data: {
+        //                 dxMission: phoneData.dxMission
+        //             }
+        //         };
+        //         let recipientName = data.name || '';
+        //
+        //         return smsAPI.sending_sendMessage(sendObj).then(
+        //             retData => {
+        //                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
+        //                 console.log("SMS SENT SUCCESSFULLY");
+        //                 return retData;
+        //             },
+        //             retErr => {
+        //                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
+        //                 console.log("SMS SENT FAILED");
+        //                 return Q.reject({message: retErr, data: data});
+        //             }
+        //         );
+        //         // return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
+        //     }
+        // );
 
     },
 
@@ -750,11 +811,14 @@ let dbDXMission = {
         if (dxPhoneData && dxPhoneData.length > 0) {
 
             dxPhoneData.forEach (data => {
-                smsLogProm.push(dbconfig.collection_smsLog.find({tel: data.phoneNumber.trim(), "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
+
+                let newRegexPhoneNumber = new RegExp(data.phoneNumber.trim());
+                smsLogProm.push(dbconfig.collection_smsLog.find({tel: {$regex: newRegexPhoneNumber}, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
+
                     smsLogData => {
                         if (smsLogData && smsLogData.length > 0) {
                             return {
-                                phoneNumber: smsLogData[0].tel,
+                                phoneNumber: smsLogData[0].tel.trim(),
                                 lastTime: smsLogData[0].createTime,
                                 count: smsLogData.length
                             }
