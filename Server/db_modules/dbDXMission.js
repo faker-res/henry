@@ -642,16 +642,19 @@ let dbDXMission = {
 
         let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
         let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().sort({createTime: -1}).lean();
+        let dxMissionProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
         let size = 0;
         let dxPhoneData = {};
+        let dxMissionData = {};
 
-        return Promise.all([totalCountProm, phoneDataProm]).then(
+        return Promise.all([totalCountProm, phoneDataProm, dxMissionProm]).then(
             result => {
                 if(result){
                     size = result[0] ? result[0] : 0;
                     dxPhoneData = result[1] ? result[1] : {};
+                    dxMissionData = result[2] ? result[2] : {};
 
-                    return {size: size, dxPhoneData: dxPhoneData};
+                    return {size: size, dxPhoneData: dxPhoneData, dxMissionData: dxMissionData};
                 }
             }
         ).then(
@@ -712,7 +715,7 @@ let dbDXMission = {
                             resultData.dxPhoneData.splice(index,1);
                         })
 
-                        return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData}
+                        return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData, dxMissionData: data.dxMissionData}
                     }
                 )
             }

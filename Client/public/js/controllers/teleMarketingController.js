@@ -1102,7 +1102,7 @@ define(['js/app'], function (myApp) {
                     if(data){
                         vm.teleMarketingPlayerInfo.count = data.data && data.data.size ? data.data.size : 0;
                         vm.teleMarketingPlayerInfo.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : {};
-
+                        vm.teleMarketingPlayerInfo.missionData = data.data && data.data.dxMissionData ? data.data.dxMissionData : {};
                     }
 
                     vm.showPlayerTable = true;

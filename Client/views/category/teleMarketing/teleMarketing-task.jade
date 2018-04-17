@@ -140,8 +140,12 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                     #overViewSubTable(ng-show="vm.showPlayerTable")
                          div(style="margin-top:60px;")
                             label {{"totalCount" | translate}} {{vm.teleMarketingPlayerInfo.count}} {{"records" | translate}}
+                            label(style="margin-left:100px;") {{vm.teleMarketingPlayerInfo.missionData.name}} - {{vm.teleMarketingPlayerInfo.missionData.description}}
+                            button.common-button.btn.btn-primary(ng-click="vm.showPlayerTable = false", style="float: right;") {{ 'collapse' | translate}}
                             table#telePlayerTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #telePlayerTablePage
+                    br
+                    br
                     #sendSMSTable(ng-show="vm.showSMSTable")
                         div(style="position:relative;margin-top:10px;")
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
