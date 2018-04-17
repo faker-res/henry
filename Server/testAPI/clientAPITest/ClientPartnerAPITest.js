@@ -31,6 +31,12 @@
         this.partnerService.isValidUsername.once(callback);
     };
 
+    proto.updatePartnerCommisionType = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.updatePartnerCommisionType.request(data);
+        this.partnerService.updatePartnerCommisionType.once(callback);
+    };
+
     proto.captcha = function (callback, requestData) {
         this.partnerService.captcha.request();
         this.partnerService.captcha.once(callback);

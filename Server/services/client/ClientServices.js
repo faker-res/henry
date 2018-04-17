@@ -378,6 +378,7 @@
                 "register",
                 "get",
                 "isValidUsername",
+                "updatePartnerCommisionType",
                 "authenticate",
                 "login",
                 "logout",
