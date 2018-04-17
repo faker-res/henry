@@ -1,3 +1,6 @@
+var dbPlayerMailFunc = function () {
+};
+module.exports = new dbPlayerMailFunc();
 const dbconfig = require('./../modules/dbproperties');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
@@ -295,10 +298,12 @@ const dbPlayerMail = {
         let sameTelPermission = "allowSamePhoneNumberToRegister";
         let samTelCount = "samePhoneNumberRegisterCount";
         let whiteListPhone = "whiteListingPhoneNumbers";
+        let requireCaptchaInSMS = "requireCaptchaInSMS";
         if (isPartner) {
             sameTelPermission = "partnerAllowSamePhoneNumberToRegister";
             samTelCount = "partnerSamePhoneNumberRegisterCount";
-            whiteListPhone = "partnerWhiteListingPhoneNumbers"
+            whiteListPhone = "partnerWhiteListingPhoneNumbers";
+            requireCaptchaInSMS = "partnerRequireCaptchaInSMS";
             seletedDb = dbPartner;
         }
 
@@ -319,7 +324,7 @@ const dbPlayerMail = {
                     platform = platformData;
                     platformObjId = platform._id;
                     // verify captcha if necessary
-                    if (platform.requireCaptchaInSMS) {
+                    if (platform[requireCaptchaInSMS]) {
                         if (!captchaValidation) {
                             return Q.reject({
                                 status: constServerCode.INVALID_CAPTCHA,
@@ -636,12 +641,16 @@ const dbPlayerMail = {
         );
     },
 
-    verifySMSValidationCode: function (phoneNumber, platformData, smsCode, playerName) {
+    verifySMSValidationCode: function (phoneNumber, platformData, smsCode, playerName, isPartner) {
         if (!platformData) {
             platformData = {};
         }
+        let smsVerificationExpireTime = "smsVerificationExpireTime"
+        if (isPartner) {
+            smsVerificationExpireTime = "partnerSmsVerificationExpireTime"
+        }
 
-        let expireTime = platformData.smsVerificationExpireTime || 5;
+        let expireTime = platformData[smsVerificationExpireTime] || 5;
         let smsExpiredDate = new Date();
         smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - expireTime);
 
@@ -712,5 +721,8 @@ const notifyPlayerOfNewMessage = (data) => {
     }
     return data;
 };
+
+var proto = dbPlayerMailFunc.prototype;
+proto = Object.assign(proto, dbPlayerMail);
 
 module.exports = dbPlayerMail;
