@@ -1140,6 +1140,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
                 proposalData.playerLevel = player.playerLevel._id;
+                proposalData.playerRealName = player.realName;
                 proposalData.bankCardType = inputData.bankTypeId;
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
@@ -1147,9 +1148,13 @@ var dbPlayerTopUpRecord = {
                 proposalData.realName = inputData.realName;
                 proposalData.remark = inputData.remark || "";
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
+                proposalData.bankCardGroupName = player.bankCardGroup && player.bankCardGroup.name || "";
                 proposalData.depositTime = inputData.createTime || "";
                 proposalData.inputData = inputData;
                 proposalData.userAgent = userAgent ? userAgent : "";
+                proposalData.bPMSGroup = Boolean(bPMSGroup);
+                proposalData.promoCode = inputData.bonusCode;
+                proposalData.topUpReturnCode = topUpReturnCode;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -1166,8 +1171,11 @@ var dbPlayerTopUpRecord = {
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                     proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
-                    if (inputData.limitedOfferObjId)
-                        proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
+                    if (inputData.limitedOfferObjId) {
+                        proposalData.remark += '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
+                        proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName;
+                    }
+
                 }
 
                 var newProposal = {

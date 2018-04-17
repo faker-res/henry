@@ -11379,7 +11379,7 @@ define(['js/app'], function (myApp) {
                 vm.mailLog.query = {};
                 vm.mailLog.receivedMails = [{}];
                 vm.mailLog.isAdmin = true;
-                vm.mailLog.isSystem = false;
+                vm.mailLog.isSystem = true;
                 utilService.actionAfterLoaded('#messagePlayerModal.in #messageLogPanel #mailLogQuery .endTime', function () {
                     vm.mailLog.startTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .startTime');
                     vm.mailLog.endTime = utilService.createDatePicker('#messageLogPanel #mailLogQuery .endTime');
@@ -11390,7 +11390,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.searchMailLog = function () {
-                var requestData = {
+                let requestData = {
                     recipientId: vm.selectedSinglePlayer._id,
                     startTime: vm.mailLog.startTime.data('datetimepicker').getLocalDate() || new Date(0),
                     endTime: vm.mailLog.endTime.data('datetimepicker').getLocalDate() || new Date()
