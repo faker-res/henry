@@ -7,6 +7,7 @@ var env = require('../config/env').config();
 var dbconfig = require('./../modules/dbproperties');
 var constPartnerLevel = require('./../const/constPartnerLevel');
 var constPlayerLevel = require('./../const/constPlayerLevel');
+const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constProposalType = require('./../const/constProposalType');
 var constRewardType = require('./../const/constRewardType');
@@ -1528,6 +1529,18 @@ var dbPlatform = {
         var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
         limit = limit || constSystemParam.MAX_RECORD_NUM;
+        let smsVerificationExpireField = "smsVerificationExpireTime"; //to determine whether check player or partner sms expired time
+        let fieldOption = {smsVerificationExpireTime: 1};
+        let partnerInputDevice =  [
+            constPlayerRegistrationInterface.APP_AGENT,
+            constPlayerRegistrationInterface.H5_AGENT,
+            constPlayerRegistrationInterface.WEB_AGENT
+        ];
+
+        if (data.inputDevice && partnerInputDevice.indexOf(Number(data.inputDevice)) >= 0) {
+            smsVerificationExpireField = "partnerSmsVerificationExpireTime";
+            fieldOption = {partnerSmsVerificationExpireTime: 1};
+        }
 
         if (data.tel == '') {
             delete data.tel;
@@ -1556,12 +1569,12 @@ var dbPlatform = {
         let smsLogCount = 0;
         var a = dbconfig.collection_smsLog.find(query).sort(sortCol).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
-        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, {smsVerificationExpireTime: 1}).lean();
+        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, fieldOption).lean();
         return Q.all([a, b, platformProm]).then(
             result => {
                 smsLogCount = result[1];
 
-                let smsVerificationExpireTime = result[2] && result[2].smsVerificationExpireTime ? result[2].smsVerificationExpireTime : 5;
+                let smsVerificationExpireTime = result[2] && result[2][smsVerificationExpireField] ? result[2][smsVerificationExpireField] : 5;
 
                 return dbPlatform.getSMSRepeatCount(result[0], smsVerificationExpireTime);
             }
