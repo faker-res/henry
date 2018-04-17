@@ -15023,6 +15023,44 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('MAIN') + $translate('PERMISSION'), //data: 'phoneNumber',
                             orderable: false,
+                            render: function (data, type, row) {
+                                data = data || {permission: {}};
+
+                                let link = $('<a>', {
+                                    'class': 'partnerPermissionPopover',
+                                    'ng-click': "vm.permissionPartner = " + JSON.stringify(row)
+                                    + "; vm.permissionPartner.permission.banReward = !vm.permissionPartner.permission.banReward;"
+                                    + "; vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;",
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'popover',
+                                    'data-trigger': 'focus',
+                                    'data-placement': 'left',
+                                    'data-container': 'body',
+                                });
+
+                                let perm = (row && row.permission) ? row.permission : {};
+
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
+                                    height: "14px",
+                                    width: "14px",
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa margin-right-5 ' + (perm.forbidPartnerFromLogin === true ? "fa-sign-out text-danger" : "fa-sign-in  text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5 ' + (perm.phoneCallFeedback === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-comment margin-right-5 ' + (perm.SMSFeedBack === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                return link.prop('outerHTML') + "&nbsp;";
+                            },
                             "sClass": "alignLeft"
                         },
                         {
@@ -15273,9 +15311,31 @@ define(['js/app'], function (myApp) {
                                 let that = this;
                                 let row = JSON.parse(this.dataset.row);
                                 vm.partnerPermissionTypes = {
-                                    disableCommSettlement: {imgType: 'i', iconClass: "fa fa-user-times"}
+                                    applyBonus: {
+                                        imgType: 'img',
+                                        src: "images/icon/withdrawBlue.png",
+                                        width: '26px',
+                                        height: '26px'
+                                    },
+                                    forbidPartnerFromLogin: {
+                                        imgType: 'i',
+                                        iconClass: "fa fa-sign-in"
+                                    },
+                                    phoneCallFeedback: {
+                                        imgType: 'i',
+                                        iconClass: "fa fa-volume-control-phone"
+                                    },
+                                    SMSFeedBack: {
+                                        imgType: 'i',
+                                        iconClass: "fa fa-comment"
+                                    },
+                                    // disableCommSettlement: {imgType: 'i', iconClass: "fa fa-user-times"}
                                 };
                                 $("#partnerPermissionTable td").removeClass('hide');
+
+                                // Invert second render
+                                row.permission.forbidPartnerFromLogin = !row.permission.forbidPartnerFromLogin;
+
                                 $.each(vm.partnerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key]) {
                                         $("#partnerPermissionTable .permitOff." + key).addClass('hide');
@@ -15306,8 +15366,13 @@ define(['js/app'], function (myApp) {
 
                                 $submit.on('click', function () {
                                     $submit.off('click');
-                                    $(thisPopover + " .togglePlayer").off('click');
+                                    $(thisPopover + " .togglePartner").off('click');
                                     $remark.off('input selectionchange propertychange');
+
+                                    if (changeObj.hasOwnProperty('forbidPartnerFromLogin')) {
+                                        changeObj.forbidPartnerFromLogin = !changeObj.forbidPartnerFromLogin;
+                                    }
+
                                     socketService.$socket($scope.AppSocket, 'updatePartnerPermission', {
                                         query: {
                                             platform: vm.permissionPartner.platform,
