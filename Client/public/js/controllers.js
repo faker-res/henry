@@ -701,6 +701,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         5: "TIMEOUT"
     };
 
+    $scope.constPartnerCommissionSettlementType = {
+        1: "DAILY_BONUS_AMOUNT",
+        2: "WEEKLY_BONUS_AMOUNT",
+        3: "BIWEEKLY_BONUS_AMOUNT",
+        4: "MONTHLY_BONUS_AMOUNT",
+        5: "WEEKLY_CONSUMPTION"
+    };
+
     // $scope.consumptionRecordProviderName = {
     //     1: "AGOTHS",
     //     2: "PT",
