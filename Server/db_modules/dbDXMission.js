@@ -714,7 +714,8 @@ let dbDXMission = {
                                         useLockedCredit: false,
                                         eventName: "电销触击优惠",
                                         eventCode: "DXCJYH",
-                                        eventId: "579196839b4ffcd65244e5e9" //hard code for DxReward
+                                        eventId: "579196839b4ffcd65244e5e9", //hard code for DxReward
+                                        forbidWithdrawIfBalanceAfterUnlock: dxMission.forbidWithdrawIfBalanceAfterUnlock
                                     },
                                     entryType: constProposalEntryType.SYSTEM,
                                     userType: constProposalUserType.PLAYERS
