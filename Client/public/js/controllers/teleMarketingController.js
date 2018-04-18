@@ -1118,19 +1118,112 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('ORDER'),
                             render: function(data, type, row, index){
-                                return index.row+1 ;
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(index.row+1);
+                                return link.prop('outerHTML');
+                                // return index.row+1 ;
                             }
 
                         },
-                        { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
-                        { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
-                        { title: $translate('TIME_OPENING_ACCOUNT'), data: "registrationTime",  sClass: "sumText wordWrap"},
-                        { title: $translate('loginTimes'), data: "totalLoginTimes", sClass: "sumFloat textRight"},
-                        { title: $translate('TOP_UP_TIMES'), data: "totalTopUpCount", sClass: "sumFloat textRight"},
-                        { title: $translate('TOP_UP_AMOUNT'), data: "totalTopUpAmount", sClass: "sumFloat textRight"},
-                        { title: $translate('TIMES_CONSUMED'), data: "totalConsumptionTime", sClass: "sumFloat textRight"},
-                        { title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "totalDepositAmount", sClass: "sumFloat textRight"},
-                        { title: $translate('VALID_CONSUMPTION'), data: "totalConsumptionAmount", sClass: "sumFloat textRight"},
+                        {
+                            title: $translate('IMPORTED_PHONE_NUMBER'),
+                            data: "phoneNumber",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+
+                        },
+                        {
+                            title: $translate('CUSTOMER_ACCOUNT_ID'),
+                            data: "playerName",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TIME_OPENING_ACCOUNT'),
+                            data: "registrationTime",
+                            sClass: "sumText wordWrap",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('loginTimes'),
+                            data: "totalLoginTimes",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOP_UP_TIMES'),
+                            data: "totalTopUpCount",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOP_UP_AMOUNT'),
+                            data: "totalTopUpAmount",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TIMES_CONSUMED'),
+                            data: "totalConsumptionTime",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOTAL_DEPOSIT_AMOUNT'),
+                            data: "totalDepositAmount",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('VALID_CONSUMPTION'),
+                            data: "totalConsumptionAmount",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
 
                         // {
                         //     title: $translate('Function'), //data: 'phoneNumber',
