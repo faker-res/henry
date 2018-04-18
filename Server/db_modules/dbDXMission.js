@@ -817,13 +817,26 @@ let dbDXMission = {
         // );
     },
 
-    getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol) {
+    getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol, data) {
         let Qindex = index || 0;
         let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         let QsortCol = sortCol || {'createTime': -1};
 
         let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).populate({path: "playerObjId", model: dbconfig.collection_players}).sort(QsortCol).skip(Qindex).limit(Qlimit);
+        let findQuery = {
+            platform: platformObjId,
+            dxMission: dxMission,
+            createTime: {$gte: new Date(data.importedTelStartTime), $lt: new Date(data.importedTelEndTime)},
+        }
+
+        if (data.customerType == 'created') {
+            findQuery.playerObjId = {$exists: true};
+        }
+        else if (data.customerType == 'notCreated'){
+            findQuery.playerObjId = {$exists: false};
+        }
+
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery).populate({path: "playerObjId", model: dbconfig.collection_players}).sort(QsortCol).skip(Qindex).limit(Qlimit);
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
@@ -836,30 +849,54 @@ let dbDXMission = {
                     let dxPhoneDataWithDetails = [];
 
                     if (dxPhoneData && dxPhoneData.length > 0){
-                        return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission)).then( smsLog => {
+                        return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission), data.lastSendingStartTime, data.lastSendingEndTime).then( smsLog => {
                             if (smsLog && smsLog.length > 0){
                                 let smsLogDetail = {};
                                 smsLog.forEach( data => {
-                                    smsLogDetail[data.phoneNumber] = data;
-                                })
+                                    if (data){
+                                        smsLogDetail[data.phoneNumber] = data;
+                                    }
+
+                                });
 
                                 dxPhoneData.forEach( (phoneData,i) => {
                                     if (smsLogDetail && smsLogDetail[phoneData.phoneNumber.trim()]){
                                         phoneData.phoneNumber = phoneData.phoneNumber.trim();
                                         let details = {};
-                                        details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime;
+                                        details.lastTime = smsLogDetail[phoneData.phoneNumber].lastTime ? smsLogDetail[phoneData.phoneNumber].lastTime : null;
                                         details.count = smsLogDetail[phoneData.phoneNumber].count;
                                         let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)),details);
                                         phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
-                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
-                                    }
-                                    else{
-                                        phoneData.phoneNumber = phoneData.phoneNumber.trim();
-                                        let phoneDataWithDetails = Object.assign({},JSON.parse(JSON.stringify(phoneData)));
-                                        phoneDataWithDetails.phoneNumber$ = dbUtil.encodePhoneNum(phoneDataWithDetails.phoneNumber);
-                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
-                                    }
 
+                                        if (Number.isInteger(data.msgTimes)){
+                                            switch (data.operator) {
+                                                case '>=':
+                                                    if (details.count >= data.msgTimes) {
+                                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                                    }
+                                                    break;
+                                                case '=':
+                                                    if (details.count == data.msgTimes ) {
+                                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                                    }
+                                                    break;
+                                                case '<=':
+                                                    if (details.count <= data.msgTimes ) {
+                                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                                    }
+                                                    break;
+                                                case 'range':
+                                                    if (details.count <= data.msgTimes2 && details.count >= data.msgTimes ) {
+                                                        dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                                    }
+                                                    break;
+                                            }
+                                        }
+                                        else{
+                                            dxPhoneDataWithDetails.push(phoneDataWithDetails);
+                                        }
+
+                                    }
                                 })
 
                             }
@@ -904,13 +941,16 @@ let dbDXMission = {
             }
         ).then(
             data => {
+                console.log("LH TEST searchCriteria", searchCriteria);
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
                             // filter the search result of second table by different source from main table
                             if(type == "TotalValidPlayer" || type == "TotalDepositAmount" || type == "TotalValidConsumption"){
                                 if(searchCriteria && searchCriteria != ""){
+                                    console.log("LH TEST phoneData", phoneData);
                                     if(searchCriteria.includes(phoneData.playerObjId.toString())){
+                                        console.log("LH TEST phoneData playerObjId", phoneData.playerObjId);
                                         dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
                                     }
                                 }
@@ -925,6 +965,8 @@ let dbDXMission = {
                     summaryData => {
                         let resultData = JSON.parse(JSON.stringify(data));
                         let dataToBeDeleted = [];
+                        console.log("LH TEST SummaryData", summaryData);
+                        console.log("LH TEST resultData ", resultData.dxPhoneData);
 
                         if(summaryData){
                             summaryData.forEach(
@@ -945,7 +987,9 @@ let dbDXMission = {
                                                             phoneData.totalDepositAmount = summary.totalDepositAmount;
                                                         }
                                                     }else{
-                                                        dataToBeDeleted.push(phoneData.playerObjId);
+                                                        if(dataToBeDeleted.findIndex(d => d == phoneData.playerObjId) == -1){
+                                                            dataToBeDeleted.push(phoneData.playerObjId);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -955,6 +999,8 @@ let dbDXMission = {
                             )
                         }
 
+                        console.log("LH TEST dataTobeDeleted ", dataToBeDeleted);
+
                         //remove the data without playerinfo details
                         dataToBeDeleted.forEach(playerObjId => {
                             var indexNo = resultData.dxPhoneData.findIndex(r => r.playerObjId == playerObjId);
@@ -963,6 +1009,8 @@ let dbDXMission = {
                                 resultData.dxPhoneData.splice(indexNo,1)
                             }
                         })
+
+                        console.log("LH TEST final data ", resultData.dxPhoneData);
 
                         return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData, dxMissionData: data.dxMissionData}
                     }
@@ -1095,26 +1143,53 @@ let dbDXMission = {
         );
     },
 
-    retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId) {
+    retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId, lastSendingStartTime, lastSendingEndTime) {
         let smsLogProm = [];
         if (dxPhoneData && dxPhoneData.length > 0) {
 
             dxPhoneData.forEach (data => {
 
                 let newRegexPhoneNumber = new RegExp(data.phoneNumber.trim());
-                smsLogProm.push(dbconfig.collection_smsLog.find({tel: {$regex: newRegexPhoneNumber}, "data.dxMission": dxMissionObjId}).sort({createTime:-1}).then(
+                let findQuery = {
+                    tel: {$regex: newRegexPhoneNumber},
+                    "data.dxMission": dxMissionObjId,
+                };
+
+                if (lastSendingStartTime && lastSendingEndTime){
+                    findQuery.createTime = {$gte: new Date(lastSendingStartTime), $lt: new Date(lastSendingEndTime)};
+                }
+
+                smsLogProm.push(dbconfig.collection_smsLog.find(findQuery).sort({createTime:-1}).then(
 
                     smsLogData => {
-                        if (smsLogData && smsLogData.length > 0) {
-                            return {
-                                phoneNumber: smsLogData[0].tel.trim(),
-                                lastTime: smsLogData[0].createTime,
-                                count: smsLogData.length
+                        // filter the users according to the lastTime
+                        if (lastSendingStartTime && lastSendingEndTime){
+                            if (smsLogData && smsLogData.length > 0) {
+
+                                return {
+                                    phoneNumber: smsLogData[0].tel.trim(),
+                                    lastTime: smsLogData[0].createTime,
+                                    count: smsLogData.length
+                                }
                             }
                         }
-                        else {
-                            return {}
+                        else{
+                            // to consider users that have not received msg yet
+                            if (smsLogData && smsLogData.length > 0) {
+                                return {
+                                    phoneNumber: smsLogData[0].tel.trim(),
+                                    lastTime: smsLogData[0].createTime,
+                                    count: smsLogData.length
+                                }
+                            }
+                            else{
+                                return {
+                                    phoneNumber: data.phoneNumber.trim(),
+                                    count: 0
+                                }
+                            }
                         }
+
                     }
                 ))
             });
