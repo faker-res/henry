@@ -87,7 +87,7 @@ let dbDXMission = {
                 data.dxMissionData.forEach(
                     missionData => {
                         if(missionData){
-                            dataSummaryListProm.push(dbDXMission.getDataSummaryList(missionData._id, missionData.platform));
+                            dataSummaryListProm.push(dbDXMission.getDataSummaryList(missionData._id, missionData.platform, missionData.alertDays));
                         }
                     }
                 )
@@ -390,6 +390,7 @@ let dbDXMission = {
                                                         missionData.validPlayerArr = summary.validPlayerArr;
                                                         missionData.depositPlayerArr = summary.depositPlayerArr;
                                                         missionData.consumptionPlayerArr = summary.consumptionPlayerArr;
+                                                        missionData.alerted = summary.alerted;
                                                         missionData.topUpPlayerArr = summary.topUpPlayerArr;
                                                         missionData.multiTopUpPlayerArr = summary.multiTopUpPlayerArr;
                                                     }
@@ -411,7 +412,7 @@ let dbDXMission = {
 
     },
 
-    getDataSummaryList: function (dxMissionId, platformObjId) {
+    getDataSummaryList: function (dxMissionId, platformObjId, alertDay) {
         if(!dxMissionId){
             return;
         }
@@ -435,17 +436,25 @@ let dbDXMission = {
         let totalValidConsumptionAmount = 0;
         let totalPlayerBonusAmount = 0;
         let totalPlayerTopUpAmount = 0;
+        let alerted = false;
 
         importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
         sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)});
-        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
+        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId}).then(
             playerData => {
                 if(playerData){
                     totalRegisteredPlayer = playerData.length ? playerData.length : 0;
-
                     playerData.forEach(playerId => {
                        if(playerId){
-                           topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId}).then(
+                           if (!alerted){
+                               let registeredDate = new Date(playerId.registrationTime).getTime();
+                               let alertPeriod = new Date(dbUtility.getNdaylaterStartTime(alertDay)).getTime();
+                               if (registeredDate <= alertPeriod){
+                                   alerted = true;
+                               }
+                           }
+
+                           topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId._id}).then(
                                topUpRecord => {
                                    if(topUpRecord && topUpRecord.length > 0){
                                        noOfPlayerTopUp += 1;
@@ -642,6 +651,7 @@ let dbDXMission = {
                         validPlayerArr: validPlayerArr,
                         depositPlayerArr: depositPlayerArr,
                         consumptionPlayerArr: consumptionPlayerArr,
+                        alerted: alerted,
                         topUpPlayerArr: topUpPlayerArr,
                         multiTopUpPlayerArr: multiTopUpPlayerArr
                     }
