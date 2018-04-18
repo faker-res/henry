@@ -421,7 +421,6 @@ define(['js/app'], function (myApp) {
                             data: "sentMessageListCount$",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'class': (row.alerted ? "text-danger" : ""),
                                     'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage"); vm.initTelePlayerSendingMsgTable()'
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -432,6 +431,7 @@ define(['js/app'], function (myApp) {
                             data: "registeredPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
                                     'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer"); vm.showPagedTelePlayerTable(); vm.setAnchor("telePlayerTablePage")'
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -586,6 +586,7 @@ define(['js/app'], function (myApp) {
                     welcomeTitle: vm.createTeleMarketing.welcomeTitle,
                     welcomeContent: vm.createTeleMarketing.welcomeContent,
                     alertDays: vm.createTeleMarketing.alertDays,
+                    forbidWithdrawIfBalanceAfterUnlock: vm.createTeleMarketing.forbidWithdrawIfBalanceAfterUnlock,
                 };
 
                 console.log("creteTeleMarketingTask send", sendData);
@@ -629,6 +630,7 @@ define(['js/app'], function (myApp) {
                     welcomeTitle: vm.editTeleMarketing.welcomeTitle,
                     welcomeContent: vm.editTeleMarketing.welcomeContent,
                     alertDays: vm.editTeleMarketing.alertDays,
+                    forbidWithdrawIfBalanceAfterUnlock: vm.editTeleMarketing.forbidWithdrawIfBalanceAfterUnlock,
                 };
                 let id = vm.editTeleMarketing._id ? vm.editTeleMarketing._id : null;
                 console.log("editTeleMarketingTask send", updateData);
