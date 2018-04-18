@@ -2935,6 +2935,24 @@ let dbPartner = {
            });
     },
 
+    getPartnerCommissionConfigWithGameProviderGroup: function (query) {
+        return dbconfig.collection_partnerCommissionConfig.find(query);
+    },
+
+    createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data) {
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType, provider: query.provider}).lean().then(
+            configData => {
+                //check if config exist
+                if (!configData) {
+                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
+                    return newCommissionConfig.save();
+                }
+                else {
+                    return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
+                }
+            });
+    },
+
     startPlatformPartnerCommissionSettlement: function (platformObjId, bUpdateSettlementTime, isToday) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: platformObjId}).lean().then(
             configData => {
