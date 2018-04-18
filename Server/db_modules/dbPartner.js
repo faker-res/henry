@@ -2072,6 +2072,14 @@ let dbPartner = {
                         });
                     }
 
+                    if (!partnerData.permission.applyBonus) {
+                        return Q.reject({
+                            status: constServerCode.PARTNER_IS_FORBIDDEN,
+                            name: "DataError",
+                            errorMessage: "Partner is forbidden to apply bonus"
+                        });
+                    }
+
                     //check if partner has enough credit
                     partner = partnerData;
                     if (partnerData.credits < bonusDetail.credit * amount) {
