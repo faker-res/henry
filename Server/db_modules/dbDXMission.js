@@ -904,13 +904,16 @@ let dbDXMission = {
             }
         ).then(
             data => {
+                console.log("LH TEST searchCriteria", searchCriteria);
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
                             // filter the search result of second table by different source from main table
                             if(type == "TotalValidPlayer" || type == "TotalDepositAmount" || type == "TotalValidConsumption"){
                                 if(searchCriteria && searchCriteria != ""){
+                                    console.log("LH TEST phoneData", phoneData);
                                     if(searchCriteria.includes(phoneData.playerObjId.toString())){
+                                        console.log("LH TEST phoneData playerObjId", phoneData.playerObjId);
                                         dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
                                     }
                                 }
@@ -925,6 +928,8 @@ let dbDXMission = {
                     summaryData => {
                         let resultData = JSON.parse(JSON.stringify(data));
                         let dataToBeDeleted = [];
+                        console.log("LH TEST SummaryData", summaryData);
+                        console.log("LH TEST resultData ", resultData.dxPhoneData);
 
                         if(summaryData){
                             summaryData.forEach(
@@ -945,7 +950,9 @@ let dbDXMission = {
                                                             phoneData.totalDepositAmount = summary.totalDepositAmount;
                                                         }
                                                     }else{
-                                                        dataToBeDeleted.push(phoneData.playerObjId);
+                                                        if(dataToBeDeleted.findIndex(d => d == phoneData.playerObjId) == -1){
+                                                            dataToBeDeleted.push(phoneData.playerObjId);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -955,6 +962,8 @@ let dbDXMission = {
                             )
                         }
 
+                        console.log("LH TEST dataTobeDeleted ", dataToBeDeleted);
+
                         //remove the data without playerinfo details
                         dataToBeDeleted.forEach(playerObjId => {
                             var indexNo = resultData.dxPhoneData.findIndex(r => r.playerObjId == playerObjId);
@@ -963,6 +972,8 @@ let dbDXMission = {
                                 resultData.dxPhoneData.splice(indexNo,1)
                             }
                         })
+
+                        console.log("LH TEST final data ", resultData.dxPhoneData);
 
                         return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData, dxMissionData: data.dxMissionData}
                     }

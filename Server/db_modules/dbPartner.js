@@ -1201,6 +1201,14 @@ let dbPartner = {
         ).then(
             isMatch => {
                 if (isMatch) {
+                    if (partnerObj.permission.forbidPartnerFromLogin) {
+                        return Q.reject({
+                            name: "DataError",
+                            message: "Partner is forbidden to login",
+                            code: constServerCode.PARTNER_IS_FORBIDDEN
+                        });
+                    }
+
                     if (partnerObj.status == constPartnerStatus.FORBID) {
                         return Q.reject({
                             name: "DataError",
@@ -1208,6 +1216,7 @@ let dbPartner = {
                             code: constServerCode.PARTNER_IS_FORBIDDEN
                         });
                     }
+
                     var newAgentArray = partnerObj.userAgent || [];
                     var uaObj = {
                         browser: userAgent.browser.name || '',
@@ -1215,6 +1224,7 @@ let dbPartner = {
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
+
                     if(newAgentArray && typeof newAgentArray.forEach == "function" ){
                         newAgentArray.forEach(
                             agent => {
