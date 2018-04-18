@@ -4446,12 +4446,18 @@ define(['js/app'], function (myApp) {
                         // ============ cs analysis valid player ===========
                         vm.newPlayerQuery.csAnalysisNewPlayerData = vm.allAdmin.map(
                             admin => {
-                                let adminNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.accAdmin == admin.adminName);
+                                let adminNewPlayers = vm.newPlayerQuery.newPlayers.filter(player => {
+                                    if (player.csOfficer == admin._id) {
+                                        player.csOfficerName = admin.adminName;
+                                        return true;
+                                    }
+                                    return false;
+                                });
                                 return vm.calculateNewPlayerData(adminNewPlayers, admin.adminName);
                             }
                         );
                         // no admin new player
-                        let noAdminAccPlayers = vm.newPlayerQuery.newPlayers.filter(player => player.accAdmin == null);
+                        let noAdminAccPlayers = vm.newPlayerQuery.newPlayers.filter(player => Boolean(!player.csOfficer));
                         vm.newPlayerQuery.csAnalysisNewPlayerData.push(vm.calculateNewPlayerData(noAdminAccPlayers, $translate('No admin acc')));
                         // ============ partner analysis new player ===========
                         vm.newPlayerQuery.partnerNewPlayerData = vm.calculateNewPlayerData(partnerPlayers, $translate('total'), partnerPlayers.length);
@@ -5826,6 +5832,7 @@ define(['js/app'], function (myApp) {
                             function (data) {
                                 $scope.$evalAsync(() => {
                                     vm.allPromoteWay = data.data;
+                                    endLoadMultipleSelect('.spicker');
                                 })
                             },
                             function (err) {
@@ -5834,30 +5841,34 @@ define(['js/app'], function (myApp) {
                         );
 
                         // Get Departments Detail
-                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                            console.log('getDepartmentTreeById', data);
-                            let parentId;
-                            vm.queryDepartments = [];
-                            vm.queryRoles = [];
+                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
+                            data => {
+                                $scope.$evalAsync(() => {
+                                    let parentId;
+                                    vm.queryDepartments = [];
+                                    vm.queryRoles = [];
 
-                            data.data.map(e => {
-                                if (e.departmentName == vm.selectedPlatform.name) {
-                                    vm.queryDepartments.push(e);
-                                    parentId = e._id;
-                                }
-                            });
+                                    data.data.map(e => {
+                                        if (e.departmentName == vm.selectedPlatform.name) {
+                                            vm.queryDepartments.push(e);
+                                            parentId = e._id;
+                                        }
+                                    });
 
-                            data.data.map(e => {
-                                if (String(parentId) == String(e.parent)) {
-                                    vm.queryDepartments.push(e);
-                                }
-                            });
+                                    data.data.map(e => {
+                                        if (String(parentId) == String(e.parent)) {
+                                            vm.queryDepartments.push(e);
+                                        }
+                                    });
 
-                            $scope.$digest();
-                            if (typeof(callback) == 'function') {
-                                callback(data.data);
+                                    endLoadMultipleSelect('.spicker');
+
+                                    if (typeof(callback) == 'function') {
+                                        callback(data.data);
+                                    }
+                                });
                             }
-                        });
+                        );
 
                         vm.dxNewPlayerQuery = {
                             days: 1,
@@ -5870,8 +5881,6 @@ define(['js/app'], function (myApp) {
                         vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
                         vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-
-                        endLoadMultipleSelect('.spicker');
                     });
                     break;
                 case "PLAYERDOMAIN_REPORT":
@@ -5888,9 +5897,12 @@ define(['js/app'], function (myApp) {
                         let query = {
                             platformId: vm.selectedPlatform._id
                         };
-                        socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query, function (data) {
+
+                        socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
+                            data => {
                                 $scope.$evalAsync(() => {
                                     vm.pdAllPromoteWay = data.data;
+                                    endLoadMultipleSelect('.spicker');
                                 });
                             },
                             function (err) {
@@ -5898,37 +5910,39 @@ define(['js/app'], function (myApp) {
                             });
 
                         // Get Departments Detail
-                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id}, function success(data) {
-                            console.log('getDepartmentTreeById', data);
-                            let parentId;
-                            vm.pdQueryDepartments = [];
-                            vm.pdQueryRoles = [];
+                        socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
+                            data => {
+                                $scope.$evalAsync(() => {
+                                    let parentId;
+                                    vm.pdQueryDepartments = [];
+                                    vm.pdQueryRoles = [];
 
-                            data.data.map(e => {
-                                if (e.departmentName == vm.selectedPlatform.name) {
-                                    vm.pdQueryDepartments.push(e);
-                                    parentId = e._id;
-                                }
-                            });
+                                    data.data.map(e => {
+                                        if (e.departmentName == vm.selectedPlatform.name) {
+                                            vm.pdQueryDepartments.push(e);
+                                            parentId = e._id;
+                                        }
+                                    });
 
-                            data.data.map(e => {
-                                if (String(parentId) == String(e.parent)) {
-                                    vm.pdQueryDepartments.push(e);
-                                }
-                            });
+                                    data.data.map(e => {
+                                        if (String(parentId) == String(e.parent)) {
+                                            vm.pdQueryDepartments.push(e);
+                                        }
+                                    });
 
-                            $scope.$digest();
-                            if (typeof(callback) == 'function') {
-                                callback(data.data);
+                                    endLoadMultipleSelect('.spicker');
+                                    if (typeof(callback) == 'function') {
+                                        callback(data.data);
+                                    }
+                                });
                             }
-                        });
+                        );
 
                         vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                         vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainRepport)
                         });
                         vm.searchPlayerDomainRepport(true);
-                        endLoadMultipleSelect('.spicker');
                     });
                     break;
                 case "RewardReport":

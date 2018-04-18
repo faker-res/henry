@@ -4120,7 +4120,7 @@ let dbPlayerInfo = {
                     if (playerObj.permission.forbidPlayerFromLogin) {
                         deferred.reject({
                             name: "DataError",
-                            message: "Player is not enable",
+                            message: "Player is forbidden to login",
                             code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
                         return;

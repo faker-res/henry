@@ -140,6 +140,10 @@ var partnerSchema = new Schema({
     // Partner permission
     permission: {
         _id: false,
+        applyBonus: {type: Boolean, default: true},
+        forbidPartnerFromLogin: {type: Boolean, default: false},
+        phoneCallFeedback: {type: Boolean, default: true},
+        SMSFeedBack: {type: Boolean, default: true},
         disableCommSettlement: {type: Boolean, default: false}
     },
     // partner status normal or forbid

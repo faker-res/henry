@@ -529,7 +529,7 @@
                                         td
                                             span {{v.valueScore}}
                                         td
-                                            span {{v.accAdmin}}
+                                            span {{v.csOfficerName}}
                                         td
                                             span {{v.partner ? 'partner' : v.promoteWay | translate}}
                                         td(style='min-width: 100px;max-width: 200px')
@@ -731,7 +731,7 @@
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.newPlayers | filter: vm.filterValidPlayerDomainAnalysisTable')
                                         td
-                                            span {{v.playerId}}
+                                            span {{v.name}}
                                         td
                                             span {{v.realName}}
                                         td
