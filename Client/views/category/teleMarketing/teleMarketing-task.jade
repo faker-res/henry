@@ -145,7 +145,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                     //br
                     //br
                     #sendSMSTabletab-pane.well.fade.in.active(ng-show="vm.showSMSTable", style="margin-top: 100px; padding: 35px 20px;")
-                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'teleMarketingOverview')")
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
                             label {{"CUSTOMER_ACCOUNT_ID"|translate}}
                             br
                             select.form-control(ng-model="vm.telePlayerSendingMsgTable.customerType" style="width:90px;display:inline-block;")
@@ -178,7 +178,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
                                 span.add-on
                                     i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'teleMarketingOverview')")
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
                             label {{"SENDING_TIMES"|translate}}
                             br
                             select.form-control(ng-model="vm.telePlayerSendingMsgTable.msgTimesOperator", style="width:75px;display:inline-block;")
