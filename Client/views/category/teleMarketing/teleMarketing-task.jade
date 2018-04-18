@@ -144,8 +144,58 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             #telePlayerTablePage
                     //br
                     //br
-                    #sendSMSTable(ng-show="vm.showSMSTable")
-                        div(style="position:relative; margin-top:100px;")
+                    #sendSMSTabletab-pane.well.fade.in.active(ng-show="vm.showSMSTable", style="margin-top: 100px; padding: 35px 20px;")
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'teleMarketingOverview')")
+                            label {{"CUSTOMER_ACCOUNT_ID"|translate}}
+                            br
+                            select.form-control(ng-model="vm.telePlayerSendingMsgTable.customerType" style="width:90px;display:inline-block;")
+                                option(value='all') {{ 'ALL' | translate}}
+                                option(value='created') {{ 'CREATED_ACCOUNT' | translate}}
+                                option(value='notCreated') {{'NOT_YET_CREATE_ACCOUNT' | translate}}
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByCreationStartDate')")
+                            label {{'START_TIME_IMPORTED_PHONE_NUMBER' | translate}}
+                            #sendSMSTableStartDatetimePicker.input-append.form-control
+                                input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByCreationEndDate')")
+                            label {{'END_TIME_IMPORTED_PHONE_NUMBER' | translate}}
+                            br
+                            #sendSMSTableEndDatetimePicker.input-append.form-control
+                                input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByCreationStartDate')")
+                            label {{'START_TIME_FOR_LAST_MSG_SENDING' | translate}}
+                            #sendSMSTableMsgStartDatetimePicker.input-append.form-control
+                                input(style='width:calc(100% - 15px)',data-format="yyyy/MM/dd HH:mm:ss PP", type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'queryByCreationEndDate')")
+                            label {{'END_TIME_FOR_LAST_MSG_SENDING' | translate}}
+                            br
+                            #sendSMSTableMsgEndDatetimePicker.input-append.form-control
+                                input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
+                                span.add-on
+                                    i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'teleMarketingOverview')")
+                            label {{"SENDING_TIMES"|translate}}
+                            br
+                            select.form-control(ng-model="vm.telePlayerSendingMsgTable.msgTimesOperator", style="width:75px;display:inline-block;")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                            div(style="width:8px;display:inline-block")
+                            input.form-control(type="number" ng-model="vm.telePlayerSendingMsgTable.msgTimes" style="width:80px;display:inline-block")
+                            div.text-center(style="width:15px;display:inline-block" ng-if="vm.telePlayerSendingMsgTable.msgTimesOperator === 'range'") ~
+                            input.form-control(type="number" ng-model="vm.telePlayerSendingMsgTable.msgTimes2" style="width:80px;display:inline-block" ng-if="vm.telePlayerSendingMsgTable.msgTimesOperator === 'range'")
+                        .inlineBlk.pull-right(style='width:100px;padding-top:20px' ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
+                            button.common-button.btn.btn-primary(ng-click='vm.getTelePlayerSendingMsgTable(true)') {{'SEARCH' | translate}}
+                        .inlineBlk(ng-show='vm.loadingTelePlayerSendingSMSTable')
+                                i.fa.fa-spin.fa-spinner
+
+                        div(style="position:relative; margin-top:40px;")
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
                             label(style="margin-left:100px;") {{vm.msgTemplate.name}} - {{vm.msgTemplate.description}}
                             button.common-button.btn.btn-primary(ng-click="vm.showSMSTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
@@ -156,15 +206,15 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     thead
                                         tr
                                             th(style='width:15%') {{'MESSAGE_PREVIEW' | translate}}
-                                            th(style='width:70%; background-color: white; border-top: none;border-right: none; color: black;')
+                                            th(style='width:70%; background-color: #f2f2f2; border-top: none;border-right: none; color: black;')
                                                 span(style="margin-right: 30px;") {{ 'Word Count' | translate}} : {{vm.msgTemplate.invitationTemplate.length}},
                                                 span(style="margin-right: 30px;") {{ 'Total' | translate }} : {{vm.totalmsg}} {{ 'message(s)' | translate }},
                                                 span(style="margin-right: 30px;") {{ 'Current channel allow' | translate }} : 100 {{ 'Words/Message' | translate}}
-                                            th(style='width:15%;background-color: white; border: none;')
+                                            th(style='width:15%; background-color: #f2f2f2; border: none;')
                                     tbody
                                         tr
                                             td(colspan=2) {{ vm.msgTemplate.invitationTemplate}}
-                                            td(style="border:none;") {{ 'Channel' | translate }} : 2
+                                            td(style="border:none;") {{ 'Channel' | translate }} : {{vm.smsChannel}}
 
                             div(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:20px;")
                                 button.common-button.btn.btn-success.margin-right-5(ng-click="vm.sendMsgToTelePlayer();", style="height:40px;") {{'SEND_TO_SELECTED_CUSTOMER' | translate}} ({{vm.totalmsg || 0}})
