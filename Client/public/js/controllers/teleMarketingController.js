@@ -329,7 +329,7 @@ define(['js/app'], function (myApp) {
                     query: {
                     },
                     index: newSearch ? 0 : (vm.teleMarketingOverview.index || 0),
-                    limit: vm.teleMarketingOverview.limit || 5000,
+                    limit: vm.teleMarketingOverview.limit || 10,
                     sortCol: vm.teleMarketingOverview.sortCol || -1,
                 };
 
@@ -421,7 +421,6 @@ define(['js/app'], function (myApp) {
                             data: "sentMessageListCount$",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'class': (row.alerted ? "text-danger" : ""),
                                     'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage"); vm.initTelePlayerSendingMsgTable()'
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -432,6 +431,7 @@ define(['js/app'], function (myApp) {
                             data: "registeredPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
                                     'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer"); vm.showPagedTelePlayerTable(); vm.setAnchor("telePlayerTablePage")'
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -442,7 +442,7 @@ define(['js/app'], function (myApp) {
                             data: "topUpPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerTopUp"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerTopUp","' + row['topUpPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -452,7 +452,7 @@ define(['js/app'], function (myApp) {
                             data: "multiTopUpPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerMultiTopUp"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerMultiTopUp","' + row['multiTopUpPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -1090,7 +1090,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getDXPlayerInfo', sendQuery, function (data) {
                     if(data){
-                        vm.teleMarketingPlayerInfo.count = data.data && data.data.size ? data.data.size : 0;
+                        vm.teleMarketingPlayerInfo.count = data.data && data.data.totalCount ? data.data.totalCount : 0;
                         vm.teleMarketingPlayerInfo.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : {};
                         vm.teleMarketingPlayerInfo.missionData = data.data && data.data.dxMissionData ? data.data.dxMissionData : {};
                     }
@@ -1102,7 +1102,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
-                    $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, 6));
+                    $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count));
                 })
             };
 

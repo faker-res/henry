@@ -87,7 +87,7 @@ let dbDXMission = {
                 data.dxMissionData.forEach(
                     missionData => {
                         if(missionData){
-                            dataSummaryListProm.push(dbDXMission.getDataSummaryList(missionData._id, missionData.platform));
+                            dataSummaryListProm.push(dbDXMission.getDataSummaryList(missionData._id, missionData.platform, missionData.alertDays));
                         }
                     }
                 )
@@ -390,6 +390,9 @@ let dbDXMission = {
                                                         missionData.validPlayerArr = summary.validPlayerArr;
                                                         missionData.depositPlayerArr = summary.depositPlayerArr;
                                                         missionData.consumptionPlayerArr = summary.consumptionPlayerArr;
+                                                        missionData.alerted = summary.alerted;
+                                                        missionData.topUpPlayerArr = summary.topUpPlayerArr;
+                                                        missionData.multiTopUpPlayerArr = summary.multiTopUpPlayerArr;
                                                     }
 
                                                     return;
@@ -409,7 +412,7 @@ let dbDXMission = {
 
     },
 
-    getDataSummaryList: function (dxMissionId, platformObjId) {
+    getDataSummaryList: function (dxMissionId, platformObjId, alertDay) {
         if(!dxMissionId){
             return;
         }
@@ -418,7 +421,8 @@ let dbDXMission = {
         let sentMessageListProm = [];
         let registeredPlayerListProm = [];
         let topUpPlayerProm = [];
-        let playerConsumptionProm = [];
+        let topUpPlayerArr = [];
+        let multiTopUpPlayerArr = [];
         let validPlayerArr = [];
         let depositPlayerArr = [];
         let consumptionPlayerArr = [];
@@ -432,17 +436,25 @@ let dbDXMission = {
         let totalValidConsumptionAmount = 0;
         let totalPlayerBonusAmount = 0;
         let totalPlayerTopUpAmount = 0;
+        let alerted = false;
 
         importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
         sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)});
-        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId},{_id: 1}).then(
+        registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId}).then(
             playerData => {
                 if(playerData){
                     totalRegisteredPlayer = playerData.length ? playerData.length : 0;
-
                     playerData.forEach(playerId => {
                        if(playerId){
-                           topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId}).then(
+                           if (!alerted){
+                               let registeredDate = new Date(playerId.registrationTime).getTime();
+                               let alertPeriod = new Date(dbUtility.getNdaylaterStartTime(alertDay)).getTime();
+                               if (registeredDate <= alertPeriod){
+                                   alerted = true;
+                               }
+                           }
+
+                           topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId._id}).then(
                                topUpRecord => {
                                    if(topUpRecord && topUpRecord.length > 0){
                                        noOfPlayerTopUp += 1;
@@ -451,8 +463,20 @@ let dbDXMission = {
                                            return previousValue.amount + currentValue.amount;
                                        });
 
+                                       //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
+                                       var indexNo = topUpPlayerArr.findIndex(t => t == playerId._id);
+                                       if(indexNo == -1){
+                                           topUpPlayerArr.push(playerId._id);
+                                       }
+
                                        if(topUpRecord.length > 1){
                                            noOfPlayerMultiTopUp += 1;
+
+                                           //check if playerId is in the array, if not, insert it to the array for second table filtering purpose
+                                           var indexNo = multiTopUpPlayerArr.findIndex(m => m == playerId._id);
+                                           if(indexNo == -1){
+                                               multiTopUpPlayerArr.push(playerId._id);
+                                           }
                                        }
 
                                        return;
@@ -626,7 +650,10 @@ let dbDXMission = {
                         totalPlayerDepositAmount: totalPlayerTopUpAmount - totalPlayerBonusAmount,
                         validPlayerArr: validPlayerArr,
                         depositPlayerArr: depositPlayerArr,
-                        consumptionPlayerArr: consumptionPlayerArr
+                        consumptionPlayerArr: consumptionPlayerArr,
+                        alerted: alerted,
+                        topUpPlayerArr: topUpPlayerArr,
+                        multiTopUpPlayerArr: multiTopUpPlayerArr
                     }
                 }
             }
@@ -750,7 +777,7 @@ let dbDXMission = {
                         };
 
                         let recipientName = msg.name || '';
-                        
+
                         return smsAPI.sending_sendMessage(sendObj).then(
                             retData => {
                                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'success');
@@ -911,7 +938,7 @@ let dbDXMission = {
     },
 
     getDXPlayerInfo: function (platformObjId, dxMission, type, searchCriteria, index, limit, sortCol) {
-        limit = limit ? limit : 20;
+        limit = limit ? limit : 10;
         index = index ? index : 0;
 
         let result = [];
@@ -921,10 +948,16 @@ let dbDXMission = {
             playerObjId: {$exists: true}
         };
 
+        if(searchCriteria && searchCriteria != ""){
+            let playerObjId = searchCriteria.split(",");
+            matchObj.playerObjId = {$in: playerObjId.map(s => ObjectId(s))};
+        }
+
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
-        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit(limit).sort({createTime: -1}).lean();
+        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).sort({createTime: -1}).skip(index).limit(limit).lean();
+        //let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).sort({createTime: -1}).lean();
         let dxMissionProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
         let size = 0;
         let dxPhoneData = {};
@@ -957,7 +990,7 @@ let dbDXMission = {
                                 }
                             }else{
                                 dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
-                            }
+                           }
                         }
                     }
                 )

@@ -195,7 +195,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .inlineBlk(ng-show='vm.loadingTelePlayerSendingSMSTable')
                                 i.fa.fa-spin.fa-spinner
 
-                        div(style="position:relative; margin-top:40px;")
+                        div(style="position:relative; margin-top:60px;")
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
                             label(style="margin-left:100px;") {{vm.msgTemplate.name}} - {{vm.msgTemplate.description}}
                             button.common-button.btn.btn-primary(ng-click="vm.showSMSTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
