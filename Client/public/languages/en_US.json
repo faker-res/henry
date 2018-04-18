@@ -23,6 +23,7 @@
   "LIVE800 COMPANYID Without Desc": "Live800 Company ID",
   "LIVE800 ACC": "Live800 Account (Use comma for multiple accounts)",
   "LIVE800 ACC Without Desc": "Live800 Account",
+  "COMMISSION_TYPE": "Commission Type",
 
   "MANUAL_TOPUP": "Manual",
   "ALIPAY": "Alipay",
@@ -819,6 +820,7 @@
   "FORBID_GAME":"Forbid Game",
   "FORBID":"Forbid",
   "forbidPlayerFromLogin":"Forbid Player From Login",
+  "forbidPartnerFromLogin":"Forbid Partner From Login",
   "forbidPlayerFromEnteringGame" : "Forbid Player From Entering Game",
   "LOGOFF":"Log Off",
   "CHEAT_NEW_ACCOUNT_REWARD": "Cheat New Account Reward",

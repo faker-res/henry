@@ -421,7 +421,8 @@ define(['js/app'], function (myApp) {
                             data: "sentMessageListCount$",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage")'
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage"); vm.initTelePlayerSendingMsgTable()'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -1124,12 +1125,12 @@ define(['js/app'], function (myApp) {
                         { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
                         { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
                         { title: $translate('TIME_OPENING_ACCOUNT'), data: "registrationTime",  sClass: "sumText wordWrap"},
-                        { title: $translate('loginTimes'), data: "totalLoginTimes"},
-                        { title: $translate('TOP_UP_TIMES'), data: "totalTopUpCount"},
-                        { title: $translate('TOP_UP_AMOUNT'), data: "totalTopUpAmount"},
-                        { title: $translate('TIMES_CONSUMED'), data: "totalConsumptionTime"},
-                        { title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "totalDepositAmount"},
-                        { title: $translate('VALID_CONSUMPTION'), data: "totalConsumptionAmount"},
+                        { title: $translate('loginTimes'), data: "totalLoginTimes", sClass: "sumFloat textRight"},
+                        { title: $translate('TOP_UP_TIMES'), data: "totalTopUpCount", sClass: "sumFloat textRight"},
+                        { title: $translate('TOP_UP_AMOUNT'), data: "totalTopUpAmount", sClass: "sumFloat textRight"},
+                        { title: $translate('TIMES_CONSUMED'), data: "totalConsumptionTime", sClass: "sumFloat textRight"},
+                        { title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "totalDepositAmount", sClass: "sumFloat textRight"},
+                        { title: $translate('VALID_CONSUMPTION'), data: "totalConsumptionAmount", sClass: "sumFloat textRight"},
 
                         // {
                         //     title: $translate('Function'), //data: 'phoneNumber',
@@ -1273,15 +1274,13 @@ define(['js/app'], function (myApp) {
                 });
                 tableOptions.language.emptyTable=$translate("No data available in table");
 
-                utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {
+                let a = utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {
                     // 4: summary && summary.loginTimeSum ? summary.loginTimeSum: 0,
                     // 5: summary && summary.topupTimeSum ? summary.topupTimeSum: 0,
                     // 6: summary && summary.topupAmountSum ? summary.topupAmountSum: 0,
                     // 7: summary && summary.betSum ? summary.betSum: 0,
                     // 8: summary && summary.balanceSum ? summary.balanceSum :0,
                     // 9: summary && summary.effectiveBetAmount ? summary.effectiveBetAmount: 0,
-                    4: 0,
-                    5: 1000
                 });
 
                 vm.telePlayerTable.pageObj.init({maxCount: size}, newSearch);
@@ -1295,6 +1294,51 @@ define(['js/app'], function (myApp) {
 
             // generate telePlayer function table ====================End==================
 
+            vm.initTelePlayerSendingMsgTable = function () {
+
+                if(vm.selectedPlatform){
+                    // vm.teleMarketingTaskTab = 'TELEMARKETING_TASK_OVERVIEW';
+
+                    utilService.actionAfterLoaded('#teleMarketingOverview', function () {
+
+                        vm.telePlayerSendingMsgTable.customerType='all';
+                        vm.telePlayerSendingMsgTable.msgTimesOperator='>=';
+                        vm.smsChannel = 2;
+
+                        $('#sendSMSTableStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#sendSMSTableStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#sendSMSTableEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#sendSMSTableEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+
+                        $('#sendSMSTableMsgStartDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#sendSMSTableMsgStartDatetimePicker").data('datetimepicker').setLocalDate(null);
+
+                        $('#sendSMSTableMsgEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#sendSMSTableMsgEndDatetimePicker").data('datetimepicker').setLocalDate(null);
+                    });
+                }
+            };
             // generate telePlayer Sending Message function table ====================Start==================
             vm.showTelePlayerSendingMsgTable = function (dxMission) {
                 vm.telePlayerSendingMsgTable = {};
@@ -1306,18 +1350,34 @@ define(['js/app'], function (myApp) {
                     vm.telePlayerSendingMsgTable.pageObj = utilService.createPageForPagingTable("#telePlayerSendingMsgTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "telePlayerSendingMsgTable", vm.getTelePlayerSendingMsgTable)
                     });
-                    vm.getTelePlayerSendingMsgTable(dxMission, true);
+                    vm.getTelePlayerSendingMsgTable(true, dxMission);
                 });
             }
 
-            vm.getTelePlayerSendingMsgTable = function (dxMission, newSearch) {
+            vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission) {
+                vm.loadingTelePlayerSendingSMSTable = true;
                 let sendQuery = {
-                    platform: vm.selectedPlatform.id ,
+                    platform: vm.selectedPlatform.id,
                    // count: 5,
                     dxMission: dxMission ? dxMission : vm.telePlayerSendingMsgTable.dxMissionId,
                     index: newSearch ? 0 : vm.telePlayerSendingMsgTable.index,
                     limit: newSearch ? 10 : vm.telePlayerSendingMsgTable.limit,
                     sortCol: vm.telePlayerSendingMsgTable.sortCol,
+
+                }
+                if (vm.telePlayerSendingMsgTable){
+                    sendQuery.customerType= vm.telePlayerSendingMsgTable.customerType ? vm.telePlayerSendingMsgTable.customerType : "all";
+
+                    sendQuery.importedTelStartTime =$('#sendSMSTableStartDatetimePicker').data('datetimepicker') ? $('#sendSMSTableStartDatetimePicker').data('datetimepicker').getLocalDate() : utilService.getThisMonthStartTime();
+                    sendQuery.importedTelEndTime = $('#sendSMSTableEndDatetimePicker').data('datetimepicker') ? $('#sendSMSTableEndDatetimePicker').data('datetimepicker').getLocalDate() : utilService.getThisMonthEndTime();
+
+                    sendQuery.lastSendingStartTime =$('#sendSMSTableMsgStartDatetimePicker').data('datetimepicker') ? $('#sendSMSTableMsgStartDatetimePicker').data('datetimepicker').getLocalDate() : null;
+                    sendQuery.lastSendingEndTime = $('#sendSMSTableMsgEndDatetimePicker').data('datetimepicker') ? $('#sendSMSTableMsgEndDatetimePicker').data('datetimepicker').getLocalDate() : null;
+
+                    sendQuery.msgTimes = Number.isInteger(vm.telePlayerSendingMsgTable.msgTimes) ? vm.telePlayerSendingMsgTable.msgTimes : null;
+                    sendQuery.msgTimes2 = Number.isInteger(vm.telePlayerSendingMsgTable.msgTimes2) ? vm.telePlayerSendingMsgTable.msgTimes2 : null;
+                    sendQuery.operator = vm.telePlayerSendingMsgTable.msgTimesOperator ? vm.telePlayerSendingMsgTable.msgTimesOperator : ">=";
+
                 }
 
                 socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
@@ -1345,7 +1405,7 @@ define(['js/app'], function (myApp) {
                             // }
                         });
                     }
-
+                    vm.loadingTelePlayerSendingSMSTable = false;
                     $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, vm.teleMarketingSendSMS.count));
                 })
             };
@@ -1537,7 +1597,7 @@ define(['js/app'], function (myApp) {
                     //vm.msgSendingGroupData.forEach( data => {
                     let sendObj = {
                         //platformId: data.platformId,
-                        channel: 2,
+                        channel: 2, //vm.smsChannel,
                         msgDetail: vm.msgSendingGroupData,
                         //tel: data.phoneNumber,
                         //dxPhone: data.dxMissionId

@@ -230,7 +230,13 @@ let dbPartner = {
             }
         ).then(
             function (data) {
-                if (!data.isPartnerNameValid) {
+                if (data.isPartnerNameValid) {
+                    // If level was provided then use that, otherwise select the first level on the platform
+                    return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
+                        platform: partnerdata.platform,
+                        value: partnerdata.level || 0
+                    });
+                } else {
                     deferred.reject({
                         name: "DataError",
                         message: "Username already exists"
@@ -246,7 +252,7 @@ let dbPartner = {
                 });
                 return Promise.reject(new Error());
             }
-        ).then(() => {
+        ).then(level => {
                 return dbPartner.createPartnerDomain(partnerdata).then(
                     () => {
                         // determine registrationInterface
@@ -289,6 +295,7 @@ let dbPartner = {
                         }
 
                         let partner = new dbconfig.collection_partner(partnerdata);
+                        partner.level = level;
                         partner.partnerName = partnerdata.partnerName.toLowerCase();
                         return partner.save();
                     },
@@ -300,6 +307,12 @@ let dbPartner = {
                         });
                     }
                 );
+            }, function (error) {
+                deferred.reject({
+                    name: "DataError",
+                    message: "Error in getting partner level",
+                    error: error
+                });
             }
         ).then(
             function (data) {
@@ -1201,6 +1214,14 @@ let dbPartner = {
         ).then(
             isMatch => {
                 if (isMatch) {
+                    if (partnerObj.permission.forbidPartnerFromLogin) {
+                        return Q.reject({
+                            name: "DataError",
+                            message: "Partner is forbidden to login",
+                            code: constServerCode.PARTNER_IS_FORBIDDEN
+                        });
+                    }
+
                     if (partnerObj.status == constPartnerStatus.FORBID) {
                         return Q.reject({
                             name: "DataError",
@@ -1208,6 +1229,7 @@ let dbPartner = {
                             code: constServerCode.PARTNER_IS_FORBIDDEN
                         });
                     }
+
                     var newAgentArray = partnerObj.userAgent || [];
                     var uaObj = {
                         browser: userAgent.browser.name || '',
@@ -1215,6 +1237,7 @@ let dbPartner = {
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
+
                     if(newAgentArray && typeof newAgentArray.forEach == "function" ){
                         newAgentArray.forEach(
                             agent => {
@@ -2046,6 +2069,14 @@ let dbPartner = {
                             status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                             name: "DataError",
                             errorMessage: "Partner does not have valid payment information"
+                        });
+                    }
+
+                    if (!partnerData.permission.applyBonus) {
+                        return Q.reject({
+                            status: constServerCode.PARTNER_IS_FORBIDDEN,
+                            name: "DataError",
+                            errorMessage: "Partner is forbidden to apply bonus"
                         });
                     }
 

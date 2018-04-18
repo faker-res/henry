@@ -114,6 +114,8 @@ var simplifiedChinese = {
     "The player already has this reward. Not Valid for the reward.": "不符合领取",
     "This top up record has been used": "该充值记录已被使用",
     "Player is not enable": "用户没有发现或无效密码",
+    "Player is forbidden to login": "玩家被禁止登录",
+    "Partner is forbidden to login": "代理被禁止登录",
     "Player does not have enough credit.": "玩家额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",
     "Apply Reward Fail, please try again later": "请求处理中, 请稍后再次尝试",
