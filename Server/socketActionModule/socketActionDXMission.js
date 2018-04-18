@@ -86,7 +86,7 @@ function socketActionDXMission(socketIO, socket) {
         getDXPhoneNumberInfo: function getDXPhoneNumberInfo(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbDXMission.getDXPhoneNumberInfo, [data.platform, data.dxMission, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDXMission.getDXPhoneNumberInfo, [data.platform, data.dxMission, data.index, data.limit, data.sortCol, data], actionName, isValidData);
         },
 
         getDXPlayerInfo: function getDXPlayerInfo(data){
