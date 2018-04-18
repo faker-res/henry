@@ -1596,6 +1596,7 @@
   "FORBID": "禁用",
   "LOGOFF": "注销",
   "forbidPlayerFromLogin": "登入网站",
+  "forbidPartnerFromLogin": "登入网站",
   "forbidPlayerFromEnteringGame" : "登入游戏",
   "CHEAT_NEW_ACCOUNT_REWARD": "骗开户优惠",
   "TOPUP_ATTENTION": "存款留意",
