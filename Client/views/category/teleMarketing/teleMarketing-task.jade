@@ -195,7 +195,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .inlineBlk(ng-show='vm.loadingTelePlayerSendingSMSTable')
                                 i.fa.fa-spin.fa-spinner
 
-                        div(style="position:relative; margin-top:40px;")
+                        div(style="position:relative; margin-top:60px;")
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
                             label(style="margin-left:100px;") {{vm.msgTemplate.name}} - {{vm.msgTemplate.description}}
                             button.common-button.btn.btn-primary(ng-click="vm.showSMSTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
@@ -280,6 +280,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .full-width-input-block
                                     label {{"Please Enter Number of Days for Alert" | translate}}:
                                     input.form-control(type='number', ng-model='vm.createTeleMarketing.alertDays')
+
+                                .full-width-input-block
+                                    label {{"Forbid withdraw if there is balance after unlock" | translate}}:
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.forbidWithdrawIfBalanceAfterUnlock')
                         br
                         table.simple-table
                             thead

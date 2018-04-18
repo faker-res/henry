@@ -2295,6 +2295,7 @@ var proposalExecutor = {
                         initAmount: proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId,
                         useLockedCredit: proposalData.data.useLockedCredit,
+                        forbidWithdrawIfBalanceAfterUnlock: proposalData.data.forbidWithdrawIfBalanceAfterUnlock
                     };
 
                     if (proposalData.data.providerGroup) {

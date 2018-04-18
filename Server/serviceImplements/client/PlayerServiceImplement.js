@@ -1166,6 +1166,16 @@ let PlayerServiceImplement = function () {
 
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createDemoPlayer, [data.platformId, data.smsCode, data.phoneNumber, deviceData, userAgentString], isValidData, false, false, true);
     };
+
+    this.getClientData.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getClientData, [conn.playerObjId], isValidData);
+    };
+
+    this.saveClientData.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId && data && data.clientData && typeof data.clientData == "string");
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.saveClientData, [conn.playerObjId, data.clientData], isValidData);
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

@@ -498,6 +498,17 @@ var dbUtility = {
         };
     },
 
+    getNdaylaterStartTime: function (n) {
+        var n = Number.isInteger(n) ? parseInt(n) : 0;
+        return new Date(dbUtility.getTodayStartTime().getTime() + 24 * 60 * 60 * 1000 * n);
+    },
+
+    getTodayStartTime: function () {
+        var todayDate = new Date();
+        return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0);
+    },
+
+
     /**
      * Get current week time frame based on settlement time
      * @param {number} hour
