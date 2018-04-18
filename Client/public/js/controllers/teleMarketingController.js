@@ -421,6 +421,7 @@ define(['js/app'], function (myApp) {
                             data: "sentMessageListCount$",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
                                     'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage"); vm.initTelePlayerSendingMsgTable()'
                                 }).text(data);
                                 return link.prop('outerHTML');
@@ -1124,12 +1125,12 @@ define(['js/app'], function (myApp) {
                         { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
                         { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
                         { title: $translate('TIME_OPENING_ACCOUNT'), data: "registrationTime",  sClass: "sumText wordWrap"},
-                        { title: $translate('loginTimes'), data: "totalLoginTimes"},
-                        { title: $translate('TOP_UP_TIMES'), data: "totalTopUpCount"},
-                        { title: $translate('TOP_UP_AMOUNT'), data: "totalTopUpAmount"},
-                        { title: $translate('TIMES_CONSUMED'), data: "totalConsumptionTime"},
-                        { title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "totalDepositAmount"},
-                        { title: $translate('VALID_CONSUMPTION'), data: "totalConsumptionAmount"},
+                        { title: $translate('loginTimes'), data: "totalLoginTimes", sClass: "sumFloat textRight"},
+                        { title: $translate('TOP_UP_TIMES'), data: "totalTopUpCount", sClass: "sumFloat textRight"},
+                        { title: $translate('TOP_UP_AMOUNT'), data: "totalTopUpAmount", sClass: "sumFloat textRight"},
+                        { title: $translate('TIMES_CONSUMED'), data: "totalConsumptionTime", sClass: "sumFloat textRight"},
+                        { title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "totalDepositAmount", sClass: "sumFloat textRight"},
+                        { title: $translate('VALID_CONSUMPTION'), data: "totalConsumptionAmount", sClass: "sumFloat textRight"},
 
                         // {
                         //     title: $translate('Function'), //data: 'phoneNumber',
@@ -1273,15 +1274,13 @@ define(['js/app'], function (myApp) {
                 });
                 tableOptions.language.emptyTable=$translate("No data available in table");
 
-                utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {
+                let a = utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {
                     // 4: summary && summary.loginTimeSum ? summary.loginTimeSum: 0,
                     // 5: summary && summary.topupTimeSum ? summary.topupTimeSum: 0,
                     // 6: summary && summary.topupAmountSum ? summary.topupAmountSum: 0,
                     // 7: summary && summary.betSum ? summary.betSum: 0,
                     // 8: summary && summary.balanceSum ? summary.balanceSum :0,
                     // 9: summary && summary.effectiveBetAmount ? summary.effectiveBetAmount: 0,
-                    4: 0,
-                    5: 1000
                 });
 
                 vm.telePlayerTable.pageObj.init({maxCount: size}, newSearch);

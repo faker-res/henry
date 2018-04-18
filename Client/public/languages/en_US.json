@@ -23,6 +23,7 @@
   "LIVE800 COMPANYID Without Desc": "Live800 Company ID",
   "LIVE800 ACC": "Live800 Account (Use comma for multiple accounts)",
   "LIVE800 ACC Without Desc": "Live800 Account",
+  "COMMISSION_TYPE": "Commission Type",
 
   "MANUAL_TOPUP": "Manual",
   "ALIPAY": "Alipay",
