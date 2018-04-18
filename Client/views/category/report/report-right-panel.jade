@@ -488,8 +488,8 @@
                             table.common-table.playerLvlTable
                                 thead
                                     tr
-                                        th {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
-                                        th {{"realName" | translate}}
+                                        th {{ "MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
+                                        th {{ "realName" | translate}}
                                         th {{ "REGISTRATION_TIME" | translate}}
                                         th {{ "PHONE_LOCATION" | translate}}
                                         th {{ "IP_LOCATION" | translate}}
@@ -509,7 +509,7 @@
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.newValidPlayer | filter: vm.filterValidPlayerCsAnalysisTable')
                                         td
-                                            span {{v.playerId}}
+                                            span {{v.name}}
                                         td
                                             span {{v.realName}}
                                         td
@@ -599,8 +599,8 @@
                             table.common-table.playerLvlTable
                                 thead
                                     tr
-                                        th {{"MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
-                                        th {{"realName" | translate}}
+                                        th {{ "MEMBERSHIP_ACCOUNT_NUMBER" | translate}}
+                                        th {{ "realName" | translate}}
                                         th {{ "REGISTRATION_TIME" | translate}}
                                         th {{ "PHONE_LOCATION" | translate}}
                                         th {{ "IP_LOCATION" | translate}}
@@ -620,7 +620,7 @@
                                 tbody
                                     tr(ng-repeat='(i, v) in vm.newPlayerQuery.newPlayers | filter: vm.filterValidPlayerPartnerAnalysisTable')
                                         td
-                                            span {{v.playerId}}
+                                            span {{v.name}}
                                         td
                                             span {{v.realName}}
                                         td
