@@ -14892,7 +14892,8 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PARTNER_NAME'), data: "partnerName", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
-                                var link = $('<a>', {
+                                let link = $('<a>', {
+                                    'class': (row.permission.forbidPartnerFromLogin === true ? "text-danger" : "text-primary"),
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
                                 }).text(data);
                                 return link.prop('outerHTML');
