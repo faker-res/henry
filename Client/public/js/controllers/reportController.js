@@ -4560,9 +4560,9 @@ define(['js/app'], function (myApp) {
         };
         vm.filterValidPlayerCsAnalysisTable = player => {
             if (vm.newPlayerQuery.validPlayerGraphCsAnalysis == $translate('No admin acc')) {
-                return player.accAdmin == null;
+                return player.csOfficerName == null;
             } else {
-                return player.accAdmin == vm.newPlayerQuery.validPlayerGraphCsAnalysis;
+                return player.csOfficerName == vm.newPlayerQuery.validPlayerGraphCsAnalysis;
             }
         };
         vm.filterValidPlayerPartnerAnalysisTable = player => player.partner && player.partner.partnerName == vm.newPlayerQuery.validPlayerGraphPartnerAnalysis;
