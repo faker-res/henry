@@ -101,9 +101,284 @@ let dbDXMission = {
                                     if(summary){
 
                                         resultData.dxMissionData.forEach(
-                                            missionData => {
+                                            (missionData,i) => {
                                                 if(missionData){
                                                     if(missionData._id && missionData._id == summary.dxMissionId){
+                                                        let isRecordDeleted = false;
+                                                        //filter by totalImportedList
+                                                        if(!isRecordDeleted){
+                                                            if(query.hasOwnProperty("totalImportedListValue") && query.totalImportedListValue != ""){
+                                                                if(query.totalImportedListOperator){
+
+                                                                    switch(query.totalImportedListOperator){
+                                                                        case ">=":
+                                                                            if(summary.importedListCount < query.totalImportedListValue){
+                                                                                resultData.dxMissionData.splice(i,1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "<=":
+                                                                            if(summary.importedListCount > query.totalImportedListValue){
+                                                                                resultData.dxMissionData.splice(i,1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "=":
+                                                                            if(summary.importedListCount != query.totalImportedListValue){
+                                                                                resultData.dxMissionData.splice(i,1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "range":
+                                                                            if(summary.importedListCount < query.totalImportedListValue){
+                                                                                resultData.dxMissionData.splice(i,1);
+                                                                                isRecordDeleted = true;
+                                                                            }else if(query.hasOwnProperty("totalImportedListValueTwo") && query.totalImportedListValueTwo != "" && summary.importedListCount > query.totalImportedListValueTwo){
+                                                                                resultData.dxMissionData.splice(i,1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+
+
+                                                        //filter by totalPlayerRegistration
+                                                        if(!isRecordDeleted) {
+                                                            if (query.hasOwnProperty("totalPlayerRegistrationValue") && query.totalPlayerRegistrationValue != "") {
+                                                                if (query.totalPlayerRegistrationOperator) {
+
+                                                                    switch (query.totalPlayerRegistrationOperator) {
+                                                                        case ">=":
+                                                                            if (summary.registeredPlayerCount < query.totalPlayerRegistrationValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "<=":
+                                                                            if (summary.registeredPlayerCount > query.totalPlayerRegistrationValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "=":
+                                                                            if (summary.registeredPlayerCount != query.totalPlayerRegistrationValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "range":
+                                                                            if (summary.registeredPlayerCount < query.totalPlayerRegistrationValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            } else if (query.hasOwnProperty("totalPlayerRegistrationValueTwo") && query.totalPlayerRegistrationValueTwo != "" && summary.registeredPlayerCount > query.totalPlayerRegistrationValueTwo) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+
+                                                        //filter by totalPlayerDepositValue
+                                                        if(!isRecordDeleted) {
+                                                            if (query.hasOwnProperty("totalPlayerDepositValue") && query.totalPlayerDepositValue != "") {
+                                                                if (query.totalPlayerDepositOperator) {
+
+                                                                    switch (query.totalPlayerDepositOperator) {
+                                                                        case ">=":
+                                                                            if (summary.topUpPlayerCount < query.totalPlayerDepositValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "<=":
+                                                                            if (summary.topUpPlayerCount > query.totalPlayerDepositValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "=":
+                                                                            if (summary.topUpPlayerCount != query.totalPlayerDepositValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "range":
+                                                                            if (summary.topUpPlayerCount < query.totalPlayerDepositValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            } else if (query.hasOwnProperty("totalPlayerDepositValueTwo") && query.totalPlayerDepositValueTwo != "" && summary.topUpPlayerCount > query.totalPlayerDepositValueTwo) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+
+                                                        //filter by totalPlayerMultiDeposit
+                                                        if(!isRecordDeleted) {
+                                                            if (query.hasOwnProperty("totalPlayerMultiDepositValue") && query.totalPlayerMultiDepositValue != "") {
+                                                                if (query.totalPlayerMultiDepositOperator) {
+
+                                                                    switch (query.totalPlayerMultiDepositOperator) {
+                                                                        case ">=":
+                                                                            if (summary.multiTopUpPlayerCount < query.totalPlayerMultiDepositValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "<=":
+                                                                            if (summary.multiTopUpPlayerCount > query.totalPlayerMultiDepositValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "=":
+                                                                            if (summary.multiTopUpPlayerCount != query.totalPlayerMultiDepositValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "range":
+                                                                            if (summary.multiTopUpPlayerCount < query.totalPlayerMultiDepositValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            } else if (query.hasOwnProperty("totalPlayerMultiDepositValueTwo") && query.totalPlayerMultiDepositValueTwo != "" && summary.multiTopUpPlayerCount > query.totalPlayerMultiDepositValueTwo) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+
+                                                        //filter by totalValidPlayer
+                                                        if(!isRecordDeleted) {
+                                                            if (query.hasOwnProperty("totalValidPlayerValue") && query.totalValidPlayerValue != "") {
+                                                                if (query.totalValidPlayerOperator) {
+
+                                                                    switch (query.totalValidPlayerOperator) {
+                                                                        case ">=":
+                                                                            if (summary.totalValidConsumptionCount < query.totalValidPlayerValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "<=":
+                                                                            if (summary.totalValidConsumptionCount > query.totalValidPlayerValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "=":
+                                                                            if (summary.totalValidConsumptionCount != query.totalValidPlayerValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "range":
+                                                                            if (summary.totalValidConsumptionCount < query.totalValidPlayerValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            } else if (query.hasOwnProperty("totalValidPlayerValueTwo") && query.totalValidPlayerValueTwo != "" && summary.totalValidConsumptionCount > query.totalValidPlayerValueTwo) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+
+                                                        //filter by totalDepositAmount
+                                                        if(!isRecordDeleted) {
+                                                            if (query.hasOwnProperty("totalDepositAmountValue") && query.totalDepositAmountValue != "") {
+                                                                if (query.totalDepositAmountOperator) {
+
+                                                                    switch (query.totalDepositAmountOperator) {
+                                                                        case ">=":
+                                                                            if (summary.totalPlayerDepositAmount < query.totalDepositAmountValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "<=":
+                                                                            if (summary.totalPlayerDepositAmount > query.totalDepositAmountValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "=":
+                                                                            if (summary.totalPlayerDepositAmount != query.totalDepositAmountValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "range":
+                                                                            if (summary.totalPlayerDepositAmount < query.totalDepositAmountValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            } else if (query.hasOwnProperty("totalDepositAmountValueTwo") && query.totalDepositAmountValueTwo != "" && summary.totalPlayerDepositAmount > query.totalDepositAmountValueTwo) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+
+                                                        //filter by totalPlayerDepositAmount
+                                                        if(!isRecordDeleted) {
+                                                            if (query.hasOwnProperty("totalValidConsumptionValue") && query.totalValidConsumptionValue != "") {
+                                                                if (query.totalValidConsumptionOperator) {
+
+                                                                    switch (query.totalValidConsumptionOperator) {
+                                                                        case ">=":
+                                                                            if (summary.totalValidConsumptionAmount < query.totalValidConsumptionValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "<=":
+                                                                            if (summary.totalValidConsumptionAmount > query.totalValidConsumptionValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "=":
+                                                                            if (summary.totalValidConsumptionAmount != query.totalValidConsumptionValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                        case "range":
+                                                                            if (summary.totalValidConsumptionAmount < query.totalValidConsumptionValue) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            } else if (query.hasOwnProperty("totalValidConsumptionValueTwo") && query.totalValidConsumptionValueTwo != "" && summary.totalValidConsumptionAmount > query.totalValidConsumptionValueTwo) {
+                                                                                resultData.dxMissionData.splice(i, 1);
+                                                                                isRecordDeleted = true;
+                                                                            }
+                                                                            break;
+                                                                    }
+
+                                                                }
+                                                            }
+                                                        }
+
                                                         missionData.importedListCount = summary.importedListCount;
                                                         missionData.sentMessageListCount = summary.sentMessageListCount;
                                                         missionData.registeredPlayerCount = summary.registeredPlayerCount;
@@ -132,37 +407,6 @@ let dbDXMission = {
             }
         );
 
-        // return dbconfig.collection_dxMission.find(matchObj).then(
-        //     missionDetails => {
-        //         if(missionDetails){
-        //             return missionDetails;
-        //         }
-        //     }
-        // );
-
-        // if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesOperator) {
-        //     let relevant = true;
-        //     switch (query.consumptionTimesOperator) {
-        //         case '>=':
-        //             relevant = result.consumptionTimes >= query.consumptionTimesValue;
-        //             break;
-        //         case '=':
-        //             relevant = result.consumptionTimes == query.consumptionTimesValue;
-        //             break;
-        //         case '<=':
-        //             relevant = result.consumptionTimes <= query.consumptionTimesValue;
-        //             break;
-        //         case 'range':
-        //             if (query.consumptionTimesValueTwo) {
-        //                 relevant = result.consumptionTimes >= query.consumptionTimesValue && result.consumptionTimes <= query.consumptionTimesValueTwo;
-        //             }
-        //             break;
-        //     }
-        //
-        //     if (!relevant) {
-        //         return "";
-        //     }
-        // }
     },
 
     getDataSummaryList: function (dxMissionId, platformObjId) {
@@ -642,7 +886,7 @@ let dbDXMission = {
         let dataSummaryListProm = [];
 
         let totalCountProm = dbconfig.collection_dxPhone.find(matchObj).count();
-        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit().sort({createTime: -1}).lean();
+        let phoneDataProm = dbconfig.collection_dxPhone.find(matchObj).skip(index).limit(limit).sort({createTime: -1}).lean();
         let dxMissionProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
         let size = 0;
         let dxPhoneData = {};
@@ -681,6 +925,7 @@ let dbDXMission = {
                     summaryData => {
                         let resultData = JSON.parse(JSON.stringify(data));
                         let dataToBeDeleted = [];
+
                         if(summaryData){
                             summaryData.forEach(
                                 summary => {
@@ -698,10 +943,9 @@ let dbDXMission = {
                                                             phoneData.totalConsumptionTime = summary.totalConsumptionTime;
                                                             phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
                                                             phoneData.totalDepositAmount = summary.totalDepositAmount;
-
                                                         }
                                                     }else{
-                                                        dataToBeDeleted.push(i);
+                                                        dataToBeDeleted.push(phoneData.playerObjId);
                                                     }
                                                 }
                                             }
@@ -711,9 +955,13 @@ let dbDXMission = {
                             )
                         }
 
-                        // remove the data without playerinfo details
-                        dataToBeDeleted.forEach(index => {
-                            resultData.dxPhoneData.splice(index,1);
+                        //remove the data without playerinfo details
+                        dataToBeDeleted.forEach(playerObjId => {
+                            var indexNo = resultData.dxPhoneData.findIndex(r => r.playerObjId == playerObjId);
+
+                            if(indexNo != -1){
+                                resultData.dxPhoneData.splice(indexNo,1)
+                            }
                         })
 
                         return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData, dxMissionData: data.dxMissionData}
