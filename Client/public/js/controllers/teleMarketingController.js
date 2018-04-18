@@ -586,6 +586,7 @@ define(['js/app'], function (myApp) {
                     welcomeTitle: vm.createTeleMarketing.welcomeTitle,
                     welcomeContent: vm.createTeleMarketing.welcomeContent,
                     alertDays: vm.createTeleMarketing.alertDays,
+                    forbidWithdrawIfBalanceAfterUnlock: vm.createTeleMarketing.forbidWithdrawIfBalanceAfterUnlock,
                 };
 
                 console.log("creteTeleMarketingTask send", sendData);
@@ -629,6 +630,7 @@ define(['js/app'], function (myApp) {
                     welcomeTitle: vm.editTeleMarketing.welcomeTitle,
                     welcomeContent: vm.editTeleMarketing.welcomeContent,
                     alertDays: vm.editTeleMarketing.alertDays,
+                    forbidWithdrawIfBalanceAfterUnlock: vm.editTeleMarketing.forbidWithdrawIfBalanceAfterUnlock,
                 };
                 let id = vm.editTeleMarketing._id ? vm.editTeleMarketing._id : null;
                 console.log("editTeleMarketingTask send", updateData);

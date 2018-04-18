@@ -34,6 +34,8 @@ var dxMission = new Schema({
     alertDays: {type: Number},
     // creation time
     createTime:{type: Date, default: Date.now, index: true},
+    //forbid permission to withdraw if balance is more than this after completing required consumption (unlocking)
+    forbidWithdrawIfBalanceAfterUnlock:{type: Number},
 });
 
 
