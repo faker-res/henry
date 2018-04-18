@@ -230,7 +230,13 @@ let dbPartner = {
             }
         ).then(
             function (data) {
-                if (!data.isPartnerNameValid) {
+                if (data.isPartnerNameValid) {
+                    // If level was provided then use that, otherwise select the first level on the platform
+                    return partnerdata.level && mongoose.Types.ObjectId.isValid(partnerdata.level) ? Q.resolve(partnerdata.level) : dbconfig.collection_partnerLevel.findOne({
+                        platform: partnerdata.platform,
+                        value: partnerdata.level || 0
+                    });
+                } else {
                     deferred.reject({
                         name: "DataError",
                         message: "Username already exists"
@@ -246,7 +252,7 @@ let dbPartner = {
                 });
                 return Promise.reject(new Error());
             }
-        ).then(() => {
+        ).then(level => {
                 return dbPartner.createPartnerDomain(partnerdata).then(
                     () => {
                         // determine registrationInterface
@@ -289,6 +295,7 @@ let dbPartner = {
                         }
 
                         let partner = new dbconfig.collection_partner(partnerdata);
+                        partner.level = level;
                         partner.partnerName = partnerdata.partnerName.toLowerCase();
                         return partner.save();
                     },
@@ -300,6 +307,12 @@ let dbPartner = {
                         });
                     }
                 );
+            }, function (error) {
+                deferred.reject({
+                    name: "DataError",
+                    message: "Error in getting partner level",
+                    error: error
+                });
             }
         ).then(
             function (data) {
