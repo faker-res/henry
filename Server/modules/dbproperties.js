@@ -313,6 +313,8 @@ let rewardTaskGroupUnlockedRecordSchema = require('./../schema/logs2/rewardTaskG
 let rewardTaskGroupUnlockedRecordModel = dbLogs2.model('rewardTaskGroupUnlockedRecord', rewardTaskGroupUnlockedRecordSchema, 'rewardTaskGroupUnlockedRecord');
 let playerBStateSchema = require('./../schema/logs2/playerBState');
 let playerBStateModel = dbLogs2.model('playerBState', playerBStateSchema, 'playerBState');
+let partnerCommSettLogSchema = require('./../schema/logs2/partnerCommSettLog');
+let partnerCommSettLogModel = dbLogs2.model('playerBState', partnerCommSettLogSchema, 'playerBState');
 
 let dxPhoneSchema = require('./../schema/logs2/dxPhone');
 let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
@@ -516,6 +518,7 @@ var dbProperties = {
     collection_rewardTaskGroupUnlockedRecord: rewardTaskGroupUnlockedRecordModel,
     collection_rewardPointsProgress: rewardPointsProgressModel,
     collection_playerBState: playerBStateModel,
+    collection_partnerCommSettLog: partnerCommSettLogModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
