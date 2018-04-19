@@ -2624,6 +2624,10 @@ var dbPlatform = {
             }
         );
     },
+
+    getPlatformPartnerSettLog: (platformId) => {
+        return [];
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {

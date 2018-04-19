@@ -1419,20 +1419,45 @@ define(['js/app'], function (myApp) {
 
             vm.startPlatformPartnerCommissionSettlement = function ($event) {
                 vm.partnerCommissionSettlement = {
+                    data: [],
                     result: false,
                     status: 'ready'
                 };
 
-                socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettLog',
-                    {},
-                    ret => {
-                        vm.partnerCommissionSettlement.startTime = vm.dateReformat(ret.data.startTime);
-                        vm.partnerCommissionSettlement.endTime = vm.dateReformat(ret.data.endTime);
-                        $scope.safeApply();
-                    });
+                let modes = [1, 2, 3, 4, 5];
 
-                $('#partnerCommissionSettlementModal').modal('show');
-                $scope.safeApply();
+                $scope.$socketPromise("getPlatformPartnerSettLog", {platformId: vm.selectedPlatform.id}).then(
+                    logs => {
+                        $scope.$evalAsync(() => {
+                            modes.forEach(mode => {
+                                let lastSettDate = "-";
+
+                                if (logs && logs.length > 0) {
+                                    let thisLog = logs.filter(e => e.settMode == mode)[0];
+                                    lastSettDate = thisLog.startTime + " - " + thisLog.endTime;
+                                };
+
+                                vm.partnerCommissionSettlement.data.push({
+                                    mode: mode,
+                                    lastSettDate: lastSettDate
+                                });
+                            });
+
+                            $('#partnerCommissionSettlementModal').modal('show');
+                        })
+                    }
+                )
+
+                // socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettLog',
+                //     {},
+                //     ret => {
+                //         vm.partnerCommissionSettlement.startTime = vm.dateReformat(ret.data.startTime);
+                //         vm.partnerCommissionSettlement.endTime = vm.dateReformat(ret.data.endTime);
+                //         $scope.safeApply();
+                //     });
+                //
+
+                // $scope.safeApply();
             };
 
             vm.getPartnerCommSettPreview = (settMode) => {
