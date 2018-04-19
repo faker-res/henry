@@ -319,7 +319,7 @@ define(['js/app'], function (myApp) {
                     "DISABLED": true,
                     "CLOSE": true,
                     "TOBEFOLLOWEDUP": true,
-                    "SUSPEND": true}
+                    "SUSPEND": true
                 }
             }
 
@@ -2020,7 +2020,7 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 wechatGroup: wechatPayGroup._id
             };
-            vm.wechatStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true}};
+            vm.wechatStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
             socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
