@@ -20222,7 +20222,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? new Date(vm.selectedProposal.data.depositTime).toLocaleString() : " ";
                     proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.remark] || $translate("BACKSTAGE");
+                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
                     proposalDetail["REQUEST_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankCardType] || (vm.selectedProposal.data.bankCardType + " ! " + $translate("not in bank type list"));
                     proposalDetail["USE_PMS_CARD_GROUP"] = vm.selectedProposal.data.bPMSGroup || false;
@@ -20251,7 +20251,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.remark] || $translate("BACKSTAGE");
+                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -20280,7 +20280,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
                     proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.remark] || $translate("BACKSTAGE");
+                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -20311,7 +20311,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
                     proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.remark] || $translate("BACKSTAGE");
+                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -20391,7 +20391,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? new Date(vm.selectedProposal.data.depositTime).toLocaleString() : " ";
                     proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.remark] || $translate("BACKSTAGE");
+                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
                     proposalDetail["REQUEST_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankCardType] || (vm.selectedProposal.data.bankCardType + " ! " + $translate("not in bank type list"));
                     proposalDetail["USE_PMS_CARD_GROUP"] = vm.selectedProposal.data.bPMSGroup || false;
@@ -20420,7 +20420,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.remark] || $translate("BACKSTAGE");
+                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -20449,7 +20449,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
                     proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.remark] || $translate("BACKSTAGE");
+                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -20480,7 +20480,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
                     proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.remark] || $translate("BACKSTAGE");
+                    proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
