@@ -87,7 +87,10 @@ var proposalExecutor = {
                             return dbconfig.collection_proposal.findOneAndUpdate({
                                 _id: proposalData._id,
                                 createTime: proposalData.createTime
-                            }, {settleTime: new Date()}).then(
+                            }, {
+                                executeTime: new Date(),
+                                settleTime: new Date()
+                            }).then(
                                 res => {
                                     if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
                                         return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
