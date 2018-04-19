@@ -3755,6 +3755,7 @@ define(['js/app'], function (myApp) {
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
+                platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
                 index: 0,
                 limit: 1,
@@ -3772,7 +3773,6 @@ define(['js/app'], function (myApp) {
                 limit: newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
             };
-            console.log("newproposalQuery", newproposalQuery);
 
             socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
                 // $('#operationTableSpin').hide();

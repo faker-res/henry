@@ -447,9 +447,10 @@ let dbDXMission = {
                     playerData.forEach(playerId => {
                        if(playerId){
                            if (!alerted){
-                               let registeredDate = new Date(playerId.registrationTime).getTime();
-                               let alertPeriod = new Date(dbUtility.getNdaylaterStartTime(alertDay)).getTime();
-                               if (registeredDate <= alertPeriod){
+
+                               let registeredTime = new Date(playerId.registrationTime)
+                               let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registeredTime)).getTime();
+                               if (alertPeriod >= new Date().getTime()){
                                    alerted = true;
                                }
                            }
@@ -962,6 +963,7 @@ let dbDXMission = {
         let size = 0;
         let dxPhoneData = {};
         let dxMissionData = {};
+        let alertDay = null;
 
         return Promise.all([totalCountProm, phoneDataProm, dxMissionProm]).then(
             result => {
@@ -976,6 +978,9 @@ let dbDXMission = {
         ).then(
             data => {
                 console.log("LH TEST searchCriteria", searchCriteria);
+                if (data.dxMissionData){
+                    alertDay = data.dxMissionData.alertDays;
+                }
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
@@ -985,11 +990,11 @@ let dbDXMission = {
                                     console.log("LH TEST phoneData", phoneData);
                                     if(searchCriteria.includes(phoneData.playerObjId.toString())){
                                         console.log("LH TEST phoneData playerObjId", phoneData.playerObjId);
-                                        dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
+                                        dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay));
                                     }
                                 }
                             }else{
-                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
+                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay));
                            }
                         }
                     }
@@ -1019,6 +1024,7 @@ let dbDXMission = {
                                                             phoneData.totalConsumptionTime = summary.totalConsumptionTime;
                                                             phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
                                                             phoneData.totalDepositAmount = summary.totalDepositAmount;
+                                                            phoneData.alerted = summary.alerted;
                                                         }
                                                     }else{
                                                         if(dataToBeDeleted.findIndex(d => d == phoneData.playerObjId) == -1){
@@ -1053,7 +1059,7 @@ let dbDXMission = {
         );
     },
 
-    getPlayerInfo: function (playerObjId, platform, type) {
+    getPlayerInfo: function (playerObjId, platform, type, alertDay) {
         if(!playerObjId){
             return;
         }
@@ -1069,6 +1075,7 @@ let dbDXMission = {
         let bonusProm = [];
         let topUpPlayerProm = [];
         let playerConsumptionProm = [];
+        let alerted = false;
 
         let query = {
             _id: playerObjId
@@ -1097,6 +1104,13 @@ let dbDXMission = {
 
                     if(playerData.registrationTime){
                         registrationTime = new Date(playerData.registrationTime);
+                    }
+
+                    if (alertDay && registrationTime){
+                        let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registrationTime)).getTime();
+                        if (alertPeriod >= new Date().getTime()){
+                            alerted = true;
+                        }
                     }
 
                     topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).then(
@@ -1168,7 +1182,8 @@ let dbDXMission = {
                                 totalLoginTimes: totalLoginTimes,
                                 totalConsumptionTime: totalConsumptionTime,
                                 totalConsumptionAmount: totalConsumptionAmount,
-                                totalDepositAmount: totalTopUpAmount - playerBonusAmount
+                                totalDepositAmount: totalTopUpAmount - playerBonusAmount,
+                                alerted: alerted
                             }
                         }
                     );
