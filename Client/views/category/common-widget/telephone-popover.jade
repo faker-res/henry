@@ -56,7 +56,7 @@ ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' 
                             td {{mailLog.senderName | translate}}
                             td {{mailLog.content}}
 
-    ez-modal-footer(ng-if="vm.messageModalTab === 'sendMessageToPartnerPanel'")
+    ez-modal-footer(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
         ez-confirm-button(ng-click="vm.sendMessageToPlayer()") {{"SEND" | translate}}
         ez-cancel-button {{"CANCEL" | translate}}
 
