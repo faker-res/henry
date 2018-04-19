@@ -851,7 +851,7 @@ let dbDXMission = {
         let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         let QsortCol = sortCol || {'createTime': -1};
 
-        //let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
+        let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
         let findQuery = {
             platform: platformObjId,
             dxMission: dxMission,
@@ -869,12 +869,12 @@ let dbDXMission = {
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
-        return Promise.all([dxPhoneDataProm, dxMissionProm]).then(
+        return Promise.all([sizeProm,dxPhoneDataProm, dxMissionProm]).then(
             result => {
                 if(result){
-                    // let size = result[0] ? result[0] : 0;
-                    let dxPhoneData = result[0] ? result[0] : {};
-                    let dxMissionData = result[1] ? result[1] : {};
+                    let size = result[0] ? result[0] : 0;
+                    let dxPhoneData = result[1] ? result[1] : {};
+                    let dxMissionData = result[2] ? result[2] : {};
                     let dxPhoneDataWithDetails = [];
 
                     if (dxPhoneData && dxPhoneData.length > 0){
@@ -929,8 +929,8 @@ let dbDXMission = {
                                 })
 
                             }
-                            return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
-                            // return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                            //return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                            return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
                         })
                     }
 
