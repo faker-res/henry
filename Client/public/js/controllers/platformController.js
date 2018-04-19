@@ -1426,22 +1426,13 @@ define(['js/app'], function (myApp) {
 
                 let modes = [1, 2, 3, 4, 5];
 
-                $scope.$socketPromise("getPlatformPartnerSettLog", {platformId: vm.selectedPlatform.id}).then(
+                $scope.$socketPromise("getPlatformPartnerSettLog", {
+                    platformId: vm.selectedPlatform.id,
+                    modes: modes
+                }).then(
                     logs => {
                         $scope.$evalAsync(() => {
-                            modes.forEach(mode => {
-                                let lastSettDate = "-";
-
-                                if (logs && logs.length > 0) {
-                                    let thisLog = logs.filter(e => e.settMode == mode)[0];
-                                    lastSettDate = thisLog.startTime + " - " + thisLog.endTime;
-                                };
-
-                                vm.partnerCommissionSettlement.data.push({
-                                    mode: mode,
-                                    lastSettDate: lastSettDate
-                                });
-                            });
+                            vm.partnerCommissionSettlement.data = logs.data;
 
                             $('#partnerCommissionSettlementModal').modal('show');
                         })

@@ -2625,8 +2625,43 @@ var dbPlatform = {
         );
     },
 
-    getPlatformPartnerSettLog: (platformId) => {
-        return [];
+    getPlatformPartnerSettLog: (platformObjId, modes) => {
+        let promArr = [];
+
+        modes.forEach(mode => {
+            promArr.push(
+                dbconfig.collection_partnerCommSettLog.findOne({
+                    platform: platformObjId,
+                    settMode: mode
+                }).sort('-startTime').lean().then(
+                    modeLog => {
+                        let lastSettDate = "-";
+                        let nextSettDate = "-";
+
+                        if (modeLog) {
+                            lastSettDate = modeLog.startTime + " - " + modeLog.endTime;
+                        } else {
+                            let nextDate = getPartnerCommNextSettDate(mode);
+
+                            if (nextDate) {
+                                nextSettDate =
+                                    dbUtility.getLocalTimeString(nextDate.startTime, "YYYY-MM-DD")
+                                    + " - " +
+                                    dbUtility.getLocalTimeString(nextDate.endTime.getTime() + 1, "YYYY-MM-DD")
+                            }
+                        }
+
+                        return {
+                            mode: mode,
+                            lastSettDate: lastSettDate,
+                            nextSettDate: nextSettDate
+                        }
+                    }
+                )
+            )
+        });
+
+        return Promise.all(promArr);
     }
 };
 
@@ -2644,6 +2679,20 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
     if (createTimeQuery) {
         query[fieldName] = createTimeQuery;
+    }
+}
+
+function getPartnerCommNextSettDate(settMode) {
+    switch (settMode) {
+        case 1:
+            return dbUtility.getDayTime(dbUtility.getFirstDayOfYear());
+        case 2:
+        case 5:
+            return dbUtility.getWeekTime(dbUtility.getFirstDayOfYear());
+        case 3:
+            return dbUtility.getBiWeekSGTIme(dbUtility.getFirstDayOfYear());
+        case 4:
+            return dbUtility.getMonthSGTIme(dbUtility.getFirstDayOfYear());
     }
 }
 
