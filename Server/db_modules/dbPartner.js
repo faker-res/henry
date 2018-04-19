@@ -2072,6 +2072,14 @@ let dbPartner = {
                         });
                     }
 
+                    if (!partnerData.permission.applyBonus) {
+                        return Q.reject({
+                            status: constServerCode.PARTNER_IS_FORBIDDEN,
+                            name: "DataError",
+                            errorMessage: "Partner is forbidden to apply bonus"
+                        });
+                    }
+
                     //check if partner has enough credit
                     partner = partnerData;
                     if (partnerData.credits < bonusDetail.credit * amount) {
@@ -2925,6 +2933,24 @@ let dbPartner = {
                    return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
                }
            });
+    },
+
+    getPartnerCommissionConfigWithGameProviderGroup: function (query) {
+        return dbconfig.collection_partnerCommissionConfig.find(query);
+    },
+
+    createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data) {
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType, provider: query.provider}).lean().then(
+            configData => {
+                //check if config exist
+                if (!configData) {
+                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
+                    return newCommissionConfig.save();
+                }
+                else {
+                    return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
+                }
+            });
     },
 
     startPlatformPartnerCommissionSettlement: function (platformObjId, bUpdateSettlementTime, isToday) {

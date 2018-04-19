@@ -329,7 +329,7 @@ define(['js/app'], function (myApp) {
                     query: {
                     },
                     index: newSearch ? 0 : (vm.teleMarketingOverview.index || 0),
-                    limit: vm.teleMarketingOverview.limit || 5000,
+                    limit: vm.teleMarketingOverview.limit || 10,
                     sortCol: vm.teleMarketingOverview.sortCol || -1,
                 };
 
@@ -421,7 +421,7 @@ define(['js/app'], function (myApp) {
                             data: "sentMessageListCount$",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("telePlayerSendingMsgTablePage"); vm.initTelePlayerSendingMsgTable()'
+                                    'ng-click': 'vm.showTelePlayerSendingMsgTable("' + row['_id'] + '");  vm.setAnchor("smsTableAnchor"); vm.initTelePlayerSendingMsgTable()'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -431,7 +431,8 @@ define(['js/app'], function (myApp) {
                             data: "registeredPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer"); vm.showPagedTelePlayerTable(); vm.setAnchor("telePlayerTablePage")'
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer"); vm.showPagedTelePlayerTable(); vm.setAnchor("telePlayerTableAnchor")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -441,7 +442,7 @@ define(['js/app'], function (myApp) {
                             data: "topUpPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerTopUp"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerTopUp","' + row['topUpPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -451,7 +452,7 @@ define(['js/app'], function (myApp) {
                             data: "multiTopUpPlayerCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerMultiTopUp"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayerMultiTopUp","' + row['multiTopUpPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -461,7 +462,7 @@ define(['js/app'], function (myApp) {
                             data: "totalValidConsumptionCount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidPlayer","' + row['validPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -471,7 +472,7 @@ define(['js/app'], function (myApp) {
                             data: "totalPlayerDepositAmount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalDepositAmount","' + row['depositPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -481,7 +482,7 @@ define(['js/app'], function (myApp) {
                             data: "totalValidConsumptionAmount",
                             render: function (data, type, row) {
                                 var link = $('<a>', {
-                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTablePage")'
+                                    'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalValidConsumption","' + row['consumptionPlayerArr'] +'"); vm.showPagedTelePlayerTable();vm.setAnchor("telePlayerTableAnchor")'
                                 }).text(data);
                                 return link.prop('outerHTML');
                             }
@@ -585,6 +586,7 @@ define(['js/app'], function (myApp) {
                     welcomeTitle: vm.createTeleMarketing.welcomeTitle,
                     welcomeContent: vm.createTeleMarketing.welcomeContent,
                     alertDays: vm.createTeleMarketing.alertDays,
+                    forbidWithdrawIfBalanceAfterUnlock: vm.createTeleMarketing.forbidWithdrawIfBalanceAfterUnlock,
                 };
 
                 console.log("creteTeleMarketingTask send", sendData);
@@ -628,6 +630,7 @@ define(['js/app'], function (myApp) {
                     welcomeTitle: vm.editTeleMarketing.welcomeTitle,
                     welcomeContent: vm.editTeleMarketing.welcomeContent,
                     alertDays: vm.editTeleMarketing.alertDays,
+                    forbidWithdrawIfBalanceAfterUnlock: vm.editTeleMarketing.forbidWithdrawIfBalanceAfterUnlock,
                 };
                 let id = vm.editTeleMarketing._id ? vm.editTeleMarketing._id : null;
                 console.log("editTeleMarketingTask send", updateData);
@@ -1087,7 +1090,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getDXPlayerInfo', sendQuery, function (data) {
                     if(data){
-                        vm.teleMarketingPlayerInfo.count = data.data && data.data.size ? data.data.size : 0;
+                        vm.teleMarketingPlayerInfo.count = data.data && data.data.totalCount ? data.data.totalCount : 0;
                         vm.teleMarketingPlayerInfo.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : {};
                         vm.teleMarketingPlayerInfo.missionData = data.data && data.data.dxMissionData ? data.data.dxMissionData : {};
                     }
@@ -1099,7 +1102,7 @@ define(['js/app'], function (myApp) {
                         }
                     });
 
-                    $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, 6));
+                    $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count));
                 })
             };
 
@@ -1117,19 +1120,112 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('ORDER'),
                             render: function(data, type, row, index){
-                                return index.row+1 ;
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(index.row+1);
+                                return link.prop('outerHTML');
+                                // return index.row+1 ;
                             }
 
                         },
-                        { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber"},
-                        { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
-                        { title: $translate('TIME_OPENING_ACCOUNT'), data: "registrationTime",  sClass: "sumText wordWrap"},
-                        { title: $translate('loginTimes'), data: "totalLoginTimes"},
-                        { title: $translate('TOP_UP_TIMES'), data: "totalTopUpCount"},
-                        { title: $translate('TOP_UP_AMOUNT'), data: "totalTopUpAmount"},
-                        { title: $translate('TIMES_CONSUMED'), data: "totalConsumptionTime"},
-                        { title: $translate('TOTAL_DEPOSIT_AMOUNT'), data: "totalDepositAmount"},
-                        { title: $translate('VALID_CONSUMPTION'), data: "totalConsumptionAmount"},
+                        {
+                            title: $translate('IMPORTED_PHONE_NUMBER'),
+                            data: "phoneNumber",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+
+                        },
+                        {
+                            title: $translate('CUSTOMER_ACCOUNT_ID'),
+                            data: "playerName",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TIME_OPENING_ACCOUNT'),
+                            data: "registrationTime",
+                            sClass: "sumText wordWrap",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('loginTimes'),
+                            data: "totalLoginTimes",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOP_UP_TIMES'),
+                            data: "totalTopUpCount",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOP_UP_AMOUNT'),
+                            data: "totalTopUpAmount",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TIMES_CONSUMED'),
+                            data: "totalConsumptionTime",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('TOTAL_DEPOSIT_AMOUNT'),
+                            data: "totalDepositAmount",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
+                        {
+                            title: $translate('VALID_CONSUMPTION'),
+                            data: "totalConsumptionAmount",
+                            sClass: "sumFloat textRight",
+                            render: function(data, type, row, index){
+                                var link = $('<span>', {
+                                    'class': (row.alerted ? "text-danger" : ""),
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
+                        },
 
                         // {
                         //     title: $translate('Function'), //data: 'phoneNumber',
@@ -1273,15 +1369,13 @@ define(['js/app'], function (myApp) {
                 });
                 tableOptions.language.emptyTable=$translate("No data available in table");
 
-                utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {
+                let a = utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {
                     // 4: summary && summary.loginTimeSum ? summary.loginTimeSum: 0,
                     // 5: summary && summary.topupTimeSum ? summary.topupTimeSum: 0,
                     // 6: summary && summary.topupAmountSum ? summary.topupAmountSum: 0,
                     // 7: summary && summary.betSum ? summary.betSum: 0,
                     // 8: summary && summary.balanceSum ? summary.balanceSum :0,
                     // 9: summary && summary.effectiveBetAmount ? summary.effectiveBetAmount: 0,
-                    4: 0,
-                    5: 1000
                 });
 
                 vm.telePlayerTable.pageObj.init({maxCount: size}, newSearch);

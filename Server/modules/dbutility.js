@@ -498,6 +498,13 @@ var dbUtility = {
         };
     },
 
+    getNdaylaterFromSpecificStartTime: function (n, date) {
+        var n = Number.isInteger(n) ? parseInt(n) : 0;
+
+        return moment(date).add(n,'days').toDate();
+    },
+
+
     /**
      * Get current week time frame based on settlement time
      * @param {number} hour

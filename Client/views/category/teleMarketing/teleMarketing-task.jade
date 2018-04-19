@@ -135,6 +135,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
 
+                    #telePlayerTableAnchor
                     #overViewSubTable(ng-show="vm.showPlayerTable")
                          div(style="margin-top:60px; position:relative;")
                             label {{"totalCount" | translate}} {{vm.teleMarketingPlayerInfo.count}} {{"records" | translate}}
@@ -144,8 +145,9 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             #telePlayerTablePage
                     //br
                     //br
+                    #smsTableAnchor
                     #sendSMSTabletab-pane.well.fade.in.active(ng-show="vm.showSMSTable", style="margin-top: 100px; padding: 35px 20px;")
-                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'teleMarketingOverview')")
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
                             label {{"CUSTOMER_ACCOUNT_ID"|translate}}
                             br
                             select.form-control(ng-model="vm.telePlayerSendingMsgTable.customerType" style="width:90px;display:inline-block;")
@@ -178,7 +180,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
                                 span.add-on
                                     i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
-                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'teleMarketingOverview')")
+                        .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
                             label {{"SENDING_TIMES"|translate}}
                             br
                             select.form-control(ng-model="vm.telePlayerSendingMsgTable.msgTimesOperator", style="width:75px;display:inline-block;")
@@ -195,7 +197,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         .inlineBlk(ng-show='vm.loadingTelePlayerSendingSMSTable')
                                 i.fa.fa-spin.fa-spinner
 
-                        div(style="position:relative; margin-top:40px;")
+                        div(style="position:relative; margin-top:60px;")
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
                             label(style="margin-left:100px;") {{vm.msgTemplate.name}} - {{vm.msgTemplate.description}}
                             button.common-button.btn.btn-primary(ng-click="vm.showSMSTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
@@ -280,6 +282,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                 .full-width-input-block
                                     label {{"Please Enter Number of Days for Alert" | translate}}:
                                     input.form-control(type='number', ng-model='vm.createTeleMarketing.alertDays')
+
+                                .full-width-input-block
+                                    label {{"Forbid withdraw if there is balance after unlock" | translate}}:
+                                    input.form-control(type='number', ng-model='vm.createTeleMarketing.forbidWithdrawIfBalanceAfterUnlock')
                         br
                         table.simple-table
                             thead
