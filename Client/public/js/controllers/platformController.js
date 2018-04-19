@@ -6051,7 +6051,7 @@ define(['js/app'], function (myApp) {
 
                         vm.sendMessageToPlayer = function () {
                             // Currently we are passing the adminId from the client side, but we should really pick it up on the server side.
-                            var sendData = {
+                            let sendData = {
                                 //adminId: authService.adminId,
                                 adminName: authService.adminName,
                                 platformId: vm.selectedPlatform.id,
@@ -6060,6 +6060,21 @@ define(['js/app'], function (myApp) {
                                 content: vm.messageForPlayer.content
                             };
                             $scope.$socketPromise('sendPlayerMailFromAdminToPlayer', sendData).then(function () {
+                                // We could show a confirmation message, but currently showConfirmMessage() is doing that for us.
+                            }).done();
+                        };
+
+                        vm.sendMessageToPartner = function () {
+                            // Currently we are passing the adminId from the client side, but we should really pick it up on the server side.
+                            let sendData = {
+                                //adminId: authService.adminId,
+                                adminName: authService.adminName,
+                                platformId: vm.selectedPlatform.id,
+                                partnerId: vm.telphonePartner._id,
+                                title: vm.messageForPartner.title,
+                                content: vm.messageForPartner.content
+                            };
+                            $scope.$socketPromise('sendPlayerMailFromAdminToPartner', sendData).then(function () {
                                 // We could show a confirmation message, but currently showConfirmMessage() is doing that for us.
                             }).done();
                         };
@@ -7069,11 +7084,18 @@ define(['js/app'], function (myApp) {
                         $('body').off('click', playerIpHistoryHandler);
                     }
                 });
-            }
+            };
+
             vm.sendMessageToPlayerBtn = function (type, data) {
                 vm.telphonePlayer = data;
                 $('#messagePlayerModal').modal('show');
-            }
+            };
+
+            vm.sendMessageToPartnerBtn = function (type, data) {
+                vm.telphonePartner = data;
+                $('#messagePartnerModal').modal('show');
+            };
+
             vm.callNewPlayerBtn = function (phoneNumber, data) {
 
                 vm.getSMSTemplate();
@@ -7107,7 +7129,8 @@ define(['js/app'], function (myApp) {
                 vm.sendSMSResult = {};
                 $scope.safeApply();
                 $('#smsPlayerModal').modal('show');
-            }
+            };
+
             vm.telorMessageToPlayerBtn = function (type, playerObjId, data) {
                 // var rowData = JSON.parse(data);
                 console.log(type, data);
@@ -8807,8 +8830,7 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-
-        vm.initPlayerModal = function () {
+            vm.initPlayerModal = function () {
 
                 $('#newPlayerListTab').addClass('active');
                 $('#attemptNumberListTab').removeClass('active');
@@ -8817,14 +8839,15 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerList();
             }
 
-        vm.initFeedbackModal = function (selectedPlayer) {
+            vm.initFeedbackModal = function (selectedPlayer) {
                 vm.selectedSinglePlayer = selectedPlayer;
                 $('#addFeedbackTab').addClass('active');
                 $('#feedbackHistoryTab').removeClass('active');
                 $scope.safeApply();
                 vm.feedbackModalTab = "addFeedbackPanel";
             }
-        vm.initNewPlayerFeedbackModal = function (selectedPlayer) {
+
+            vm.initNewPlayerFeedbackModal = function (selectedPlayer) {
                 vm.selectedSinglePlayer = selectedPlayer;
 
 
@@ -8839,13 +8862,22 @@ define(['js/app'], function (myApp) {
                     vm.feedbackModalTab = "addFeedbackPanel";
                 });
             }
+
             vm.initMessageModal = function () {
 
                 $('#sendMessageToPlayerTab').addClass('active');
                 $('#messageLogTab').removeClass('active');
                 $scope.safeApply();
                 vm.messageModalTab = "sendMessageToPlayerPanel";
-            }
+            };
+
+            vm.initPartnerMessageModal = function () {
+
+                $('#sendMessageToPartnerTab').addClass('active');
+                $('#messageLogPartnerTab').removeClass('active');
+                $scope.safeApply();
+                vm.messageModalTab = "sendMessageToPartnerPanel";
+            };
 
             vm.initSMSModal = function () {
                 $('#smsToPlayerTab').addClass('active');
@@ -8900,7 +8932,7 @@ define(['js/app'], function (myApp) {
             vm.partnerAdvertisementWebDevice = true;
         }
 
-        vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
+            vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
                 opt = opt || {'dom': 't'};
                 vm.playerFeedbackRecord.searching = true;
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackReport', {
@@ -11395,7 +11427,22 @@ define(['js/app'], function (myApp) {
                     vm.mailLog.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                     vm.searchMailLog();
                 });
-            }
+            };
+
+            vm.initPartnerMailLog = function () {
+                vm.mailLogPartner = vm.mailLogPartner || {};
+                vm.mailLogPartner.query = {};
+                vm.mailLogPartner.receivedMails = [{}];
+                vm.mailLogPartner.isAdmin = true;
+                vm.mailLogPartner.isSystem = true;
+                utilService.actionAfterLoaded('#messagePartnerModal.in #messageLogPartnerPanel #mailLogPartnerQuery .endTime', function () {
+                    vm.mailLogPartner.startTime = utilService.createDatePicker('#messageLogPartnerPanel #mailLogPartnerQuery .startTime');
+                    vm.mailLogPartner.endTime = utilService.createDatePicker('#messageLogPartnerPanel #mailLogPartnerQuery .endTime');
+                    vm.mailLogPartner.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                    vm.mailLogPartner.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                    vm.searchPartnerMailLog();
+                });
+            };
 
             vm.searchMailLog = function () {
                 let requestData = {
@@ -11413,7 +11460,25 @@ define(['js/app'], function (myApp) {
                     vm.mailLog.receivedMails = result.data;
                     $scope.safeApply();
                 }).catch(console.error);
-            }
+            };
+
+            vm.searchPartnerMailLog = function () {
+                let requestData = {
+                    recipientId: vm.selectedSinglePartner._id,
+                    startTime: vm.mailLogPartner.startTime.data('datetimepicker').getLocalDate() || new Date(0),
+                    endTime: vm.mailLogPartner.endTime.data('datetimepicker').getLocalDate() || new Date()
+                };
+                if(!vm.mailLogPartner.isAdmin && vm.mailLogPartner.isSystem){
+                    requestData.senderType = 'System';
+                } else if (vm.mailLogPartner.isAdmin && !vm.mailLogPartner.isSystem) {
+                    requestData.senderType = 'admin';
+                }
+                $scope.$socketPromise('searchMailLog', requestData).then(result => {
+                    console.log("result:", result);
+                    vm.mailLogPartner.receivedMails = result.data;
+                    $scope.safeApply();
+                }).catch(console.error);
+            };
 
             vm.initSMSLog = function (type) {
                 vm.smsLog = vm.smsLog || {index: 0, limit: 10};
@@ -15033,7 +15098,7 @@ define(['js/app'], function (myApp) {
                                 let link = $('<div>', {});
                                 link.append($('<a>', {
                                     'class': 'fa fa-envelope margin-right-5',
-                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPartnerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'ng-click': 'vm.initPartnerMessageModal(); vm.sendMessageToPartnerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'tooltip',
                                     'title': $translate("SEND_MESSAGE_TO_PARTNER"),
