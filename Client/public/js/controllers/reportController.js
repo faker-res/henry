@@ -3755,6 +3755,7 @@ define(['js/app'], function (myApp) {
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
+                platformId: vm.curPlatformId,
                 proposalId: newproposalQuery.proposalId,
                 index: 0,
                 limit: 1,
@@ -3772,7 +3773,6 @@ define(['js/app'], function (myApp) {
                 limit: newproposalQuery.limit,
                 sortCol: newproposalQuery.sortCol
             };
-            console.log("newproposalQuery", newproposalQuery);
 
             socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
                 // $('#operationTableSpin').hide();
@@ -4560,9 +4560,9 @@ define(['js/app'], function (myApp) {
         };
         vm.filterValidPlayerCsAnalysisTable = player => {
             if (vm.newPlayerQuery.validPlayerGraphCsAnalysis == $translate('No admin acc')) {
-                return player.accAdmin == null;
+                return player.csOfficerName == null;
             } else {
-                return player.accAdmin == vm.newPlayerQuery.validPlayerGraphCsAnalysis;
+                return player.csOfficerName == vm.newPlayerQuery.validPlayerGraphCsAnalysis;
             }
         };
         vm.filterValidPlayerPartnerAnalysisTable = player => player.partner && player.partner.partnerName == vm.newPlayerQuery.validPlayerGraphPartnerAnalysis;

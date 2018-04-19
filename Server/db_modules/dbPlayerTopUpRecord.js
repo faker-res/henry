@@ -1153,7 +1153,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.inputData = inputData;
                 proposalData.userAgent = userAgent ? userAgent : "";
                 proposalData.bPMSGroup = Boolean(bPMSGroup);
-                proposalData.promoCode = inputData.bonusCode;
+                proposalData.bonusCode = inputData.bonusCode;
                 proposalData.topUpReturnCode = topUpReturnCode;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',

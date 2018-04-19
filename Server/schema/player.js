@@ -306,6 +306,8 @@ var playerSchema = new Schema({
     ximaWithdraw: {type: Number, default: 0},
     // dian xiao mission related player
     dxMission: {type: Schema.ObjectId, ref: 'dxMission'},
+    //client data
+    clientData: {type: String}
 });
 
 //record is unique by name and platform
