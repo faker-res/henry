@@ -736,8 +736,8 @@
                                                                             input(type='number', percentage, style="display: inline-block", ng-model='commissionSetting.commissionRate' ng-disabled='!commissionSetting.isEditing')
                                                                     td
                                                                         a(href="" ng-if="!commissionSetting.isEditing" ng-click="vm.commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
-                                                                        a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingCancelRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
-                                                                        text(ng-if="!commissionSetting.isEditing") /
+                                                                        a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
+                                                                        text(ng-if="!commissionSetting.isCreateNew") /
                                                                         a(href="" ng-click="vm.commissionSettingNewRow(gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'INSERT' | translate}}
                                                                         text /
                                                                         a(href="" ng-click="vm.commissionSettingDeleteRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
