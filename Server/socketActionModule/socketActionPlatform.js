@@ -604,6 +604,12 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime], actionName, isValidData);
+        },
+
+        skipNextPartnerCommissionPeriod: function skipNextPartnerCommissionPeriod(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime, true], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;

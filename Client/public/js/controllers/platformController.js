@@ -1457,7 +1457,7 @@ define(['js/app'], function (myApp) {
                     settMode: modeObj.mode,
                     startTime: modeObj.settStartTime,
                     endTime: modeObj.settEndTime
-                });
+                }).then(vm.startPlatformPartnerCommissionSettlement());
 
                 // socketService.$socket($scope.AppSocket, 'getPartnerCommSettPreview',
                 //     {
@@ -1471,7 +1471,25 @@ define(['js/app'], function (myApp) {
                 //     err => {
                 //     }
                 // );
-            }
+            };
+
+            vm.skipNextPartnerCommissionPeriod = (modeObj, isConfirm = false) => {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Skip next partner commission settlement period");
+                    vm.modalYesNo.modalText = $translate("Are you sure");
+                    vm.modalYesNo.actionYes = () => vm.skipNextPartnerCommissionPeriod(modeObj, true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    $scope.$socketPromise("skipNextPartnerCommissionPeriod", {
+                        platformObjId: vm.selectedPlatform.id,
+                        settMode: modeObj.mode,
+                        startTime: modeObj.settStartTime,
+                        endTime: modeObj.settEndTime
+                    }).then(vm.startPlatformPartnerCommissionSettlement());
+                }
+            };
 
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';

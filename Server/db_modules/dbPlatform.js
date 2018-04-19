@@ -2674,19 +2674,19 @@ var dbPlatform = {
         return Promise.all(promArr);
     },
 
-    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime) => {
+    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false) => {
         return dbconfig.collection_partnerCommSettLog.update({
             platform: platformObjId,
             settMode: settMode,
             startTime: startTime,
             endTime: endTime
         }, {
-            isSettled: false
+            isSettled: isSkip
         }, {
             upsert: true,
             new: true
         });
-    }
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
