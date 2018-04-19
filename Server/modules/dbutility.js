@@ -500,10 +500,11 @@ var dbUtility = {
 
     getNdaylaterFromSpecificStartTime: function (n, date) {
         var n = Number.isInteger(n) ? parseInt(n) : 0;
-        return new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000 * n);
+
+        return moment(date).add(n,'days').toDate();
     },
 
-    
+
     /**
      * Get current week time frame based on settlement time
      * @param {number} hour
