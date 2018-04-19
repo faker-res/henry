@@ -985,22 +985,7 @@ let dbDXMission = {
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
-<<<<<<< HEAD
-                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, phoneData.phoneNumber));
-=======
-                            // filter the search result of second table by different source from main table
-                            if(type == "TotalValidPlayer" || type == "TotalDepositAmount" || type == "TotalValidConsumption"){
-                                if(searchCriteria && searchCriteria != ""){
-                                    console.log("LH TEST phoneData", phoneData);
-                                    if(searchCriteria.includes(phoneData.playerObjId.toString())){
-                                        console.log("LH TEST phoneData playerObjId", phoneData.playerObjId);
-                                        dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay));
-                                    }
-                                }
-                            }else{
-                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay));
-                           }
->>>>>>> upstream/develop-1.1
+                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay, phoneData.phoneNumber));
                         }
                     }
                 )
@@ -1026,11 +1011,8 @@ let dbDXMission = {
                                                             phoneData.totalConsumptionTime = summary.totalConsumptionTime;
                                                             phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
                                                             phoneData.totalDepositAmount = summary.totalDepositAmount;
-<<<<<<< HEAD
                                                             phoneData.phoneNumber = summary.phoneNumber;
-=======
                                                             phoneData.alerted = summary.alerted;
->>>>>>> upstream/develop-1.1
                                                         }
                                                     }else{
                                                         if(dataToBeDeleted.findIndex(d => d == phoneData.playerObjId) == -1){
@@ -1065,11 +1047,8 @@ let dbDXMission = {
         );
     },
 
-<<<<<<< HEAD
-    getPlayerInfo: function (playerObjId, platform, type, phoneNumber) {
-=======
-    getPlayerInfo: function (playerObjId, platform, type, alertDay) {
->>>>>>> upstream/develop-1.1
+    getPlayerInfo: function (playerObjId, platform, type, alertDay, phoneNumber) {
+
         if(!playerObjId){
             return;
         }
