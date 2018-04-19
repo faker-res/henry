@@ -13357,6 +13357,15 @@ define(['js/app'], function (myApp) {
                     data => {
                         var data = data.data;
                         vm.bankCards = data.data ? data.data : false;
+
+                        vm.bankCards.forEach(bank=>{
+                            let bankStatus = $translate(bank.status);
+                            bank.displayText = vm.getBankCardTypeTextbyId(bank.bankTypeId)+' - '+bank.name+' ('+bank.accountNumber+') - ' + bankStatus;
+                        })
+                        
+                        vm.bankCards.sort(function (a, b) {
+                          return a.bankTypeId - b.bankTypeId;
+                        });
                     });
             }
 
@@ -16736,14 +16745,11 @@ define(['js/app'], function (myApp) {
             }
 
             vm.pickBankCardAcc = function (bankcard) {
-                console.log(bankcard);
-                bankcard = JSON.parse(bankcard);
                 if (bankcard.accountNumber) {
                     vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                     vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
                     vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
-                }
-                ;
+                };
             }
             /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 
