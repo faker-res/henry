@@ -333,11 +333,11 @@
                         th {{"Last Settlement Period" | translate}}
                         th {{"Next Settlement Period" | translate}}
                         th {{"ACTION_BUTTON" | translate}}
-                    tbody(ng-repeat='(i, v) in constPartnerCommissionSettlementType')
+                    tbody(ng-repeat='modeObj in vm.partnerCommissionSettlement.data')
                         tr
-                            td {{v | translate}}
-                            td TEST
-                            td TEST
+                            td {{constPartnerCommissionSettlementType[modeObj.mode] | translate}}
+                            td {{modeObj.lastSettDate}}
+                            td {{modeObj.nextSettDate}}
                             td
                                 a(ng-click="vm.getPartnerCommSettPreview(i);") {{"PREVIEW" | translate}}/
                                 a(ng-click="") {{"Skip next settlement" | translate}}/

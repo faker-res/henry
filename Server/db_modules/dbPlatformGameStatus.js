@@ -261,7 +261,8 @@ var dbPlatformGameStatus = {
         ).then(
             games => {
                 if (games && games.length > 0) {
-
+                    games = games.filter(game => game.status != 4);
+                    
                     // display the status of collection_game with the status in collection_dbPlatformGameStatus
                     games.map( game => {
                         let filteredPlatformGame = platformGames.find( platformGame => {
@@ -274,7 +275,7 @@ var dbPlatformGameStatus = {
                     });
 
                     var platformGamesMap = {};
-                    games = games.filter(game => game.status != 4);
+
                     platformGames.forEach(game => platformGamesMap[game.game] = game);
                     games.forEach(
                         game => {
