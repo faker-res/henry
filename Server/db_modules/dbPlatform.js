@@ -2637,16 +2637,18 @@ var dbPlatform = {
                     modeLog => {
                         let lastSettDate = "-";
                         let nextSettDate = "-";
+                        let nextDate = {};
 
                         if (modeLog) {
                             lastSettDate = modeLog.startTime + " - " + modeLog.endTime;
                         } else {
-                            let nextDate = getPartnerCommNextSettDate(mode);
+                            nextDate = getPartnerCommNextSettDate(mode);
 
                             if (nextDate) {
                                 nextSettDate =
                                     dbUtility.getLocalTimeString(nextDate.startTime, "YYYY-MM-DD")
                                     + " - " +
+                                    // Offset for display purpose
                                     dbUtility.getLocalTimeString(nextDate.endTime.getTime() + 1, "YYYY-MM-DD")
                             }
                         }
@@ -2654,7 +2656,9 @@ var dbPlatform = {
                         return {
                             mode: mode,
                             lastSettDate: lastSettDate,
-                            nextSettDate: nextSettDate
+                            nextSettDate: nextSettDate,
+                            settStartTime: nextDate.startTime,
+                            settEndTime: nextDate.endTime
                         }
                     }
                 )
@@ -2662,6 +2666,20 @@ var dbPlatform = {
         });
 
         return Promise.all(promArr);
+    },
+
+    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime) => {
+        return dbconfig.collection_partnerCommSettLog.update({
+            platform: platformObjId,
+            settMode: settMode,
+            startTime: startTime,
+            endTime: endTime
+        }, {
+            isSettled: false
+        }, {
+            upsert: true,
+            new: true
+        });
     }
 };
 

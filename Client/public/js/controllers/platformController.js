@@ -1427,7 +1427,7 @@ define(['js/app'], function (myApp) {
                 let modes = [1, 2, 3, 4, 5];
 
                 $scope.$socketPromise("getPlatformPartnerSettLog", {
-                    platformId: vm.selectedPlatform.id,
+                    platformObjId: vm.selectedPlatform.id,
                     modes: modes
                 }).then(
                     logs => {
@@ -1451,19 +1451,26 @@ define(['js/app'], function (myApp) {
                 // $scope.safeApply();
             };
 
-            vm.getPartnerCommSettPreview = (settMode) => {
-                socketService.$socket($scope.AppSocket, 'getPartnerCommSettPreview',
-                    {
-                        platformId: vm.selectedPlatform.id,
-                        isSettled: false
-                    },
-                    res => {
-                        vm.partnerCommissionSettlement.status = 'completed';
-                        vm.partnerCommissionSettlement.result = $translate('Success');
-                    },
-                    err => {
-                    }
-                );
+            vm.generatePartnerCommSettPreview = (modeObj) => {
+                $scope.$socketPromise("generatePartnerCommSettPreview", {
+                    platformObjId: vm.selectedPlatform.id,
+                    settMode: modeObj.mode,
+                    startTime: modeObj.settStartTime,
+                    endTime: modeObj.settEndTime
+                });
+
+                // socketService.$socket($scope.AppSocket, 'getPartnerCommSettPreview',
+                //     {
+                //         platformId: vm.selectedPlatform.id,
+                //         isSettled: false
+                //     },
+                //     res => {
+                //         vm.partnerCommissionSettlement.status = 'completed';
+                //         vm.partnerCommissionSettlement.result = $translate('Success');
+                //     },
+                //     err => {
+                //     }
+                // );
             }
 
             vm.performPartnerCommissionSetlement = function () {
