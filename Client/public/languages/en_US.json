@@ -1006,6 +1006,7 @@
   "commissionLevel": "Commission Level",
   "commissionLevelConfig": "Commission Level Config",
   "SEND_MESSAGE_TO_PARTNER": "Send Message to Partner",
+  "TO_PARTNER": "To Partner",
   "SEND_SMS_TO_PARTNER": "Send SMS to Partner",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
