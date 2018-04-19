@@ -508,7 +508,7 @@ p
                         .well(ng-if='vm.partnerNewPassword')
                             .form-group
                                 text The new password for&nbsp;
-                                span.text-success {{vm.selectedSinglePartner.name}}
+                                span.text-success {{vm.selectedSinglePartner.partnerName}}
                                 span &nbsp;is&nbsp;
                                 strong.text-danger {{vm.partnerNewPassword}}
             .modal-footer
@@ -544,7 +544,7 @@ p
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"APPLY_BONUS" | translate}} : {{vm.selectedSinglePartner.name}}
+                h4.modal-title {{"APPLY_BONUS" | translate}} : {{vm.selectedSinglePartner.partnerName}}
             .modal-body
                 form(name='form_partner_bonus').well
                     .form-group-col-md-6
@@ -612,7 +612,7 @@ p
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{vm.partnerCreditChange.modaltitle | translate}} : {{vm.selectedSinglePartner.name}} ({{vm.selectedSinglePartner.realName}})
+                h4.modal-title {{vm.partnerCreditChange.modaltitle | translate}} : {{vm.selectedSinglePartner.partnerName}} {{vm.selectedSinglePlayer.realName && '(' + vm.selectedSinglePlayer.realName + ')'}}
             .modal-body
                 .panel.panel-primary
                     .panel-body
@@ -666,7 +666,7 @@ p
         .dialog-header
             a.fa.fa-times.close.btn.btn-sm(type='button', data-dismiss='dialog')
             a.fa.fa-minus.close.btn.btn-sm(type='button', data-toggle='minimize')
-            h4.dialog-title {{"EDIT_PARTNER" | translate}} {{partnerBeforeEditing.name}}
+            h4.dialog-title {{"EDIT_PARTNER" | translate}} : {{partnerBeforeEditing.partnerName}}
         .dialog-body
             .panel
                 .panel-body
