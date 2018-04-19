@@ -6176,7 +6176,7 @@ let dbPlayerInfo = {
     isExceedPhoneNumberValidToRegister: function (query, count) {
         return dbconfig.collection_players.findOne(query).count().then(
             playerDataCount => {
-                if (playerDataCount > count) {
+                if (playerDataCount >= count) {
                     return {isPhoneNumberValid: false};
                 } else {
                     return {isPhoneNumberValid: true};
