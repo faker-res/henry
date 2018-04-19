@@ -92,6 +92,8 @@
                 "updatePlayerEmail",
                 "loginJblShow",
                 "createDemoPlayer",
+                "getClientData",
+                "saveClientData"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

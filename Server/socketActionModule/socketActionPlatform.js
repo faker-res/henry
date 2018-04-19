@@ -593,6 +593,12 @@ function socketActionPlatform(socketIO, socket) {
             let isValidData = Boolean(data && data.platformId && data.device && data.pageName);
             socketUtil.emitter(self.socket, dbPlatform.getClickCountButtonName, [ObjectId(data.platformId), data.device, data.pageName], actionName, isValidData);
         },
+
+        getPlatformPartnerSettLog: function getPlatformPartnerSettLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.modes);
+            socketUtil.emitter(self.socket, dbPlatform.getPlatformPartnerSettLog, [ObjectId(data.platformId), data.modes], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }

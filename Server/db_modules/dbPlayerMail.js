@@ -70,6 +70,40 @@ const dbPlayerMail = {
             }
         });
     },
+
+    sendPlayerMailFromAdminToPartner: function (platformId, adminId, adminName, partnerIds, title, content) {
+        partnerIds = Array.isArray(partnerIds) ? partnerIds : [partnerIds];
+
+        let proms = partnerIds.reduce((tempProms, partnerId) => {
+            tempProms.push(
+                dbPlayerMail.createPlayerMail({
+                    platformId: platformId,
+                    senderType: 'admin',
+                    senderId: adminId,
+                    senderName: adminName,
+                    recipientType: 'partner',
+                    recipientId: partnerId,
+                    title: title,
+                    content: content
+                })
+            );
+            return tempProms;
+        }, []);
+
+        return Q.all(proms).then((results) => {
+            if (results) {
+                let notifyProm = [];
+                results.forEach((result) => {
+                    // from mongoose object to js object
+                    result = result.toObject();
+                    delete result.senderName;
+                    notifyProm.push(notifyPlayerOfNewMessage(result));
+                });
+                return Q.all(notifyProm);
+            }
+        });
+    },
+
     sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content) {
         let stream = dbconfig.collection_players.find({platform: ObjectId(platformId)}).cursor({batchSize: 10000});
         let balancer = new SettlementBalancer();

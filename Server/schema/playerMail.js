@@ -15,7 +15,7 @@ var playerMailSchema = new Schema({
     senderName: {type: String},
 
     //The collection for the recipientId depends on the recipientType
-    recipientType: {type: String, enum: ['player', 'admin'], index: true},
+    recipientType: {type: String, enum: ['player', 'admin', 'partner'], index: true},
     recipientId: {type: Schema.ObjectId, required: true, index: true},
 
     //title of the message

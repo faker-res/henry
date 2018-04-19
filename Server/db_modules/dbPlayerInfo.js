@@ -6176,7 +6176,7 @@ let dbPlayerInfo = {
     isExceedPhoneNumberValidToRegister: function (query, count) {
         return dbconfig.collection_players.findOne(query).count().then(
             playerDataCount => {
-                if (playerDataCount > count) {
+                if (playerDataCount >= count) {
                     return {isPhoneNumberValid: false};
                 } else {
                     return {isPhoneNumberValid: true};
@@ -14816,6 +14816,35 @@ let dbPlayerInfo = {
                 });
             });
     },
+
+    getClientData : function(playerId){
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                return playerData ? playerData.clientData : "";
+            }
+        );
+    },
+
+    saveClientData : function(playerId, clientData){
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if(playerData){
+                    return dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform}, {clientData: clientData}).then(
+                        res => {
+                            return clientData;
+                        }
+                    );
+                }
+                else{
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "can not find player"
+                    });
+                }
+            }
+        );
+    }
 
 };
 

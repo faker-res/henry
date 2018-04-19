@@ -661,6 +661,28 @@
         });
     };
 
+    proto.getClientData = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.getClientData.request(data);
+        this.playerService.getClientData.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.saveClientData = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.saveClientData.request(data);
+        this.playerService.saveClientData.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

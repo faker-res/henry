@@ -13,6 +13,7 @@ var constSystemParam = require('../const/constSystemParam');
 var constPartnerCommissionPeriod = require('./../const/constPartnerCommissionPeriod');
 var constPartnerStatus = require('./../const/constPartnerStatus');
 var dbApiLog = require('./../db_modules/dbApiLog');
+var dbPlayerMail = require('../db_modules/dbPlayerMail');
 
 
 var mongoose = require('mongoose');
@@ -340,6 +341,16 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPartner.updatePartnerCommissionLevel, [data.query, data.updateData], actionName, isValidData);
         },
+        createUpdatePartnerCommissionConfigWithGameProviderGroup: function createUpdatePartnerCommissionConfigWithGameProviderGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPartner.createUpdatePartnerCommissionConfigWithGameProviderGroup, [data.query, data.updateData], actionName, isValidData);
+        },
+        getPartnerCommissionConfigWithGameProviderGroup: function getPartnerCommissionConfigWithGameProviderGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerCommissionConfigWithGameProviderGroup, [data.query], actionName, isValidData);
+        },
 
         createUpdatePartnerCommissionConfig: function createUpdatePartnerCommissionConfig(data) {
             var actionName = arguments.callee.name;
@@ -395,6 +406,17 @@ function socketActionPartner(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.partnerObjId && data.startDate && data.endDate);
             socketUtil.emitter(self.socket, dbApiLog.getPartnerApiLog, [data.partnerObjId, data.startDate, data.endDate, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        /**
+         * Send a message to a partner from the current admin
+         *  @param {json} data - data has to contain query and updateData
+         */
+        sendPlayerMailFromAdminToPartner: function sendPlayerMailFromAdminToPartner (data) {
+            let actionName = arguments.callee.name;
+            let adminObjId = self.socket.decoded_token._id;
+            let isValidData = Boolean(data && data.platformId && data.adminName && data.partnerId && (data.title || data.content));
+            socketUtil.emitter(self.socket, dbPlayerMail.sendPlayerMailFromAdminToPartner, [data.platformId, adminObjId, data.adminName, data.partnerId, data.title, data.content], actionName, isValidData);
         },
     };
 

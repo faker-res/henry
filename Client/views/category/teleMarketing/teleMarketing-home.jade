@@ -101,6 +101,10 @@
                                         .full-width-input-block
                                             label {{"Please Enter Number of Days for Alert" | translate}}:
                                             input.form-control(type='number', ng-model='vm.editTeleMarketing.alertDays')
+
+                                        .full-width-input-block
+                                            label {{"Forbid withdraw if there is balance after unlock" | translate}}:
+                                            input.form-control(type='number', ng-model='vm.editTeleMarketing.forbidWithdrawIfBalanceAfterUnlock')
             .modal-footer
                 br
                 .pull-right
