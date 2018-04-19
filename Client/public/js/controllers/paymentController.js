@@ -317,7 +317,9 @@ define(['js/app'], function (myApp) {
                     "NORMAL": true,
                     "LOCK": true,
                     "DISABLED": true,
-                    "CLOSE": true
+                    "CLOSE": true,
+                    "TOBEFOLLOWEDUP": true,
+                    "SUSPEND": true}
                 }
             }
 
@@ -1507,7 +1509,7 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 alipayGroup: alipayGroup._id
             }
-            vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true};
+            vm.alipayStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true};
             socketService.$socket($scope.AppSocket, 'getAllAlipaysByAlipayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
@@ -2018,7 +2020,7 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.data.platformId,
                 wechatGroup: wechatPayGroup._id
             };
-            vm.wechatStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true};
+            vm.wechatStatusFilterOptions = {"NORMAL": true, "LOCK": true, "DISABLED": true, "CLOSE": true, "TOBEFOLLOWEDUP": true, "SUSPEND": true}};
             socketService.$socket($scope.AppSocket, 'getAllWechatpaysByWechatpayGroupWithIsInGroup', query, function(data){
 
                 //provider list init
