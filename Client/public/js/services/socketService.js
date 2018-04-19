@@ -375,7 +375,8 @@ define([], function () {
                             radius: 1,
                             formatter: labelFormatter,
                             background: {
-                                opacity: 0.8
+                                opacity: 0.314,
+                                color: '#000'
                             }
                         },
                         combine: {
