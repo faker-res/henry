@@ -15206,7 +15206,8 @@ define(['js/app'], function (myApp) {
                                 let link = $('<a>', {
                                     'class': 'partnerPermissionPopover',
                                     'ng-click': "vm.permissionPartner = " + JSON.stringify(row)
-                                    + "; vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;",
+                                    + "; vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;"
+                                    + "; vm.permissionPlayer.permission.disableCommSettlement = !vm.permissionPlayer.permission.disableCommSettlement;",
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
@@ -15233,6 +15234,10 @@ define(['js/app'], function (myApp) {
 
                                 link.append($('<i>', {
                                     'class': 'fa fa-comment margin-right-5 ' + (perm.SMSFeedBack === false ? "text-danger" : "text-primary"),
+                                }));
+
+                                link.append($('<i>', {
+                                    'class': 'fa fa-user-times margin-right-5 ' + (perm.disableCommSettlement === true ? "text-danger" : "text-primary"),
                                 }));
 
                                 return link.prop('outerHTML') + "&nbsp;";
@@ -15505,12 +15510,16 @@ define(['js/app'], function (myApp) {
                                         imgType: 'i',
                                         iconClass: "fa fa-comment"
                                     },
-                                    // disableCommSettlement: {imgType: 'i', iconClass: "fa fa-user-times"}
+                                    disableCommSettlement: {
+                                        imgType: 'i',
+                                        iconClass: "fa fa-user-times"
+                                    }
                                 };
                                 $("#partnerPermissionTable td").removeClass('hide');
 
                                 // Invert second render
                                 row.permission.forbidPartnerFromLogin = !row.permission.forbidPartnerFromLogin;
+                                row.permission.disableCommSettlement = !row.permission.disableCommSettlement;
 
                                 $.each(vm.partnerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key]) {
@@ -15547,6 +15556,10 @@ define(['js/app'], function (myApp) {
 
                                     if (changeObj.hasOwnProperty('forbidPartnerFromLogin')) {
                                         changeObj.forbidPartnerFromLogin = !changeObj.forbidPartnerFromLogin;
+                                    }
+
+                                    if (changeObj.hasOwnProperty('disableCommSettlement')) {
+                                        changeObj.disableCommSettlement = !changeObj.disableCommSettlement;
                                     }
 
                                     socketService.$socket($scope.AppSocket, 'updatePartnerPermission', {
