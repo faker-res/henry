@@ -339,14 +339,17 @@
                             td TEST
                             td TEST
                             td
-                                a(ng-click="") {{"PREVIEW" | translate}}/
+                                a(ng-click="vm.getPartnerCommSettPreview(i);") {{"PREVIEW" | translate}}/
                                 a(ng-click="") {{"Skip next settlement" | translate}}/
                                 a(ng-click="") {{"Back to previous settlement" | translate}}
+            //.modal-body
+            //    label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
+            //    br
+            //    label {{vm.partnerCommissionSettlement.startTime}} -> {{vm.partnerCommissionSettlement.endTime}}
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.partnerCommissionSettlement.status=="completed"')
                     .text-danger {{vm.partnerCommissionSettlement.result | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
-                button.btn.btn-success.common-button(ng-if='vm.partnerCommissionSettlement.status=="ready"', ng-click="vm.performPartnerCommissionSetlement()") {{'CONFIRM' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.partnerCommissionSettlement.status=="processing"')
 
 //#modalTransferOutAllPlayerCreditFromGameProvider.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

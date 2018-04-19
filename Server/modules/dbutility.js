@@ -498,14 +498,10 @@ var dbUtility = {
         };
     },
 
-    getNdaylaterStartTime: function (n) {
+    getNdaylaterFromSpecificStartTime: function (n, date) {
         var n = Number.isInteger(n) ? parseInt(n) : 0;
-        return new Date(dbUtility.getTodayStartTime().getTime() + 24 * 60 * 60 * 1000 * n);
-    },
 
-    getTodayStartTime: function () {
-        var todayDate = new Date();
-        return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0);
+        return moment(date).add(n,'days').toDate();
     },
 
 

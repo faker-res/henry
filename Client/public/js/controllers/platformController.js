@@ -1423,7 +1423,7 @@ define(['js/app'], function (myApp) {
                     status: 'ready'
                 };
 
-                socketService.$socket($scope.AppSocket, 'getYesterdaySGTime',
+                socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettLog',
                     {},
                     ret => {
                         vm.partnerCommissionSettlement.startTime = vm.dateReformat(ret.data.startTime);
@@ -1433,7 +1433,23 @@ define(['js/app'], function (myApp) {
 
                 $('#partnerCommissionSettlementModal').modal('show');
                 $scope.safeApply();
+            };
+
+            vm.getPartnerCommSettPreview = (settMode) => {
+                socketService.$socket($scope.AppSocket, 'getPartnerCommSettPreview',
+                    {
+                        platformId: vm.selectedPlatform.id,
+                        isSettled: false
+                    },
+                    res => {
+                        vm.partnerCommissionSettlement.status = 'completed';
+                        vm.partnerCommissionSettlement.result = $translate('Success');
+                    },
+                    err => {
+                    }
+                );
             }
+
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPartnerCommissionSettlement',
