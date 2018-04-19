@@ -146,6 +146,9 @@ var platformWechatPayGroupModel = db_admin.model('platformWechatPayGroup', platf
 var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig');
 var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
 
+var partnerCommissionRateConfigSchema = require('./../schema/partnerCommissionRateConfig');
+var partnerCommissionRateConfigModel = db_admin.model('partnerCommissionRateConfig', partnerCommissionRateConfigSchema, 'partnerCommissionConfig');
+
 let gameProviderGroupSchema = require('./../schema/gameProviderGroup');
 let gameProviderGroupModel = db_admin.model('gameProviderGroup', gameProviderGroupSchema, 'gameProviderGroup');
 
@@ -438,6 +441,7 @@ var dbProperties = {
     collection_messageTemplate: messageTemplateModel,
     collection_platformAnnouncement: platformAnnouncementModel,
     collection_partnerCommissionConfig: partnerCommissionConfigModel,
+    collection_partnerCommissionRateConfig: partnerCommissionRateConfigModel,
 
     collection_geoIp: geoIpModel,
     collection_promoCodeType: promoCodeTypeModel,

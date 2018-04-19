@@ -18658,6 +18658,8 @@ define(['js/app'], function (myApp) {
                     case 'partnerCommission':
                         vm.partnerCommission = {};
                         //vm.partnerCommission.gameProviderGroup = [];
+                        vm.rateAfterRebateGameProviderGroup = [];
+                        vm.rateAfterRebateGameProviderGroup = vm.gameProviderGroup;
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
                         // vm.getPartnerCommissionPeriodConst();
                         // vm.getPartnerCommissionSettlementModeConst();
