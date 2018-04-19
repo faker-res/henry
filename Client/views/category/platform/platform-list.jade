@@ -339,7 +339,7 @@
                             td {{modeObj.lastSettDate}}
                             td {{modeObj.nextSettDate}}
                             td
-                                a(ng-click="vm.getPartnerCommSettPreview(i);") {{"PREVIEW" | translate}}/
+                                a(ng-click="vm.generatePartnerCommSettPreview(modeObj);") {{"PREVIEW" | translate}}/
                                 a(ng-click="") {{"Skip next settlement" | translate}}/
                                 a(ng-click="") {{"Back to previous settlement" | translate}}
             //.modal-body

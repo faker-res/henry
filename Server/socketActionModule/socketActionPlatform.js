@@ -596,9 +596,15 @@ function socketActionPlatform(socketIO, socket) {
 
         getPlatformPartnerSettLog: function getPlatformPartnerSettLog(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformId && data.modes);
-            socketUtil.emitter(self.socket, dbPlatform.getPlatformPartnerSettLog, [ObjectId(data.platformId), data.modes], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.modes);
+            socketUtil.emitter(self.socket, dbPlatform.getPlatformPartnerSettLog, [ObjectId(data.platformObjId), data.modes], actionName, isValidData);
         },
+
+        generatePartnerCommSettPreview: function generatePartnerCommSettPreview(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime], actionName, isValidData);
+        }
     };
     socketActionPlatform.actions = this.actions;
 }
