@@ -114,3 +114,564 @@
                     div(style='display:inline-block')
                       button.common-button.btn.btn-primary(style="float:none !important", ng-if="checkViewPermission('TeleMarketing', 'Task', 'Update')",
                     ng-click="vm.updateTeleMarketingTask()", ng-disabled="form_edit_telemarketing_task.$invalid") {{'EDIT' | translate}}
+
+
+#telPopover.hide(style="width: 600px")
+    //label {{vm.telphonePlayer.name}}
+    button.playerMessage.common-button.margin-right-5.btn.btn-success(data-player='{{vm.telphonePlayer}}') {{'MESSAGE' | translate}}
+    button.playerTelephone.common-button.margin-right-5.btn.btn-success(data-player='{{vm.telphonePlayer}}') {{'TELPHONE' | translate}}
+
+
+ez-modal(modal-id="messagePlayerModal", modal-title="{{'SEND_MESSAGE_TO_PLAYER' | translate}}")
+    ez-modal-body
+        ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='margin:10px 0 10px 0;height: 43px;')
+            .pull-left.padding-all-5
+            li.active(id = 'sendMessageToPlayerTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                a.common-tab(data-toggle="tab", ng-click='vm.messageModalTab = \'sendMessageToPlayerPanel\'')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"SEND_MESSAGE" | translate}}
+            li(id = 'messageLogTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
+                a.common-tab(data-toggle="tab",ng-click='vm.messageModalTab = \'messageLogPanel\'; vm.initMailLog();')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"mailLog" | translate}}
+
+        #sendMessageToPlayerPanel.panel-body(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
+            form(name="form_send_message")
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
+                        //text {{vm.telphonePlayer.name}} {{vm.telphonePlayer.nickName && '(' + vm.telphonePlayer.nickName + ')'}}
+                        text {{vm.telphonePlayer.playerData.name}}
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"TITLE" | translate}}
+                        input.form-control(type="text", ng-model="vm.messageForPlayer.title", placeholder="...")
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"MESSAGE" | translate}}
+                        textarea.form-control(ng-model="vm.messageForPlayer.content", placeholder="...", rows="8")
+
+        #messageLogPanel.panel-body(ng-if="vm.messageModalTab === 'messageLogPanel'")
+            #mailLogQuery.block-query.well
+                div
+                    label {{"Start date" | translate}}
+                    .startTime
+                div
+                    label {{"End date" | translate}}
+                    .endTime
+                button.btn.btn-primary.common-button(ng-click='vm.searchMailLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+            div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                table.simple-table.display(style='min-width: 100%; width: 100%')
+                    thead
+                        tr
+                            th {{"date" | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterMessageLogSenderType", style="cursor: pointer") {{"Sender Type" | translate}}
+                            th {{"Sender Name" | translate}}
+                            th {{"CONTENT" | translate}}
+                    tbody
+                        tr(ng-repeat='(i,mailLog) in vm.mailLog.receivedMails')
+                            td {{mailLog.createTime | date:'medium'}}
+                            td {{mailLog.senderType}}
+                            td {{mailLog.senderName | translate}}
+                            td {{mailLog.content}}
+
+    ez-modal-footer(ng-if="vm.messageModalTab === 'sendMessageToPlayerPanel'")
+        ez-confirm-button(ng-click="vm.sendMessageToPlayer()") {{"SEND" | translate}}
+        ez-cancel-button {{"CANCEL" | translate}}
+
+ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | translate}}")
+    ez-modal-body
+
+        ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='margin:10px 0 10px 0;height: 43px;')
+            .pull-left.padding-all-5
+            li.active#smsToPlayerTab(ng-hide="(vm.selectedSinglePlayer && vm.selectedSinglePlayer.permission && vm.selectedSinglePlayer.permission.SMSFeedBack === false)")
+                a.common-tab(data-toggle="tab", ng-click='vm.showSmsTab("smsToPlayerPanel");')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"MESSAGE" | translate}}
+            li#smsLogTab
+                a.common-tab(data-toggle="tab",ng-click='vm.showSmsTab("smsLogPanel"); vm.initSMSLog("single");')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"smsLog" | translate}}
+            li#smsSettingTab(ng-hide="!vm.canEditPlayer()")
+                a.common-tab(data-toggle="tab",ng-click='vm.showSmsTab("smsSettingPanel"); vm.loadSMSSettings();')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"SMS Notify Settings" | translate}}
+
+
+        #smsToPlayerPanel.panel-body(ng-if="vm.smsModalTab === 'smsToPlayerPanel'")
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
+                    text {{vm.smsPlayer.name}} {{vm.smsPlayer.nickName && '(' + vm.smsPlayer.nickName + ')'}}
+
+                    label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
+                    select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
+
+                    label.margin-left-5.blink.text-danger(ng-if="!vm.smsPlayer.hasPhone") {{'This Player did not input phone number' | translate}}
+
+                    .pull-right(ng-if='vm.sendSMSResult.sent===true')
+                        .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
+                            text {{'SEND' | translate}} {{'SUCCESS' | translate}}l
+                        .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
+                            text {{'SEND' | translate}} {{'FAIL' | translate}}
+                    .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
+                        text.text-danger.blink {{"Sending" | translate}}
+
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"SMS Templates" | translate}}
+                        select.form-control(style='width:100%;resize:none',ng-change="vm.changeSMSTemplate()", ng-model='vm.smstpl' ng-options='a.type|translate for a in vm.smsTemplate')
+                            option(value="")
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"CONTENT" | translate}}
+                    textarea.form-control(ng-model="vm.smsPlayer.message", placeholder="...", rows="8", ng-disabled="!vm.smsPlayer.hasPhone", maxlength="100")
+
+        #smsLogPanel.panel-body(ng-if="vm.smsModalTab === 'smsLogPanel'")
+            #smsLogQuery.block-query.well
+                div
+                    label {{"RESULT" | translate}}
+                    select.form-control(ng-model='vm.smsLog.query.status')
+                        option(value='all') {{"any" | translate}}
+                        option(value='success') {{"Success" | translate}}
+                        option(value='failure') {{"Failure" | translate}}
+                div
+                    label {{"Start date" | translate}}
+                    .startTime
+                    //-(ng-model='vm.smsLog.query.startTime')
+                div
+                    label {{"End date" | translate}}
+                    .endTime
+                    //-(ng-model='vm.smsLog.query.endTime')
+                button.btn.btn-primary.common-button(ng-click='vm.searchSMSLog()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+            div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                label {{"Total" | translate}} {{vm.smsLog.totalCount}} {{"records" | translate}}
+                table.simple-table.display(style='min-width: 100%; width: 100%')
+                    thead
+                        tr
+                            th {{"date" | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterSmsLogSenderType", style="cursor: pointer") {{"senderType" | translate}}
+                            th {{"senderName" | translate}}
+                            th {{"Recipient" | translate}}
+                            th {{"Channel" | translate}}
+                            th {{"CONTENT" | translate}}
+                            th {{"STATUS" | translate}}
+                    tbody
+                        tr(ng-repeat='(i,smsLog) in vm.smsLog.searchResults')
+                            td {{smsLog.createTime$}}
+                            td {{smsLog.adminName ? 'admin':'system'}}
+                            td {{smsLog.adminName}}
+                            td {{smsLog.recipientName}}
+                            td {{smsLog.channel}}
+                            td {{smsLog.message}}
+                            td(ng-if='smsLog.status !== "failure"') {{smsLog.status$}}
+                            td(ng-if='smsLog.status === "failure"')
+                                text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
+                br
+                #smsLogTablePage
+
+        #smsSettingPanel.panel-body(ng-if="vm.smsModalTab === 'smsSettingPanel'")
+            .row.margin-left-5.margin-right-5
+                .form-group.col-md-12
+                    .col-md-12.col-lg-4
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"receive status" | translate}}
+                                    th {{"no group sms setting" | translate}}
+
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.noGroupSmsSetting')
+                                    td
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[v.name]")
+                                    td
+                                        span {{v.name | translate}}
+
+                    .col-sm-12.col-sm-offset-0.col-md-offset-1.col-lg-7.col-md-12.pull-right
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"receive status/sms group" | translate}}
+                                    th {{"sms group settings" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
+                                    td
+                                        input.margin-right-5(type="checkbox" ng-model='vm.playerSmsSetting.smsGroup[v.smsId]' ng-init='vm.isAllSmsInGroupChecked(v)' ng-change='vm.smsGroupCheckChange(v)')
+                                        span(ng-if='!vm.configTableEdit') {{v.smsName}}
+                                    td
+                                        div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')
+                                            span {{ vv.smsName | translate}}
+                                            input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[vv.smsName]" ng-change='vm.isAllSmsInGroupChecked(v)')
+
+                    //label.control-label(style="width:auto;") {{"RECEIVE_SMS" | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.receiveSMS")
+                    //label.control-label(style="width:auto;") {{"Select All" | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSettingSelectAll", ng-change="vm.smsSettingToggleSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
+                    //label.control-label.margin-right-5(style="width:100%;", ng-repeat="(k, t) in vm.allMessageTypes", ng-if="t.name!='smsVerificationCode'") {{t.name | translate}}
+                    //    input.pull-left.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[t.name]", ng-change="vm.smsSettingSetSelectAll();", ng-disabled="!vm.playerBeingEdited.receiveSMS")
+
+
+
+    ez-modal-footer
+        #smsToPlayerFooter(ng-if="vm.smsModalTab === 'smsToPlayerPanel'")
+            button.btn.common-button.btn-primary(ng-click="vm.sendSMSToPlayer()", ng-disabled="!vm.smsPlayer.hasPhone") {{"SEND" | translate}}
+            button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+        #smsLogFooter(ng-if="vm.smsModalTab === 'smsLogPanel'")
+            button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
+        #smsSettingFooter(ng-if="vm.smsModalTab === 'smsSettingPanel'")
+            ez-confirm-button(ng-click="vm.updateSMSSettings();") {{"UPDATE" | translate}}
+            button.btn.common-button.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+            //button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='smsPlayerModal.$invalid || smsPlayerModal.$pristine', ng-click="vm.updateSMSSettings();") {{"UPDATE" | translate}}
+
+#modalAddPlayerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"FEEDBACK_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
+                        .pull-left.padding-all-5
+                        li.active(id = 'addFeedbackTab', ng-show="checkViewPermission('Platform', 'Player','AddFeedback')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.feedbackModalTab = \'addFeedbackPanel\'')
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"ADD_FEEDBACK" | translate}}
+                        li(id = 'feedbackHistoryTab',ng-show="checkViewPermission('Platform', 'Player','FeedbackHistory')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.feedbackModalTab = \'feedbackHistoryPanel\';vm.prepareShowFeedbackRecord();')
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"Feedback History" | translate}}
+
+                #addFeedbackPanel.panel-body(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
+                    form(name='form_feedback').well
+                        .form-group
+                            label.control-label {{'PLAYER_NAME' | translate}}
+                            label.form-control {{vm.isOneSelectedPlayer().name}}
+                        //.form-group
+                            label.control-label {{'TEST_PLAYER_ID' | translate}}
+                            input.form-control(ng-model='vm.playerFeedback.adminId')
+                        .form-group
+                            label.control-label {{'FEEDBACK_RESULTS' | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                            select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.result', required)
+                                option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                        .form-group
+                            label.control-label {{'FEEDBACK_TOPIC' | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Player','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                            select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
+                                option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v.key}}') {{v.value}}
+                        .form-group
+                            label.control-label {{'FEEDBACK_CONTENT' | translate}}
+                            .textareaDetail
+                                textarea.form-control(rows='4', ng-model='vm.playerFeedback.content')
+
+                #feedbackHistoryPanel.panel-body(ng-show="vm.feedbackModalTab === 'feedbackHistoryPanel'")
+                    .well.searchDiv
+                        .inlineBlk
+                            label {{"Start date"|translate}}
+                            .startTime
+                        .inlineBlk
+                            label {{"End date"|translate}}
+                            .endTime
+                        .inlineBlk
+                            button.common-button.btn.btn-primary(ng-click='vm.updatePlayerFeedbackData("#modalAddPlayerFeedback","#playerFeedbackRecordTable")') {{'FILTER' | translate}}
+                            i.fa.fa-spinner.fa-spin(ng-if='vm.playerFeedbackRecord.searching')
+                    //text(ng-if='vm.playerFeedbackData.length==0') {{'NO_RECORD' | translate}}
+                    table#playerFeedbackRecordTable.simple-table.collapse
+                        thead
+                            tr
+                                th(style='min-width:90px;') {{'TIME' | translate}}
+                                th {{'RESULT' | translate}}
+                                th {{'CONTENT' | translate}}
+                                th {{'adminName' | translate}}
+                                th {{"FEEDBACK_TOPIC" | translate}}
+                        tbody(ng-if='vm.playerFeedbackData.data.length>0')
+                            tr(ng-repeat='(i,v) in vm.playerFeedbackData.data')
+                                td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
+                                td {{v.result$}}
+                                td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
+                                td {{v.adminId.adminName}}
+                                td {{v.topic}}
+
+            .modal-footer(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalAddPlayerFeedbackResult.modal.fade(style='background: rgba(0,0,0,0.5);z-index:1052', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%; top: 20vh;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_FEEDBACK_RESULT" | translate}}
+            .modal-body
+                div
+                    label.control-label {{'ADD_FEEDBACK_RESULT' | translate}} &nbsp
+                    .inlineBlk
+                        input.form-control(style='width:120px;', ng-model='vm.addPlayerFeedbackResultData.key', placeholder="{{'FEEDBACK_RESULT_KEY' | translate}}")
+                    .inlineBlk
+                        input.form-control(style='width:120px;', ng-model='vm.addPlayerFeedbackResultData.value', placeholder="{{'FEEDBACK_RESULT' | translate}}")
+                    button.btn.btn-primary(ng-click='vm.addPlayerFeedbackResult();') {{"ADD" | translate}}
+                    span(style="color:green;",ng-show="vm.addPlayerFeedbackResultData.success === true") &nbsp{{vm.addPlayerFeedbackResultData.message | translate}}
+                    span(style="color:red;",ng-show="vm.addPlayerFeedbackResultData.failure === true") &nbsp{{vm.addPlayerFeedbackResultData.message | translate}}
+
+                div
+                    label.control-label {{"DELETE_FEEDBACK_RESULT" | translate}} &nbsp
+                    .inlineBlk
+                        select.form-control(ng-model='vm.deletePlayerFeedbackResultData._id')
+                            option(value='') {{'CHOOSE_FEEDBACK_RESULT' | translate}}
+                            option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v._id}}') {{v.value | translate}}
+                    button.btn.btn-primary(ng-click='vm.deletePlayerFeedbackResult();') {{"DELETE" | translate}}
+                    span(style="color:green;",ng-show="vm.deletePlayerFeedbackResultData.success === true") &nbsp{{vm.deletePlayerFeedbackResultData.message | translate}}
+                    span(style="color:red;",ng-show="vm.deletePlayerFeedbackResultData.failure === true") &nbsp{{vm.deletePlayerFeedbackResultData.message | translate}}
+
+#modalAddPlayerFeedbackTopic.modal.fade(style='background: rgba(0,0,0,0.5);z-index:1052', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%; top: 20vh;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_FEEDBACK_TOPIC" | translate}}
+            .modal-body
+                div
+                    label.control-label {{'ADD_FEEDBACK_TOPIC' | translate}} &nbsp
+                    .inlineBlk
+                        input.form-control(ng-model='vm.addPlayerFeedbackTopicData.value', placeholder="{{'FEEDBACK_TOPIC' | translate}}")
+                    button.btn.btn-primary(ng-click='vm.addPlayerFeedbackTopic();') {{"ADD" | translate}}
+                    span(style="color:green;",ng-show="vm.addPlayerFeedbackTopicData.success === true") &nbsp{{vm.addPlayerFeedbackTopicData.message | translate}}
+                    span(style="color:red;",ng-show="vm.addPlayerFeedbackTopicData.failure === true") &nbsp{{vm.addPlayerFeedbackTopicData.message | translate}}
+
+                div
+                    label.control-label {{"DELETE_FEEDBACK_TOPIC" | translate}} &nbsp
+                    .inlineBlk
+                        select.form-control(ng-model='vm.deletePlayerFeedbackTopicData._id')
+                            option(value='') {{'CHOOSE_FEEDBACK_TOPIC' | translate}}
+                            option(ng-repeat='(i,v) in vm.allPlayerFeedbackTopics', value='{{v._id}}') {{v.value | translate}}
+                    button.btn.btn-primary(ng-click='vm.deletePlayerFeedbackTopic();') {{"DELETE" | translate}}
+                    span(style="color:green;",ng-show="vm.deletePlayerFeedbackTopicData.success === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
+                    span(style="color:red;",ng-show="vm.deletePlayerFeedbackTopicData.failure === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
+
+#modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"TOP_UP" | translate}}
+            .modal-body
+                ul.nav.nav-tabs.common-nav-tabs
+                    li(ng-class="vm.selectedTopupTab == 'manual' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyManualTopup')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('manual');vm.initPlayerManualTopUp();") {{"MANUAL_TOPUP" | translate}}
+                    li(ng-class="vm.selectedTopupTab == 'alipay' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyAlipayTopup')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('alipay');vm.initPlayerAlipayTopUp();") {{"ALIPAY" | translate}}
+                    li(ng-class="vm.selectedTopupTab == 'wechatpay' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyWechatPayTopup')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('wechatpay');vm.initPlayerWechatPayTopUp();") {{"WECHATPAY" | translate}}
+                    //li(ng-class="vm.selectedTopupTab == 'quickpay' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyQuickpayTopup')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('quickpay');vm.initPlayerQuickpayTopUp();") {{"WECHATPAY" | translate}}
+
+                .row(ng-show="vm.selectedTopupTab == 'manual'")
+                    .col-md-12(ng-show='vm.existingManualTopup===null || vm.existingManualTopup')
+                        .well.margin-bottom-5(ng-if='vm.existingManualTopup===null')
+                            label.blink {{"Searching existing manual topup request..." | translate}}
+                        .well.margin-bottom-5(ng-if='vm.existingManualTopup')
+                            .lineThrough(ng-if='vm.existingManualTopup.isCanceled')
+                                button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.data.validTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingManualTopup.data.amount}}
+                            div(ng-if='!vm.existingManualTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                label.margin-right-5 {{"Player has pending manual topup request already." | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingManualTopup.data.validTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingManualTopup.data.amount}}
+                                button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerManualTop()') {{'CANCEL' | translate}}
+                    .col-md-12(ng-show='vm.existingManualTopup===false || vm.existingManualTopup.isCanceled')
+                        form(name='form_manual_topup', style="border-radius:0 4px 4px 4px;box-shadow:none;").well
+                            .form-group-col-md-6
+                                label {{'CREDIT' | translate}}
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
+                                input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
+                            .form-group-col-md-6
+                                label.control-label(style='width:100%') {{'Bankcard' | translate}}
+                                select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
+                                    option(value='') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : ["bankTypeId", "name"]', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{(v.status == "DISABLED"?"Disable":v.status) | translate}}</b>
+                            .form-group-col-md-6
+                                label.control-label {{'DEPOSIT_METHOD' | translate}}
+                                select.form-control(ng-model='vm.playerManualTopUp.depositMethod', ng-change='vm.selectedDepositMethod(vm.playerManualTopUp.depositMethod)')
+                                    option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
+                            .form-group-col-md-6
+                                label.control-label(ng-hide='!vm.playerManualTopUp.depositMethod || vm.playerManualTopUp.depositMethod === "2"') {{'ACCNAME' | translate}}
+                                input.form-control(ng-model='vm.playerManualTopUp.realName',ng-hide='!vm.playerManualTopUp.depositMethod || vm.playerManualTopUp.depositMethod === "2"')
+                            .form-group-col-md-6
+                                label.control-label {{'PROVINCE_ID' | translate}}
+                                select.form-control(ng-model='vm.playerManualTopUp.provinceId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerManualTopUp.depositMethod ||vm.playerManualTopUp.depositMethod === "1" || vm.playerManualTopUp.depositMethod === "2" || vm.playerManualTopUp.depositMethod === "3"')
+                                    option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
+                            .form-group-col-md-6
+                                label.control-label {{'CITY_ID' | translate}}
+                                select.form-control(ng-model='vm.playerManualTopUp.cityId', ng-change='vm.getZoneList(vm.playerManualTopUp.provinceId,vm.playerManualTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerManualTopUp.depositMethod ||vm.playerManualTopUp.depositMethod === "1" || vm.playerManualTopUp.depositMethod === "2" || vm.playerManualTopUp.depositMethod === "3"')
+                                    option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
+                            .form-group-col-md-6
+                                label.control-label {{'DISTRICT_ID' | translate}}
+                                select.form-control(ng-model='vm.playerManualTopUp.districtId', ng-disabled='vm.freezeZoneSelection')
+                                    option(ng-repeat='(i,v) in vm.districtList', value='{{v.id}}') {{v.name}}
+                            .form-group-col-md-6
+                                label {{'promoCode' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerManualTopUp.bonusCode')
+                            .form-group-col-md-6
+                                label {{'topUpReturnCode' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerManualTopUp.topUpReturnCode')
+                            .form-group-col-md-6
+                                label(ng-hide='vm.playerManualTopUp.depositMethod === "3"') {{'remark' | translate}}
+                                label(ng-show='vm.playerManualTopUp.depositMethod === "3"') {{'counterRemark' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerManualTopUp.remark')
+                            .form-group-col-md-6
+                                label {{'DEPOSIT_TIME' | translate}}
+                                .createTime
+
+                .row(ng-show="vm.selectedTopupTab == 'alipay'")
+                    .col-md-12(ng-show="vm.existingAlipayTopup===null||vm.existingAlipayTopup")
+                        .well.margin-bottom-5(ng-if='vm.existingAlipayTopup===null')
+                            label.blink {{"Searching existing Alipay topup request..." | translate}}
+                        .well.margin-bottom-5(ng-if='vm.existingAlipayTopup')
+                            .lineThrough(ng-if='vm.existingAlipayTopup.isCanceled')
+                                button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.data.validTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
+                            div(ng-if='!vm.existingAlipayTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAlipayTopup.data.validTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
+                                button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAlipayTopUp()') {{'CANCEL' | translate}}
+                    .col-md-12(ng-show='vm.existingAlipayTopup===false || vm.existingAlipayTopup.isCanceled')
+                        form(name='form_alipay_topup', style="min-height:500px;border-radius:0 4px 4px 4px;box-shadow:none;").well
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'CREDIT' | translate}}
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} 1)
+                                input.form-control(type='number', min=0, ng-model='vm.playerAlipayTopUp.amount', required)
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'Alipay' | translate}}
+                                select.form-control#alipayOption(ng-model='vm.alipaysAcc',ng-change='vm.pickAlipayAcc(vm.alipaysAcc)')
+                                    option(value='') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allAlipaysAcc | orderBy : "accountNumber"', value='{{v}}') {{v.accountNumber}} {{v.name}}({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'alipayName' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
+                            .form-group.col-md-6
+                                .control-label
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'alipayAccount' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'realName' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.realName')
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'promoCode' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.bonusCode')
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'topUpReturnCode' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.topUpReturnCode')
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'REMARK' | translate}}
+                                input.form-control(ng-model='vm.playerAlipayTopUp.remark')
+                            .form-group.col-md-12
+                                .inlineBlk
+                                label {{'DEPOSIT_TIME' | translate}}
+                                .createTime
+
+
+                .row(ng-show="vm.selectedTopupTab == 'wechatpay'")
+                    .col-md-12(ng-show='vm.existingWechatPayTopup===null || vm.existingWechatPayTopup')
+                        .well.margin-bottom-5(ng-if='vm.existingWechatPayTopup===null')
+                            label.blink {{"Searching existing WechatPay topup request..." | translate}}
+                        .well.margin-bottom-5(ng-if='vm.existingWechatPayTopup')
+                            .lineThrough(ng-if='vm.existingWechatPayTopup.isCanceled')
+                                button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.data.validTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
+                            div(ng-if='!vm.existingWechatPayTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                label.margin-right-5 {{"Player has pending Alipay topup request already." | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingWechatPayTopup.data.validTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
+                                button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerWechatPayTopUp()') {{'CANCEL' | translate}}
+                    .col-md-12(ng-show='vm.existingWechatPayTopup===false || vm.existingWechatPayTopup.isCanceled')
+                        form(name='form_wechatPay_topup', style="min-height:500px;border-radius:0 4px 4px 4px;box-shadow:none;").well
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'CREDIT' | translate}}
+                                //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
+                                input.form-control(type='number', min=0, ng-model='vm.playerWechatPayTopUp.amount', required)
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'WechatPay' | translate}}
+                                select.form-control#wechatpayOption(ng-model='vm.wechatpaysAcc',ng-change='vm.pickWechatPayAcc(vm.wechatpaysAcc)')
+                                    option(value='') {{'any' | translate}}
+                                    option(ng-repeat='(i,v) in vm.allWechatpaysAcc | orderBy : "nickName"', value='{{v}}') {{v.nickName}} {{v.accountNumber}} ({{(v.state == "DISABLED"?"Disable":v.state) | translate}})
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'wechatPayName' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayName', required)
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'QRMode' | translate}}
+                                select.form-control(ng-model='vm.playerWechatPayTopUp.notUseQR')
+                                    option(value="true") {{'CS_QR' | translate}}
+                                    option(value="") {{'Settlement_QR' | translate}}
+                            .form-group.col-md-6
+                                .control-label
+                                label {{'wechatPayAccount' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.wechatPayAccount', required)
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'promoCode' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.bonusCode')
+                            form-group.col-md-12
+                                .control-label
+                                label {{'topUpReturnCode' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.topUpReturnCode')
+                            .form-group.col-md-12
+                                .control-label
+                                label {{'REMARK' | translate}}
+                                input.form-control(ng-model='vm.playerWechatPayTopUp.remark' ng-required="!vm.playerWechatPayTopUp.notUseQR")
+                            .form-group.col-md-12
+                                .inlineBlk
+                                label {{'DEPOSIT_TIME' | translate}}
+                                .createTime
+            .modal-footer
+                //manual
+                div(ng-show="vm.selectedTopupTab == 'manual'")
+                    button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerManualTopUp.submitted') {{'Submitted' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_manual_topup.$invalid || form_manual_topup.$pristine || (vm.existingManualTopup && !vm.existingManualTopup.isCanceled)',ng-show='!vm.playerManualTopUp.submitted', ng-click='vm.applyPlayerManualTopUp()') {{'APPLY' | translate}}
+                    button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                    table.simple-table.display(style="width: calc(100% - 210px);min-width:inherit", ng-show="vm.playerManualTopUp.submitted && vm.playerManualTopUp.responseData")
+                        thead
+                            tr
+                                th {{"proposalId" | translate}}
+                                th {{"bankCardNo" | translate}}
+                                th {{"cardOwner" | translate}}
+                                th {{"validTime" | translate}}
+                        tbody
+                            tr
+                                td {{vm.playerManualTopUp.responseData.proposalId}}
+                                td {{vm.playerManualTopUp.responseData.result.bankCardNo}}
+                                td {{vm.playerManualTopUp.responseData.result.cardOwner}}
+                                td {{vm.playerManualTopUp.responseData.result.validTime}}
+                    label.inlineBlk.wordWrap(ng-if='vm.playerManualTopUp.submitted && vm.playerManualTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerManualTopUp.responseMsg}}
+                //alipay
+                div(ng-show="vm.selectedTopupTab == 'alipay'")
+                    button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerAlipayTopUp.submitted') {{'Submitted' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_alipay_topup.$invalid || form_alipay_topup.$pristine || (vm.existingAlipayTopup && !vm.existingAlipayTopup.isCanceled)', ng-show='!vm.playerAlipayTopUp.submitted', ng-click='vm.applyPlayerAlipayTopUp()') {{'APPLY' | translate}}
+                    button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                    label.inlineBlk.wordWrap(ng-if='vm.playerAlipayTopUp.submitted && vm.playerAlipayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAlipayTopUp.responseMsg}}
+                //wechatpay
+                div(ng-show="vm.selectedTopupTab == 'wechatpay'")
+                    button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerWechatPayTopUp.submitted') {{'Submitted' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_wechatPay_topup.$invalid || form_wechatPay_topup.$pristine || (vm.existingWechatPayTopup && !vm.existingWechatPayTopup.isCanceled)', ng-show='!vm.playerWechatPayTopUp.submitted', ng-click='vm.applyPlayerWechatPayTopUp()') {{'APPLY' | translate}}
+                    button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                    label.inlineBlk.wordWrap(ng-if='vm.playerWechatPayTopUp.submitted && vm.playerWechatPayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerWechatPayTopUp.responseMsg}}
