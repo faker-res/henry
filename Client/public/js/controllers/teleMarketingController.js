@@ -1471,7 +1471,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
                     if(data){
-                        vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
+                        vm.teleMarketingSendSMS.count = data.data && data.data.dxPhoneData ? data.data.dxPhoneData.length : 0;
                         vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : [];
                         vm.msgTemplate = data.data && data.data.dxMissionData ? data.data.dxMissionData : 0
 
