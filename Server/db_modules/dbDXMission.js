@@ -968,18 +968,7 @@ let dbDXMission = {
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
-                            // filter the search result of second table by different source from main table
-                            if(type == "TotalValidPlayer" || type == "TotalDepositAmount" || type == "TotalValidConsumption"){
-                                if(searchCriteria && searchCriteria != ""){
-                                    console.log("LH TEST phoneData", phoneData);
-                                    if(searchCriteria.includes(phoneData.playerObjId.toString())){
-                                        console.log("LH TEST phoneData playerObjId", phoneData.playerObjId);
-                                        dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
-                                    }
-                                }
-                            }else{
-                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type));
-                           }
+                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, phoneData.phoneNumber));
                         }
                     }
                 )
@@ -1000,14 +989,12 @@ let dbDXMission = {
                                                 if(phoneData){
                                                     if(summaryData && summaryData.find(s => s && s.playerObjId == phoneData.playerObjId)){
                                                         if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
-                                                            phoneData.playerName = summary.playerName;
-                                                            phoneData.registrationTime = summary.registrationTime;
-                                                            phoneData.totalTopUpCount = summary.totalTopUpCount;
+                                                            phoneData.playerData = summary.playerData;
                                                             phoneData.totalTopUpAmount = summary.totalTopUpAmount;
-                                                            phoneData.totalLoginTimes = summary.totalLoginTimes;
                                                             phoneData.totalConsumptionTime = summary.totalConsumptionTime;
                                                             phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
                                                             phoneData.totalDepositAmount = summary.totalDepositAmount;
+                                                            phoneData.phoneNumber = summary.phoneNumber;
                                                         }
                                                     }else{
                                                         if(dataToBeDeleted.findIndex(d => d == phoneData.playerObjId) == -1){
@@ -1042,13 +1029,15 @@ let dbDXMission = {
         );
     },
 
-    getPlayerInfo: function (playerObjId, platform, type) {
+    getPlayerInfo: function (playerObjId, platform, type, phoneNumber) {
         if(!playerObjId){
             return;
         }
 
+        let playerData
         let playerName = "";
         let registrationTime = new Date();
+        let playerPermission;
         let totalTopUpCount = 0;
         let totalLoginTimes = 0;
         let totalConsumptionTime = 0;
@@ -1072,21 +1061,28 @@ let dbDXMission = {
         return dbconfig.collection_players.findOne(query).then(
             playerData => {
                 if(playerData){
-                    if(playerData.topUpTimes){
-                        totalTopUpCount = playerData.topUpTimes;
-                    }
+                    // if(playerData.topUpTimes){
+                    //     totalTopUpCount = playerData.topUpTimes;
+                    // }
+                    //
+                    // if(playerData.loginTimes){
+                    //     totalLoginTimes = playerData.loginTimes;
+                    // }
+                    //
+                    // if(playerData.name){
+                    //     playerName = playerData.name;
+                    // }
+                    //
+                    // if(playerData.registrationTime){
+                    //     registrationTime = new Date(playerData.registrationTime);
+                    // }
+                    //
+                    // if(playerData.permission){
+                    //     playerPermission = playerData.permission;
+                    // }
 
-                    if(playerData.loginTimes){
-                        totalLoginTimes = playerData.loginTimes;
-                    }
+                    playerData = playerData;
 
-                    if(playerData.name){
-                        playerName = playerData.name;
-                    }
-
-                    if(playerData.registrationTime){
-                        registrationTime = new Date(playerData.registrationTime);
-                    }
 
                     topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).then(
                         topUpRecord => {
@@ -1150,11 +1146,14 @@ let dbDXMission = {
                         returnData => {
                             return {
                                 playerObjId: playerObjId,
-                                playerName: playerName,
-                                registrationTime: registrationTime,
-                                totalTopUpCount: totalTopUpCount,
+                                phoneNumber: phoneNumber,
+                                playerData: playerData,
+                                // playerName: playerName,
+                                // registrationTime: registrationTime,
+                                // permission: playerPermission,
+                                // totalLoginTimes: totalLoginTimes,
+                                // totalTopUpCount: totalTopUpCount,
                                 totalTopUpAmount: totalTopUpAmount,
-                                totalLoginTimes: totalLoginTimes,
                                 totalConsumptionTime: totalConsumptionTime,
                                 totalConsumptionAmount: totalConsumptionAmount,
                                 totalDepositAmount: totalTopUpAmount - playerBonusAmount
