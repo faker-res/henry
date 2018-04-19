@@ -885,6 +885,7 @@ var proposal = {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
                                         {
+                                            executeTime: Date.now(),
                                             noSteps: true,
                                             process: null,
                                             status: constProposalStatus.CANCEL,

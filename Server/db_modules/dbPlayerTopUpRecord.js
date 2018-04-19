@@ -3698,25 +3698,24 @@ function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo) {
     );
 }
 
-function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo, merchantUseType) {
-    let merchantTypeObj;
-    return pmsAPI.merchant_getMerchantType({merchantTypeId: merchantUseType.toString()}).then(
-        merchantType => {
-            merchantTypeObj = merchantType;
-            return pmsAPI.merchant_getMerchant({merchantNo: merchantNo}).then(
-                merchantData => {
-                    if (merchantData && merchantData.merchant && (merchantData.merchant.permerchantLimits || merchantData.merchant.transactionForPlayerOneDay)) {
-                        return dbconfig.collection_proposal.update(proposalQuery, {
-                            "data.permerchantLimits": merchantData.merchant.permerchantLimits ? merchantData.merchant.permerchantLimits : 0,
-                            "data.transactionForPlayerOneDay": merchantData.merchant.transactionForPlayerOneDay ? merchantData.merchant.transactionForPlayerOneDay : 0,
-                            "data.merchantUseName": merchantTypeObj.merchantType.name? merchantTypeObj.merchantType.name: ""
-                        });
-                    }
-                }
-            );
-        },
-        err => {
-            return Promise.reject(err);
+function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo) {
+    let merchantObj;
+    return pmsAPI.merchant_getMerchant({merchantNo: merchantNo}).then(
+        merchantData => {
+            merchantObj = merchantData;
+            if (merchantData && merchantData.merchant && merchantData.merchant.merchantTypeId) {
+                return pmsAPI.merchant_getMerchantType({merchantTypeId: merchantData.merchant.merchantTypeId})
+            }
         }
-    );
+    ).then(
+        merchantType => {
+            if (merchantObj && merchantObj.merchant && (merchantObj.merchant.permerchantLimits || merchantObj.merchant.transactionForPlayerOneDay)) {
+                return dbconfig.collection_proposal.update(proposalQuery, {
+                    "data.permerchantLimits": merchantObj.merchant.permerchantLimits ? merchantObj.merchant.permerchantLimits : 0,
+                    "data.transactionForPlayerOneDay": merchantObj.merchant.transactionForPlayerOneDay ? merchantObj.merchant.transactionForPlayerOneDay : 0,
+                    "data.merchantUseName": merchantType && merchantType.merchantType && merchantType.merchantType.name ? merchantType.merchantType.name : ""
+                });
+            }
+        }
+    )
 }
