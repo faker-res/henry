@@ -1096,6 +1096,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     vm.showPlayerTable = true;
+
                     vm.teleMarketingPlayerInfo.data.forEach((item) => {
                         if(item){
                             item['registrationTime'] = item.registrationTime ? vm.dateReformat(item.registrationTime) : "";
@@ -1369,14 +1370,7 @@ define(['js/app'], function (myApp) {
                 });
                 tableOptions.language.emptyTable=$translate("No data available in table");
 
-                let a = utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {
-                    // 4: summary && summary.loginTimeSum ? summary.loginTimeSum: 0,
-                    // 5: summary && summary.topupTimeSum ? summary.topupTimeSum: 0,
-                    // 6: summary && summary.topupAmountSum ? summary.topupAmountSum: 0,
-                    // 7: summary && summary.betSum ? summary.betSum: 0,
-                    // 8: summary && summary.balanceSum ? summary.balanceSum :0,
-                    // 9: summary && summary.effectiveBetAmount ? summary.effectiveBetAmount: 0,
-                });
+                let a = utilService.createDatatableWithFooter('#telePlayerTable', tableOptions, {}, true);
 
                 vm.telePlayerTable.pageObj.init({maxCount: size}, newSearch);
                 $('#telePlayerTable').off('order.dt');
@@ -1477,7 +1471,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
                     if(data){
-                        vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
+                        vm.teleMarketingSendSMS.count = data.data && data.data.dxPhoneData ? data.data.dxPhoneData.length : 0;
                         vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : [];
                         vm.msgTemplate = data.data && data.data.dxMissionData ? data.data.dxMissionData : 0
 
