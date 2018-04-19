@@ -135,6 +135,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             table#teleMarketingOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
                             #teleMarketingOverviewTablePage
 
+                    #telePlayerTableAnchor
                     #overViewSubTable(ng-show="vm.showPlayerTable")
                          div(style="margin-top:60px; position:relative;")
                             label {{"totalCount" | translate}} {{vm.teleMarketingPlayerInfo.count}} {{"records" | translate}}
@@ -144,6 +145,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             #telePlayerTablePage
                     //br
                     //br
+                    #smsTableAnchor
                     #sendSMSTabletab-pane.well.fade.in.active(ng-show="vm.showSMSTable", style="margin-top: 100px; padding: 35px 20px;")
                         .inlineBlk(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')")
                             label {{"CUSTOMER_ACCOUNT_ID"|translate}}
