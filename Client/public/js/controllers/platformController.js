@@ -1555,7 +1555,7 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id
                 }).then(
                     previews => {
-                        console.log('previews', previews);
+                        vm.allPartnerCommSettPreview = previews.data;
                     }
                 );
             }
