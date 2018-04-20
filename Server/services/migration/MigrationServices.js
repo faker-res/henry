@@ -79,7 +79,8 @@
                 "updateLastPlayedProvider",
                 "updatePlayerCredit",
                 "updatePlayerLevel",
-                "updatePlayer"
+                "updatePlayer",
+                "importBIPlayer"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
