@@ -2045,6 +2045,7 @@
   "Player does not have valid payment information": "玩家支付信息无效",
   "Player does not have enough Expenses.": "玩家投注额度不够",
   "Player does not have this permission": "玩家无此权限",
+  "Partner does not have this permission": "代理无此权限",
   "Top up type is forbidden for this player": "支付服务维护中...",
   "Player has pending manual topup request already.": "玩家已有手工充值记录",
   "Player has pending Alipay topup request already.": "玩家已有支付宝充值记录",
