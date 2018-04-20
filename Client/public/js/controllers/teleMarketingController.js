@@ -3533,7 +3533,6 @@ define(['js/app'], function (myApp) {
                             //if(row.isRealPlayer) {
                                 if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
-
                                         'class': 'fa fa-plus-circle',
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.getAllBankCard(); vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
                                         'data-row': JSON.stringify(row),
@@ -3548,9 +3547,8 @@ define(['js/app'], function (myApp) {
                                 link.append($('<br>'));
                                 if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/withdrawBlue.png",
+                                        'src': (row.alerted ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.initPlayerBonus();',
@@ -3563,9 +3561,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/rewardBlue.png",
+                                        'src': (row.alerted ? "images/icon/rewardRed.png" : "images/icon/rewardBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.rewardTabClicked();vm.initPlayerAddRewardTask();',
@@ -3578,9 +3575,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/reapplyBlue.png",
+                                        'src': (row.alerted ? "images/icon/reapplyRed.png" : "images/icon/reapplyBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
@@ -3592,9 +3588,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/creditAdjustBlue.png",
+                                        'src': (row.alerted ? "images/icon/creditAdjustRed.png" : "images/icon/creditAdjustBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
@@ -3607,9 +3602,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/rewardPointsBlue.png",
+                                        'src': (row.alerted ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
