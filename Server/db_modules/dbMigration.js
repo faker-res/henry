@@ -1888,7 +1888,13 @@ var dbMigration = {
                     }
                     return Q.all(proms).then(
                         resData => {
-                            return playerData;
+                            if( resData && resData[0] && resData[0].length > 0 ){
+                                playerData.forbidProviders = resData[0].map(provider => provider._id);
+                            }
+                            if( resData && resData[1] && resData[1].length > 0 ) {
+                                playerData.forbidRewardEvents = resData[1].map(event => event._id);
+                            }
+                            return resData;
                         }
                     );
                 }
