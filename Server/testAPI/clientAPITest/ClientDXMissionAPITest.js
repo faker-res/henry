@@ -77,6 +77,17 @@
         });
     };
 
+    proto.insertPhoneToTask = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.DXMissionService.insertPhoneToTask.request(data);
+        this.DXMissionService.insertPhoneToTask.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientDXMissionAPITest;
     } else {

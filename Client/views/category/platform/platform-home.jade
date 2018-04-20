@@ -57,16 +57,16 @@
                         #platformTree(ng-show='vm.showPlatformDropDownList', style="min-width: 200px; position: absolute; right: 0; color: black; z-index: 9;")
 
                         li.active(ng-show="checkViewPermission('Platform', 'Player', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Player", ng-click="vm.activatePlayerTab();vm.platformPageName='Player';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Player", ng-click="vm.loadTab('Player');")
                                 .fa.fa-users.margin-right-5
                                 text.span {{"PLAYER" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Feedback', 'Read')")
                             //a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.submitPlayerFeedbackQuery();vm.platformPageName='Feedback';vm.updatePageTile();")
-                            a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.initPlayerFeedback();vm.platformPageName='Feedback';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Feedback", ng-click="vm.loadTab('Feedback');")
                                 .fa.fa-volume-control-phone.margin-right-5
                                 text.span {{"FEEDBACK" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'FeedbackQuery', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#FeedbackAdmin", ng-click="vm.platformPageName='FeedbackAdmin';vm.initFeedbackAdmin();vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#FeedbackAdmin", ng-click="vm.loadTab('FeedbackAdmin');")
                                 .fa.fa-volume-control-phone.margin-right-5
                                 text.span {{"Feedback Query" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Partner', 'Read')")
@@ -74,77 +74,65 @@
                                 .fa.fa-sitemap.margin-right-5
                                 text.span {{"PARTNER" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Game', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Game", ng-click="vm.platformGameTabClicked();vm.platformPageName='Game';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Game", ng-click="vm.loadTab('Game');")
                                 .fa.fa-gamepad.margin-right-5
                                 text.span {{"GAME" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'GameGroup', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#GameGroup", ng-click='vm.platformPageName="GameGroup";vm.updatePageTile();vm.loadGameGroupData();')
+                            a.common-tab(data-toggle="tab", href="#GameGroup", ng-click="vm.loadTab('GameGroup');")
                                 .fa.fa-gamepad.margin-right-5
                                 text.span {{"GAME_GROUP" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Reward', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Reward", ng-click="vm.rewardTabClicked();vm.platformPageName='Reward';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Reward", ng-click="vm.loadTab('Reward');")
                                 .fa.fa-usd.margin-right-5
                                 text.span {{"REWARD" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Proposal', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Proposal", ng-click="vm.rewardProposalClicked();vm.platformPageName='Proposal';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Proposal", ng-click="vm.loadTab('Proposal');")
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"PROPOSAL_PROCESS" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Config', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Config", ng-click="vm.configTabClicked();vm.platformPageName='Config';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Config", ng-click="vm.loadTab('Config');")
                                 .fa.fa-wrench.margin-right-5
                                 text.span {{"CONFIG" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Config', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#MessageTemplates", ng-click="vm.getPlatformMessageTemplates();vm.platformPageName='MessageTemplates';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#MessageTemplates", ng-click="vm.loadTab('MessageTemplates');")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"MESSAGE_TEMPLATES_SHORT" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Announcement', 'PlatformAnnouncementRead')")
-                            a.common-tab(data-toggle="tab", href="#Announcement", ng-click="vm.getPlatformAnnouncements();vm.platformPageName='Announcement';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Announcement", ng-click="vm.loadTab('Announcement');")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"ANNOUNCEMENTS" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'groupMessage','Read')")
-                            a.common-tab(data-toggle="tab", href="#MultiMessage", ng-click="vm.platformPageName='MultiMessage';vm.updatePageTile();vm.initSendMultiMessage(true);")
+                            a.common-tab(data-toggle="tab", href="#MultiMessage", ng-click="vm.loadTab('MultiMessage');")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Send Messages" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'vertificationSMS','Read')")
-                            a.common-tab(data-toggle="tab", href="#VertificationSMS", ng-click="vm.platformPageName='VertificationSMS';vm.updatePageTile();vm.initVertificationSMS();")
+                            a.common-tab(data-toggle="tab", href="#VertificationSMS", ng-click="vm.loadTab('VertificationSMS');")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"SMS Records" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'groupMessage','Read')")
-                            a.common-tab(data-toggle="tab", href="#PushNotification", ng-click="vm.platformPageName='PushNotification';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#PushNotification", ng-click="vm.loadTab('PushNotification');")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Push Notification" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'promoCode','Read')")
-                            a.common-tab(data-toggle="tab", href="#PromoCode", ng-click="vm.platformPageName='PromoCode';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#PromoCode", ng-click="vm.loadTab('PromoCode');")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"promoCode" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'RegistrationUrlConfig','Read')")
-                            a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.platformPageName='RegistrationUrlConfig';vm.updatePageTile();vm.initPlatformOfficer();")
+                            a.common-tab(data-toggle="tab", href="#registrationUrlConfig", ng-click="vm.loadTab('RegistrationUrlConfig');")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"RegistrationUrlConfig" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'phoneNumFilter','Read')")
-                            a.common-tab(data-toggle="tab", href="#phoneNumFilter", ng-click="vm.platformPageName='phoneNumFilter';vm.updatePageTile();vm.initPhoneNumFilter();")
+                            a.common-tab(data-toggle="tab", href="#phoneNumFilter", ng-click="vm.loadTab('phoneNumFilter');")
                                 .fa.fa-phone.margin-right-5
                                 text.span {{"phoneNumFilter" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'rewardPoints','Read')")
-                            a.common-tab(data-toggle="tab", href="#rewardPoint", ng-click="vm.platformPageName='rewardPoint';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#rewardPoint", ng-click="vm.loadTab('rewardPoint');")
                                 .fa.fa-file.margin-right-5
                                 text.span {{"rewardPoint" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'batchPermit','Read')")
-                            a.common-tab(data-toggle="tab", href="#batchPermit", ng-click="vm.platformPageName='batchPermit';vm.updatePageTile();vm.initBatchPermit();")
+                            a.common-tab(data-toggle="tab", href="#batchPermit", ng-click="vm.loadTab('batchPermit');")
                                 .fa.fa-cogs.margin-right-5
                                 text.span {{"Batch Setting" | translate}}
-                        //li
-                            a.common-tab(ng-show="checkViewPermission('Platform', 'BankCardGroup', 'Read')",data-toggle="tab", href="#bankCardGroup", ng-click="vm.bankCardGroupTabClicked();vm.platformPageName='bankCardGroup';vm.updatePageTile();")
-                                .fa.fa-credit-card.margin-right-5
-                                text.span {{"Bankcard Group" | translate}}
-                        //li
-                            a.common-tab(ng-show="checkViewPermission('Platform', 'MerchantGroup', 'Read')",data-toggle="tab", href="#merchantGroup", ng-click="vm.merchantGroupTabClicked();vm.platformPageName='merchantGroup';vm.updatePageTile();")
-                                .fa.fa-money.margin-right-5
-                                text.span {{"Merchant Group" | translate}}
-                        //li
-                            a.common-tab(ng-show="checkViewPermission('Platform', 'AlipayGroup', 'Read')",data-toggle="tab", href="#alipayGroup", ng-click="vm.platformPageName='alipayGroup';vm.updatePageTile();")
-                                img.margin-right-5(src='images/icon/aliPayBlue.png')
-                                text.span {{"Alipay" | translate}}
                 .panel-body.common-right-panel-body
                     div.tab-content
                         #Game.tab-pane.fade
