@@ -46,7 +46,9 @@ var proposalSchema = new Schema({
     // create Time
     settleTime: {type: Date, default: Date.now, index: true},
     // input device
-    inputDevice: {type: Number, default: 0, index: true}
+    inputDevice: {type: Number, default: 0, index: true},
+    // execute time
+    executeTime: {type: Date}
 });
 
 proposalSchema.index({"data.playerName": 1});

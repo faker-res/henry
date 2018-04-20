@@ -14,4 +14,7 @@ let partnerCommSettLog = new Schema({
     isSettled: {type: Boolean, default: false},
 });
 
+partnerCommSettLog.index({platform: 1, settMode: 1, startTime: 1, endTime: 1});
+partnerCommSettLog.index({platform: 1, isSettled: 1});
+
 module.exports = partnerCommSettLog;

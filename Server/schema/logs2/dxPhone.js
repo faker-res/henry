@@ -20,5 +20,6 @@ var dxPhone = new Schema({
     playerObjId: {type: Schema.ObjectId, ref: 'player'}
 });
 
+dxPhone.index({ platform: 1, dxMission: 1, playerObjId: 1, createTime: 1 }, {unique: true});
 
 module.exports = dxPhone;

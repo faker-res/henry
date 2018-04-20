@@ -325,7 +325,8 @@ var roleChecker = {
                 ApplyBonus: ['applyPartnerBonusRequest'],
                 PartnerPermission: ['updatePartnerPermission'],
                 AddFeedback: [],
-                CreditAdjustment: ['createUpdatePartnerCreditProposal']
+                CreditAdjustment: ['createUpdatePartnerCreditProposal'],
+                SettleCommission: ['getAllPartnerCommSettPreview']
             },
             "Game": {
                 Read: ['getAllGameProviders', 'getGamesByPlatformAndProvider', 'getGamesNotAttachedToPlatform'],

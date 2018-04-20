@@ -20,6 +20,12 @@ div
     .label-value
         label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
         label {{vm.dateReformat(vm.selectedProposal.createTime) || 'none'}}
+    .label-value
+        label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
+        label(ng-if = "vm.selectedProposal.executeTime && vm.selectedProposal.status != vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.executeTime) || 'none'}}
+    .label-value
+        label {{'cancelTime' | translate}}&nbsp;:&nbsp;
+        label(ng-if = "vm.selectedProposal.executeTime && vm.selectedProposal.status == vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.executeTime) || 'none'}}
 
     //.titleBackground.margin-bottom-5.text-center
     div(style='min-height:30px')

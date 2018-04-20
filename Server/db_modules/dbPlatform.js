@@ -2632,29 +2632,39 @@ var dbPlatform = {
             promArr.push(
                 dbconfig.collection_partnerCommSettLog.findOne({
                     platform: platformObjId,
-                    settMode: mode
+                    settMode: mode,
+                    isSettled: true
                 }).sort('-startTime').lean().then(
                     modeLog => {
                         let lastSettDate = "-";
                         let nextSettDate = "-";
+                        let nextDate = {};
 
                         if (modeLog) {
-                            lastSettDate = modeLog.startTime + " - " + modeLog.endTime;
-                        } else {
-                            let nextDate = getPartnerCommNextSettDate(mode);
+                            lastSettDate =
+                                dbUtility.getLocalTimeString(modeLog.startTime, "YYYY-MM-DD")
+                                + " - " +
+                                dbUtility.getLocalTimeString(modeLog.endTime.getTime() + 1, "YYYY-MM-DD");
 
-                            if (nextDate) {
-                                nextSettDate =
-                                    dbUtility.getLocalTimeString(nextDate.startTime, "YYYY-MM-DD")
-                                    + " - " +
-                                    dbUtility.getLocalTimeString(nextDate.endTime.getTime() + 1, "YYYY-MM-DD")
-                            }
+                            nextDate = getPartnerCommNextSettDate(mode, modeLog.endTime.getTime() + 1);
+                        } else {
+                            nextDate = getPartnerCommNextSettDate(mode);
+                        }
+
+                        if (nextDate) {
+                            nextSettDate =
+                                dbUtility.getLocalTimeString(nextDate.startTime, "YYYY-MM-DD")
+                                + " - " +
+                                // Offset for display purpose
+                                dbUtility.getLocalTimeString(nextDate.endTime.getTime() + 1, "YYYY-MM-DD")
                         }
 
                         return {
                             mode: mode,
                             lastSettDate: lastSettDate,
-                            nextSettDate: nextSettDate
+                            nextSettDate: nextSettDate,
+                            settStartTime: nextDate.startTime,
+                            settEndTime: nextDate.endTime
                         }
                     }
                 )
@@ -2662,6 +2672,27 @@ var dbPlatform = {
         });
 
         return Promise.all(promArr);
+    },
+
+    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false) => {
+        return dbconfig.collection_partnerCommSettLog.update({
+            platform: platformObjId,
+            settMode: settMode,
+            startTime: startTime,
+            endTime: endTime
+        }, {
+            isSettled: isSkip
+        }, {
+            upsert: true,
+            new: true
+        });
+    },
+
+    getAllPartnerCommSettPreview: (platformObjId) => {
+        return dbconfig.collection_partnerCommSettLog.find({
+            platform: platformObjId,
+            isSettled: false
+        }).sort('settMode').lean();
     }
 };
 
@@ -2682,17 +2713,17 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
 }
 
-function getPartnerCommNextSettDate(settMode) {
+function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfYear()) {
     switch (settMode) {
         case 1:
-            return dbUtility.getDayTime(dbUtility.getFirstDayOfYear());
+            return dbUtility.getDayTime(curTime);
         case 2:
         case 5:
-            return dbUtility.getWeekTime(dbUtility.getFirstDayOfYear());
+            return dbUtility.getWeekTime(curTime);
         case 3:
-            return dbUtility.getBiWeekSGTIme(dbUtility.getFirstDayOfYear());
+            return dbUtility.getBiWeekSGTIme(curTime);
         case 4:
-            return dbUtility.getMonthSGTIme(dbUtility.getFirstDayOfYear());
+            return dbUtility.getMonthSGTIme(curTime);
     }
 }
 

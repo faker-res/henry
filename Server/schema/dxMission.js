@@ -38,5 +38,7 @@ var dxMission = new Schema({
     forbidWithdrawIfBalanceAfterUnlock:{type: Number},
 });
 
+dxMission.index({ platform: 1, createTime: 1, name: 1 }, {unique: true});
+
 
 module.exports = dxMission;
