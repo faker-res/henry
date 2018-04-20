@@ -8,6 +8,8 @@ var errorUtils = require("./../modules/errorUtils");
 var dbLogger = require('./../modules/dbLogger');
 var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
+const rsaCrypto = require("../modules/rsaCrypto");
+const localization = require("./../modules/localization").localization;
 
 
 const constSystemParam = require('../const/constSystemParam');
@@ -745,6 +747,191 @@ let dbDXMission = {
         }
     },
 
+    generateDXCode: function(dxMission, platformId, tries) {
+        tries = (Number(tries) || 0) + 1;
+        if (tries > 5) {
+            return Promise.reject({
+                message: "Generate dian xiao code failure."
+            })
+        }
+        let randomString = Math.random().toString(36).substring(4,11); // generate random String
+        let dxCode = "";
+
+        let platformProm = Promise.resolve({platformId: platformId});
+        if (!platformId) {
+            platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+                path: "platform", model: dbconfig.collection_platform
+            }).lean();
+        }
+
+        return platformProm.then(
+            function (missionProm) {
+                platformId = missionProm.platform.platformId;
+                dxCode = missionProm.platform.platformId + randomString;
+                return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
+            }
+        ).then(
+            function (dxPhoneExist) {
+                if (dxPhoneExist) {
+                    return dbDXMission.generateDXCode(dxMission, platformId);
+                }
+                else {
+                    return dxCode;
+                }
+            }
+        );
+    },
+
+    insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated, smsChannel) {
+        if (!platformId && !phoneNumber && !taskName && !autoSMS) {
+            return Promise.reject({
+                errorMessage: "Invalid data"
+            });
+        }
+
+        let returnedMsg = null;
+        let platformObjId = null;
+        const anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const now = new Date(Date.now()).toISOString();
+        const maxIpCount = 5;
+
+        // check the phoneNumber has been registered
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then( platformData => {
+            if (platformData){
+
+                platformObjId = platformData._id;
+
+                if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
+                    let ipQuery = {
+                        ip: deviceData.lastLoginIp,
+                        createTime: {
+                            $lte: now,
+                            $gte: anHourAgo
+                        },
+                        platform: platformObjId
+                    };
+
+                    return dbconfig.collection_dxPhone.count(ipQuery).then(
+                        data => {
+                            if (data >= maxIpCount) {
+
+                                return Promise.reject({
+                                   // name: "DataError",
+                                    message: localization.translate("Application limit exceeded 5 times in 1 hour (same IP Address). Please try again later")
+                                });
+                            }
+                            else{
+
+                                return platformObjId;
+                            }
+                        }
+                    );
+                    // return platformObjId;
+
+                }
+
+            }
+            else{
+                    return Promise.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+            }
+        }).then( platformObjId => {
+            if(platformObjId){
+                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                let phoneNumberQuery = {$in: [encryptedPhoneNumber, phoneNumber]};
+
+                return dbconfig.collection_players.findOne({platform: platformObjId, phoneNumber: phoneNumberQuery}).lean()
+            }
+        }).then( playerData => {
+            if (playerData){
+
+                return Promise.reject({
+                    message: localization.translate("This phone number has been registered, only new player can get lucky draw!")
+                });
+            }
+            else{
+                // this number is still available, so check whether it is already in the dxMission list
+
+                let taskNameObjId = null;
+                if (ObjectId.isValid(taskName)){
+                   taskNameObjId = ObjectId(taskName);
+                }
+
+                return dbconfig.collection_dxMission.findOne({ $or: [{name: taskName}, {_id: taskNameObjId}] }).lean().then( dxMission => {
+                    if (dxMission){
+
+                        return dbconfig.collection_dxPhone.findOne({phoneNumber: phoneNumber, dxMission: dxMission._id})
+                            .then( dxPhone => {
+                                if(dxPhone){
+                                    return Promise.reject({
+                                        message: localization.translate("The phone number is already in the mission list, please invite friends for a lucky draw!")
+                                    });
+                                }
+                                else{
+                                    // import the number to the keyed-in dxMission and send out msg if needed
+                                    return dbDXMission.generateDXCode(dxMission).then(
+                                        randomCode => {
+                                            let importData = {
+                                                platform: platformObjId,
+                                                phoneNumber: phoneNumber,
+                                                dxMission: dxMission._id,
+                                                code: randomCode,
+                                                url: dxMission.domain + "/" + randomCode,
+                                                ip: deviceData.lastLoginIp,
+                                            };
+
+                                            let importPhone = new dbconfig.collection_dxPhone(importData);
+                                            return importPhone.save().then ( () => {
+                                                // sending msg if required
+                                                if (parseInt(autoSMS)){
+
+                                                    let smsData = {
+                                                        channel: smsChannel,
+                                                        platformId: platformObjId,
+                                                        dbDXMissionId: dxMission._id,
+                                                        phoneNumber: phoneNumber.trim(),
+                                                    };
+
+                                                    dbDXMission.sendSMSToSinglePlayer(smsData);
+                                                }
+
+                                                return Promise.resolve({
+                                                    message: localization.translate("Successfully got the rewards, please take note on the message sent by the system.")
+                                                });
+                                            })
+
+
+                                        }
+                                    )
+                                }
+                            })
+
+                    }
+                    else{
+                        return Promise.reject({name: "DBError", message: "Could not find the dxMission"});
+                    }
+                })
+
+            }
+        })
+
+        // return dbconfig.collection_dxPhone.findOne({code: code})
+        //     .populate({path: "dxMission", model: dbconfig.collection_dxMission})
+        //     .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+        //         function (dxPhone) {
+        //             if (!dxPhone) {
+        //                 return {redirect: "www.kbl8888.com"};
+        //             }
+        //
+        //             if (dxPhone.bUsed) {
+        //                 return loginDefaultPasswordPlayer(dxPhone);
+        //             }
+        //             else {
+        //                 return createPlayer(dxPhone, deviceData, domain);
+        //             }
+        //         }
+        //     )
+    },
+
     sendSMSToPlayer: function (adminObjId, adminName, data) {
         let phoneData = {};
         let prom = [];
@@ -844,6 +1031,53 @@ let dbDXMission = {
         //         // return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
         //     }
         // );
+    },
+
+    sendSMSToSinglePlayer: function ( data) {
+        let phoneData = {};
+
+        return dbconfig.collection_dxPhone.findOne({phoneNumber: data.phoneNumber})
+            .populate({path: "dxMission", model: dbconfig.collection_dxMission})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .then(
+                dxPhoneRes => {
+                    if (dxPhoneRes) {
+                        phoneData = dxPhoneRes;
+
+                        return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
+                    }
+                }
+            ).then(
+                message => {
+                    let sendObj = {
+                        tel: data.phoneNumber.trim(),
+                        channel: parseInt(data.channel),
+                        platformId: data.platformId,
+                        message: message,
+                        data: {
+                            dxMission: phoneData.dxMission
+                        }
+                    };
+
+                    let recipientName = data.name || '';
+
+                    return smsAPI.sending_sendMessage(sendObj).then(
+                        retData => {
+                            dbLogger.createSMSLog(null, null, recipientName, data, sendObj, data.platformId, 'success');
+                            console.log("SMS SENT SUCCESSFULLY");
+                            return retData;
+                        },
+                        retErr => {
+                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
+                            console.log("SMS SENT FAILED");
+                            return {message: retErr, data: msg};
+                        }
+                    );
+
+                    //return  dbLogger.createSMSLog(null, null, recipientName, data, sendObj, data.platformId, 'success');
+
+                }
+            )
     },
 
     getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol, data) {

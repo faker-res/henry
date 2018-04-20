@@ -17,7 +17,11 @@ var dxPhone = new Schema({
     // generated url
     url: {type: String},
     // player info after creation
-    playerObjId: {type: Schema.ObjectId, ref: 'player'}
+    playerObjId: {type: Schema.ObjectId, ref: 'player'},
+    // the IP when applying
+    ip: {type: String, default: "", index: true},
+
+
 });
 
 
