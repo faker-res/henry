@@ -326,6 +326,7 @@ var roleChecker = {
                 PartnerPermission: ['updatePartnerPermission'],
                 AddFeedback: [],
                 sendSMS: [],
+                partnerApiLog: [],
                 CreditAdjustment: ['createUpdatePartnerCreditProposal'],
                 SettleCommission: ['getAllPartnerCommSettPreview']
             },
