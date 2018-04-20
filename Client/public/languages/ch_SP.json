@@ -1263,6 +1263,7 @@
   "MessagePlayer": "玩家发短信",
   "Are you sure": "确定么",
   "Skip next partner commission settlement period": "跳过下个未结算周期",
+  "Skip to latest available commission settlement period": "跳至最新未结算周期",
   "Update": "更新",
   "LinkProvider": "链接提供商",
   "GameStatus": "游戏状态",

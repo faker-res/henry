@@ -1526,12 +1526,17 @@ define(['js/app'], function (myApp) {
                 // );
             };
 
-            vm.skipNextPartnerCommissionPeriod = (modeObj, isConfirm = false) => {
+            vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
                 if (!isConfirm) {
                     vm.modalYesNo = {};
                     vm.modalYesNo.modalTitle = $translate("Skip next partner commission settlement period");
+
+                    if (toLatest) {
+                        vm.modalYesNo.modalTitle = $translate("Skip to latest available commission settlement period");
+                    }
+
                     vm.modalYesNo.modalText = $translate("Are you sure");
-                    vm.modalYesNo.actionYes = () => vm.skipNextPartnerCommissionPeriod(modeObj, true);
+                    vm.modalYesNo.actionYes = () => vm.skipNextPartnerCommissionPeriod(modeObj, toLatest, true);
                     $('#modalYesNo').modal();
                 }
                 else {
@@ -1539,7 +1544,8 @@ define(['js/app'], function (myApp) {
                         platformObjId: vm.selectedPlatform.id,
                         settMode: modeObj.mode,
                         startTime: modeObj.settStartTime,
-                        endTime: modeObj.settEndTime
+                        endTime: modeObj.settEndTime,
+                        toLatest: toLatest
                     }).then(vm.startPlatformPartnerCommissionSettlement());
                 }
             };
@@ -13623,6 +13629,15 @@ define(['js/app'], function (myApp) {
                     data => {
                         var data = data.data;
                         vm.bankCards = data.data ? data.data : false;
+
+                        vm.bankCards.forEach(bank=>{
+                            let bankStatus = $translate(bank.status);
+                            bank.displayText = vm.getBankCardTypeTextbyId(bank.bankTypeId)+' - '+bank.name+' ('+bank.accountNumber+') - ' + bankStatus;
+                        })
+                        
+                        vm.bankCards.sort(function (a, b) {
+                          return a.bankTypeId - b.bankTypeId;
+                        });
                     });
             }
 
@@ -17157,14 +17172,11 @@ define(['js/app'], function (myApp) {
             }
 
             vm.pickBankCardAcc = function (bankcard) {
-                console.log(bankcard);
-                bankcard = JSON.parse(bankcard);
                 if (bankcard.accountNumber) {
                     vm.playerManualTopUp.groupBankcardList = [bankcard.accountNumber];
                     vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
                     vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
-                }
-                ;
+                };
             }
             /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 
@@ -18773,9 +18785,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'partnerCommission':
                         vm.partnerCommission = {};
-                        //vm.partnerCommission.gameProviderGroup = [];
-                        vm.rateAfterRebateGameProviderGroup = [];
-                        vm.rateAfterRebateGameProviderGroup = vm.gameProviderGroup;
+                        vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
                         // vm.getPartnerCommissionPeriodConst();
                         // vm.getPartnerCommissionSettlementModeConst();
@@ -22807,6 +22817,77 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
+
+            vm.getCommissionRateGameProviderGroup = function () {
+                vm.isCommissionRateEditing = false;
+                vm.rateAfterRebateGameProviderGroup = [];
+                vm.rateAfterRebatePromo = null;
+                vm.rateAfterRebatePlatform = null;
+                vm.rateAfterRebateTotalDeposit = null;
+                vm.rateAfterRebateTotalWithdrawal = null;
+
+                var sendData = {
+                    query: { platform: vm.selectedPlatform.id }
+                }
+
+                socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
+                    if (data && data.data) {
+                        vm.commissionRateConfig = data.data;
+                        vm.srcCommissionRateConfig = JSON.parse(JSON.stringify(data.data));
+
+                        vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
+                        vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
+                        vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
+                        vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
+                        vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
+
+                    } else {
+                        if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                            vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name, rate: ''});
+                            })
+                        }
+                    }
+                    $scope.safeApply();
+                });
+            };
+
+            vm.editPartnerRateSetting = function () {
+                vm.isCommissionRateEditing = true;
+            };
+
+            vm.cancelPartnerRateSetting = function () {
+                vm.isCommissionRateEditing = false;
+                vm.rateAfterRebatePromo = vm.srcCommissionRateConfig.rateAfterRebatePromo;
+                vm.rateAfterRebatePlatform = vm.srcCommissionRateConfig.rateAfterRebatePlatform;
+                vm.rateAfterRebateGameProviderGroup = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup;
+                vm.rateAfterRebateTotalDeposit = vm.srcCommissionRateConfig.rateAfterRebateTotalDeposit;
+                vm.rateAfterRebateTotalWithdrawal = vm.srcCommissionRateConfig.rateAfterRebateTotalWithdrawal;
+            };
+
+            vm.createUpdateCommissionRateSetting = function () {
+
+                var updateDate = {
+                    platform: vm.selectedPlatform.id,
+                    rateAfterRebatePromo: vm.rateAfterRebatePromo,
+                    rateAfterRebatePlatform: vm.rateAfterRebatePlatform,
+                    rateAfterRebateGameProviderGroup: vm.rateAfterRebateGameProviderGroup,
+                    rateAfterRebateTotalDeposit: vm.rateAfterRebateTotalDeposit,
+                    rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal
+                }
+
+                var sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id
+                    },
+                    updateData: updateDate
+                }
+                socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionRateConfig', sendData, function (data) {
+                    console.log('commissionRateConfig success ',data);
+                    vm.isCommissionRateEditing = false;
+                    $scope.safeApply();
+                });
+            };
             // partner commission config end
 
             // announcement codes==============start===============================
