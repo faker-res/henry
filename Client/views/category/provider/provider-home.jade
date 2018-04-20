@@ -4,8 +4,8 @@ div
     .col-md-9(ng-if="checkViewPermission('Provider', 'Game')",)
         .panel(class='{{vm.selectedPenalClass}}')
             .panel-heading
-                label.strong(ng-if='vm.SelectedProvider') {{vm.SelectedProvider.name}}
-                    text.span &nbsp;:&nbsp;{{"TOTAL_GAMES" | translate}}&nbsp;:&nbsp;
+                label.strong(ng-if='vm.SelectedProvider')
+                    text.span {{"TOTAL_GAMES" | translate}}&nbsp;:&nbsp;
                     text.span ({{vm.allGames.length}})
                     i#loadingProviderGames.margin-left-5.fa.fa-spin.fa-spinner.hidden
                 label.strong(ng-if='!vm.SelectedProvider') {{"NO_PROVIDER_MESSAGE" | translate}}
