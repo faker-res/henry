@@ -2072,9 +2072,9 @@ let dbPartner = {
                         });
                     }
 
-                    if (!partnerData.permission.applyBonus) {
+                    if (partnerData.permission && !partnerData.permission.applyBonus) {
                         return Q.reject({
-                            status: constServerCode.PARTNER_IS_FORBIDDEN,
+                            status: constServerCode.PARTNER_NO_PERMISSION,
                             name: "DataError",
                             errorMessage: "Partner is forbidden to apply bonus"
                         });
@@ -4247,6 +4247,14 @@ let dbPartner = {
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).then(
             partnerData => {
                 if (partnerData) {
+                    if (partnerData.permission && !partnerData.permission.phoneCallFeedback) {
+                        return Q.reject({
+                            status: constServerCode.PARTNER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Partner does not have this permission"
+                        });
+                    }
+
                     if (partnerData.phoneNumber) {
                         // temp remove the encryption
                         // if (partnerData.phoneNumber.length > 20) {
