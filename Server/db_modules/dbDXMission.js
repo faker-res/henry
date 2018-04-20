@@ -846,6 +846,7 @@ let dbDXMission = {
 
                                             let importPhone = new dbconfig.collection_dxPhone(importData);
                                             return importPhone.save().then ( () => {
+
                                                 // sending msg if required
                                                 if (parseInt(autoSMS)){
 
@@ -894,7 +895,20 @@ let dbDXMission = {
         if (data && data.msgDetail && data.msgDetail.length > 0){
             data.msgDetail.forEach( msg => {
 
-                prom.push( dbconfig.collection_dxPhone.findOne({phoneNumber: msg.phoneNumber}).populate({
+                let findQuery = {};
+                if (msg && msg.dbDXMissionId && msg.phoneNumber){
+                    findQuery = {
+                        dxMission: msg.dbDXMissionId,
+                        phoneNumber: msg.phoneNumber
+                    };
+                }
+                else if (msg && msg.dxMissionId){
+                    findQuery = {
+                        _id: msg.dxMissionId
+                    };
+                }
+
+                prom.push( dbconfig.collection_dxPhone.findOne(findQuery).populate({
                     path: "dxMission", model: dbconfig.collection_dxMission
                 }).populate({
                     path: "platform", model: dbconfig.collection_platform
@@ -985,53 +999,6 @@ let dbDXMission = {
         //         // return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
         //     }
         // );
-    },
-
-    sendSMSToSinglePlayer: function ( data) {
-        let phoneData = {};
-
-        return dbconfig.collection_dxPhone.findOne({phoneNumber: data.phoneNumber})
-            .populate({path: "dxMission", model: dbconfig.collection_dxMission})
-            .populate({path: "platform", model: dbconfig.collection_platform})
-            .then(
-                dxPhoneRes => {
-                    if (dxPhoneRes) {
-                        phoneData = dxPhoneRes;
-
-                        return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
-                    }
-                }
-            ).then(
-                message => {
-                    let sendObj = {
-                        tel: data.phoneNumber.trim(),
-                        channel: parseInt(data.channel),
-                        platformId: data.platformId,
-                        message: message,
-                        data: {
-                            dxMission: phoneData.dxMission
-                        }
-                    };
-
-                    let recipientName = data.name || '';
-
-                    return smsAPI.sending_sendMessage(sendObj).then(
-                        retData => {
-                            dbLogger.createSMSLog(null, null, recipientName, data, sendObj, data.platformId, 'success');
-                            console.log("SMS SENT SUCCESSFULLY");
-                            return retData;
-                        },
-                        retErr => {
-                            dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
-                            console.log("SMS SENT FAILED");
-                            return {message: retErr, data: msg};
-                        }
-                    );
-
-                    //return  dbLogger.createSMSLog(null, null, recipientName, data, sendObj, data.platformId, 'success');
-
-                }
-            )
     },
 
     getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol, data) {
