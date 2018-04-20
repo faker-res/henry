@@ -754,7 +754,7 @@
                                 .panel-body
                                     .padding-all-5
                                         .panel.panel-primary
-                                            .panel-body.common-right-panel-body
+                                            .panel-body.common-right-panel-body(style="min-height: 450px;")
                                                 div
                                                     h4 {{'Partner Rate Setting' | translate}}
                                                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
@@ -767,28 +767,33 @@
                                                                 td {{'Rate After Rebate Promo' | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePromo')
+                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePromo', ng-disabled='!vm.isCommissionRateEditing')
                                                             tr
                                                                 td {{'Rate After Rebate Platform' | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePlatform')
+                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePlatform', ng-disabled='!vm.isCommissionRateEditing')
 
                                                             tr(ng-repeat='(idx,val) in vm.rateAfterRebateGameProviderGroup')
                                                                 td {{val.name | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='val.rateAfterRebate')
+                                                                        input(type='number', percentage, style="display: inline-block", ng-model='val.rate', ng-disabled='!vm.isCommissionRateEditing')
                                                             tr
                                                                 td {{'Rate After Rebate Total Deposit' | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalDeposit')
+                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalDeposit', ng-disabled='!vm.isCommissionRateEditing')
                                                             tr
                                                                 td {{'Rate After Rebate Total Withdrawal' | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalWithdrawal')
+                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalWithdrawal', ng-disabled='!vm.isCommissionRateEditing')
+                                                    br
+                                                    .pull-right
+                                                        button.btn.btn-primary.common-button(ng-if='vm.isCommissionRateEditing' ng-click='vm.cancelPartnerRateSetting()') {{'CANCEL' | translate}}
+                                                        button.btn.btn-primary.common-button(ng-if='!vm.isCommissionRateEditing' ng-click='vm.editPartnerRateSetting()') {{'Edit' | translate}}
+                                                        button.btn.btn-primary.common-button(ng-if='vm.isCommissionRateEditing' ng-click='vm.createUpdateCommissionRateSetting()') {{'SUBMIT' | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="platformBasic"')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

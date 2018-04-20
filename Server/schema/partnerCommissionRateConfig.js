@@ -6,7 +6,7 @@ let partnerCommissionRateConfigSchema = new Schema({
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     rateAfterRebatePromo: {type: Number},
     rateAfterRebatePlatform: {type: Number},
-    rateAfterRebateGameProviderGroup: {type: JSON, default: {}},
+    rateAfterRebateGameProviderGroup: [],
     rateAfterRebateTotalDeposit: {type: Number},
     rateAfterRebateTotalWithdrawal: {type: Number}
 });
