@@ -1526,12 +1526,17 @@ define(['js/app'], function (myApp) {
                 // );
             };
 
-            vm.skipNextPartnerCommissionPeriod = (modeObj, isConfirm = false) => {
+            vm.skipNextPartnerCommissionPeriod = (modeObj, toLatest = false, isConfirm = false) => {
                 if (!isConfirm) {
                     vm.modalYesNo = {};
                     vm.modalYesNo.modalTitle = $translate("Skip next partner commission settlement period");
+
+                    if (toLatest) {
+                        vm.modalYesNo.modalTitle = $translate("Skip to latest available commission settlement period");
+                    }
+
                     vm.modalYesNo.modalText = $translate("Are you sure");
-                    vm.modalYesNo.actionYes = () => vm.skipNextPartnerCommissionPeriod(modeObj, true);
+                    vm.modalYesNo.actionYes = () => vm.skipNextPartnerCommissionPeriod(modeObj, toLatest, true);
                     $('#modalYesNo').modal();
                 }
                 else {
@@ -1539,7 +1544,8 @@ define(['js/app'], function (myApp) {
                         platformObjId: vm.selectedPlatform.id,
                         settMode: modeObj.mode,
                         startTime: modeObj.settStartTime,
-                        endTime: modeObj.settEndTime
+                        endTime: modeObj.settEndTime,
+                        toLatest: toLatest
                     }).then(vm.startPlatformPartnerCommissionSettlement());
                 }
             };
