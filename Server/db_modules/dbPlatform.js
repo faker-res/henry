@@ -2639,6 +2639,7 @@ var dbPlatform = {
                         let lastSettDate = "-";
                         let nextSettDate = "-";
                         let nextDate = {};
+                        let currentCycle = getPartnerCommNextSettDate(mode, getPartnerCommNextSettDate(mode, new Date()));
 
                         if (modeLog) {
                             lastSettDate =
@@ -2647,11 +2648,15 @@ var dbPlatform = {
                                 dbUtility.getLocalTimeString(modeLog.endTime.getTime() + 1, "YYYY-MM-DD");
 
                             nextDate = getPartnerCommNextSettDate(mode, modeLog.endTime.getTime() + 1);
+
+                            if (nextDate && currentCycle && nextDate.startTime.getTime() >= currentCycle.startTime.getTime()) {
+                                nextDate = {}
+                            }
                         } else {
                             nextDate = getPartnerCommNextSettDate(mode);
                         }
 
-                        if (nextDate) {
+                        if (nextDate && nextDate.endTime) {
                             nextSettDate =
                                 dbUtility.getLocalTimeString(nextDate.startTime, "YYYY-MM-DD")
                                 + " - " +
@@ -2674,7 +2679,16 @@ var dbPlatform = {
         return Promise.all(promArr);
     },
 
-    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false) => {
+    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false, toLatest = false) => {
+        if (toLatest) {
+            let currentCycle = getPartnerCommNextSettDate(settMode, getPartnerCommNextSettDate(settMode, new Date()));
+            currentCycle = getPartnerCommNextSettDate(settMode, currentCycle.startTime.getTime() - 1);
+            let previousCycle = getPartnerCommNextSettDate(settMode, currentCycle.startTime.getTime() - 1);
+
+            startTime = previousCycle.startTime;
+            endTime = previousCycle.endTime;
+        }
+
         return dbconfig.collection_partnerCommSettLog.update({
             platform: platformObjId,
             settMode: settMode,
@@ -2719,6 +2733,9 @@ function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfY
             return dbUtility.getDayTime(curTime);
         case 2:
         case 5:
+            if (curTime && curTime.startTime) {
+                curTime = curTime.startTime;
+            }
             return dbUtility.getWeekTime(curTime);
         case 3:
             return dbUtility.getBiWeekSGTIme(curTime);
