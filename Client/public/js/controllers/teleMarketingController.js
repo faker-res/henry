@@ -12,6 +12,7 @@ define(['js/app'], function (myApp) {
         vm.teleMarketingSendSMS = {};
         vm.teleMarketingPlayerInfo = {};
         vm.playerInfoQuery = {};
+        vm.creditChange = {};
         vm.depositMethodList = $scope.depositMethodList;
         vm.createTeleMarketingDefault = {
             description: '',
@@ -3535,6 +3536,54 @@ define(['js/app'], function (myApp) {
             })
         }
         //********************************** end of RepairPayment functions **********************************
+
+        //********************************** start of CreditAdjustment functions **********************************
+        vm.prepareShowPlayerCreditAdjustment = function (type) {
+            vm.creditChange.finalValidAmount = vm.isOneSelectedPlayer().validCredit;
+            vm.creditChange.finalLockedAmount = null;
+            vm.creditChange.remark = '';
+            vm.creditChange.updateAmount = 0;
+
+
+            vm.linkedPlayerTransferId = null;
+            vm.playerTransferErrorLog = null;
+            if (type == "adjust") {
+                vm.creditChange.socketStr = "createUpdatePlayerCreditProposal";
+                vm.creditChange.modaltitle = "CREDIT_ADJUSTMENT";
+            } else if (type == "returnFix") {
+                vm.creditChange.socketStr = "createReturnFixProposal";
+                vm.creditChange.modaltitle = "ConsumptionReturnFix";
+            }
+
+            $scope.safeApply();
+        };
+
+        vm.updatePlayerCredit = function () {
+            var sendData = {
+                platformId: vm.selectedPlatform.id,
+                creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                data: {
+                    playerObjId: vm.isOneSelectedPlayer()._id,
+                    playerName: vm.isOneSelectedPlayer().name,
+                    updateAmount: vm.creditChange.updateAmount,
+                    curAmount: vm.isOneSelectedPlayer().validCredit,
+                    realName: vm.isOneSelectedPlayer().realName,
+                    remark: vm.creditChange.remark,
+                    adminName: authService.adminName
+                }
+            }
+
+            socketService.$socket($scope.AppSocket, vm.creditChange.socketStr, sendData, function (data) {
+                var newData = data.data;
+                console.log('credit proposal', newData);
+                if (data.data && data.data.stepInfo) {
+                    socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                }
+                //vm.getPlatformPlayersData();
+                $scope.safeApply();
+            });
+        };
+        //********************************** end of CreditAdjustment functions **********************************
 
         vm.setPlayerInfoQuery = function(dxMissionId, type, searchCriteria) {
             vm.playerInfoQuery.dxMission = dxMissionId;
