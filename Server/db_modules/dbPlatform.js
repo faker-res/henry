@@ -2624,6 +2624,69 @@ var dbPlatform = {
             }
         );
     },
+
+    getPlatformPartnerSettLog: (platformObjId, modes) => {
+        let promArr = [];
+
+        modes.forEach(mode => {
+            promArr.push(
+                dbconfig.collection_partnerCommSettLog.findOne({
+                    platform: platformObjId,
+                    settMode: mode,
+                    isSettled: true
+                }).sort('-startTime').lean().then(
+                    modeLog => {
+                        let lastSettDate = "-";
+                        let nextSettDate = "-";
+                        let nextDate = {};
+
+                        if (modeLog) {
+                            lastSettDate =
+                                dbUtility.getLocalTimeString(modeLog.startTime, "YYYY-MM-DD")
+                                + " - " +
+                                dbUtility.getLocalTimeString(modeLog.endTime.getTime() + 1, "YYYY-MM-DD");
+
+                            nextDate = getPartnerCommNextSettDate(mode, modeLog.endTime.getTime() + 1);
+                        } else {
+                            nextDate = getPartnerCommNextSettDate(mode);
+                        }
+
+                        if (nextDate) {
+                            nextSettDate =
+                                dbUtility.getLocalTimeString(nextDate.startTime, "YYYY-MM-DD")
+                                + " - " +
+                                // Offset for display purpose
+                                dbUtility.getLocalTimeString(nextDate.endTime.getTime() + 1, "YYYY-MM-DD")
+                        }
+
+                        return {
+                            mode: mode,
+                            lastSettDate: lastSettDate,
+                            nextSettDate: nextSettDate,
+                            settStartTime: nextDate.startTime,
+                            settEndTime: nextDate.endTime
+                        }
+                    }
+                )
+            )
+        });
+
+        return Promise.all(promArr);
+    },
+
+    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false) => {
+        return dbconfig.collection_partnerCommSettLog.update({
+            platform: platformObjId,
+            settMode: settMode,
+            startTime: startTime,
+            endTime: endTime
+        }, {
+            isSettled: isSkip
+        }, {
+            upsert: true,
+            new: true
+        });
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
@@ -2640,6 +2703,20 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
     if (createTimeQuery) {
         query[fieldName] = createTimeQuery;
+    }
+}
+
+function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfYear()) {
+    switch (settMode) {
+        case 1:
+            return dbUtility.getDayTime(curTime);
+        case 2:
+        case 5:
+            return dbUtility.getWeekTime(curTime);
+        case 3:
+            return dbUtility.getBiWeekSGTIme(curTime);
+        case 4:
+            return dbUtility.getMonthSGTIme(curTime);
     }
 }
 

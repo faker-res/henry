@@ -1085,7 +1085,7 @@ let dbDXMission = {
         let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
         let QsortCol = sortCol || {'createTime': -1};
 
-        //let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
+        let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
         let findQuery = {
             platform: platformObjId,
             dxMission: dxMission,
@@ -1103,12 +1103,12 @@ let dbDXMission = {
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
-        return Promise.all([dxPhoneDataProm, dxMissionProm]).then(
+        return Promise.all([sizeProm,dxPhoneDataProm, dxMissionProm]).then(
             result => {
                 if(result){
-                    // let size = result[0] ? result[0] : 0;
-                    let dxPhoneData = result[0] ? result[0] : {};
-                    let dxMissionData = result[1] ? result[1] : {};
+                    let size = result[0] ? result[0] : 0;
+                    let dxPhoneData = result[1] ? result[1] : {};
+                    let dxMissionData = result[2] ? result[2] : {};
                     let dxPhoneDataWithDetails = [];
 
                     if (dxPhoneData && dxPhoneData.length > 0){
@@ -1163,8 +1163,8 @@ let dbDXMission = {
                                 })
 
                             }
-                            return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
-                            // return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                            //return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                            return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
                         })
                     }
 
@@ -1219,18 +1219,7 @@ let dbDXMission = {
                 data.dxPhoneData.forEach(
                     phoneData => {
                         if(phoneData){
-                            // filter the search result of second table by different source from main table
-                            if(type == "TotalValidPlayer" || type == "TotalDepositAmount" || type == "TotalValidConsumption"){
-                                if(searchCriteria && searchCriteria != ""){
-                                    console.log("LH TEST phoneData", phoneData);
-                                    if(searchCriteria.includes(phoneData.playerObjId.toString())){
-                                        console.log("LH TEST phoneData playerObjId", phoneData.playerObjId);
-                                        dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay));
-                                    }
-                                }
-                            }else{
-                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay));
-                           }
+                                dataSummaryListProm.push(dbDXMission.getPlayerInfo(phoneData.playerObjId, phoneData.platform, type, alertDay, phoneData.phoneNumber));
                         }
                     }
                 )
@@ -1251,14 +1240,12 @@ let dbDXMission = {
                                                 if(phoneData){
                                                     if(summaryData && summaryData.find(s => s && s.playerObjId == phoneData.playerObjId)){
                                                         if(phoneData.playerObjId && phoneData.playerObjId == summary.playerObjId){
-                                                            phoneData.playerName = summary.playerName;
-                                                            phoneData.registrationTime = summary.registrationTime;
-                                                            phoneData.totalTopUpCount = summary.totalTopUpCount;
+                                                            phoneData.playerData = summary.playerData;
                                                             phoneData.totalTopUpAmount = summary.totalTopUpAmount;
-                                                            phoneData.totalLoginTimes = summary.totalLoginTimes;
                                                             phoneData.totalConsumptionTime = summary.totalConsumptionTime;
                                                             phoneData.totalConsumptionAmount = summary.totalConsumptionAmount;
                                                             phoneData.totalDepositAmount = summary.totalDepositAmount;
+                                                            phoneData.phoneNumber = summary.phoneNumber;
                                                             phoneData.alerted = summary.alerted;
                                                         }
                                                     }else{
@@ -1294,13 +1281,16 @@ let dbDXMission = {
         );
     },
 
-    getPlayerInfo: function (playerObjId, platform, type, alertDay) {
+    getPlayerInfo: function (playerObjId, platform, type, alertDay, phoneNumber) {
+
         if(!playerObjId){
             return;
         }
 
+        let playerData
         let playerName = "";
         let registrationTime = new Date();
+        let playerPermission;
         let totalTopUpCount = 0;
         let totalLoginTimes = 0;
         let totalConsumptionTime = 0;
@@ -1325,21 +1315,28 @@ let dbDXMission = {
         return dbconfig.collection_players.findOne(query).then(
             playerData => {
                 if(playerData){
-                    if(playerData.topUpTimes){
-                        totalTopUpCount = playerData.topUpTimes;
-                    }
+                    // if(playerData.topUpTimes){
+                    //     totalTopUpCount = playerData.topUpTimes;
+                    // }
+                    //
+                    // if(playerData.loginTimes){
+                    //     totalLoginTimes = playerData.loginTimes;
+                    // }
+                    //
+                    // if(playerData.name){
+                    //     playerName = playerData.name;
+                    // }
+                    //
+                    // if(playerData.registrationTime){
+                    //     registrationTime = new Date(playerData.registrationTime);
+                    // }
+                    //
+                    // if(playerData.permission){
+                    //     playerPermission = playerData.permission;
+                    // }
 
-                    if(playerData.loginTimes){
-                        totalLoginTimes = playerData.loginTimes;
-                    }
+                    playerData = playerData;
 
-                    if(playerData.name){
-                        playerName = playerData.name;
-                    }
-
-                    if(playerData.registrationTime){
-                        registrationTime = new Date(playerData.registrationTime);
-                    }
 
                     if (alertDay && registrationTime){
                         let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registrationTime)).getTime();
@@ -1410,11 +1407,14 @@ let dbDXMission = {
                         returnData => {
                             return {
                                 playerObjId: playerObjId,
-                                playerName: playerName,
-                                registrationTime: registrationTime,
-                                totalTopUpCount: totalTopUpCount,
+                                phoneNumber: phoneNumber,
+                                playerData: playerData,
+                                // playerName: playerName,
+                                // registrationTime: registrationTime,
+                                // permission: playerPermission,
+                                // totalLoginTimes: totalLoginTimes,
+                                // totalTopUpCount: totalTopUpCount,
                                 totalTopUpAmount: totalTopUpAmount,
-                                totalLoginTimes: totalLoginTimes,
                                 totalConsumptionTime: totalConsumptionTime,
                                 totalConsumptionAmount: totalConsumptionAmount,
                                 totalDepositAmount: totalTopUpAmount - playerBonusAmount,
