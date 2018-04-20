@@ -8,6 +8,8 @@ var errorUtils = require("./../modules/errorUtils");
 var dbLogger = require('./../modules/dbLogger');
 var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
+const rsaCrypto = require("../modules/rsaCrypto");
+const localization = require("./../modules/localization").localization;
 
 
 const constSystemParam = require('../const/constSystemParam');
@@ -745,15 +747,168 @@ let dbDXMission = {
         }
     },
 
+    insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated, smsChannel) {
+        if (!platformId && !phoneNumber && !taskName && !autoSMS) {
+            return Promise.reject({
+                errorMessage: "Invalid data"
+            });
+        }
+
+        let returnedMsg = null;
+        let platformObjId = null;
+        const anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const now = new Date(Date.now()).toISOString();
+        const maxIpCount = 5;
+
+        // check the phoneNumber has been registered
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then( platformData => {
+            if (platformData){
+
+                platformObjId = platformData._id;
+
+                if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
+                    let ipQuery = {
+                        ip: deviceData.lastLoginIp,
+                        createTime: {
+                            $lte: now,
+                            $gte: anHourAgo
+                        },
+                        platform: platformObjId
+                    };
+
+                    return dbconfig.collection_dxPhone.count(ipQuery).then(
+                        data => {
+                            if (data >= maxIpCount) {
+
+                                return Promise.reject({
+                                   // name: "DataError",
+                                    message: localization.translate("Application limit exceeded 5 times in 1 hour (same IP Address). Please try again later")
+                                });
+                            }
+                            else{
+
+                                return platformObjId;
+                            }
+                        }
+                    );
+                    // return platformObjId;
+
+                }
+
+            }
+            else{
+                    return Promise.reject({name: "DBError", message: "No platform exists with id: " + platformId});
+            }
+        }).then( platformObjId => {
+            if(platformObjId){
+                let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                let phoneNumberQuery = {$in: [encryptedPhoneNumber, phoneNumber]};
+
+                return dbconfig.collection_players.findOne({platform: platformObjId, phoneNumber: phoneNumberQuery}).lean()
+            }
+        }).then( playerData => {
+            if (playerData){
+
+                return Promise.reject({
+                    message: localization.translate("This phone number has been registered, only new player can get lucky draw!")
+                });
+            }
+            else{
+                // this number is still available, so check whether it is already in the dxMission list
+
+                let taskNameObjId = null;
+                if (ObjectId.isValid(taskName)){
+                   taskNameObjId = ObjectId(taskName);
+                }
+
+                return dbconfig.collection_dxMission.findOne({ $or: [{name: taskName}, {_id: taskNameObjId}] }).lean().then( dxMission => {
+                    if (dxMission){
+
+                        return dbconfig.collection_dxPhone.findOne({phoneNumber: phoneNumber, dxMission: dxMission._id})
+                            .then( dxPhone => {
+                                if(dxPhone){
+                                    return Promise.reject({
+                                        message: localization.translate("The phone number is already in the mission list, please invite friends for a lucky draw!")
+                                    });
+                                }
+                                else{
+                                    // import the number to the keyed-in dxMission and send out msg if needed
+                                    return dbPlayerInfo.generateDXCode(dxMission).then(
+                                        randomCode => {
+                                            let importData = {
+                                                platform: platformObjId,
+                                                phoneNumber: phoneNumber,
+                                                dxMission: dxMission._id,
+                                                code: randomCode,
+                                                url: dxMission.domain + "/" + randomCode,
+                                                ip: deviceData.lastLoginIp,
+                                            };
+
+                                            let importPhone = new dbconfig.collection_dxPhone(importData);
+                                            return importPhone.save().then ( () => {
+
+                                                // sending msg if required
+                                                if (parseInt(autoSMS)){
+
+                                                    let msgDetails = [];
+
+                                                    let smsData = {
+                                                        channel: smsChannel,
+                                                        platformId: platformObjId,
+                                                        dbDXMissionId: dxMission._id,
+                                                        phoneNumber: phoneNumber.trim(),
+                                                    };
+
+                                                    msgDetails.push(smsData);
+                                                    let sendingObj = {
+                                                        msgDetail: msgDetails
+                                                    };
+
+                                                    dbDXMission.sendSMSToPlayer(null, null, sendingObj);
+                                                }
+
+                                                return Promise.resolve({
+                                                    message: localization.translate("Successfully got the rewards, please take note on the message sent by the system.")
+                                                });
+                                            })
+
+
+                                        }
+                                    )
+                                }
+                            })
+
+                    }
+                    else{
+                        return Promise.reject({name: "DBError", message: "Could not find the dxMission"});
+                    }
+                })
+
+            }
+        })
+        
+    },
+
     sendSMSToPlayer: function (adminObjId, adminName, data) {
         let phoneData = {};
         let prom = [];
-
         if (data && data.msgDetail && data.msgDetail.length > 0){
-
             data.msgDetail.forEach( msg => {
 
-                prom.push( dbconfig.collection_dxPhone.findOne({_id: msg.dxMissionId}).populate({
+                let findQuery = {};
+                if (msg && msg.dbDXMissionId && msg.phoneNumber){
+                    findQuery = {
+                        dxMission: msg.dbDXMissionId,
+                        phoneNumber: msg.phoneNumber
+                    };
+                }
+                else if (msg && msg.dxMissionId){
+                    findQuery = {
+                        _id: msg.dxMissionId
+                    };
+                }
+
+                prom.push( dbconfig.collection_dxPhone.findOne(findQuery).populate({
                     path: "dxMission", model: dbconfig.collection_dxMission
                 }).populate({
                     path: "platform", model: dbconfig.collection_platform
@@ -1055,7 +1210,7 @@ let dbDXMission = {
 
         let playerData
         let playerName = "";
-        let registrationTime = new Date();
+        //let registrationTime = new Date();
         let playerPermission;
         let totalTopUpCount = 0;
         let totalLoginTimes = 0;
@@ -1104,8 +1259,8 @@ let dbDXMission = {
                     playerData = playerData;
 
 
-                    if (alertDay && registrationTime){
-                        let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registrationTime)).getTime();
+                    if (alertDay && playerData.registrationTime){
+                        let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,new Date(playerData.registrationTime))).getTime();
                         if (alertPeriod >= new Date().getTime()){
                             alerted = true;
                         }

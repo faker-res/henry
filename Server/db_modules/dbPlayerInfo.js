@@ -14263,7 +14263,7 @@ let dbPlayerInfo = {
                 dxMissionRes => {
                     for (let x = 0; x < phoneArr.length; x++) {
                         promArr.push(
-                            generateDXCode(dxMission).then(
+                            dbPlayerInfo.generateDXCode(dxMission).then(
                                 randomCode => {
                                     let importData = {
                                         platform: platform,
@@ -14286,40 +14286,40 @@ let dbPlayerInfo = {
         }
         return false;
 
-        function generateDXCode(dxMission, platformId, tries) {
-            tries = (Number(tries) || 0) + 1;
-            if (tries > 5) {
-                return Promise.reject({
-                    message: "Generate dian xiao code failure."
-                })
-            }
-            let randomString = Math.random().toString(36).substring(4,11); // generate random String
-            let dxCode = "";
-
-            let platformProm = Promise.resolve({platformId: platformId});
-            if (!platformId) {
-                platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
-                    path: "platform", model: dbconfig.collection_platform
-                }).lean();
-            }
-
-            return platformProm.then(
-                function (missionProm) {
-                    platformId = missionProm.platform.platformId;
-                    dxCode = missionProm.platform.platformId + randomString;
-                    return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
-                }
-            ).then(
-                function (dxPhoneExist) {
-                    if (dxPhoneExist) {
-                        return generateDXCode(dxMission, platformId);
-                    }
-                    else {
-                        return dxCode;
-                    }
-                }
-            );
+    },
+    generateDXCode: function (dxMission, platformId, tries) {
+        tries = (Number(tries) || 0) + 1;
+        if (tries > 5) {
+            return Promise.reject({
+                message: "Generate dian xiao code failure."
+            })
         }
+        let randomString = Math.random().toString(36).substring(4,11); // generate random String
+        let dxCode = "";
+
+        let platformProm = Promise.resolve({platformId: platformId});
+        if (!platformId) {
+            platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+                path: "platform", model: dbconfig.collection_platform
+            }).lean();
+        }
+
+        return platformProm.then(
+            function (missionProm) {
+                platformId = missionProm.platform.platformId;
+                dxCode = missionProm.platform.platformId + randomString;
+                return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
+            }
+        ).then(
+            function (dxPhoneExist) {
+                if (dxPhoneExist) {
+                    return dbPlayerInfo.generateDXCode(dxMission, platformId);
+                }
+                else {
+                    return dxCode;
+                }
+            }
+        );
     },
 
     getWithdrawalInfo: function (platformId, playerId) {
