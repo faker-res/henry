@@ -13,6 +13,8 @@ define(['js/app'], function (myApp) {
         vm.teleMarketingPlayerInfo = {};
         vm.playerInfoQuery = {};
         vm.creditChange = {};
+        vm.rewardPointsChange = {};
+        vm.rewardPointsConvert = {};
         vm.depositMethodList = $scope.depositMethodList;
         vm.createTeleMarketingDefault = {
             description: '',
@@ -3584,6 +3586,95 @@ define(['js/app'], function (myApp) {
             });
         };
         //********************************** end of CreditAdjustment functions **********************************
+
+        //********************************** start of RewardPointAdjustment functions **********************************
+        vm.showRewardPointsAdjustmentTab = function (tabName) {
+            vm.selectedRewardPointsAdjustmentTab = tabName == null ? "change" : tabName;
+            if (tabName === 'convert') {
+                vm.playerRewardPointsDailyLimit = 0;
+                vm.playerRewardPointsDailyConvertedPoints = 0;
+                vm.playerRewardPointsConversionRate = 0;
+                vm.getPlayerRewardPointsDailyLimit();
+                vm.getPlayerRewardPointsDailyConvertedPoints();
+                vm.getPlayerRewardPointsConversionRate();
+            }
+        };
+
+        vm.getPlayerRewardPointsDailyLimit = function () {
+            let sendData = {
+                platformObjId: vm.isOneSelectedPlayer().platform,
+                playerLevel: vm.isOneSelectedPlayer().playerLevel
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyLimit', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerRewardPointsDailyLimit = data.data;
+                });
+            });
+        };
+
+        vm.getPlayerRewardPointsDailyConvertedPoints = function () {
+            let sendData = {
+                rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyConvertedPoints', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerRewardPointsDailyConvertedPoints = data.data;
+                });
+            });
+        };
+
+        vm.getPlayerRewardPointsConversionRate = function () {
+            let sendData = {
+                platformObjId: vm.isOneSelectedPlayer().platform,
+                playerLevel: vm.isOneSelectedPlayer().playerLevel
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsConversionRate', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerRewardPointsConversionRate = data.data;
+                });
+            });
+        };
+
+        vm.prepareShowPlayerRewardPointsAdjustment = function () {
+            vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
+            vm.rewardPointsChange.remark = '';
+            vm.rewardPointsChange.updateAmount = 0;
+            vm.rewardPointsConvert.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
+            vm.rewardPointsConvert.remark = '';
+            vm.rewardPointsConvert.updateAmount = 0;
+            $scope.safeApply();
+        };
+
+        vm.updatePlayerRewardPointsRecord = function () {
+            let sendData = {
+                playerObjId: vm.isOneSelectedPlayer()._id,
+                platformObjId: vm.isOneSelectedPlayer().platform,
+                updateAmount: vm.rewardPointsChange.updateAmount,
+                remark: vm.rewardPointsChange.remark
+            };
+
+            socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
+                //vm.advancedPlayerQuery();
+                $scope.safeApply();
+            });
+        };
+
+        vm.convertPlayerRewardPoints = () => {
+            var sendData = {
+                playerId: vm.isOneSelectedPlayer().playerId,
+                convertRewardPointsAmount: vm.rewardPointsConvert.updateAmount,
+                remark: vm.rewardPointsConvert.remark
+            };
+            socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
+                console.log('convertRewardPointsToCredit', data.data);
+                //vm.getPlatformPlayersData();
+                $scope.safeApply();
+            });
+        };
+        //********************************** end of RewardPointAdjustment functions **********************************
 
         vm.setPlayerInfoQuery = function(dxMissionId, type, searchCriteria) {
             vm.playerInfoQuery.dxMission = dxMissionId;
