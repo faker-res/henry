@@ -1078,7 +1078,8 @@ let dbDXMission = {
             query.topUpTimes = {$gt: 1}
         }
 
-        return dbconfig.collection_players.findOne(query).then(
+        return dbconfig.collection_players.findOne(query)
+            .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean().then(
             playerData => {
                 if(playerData){
                     // if(playerData.topUpTimes){
