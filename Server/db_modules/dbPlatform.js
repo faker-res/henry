@@ -2687,6 +2687,13 @@ var dbPlatform = {
             new: true
         });
     },
+
+    getAllPartnerCommSettPreview: (platformObjId) => {
+        return dbconfig.collection_partnerCommSettLog.find({
+            platform: platformObjId,
+            isSettled: false
+        }).sort('settMode').lean();
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {

@@ -1,17 +1,13 @@
 'use strict';
 
 define(['js/app'], function (myApp) {
+    let platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
+        let $translate = $filter('translate');
+        let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
+        let vm = this;
 
-    var injectParams = ['$sce', '$compile', '$scope', '$filter', '$location', '$log', 'authService', 'socketService', 'utilService', 'CONFIG', "$cookies", "$timeout", '$http', 'uiGridExporterService', 'uiGridExporterConstants'];
-
-    var platformController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
-
-            var $translate = $filter('translate');
-            let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
-            var vm = this;
-
-            // For debugging:
-            window.VM = vm;
+        // For debugging:
+        window.VM = vm;
 
             //init local var data
             vm.updatePlatform = {};
@@ -777,13 +773,6 @@ define(['js/app'], function (myApp) {
             };
 
             ////////////////Mark::Platform functions//////////////////
-            vm.updatePageTile = function () {
-                window.document.title = $translate("platform") + "->" + $translate(vm.platformPageName);
-                $(document).one('shown.bs.tab', function (e) {
-                    $(document).trigger('resize');
-                });
-            };
-
             vm.toggleShowPlatformList = function (flag) {
                 if (flag) {
                     vm.leftPanelClass = 'widthto25';
@@ -890,6 +879,23 @@ define(['js/app'], function (myApp) {
                     $('#platformRefresh').removeClass('fa-spin');
                 });
             };
+
+            vm.loadTab = (tabName) => {
+                console.log('loadTab', tabName);
+                vm.platformPageName = tabName;
+
+                switch (tabName) {
+                    case "Partner":
+                        vm.getAllPartnerCommSettPreview();
+
+                    // setTimeout(() => {
+                    //     $('#partnerDataTable').resize();
+                    // }, 300);
+                }
+
+                commonService.updatePageTile($translate, "platform", tabName);
+            };
+
             vm.showPlatformDetailModal = function () {
                 //$('#platformDetail').html();
                 $('.platformName').popover({
@@ -1029,60 +1035,63 @@ define(['js/app'], function (myApp) {
 
                 Q.all([vm.getAllGameProviders(vm.selectedPlatform.id), vm.getAllPlayerLevels(), vm.getAllPlayerTrustLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
-                        // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
-                        switch (vm.platformPageName) {
-                            case "GameGroup":
-                                vm.loadGameGroupData();
-                                break;
-                            case "Feedback":
-                                vm.initPlayerFeedback();
-                                // vm.submitPlayerFeedbackQuery();
-                                break;
-                            case "MessageTemplates":
-                                vm.getPlatformMessageTemplates();
-                                break;
-                            case "FeedbackAdmin" :
-                                vm.initFeedbackAdmin();
-                                break;
-                        }
-                        //     case "Player":
-                        vm.playersQueryCreated = false;
-                        vm.configTabClicked();
-                        vm.loadAlldepartment();
-                        vm.rewardTabClicked();
-                        vm.getPlatformRewardProposal();
-                        vm.getPlatformPlayersData(true, true);
-                        //     break;
-                        // case "Partner":
-                        vm.getPlatformPartnersData();
-                        //     break;
-                        // case "Game":
-                        vm.getPlatformGameData();
-                        //     break;
-                        // case "Reward":
-                        //     vm.rewardTabClicked();
-                        //     break;
-                        // case "Proposal":
-                        vm.loadProposalTypeData();
-                        //     break;
-                        // case "Config":
-                        //     break;
-                        // case "bankCardGroup":
-                        vm.loadBankCardGroupData();
-                        //     break;
-                        // case "merchantGroup":
-                        vm.loadMerchantGroupData();
-                        vm.loadAlipayGroupData();
-                        vm.loadWechatPayGroupData();
-                        vm.loadQuickPayGroupData();
-                        vm.getPlatformAnnouncements();
-                        vm.promoCodeTabClicked();
-                        vm.phoneNumFilterClicked();
-                        vm.rewardPointsTabClicked();
-                        //     break;
-                        // }
-                        vm.onGoingLoadPlatformData = false;
-                        $scope.safeApply();
+                        $scope.$evalAsync(() => {
+                            // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
+                            console.log('vm.platformPageName', vm.platformPageName);
+
+                            switch (vm.platformPageName) {
+                                case "GameGroup":
+                                    vm.loadGameGroupData();
+                                    break;
+                                case "Feedback":
+                                    vm.initPlayerFeedback();
+                                    // vm.submitPlayerFeedbackQuery();
+                                    break;
+                                case "MessageTemplates":
+                                    vm.getPlatformMessageTemplates();
+                                    break;
+                                case "FeedbackAdmin" :
+                                    vm.initFeedbackAdmin();
+                                    break;
+                            }
+                            //     case "Player":
+                            vm.playersQueryCreated = false;
+                            vm.configTabClicked();
+                            vm.loadAlldepartment();
+                            vm.rewardTabClicked();
+                            vm.getPlatformRewardProposal();
+                            vm.getPlatformPlayersData(true, true);
+                            //     break;
+                            // case "Partner":
+                            vm.getPlatformPartnersData();
+                            //     break;
+                            // case "Game":
+                            vm.getPlatformGameData();
+                            //     break;
+                            // case "Reward":
+                            //     vm.rewardTabClicked();
+                            //     break;
+                            // case "Proposal":
+                            vm.loadProposalTypeData();
+                            //     break;
+                            // case "Config":
+                            //     break;
+                            // case "bankCardGroup":
+                            vm.loadBankCardGroupData();
+                            //     break;
+                            // case "merchantGroup":
+                            vm.loadMerchantGroupData();
+                            vm.loadAlipayGroupData();
+                            vm.loadWechatPayGroupData();
+                            vm.loadQuickPayGroupData();
+                            vm.getPlatformAnnouncements();
+                            vm.promoCodeTabClicked();
+                            vm.phoneNumFilterClicked();
+                            vm.rewardPointsTabClicked();
+                            //     break;
+                            // }
+                            vm.onGoingLoadPlatformData = false;
+                        })
                     },
                     function (error) {
                         console.log("error getting all levels", error);
@@ -1491,6 +1500,15 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.getAllPartnerCommSettPreview = () => {
+                $scope.$socketPromise("getAllPartnerCommSettPreview", {
+                    platformObjId: vm.selectedPlatform.id
+                }).then(
+                    previews => {
+                        console.log('previews', previews);
+                    }
+                );
+            }
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPartnerCommissionSettlement',
@@ -14966,13 +14984,6 @@ define(['js/app'], function (myApp) {
                     $('#playerDataTable').resize();
                 }, 300);
             };
-
-            vm.activatePartnerTab = function () {
-                setTimeout(() => {
-                    $('#partnerDataTable').resize();
-                }, 300);
-            };
-
             //draw partner table based on data
             vm.drawPartnerTable = function (data) {
                 //convert decimal to 2 digits
@@ -27702,7 +27713,29 @@ define(['js/app'], function (myApp) {
                 vm.getPlayerPermissionChange("new")
             })
 
+
+
         };
+
+        let injectParams = [
+            '$sce',
+            '$compile',
+            '$scope',
+            '$filter',
+            '$location',
+            '$log',
+            'authService',
+            'socketService',
+            'utilService',
+            'commonService',
+            'CONFIG',
+            "$cookies",
+            "$timeout",
+            '$http',
+            'uiGridExporterService',
+            'uiGridExporterConstants'
+        ];
+
         platformController.$inject = injectParams;
         myApp.register.controller('platformCtrl', platformController);
     }

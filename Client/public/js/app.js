@@ -1,12 +1,13 @@
 'use strict';
 
-define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/socketService', 'js/services/utilService'], function () {
-    var myApp = angular.module('myApp');
+define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/socketService', 'js/services/utilService', 'js/services/commonService'], function () {
+    let myApp = angular.module('myApp');
 
     myApp.requires.push(
         'authService',
         'socketService',
         'utilService',
+        'commonService',
         'myApp.controllers',
         'myApp.filters',
         'myApp.services',

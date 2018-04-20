@@ -70,7 +70,7 @@
                                 .fa.fa-volume-control-phone.margin-right-5
                                 text.span {{"Feedback Query" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Partner', 'Read')")
-                            a.common-tab(data-toggle="tab", href="#Partner", ng-click="vm.activatePartnerTab();vm.platformPageName='Partner';vm.updatePageTile();")
+                            a.common-tab(data-toggle="tab", href="#Partner", ng-click="vm.loadTab('Partner')")
                                 .fa.fa-sitemap.margin-right-5
                                 text.span {{"PARTNER" | translate}}
                         li(ng-show="checkViewPermission('Platform', 'Game', 'Read')")
