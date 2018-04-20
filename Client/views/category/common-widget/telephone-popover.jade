@@ -260,30 +260,162 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
             button.btn.common-button.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
             //button.dialogEditPlayerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='smsPlayerModal.$invalid || smsPlayerModal.$pristine', ng-click="vm.updateSMSSettings();") {{"UPDATE" | translate}}
 
+
 ez-modal(modal-id="smsPartnerModal", modal-title="{{'Send SMS to Partner' | translate}}")
     ez-modal-body
-        .row
-            div.form-group.col-mdl-12
-                label.control-label {{"To Partner" | translate}}:&nbsp;
-                text {{vm.smsPartner.name}} {{vm.smsPartner.realName && '(' + vm.smsPartner.realName + ')'}}
+        ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='margin:10px 0 10px 0;height: 43px;')
+            .pull-left.padding-all-5
+            li.active#smsToPartnerTab(ng-hide="vm.selectedPartnerCount!= 1 || (vm.selectedSinglePartner && vm.selectedSinglePartner.permission && vm.selectedSinglePartner.permission.SMSFeedBack === false)")
+                a.common-tab(data-toggle="tab", ng-click='vm.showPartnerSmsTab("smsToPartnerPanel");')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"MESSAGE" | translate}}
+            li#smsLogPartnerTab(ng-hide="vm.selectedPartnerCount!= 1")
+                a.common-tab(data-toggle="tab",ng-click='vm.showPartnerSmsTab("smsLogPartnerPanel"); vm.initSMSLogPartner("partner");')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"smsLog" | translate}}
+            li#smsSettingPartnerTab(ng-hide="!vm.canEditPartner() || vm.selectedPartnerCount!= 1")
+                a.common-tab(data-toggle="tab",ng-click='vm.showPartnerSmsTab("smsSettingPartnerPanel"); vm.loadPartnerSMSSettings();')
+                    .fa.fa-file-text.margin-right-5
+                    text.span {{"SMS Notify Settings" | translate}}
 
-                label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
-                select(ng-model='vm.smsPartner.channel', ng-options='a for a in channelList')
+        #smsToPartnerPanel.panel-body(ng-if="vm.smsModalTab === 'smsToPartnerPanel'")
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"TO_PARTNER" | translate}}:&nbsp;
+                    text {{vm.smsPartner.partnerName}} {{vm.smsPartner.realName && '(' + vm.smsPartner.realName + ')'}}
 
-                .pull-right(ng-if='vm.sendSMSResult.sent===true')
-                    .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
-                        text {{'SEND' | translate}} {{'SUCCESS' | translate}}
-                    .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
-                        text {{'SEND' | translate}} {{'FAIL' | translate}}
-                .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
-                    text.text-danger.blink {{"Sending" | translate}}
-        .row
-            div.form-group.col-md-12
-                label.control-label {{"CONTENT" | translate}}
-                textarea.form-control(ng-model="vm.smsPartner.message", placeholder="...", rows="8")
+                    label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
+                    select(ng-model='vm.smsPartner.channel', ng-options='a for a in channelList')
+
+                    label.margin-left-5.blink.text-danger(ng-if="!vm.smsPartner.hasPhone") {{'This Partner did not input phone number' | translate}}
+
+                    .pull-right(ng-if='vm.sendSMSResult.sent === true')
+                        .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
+                            text {{'SEND' | translate}} {{'SUCCESS' | translate}}
+                        .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
+                            text {{'SEND' | translate}} {{'FAIL' | translate}}
+                    .pull-right(ng-if='vm.sendSMSResult.sent === "sending"')
+                        text.text-danger.blink {{"Sending" | translate}}
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"SMS Templates" | translate}}
+                        select.form-control(style='width:100%;resize:none',ng-change="vm.changePartnerSMSTemplate()", ng-model='vm.smstpl' ng-options='a.type|translate for a in vm.smsTemplate')
+                            option(value="")
+            .row
+                div.form-group.col-md-12
+                    label.control-label {{"CONTENT" | translate}}
+                    textarea.form-control(ng-model="vm.smsPartner.message", placeholder="...", rows="8", ng-disabled="!vm.smsPartner.hasPhone", maxlength="100")
+
+        #smsLogPartnerPanel.panel-body(ng-if="vm.smsModalTab === 'smsLogPartnerPanel'")
+            #smsLogPartnerQuery.block-query.well
+                div
+                    label {{"RESULT" | translate}}
+                    select.form-control(ng-model='vm.smsLog.query.status')
+                        option(value='all') {{"any" | translate}}
+                        option(value='success') {{"Success" | translate}}
+                        option(value='failure') {{"Failure" | translate}}
+                div
+                    label {{"Start date" | translate}}
+                    .startTime
+                    //-(ng-model='vm.smsLog.query.startTime')
+                div
+                    label {{"End date" | translate}}
+                    .endTime
+                    //-(ng-model='vm.smsLog.query.endTime')
+                button.btn.btn-primary.common-button(ng-click='vm.searchSMSLogPartner()', style='vertical-align: bottom') {{"SEARCH" | translate}}
+            div(style='max-height: 400px; max-height: 50vh; overflow: auto')
+                label {{"Total" | translate}} {{vm.smsLog.totalCount}} {{"records" | translate}}
+                table.simple-table.display(style='min-width: 100%; width: 100%')
+                    thead
+                        tr
+                            th {{"date" | translate}}
+                            th(data-toggle="modal", data-target="#modalFilterSmsLogSenderType", style="cursor: pointer") {{"senderType" | translate}}
+                            th {{"senderName" | translate}}
+                            th {{"Recipient" | translate}}
+                            th {{"Channel" | translate}}
+                            th {{"CONTENT" | translate}}
+                            th {{"STATUS" | translate}}
+                    tbody
+                        tr(ng-repeat='(i,smsLog) in vm.smsLog.searchResults')
+                            td {{smsLog.createTime$}}
+                            td {{smsLog.adminName ? 'admin':'system'}}
+                            td {{smsLog.adminName}}
+                            td {{smsLog.recipientName}}
+                            td {{smsLog.channel}}
+                            td {{smsLog.message}}
+                            td(ng-if='smsLog.status !== "failure"') {{smsLog.status$}}
+                            td(ng-if='smsLog.status === "failure"')
+                                text.sn-hoverable-text(title='{{smsLog.error}}', sn-tooltip) {{smsLog.status$}}
+                br
+                #smsLogPartnerTablePage
+
+        #smsSettingPartnerPanel.panel-body(ng-if="vm.smsModalTab === 'smsSettingPartnerPanel'")
+            .row.margin-left-5.margin-right-5
+                .form-group.col-md-12
+                    .col-md-12.col-lg-4
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"receive status" | translate}}
+                                    th {{"no group sms setting" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.noGroupSmsSetting')
+                                    td
+                                        input.margin-right-5(type="checkbox", ng-model="vm.partnerBeingEdited.smsSetting[v.name]")
+                                    td
+                                        span {{v.name | translate}}
+
+                    .col-sm-12.col-sm-offset-0.col-md-offset-1.col-lg-7.col-md-12.pull-right
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"receive status/sms group" | translate}}
+                                    th {{"sms group settings" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
+                                    td
+                                        input.margin-right-5(type="checkbox" ng-model='vm.partnerSmsSetting.smsGroup[v.smsId]' ng-init='vm.isAllSmsInGroupChecked(v)' ng-change='vm.smsGroupCheckChange(v)')
+                                        span(ng-if='!vm.configTableEdit') {{v.smsName}}
+                                    td
+                                        div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')
+                                            span {{ vv.smsName | translate}}
+                                            input.margin-right-5(type="checkbox", ng-model="vm.partnerBeingEdited.smsSetting[vv.smsName]" ng-change='vm.isAllSmsInGroupChecked(v)')
+
     ez-modal-footer
-        button.btn.common-button.btn-primary(ng-click="vm.sendSMSToPartner()") {{"SEND" | translate}}
-        button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+        #smsToPartnerFooter(ng-if="vm.smsModalTab === 'smsToPartnerPanel'")
+            button.btn.common-button.btn-primary(ng-click="vm.sendSMSToPartner()", ng-disabled="!vm.smsPartner.hasPhone") {{"SEND" | translate}}
+            button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+        #smsLogPartnerFooter(ng-if="vm.smsModalTab === 'smsLogPartnerPanel'")
+            button.common-button.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
+        #smsSettingPartnerFooter(ng-if="vm.smsModalTab === 'smsSettingPartnerPanel'")
+            ez-confirm-button(ng-click="vm.updatePartnerSMSSettings();") {{"UPDATE" | translate}}
+            button.btn.common-button.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
+//ez-modal(modal-id="smsPartnerModal", modal-title="{{'Send SMS to Partner' | translate}}")
+//    ez-modal-body
+//        .row
+//            div.form-group.col-mdl-12
+//                label.control-label {{"To Partner" | translate}}:&nbsp;
+//                text {{vm.smsPartner.partnerName}} {{vm.smsPartner.realName && '(' + vm.smsPartner.realName + ')'}}
+//
+//                label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
+//                select(ng-model='vm.smsPartner.channel', ng-options='a for a in channelList')
+//
+//                .pull-right(ng-if='vm.sendSMSResult.sent===true')
+//                    .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
+//                        text {{'SEND' | translate}} {{'SUCCESS' | translate}}
+//                    .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
+//                        text {{'SEND' | translate}} {{'FAIL' | translate}}
+//                .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
+//                    text.text-danger.blink {{"Sending" | translate}}
+//        .row
+//            div.form-group.col-md-12
+//                label.control-label {{"CONTENT" | translate}}
+//                textarea.form-control(ng-model="vm.smsPartner.message", placeholder="...", rows="8")
+//    ez-modal-footer
+//        button.btn.common-button.btn-primary(ng-click="vm.sendSMSToPartner()") {{"SEND" | translate}}
+//        button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+
 ez-modal(modal-id="phoneCallModal", modal-title="{{'PHONE' | translate}}")
     ez-modal-body
         .row
