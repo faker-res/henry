@@ -201,6 +201,23 @@
         });
     };
 
+    proto.importBIPlayer = function (callback, requestData) {
+        var data = {
+            name: "yunvincevince80",
+            platform: 1,
+            realName: "测试",
+            referral: "a123",
+            partner: "p123"
+        };
+        this._service.importBIPlayer.request(data);
+        var self = this;
+        this._service.importBIPlayer.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = playerAPITest;
     } else {
