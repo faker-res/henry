@@ -422,7 +422,8 @@
                 "submitDXCode",
                 "getDxMission",
                 "createDxMission",
-                "updateDxMission"
+                "updateDxMission",
+                "insertPhoneToTask"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
