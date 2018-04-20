@@ -913,23 +913,7 @@ let dbDXMission = {
 
             }
         })
-
-        // return dbconfig.collection_dxPhone.findOne({code: code})
-        //     .populate({path: "dxMission", model: dbconfig.collection_dxMission})
-        //     .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
-        //         function (dxPhone) {
-        //             if (!dxPhone) {
-        //                 return {redirect: "www.kbl8888.com"};
-        //             }
-        //
-        //             if (dxPhone.bUsed) {
-        //                 return loginDefaultPasswordPlayer(dxPhone);
-        //             }
-        //             else {
-        //                 return createPlayer(dxPhone, deviceData, domain);
-        //             }
-        //         }
-        //     )
+        
     },
 
     sendSMSToPlayer: function (adminObjId, adminName, data) {
