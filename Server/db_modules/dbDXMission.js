@@ -747,41 +747,6 @@ let dbDXMission = {
         }
     },
 
-    generateDXCode: function(dxMission, platformId, tries) {
-        tries = (Number(tries) || 0) + 1;
-        if (tries > 5) {
-            return Promise.reject({
-                message: "Generate dian xiao code failure."
-            })
-        }
-        let randomString = Math.random().toString(36).substring(4,11); // generate random String
-        let dxCode = "";
-
-        let platformProm = Promise.resolve({platformId: platformId});
-        if (!platformId) {
-            platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
-                path: "platform", model: dbconfig.collection_platform
-            }).lean();
-        }
-
-        return platformProm.then(
-            function (missionProm) {
-                platformId = missionProm.platform.platformId;
-                dxCode = missionProm.platform.platformId + randomString;
-                return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
-            }
-        ).then(
-            function (dxPhoneExist) {
-                if (dxPhoneExist) {
-                    return dbDXMission.generateDXCode(dxMission, platformId);
-                }
-                else {
-                    return dxCode;
-                }
-            }
-        );
-    },
-
     insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated, smsChannel) {
         if (!platformId && !phoneNumber && !taskName && !autoSMS) {
             return Promise.reject({
@@ -868,7 +833,7 @@ let dbDXMission = {
                                 }
                                 else{
                                     // import the number to the keyed-in dxMission and send out msg if needed
-                                    return dbDXMission.generateDXCode(dxMission).then(
+                                    return dbPlayerInfo.generateDXCode(dxMission).then(
                                         randomCode => {
                                             let importData = {
                                                 platform: platformObjId,
@@ -884,6 +849,8 @@ let dbDXMission = {
                                                 // sending msg if required
                                                 if (parseInt(autoSMS)){
 
+                                                    let msgDetails = [];
+
                                                     let smsData = {
                                                         channel: smsChannel,
                                                         platformId: platformObjId,
@@ -891,7 +858,12 @@ let dbDXMission = {
                                                         phoneNumber: phoneNumber.trim(),
                                                     };
 
-                                                    dbDXMission.sendSMSToSinglePlayer(smsData);
+                                                    msgDetails.push(smsData);
+                                                    let sendingObj = {
+                                                        msgDetail: msgDetails
+                                                    };
+
+                                                    dbDXMission.sendSMSToPlayer(null, null, sendingObj);
                                                 }
 
                                                 return Promise.resolve({
@@ -919,12 +891,10 @@ let dbDXMission = {
     sendSMSToPlayer: function (adminObjId, adminName, data) {
         let phoneData = {};
         let prom = [];
-
         if (data && data.msgDetail && data.msgDetail.length > 0){
-
             data.msgDetail.forEach( msg => {
 
-                prom.push( dbconfig.collection_dxPhone.findOne({_id: msg.dxMissionId}).populate({
+                prom.push( dbconfig.collection_dxPhone.findOne({phoneNumber: msg.phoneNumber}).populate({
                     path: "dxMission", model: dbconfig.collection_dxMission
                 }).populate({
                     path: "platform", model: dbconfig.collection_platform
@@ -1273,7 +1243,7 @@ let dbDXMission = {
 
         let playerData
         let playerName = "";
-        let registrationTime = new Date();
+        //let registrationTime = new Date();
         let playerPermission;
         let totalTopUpCount = 0;
         let totalLoginTimes = 0;
@@ -1322,8 +1292,8 @@ let dbDXMission = {
                     playerData = playerData;
 
 
-                    if (alertDay && registrationTime){
-                        let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registrationTime)).getTime();
+                    if (alertDay && playerData.registrationTime){
+                        let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,new Date(playerData.registrationTime))).getTime();
                         if (alertPeriod >= new Date().getTime()){
                             alerted = true;
                         }

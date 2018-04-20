@@ -430,7 +430,7 @@ define(['js/app'], function (myApp) {
                         data: "registeredPlayerCount",
                         render: function (data, type, row) {
                             var link = $('<a>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                                 'ng-click': 'vm.setPlayerInfoQuery("' + row['_id'] + '","TotalPlayer"); vm.showPagedTelePlayerTable(); vm.setAnchor("telePlayerTableAnchor")'
                             }).text(data);
                             return link.prop('outerHTML');
@@ -2054,7 +2054,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('ORDER'),
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(index.row+1);
                             return link.prop('outerHTML');
                             // return index.row+1 ;
@@ -2066,7 +2066,7 @@ define(['js/app'], function (myApp) {
                         data: "phoneNumber",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2077,7 +2077,7 @@ define(['js/app'], function (myApp) {
                         data: "playerData.name",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2088,7 +2088,7 @@ define(['js/app'], function (myApp) {
                         sClass: "sumText wordWrap",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2099,7 +2099,7 @@ define(['js/app'], function (myApp) {
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2110,7 +2110,7 @@ define(['js/app'], function (myApp) {
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2121,7 +2121,7 @@ define(['js/app'], function (myApp) {
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2132,7 +2132,7 @@ define(['js/app'], function (myApp) {
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2143,7 +2143,7 @@ define(['js/app'], function (myApp) {
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2154,7 +2154,7 @@ define(['js/app'], function (myApp) {
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
-                                'class': (row.alerted ? "text-danger" : ""),
+                                'style': (row.alerted ? "color:red;" : ""),
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -2167,6 +2167,7 @@ define(['js/app'], function (myApp) {
                             var playerObjId = row.playerObjId ? row.playerObjId : "";
                             var link = $('<div>', {});
                             link.append($('<a>', {
+                                'style': (row.alerted ? "color:red;" : ""),
                                 'class': 'fa fa-envelope margin-right-5',
                                 'ng-click': 'vm.selectedSinglePlayer={_id:' + JSON.stringify(row.playerObjId) + '}; vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
@@ -2175,6 +2176,7 @@ define(['js/app'], function (myApp) {
                                 'data-placement': 'left',   // because top and bottom got hidden behind the table edges
                             }));
                             link.append($('<a>', {
+                                'style': (row.alerted ? "color:red;" : ""),
                                 'class': 'fa fa-comment margin-right-5' + (row.playerData.permission.SMSFeedBack === false ? " text-danger" : ""),
                                 'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.initSMSModal();' + "vm.onClickPlayerCheck(" +
                                 JSON.stringify(row.playerObjId) + ", " + "vm.telorMessageToPlayerBtn" +
@@ -2185,6 +2187,7 @@ define(['js/app'], function (myApp) {
                                 'data-placement': 'left',
                             }));
                             link.append($('<a>', {
+                                'style': (row.alerted ? "color:red;" : ""),
                                 'class': 'fa fa-volume-control-phone margin-right-5' + (row.playerData.permission.phoneCallFeedback === false ? " text-danger" : ""),
                                 'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
@@ -2194,6 +2197,7 @@ define(['js/app'], function (myApp) {
                             }));
                             if ($scope.checkViewPermission('Platform', 'Player', 'AddFeedback')) {
                                 link.append($('<a>', {
+                                    'style': (row.alerted ? "color:red;" : ""),
                                     'class': 'fa fa-commenting margin-right-5',
                                     'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.initFeedbackModal(' + JSON.stringify(row['playerData']) + ');',
                                     'data-row': JSON.stringify(row.playerData),
@@ -2206,6 +2210,7 @@ define(['js/app'], function (myApp) {
                             //if(row.isRealPlayer) {
                                 if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
+
                                         'class': 'fa fa-plus-circle',
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.getAllBankCard(); vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
                                         'data-row': JSON.stringify(row),
@@ -2213,12 +2218,14 @@ define(['js/app'], function (myApp) {
                                         'data-target': '#modalPlayerTopUp',
                                         'title': $translate("TOP_UP"),
                                         'data-placement': 'left',
-                                        'style': 'color: #68C60C'
+                                        'style': (row.alerted ? "color:red;" : "color: #68C60C;")
+                                        //'style': 'color: #68C60C'
                                     }));
                                 }
                                 link.append($('<br>'));
                                 if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
                                     link.append($('<img>', {
+                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': "images/icon/withdrawBlue.png",
                                         'height': "14px",
@@ -2233,6 +2240,7 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
                                     link.append($('<img>', {
+                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5 margin-right-5',
                                         'src': "images/icon/rewardBlue.png",
                                         'height': "14px",
@@ -2247,6 +2255,7 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
                                     link.append($('<img>', {
+                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
                                         'src': "images/icon/reapplyBlue.png",
                                         'height': "14px",
@@ -2260,6 +2269,7 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
                                     link.append($('<img>', {
+                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
                                         'src': "images/icon/creditAdjustBlue.png",
                                         'height': "14px",
@@ -2274,6 +2284,7 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
+                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
                                         'src': "images/icon/rewardPointsBlue.png",
                                         'height': "14px",
@@ -2400,7 +2411,6 @@ define(['js/app'], function (myApp) {
             vm.loadingTelePlayerSendingSMSTable = true;
             let sendQuery = {
                 platform: vm.selectedPlatform.id,
-               // count: 5,
                 dxMission: dxMission ? dxMission : vm.telePlayerSendingMsgTable.dxMissionId,
                 index: newSearch ? 0 : vm.telePlayerSendingMsgTable.index,
                 limit: newSearch ? 10 : vm.telePlayerSendingMsgTable.limit,
@@ -2573,7 +2583,7 @@ define(['js/app'], function (myApp) {
                     let platformId = $(this)[0].dataset.platformid;
                     let phoneNumber = $(this)[0].dataset.phonenumber;
                     if (dxMissionId && platformId && phoneNumber) {
-                        vm.msgSendingGroupData.push({dxMissionId: dxMissionId, platformId: platformId, phoneNumber: phoneNumber});
+                        vm.msgSendingGroupData.push({dxMissionId: dxMissionId, platformId: platformId, phoneNumber: phoneNumber.trim()});
                     }
                 })
             }
