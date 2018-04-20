@@ -147,7 +147,7 @@ var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig
 var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
 
 var partnerCommissionRateConfigSchema = require('./../schema/partnerCommissionRateConfig');
-var partnerCommissionRateConfigModel = db_admin.model('partnerCommissionRateConfig', partnerCommissionRateConfigSchema, 'partnerCommissionConfig');
+var partnerCommissionRateConfigModel = db_admin.model('partnerCommissionRateConfig', partnerCommissionRateConfigSchema, 'partnerCommissionRateConfig');
 
 let gameProviderGroupSchema = require('./../schema/gameProviderGroup');
 let gameProviderGroupModel = db_admin.model('gameProviderGroup', gameProviderGroupSchema, 'gameProviderGroup');

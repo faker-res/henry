@@ -943,9 +943,7 @@
                                 input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
-                                select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
-                                    option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : ["bankTypeId", "name"]', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{(v.status == "DISABLED"?"Disable":v.status) | translate}}</b>
+                                select.form-control(ng-options='a as a.displayText group by a.bankCards for a in vm.bankCards', ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)', bsp, data-live-search="true")
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod', ng-change='vm.selectedDepositMethod(vm.playerManualTopUp.depositMethod)')
@@ -1713,4 +1711,3 @@
 
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
-
