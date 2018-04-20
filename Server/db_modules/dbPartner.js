@@ -2921,6 +2921,24 @@ let dbPartner = {
         return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, update);
     },
 
+    createUpdatePartnerCommissionRateConfig: function  (query, data) {
+        return dbconfig.collection_partnerCommissionRateConfig.findOne({platform: query.platform}).lean().then(
+            configData => {
+                //check if config exist
+                if (!configData) {
+                    var newCommissionRateConfig = new dbconfig.collection_partnerCommissionRateConfig(data);
+                    return newCommissionRateConfig.save();
+                }
+                else {
+                    return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(query, data);
+                }
+            });
+    },
+
+    getPartnerCommissionRateConfig: function (query) {
+        return dbconfig.collection_partnerCommissionRateConfig.findOne(query);
+    },
+
     createUpdatePartnerCommissionConfig: function  (query, data) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType}).lean().then(
            configData => {
