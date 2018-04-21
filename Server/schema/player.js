@@ -190,6 +190,14 @@ var playerSchema = new Schema({
     topUpTimes: {type: Number, min: 0, default: 0, index: true},
     // withdrawal times
     withdrawTimes: {type: Number, min: 0, default: 0, index: true},
+    //daily Withdraw sum for level up check
+    dailyWithdrawSum: {type: Number, min: 0, default: 0},
+    //weekly Withdraw sum for level up check
+    weeklyWithdrawSum: {type: Number, min: 0, default: 0},
+    //past one month Withdraw recording.
+    pastMonthWithdrawSum: {type: Number, min: 0, default: 0},
+    //total Withdraw
+    withdrawSum: {type: Number, min: 0, default: 0},
     // total profit / losses of player
     bonusAmountSum: {type: Number, default: 0, index: true},
     //daily consumption sum for level up check
@@ -312,7 +320,6 @@ var playerSchema = new Schema({
 
 //record is unique by name and platform
 playerSchema.index({name: 1, platform: 1});
-playerSchema.index({platform: 1, partner: 1});
 
 playerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('playerId'));
 
