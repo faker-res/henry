@@ -1573,6 +1573,13 @@ define(['js/app'], function (myApp) {
             vm.initSettlePartnerComm = (prev) => {
                 vm.selectedSettlePartnerCommPrev = prev;
 
+                $scope.$socketPromise("initSettlePartnerComm", {
+                    platformObjId: vm.selectedPlatform.id
+                }).then(
+                    previews => {
+                        vm.allPartnerCommSettPreview = previews.data;
+                    }
+                );
             }
 
             vm.performPartnerCommissionSetlement = function () {
