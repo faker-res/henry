@@ -25,7 +25,7 @@ p
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Create')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalCreatePartner', ng-click='vm.prepareCreatePartner()')
             text {{"CREATE" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'SettleCommission')", ng-repeat="prev in vm.allPartnerCommSettPreview" data-toggle="modal", data-target='#modalCreatePartner', ng-click='vm.prepareCreatePartner()')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'SettleCommission')", ng-repeat="prev in vm.allPartnerCommSettPreview" data-toggle="modal", data-target='#modalPartnerCommPreview', ng-click='vm.initSettlePartnerComm(prev)')
             text {{constPartnerCommissionSettlementType[prev.settMode] | translate}}
             .fa.fa-book
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Delete')",ng-disabled="vm.selectedPartnerCount==0", data-toggle="modal", data-target='#modalDeletePartner')
@@ -774,3 +774,16 @@ p
                     label {{"Total" | translate}} {{vm.duplicatePhoneNumber.totalCount}} {{"records" | translate}}
                     table#duplicatePhoneNumberLogTable.common-table.display(style='min-width:100%')
                     #duplicatePhoneNumberLogTablePage.height30
+
+#modalPartnerCommPreview.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:100%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title
+                    |{{ constPartnerCommissionSettlementType[vm.selectedSettlePartnerCommPrev.settMode] | translate }}
+                    | ( {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.startTime) }} -
+                    | {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.endTime) }} )
+            .modal-body
+                div
+                    text test

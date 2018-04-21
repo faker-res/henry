@@ -1568,7 +1568,20 @@ define(['js/app'], function (myApp) {
                         vm.allPartnerCommSettPreview = previews.data;
                     }
                 );
+            };
+
+            vm.initSettlePartnerComm = (prev) => {
+                vm.selectedSettlePartnerCommPrev = prev;
+
+                $scope.$socketPromise("initSettlePartnerComm", {
+                    platformObjId: vm.selectedPlatform.id
+                }).then(
+                    previews => {
+                        vm.allPartnerCommSettPreview = previews.data;
+                    }
+                );
             }
+
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPartnerCommissionSettlement',

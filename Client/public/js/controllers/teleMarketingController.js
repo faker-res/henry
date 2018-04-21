@@ -13,6 +13,8 @@ define(['js/app'], function (myApp) {
         vm.teleMarketingPlayerInfo = {};
         vm.playerInfoQuery = {};
         vm.creditChange = {};
+        vm.rewardPointsChange = {};
+        vm.rewardPointsConvert = {};
         vm.depositMethodList = $scope.depositMethodList;
         vm.createTeleMarketingDefault = {
             description: '',
@@ -3585,6 +3587,95 @@ define(['js/app'], function (myApp) {
         };
         //********************************** end of CreditAdjustment functions **********************************
 
+        //********************************** start of RewardPointAdjustment functions **********************************
+        vm.showRewardPointsAdjustmentTab = function (tabName) {
+            vm.selectedRewardPointsAdjustmentTab = tabName == null ? "change" : tabName;
+            if (tabName === 'convert') {
+                vm.playerRewardPointsDailyLimit = 0;
+                vm.playerRewardPointsDailyConvertedPoints = 0;
+                vm.playerRewardPointsConversionRate = 0;
+                vm.getPlayerRewardPointsDailyLimit();
+                vm.getPlayerRewardPointsDailyConvertedPoints();
+                vm.getPlayerRewardPointsConversionRate();
+            }
+        };
+
+        vm.getPlayerRewardPointsDailyLimit = function () {
+            let sendData = {
+                platformObjId: vm.isOneSelectedPlayer().platform,
+                playerLevel: vm.isOneSelectedPlayer().playerLevel
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyLimit', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerRewardPointsDailyLimit = data.data;
+                });
+            });
+        };
+
+        vm.getPlayerRewardPointsDailyConvertedPoints = function () {
+            let sendData = {
+                rewardPointsObjId: vm.isOneSelectedPlayer().rewardPointsObjId._id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsDailyConvertedPoints', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerRewardPointsDailyConvertedPoints = data.data;
+                });
+            });
+        };
+
+        vm.getPlayerRewardPointsConversionRate = function () {
+            let sendData = {
+                platformObjId: vm.isOneSelectedPlayer().platform,
+                playerLevel: vm.isOneSelectedPlayer().playerLevel
+            };
+
+            socketService.$socket($scope.AppSocket, 'getPlayerRewardPointsConversionRate', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.playerRewardPointsConversionRate = data.data;
+                });
+            });
+        };
+
+        vm.prepareShowPlayerRewardPointsAdjustment = function () {
+            vm.rewardPointsChange.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
+            vm.rewardPointsChange.remark = '';
+            vm.rewardPointsChange.updateAmount = 0;
+            vm.rewardPointsConvert.finalValidAmount = vm.isOneSelectedPlayer().rewardPointsObjId.points;
+            vm.rewardPointsConvert.remark = '';
+            vm.rewardPointsConvert.updateAmount = 0;
+            $scope.safeApply();
+        };
+
+        vm.updatePlayerRewardPointsRecord = function () {
+            let sendData = {
+                playerObjId: vm.isOneSelectedPlayer()._id,
+                platformObjId: vm.isOneSelectedPlayer().platform,
+                updateAmount: vm.rewardPointsChange.updateAmount,
+                remark: vm.rewardPointsChange.remark
+            };
+
+            socketService.$socket($scope.AppSocket, 'updatePlayerRewardPointsRecord', sendData, function () {
+                //vm.advancedPlayerQuery();
+                $scope.safeApply();
+            });
+        };
+
+        vm.convertPlayerRewardPoints = () => {
+            var sendData = {
+                playerId: vm.isOneSelectedPlayer().playerId,
+                convertRewardPointsAmount: vm.rewardPointsConvert.updateAmount,
+                remark: vm.rewardPointsConvert.remark
+            };
+            socketService.$socket($scope.AppSocket, 'convertRewardPointsToCredit', sendData, function (data) {
+                console.log('convertRewardPointsToCredit', data.data);
+                //vm.getPlatformPlayersData();
+                $scope.safeApply();
+            });
+        };
+        //********************************** end of RewardPointAdjustment functions **********************************
+
         vm.setPlayerInfoQuery = function(dxMissionId, type, searchCriteria) {
             vm.playerInfoQuery.dxMission = dxMissionId;
             vm.playerInfoQuery.type = type;
@@ -3803,7 +3894,6 @@ define(['js/app'], function (myApp) {
                             //if(row.isRealPlayer) {
                                 if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
-
                                         'class': 'fa fa-plus-circle',
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.getAllBankCard(); vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
                                         'data-row': JSON.stringify(row),
@@ -3818,9 +3908,8 @@ define(['js/app'], function (myApp) {
                                 link.append($('<br>'));
                                 if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/withdrawBlue.png",
+                                        'src': (row.alerted ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.initPlayerBonus();',
@@ -3833,9 +3922,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/rewardBlue.png",
+                                        'src': (row.alerted ? "images/icon/rewardRed.png" : "images/icon/rewardBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.rewardTabClicked();vm.initPlayerAddRewardTask();',
@@ -3848,9 +3936,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/reapplyBlue.png",
+                                        'src': (row.alerted ? "images/icon/reapplyRed.png" : "images/icon/reapplyBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
@@ -3862,9 +3949,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/creditAdjustBlue.png",
+                                        'src': (row.alerted ? "images/icon/creditAdjustRed.png" : "images/icon/creditAdjustBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
@@ -3877,9 +3963,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/rewardPointsBlue.png",
+                                        'src': (row.alerted ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
