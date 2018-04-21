@@ -23039,8 +23039,8 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
                     if (data && data.data) {
-                        vm.commissionRateConfig = data.data;
-                        vm.srcCommissionRateConfig = JSON.parse(JSON.stringify(data.data));
+                        vm.srcCommissionRateConfig = data.data;
+                        vm.commissionRateConfig = JSON.parse(JSON.stringify(data.data));
 
                         vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
                         vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
@@ -23051,7 +23051,7 @@ define(['js/app'], function (myApp) {
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name, rate: ''});
+                                vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name});
                             })
                         }
                     }
@@ -23095,6 +23095,21 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            vm.validateNumber = function (value, fieldName, idx) {
+                var rgx = /^[0-9]*\.?[0-9]*$/;
+
+                if(value.match(rgx)) {
+                    return value.match(rgx);
+                } else {
+                    if (fieldName = 'rateAfterRebateGameProviderGroup') {
+                        vm[fieldName][idx].rate = '';
+                    } else {
+                        vm[fieldName] = '';
+                    }
+                }
+
+            }
             // partner commission config end
 
             // announcement codes==============start===============================
