@@ -1377,7 +1377,9 @@ var dbQualityInspection = {
                     if(data && data._id){
                         delete data._id;
                     }
-                    
+
+                    console.log("LH TEST QUALITYINSPECTION",data);
+                    console.log("LH TEST QUALITYINSPECTION UPDATE QUERY",{messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")});
                     dbconfig.collection_qualityInspection.findOneAndUpdate(
                         {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
                         data

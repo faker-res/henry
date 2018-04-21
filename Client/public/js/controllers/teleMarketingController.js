@@ -3693,6 +3693,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPagedTelePlayerTable = function (newSearch) {
+            vm.loadingTeleMarketingOverviewTable = true;
             let sendQuery = {
                 platform: vm.selectedPlatform.id ,
                 dxMission: vm.playerInfoQuery.dxMission || "",
@@ -3718,6 +3719,7 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
+                vm.loadingTeleMarketingOverviewTable = false;
                 $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count));
             })
         };
@@ -4033,7 +4035,6 @@ define(['js/app'], function (myApp) {
 
                     vm.telePlayerSendingMsgTable.customerType='all';
                     vm.telePlayerSendingMsgTable.msgTimesOperator='>=';
-                    vm.smsChannel = 2;
 
                     $('#sendSMSTableStartDatetimePicker').datetimepicker({
                         language: 'en',
@@ -4335,7 +4336,7 @@ define(['js/app'], function (myApp) {
                 //vm.msgSendingGroupData.forEach( data => {
                 let sendObj = {
                     //platformId: data.platformId,
-                    channel: 2, //vm.smsChannel,
+                    channel: vm.smsChannel, //vm.smsChannel,
                     msgDetail: vm.msgSendingGroupData,
                     //tel: data.phoneNumber,
                     //dxPhone: data.dxMissionId
