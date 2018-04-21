@@ -429,6 +429,7 @@ let dbDXMission = {
         let depositPlayerArr = [];
         let consumptionPlayerArr = [];
         let partnerLevel = {};
+        let checkFeedBackProm = [];
         let totalRegisteredPlayer = 0;
         let noOfPlayerTopUp = 0;
         let noOfPlayerMultiTopUp = 0;
@@ -439,7 +440,6 @@ let dbDXMission = {
         let totalPlayerBonusAmount = 0;
         let totalPlayerTopUpAmount = 0;
         let alerted = false;
-
         importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
         sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)});
         registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId}).then(
@@ -448,14 +448,20 @@ let dbDXMission = {
                     totalRegisteredPlayer = playerData.length ? playerData.length : 0;
                     playerData.forEach(playerId => {
                        if(playerId){
-                           if (!alerted){
+                           checkFeedBackProm.push(dbconfig.collection_playerFeedback.find({playerId: playerId._id}).then(
+                               feedBackData => {
+                                   if(!alerted){
+                                       if (!feedBackData || feedBackData.length <= 0) {
+                                           let registeredTime = new Date(playerId.registrationTime)
+                                           let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registeredTime)).getTime();
 
-                               let registeredTime = new Date(playerId.registrationTime)
-                               let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registeredTime)).getTime();
-                               if (alertPeriod >= new Date().getTime()){
-                                   alerted = true;
+                                           if (alertPeriod >= new Date().getTime()){
+                                               alerted = true;
+                                           }
+                                       }
+                                   }
                                }
-                           }
+                           ));
 
                            topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId._id}).then(
                                topUpRecord => {
@@ -489,7 +495,7 @@ let dbDXMission = {
                        }
                     });
 
-                    return Promise.all(topUpPlayerProm).then(
+                    return Promise.all(topUpPlayerProm,checkFeedBackProm).then(
                         returnData => {
                             return returnData;
                         }
@@ -1133,7 +1139,6 @@ let dbDXMission = {
             }
         ).then(
             data => {
-                console.log("LH TEST searchCriteria", searchCriteria);
                 if (data.dxMissionData){
                     alertDay = data.dxMissionData.alertDays;
                 }
@@ -1149,8 +1154,6 @@ let dbDXMission = {
                     summaryData => {
                         let resultData = JSON.parse(JSON.stringify(data));
                         let dataToBeDeleted = [];
-                        console.log("LH TEST SummaryData", summaryData);
-                        console.log("LH TEST resultData ", resultData.dxPhoneData);
 
                         if(summaryData){
                             summaryData.forEach(
@@ -1182,8 +1185,6 @@ let dbDXMission = {
                             )
                         }
 
-                        console.log("LH TEST dataTobeDeleted ", dataToBeDeleted);
-
                         //remove the data without playerinfo details
                         dataToBeDeleted.forEach(playerObjId => {
                             var indexNo = resultData.dxPhoneData.findIndex(r => r.playerObjId == playerObjId);
@@ -1192,8 +1193,6 @@ let dbDXMission = {
                                 resultData.dxPhoneData.splice(indexNo,1)
                             }
                         })
-
-                        console.log("LH TEST final data ", resultData.dxPhoneData);
 
                         return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData, dxMissionData: data.dxMissionData}
                     }
@@ -1222,6 +1221,7 @@ let dbDXMission = {
         let topUpPlayerProm = [];
         let playerConsumptionProm = [];
         let alerted = false;
+        let checkFeedBackProm = [];
 
         let query = {
             _id: playerObjId
@@ -1237,35 +1237,20 @@ let dbDXMission = {
             .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean().then(
             playerData => {
                 if(playerData){
-                    // if(playerData.topUpTimes){
-                    //     totalTopUpCount = playerData.topUpTimes;
-                    // }
-                    //
-                    // if(playerData.loginTimes){
-                    //     totalLoginTimes = playerData.loginTimes;
-                    // }
-                    //
-                    // if(playerData.name){
-                    //     playerName = playerData.name;
-                    // }
-                    //
-                    // if(playerData.registrationTime){
-                    //     registrationTime = new Date(playerData.registrationTime);
-                    // }
-                    //
-                    // if(playerData.permission){
-                    //     playerPermission = playerData.permission;
-                    // }
-
                     playerData = playerData;
 
-
-                    if (alertDay && playerData.registrationTime){
-                        let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,new Date(playerData.registrationTime))).getTime();
-                        if (alertPeriod >= new Date().getTime()){
-                            alerted = true;
+                    checkFeedBackProm = dbconfig.collection_playerFeedback.find({playerId: playerData._id}).then(
+                        feedBackData => {
+                            if(!feedBackData || feedBackData.length <= 0){
+                                if (alertDay && playerData.registrationTime){
+                                    let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,new Date(playerData.registrationTime))).getTime();
+                                    if (alertPeriod >= new Date().getTime()){
+                                        alerted = true;
+                                    }
+                                }
+                            }
                         }
-                    }
+                    )
 
                     topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).then(
                         topUpRecord => {
@@ -1325,17 +1310,12 @@ let dbDXMission = {
                         }
                     );
 
-                    return Promise.all([topUpPlayerProm, playerConsumptionProm, bonusProm]).then(
+                    return Promise.all([topUpPlayerProm, playerConsumptionProm, bonusProm, checkFeedBackProm]).then(
                         returnData => {
                             return {
                                 playerObjId: playerObjId,
                                 phoneNumber: phoneNumber,
                                 playerData: playerData,
-                                // playerName: playerName,
-                                // registrationTime: registrationTime,
-                                // permission: playerPermission,
-                                // totalLoginTimes: totalLoginTimes,
-                                // totalTopUpCount: totalTopUpCount,
                                 totalTopUpAmount: totalTopUpAmount,
                                 totalConsumptionTime: totalConsumptionTime,
                                 totalConsumptionAmount: totalConsumptionAmount,
