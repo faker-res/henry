@@ -202,7 +202,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             label(style="margin-left:100px;") {{vm.msgTemplate.name}} - {{vm.msgTemplate.description}}
                             button.common-button.btn.btn-primary(ng-click="vm.showSMSTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
                             table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll;margin-top:10px;")
-                            #telePlayerSendingMsgTablePage
+                            //#telePlayerSendingMsgTablePage
                             #msgPreview(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:60px;")
                                 table.simple-table#actionLogDataTable(style='max-width:100%;')
                                     thead

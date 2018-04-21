@@ -748,7 +748,7 @@ let dbDXMission = {
     },
 
     insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated, smsChannel) {
-        if (!platformId && !phoneNumber && !taskName && !autoSMS) {
+        if (!platformId && !phoneNumber && !taskName) {
             return Promise.reject({
                 errorMessage: "Invalid data"
             });
@@ -1002,11 +1002,11 @@ let dbDXMission = {
     },
 
     getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol, data) {
-        let Qindex = index || 0;
-        let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
-        let QsortCol = sortCol || {'createTime': -1};
+        // let Qindex = index || 0;
+        // let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        // let QsortCol = sortCol || {'createTime': -1};
 
-        let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
+
         let findQuery = {
             platform: platformObjId,
             dxMission: dxMission,
@@ -1020,16 +1020,18 @@ let dbDXMission = {
             findQuery.playerObjId = {$exists: false};
         }
 
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery).populate({path: "playerObjId", model: dbconfig.collection_players}).sort(QsortCol).skip(Qindex).limit(Qlimit);
+       // let sizeProm = dbconfig.collection_dxPhone.find(findQuery).count();
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery).populate({path: "playerObjId", model: dbconfig.collection_players}).sort({createTime: -1}).lean();
+            //.sort(QsortCol).skip(Qindex).limit(Qlimit);
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
-        return Promise.all([sizeProm,dxPhoneDataProm, dxMissionProm]).then(
+        return Promise.all([dxPhoneDataProm, dxMissionProm]).then(
             result => {
                 if(result){
-                    let size = result[0] ? result[0] : 0;
-                    let dxPhoneData = result[1] ? result[1] : {};
-                    let dxMissionData = result[2] ? result[2] : {};
+                    //let size = result[0] ? result[0] : 0;
+                    let dxPhoneData = result[0] ? result[0] : {};
+                    let dxMissionData = result[1] ? result[1] : {};
                     let dxPhoneDataWithDetails = [];
 
                     if (dxPhoneData && dxPhoneData.length > 0){
@@ -1084,8 +1086,8 @@ let dbDXMission = {
                                 })
 
                             }
-                            //return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
-                            return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                            return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                            // return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
                         })
                     }
 
@@ -1366,7 +1368,6 @@ let dbDXMission = {
                 }
 
                 smsLogProm.push(dbconfig.collection_smsLog.find(findQuery).sort({createTime:-1}).then(
-
                     smsLogData => {
                         // filter the users according to the lastTime
                         if (lastSendingStartTime && lastSendingEndTime){
