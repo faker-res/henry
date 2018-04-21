@@ -2707,7 +2707,16 @@ var dbPlatform = {
             platform: platformObjId,
             isSettled: false
         }).sort('settMode').lean();
-    }
+    },
+
+    initSettlePartnerComm: (platformObjId, settMode) => {
+        // let
+        // return dbconfig.collection_partner.find({}, '_id partnerName realName').lean().then(
+        //     partners => {
+        //
+        //     }
+        // );
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
