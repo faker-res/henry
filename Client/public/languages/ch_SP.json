@@ -1689,6 +1689,7 @@
   "SEND_MESSAGE_TO_PLAYER": "发站内信给玩家",
   "SEND_MESSAGE": "发站内信",
   "Send SMS to Player": "发短信给玩家",
+  "Send SMS to Partner": "发短信给代理",
   "smsPlayer": "发短信给玩家",
   "TO_PLAYER": "给玩家",
   "To Partner": "给代理",
