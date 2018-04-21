@@ -15971,7 +15971,8 @@ define(['js/app'], function (myApp) {
                         bankAccountCity: vm.selectedSinglePartner.bankAccountCity,
                         bankAccountDistrict: vm.selectedSinglePartner.bankAccountDistrict,
                         bankAccountProvince: vm.selectedSinglePartner.bankAccountProvince,
-                        commissionType: vm.selectedSinglePartner.commissionType
+                        commissionType: vm.selectedSinglePartner.commissionType,
+                        player: vm.selectedSinglePartner.player,
                     };
                     $scope.safeApply();
                 });
@@ -16294,6 +16295,25 @@ define(['js/app'], function (myApp) {
                 vm.editPartnerSelectedTab = tab;
             }
 
+            vm.checkPartnerPlayerField = function (fieldName, value, form) {
+                vm.editPartner.isPartnerPlayerValid = true;
+                if (!value || value != '') {
+                    if (vm.editPartner && !vm.editPartner.player) {
+                        socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
+                            fieldName: fieldName,
+                            value: value
+                        }, function (data) {
+                            if (data && data.data && data.data[fieldName]) {
+                                vm.editPartner.playerId = data.data.player_id;
+                                vm.editPartner.isPartnerPlayerExist = data.data.exists;
+                                vm.editPartner.isPartnerPlayerValid = data.data.valid;
+                            }
+                            $scope.safeApply();
+                        });
+                    }
+                }
+            }
+
             vm.openEditPartnerDialog = function (selectedTab) {
                 vm.editPartnerSelectedTab = "";
                 vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
@@ -16323,6 +16343,7 @@ define(['js/app'], function (myApp) {
                             prepareEditCritical: vm.prepareEditCritical,
                             submitCriticalUpdate: vm.submitCriticalUpdate,
                             isEditingPartnerPayment: vm.isEditingPartnerPayment,
+                            checkPartnerPlayerField: vm.checkPartnerPlayerField,
                             partnerPayment: vm.partnerPayment,
                             allBankTypeList: vm.allBankTypeList,
                             filteredBankTypeList: vm.filteredBankTypeList,
@@ -16346,6 +16367,9 @@ define(['js/app'], function (myApp) {
                             updateEditedPartner: function () {
                                 // this ng-model has to be in date object
                                 this.newPartner.DOB = new Date(this.newPartner.DOB);
+                                if(vm.editPartner.playerId) {
+                                    this.newPartner.player = vm.editPartner.playerId;
+                                }
                                 sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
                             },
                         }

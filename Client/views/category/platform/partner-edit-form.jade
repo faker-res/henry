@@ -28,6 +28,13 @@ form(name="form_edit_partner", novalidate)
             i.margin-left-5.fa.fa-times.text-danger(style='width:10px;', ng-show="form_edit_partner.DOBInput.$invalid")
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
+            label.control-label {{"Bind Player" | translate}}
+            span &nbsp;{{"partnerBindPlayerText" | translate}}
+            input.form-control(type="text", ng-if="!newPartner.player", placeholder="{{'playerId' | translate}}", ng-model="newPartner.playerId", ng-change='checkPartnerPlayerField("player",newPartner.playerId, form_edit_partner)')
+            span.help-block(style='color: #b94a48', ng-show='newPartner.isPartnerPlayerValid===false') {{'Invalid PlayerId' | translate}}
+            span.help-block(style='color: #b94a48', ng-show='newPartner.isPartnerPlayerExist===true') {{'playerId' | translate}}&nbsp;{{'existed already' | translate}}
+            label.form-control(type="text", ng-if="newPartner.player", disabled) {{newPartner.player.name}}
+        .form-group.col-md-6
             label.control-label {{"own domain" | translate}}
             textarea.form-control(type="text", name='ownDomain', ng-disabled="!vm.isEditingPartner", ng-model="newPartner.ownDomain$", ng-change='vm.checkOwnDomain(newPartner.ownDomain, form_edit_partner);')
             span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.ownDomainDuplicate==true') {{vm.partnerValidity.ownDomainName}}&nbsp;{{'existed already' | translate}}

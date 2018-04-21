@@ -1675,7 +1675,7 @@
   "AlipayTopUp": "支付宝充值",
   "QuickpayTopUp": "秒付宝充值",
   "Invalid PlayerId": "无效的玩家ID",
-  "partnerBindPlayerText": "绑定玩家只可绑定一次，不可修改",
+  "partnerBindPlayerText": "(绑定玩家只可绑定一次，不可修改)",
   "ANNOUNCEMENTS": "公告板",
   "Announcement": "公告",
   "ANNOUNCEMENT_REACH": "范围",
