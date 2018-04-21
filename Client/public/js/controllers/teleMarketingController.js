@@ -3694,6 +3694,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPagedTelePlayerTable = function (newSearch) {
+            vm.loadingTeleMarketingOverviewTable = true;
             let sendQuery = {
                 platform: vm.selectedPlatform.id ,
                 dxMission: vm.playerInfoQuery.dxMission || "",
@@ -3719,6 +3720,7 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
+                vm.loadingTeleMarketingOverviewTable = false;
                 $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count));
             })
         };
