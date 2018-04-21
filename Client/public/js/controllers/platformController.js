@@ -15971,7 +15971,8 @@ define(['js/app'], function (myApp) {
                         bankAccountCity: vm.selectedSinglePartner.bankAccountCity,
                         bankAccountDistrict: vm.selectedSinglePartner.bankAccountDistrict,
                         bankAccountProvince: vm.selectedSinglePartner.bankAccountProvince,
-                        commissionType: vm.selectedSinglePartner.commissionType
+                        commissionType: vm.selectedSinglePartner.commissionType,
+                        player: vm.selectedSinglePartner.player,
                     };
                     $scope.safeApply();
                 });
@@ -16294,6 +16295,25 @@ define(['js/app'], function (myApp) {
                 vm.editPartnerSelectedTab = tab;
             }
 
+            vm.checkPartnerPlayerField = function (fieldName, value, form) {
+                vm.editPartner.isPartnerPlayerValid = true;
+                if (!value || value != '') {
+                    if (vm.editPartner && !vm.editPartner.player) {
+                        socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
+                            fieldName: fieldName,
+                            value: value
+                        }, function (data) {
+                            if (data && data.data && data.data[fieldName]) {
+                                vm.editPartner.playerId = data.data.player_id;
+                                vm.editPartner.isPartnerPlayerExist = data.data.exists;
+                                vm.editPartner.isPartnerPlayerValid = data.data.valid;
+                            }
+                            $scope.safeApply();
+                        });
+                    }
+                }
+            }
+
             vm.openEditPartnerDialog = function (selectedTab) {
                 vm.editPartnerSelectedTab = "";
                 vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
@@ -16323,6 +16343,7 @@ define(['js/app'], function (myApp) {
                             prepareEditCritical: vm.prepareEditCritical,
                             submitCriticalUpdate: vm.submitCriticalUpdate,
                             isEditingPartnerPayment: vm.isEditingPartnerPayment,
+                            checkPartnerPlayerField: vm.checkPartnerPlayerField,
                             partnerPayment: vm.partnerPayment,
                             allBankTypeList: vm.allBankTypeList,
                             filteredBankTypeList: vm.filteredBankTypeList,
@@ -16346,6 +16367,9 @@ define(['js/app'], function (myApp) {
                             updateEditedPartner: function () {
                                 // this ng-model has to be in date object
                                 this.newPartner.DOB = new Date(this.newPartner.DOB);
+                                if(vm.editPartner.playerId) {
+                                    this.newPartner.player = vm.editPartner.playerId;
+                                }
                                 sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
                             },
                         }
@@ -23015,8 +23039,8 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
                     if (data && data.data) {
-                        vm.commissionRateConfig = data.data;
-                        vm.srcCommissionRateConfig = JSON.parse(JSON.stringify(data.data));
+                        vm.srcCommissionRateConfig = data.data;
+                        vm.commissionRateConfig = JSON.parse(JSON.stringify(data.data));
 
                         vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
                         vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
@@ -23027,7 +23051,7 @@ define(['js/app'], function (myApp) {
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name, rate: ''});
+                                vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name});
                             })
                         }
                     }
@@ -23071,6 +23095,21 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+
+            vm.validateNumber = function (value, fieldName, idx) {
+                var rgx = /^[0-9]*\.?[0-9]*$/;
+
+                if(value.match(rgx)) {
+                    return value.match(rgx);
+                } else {
+                    if (fieldName = 'rateAfterRebateGameProviderGroup') {
+                        vm[fieldName][idx].rate = '';
+                    } else {
+                        vm[fieldName] = '';
+                    }
+                }
+
+            }
             // partner commission config end
 
             // announcement codes==============start===============================
