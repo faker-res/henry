@@ -38,6 +38,8 @@
                         span {{"Lock Lobby Group" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "smsGroup"}', ng-click='vm.configTabClicked("smsGroup")')
                         span {{"sms group setting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "keywordFilter"}', ng-click='vm.configTabClicked("keywordFilter")')
+                        span {{"sensitive keyword setting" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -1495,6 +1497,29 @@
                         img.img-edit
                     button.btn.btn-danger.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("smsGroup")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("smsGroup")') {{"CONFIRM" | translate}}
+                div(ng-if='vm.selectedConfigTab=="keywordFilter"')
+                    button.btn.btn-primary.common-button(ng-click='vm.keywordFilterTypeChange("sms");' ) {{"SMS" | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.keywordFilterTypeChange("email");' ) {{"MAIL" | translate}}
+
+                    h4(ng-if='vm.keywordFilterType === "sms"') {{"SMS" | translate}}{{"SENSITIVE_KEYWORD" | translate}}
+                    h4(ng-if='vm.keywordFilterType === "email"') {{"MAIL" | translate}}{{"SENSITIVE_KEYWORD" | translate}}
+
+                    div(ng-if='vm.keywordFilterType === "sms"')
+                        p {{"PLEASE_SELECT_CHANNEL" | translate}}:
+                            select.form-control.input-sm(ng-model='vm.keywordFilterChannel', ng-options='channel for channel in channelList' ng-change='vm.updateCurrentKeywords()')
+
+                    div.controls-row
+                        div.col-md-3
+                            textarea(ng-model="vm.keywordFilterNew" rows="20" style="width: 315px")
+                        div.col-md-3
+                            div(style="margin-top:10em;margin-left: auto;margin-right: auto;")
+                                button.btn.btn-primary(ng-click="vm.addFilterKeywords()" style="display: block") {{"ATTACH" | translate}}
+                                button.btn.btn-primary(ng-click="vm.removeKeywordsFromFilter()" style="display: block;margin-top:0.5em") {{"DETACH" | translate}}
+                        div.col-md-3
+                            select#keywordFilterSelect(ng-model="vm.keywordRemoveList" multiple="multiple" ng-options='keyword for keyword in vm.currentKeywords' size="20" style="height: 100%; width: 100%")
+
+
+
 
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")

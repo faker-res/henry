@@ -19004,9 +19004,119 @@ define(['js/app'], function (myApp) {
                         vm.deletingSmsGroup = null;
                         vm.getPlatformSmsGroups();
                         vm.getAllMessageTypes();
+                        break;
+                    case 'keywordFilter':
+                        vm.keywordFilterType = "sms";
+                        vm.getAllFilteredKeywords();
+                        vm.currentKeywords = [];
+                        vm.keywordRemoveList = [];
+                        vm.keywordFilterChannel = $scope.channelList && $scope.channelList[0];
 
+
+                        vm.scopeChannelList = $scope.channelList; // todo :: debug use, remove later
+                        break;
                 }
             };
+
+            vm.keywordFilterTypeChange = (type) => {
+                vm.keywordFilterType = type;
+
+                vm.updateCurrentKeywords();
+            };
+
+            vm.updateCurrentKeywords = () => {
+                vm.keywordRemoveList = [];
+                vm.currentKeywords = [];
+                for (let i = 0; i < vm.filteredKeywordList.length; i++) {
+                    if (vm.filteredKeywordList[i].type === vm.keywordFilterType) {
+                        if (vm.keywordFilterType === 'sms' && vm.filteredKeywordList[i].smsChannel != vm.keywordFilterChannel) {
+                            continue;
+                        }
+
+                        vm.currentKeywords = vm.filteredKeywordList[i].keywords;
+                        break;
+                    }
+                }
+
+                $scope.safeApply();
+                setTimeout(vm.setupMultiSelect, 0);
+            };
+
+
+            vm.getAllFilteredKeywords = () => {
+                vm.filteredKeywordList = [];
+                socketService.$socket($scope.AppSocket, 'getAllFilteredKeyword', {
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    console.log('getAllFilteredKeyword', data);
+                    vm.filteredKeywordList = data.data;
+
+                    vm.updateCurrentKeywords();
+                });
+            };
+
+            vm.addFilterKeywords = () => {
+                let keywordArr = [];
+                if (vm.keywordFilterNew) {
+                    let keywords = vm.keywordFilterNew.split(/\r?\n/);
+                    for (let i = 0, len = keywords.length; i < len; i++) {
+                        let keyword = keywords[i].trim();
+                        if (keyword) keywordArr.push(keyword);
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'setFilteredKeywords', {
+                    keywords: keywordArr,
+                    smsChannel: vm.keywordFilterChannel || $scope.channelList && $scope.channelList[0] || "0",
+                    type: vm.keywordFilterType,
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    console.log('setFilteredKeywords', data);
+                    if (data && data.data) {
+                        vm.keywordFilterNew = "";
+                        vm.getAllFilteredKeywords();
+                    }
+                });
+
+            };
+
+            vm.setupMultiSelect = () => {
+                $('#keywordFilterSelect option').mousedown(function(e) {
+                    e.preventDefault();
+                    var originalScrollTop = $(this).parent().scrollTop();
+                    $(this).prop('selected', $(this).prop('selected') ? false : true);
+                    var self = this;
+                    $(this).parent().focus();
+                    setTimeout(function() {
+                        $(self).parent().scrollTop(originalScrollTop);
+                    }, 0);
+                    if ($(this).prop('selected')) {
+                        vm.keywordRemoveList.push($(this).html());
+                    }
+                    else {
+                        vm.keywordRemoveList = vm.keywordRemoveList.filter( val => val != $(this).html() );
+                    }
+
+                    return false;
+                });
+
+            };
+
+            vm.removeKeywordsFromFilter = () => {
+                socketService.$socket($scope.AppSocket, 'removeFilteredKeywords', {
+                    keywords: vm.keywordRemoveList,
+                    smsChannel: vm.keywordFilterChannel || $scope.channelList && $scope.channelList[0] || "0",
+                    type: vm.keywordFilterType,
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    console.log('removeFilteredKeywords', data);
+                    if (data && data.data) {
+                        vm.keywordRemoveList = [];
+                        vm.getAllFilteredKeywords();
+                    }
+                });
+            };
+
             vm.getNoInGroupSmsSetting = () => {
                 vm.noGroupSmsSetting = [];
                 for (let messageType in vm.allMessageTypes) {
