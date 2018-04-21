@@ -620,8 +620,8 @@ function socketActionPlatform(socketIO, socket) {
 
         initSettlePartnerComm: function initSettlePartnerComm(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlatform.initSettlePartnerComm, [ObjectId(data.platformObjId)], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.initSettlePartnerComm, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
