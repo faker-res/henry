@@ -312,6 +312,7 @@ var playerSchema = new Schema({
 
 //record is unique by name and platform
 playerSchema.index({name: 1, platform: 1});
+playerSchema.index({platform: 1, partner: 1});
 
 playerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('playerId'));
 
