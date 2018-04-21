@@ -216,7 +216,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                                     tbody
                                         tr
                                             td(colspan=2) {{ vm.msgTemplate.invitationTemplate}}
-                                            td(style="border:none;") {{ 'Channel' | translate }} : {{vm.smsChannel}}
+                                            td(style="border:none;") {{ 'Channel' | translate }} :
+                                                select.form-control(ng-model="vm.smsChannel", ng-init="vm.smsChannel = '2'", style="width:75px;display:inline-block;")
+                                                    option(value='2') {{'2'}}
+                                                    option(value='3') {{'3'}}
+
 
                             div(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:20px;")
                                 button.common-button.btn.btn-success.margin-right-5(ng-click="vm.sendMsgToTelePlayer();", style="height:40px;") {{'SEND_TO_SELECTED_CUSTOMER' | translate}} ({{vm.totalmsg || 0}})

@@ -4034,7 +4034,6 @@ define(['js/app'], function (myApp) {
 
                     vm.telePlayerSendingMsgTable.customerType='all';
                     vm.telePlayerSendingMsgTable.msgTimesOperator='>=';
-                    vm.smsChannel = 2;
 
                     $('#sendSMSTableStartDatetimePicker').datetimepicker({
                         language: 'en',
@@ -4327,7 +4326,7 @@ define(['js/app'], function (myApp) {
                 //vm.msgSendingGroupData.forEach( data => {
                 let sendObj = {
                     //platformId: data.platformId,
-                    channel: 2, //vm.smsChannel,
+                    channel: vm.smsChannel, //vm.smsChannel,
                     msgDetail: vm.msgSendingGroupData,
                     //tel: data.phoneNumber,
                     //dxPhone: data.dxMissionId

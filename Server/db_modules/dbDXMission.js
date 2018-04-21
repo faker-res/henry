@@ -930,7 +930,7 @@ let dbDXMission = {
                     message => {
                         let sendObj = {
                             tel: msg.phoneNumber.trim(),
-                            channel: 2,
+                            channel: data.channel || 2,
                             platformId: phoneData.platform.platformId,
                             message: message,
                             data: {
