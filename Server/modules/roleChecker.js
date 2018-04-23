@@ -324,7 +324,7 @@ var roleChecker = {
                 ResetPassword: ['resetPartnerPassword'],
                 ApplyBonus: ['applyPartnerBonusRequest'],
                 PartnerPermission: ['updatePartnerPermission'],
-                AddFeedback: [],
+                AddFeedback: ['getAllPartnerFeedbackResults', 'getAllPartnerFeedbackTopics'],
                 FeedbackHistory: ['getPartnerFeedbackReport'],
                 ModifyFeedbackResult: ['createPartnerFeedbackResult', 'deletePartnerFeedbackResult'],
                 ModifyFeedbackTopic: ['createPartnerFeedbackTopic', 'deletePartnerFeedbackTopic'],

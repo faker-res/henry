@@ -571,11 +571,11 @@ p
                     ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
                         .pull-left.padding-all-5
                         li.active(id='addPartnerFeedbackTab', ng-show="checkViewPermission('Platform', 'Partner','AddFeedback')")
-                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPartner()|| vm.selectedPartnerCount!= 1", ng-click="vm.feedbackModalTabPartner = 'addPartnerFeedbackPanel'")
+                            a.common-tab(data-toggle="tab", ng-disabled="!vm.canEditPartner() || vm.selectedPartnerCount!= 1", ng-click="vm.feedbackModalTabPartner = 'addPartnerFeedbackPanel'")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"ADD_FEEDBACK" | translate}}
                         li(id='partnerFeedbackHistoryTab', ng-show="checkViewPermission('Platform', 'Partner','FeedbackHistory')")
-                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPartner()|| vm.selectedPartnerCount!= 1", ng-click="vm.feedbackModalTabPartner = 'partnerFeedbackHistoryPanel'; vm.prepareShowPartnerFeedbackRecord();")
+                            a.common-tab(data-toggle="tab", ng-disabled="!vm.canEditPartner() || vm.selectedPartnerCount!= 1", ng-click="vm.feedbackModalTabPartner = 'partnerFeedbackHistoryPanel'; vm.prepareShowPartnerFeedbackRecord();")
                                 .fa.fa-file-text.margin-right-5
                                 text.span {{"Feedback History" | translate}}
 
@@ -627,7 +627,7 @@ p
                                 td {{v.topic}}
 
             .modal-footer(ng-if="vm.feedbackModalTabPartner === 'addPartnerFeedbackPanel'")
-                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePartnerFeedback();") {{"ADD" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal', ng-disabled='form_feedback.$invalid', ng-click="vm.updatePartnerFeedback();") {{"ADD" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 // Partner actions - Modal
