@@ -11329,7 +11329,7 @@ define(['js/app'], function (myApp) {
 
             vm.updatePartnerFeedback = function () {
                 let resultName = vm.allPartnerFeedbackResults.filter(item => {
-                    return item.key == vm.partnerFeedback.result;
+                    return item.key === vm.partnerFeedback.result;
                 });
                 resultName = resultName.length > 0 ? resultName[0].value : "";
                 let sendData = {
@@ -11351,9 +11351,6 @@ define(['js/app'], function (myApp) {
                     rowData.feedbackTimes++;
                     vm.partnerTableClickedRow.data(rowData).draw();
 
-                    if (vm.platformPageName === 'Feedback') {
-                        vm.submitPartnerFeedbackQuery();
-                    }
                     $scope.safeApply();
                 });
             };
@@ -14857,7 +14854,7 @@ define(['js/app'], function (myApp) {
 
             vm.addPartnerFeedback = function (data) {
                 let resultName = vm.allPartnerFeedbackResults.filter(item => {
-                    return item.key == data.result;
+                    return item.key === data.result;
                 });
                 resultName = resultName.length > 0 ? resultName[0].value : "";
                 let sendData = {
@@ -14874,7 +14871,6 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'createPartnerFeedback', sendData, function () {
                     vm.addFeedback.content = "";
                     vm.addFeedback.result = "";
-                    vm.submitPartnerFeedbackQuery();
                 });
             };
             
