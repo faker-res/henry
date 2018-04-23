@@ -11206,9 +11206,9 @@ define(['js/app'], function (myApp) {
                                         playerId: vm.isOneSelectedPlayer()._id,
                                         unlockTime: new Date().toISOString(),
                                         creator: {
-                                            type: rewardTask.creator.type,
-                                            name: rewardTask.creator.name,
-                                            id: rewardTask.creator.id
+                                            type: "admin",
+                                            name: authService.adminName,
+                                            id: authService.adminId
                                         },
                                         rewardTask: {
                                             type: rewardTask.type.name,
@@ -12295,9 +12295,9 @@ define(['js/app'], function (myApp) {
                             playerId: vm.isOneSelectedPlayer()._id,
                             unlockTime: new Date().toISOString(),
                             creator: {
-                                type: vm.rewardTaskGroupProposalList[indexNO].creator.type,
-                                name: vm.rewardTaskGroupProposalList[indexNO].creator.name,
-                                id: vm.rewardTaskGroupProposalList[indexNO].creator.id
+                                type: "admin",
+                                name: authService.adminName,
+                                id: authService.adminId
                             },
                             rewardTask: {
                                 type: vm.rewardTaskGroupProposalList[indexNO].type.name,
