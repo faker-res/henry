@@ -203,6 +203,7 @@
 
     proto.importBIPlayer = function (callback, requestData) {
         var data = {
+            requestId: "123",
             name: "yunvincevince80",
             platform: 4,
             realName: "测试",
