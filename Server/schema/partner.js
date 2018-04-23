@@ -234,6 +234,19 @@ var partnerPostFindUpdate = function (result, bOne) {
             emailParts[0] = hiddenEmailLocal;
             result.email = emailParts.join('@');
         }
+
+        //hide last 4 digits for qq
+        if (result && result.qq) {
+            let qqIndex = Math.max(Math.floor((result.qq.length - 4) / 2), 0);
+            result.qq = result.qq.substr(0, qqIndex) + "****" + result.qq.substr(qqIndex + 4);
+        }
+
+        //hide last 4 digits for wechat
+        if (result && result.wechat) {
+            let wechatIndex = Math.max(Math.floor((result.wechat.length - 4) / 2), 0);
+            result.wechat = result.wechat.substr(0, wechatIndex) + "****" + result.wechat.substr(wechatIndex + 4);
+
+        }
     }
 }
 

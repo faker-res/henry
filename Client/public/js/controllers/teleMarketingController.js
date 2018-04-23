@@ -4013,6 +4013,7 @@ define(['js/app'], function (myApp) {
                             });
                         }
                     });
+                    $('#telePlayerTable').resize();
                 }
             });
             tableOptions.language.emptyTable=$translate("No data available in table");
@@ -4025,7 +4026,6 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'telePlayerTable', vm.getPagedTelePlayerTable);
             });
             $('#telePlayerTable').resize();
-
         }
 
         // generate telePlayer function table ====================End==================

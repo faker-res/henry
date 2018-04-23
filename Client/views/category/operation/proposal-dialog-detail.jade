@@ -22,10 +22,10 @@ div
         label {{vm.dateReformat(vm.selectedProposal.createTime) || 'none'}}
     .label-value
         label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
-        label(ng-if = "vm.selectedProposal.executeTime && vm.selectedProposal.status != vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.executeTime) || 'none'}}
+        label(ng-if = "vm.selectedProposal.settleTime && vm.selectedProposal.status != vm.proposalStatusList.CANCEL && vm.selectedProposal.status != vm.proposalStatusList.PENDING") {{vm.dateReformat(vm.selectedProposal.settleTime) || 'none'}}
     .label-value
         label {{'cancelTime' | translate}}&nbsp;:&nbsp;
-        label(ng-if = "vm.selectedProposal.executeTime && vm.selectedProposal.status == vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.executeTime) || 'none'}}
+        label(ng-if = "vm.selectedProposal.settleTime && vm.selectedProposal.status == vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.settleTime) || 'none'}}
 
     .titleBackground.margin-bottom-5.text-center {{'Proposal History Process' | translate}}
     div(ng-repeat='(i,v) in vm.thisProposalSteps', ng-show='v.operator')
