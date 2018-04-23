@@ -190,6 +190,20 @@ var playerSchema = new Schema({
     topUpTimes: {type: Number, min: 0, default: 0, index: true},
     // withdrawal times
     withdrawTimes: {type: Number, min: 0, default: 0, index: true},
+    //daily withdraw sum
+    dailyWithdrawSum: {type: Number, min: 0, default: 0},
+    //weekly withdraw
+    weeklyWithdrawSum: {type: Number, min: 0, default: 0},
+    //past one month Withdraw recording.
+    pastMonthWithdrawSum: {type: Number, min: 0, default: 0},
+    //total Withdraw
+    withdrawSum: {type: Number, min: 0, default: 0},
+    //daily month bonus amount sum
+    dailyBonusAmountSum: {type: Number, min: 0, default: 0},
+    //weekly month bonus amount sum
+    weeklyBonusAmountSum: {type: Number, min: 0, default: 0},
+    //past one month bonus amount recording.
+    pastMonthBonusAmountSum: {type: Number, min: 0, default: 0},
     // total profit / losses of player
     bonusAmountSum: {type: Number, default: 0, index: true},
     //daily consumption sum for level up check
