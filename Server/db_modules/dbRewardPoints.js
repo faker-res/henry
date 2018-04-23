@@ -732,7 +732,7 @@ let dbRewardPoints = {
         );
     },
 
-    applyRewardPoint: (playerObjId, rewardPointsEventObjIds, inputDevice, rewardPointsConfig) => {
+    applyRewardPoints: (playerObjId, rewardPointsEventObjIds, inputDevice, rewardPointsConfig) => {
         if(rewardPointsEventObjIds && rewardPointsEventObjIds.length > 0){
             let proms = [];
             rewardPointsEventObjIds.forEach(

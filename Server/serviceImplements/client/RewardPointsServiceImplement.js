@@ -19,7 +19,7 @@ let RewardPointsServiceImplement = function () {
     };
 
     this.applyRewardPoints.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.eventObjectId);
+        let isValidData = Boolean(data && data.eventObjectIds);
         let userInterface = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardPoints.applyRewardPoints, [conn.playerObjId, data.eventObjectIds, userInterface], isValidData);
     };
