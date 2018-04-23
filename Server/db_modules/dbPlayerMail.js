@@ -240,23 +240,14 @@ const dbPlayerMail = {
             message: data.message,
             delay: data.delay || 0
         };
-
-        return dbPlayerMail.isFilteredKeywordExist(sendObj.message, data.platformId, "sms", data.channel).then(
-            exist => {
-                if (exist) {
-                    return Promise.reject({errorMessage: "Content consist of sensitive keyword."})
-                }
-
-                return smsAPI.sending_sendMessage(sendObj).then(
-                    retData => {
-                        dbLogger.createSMSLog(adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'success');
-                        return retData;
-                    },
-                    retErr => {
-                        dbLogger.createSMSLog(adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'failure', retErr);
-                        return Q.reject({message: retErr, error: retErr});
-                    }
-                );
+        return smsAPI.sending_sendMessage(sendObj).then(
+            retData => {
+                dbLogger.createSMSLog(adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'success');
+                return retData;
+            },
+            retErr => {
+                dbLogger.createSMSLog(adminObjId, adminName, data.phoneNumber, data, sendObj, null, 'failure', retErr);
+                return Q.reject({message: retErr, error: retErr});
             }
         );
     },
@@ -754,128 +745,7 @@ const dbPlayerMail = {
                 });
             }
         );
-    },
-
-    isFilteredKeywordExist: (string, platform, type, smsChannel) => {
-        string = String(string);
-
-        let platformProm = Promise.resolve({_id: platform});
-        if (String(platform).length !== 24) {
-            platformProm = dbconfig.collection_platform.findOne({platformId: platform}, {_id: 1}).lean();
-        }
-
-        return platformProm.then(
-            platform => {
-                if (!platform || !platform._id) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Platform not found.",
-                    });
-                }
-                let platformObjId = platform._id;
-
-                let filterQuery = {platform: platformObjId, type: type};
-                if (type == "sms" && smsChannel) {
-                    filterQuery.smsChannel = smsChannel;
-                }
-                return dbconfig.collection_keywordFilter.findOne(filterQuery).lean().then(
-                    filter => {
-                        if (filter && filter.keywords && filter.keywords.length) {
-                            let keywords = filter.keywords
-                            for (let i = 0; i < keywords.length; i++) {
-                                if (string.includes(keywords[i])) {
-                                    return true;
-                                }
-                            }
-                        }
-
-                        return false;
-                    }
-                );
-            }
-        );
-
-    },
-
-    setFilteredKeywords: (keywords, platform, type, smsChannel) => {
-        let platformProm = Promise.resolve({_id: platform});
-        if (String(platform).length !== 24) {
-            platformProm = dbconfig.collection_platform.findOne({platformId: platform}, {_id: 1}).lean();
-        }
-
-        return platformProm.then(
-            platform => {
-                if (!platform || !platform._id) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Platform not found.",
-                    });
-                }
-                let platformObjId = platform._id;
-
-                let filterQuery = {platform: platformObjId, type: type};
-                if (type == "sms" && smsChannel) {
-                    filterQuery.smsChannel = smsChannel;
-                }
-                return dbconfig.collection_keywordFilter.findOneAndUpdate(filterQuery, {$addToSet: {keywords: {$each: keywords}}},  {upsert: true, new: true}).lean();
-            }
-        );
-
-    },
-
-    getFilteredKeywords: (platform, type, smsChannel) => {
-        let platformProm = Promise.resolve({_id: platform});
-        if (String(platform).length !== 24) {
-            platformProm = dbconfig.collection_platform.findOne({platformId: platform}, {_id: 1}).lean();
-        }
-
-        return platformProm.then(
-            platform => {
-                if (!platform || !platform._id) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Platform not found.",
-                    });
-                }
-                let platformObjId = platform._id;
-
-                let filterQuery = {platform: platformObjId, type: type};
-                if (type == "sms" && smsChannel) {
-                    filterQuery.smsChannel = smsChannel;
-                }
-                return dbconfig.collection_keywordFilter.findOne(filterQuery).lean();
-            }
-        );
-    },
-
-    removeFilteredKeywords: (keywords, platform, type, smsChannel) => {
-        let platformProm = Promise.resolve({_id: platform});
-        if (String(platform).length !== 24) {
-            platformProm = dbconfig.collection_platform.findOne({platformId: platform}, {_id: 1}).lean();
-        }
-
-        return platformProm.then(
-            platform => {
-                if (!platform || !platform._id) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Platform not found.",
-                    });
-                }
-                let platformObjId = platform._id;
-
-                let filterQuery = {platform: platformObjId, type: type};
-                if (type == "sms" && smsChannel) {
-                    filterQuery.smsChannel = smsChannel;
-                }
-                return dbconfig.collection_keywordFilter.findOneAndUpdate(filterQuery, {$pullAll: {keywords: keywords}},  {new: true}).lean();
-            }
-        );
-    },
-
-    getAllFilteredKeyword: (platform) => {
-        return dbconfig.collection_keywordFilter.find({platform: platform}).lean();
-    },
+    }
 };
 
 const notifyPlayerOfNewMessage = (data) => {

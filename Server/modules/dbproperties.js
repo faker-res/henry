@@ -152,9 +152,6 @@ var partnerCommissionRateConfigModel = db_admin.model('partnerCommissionRateConf
 let gameProviderGroupSchema = require('./../schema/gameProviderGroup');
 let gameProviderGroupModel = db_admin.model('gameProviderGroup', gameProviderGroupSchema, 'gameProviderGroup');
 
-let keywordFilterSchema = require('./../schema/keywordFilter');
-let keywordFilterModel = db_admin.model('keywordFilter', keywordFilterSchema, 'keywordFilter');
-
 let geoIpSchema = require('./../schema/geoip');
 let geoIpModel = db_admin.model('geoIp', geoIpSchema, 'geoIp');
 
@@ -449,8 +446,6 @@ var dbProperties = {
     collection_geoIp: geoIpModel,
     collection_promoCodeType: promoCodeTypeModel,
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
-
-    collection_keywordFilter: keywordFilterModel,
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
