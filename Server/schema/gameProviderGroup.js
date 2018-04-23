@@ -3,7 +3,7 @@ let Schema = mongoose.Schema;
 
 let gameProviderGroupSchema = new Schema({
     // Platform object ID
-    platform: {type: Schema.ObjectId, required: true},
+    platform: {type: Schema.ObjectId, required: true, index: true},
     // Self defined provider group id
     providerGroupId: {type: Number},
     // Game group name

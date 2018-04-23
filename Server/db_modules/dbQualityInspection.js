@@ -16,7 +16,9 @@ var dbQualityInspection = {
             user     : 'devselect',
             password : '!Q&US3lcT18',
             database : 'live800_im',
-            port: '3320'
+            port: '3320',
+            queueLimit: 100,
+            connectionLimit: 100
         });
         return connection;
     },
@@ -1377,7 +1379,9 @@ var dbQualityInspection = {
                     if(data && data._id){
                         delete data._id;
                     }
-                    
+
+                    console.log("LH TEST QUALITYINSPECTION",data);
+                    console.log("LH TEST QUALITYINSPECTION UPDATE QUERY",{messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")});
                     dbconfig.collection_qualityInspection.findOneAndUpdate(
                         {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
                         data
@@ -2142,7 +2146,7 @@ var dbQualityInspection = {
         let counter = 0;
         let queryList = [];
         let promiseList = [];
-        
+
         if(connection){
             let promise = new Promise((resolve,reject) => {
                 connection.query(queryString, function (error, results, fields) {
