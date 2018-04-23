@@ -4,11 +4,11 @@ let Schema = mongoose.Schema;
 let partnerCommissionRateConfigSchema = new Schema({
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
-    rateAfterRebatePromo: {type: String},
-    rateAfterRebatePlatform: {type: String},
+    rateAfterRebatePromo: {type: Number},
+    rateAfterRebatePlatform: {type: Number},
     rateAfterRebateGameProviderGroup: [],
-    rateAfterRebateTotalDeposit: {type: String},
-    rateAfterRebateTotalWithdrawal: {type: String}
+    rateAfterRebateTotalDeposit: {type: Number},
+    rateAfterRebateTotalWithdrawal: {type: Number}
 });
 
 module.exports = partnerCommissionRateConfigSchema;

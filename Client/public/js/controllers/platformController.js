@@ -775,16 +775,6 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.showPartnerSmsTab = function (tabName) {
-                if (!tabName && (vm.selectedSinglePartner && vm.selectedSinglePartner.permission && vm.selectedSinglePartner.permission.SMSFeedBack === false)) {
-                    vm.smsModalTab = "smsLogPartnerPanel";
-                    vm.initSMSLogPartner("partner");
-                }
-                else {
-                    vm.smsModalTab = tabName ? tabName : "smsToPartnerPanel";
-                }
-            };
-
             vm.showPlayerAccountingDetailTab = function (tabName) {
                 vm.selectedPlayerAccountingDetailTab = tabName == null ? "current-credit" : tabName;
             };
@@ -911,12 +901,7 @@ define(['js/app'], function (myApp) {
                         initFeedbackAdmin();
                         break;
                     case "Partner":
-                        vm.partnerCommission = vm.partnerCommission || {};
                         vm.getAllPartnerCommSettPreview();
-                        vm.getCommissionRateGameProviderGroup();
-                        vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-
-
                         break;
                     case "Game":
                         vm.platformGameTabClicked();
@@ -1573,23 +1558,7 @@ define(['js/app'], function (myApp) {
                         vm.allPartnerCommSettPreview = previews.data;
                     }
                 );
-            };
-
-            vm.initSettlePartnerComm = (prev) => {
-                vm.selectedSettlePartnerCommPrev = prev;
-
-                $scope.$socketPromise("initSettlePartnerComm", {
-                    platformObjId: vm.selectedPlatform.id,
-                    settMode: prev.settMode,
-                    startTime: prev.startTime,
-                    endTime: prev.endTime
-                }).then(
-                    res => {
-                        console.log('res', res);
-                    }
-                );
             }
-
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';
                 socketService.$socket($scope.AppSocket, 'startPlatformPartnerCommissionSettlement',
@@ -1973,7 +1942,7 @@ define(['js/app'], function (myApp) {
                     });
                     vm.searchPlayersForSendingMessage(true);
                 })
-            };
+            }
 
             vm.getSMSTemplate = function () {
                 vm.smsTemplate = [];
@@ -1985,21 +1954,15 @@ define(['js/app'], function (myApp) {
                     console.log("vm.smsTemplate", vm.smsTemplate);
                     $scope.safeApply();
                 }).done();
-            };
-
+            }
             vm.useSMSTemplate = function () {
                 vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
                 vm.messagesChange();
-            };
+            }
 
             vm.changeSMSTemplate = function () {
                 vm.smsPlayer.message = vm.smstpl ? vm.smstpl.content : '';
-            };
-
-            vm.changePartnerSMSTemplate = function () {
-                vm.smsPartner.message = vm.smstpl ? vm.smstpl.content : '';
-            };
-
+            }
             vm.searchPlayersForSendingMessage = function (newSearch) {
                 if (!vm.selectedPlatform) {
                     return;
@@ -7347,48 +7310,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     }, true);
                 }
-            };
-
-            vm.telorMessageToPartnerBtn = function (type, partnerObjId, data) {
-                // let rowData = JSON.parse(data);
-                console.log(type, data);
-                vm.getSMSTemplate();
-                let title, text;
-                if (type === 'msg' && authService.checkViewPermission('Platform', 'Partner', 'sendSMS')) {
-                    vm.smsPartner = {
-                        partnerId: partnerObjId.partnerId,
-                        partnerName: partnerObjId.partnerName,
-                        realName: partnerObjId.realName,
-                        platformId: vm.selectedPlatform.data.platformId,
-                        channel: $scope.channelList[0],
-                        hasPhone: partnerObjId.phoneNumber
-                    };
-                    vm.sendSMSResult = {};
-                    $scope.safeApply();
-                    $('#smsPartnerModal').modal('show');
-                    vm.showPartnerSmsTab(null);
-                } else if (type === 'tel') {
-                    let phoneCall = {
-                        partnerId: data.partnerId,
-                        name: data.realName,
-                        toText: data.partnerName ? data.partnerName : data.realName,
-                        platform: "jinshihao",
-                        loadingNumber: true,
-                    };
-                    $scope.initPhoneCall(phoneCall);
-                    socketService.$socket($scope.AppSocket, 'getPartnerPhoneNumber', {partnerObjId: partnerObjId}, function (data) {
-                        $scope.phoneCall.phone = data.data;
-                        $scope.phoneCall.loadingNumber = false;
-                        $scope.safeApply();
-                        $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
-                    }, function (err) {
-                        $scope.phoneCall.loadingNumber = false;
-                        $scope.phoneCall.err = err.error.message;
-                        alert($scope.phoneCall.err);
-                        $scope.safeApply();
-                    }, true);
-                }
-            };
+            }
 
             vm.callDemoPlayer = function (data) {
                 var phoneCall = {
@@ -7419,7 +7341,7 @@ define(['js/app'], function (myApp) {
                         $scope.safeApply();
                     });
                 }
-            };
+            }
 
 
             //player datatable row click handler
@@ -7540,10 +7462,6 @@ define(['js/app'], function (myApp) {
                 return vm.selectedSinglePlayer;
             };
 
-            vm.isOneSelectedPartner = function () {
-                return vm.selectedSinglePartner;
-            };
-
             //check if delete player button can be enabled
             vm.canDeletePlayers = function () {
                 if (vm.selectedPlayers) {
@@ -7559,11 +7477,6 @@ define(['js/app'], function (myApp) {
             //check if update player button can be enabled
             vm.canEditPlayer = function () {
                 return vm.isOneSelectedPlayer();
-            };
-
-            //check if update partner button can be enabled
-            vm.canEditPartner = function () {
-                return vm.isOneSelectedPartner();
             };
 
             vm.checkPlayerNameValidity = function (name, form, type) {
@@ -7893,16 +7806,9 @@ define(['js/app'], function (myApp) {
                     smsSetting: editPlayer.smsSetting,
                     receiveSMS: editPlayer.receiveSMS
                 };
+
             };
 
-            vm.loadPartnerSMSSettings = function () {
-                let selectedPartner = vm.isOneSelectedPartner();   // ~ 20 fields!
-                let editPartner = vm.editPartner;                  // ~ 6 fields
-                vm.partnerBeingEdited = {
-                    smsSetting: editPartner.smsSetting,
-                    receiveSMS: editPartner.receiveSMS
-                };
-            };
 
             function getPlayerLevelName(levelObjId) {
                 for (var i = 0; i < vm.allPlayerLvl.length; i++) {
@@ -8229,7 +8135,6 @@ define(['js/app'], function (myApp) {
                 }
                 vm.playerBeingEdited.smsSettingSelectAll = true;
             };
-
             vm.updateSMSSettings = function () {
                 //oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
                 let playerId = vm.isOneSelectedPlayer()._id;
@@ -8245,24 +8150,6 @@ define(['js/app'], function (myApp) {
                 }, function (updated) {
                     console.log('updated', updated);
                     vm.getPlatformPlayersData();
-                });
-
-            };
-
-            vm.updatePartnerSMSSettings = function () {
-                let partnerId = vm.isOneSelectedPartner()._id;
-
-                let updateSMS = {
-                    receiveSMS: vm.partnerBeingEdited.receiveSMS != null ? vm.partnerBeingEdited.receiveSMS : undefined,
-                    smsSetting: vm.partnerBeingEdited.smsSetting,
-                };
-
-                socketService.$socket($scope.AppSocket, 'updatePartner', {
-                    query: {_id: playerId},
-                    updateData: updateSMS
-                }, function (updated) {
-                    console.log('updated', updated);
-                    vm.getPlatformPartnersData();
                 });
 
             }
@@ -9152,18 +9039,7 @@ define(['js/app'], function (myApp) {
                 vm.getPlatformSmsGroups();
                 vm.getAllMessageTypes();
                 $scope.safeApply();
-            };
-
-            vm.initPartnerSMSModal = function () {
-                $('#smsToPartnerTab').addClass('active');
-                $('#smsLogPartnerTab').removeClass('active');
-                $('#smsSettingPartnerTab').removeClass('active');
-                vm.smsModalTab = "smsToPartnerPanel";
-                vm.partnerSmsSetting = {smsGroup:{}};
-                vm.getPlatformSmsGroups();
-                vm.getAllMessageTypes();
-                $scope.safeApply();
-            };
+            }
 
             vm.smsGroupCheckChange = (smsParentGroup) => {
                 let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === smsParentGroup.smsId);
@@ -11214,9 +11090,9 @@ define(['js/app'], function (myApp) {
                                         playerId: vm.isOneSelectedPlayer()._id,
                                         unlockTime: new Date().toISOString(),
                                         creator: {
-                                            type: "admin",
-                                            name: authService.adminName,
-                                            id: authService.adminId
+                                            type: rewardTask.creator.type,
+                                            name: rewardTask.creator.name,
+                                            id: rewardTask.creator.id
                                         },
                                         rewardTask: {
                                             type: rewardTask.type.name,
@@ -11261,7 +11137,7 @@ define(['js/app'], function (myApp) {
                     }
                     $scope.safeApply();
                 });
-            };
+            }
 
             vm.updatePlayerFeedback = function () {
                 let resultName = vm.allPlayerFeedbackResults.filter(item => {
@@ -11801,38 +11677,7 @@ define(['js/app'], function (myApp) {
                     // Be user friendly: Fetch some results immediately!
                     vm.searchSMSLog(true);
                 });
-            };
-
-            vm.initSMSLogPartner = function (type) {
-                vm.smsLog = vm.smsLog || {index: 0, limit: 10};
-                vm.smsLog.type = type;
-                vm.smsLog.query = {};
-                vm.smsLog.searchResults = [{}];
-                vm.smsLog.query.status = "all";
-                vm.smsLog.query.isAdmin = true;
-                vm.smsLog.query.isSystem = false;
-                let endTimeElementPath = '.modal.in #smsLogPartnerPanel #smsLogPartnerQuery .endTime';
-                let tablePageId = "smsLogPartnerTablePage";
-                if (type === "multi") {
-                    endTimeElementPath = '#groupSmsLogQuery .endTime';
-                    tablePageId = "groupSmsLogTablePage";
-                }
-                utilService.actionAfterLoaded(endTimeElementPath, function () {
-                    vm.smsLog.query.startTime = utilService.createDatePicker('#smsLogPartnerPanel #smsLogPartnerQuery .startTime');
-                    vm.smsLog.query.endTime = utilService.createDatePicker('#smsLogPartnerPanel #smsLogPartnerQuery .endTime');
-                    if (type === "multi") {
-                        vm.smsLog.query.startTime = utilService.createDatePicker('#groupSmsLogQuery .startTime');
-                        vm.smsLog.query.endTime = utilService.createDatePicker('#groupSmsLogQuery .endTime');
-                    }
-                    vm.smsLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
-                    vm.smsLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-                    vm.smsLog.pageObj = utilService.createPageForPagingTable(tablePageId, {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "smsLog", vm.searchSMSLogPartner)
-                    });
-                    // Be user friendly: Fetch some results immediately!
-                    vm.searchSMSLogPartner(true);
-                });
-            };
+            }
 
             vm.searchSMSLog = function (newSearch) {
                 var requestData = {
@@ -11856,41 +11701,6 @@ define(['js/app'], function (myApp) {
                         vm.smsLog.searchResults = result.data.data.map(item => {
                             item.createTime$ = vm.dateReformat(item.createTime);
                             if (item.status == "failure" && item.error && item.error.status == 430) {
-                                item.error = $translate('RESPONSE_TIMEOUT');
-                                item.status$ = $translate('unknown');
-                            } else {
-                                item.status$ = $translate(item.status);
-                            }
-                            return item;
-                        });
-                        vm.smsLog.totalCount = result.data.size;
-                        vm.smsLog.pageObj.init({maxCount: vm.smsLog.totalCount}, newSearch);
-                    })
-                }).catch(console.error);
-            };
-
-            vm.searchSMSLogPartner = function (newSearch) {
-                let requestData = {
-                    isAdmin: vm.smsLog.query.isAdmin,
-                    isSystem: vm.smsLog.query.isSystem,
-                    status: vm.smsLog.query.status,
-                    startTime: vm.smsLog.query.startTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .startTime input').val() || undefined,
-                    endTime: vm.smsLog.query.endTime.data('datetimepicker').getLocalDate(),//$('#smsLogQuery .endTime   input').val() || undefined,
-                    index: newSearch ? 0 : vm.smsLog.index,
-                    limit: newSearch ? 10 : vm.smsLog.limit,
-                };
-
-                if (vm.smsLog.type === "partner") {
-                    requestData.partnerId = vm.selectedSinglePartner.partnerId;
-                }
-
-                console.log("searchSMSLogPartner requestData:", requestData);
-                $scope.$socketPromise('searchSMSLog', requestData).then(result => {
-                    $scope.$evalAsync(() => {
-                        console.log("searchSMSLogPartner result", result);
-                        vm.smsLog.searchResults = result.data.data.map(item => {
-                            item.createTime$ = vm.dateReformat(item.createTime);
-                            if (item.status === "failure" && item.error && item.error.status === 430) {
                                 item.error = $translate('RESPONSE_TIMEOUT');
                                 item.status$ = $translate('unknown');
                             } else {
@@ -12303,9 +12113,9 @@ define(['js/app'], function (myApp) {
                             playerId: vm.isOneSelectedPlayer()._id,
                             unlockTime: new Date().toISOString(),
                             creator: {
-                                type: "admin",
-                                name: authService.adminName,
-                                id: authService.adminId
+                                type: vm.rewardTaskGroupProposalList[indexNO].creator.type,
+                                name: vm.rewardTaskGroupProposalList[indexNO].creator.name,
+                                id: vm.rewardTaskGroupProposalList[indexNO].creator.id
                             },
                             rewardTask: {
                                 type: vm.rewardTaskGroupProposalList[indexNO].type.name,
@@ -13824,7 +13634,7 @@ define(['js/app'], function (myApp) {
                             let bankStatus = $translate(bank.status);
                             bank.displayText = vm.getBankCardTypeTextbyId(bank.bankTypeId)+' - '+bank.name+' ('+bank.accountNumber+') - ' + bankStatus;
                         })
-
+                        
                         vm.bankCards.sort(function (a, b) {
                           return a.bankTypeId - b.bankTypeId;
                         });
@@ -14767,7 +14577,6 @@ define(['js/app'], function (myApp) {
                 // vm.submitPlayerFeedbackQuery(vm.feedbackPlayersPara.index);
                 $scope.safeApply();
             };
-
             vm.addPlayerFeedback = function (data) {
                 let resultName = vm.allPlayerFeedbackResults.filter(item => {
                     return item.key == data.result;
@@ -15304,7 +15113,7 @@ define(['js/app'], function (myApp) {
                             advSearch: true, "sClass": "wordWrap realNameCell"
                         },
                         {
-                            title: $translate('COMMISSION_TYPE'), "data": 'commissionType', advSearch: true, "sClass": "",
+                            title: $translate('COMMISSION_TYPE'), "data": 'commissionType',
                             render: function (data, type, row) {
                                 data = data || '';
                                 if ($scope.checkViewPermission('Platform', 'Partner', 'EditCommission')) {
@@ -15450,7 +15259,7 @@ define(['js/app'], function (myApp) {
                                 }));
                                 link.append($('<a>', {
                                     'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
-                                    'ng-click': 'vm.initPartnerSMSModal();' + "vm.onClickPartnerCheck('" +
+                                    'ng-click': 'vm.initSMSModal();' + "vm.onClickPartnerCheck('" +
                                     partnerObjId + "', " + "vm.telorMessageToPartnerBtn" +
                                     ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
                                     'data-row': JSON.stringify(row),
@@ -15469,7 +15278,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Platform', 'Partner', 'AddFeedback')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-commenting margin-right-5',
-                                        'ng-click': 'vm.initPartnerFeedbackModal();',
+                                        'ng-click': 'vm.initFeedbackModal();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalAddPartnerFeedback',
@@ -15915,7 +15724,7 @@ define(['js/app'], function (myApp) {
                     vm.sendSMSResult = {sent: true, result: data.success};
                     $scope.safeApply();
                 });
-            };
+            }
             vm.partnerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                 // Row click
                 $compile(nRow)($scope);
@@ -15979,8 +15788,7 @@ define(['js/app'], function (myApp) {
                         bankAccountCity: vm.selectedSinglePartner.bankAccountCity,
                         bankAccountDistrict: vm.selectedSinglePartner.bankAccountDistrict,
                         bankAccountProvince: vm.selectedSinglePartner.bankAccountProvince,
-                        commissionType: vm.selectedSinglePartner.commissionType,
-                        player: vm.selectedSinglePartner.player,
+                        commissionType: vm.selectedSinglePartner.commissionType
                     };
                     $scope.safeApply();
                 });
@@ -16303,25 +16111,6 @@ define(['js/app'], function (myApp) {
                 vm.editPartnerSelectedTab = tab;
             }
 
-            vm.checkPartnerPlayerField = function (fieldName, value, form) {
-                vm.editPartner.isPartnerPlayerValid = true;
-                if (!value || value != '') {
-                    if (vm.editPartner && !vm.editPartner.player) {
-                        socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
-                            fieldName: fieldName,
-                            value: value
-                        }, function (data) {
-                            if (data && data.data && data.data[fieldName]) {
-                                vm.editPartner.playerId = data.data.player_id;
-                                vm.editPartner.isPartnerPlayerExist = data.data.exists;
-                                vm.editPartner.isPartnerPlayerValid = data.data.valid;
-                            }
-                            $scope.safeApply();
-                        });
-                    }
-                }
-            }
-
             vm.openEditPartnerDialog = function (selectedTab) {
                 vm.editPartnerSelectedTab = "";
                 vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
@@ -16351,7 +16140,6 @@ define(['js/app'], function (myApp) {
                             prepareEditCritical: vm.prepareEditCritical,
                             submitCriticalUpdate: vm.submitCriticalUpdate,
                             isEditingPartnerPayment: vm.isEditingPartnerPayment,
-                            checkPartnerPlayerField: vm.checkPartnerPlayerField,
                             partnerPayment: vm.partnerPayment,
                             allBankTypeList: vm.allBankTypeList,
                             filteredBankTypeList: vm.filteredBankTypeList,
@@ -16375,9 +16163,6 @@ define(['js/app'], function (myApp) {
                             updateEditedPartner: function () {
                                 // this ng-model has to be in date object
                                 this.newPartner.DOB = new Date(this.newPartner.DOB);
-                                if(vm.editPartner.playerId) {
-                                    this.newPartner.player = vm.editPartner.playerId;
-                                }
                                 sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
                             },
                         }
@@ -19043,119 +18828,9 @@ define(['js/app'], function (myApp) {
                         vm.deletingSmsGroup = null;
                         vm.getPlatformSmsGroups();
                         vm.getAllMessageTypes();
-                        break;
-                    case 'keywordFilter':
-                        vm.keywordFilterType = "sms";
-                        vm.getAllFilteredKeywords();
-                        vm.currentKeywords = [];
-                        vm.keywordRemoveList = [];
-                        vm.keywordFilterChannel = $scope.channelList && $scope.channelList[0];
 
-
-                        vm.scopeChannelList = $scope.channelList; // todo :: debug use, remove later
-                        break;
                 }
             };
-
-            vm.keywordFilterTypeChange = (type) => {
-                vm.keywordFilterType = type;
-
-                vm.updateCurrentKeywords();
-            };
-
-            vm.updateCurrentKeywords = () => {
-                vm.keywordRemoveList = [];
-                vm.currentKeywords = [];
-                for (let i = 0; i < vm.filteredKeywordList.length; i++) {
-                    if (vm.filteredKeywordList[i].type === vm.keywordFilterType) {
-                        if (vm.keywordFilterType === 'sms' && vm.filteredKeywordList[i].smsChannel != vm.keywordFilterChannel) {
-                            continue;
-                        }
-
-                        vm.currentKeywords = vm.filteredKeywordList[i].keywords;
-                        break;
-                    }
-                }
-
-                $scope.safeApply();
-                setTimeout(vm.setupMultiSelect, 0);
-            };
-
-
-            vm.getAllFilteredKeywords = () => {
-                vm.filteredKeywordList = [];
-                socketService.$socket($scope.AppSocket, 'getAllFilteredKeyword', {
-                    platformObjId: vm.selectedPlatform.id
-                }, function (data) {
-                    console.log('getAllFilteredKeyword', data);
-                    vm.filteredKeywordList = data.data;
-
-                    vm.updateCurrentKeywords();
-                });
-            };
-
-            vm.addFilterKeywords = () => {
-                let keywordArr = [];
-                if (vm.keywordFilterNew) {
-                    let keywords = vm.keywordFilterNew.split(/\r?\n/);
-                    for (let i = 0, len = keywords.length; i < len; i++) {
-                        let keyword = keywords[i].trim();
-                        if (keyword) keywordArr.push(keyword);
-                    }
-                }
-
-                socketService.$socket($scope.AppSocket, 'setFilteredKeywords', {
-                    keywords: keywordArr,
-                    smsChannel: vm.keywordFilterChannel || $scope.channelList && $scope.channelList[0] || "0",
-                    type: vm.keywordFilterType,
-                    platformObjId: vm.selectedPlatform.id
-                }, function (data) {
-                    console.log('setFilteredKeywords', data);
-                    if (data && data.data) {
-                        vm.keywordFilterNew = "";
-                        vm.getAllFilteredKeywords();
-                    }
-                });
-
-            };
-
-            vm.setupMultiSelect = () => {
-                $('#keywordFilterSelect option').mousedown(function(e) {
-                    e.preventDefault();
-                    var originalScrollTop = $(this).parent().scrollTop();
-                    $(this).prop('selected', $(this).prop('selected') ? false : true);
-                    var self = this;
-                    $(this).parent().focus();
-                    setTimeout(function() {
-                        $(self).parent().scrollTop(originalScrollTop);
-                    }, 0);
-                    if ($(this).prop('selected')) {
-                        vm.keywordRemoveList.push($(this).html());
-                    }
-                    else {
-                        vm.keywordRemoveList = vm.keywordRemoveList.filter( val => val != $(this).html() );
-                    }
-
-                    return false;
-                });
-
-            };
-
-            vm.removeKeywordsFromFilter = () => {
-                socketService.$socket($scope.AppSocket, 'removeFilteredKeywords', {
-                    keywords: vm.keywordRemoveList,
-                    smsChannel: vm.keywordFilterChannel || $scope.channelList && $scope.channelList[0] || "0",
-                    type: vm.keywordFilterType,
-                    platformObjId: vm.selectedPlatform.id
-                }, function (data) {
-                    console.log('removeFilteredKeywords', data);
-                    if (data && data.data) {
-                        vm.keywordRemoveList = [];
-                        vm.getAllFilteredKeywords();
-                    }
-                });
-            };
-
             vm.getNoInGroupSmsSetting = () => {
                 vm.noGroupSmsSetting = [];
                 for (let messageType in vm.allMessageTypes) {
@@ -22858,64 +22533,34 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
-                    $scope.$evalAsync(() => {
-                        let existProviderCommissionSetting = [];
+                    let existProviderCommissionSetting = [];
 
-                        if (data && data.data && data.data.length) {
-                            data.data.filter(existSetting => {
-                                vm.gameProviderGroup.filter(gameProviderGroup => {
-                                    if (gameProviderGroup._id == existSetting.provider) {
-                                        vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
-                                        if (vm.partnerCommission.gameProviderGroup.length > 0) {
-                                            vm.partnerCommission.gameProviderGroup.filter(data => {
-                                                if (data._id == existSetting.provider) {
-                                                    data.srcConfig = existSetting;
-                                                    data.showConfig = JSON.parse(JSON.stringify(existSetting));
-                                                }
-                                            });
-                                        }
+                    if (data && data.data && data.data.length) {
+                        data.data.filter(existSetting => {
+                            vm.gameProviderGroup.filter(gameProviderGroup => {
+                                if (gameProviderGroup._id == existSetting.provider) {
+                                    vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
+                                    if (vm.partnerCommission.gameProviderGroup.length > 0) {
+                                        vm.partnerCommission.gameProviderGroup.filter(data => {
+                                            if (data._id == existSetting.provider) {
+                                                data.srcConfig = existSetting;
+                                                data.showConfig = JSON.parse(JSON.stringify(existSetting));
+                                            }
+                                        });
                                     }
-                                });
+                                }
                             });
+                        });
 
-                            data.data.forEach(exist => {
-                                existProviderCommissionSetting.push(exist.provider);
-                            })
+                        data.data.forEach(exist => {
+                            existProviderCommissionSetting.push(exist.provider);
+                        })
 
-                            if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
-                                vm.gameProviderGroup.forEach(function (obj) {
-                                    if (existProviderCommissionSetting.indexOf(obj._id) == -1) {
-                                        let tempGameProviderGroupId = obj._id;
-                                        vm.partnerCommission.gameProviderGroup.push(obj);
-                                        if (vm.partnerCommission.gameProviderGroup.length > 0) {
-                                            vm.partnerCommission.gameProviderGroup.forEach(data => {
-                                                if (data._id == tempGameProviderGroupId) {
-                                                    data.srcConfig = null;
-                                                    data.showConfig = {};
-                                                    data.showConfig.commissionSetting = [];
-                                                    data.showConfig.commissionSetting.push({
-                                                        playerConsumptionAmountFrom: "",
-                                                        playerConsumptionAmountTo: "",
-                                                        activePlayerValueFrom: "",
-                                                        activePlayerValueTo: "",
-                                                        commissionRate: "",
-                                                        isEditing: true,
-                                                        isCreateNew: true
-                                                    });
-                                                    data.showConfig.platform = vm.selectedPlatform.id;
-                                                    data.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
-                                                }
-                                            })
-                                        }
-                                    }
-                                });
-                            }
-
-                        } else {
-                            if (vm.gameProviderGroup.length > 0) {
-                                vm.gameProviderGroup.forEach(data => {
-                                    let tempGameProviderGroupId = data._id;
-                                    vm.partnerCommission.gameProviderGroup.push(data);
+                        if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
+                            vm.gameProviderGroup.forEach(function (obj) {
+                                if (existProviderCommissionSetting.indexOf(obj._id) == -1) {
+                                    let tempGameProviderGroupId = obj._id;
+                                    vm.partnerCommission.gameProviderGroup.push(obj);
                                     if (vm.partnerCommission.gameProviderGroup.length > 0) {
                                         vm.partnerCommission.gameProviderGroup.forEach(data => {
                                             if (data._id == tempGameProviderGroupId) {
@@ -22936,10 +22581,39 @@ define(['js/app'], function (myApp) {
                                             }
                                         })
                                     }
-                                });
-                            }
+                                }
+                            });
                         }
-                    })
+
+                    } else {
+                        if (vm.gameProviderGroup.length > 0) {
+                            vm.gameProviderGroup.forEach(data => {
+                                let tempGameProviderGroupId = data._id;
+                                vm.partnerCommission.gameProviderGroup.push(data);
+                                if (vm.partnerCommission.gameProviderGroup.length > 0) {
+                                    vm.partnerCommission.gameProviderGroup.forEach(data => {
+                                        if (data._id == tempGameProviderGroupId) {
+                                            data.srcConfig = null;
+                                            data.showConfig = {};
+                                            data.showConfig.commissionSetting = [];
+                                            data.showConfig.commissionSetting.push({
+                                                playerConsumptionAmountFrom: "",
+                                                playerConsumptionAmountTo: "",
+                                                activePlayerValueFrom: "",
+                                                activePlayerValueTo: "",
+                                                commissionRate: "",
+                                                isEditing: true,
+                                                isCreateNew: true
+                                            });
+                                            data.showConfig.platform = vm.selectedPlatform.id;
+                                            data.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                                        }
+                                    })
+                                }
+                            });
+                        }
+                    }
+                    $scope.safeApply();
                 });
             }
             vm.getPartnerCommisionConfig = function () {
@@ -23158,8 +22832,8 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
                     if (data && data.data) {
-                        vm.srcCommissionRateConfig = data.data;
-                        vm.commissionRateConfig = JSON.parse(JSON.stringify(data.data));
+                        vm.commissionRateConfig = data.data;
+                        vm.srcCommissionRateConfig = JSON.parse(JSON.stringify(data.data));
 
                         vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
                         vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
@@ -23170,7 +22844,7 @@ define(['js/app'], function (myApp) {
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name});
+                                vm.rateAfterRebateGameProviderGroup.push({gameProviderGroupId: gameProviderGroup._id, name: gameProviderGroup.name, rate: ''});
                             })
                         }
                     }
@@ -23214,21 +22888,6 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
-
-            vm.validateNumber = function (value, fieldName, idx) {
-                var rgx = /^[0-9]*\.?[0-9]*$/;
-
-                if(value.match(rgx)) {
-                    return value.match(rgx);
-                } else {
-                    if (fieldName = 'rateAfterRebateGameProviderGroup') {
-                        vm[fieldName][idx].rate = '';
-                    } else {
-                        vm[fieldName] = '';
-                    }
-                }
-
-            }
             // partner commission config end
 
             // announcement codes==============start===============================

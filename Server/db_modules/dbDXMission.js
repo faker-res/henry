@@ -429,7 +429,6 @@ let dbDXMission = {
         let depositPlayerArr = [];
         let consumptionPlayerArr = [];
         let partnerLevel = {};
-        let checkFeedBackProm = [];
         let totalRegisteredPlayer = 0;
         let noOfPlayerTopUp = 0;
         let noOfPlayerMultiTopUp = 0;
@@ -440,6 +439,7 @@ let dbDXMission = {
         let totalPlayerBonusAmount = 0;
         let totalPlayerTopUpAmount = 0;
         let alerted = false;
+
         importedListProm = dbconfig.collection_dxPhone.find({dxMission: dxMissionId}).count();
         sentMessageListProm = dbconfig.collection_smsLog.distinct("tel", {"data.dxMission": ObjectId(dxMissionId)});
         registeredPlayerListProm = dbconfig.collection_players.find({dxMission: dxMissionId}).then(
@@ -448,20 +448,14 @@ let dbDXMission = {
                     totalRegisteredPlayer = playerData.length ? playerData.length : 0;
                     playerData.forEach(playerId => {
                        if(playerId){
-                           checkFeedBackProm.push(dbconfig.collection_playerFeedback.find({playerId: playerId._id}).then(
-                               feedBackData => {
-                                   if(!alerted){
-                                       if (!feedBackData || feedBackData.length <= 0) {
-                                           let registeredTime = new Date(playerId.registrationTime)
-                                           let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registeredTime)).getTime();
+                           if (!alerted){
 
-                                           if (alertPeriod >= new Date().getTime()){
-                                               alerted = true;
-                                           }
-                                       }
-                                   }
+                               let registeredTime = new Date(playerId.registrationTime)
+                               let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,registeredTime)).getTime();
+                               if (alertPeriod >= new Date().getTime()){
+                                   alerted = true;
                                }
-                           ));
+                           }
 
                            topUpPlayerProm.push(dbconfig.collection_playerTopUpRecord.find({playerId: playerId._id}).then(
                                topUpRecord => {
@@ -495,7 +489,7 @@ let dbDXMission = {
                        }
                     });
 
-                    return Promise.all(topUpPlayerProm,checkFeedBackProm).then(
+                    return Promise.all(topUpPlayerProm).then(
                         returnData => {
                             return returnData;
                         }
@@ -754,7 +748,7 @@ let dbDXMission = {
     },
 
     insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated, smsChannel) {
-        if (!platformId && !phoneNumber && !taskName) {
+        if (!platformId && !phoneNumber && !taskName && !autoSMS) {
             return Promise.reject({
                 errorMessage: "Invalid data"
             });
@@ -930,7 +924,7 @@ let dbDXMission = {
                     message => {
                         let sendObj = {
                             tel: msg.phoneNumber.trim(),
-                            channel: data.channel || 2,
+                            channel: 2,
                             platformId: phoneData.platform.platformId,
                             message: message,
                             data: {
@@ -1008,11 +1002,11 @@ let dbDXMission = {
     },
 
     getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol, data) {
-        // let Qindex = index || 0;
-        // let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
-        // let QsortCol = sortCol || {'createTime': -1};
+        let Qindex = index || 0;
+        let Qlimit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        let QsortCol = sortCol || {'createTime': -1};
 
-
+        let sizeProm = dbconfig.collection_dxPhone.find({platform: platformObjId, dxMission: dxMission}).count();
         let findQuery = {
             platform: platformObjId,
             dxMission: dxMission,
@@ -1026,18 +1020,16 @@ let dbDXMission = {
             findQuery.playerObjId = {$exists: false};
         }
 
-       // let sizeProm = dbconfig.collection_dxPhone.find(findQuery).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery).populate({path: "playerObjId", model: dbconfig.collection_players}).sort({createTime: -1}).lean();
-            //.sort(QsortCol).skip(Qindex).limit(Qlimit);
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery).populate({path: "playerObjId", model: dbconfig.collection_players}).sort(QsortCol).skip(Qindex).limit(Qlimit);
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
-        return Promise.all([dxPhoneDataProm, dxMissionProm]).then(
+        return Promise.all([sizeProm,dxPhoneDataProm, dxMissionProm]).then(
             result => {
                 if(result){
-                    //let size = result[0] ? result[0] : 0;
-                    let dxPhoneData = result[0] ? result[0] : {};
-                    let dxMissionData = result[1] ? result[1] : {};
+                    let size = result[0] ? result[0] : 0;
+                    let dxPhoneData = result[1] ? result[1] : {};
+                    let dxMissionData = result[2] ? result[2] : {};
                     let dxPhoneDataWithDetails = [];
 
                     if (dxPhoneData && dxPhoneData.length > 0){
@@ -1092,8 +1084,8 @@ let dbDXMission = {
                                 })
 
                             }
-                            return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
-                            // return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                            //return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
+                            return {size: size, dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
                         })
                     }
 
@@ -1141,6 +1133,7 @@ let dbDXMission = {
             }
         ).then(
             data => {
+                console.log("LH TEST searchCriteria", searchCriteria);
                 if (data.dxMissionData){
                     alertDay = data.dxMissionData.alertDays;
                 }
@@ -1156,6 +1149,8 @@ let dbDXMission = {
                     summaryData => {
                         let resultData = JSON.parse(JSON.stringify(data));
                         let dataToBeDeleted = [];
+                        console.log("LH TEST SummaryData", summaryData);
+                        console.log("LH TEST resultData ", resultData.dxPhoneData);
 
                         if(summaryData){
                             summaryData.forEach(
@@ -1187,6 +1182,8 @@ let dbDXMission = {
                             )
                         }
 
+                        console.log("LH TEST dataTobeDeleted ", dataToBeDeleted);
+
                         //remove the data without playerinfo details
                         dataToBeDeleted.forEach(playerObjId => {
                             var indexNo = resultData.dxPhoneData.findIndex(r => r.playerObjId == playerObjId);
@@ -1195,6 +1192,8 @@ let dbDXMission = {
                                 resultData.dxPhoneData.splice(indexNo,1)
                             }
                         })
+
+                        console.log("LH TEST final data ", resultData.dxPhoneData);
 
                         return {totalCount: data.size, dxPhoneData: resultData.dxPhoneData, dxMissionData: data.dxMissionData}
                     }
@@ -1223,7 +1222,6 @@ let dbDXMission = {
         let topUpPlayerProm = [];
         let playerConsumptionProm = [];
         let alerted = false;
-        let checkFeedBackProm = [];
 
         let query = {
             _id: playerObjId
@@ -1235,24 +1233,38 @@ let dbDXMission = {
             query.topUpTimes = {$gt: 1}
         }
 
-        return dbconfig.collection_players.findOne(query)
-            .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints}).lean().then(
+        return dbconfig.collection_players.findOne(query).then(
             playerData => {
                 if(playerData){
+                    // if(playerData.topUpTimes){
+                    //     totalTopUpCount = playerData.topUpTimes;
+                    // }
+                    //
+                    // if(playerData.loginTimes){
+                    //     totalLoginTimes = playerData.loginTimes;
+                    // }
+                    //
+                    // if(playerData.name){
+                    //     playerName = playerData.name;
+                    // }
+                    //
+                    // if(playerData.registrationTime){
+                    //     registrationTime = new Date(playerData.registrationTime);
+                    // }
+                    //
+                    // if(playerData.permission){
+                    //     playerPermission = playerData.permission;
+                    // }
+
                     playerData = playerData;
 
-                    checkFeedBackProm = dbconfig.collection_playerFeedback.find({playerId: playerData._id}).then(
-                        feedBackData => {
-                            if(!feedBackData || feedBackData.length <= 0){
-                                if (alertDay && playerData.registrationTime){
-                                    let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,new Date(playerData.registrationTime))).getTime();
-                                    if (alertPeriod >= new Date().getTime()){
-                                        alerted = true;
-                                    }
-                                }
-                            }
+
+                    if (alertDay && playerData.registrationTime){
+                        let alertPeriod = new Date(dbUtility.getNdaylaterFromSpecificStartTime(alertDay,new Date(playerData.registrationTime))).getTime();
+                        if (alertPeriod >= new Date().getTime()){
+                            alerted = true;
                         }
-                    )
+                    }
 
                     topUpPlayerProm = dbconfig.collection_playerTopUpRecord.find({playerId: playerData._id}).then(
                         topUpRecord => {
@@ -1312,12 +1324,17 @@ let dbDXMission = {
                         }
                     );
 
-                    return Promise.all([topUpPlayerProm, playerConsumptionProm, bonusProm, checkFeedBackProm]).then(
+                    return Promise.all([topUpPlayerProm, playerConsumptionProm, bonusProm]).then(
                         returnData => {
                             return {
                                 playerObjId: playerObjId,
                                 phoneNumber: phoneNumber,
                                 playerData: playerData,
+                                // playerName: playerName,
+                                // registrationTime: registrationTime,
+                                // permission: playerPermission,
+                                // totalLoginTimes: totalLoginTimes,
+                                // totalTopUpCount: totalTopUpCount,
                                 totalTopUpAmount: totalTopUpAmount,
                                 totalConsumptionTime: totalConsumptionTime,
                                 totalConsumptionAmount: totalConsumptionAmount,
@@ -1348,6 +1365,7 @@ let dbDXMission = {
                 }
 
                 smsLogProm.push(dbconfig.collection_smsLog.find(findQuery).sort({createTime:-1}).then(
+
                     smsLogData => {
                         // filter the users according to the lastTime
                         if (lastSendingStartTime && lastSendingEndTime){
