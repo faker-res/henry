@@ -495,11 +495,11 @@ let dbDXMission = {
                        }
                     });
 
-                    return Promise.all(topUpPlayerProm,checkFeedBackProm).then(
+                    return Promise.all(checkFeedBackProm).then(
                         returnData => {
-                            return returnData;
+                            return Promise.all(topUpPlayerProm)
                         }
-                    );
+                    )
                 }
             }
         );
