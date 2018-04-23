@@ -757,7 +757,11 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllDxMission = function () {
-            socketService.$socket($scope.AppSocket, 'getAllDxMission', {}, function (data) {
+            let sendData = {
+                platform: vm.selectedPlatform.id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getAllDxMission', sendData, function (data) {
                 vm.allDxMission = data.data;
                 $scope.safeApply();
             });
@@ -4009,6 +4013,7 @@ define(['js/app'], function (myApp) {
                             });
                         }
                     });
+                    $('#telePlayerTable').resize();
                 }
             });
             tableOptions.language.emptyTable=$translate("No data available in table");
@@ -4021,7 +4026,6 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'telePlayerTable', vm.getPagedTelePlayerTable);
             });
             $('#telePlayerTable').resize();
-
         }
 
         // generate telePlayer function table ====================End==================

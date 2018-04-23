@@ -1805,7 +1805,7 @@ var dbMigration = {
                 if (platformData) {
                     data.platform = platformData._id;
                     var playerLevel = data.playerLevel ? data.playerLevel : 0;
-                    return dbconfig.collection_playerLevel.findOne({value: playerLevel, platform: platformData._id})
+                    return dbconfig.collection_playerLevel.findOne({value: playerLevel, platform: platformData._id});
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Can not find platform"});
@@ -1833,7 +1833,8 @@ var dbMigration = {
                                     playerData.partner = partnerData._id;
                                 }
                                 else {
-                                    data.remark += " 查无次代理："+ playerData.partner;
+                                    playerData.remark += " 查无次代理："+ playerData.partner;
+                                    delete playerData.partner;
                                 }
                                 return playerData;
                             }
@@ -1851,7 +1852,7 @@ var dbMigration = {
             //find bank name id based on code
             playerData => {
                 if (playerData) {
-                    if (playerData.partner) {
+                    if (playerData.referral) {
                         //add partner to player if this player has partner
                         return dbconfig.collection_players.findOne({platform: data.platform, name: playerData.referral}).then(
                             referralData => {
@@ -1859,7 +1860,8 @@ var dbMigration = {
                                     playerData.referral = referralData._id;
                                 }
                                 else {
-                                    data.remark += " 查无次推荐人："+ playerData.referral;
+                                    playerData.remark += " 查无次推荐人："+ playerData.referral;
+                                    delete playerData.referral;
                                 }
                                 return playerData;
                             }
@@ -1894,7 +1896,7 @@ var dbMigration = {
                             if( resData && resData[1] && resData[1].length > 0 ) {
                                 playerData.forbidRewardEvents = resData[1].map(event => event._id);
                             }
-                            return resData;
+                            return playerData;
                         }
                     );
                 }
@@ -1905,11 +1907,11 @@ var dbMigration = {
         ).then(
             playerData => {
                 if (playerData) {
-                    return dbMigration.createRequestId(data.requestId).then(
-                        reId => {
+                    // return dbMigration.createRequestId(data.requestId).then(
+                    //     reId => {
                             return dbPlayerInfo.createPlayerInfo(playerData, true, true);
-                        }
-                    );
+                        // }
+                    // );
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Invalid player data"});

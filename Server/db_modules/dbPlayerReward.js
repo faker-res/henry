@@ -3872,7 +3872,7 @@ let dbPlayerReward = {
                 topupMatchQuery.$and = [];
             }
 
-            topupMatchQuery.$and.push({$or: [{bankCardType: {$in: eventData.condition.bankCardType}}, {bankCardType: {$exists: false}}]});
+            topupMatchQuery.$and.push({$or: [{bankTypeId: {$in: eventData.condition.bankCardType}}, {bankTypeId: {$exists: false}}]});
         }
 
         // Check registration interface condition

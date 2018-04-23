@@ -32,28 +32,28 @@ form(name="form_edit_partner_commission_type", novalidate)
         br
     form(name="formPartnerCommission", novalidate)
         .col-md-12.panel.panel-body.panel-primary
-            .panel-heading.common-left-panel-heading
-                ul.nav.nav-tabs.common-nav-tabs
-                    li.active
-                        a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');")
-                            text.span {{"DAILY_BONUS_AMOUNT" | translate}}
-                    li
-                        a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_BONUS_AMOUNT');")
-                            text.span {{"WEEKLY_BONUS_AMOUNT" | translate}}
-                    li
-                        a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('BIWEEKLY_BONUS_AMOUNT');")
-                            text.span {{"BIWEEKLY_BONUS_AMOUNT" | translate}}
-                    li
-                        a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('MONTHLY_BONUS_AMOUNT');")
-                            text.span {{"MONTHLY_BONUS_AMOUNT" | translate}}
-                    li
-                        a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_CONSUMPTION');")
-                            text.span {{"WEEKLY_CONSUMPTION" | translate}}
+            //.panel-heading.common-left-panel-heading
+            //    ul.nav.nav-tabs.common-nav-tabs
+            //        li.active
+            //            a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');")
+            //                text.span {{"DAILY_BONUS_AMOUNT" | translate}}
+            //        li
+            //            a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_BONUS_AMOUNT');")
+            //                text.span {{"WEEKLY_BONUS_AMOUNT" | translate}}
+            //        li
+            //            a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('BIWEEKLY_BONUS_AMOUNT');")
+            //                text.span {{"BIWEEKLY_BONUS_AMOUNT" | translate}}
+            //        li
+            //            a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('MONTHLY_BONUS_AMOUNT');")
+            //                text.span {{"MONTHLY_BONUS_AMOUNT" | translate}}
+            //        li
+            //            a.common-tab(data-toggle="tab", ng-click="vm.selectedCommissionTab('WEEKLY_CONSUMPTION');")
+            //                text.span {{"WEEKLY_CONSUMPTION" | translate}}
 
             .panel-body.common-right-panel-body
                 div.tab-content
                     h4 {{'Partner Commission Info' | translate}}
-                    table.simple-table(ng-if="!vm.partnerCommission.isGameProviderIncluded" style='width:auto;min-width:99.9%')
+                    table.simple-table(ng-if="!partnerCommission.isGameProviderIncluded" style='width:auto;min-width:99.9%')
                         thead
                             tr
                                 th(colspan=6) {{'Total'| translate}}{{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
@@ -88,14 +88,14 @@ form(name="form_edit_partner_commission_type", novalidate)
                                     text /
                                     a(href="" ng-click="vm.commissionSettingDeleteRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
 
-                    div(ng-repeat="gpg in vm.partnerCommission.gameProviderGroup track by $index" ng-if="vm.partnerCommission.isGameProviderIncluded")
+                    div(ng-repeat="gpg in partnerCommission.gameProviderGroup track by $index" ng-if="partnerCommission.isGameProviderIncluded")
                         table.simple-table(style='width:auto;min-width:99.9%')
                             thead
                                 tr
-                                    th(colspan=6) {{gpg.name | translate}}{{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
+                                    th(colspan=6) {{gpg.name | translate}}{{'Commission'| translate}}:{{commissionSettingTab | translate}}
                                 tr
-                                    th(colspan=2) {{vm.playerConsumptionTableHeader | translate}}
-                                    th(colspan=2) {{vm.activePlayerTableHeader | translate}}
+                                    th(colspan=2) {{playerConsumptionTableHeader | translate}}
+                                    th(colspan=2) {{activePlayerTableHeader | translate}}
                                     th(rowspan=2) {{'Commission Rate' | translate}}
                                     th(rowspan=2) {{'ACTION_BUTTON' | translate}}
                                 tr
@@ -117,12 +117,10 @@ form(name="form_edit_partner_commission_type", novalidate)
                                         span.percentage
                                             input(type='number', percentage, style="display: inline-block", ng-model='commissionSetting.commissionRate' ng-disabled='!commissionSetting.isEditing')
                                     td
-                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="vm.commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
-                                        a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
+                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
+                                        a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
                                         text(ng-if="!commissionSetting.isCreateNew") /
-                                        a(href="" ng-click="vm.commissionSettingNewRow(gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'INSERT' | translate}}
-                                        text /
-                                        a(href="" ng-click="vm.commissionSettingDeleteRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
+                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Reset default' | translate}}
                             br
                     br
                     .pull-right
@@ -142,16 +140,14 @@ form(name="form_edit_partner_commission_type", novalidate)
                             td {{'Rate After Rebate Promo' | translate}}
                             td
                                 span.percentage
-                                    //input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePromo', ng-disabled='!vm.isCommissionRateEditing')
-                                    input(style="display: inline-block", ng-model='vm.rateAfterRebatePromo', ng-change='vm.validateNumber(vm.rateAfterRebatePromo, "rateAfterRebatePromo")', ng-disabled='!vm.isCommissionRateEditing')
+                                    input(style="display: inline-block", ng-model='rateAfterRebatePromo', ng-change='vm.validateNumber(vm.rateAfterRebatePromo, "rateAfterRebatePromo")')
                         tr
                             td {{'Rate After Rebate Platform' | translate}}
                             td
                                 span.percentage
-                                    //input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePlatform', ng-disabled='!vm.isCommissionRateEditing')
-                                    input(style="display: inline-block", ng-model='vm.rateAfterRebatePlatform', ng-change='vm.validateNumber(vm.rateAfterRebatePlatform, "rateAfterRebatePlatform")', ng-disabled='!vm.isCommissionRateEditing')
+                                    input(style="display: inline-block", ng-model='rateAfterRebatePlatform', ng-change='vm.validateNumber(vm.rateAfterRebatePlatform, "rateAfterRebatePlatform")')
 
-                        tr(ng-repeat='(idx,val) in vm.rateAfterRebateGameProviderGroup')
+                        tr(ng-repeat='(idx,val) in rateAfterRebateGameProviderGroup')
                             td {{val.name | translate}}
                             td
                                 span.percentage
@@ -162,13 +158,13 @@ form(name="form_edit_partner_commission_type", novalidate)
                             td
                                 span.percentage
                                     //input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalDeposit', ng-disabled='!vm.isCommissionRateEditing')
-                                    input(style="display: inline-block", ng-model='vm.rateAfterRebateTotalDeposit', ng-change='vm.validateNumber(vm.rateAfterRebateTotalDeposit, "rateAfterRebateTotalDeposit")', ng-disabled='!vm.isCommissionRateEditing')
+                                    input(style="display: inline-block", ng-model='rateAfterRebateTotalDeposit', ng-change='vm.validateNumber(vm.rateAfterRebateTotalDeposit, "rateAfterRebateTotalDeposit")', ng-disabled='!vm.isCommissionRateEditing')
                         tr
                             td {{'Rate After Rebate Total Withdrawal' | translate}}
                             td
                                 span.percentage
                                     //input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalWithdrawal', ng-disabled='!vm.isCommissionRateEditing')
-                                    input(style="display: inline-block", ng-model='vm.rateAfterRebateTotalWithdrawal', ng-change='vm.validateNumber(vm.rateAfterRebateTotalWithdrawal, "rateAfterRebateTotalWithdrawal")', ng-disabled='!vm.isCommissionRateEditing')
+                                    input(style="display: inline-block", ng-model='rateAfterRebateTotalWithdrawal', ng-change='vm.validateNumber(vm.rateAfterRebateTotalWithdrawal, "rateAfterRebateTotalWithdrawal")', ng-disabled='!vm.isCommissionRateEditing')
                 br
                 .pull-right
                     button.btn.btn-primary.common-button(ng-if='vm.isCommissionRateEditing' ng-click='vm.cancelPartnerRateSetting()') {{'CANCEL' | translate}}

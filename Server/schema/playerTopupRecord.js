@@ -26,6 +26,8 @@ var playerTopUpRecordSchema = new Schema({
     merchantTopUpType: {type: String},
     //bank card type
     bankCardType: {type: String},
+    //bank card ID
+    bankTypeId: {type: String},
     //for manual top up
     bankName: {type: String},
     //bank account
