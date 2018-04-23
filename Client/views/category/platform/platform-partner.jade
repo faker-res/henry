@@ -115,7 +115,25 @@ p
                                                         label {{"DOB" | translate}}
                                                     .col-sm-8
                                                         text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePartner.DOB) || 'NONE' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"Bind Player" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.selectedSinglePartner.player.name || 'NONE' | translate}}
                                         .row
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"REGISTRATION_TIME" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.selectedSinglePartner.registrationTime || 'NONE' | translate}}
+                                            .col-md-4
+                                                .row
+                                                    .col-sm-4(style='white-space: nowrap;')
+                                                        label {{"own domain" | translate}}
+                                                    .col-sm-8
+                                                        text(style='height:inherit') {{vm.selectedSinglePartner.ownDomain$ || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
                                                     .col-sm-4(style='white-space: nowrap;')
