@@ -41,4 +41,6 @@ var smsLogSchema = new Schema ({
     data: {type: JSON, default: {}}
 });
 
+smsLogSchema.index({"data.dxMission": 1});
+
 module.exports = smsLogSchema;
