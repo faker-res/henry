@@ -1,3 +1,6 @@
+var dbPlayerMailFunc = function () {
+};
+module.exports = new dbPlayerMailFunc();
 const dbconfig = require('./../modules/dbproperties');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
@@ -20,6 +23,7 @@ const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constServerCode = require('../const/constServerCode');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const dbPartner = require('./../db_modules/dbPartner');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require('../modules/errorUtils');
 
@@ -66,6 +70,40 @@ const dbPlayerMail = {
             }
         });
     },
+
+    sendPlayerMailFromAdminToPartner: function (platformId, adminId, adminName, partnerIds, title, content) {
+        partnerIds = Array.isArray(partnerIds) ? partnerIds : [partnerIds];
+
+        let proms = partnerIds.reduce((tempProms, partnerId) => {
+            tempProms.push(
+                dbPlayerMail.createPlayerMail({
+                    platformId: platformId,
+                    senderType: 'admin',
+                    senderId: adminId,
+                    senderName: adminName,
+                    recipientType: 'partner',
+                    recipientId: partnerId,
+                    title: title,
+                    content: content
+                })
+            );
+            return tempProms;
+        }, []);
+
+        return Q.all(proms).then((results) => {
+            if (results) {
+                let notifyProm = [];
+                results.forEach((result) => {
+                    // from mongoose object to js object
+                    result = result.toObject();
+                    delete result.senderName;
+                    notifyProm.push(notifyPlayerOfNewMessage(result));
+                });
+                return Q.all(notifyProm);
+            }
+        });
+    },
+
     sendPlayerMailFromAdminToAllPlayers: function (platformId, adminId, adminName, title, content) {
         let stream = dbconfig.collection_players.find({platform: ObjectId(platformId)}).cursor({batchSize: 10000});
         let balancer = new SettlementBalancer();
@@ -281,7 +319,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData) {
+    sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData, isPartner) {
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -290,6 +328,19 @@ const dbPlayerMail = {
         let platform;
         let isFailedSms = false;
         let getPlatform = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+        let seletedDb = dbPlayerInfo;
+        let sameTelPermission = "allowSamePhoneNumberToRegister";
+        let samTelCount = "samePhoneNumberRegisterCount";
+        let whiteListPhone = "whiteListingPhoneNumbers";
+        let requireCaptchaInSMS = "requireCaptchaInSMS";
+        if (isPartner) {
+            sameTelPermission = "partnerAllowSamePhoneNumberToRegister";
+            samTelCount = "partnerSamePhoneNumberRegisterCount";
+            whiteListPhone = "partnerWhiteListingPhoneNumbers";
+            requireCaptchaInSMS = "partnerRequireCaptchaInSMS";
+            seletedDb = dbPartner;
+        }
+
 
 
         // if(inputData && inputData.lastLoginIp && inputData.lastLoginIp != "undefined"){
@@ -307,7 +358,7 @@ const dbPlayerMail = {
                     platform = platformData;
                     platformObjId = platform._id;
                     // verify captcha if necessary
-                    if (platform.requireCaptchaInSMS) {
+                    if (platform[requireCaptchaInSMS]) {
                         if (!captchaValidation) {
                             return Q.reject({
                                 status: constServerCode.INVALID_CAPTCHA,
@@ -330,21 +381,21 @@ const dbPlayerMail = {
 
                     let validPhoneNumberProm = Promise.resolve({isPhoneNumberValid: true});
                     if (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.NEW_PHONE_NUMBER) {
-                        if (!(platform.whiteListingPhoneNumbers
-                            && platform.whiteListingPhoneNumbers.length > 0
-                            && platform.whiteListingPhoneNumbers.indexOf(telNum) > -1)) {
-                            if (platform.allowSamePhoneNumberToRegister === true) {
-                                validPhoneNumberProm =  dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                                    phoneNumber: rsaCrypto.encrypt(telNum),
-                                    platform: platformObjId,
-                                    isRealPlayer: true
-                                }, platform.samePhoneNumberRegisterCount);
+                        if (!(platform[whiteListPhone]
+                            && platform[whiteListPhone].length > 0
+                            && platform[whiteListPhone].indexOf(telNum) > -1)) {
+                            let query = {
+                                phoneNumber: rsaCrypto.encrypt(telNum),
+                                platform: platformObjId,
+                                isRealPlayer: true
+                            }
+                            if (isPartner) {
+                                delete query.isRealPlayer;
+                            }
+                            if (platform[sameTelPermission] === true) {
+                                validPhoneNumberProm =  seletedDb.isExceedPhoneNumberValidToRegister(query, platform[samTelCount]);
                             } else {
-                                validPhoneNumberProm = dbPlayerInfo.isPhoneNumberValidToRegister({
-                                    phoneNumber: rsaCrypto.encrypt(telNum),
-                                    platform: platformObjId,
-                                    isRealPlayer: true
-                                });
+                                validPhoneNumberProm = seletedDb.isPhoneNumberValidToRegister(query);
                             }
                         }
                     }
@@ -624,12 +675,16 @@ const dbPlayerMail = {
         );
     },
 
-    verifySMSValidationCode: function (phoneNumber, platformData, smsCode, playerName) {
+    verifySMSValidationCode: function (phoneNumber, platformData, smsCode, playerName, isPartner) {
         if (!platformData) {
             platformData = {};
         }
+        let smsVerificationExpireTime = "smsVerificationExpireTime"
+        if (isPartner) {
+            smsVerificationExpireTime = "partnerSmsVerificationExpireTime"
+        }
 
-        let expireTime = platformData.smsVerificationExpireTime || 5;
+        let expireTime = platformData[smsVerificationExpireTime] || 5;
         let smsExpiredDate = new Date();
         smsExpiredDate = smsExpiredDate.setMinutes(smsExpiredDate.getMinutes() - expireTime);
 
@@ -700,5 +755,8 @@ const notifyPlayerOfNewMessage = (data) => {
     }
     return data;
 };
+
+var proto = dbPlayerMailFunc.prototype;
+proto = Object.assign(proto, dbPlayerMail);
 
 module.exports = dbPlayerMail;

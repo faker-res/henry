@@ -841,6 +841,8 @@ var dbPlayerTopUpRecord = {
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
                 proposalData.playerLevel = player.playerLevel._id;
+                proposalData.playerRealName = player.realName;
+                proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
                 proposalData.userAgent = userAgent ? userAgent : "";
@@ -856,6 +858,7 @@ var dbPlayerTopUpRecord = {
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName;
                     if (topupRequest.limitedOfferObjId)
                         proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                 }
@@ -969,6 +972,11 @@ var dbPlayerTopUpRecord = {
                 if (res[0]) {
                     updateData.data.cardQuota = res[0].totalAmount;
                 }
+
+                let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
+
+                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
+
                 return dbconfig.collection_proposal.findOneAndUpdate(
                     {_id: proposal._id, createTime: proposal.createTime},
                     updateData,
@@ -1140,6 +1148,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
                 proposalData.playerLevel = player.playerLevel._id;
+                proposalData.playerRealName = player.realName;
                 proposalData.bankCardType = inputData.bankTypeId;
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
@@ -1147,9 +1156,13 @@ var dbPlayerTopUpRecord = {
                 proposalData.realName = inputData.realName;
                 proposalData.remark = inputData.remark || "";
                 proposalData.lastBankcardNo = inputData.lastBankcardNo || "";
+                proposalData.bankCardGroupName = player.bankCardGroup && player.bankCardGroup.name || "";
                 proposalData.depositTime = inputData.createTime || "";
                 proposalData.inputData = inputData;
                 proposalData.userAgent = userAgent ? userAgent : "";
+                proposalData.bPMSGroup = Boolean(bPMSGroup);
+                proposalData.bonusCode = inputData.bonusCode;
+                proposalData.topUpReturnCode = topUpReturnCode;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -1166,8 +1179,11 @@ var dbPlayerTopUpRecord = {
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                     proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
-                    if (inputData.limitedOfferObjId)
-                        proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
+                    if (inputData.limitedOfferObjId) {
+                        proposalData.remark += '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
+                        proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName;
+                    }
+
                 }
 
                 var newProposal = {
@@ -1297,6 +1313,7 @@ var dbPlayerTopUpRecord = {
                     updateData.data.cardOwner = request.result.cardOwner;
                     updateData.data.bankTypeId = request.result.bankTypeId;
                     updateData.data.resultData = request.result;
+                    updateData.data.cardQuota = 0;
                     if (request.result && request.result.changeAmount) {
                         updateData.data.inputAmount = inputData.amount;
                         updateData.data.amount = request.result.changeAmount;
@@ -1305,8 +1322,13 @@ var dbPlayerTopUpRecord = {
                     if (resultData[0]) {
                         updateData.data.cardQuota = resultData[0].totalAmount || 0;
                     }
+
+                    let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
+
+                    updateManualTopUpProposalBankLimit(proposalQuery, request.result.bankCardNo).catch(errorUtils.reportError);
+
                     return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposal._id, createTime: proposal.createTime},
+                        proposalQuery,
                         updateData,
                         {new: true}
                     );
@@ -1964,6 +1986,8 @@ var dbPlayerTopUpRecord = {
                     proposalData.playerObjId = player._id;
                     proposalData.platformId = player.platform._id;
                     proposalData.playerLevel = player.playerLevel._id;
+                    proposalData.playerRealName = player.realName;
+                    proposalData.aliPayGroupName = player.alipayGroup && player.alipayGroup.name || "";
                     proposalData.platform = player.platform.platformId;
                     proposalData.playerName = player.name;
                     proposalData.realName = realName || player.realName;
@@ -2004,6 +2028,7 @@ var dbPlayerTopUpRecord = {
                     if (limitedOfferTopUp) {
                         proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                         proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
+                        proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName;
                         if (limitedOfferObjId)
                             proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                     }
@@ -2099,6 +2124,10 @@ var dbPlayerTopUpRecord = {
                         if (res[0]) {
                             updateData.data.cardQuota = res[0].totalAmount;
                         }
+
+                        let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
+
+                        updateAliPayTopUpProposalDailyLimit(proposalQuery, request.result.alipayAccount).catch(errorUtils.reportError);
 
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
@@ -2330,6 +2359,8 @@ var dbPlayerTopUpRecord = {
                         proposalData.playerObjId = player._id;
                         proposalData.platformId = player.platform._id;
                         proposalData.playerLevel = player.playerLevel._id;
+                        proposalData.playerRealName = player.realName;
+                        proposalData.wechatPayGroupName = player.wechatPayGroup && player.wechatPayGroup.name || "";
                         proposalData.platform = player.platform.platformId;
                         proposalData.playerName = player.name;
                         proposalData.amount = Number(amount);
@@ -2368,6 +2399,7 @@ var dbPlayerTopUpRecord = {
                         if (limitedOfferTopUp) {
                             proposalData.limitedOfferObjId = limitedOfferTopUp._id;
                             proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
+                            proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName
                             if (limitedOfferObjId)
                                 proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                         }
@@ -2481,6 +2513,11 @@ var dbPlayerTopUpRecord = {
                         if (res[0]) {
                             updateData.data.cardQuota = res[0].totalAmount || 0;
                         }
+
+                        let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
+
+                        updateWeChatPayTopUpProposalDailyLimit(proposalQuery, request.result.weChatAccount).catch(errorUtils.reportError);
+
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposal._id, createTime: proposal.createTime},
                             updateData,
@@ -3242,7 +3279,7 @@ function checkInterfaceRewardPermission(eventData, device) {
     let isForbidInterface = false;
 
     // Check registration interface condition
-    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && device) {
+    if (eventData.condition.userAgent && eventData.condition.userAgent.length > 0 && device >= 0) {
         let registrationInterface = device ? device : 0;
 
         isForbidInterface = eventData.condition.userAgent.indexOf(registrationInterface.toString()) < 0;
@@ -3624,3 +3661,61 @@ proto = Object.assign(proto, dbPlayerTopUpRecord);
 
 // This make WebStorm navigation work
 module.exports = dbPlayerTopUpRecord;
+
+function updateManualTopUpProposalBankLimit (proposalQuery, bankCardNo) {
+    return pmsAPI.bankcard_getBankcard({accountNumber: bankCardNo}).then(
+        bankCard => {
+            if (bankCard && bankCard.data && bankCard.data.quota) {
+                return dbconfig.collection_proposal.update(proposalQuery, {"data.dailyCardQuotaCap": bankCard.data.quota});
+            }
+        }
+    );
+}
+
+function updateAliPayTopUpProposalDailyLimit (proposalQuery, accNo) {
+    return pmsAPI.alipay_getAlipay({accountNumber: accNo}).then(
+        aliPay => {
+            if (aliPay && aliPay.data && (aliPay.data.quota || aliPay.data.singleLimit)) {
+                return dbconfig.collection_proposal.update(proposalQuery, {
+                    "data.dailyCardQuotaCap": aliPay.data.quota?  aliPay.data.quota: 0,
+                    "data.singleLimit": aliPay.data.singleLimit?  aliPay.data.singleLimit: 0
+                });
+            }
+        }
+    );
+}
+
+function updateWeChatPayTopUpProposalDailyLimit (proposalQuery, accNo) {
+    return pmsAPI.weChat_getWechat({accountNumber: accNo}).then(
+        wechatPay => {
+            if (wechatPay && wechatPay.data && (wechatPay.data.quota || wechatPay.data.singleLimit )) {
+                return dbconfig.collection_proposal.update(proposalQuery, {
+                    "data.dailyCardQuotaCap": wechatPay.data.quota?  wechatPay.data.quota: 0,
+                    "data.singleLimit": wechatPay.data.singleLimit?  wechatPay.data.singleLimit: 0
+                });
+            }
+        }
+    );
+}
+
+function updateOnlineTopUpProposalDailyLimit (proposalQuery, merchantNo) {
+    let merchantObj;
+    return pmsAPI.merchant_getMerchant({merchantNo: merchantNo}).then(
+        merchantData => {
+            merchantObj = merchantData;
+            if (merchantData && merchantData.merchant && merchantData.merchant.merchantTypeId) {
+                return pmsAPI.merchant_getMerchantType({merchantTypeId: merchantData.merchant.merchantTypeId})
+            }
+        }
+    ).then(
+        merchantType => {
+            if (merchantObj && merchantObj.merchant && (merchantObj.merchant.permerchantLimits || merchantObj.merchant.transactionForPlayerOneDay)) {
+                return dbconfig.collection_proposal.update(proposalQuery, {
+                    "data.permerchantLimits": merchantObj.merchant.permerchantLimits ? merchantObj.merchant.permerchantLimits : 0,
+                    "data.transactionForPlayerOneDay": merchantObj.merchant.transactionForPlayerOneDay ? merchantObj.merchant.transactionForPlayerOneDay : 0,
+                    "data.merchantUseName": merchantType && merchantType.merchantType && merchantType.merchantType.name ? merchantType.merchantType.name : ""
+                });
+            }
+        }
+    )
+}

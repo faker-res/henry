@@ -1,12 +1,13 @@
 'use strict';
 
-define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/socketService', 'js/services/utilService'], function () {
-    var myApp = angular.module('myApp');
+define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/socketService', 'js/services/utilService', 'js/services/commonService'], function () {
+    let myApp = angular.module('myApp');
 
     myApp.requires.push(
         'authService',
         'socketService',
         'utilService',
+        'commonService',
         'myApp.controllers',
         'myApp.filters',
         'myApp.services',
@@ -343,7 +344,30 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                             return deferred.promise;
                         }
                     }
-                });
+                })
+                .state('teleMarketing', {
+                        url: '/teleMarketing',
+                        templateUrl: 'category/teleMarketing/teleMarketing-home',
+                        controller: 'teleMarketingCtrl',
+                        controllerAs: 'vm',
+                        resolve: {
+                            load: function ($q, $rootScope) {
+                                var deferred = $q.defer();
+
+                                var dependencies = [
+                                    "/js/controllers/teleMarketingController.js"
+                                ];
+
+                                require(dependencies, function () {
+                                    $rootScope.$apply(function () {
+                                        deferred.resolve();
+                                    });
+                                });
+
+                                return deferred.promise;
+                            }
+                        }
+                    });
             // .state('testPage', {
             //     url: '/testPage',
             //     templateUrl: 'category/provider/test-home',

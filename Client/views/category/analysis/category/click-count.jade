@@ -35,9 +35,14 @@
             .col-md-12
                 .graph
                     table#clickCountAnalysisTable1.display.tableDiv(style='min-width:100%')
-            .col-md-6.col-md-offset-3
-                .graph
-                    .panel.panel-default
-                        .pieChart
-                            div.graphDiv
+        .row.margin-top-10
+            .col-md-12
+                .panel.panel-default
+                    #clickCountAnalysisBar.barChart(style='height:550px')
+            //.col-md-12
+            //    .graph
+            //        .panel.panel-default
+            //            .pieChart
+            //                div.graphDiv
+
 p(ng-init="vm.loadPageFunc(vm.showPageName)")

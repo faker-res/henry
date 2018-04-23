@@ -28,6 +28,7 @@ let dbUtility = require('./../modules/dbutility');
 
 let dbGameProvider = require('../db_modules/dbGameProvider');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
+let dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -722,6 +723,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
+                    recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
                     delete recordData.name;
 
                     if (isProviderGroup) {
@@ -853,6 +855,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
                     recordData.updateTime = new Date();
+                    recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
 
                     let consumptionRecordQuery = {
                         _id: oldData._id,
@@ -1081,6 +1084,7 @@ var dbPlayerConsumptionRecord = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if( platformData ){
+                    let sortObj = {createTime: 1};
                     let queryObj = {
                         platformId: platformData._id,
                         createTime: {$gte: startTime, $lt: endTime},
@@ -1093,9 +1097,16 @@ var dbPlayerConsumptionRecord = {
                         queryObj.validAmount = {$gte: minValidAmount};
                     }
 
-                    console.log('searchPlatformConsumption queryObj', queryObj);
+                    if (isRanking && (isRanking === true || isRanking === "true")) {
+                        queryObj = {
+                            platformId: platformData._id,
+                            createTime: {$gte: startTime, $lt: endTime}
+                        };
 
-                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort({createTime: 1}).skip(startIndex).limit(Number(requestCount)).lean().populate({
+                        sortObj = {winRatio: -1};
+                    }
+
+                    return dbconfig.collection_playerConsumptionRecord.find(queryObj).sort(sortObj).skip(startIndex).limit(Number(requestCount)).lean().populate({
                         path: "gameId",
                         model: dbconfig.collection_game
                     }).populate({
@@ -1120,26 +1131,20 @@ var dbPlayerConsumptionRecord = {
                             playerBonusListObj.bonusAmount = record.bonusAmount;
                             playerBonusListObj.providerId = record.providerId || "";
                             playerBonusListObj.cpGameType = record.cpGameType || "";
+                            playerBonusListObj.winRatio = record.winRatio || record.bonusAmount / record.validAmount || 0;
 
-                            playerBonusListArray.push(playerBonusListObj);
+                            if (!playerBonusListArray.some(el => el.playerName === record.playerName) && playerBonusListArray.length < 10) {
+                                playerBonusListArray.push(playerBonusListObj);
+                            }
+
                             delete record.playerId;
                         }
                     );
                 }
 
-                if(isRanking && (isRanking == "true" || isRanking == true)){
-                    playerBonusListArray.sort(function (a, b) {
-                        if(a[Object.keys(a)[2]] >  b[Object.keys(b)[2]]){
-                            return -1;
-                        }else if(a[Object.keys(a)[2]] <  b[Object.keys(b)[2]]){
-                            return 1;
-                        }else {
-                            return 0;
-                        }
-                    });
-
+                if (isRanking && (isRanking === true || isRanking === "true")) {
                     return playerBonusListArray;
-                }else{
+                } else {
                     return recordData;
                 }
             }
@@ -2186,15 +2191,12 @@ function updateRTG (oldData, newData) {
         incBonusAmt = newData.bonusAmount - oldData.bonusAmount;
         incValidAmt = newData.validAmount - oldData.validAmount;
 
-        return dbGameProvider.getProviderGroupByProviderId(oldData.platformId, oldData.providerId).then(
-            providerGroupObj => {
-                if (providerGroupObj) {
+        return dbRewardTaskGroup.getPlayerRewardTaskGroup(oldData.platformId, oldData.providerId, oldData.playerId, oldData.createTime).then(
+            RTG => {
+                if (RTG) {
                     // Find available RTG to update
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
-                        platformId: oldData.platformId,
-                        playerId: oldData.playerId,
-                        providerGroup: providerGroupObj._id,
-                        status: constRewardTaskStatus.STARTED
+                        _id: RTG._id
                     }, {
                         $inc: {
                             currentAmt: incBonusAmt,
@@ -2207,62 +2209,64 @@ function updateRTG (oldData, newData) {
             }
         ).then(
             updatedRTG => {
-                let summAdjustXIMAAmt = 0, summAdjustNonXIMAAmt = 0;
+                if (updatedRTG) {
+                    let summAdjustXIMAAmt = 0, summAdjustNonXIMAAmt = 0;
 
-                if (updatedRTG && updatedRTG.forbidXIMAAmt > 0) {
-                    let offsetDiff = updatedRTG.curConsumption - updatedRTG.forbidXIMAAmt;
-                    let curConsumptionBeforeUpdate = updatedRTG.curConsumption - incValidAmt;
+                    if (updatedRTG.forbidXIMAAmt > 0) {
+                        let offsetDiff = updatedRTG.curConsumption - updatedRTG.forbidXIMAAmt;
+                        let curConsumptionBeforeUpdate = updatedRTG.curConsumption - incValidAmt;
 
-                    if (offsetDiff <= 0 && curConsumptionBeforeUpdate <= updatedRTG.forbidXIMAAmt) {
-                        // Scenario 1: curConsumption is less than forbidXIMAAmt before and after update
-                        summAdjustNonXIMAAmt = incValidAmt;
-                    } else if (offsetDiff <= 0 && curConsumptionBeforeUpdate > updatedRTG.forbidXIMAAmt) {
-                        // Scenario 2: curConsumption is more than forbidXIMAAmt before update, but is less than after update
-                        summAdjustXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
-                        summAdjustNonXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
-                    } else if (offsetDiff > 0 && curConsumptionBeforeUpdate < updatedRTG.forbidXIMAAmt) {
-                        // Scenario 3: curConsumption is less than forbidXIMAAmt before update, but is more than after update
-                        summAdjustNonXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
-                        summAdjustXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
+                        if (offsetDiff <= 0 && curConsumptionBeforeUpdate <= updatedRTG.forbidXIMAAmt) {
+                            // Scenario 1: curConsumption is less than forbidXIMAAmt before and after update
+                            summAdjustNonXIMAAmt = incValidAmt;
+                        } else if (offsetDiff <= 0 && curConsumptionBeforeUpdate > updatedRTG.forbidXIMAAmt) {
+                            // Scenario 2: curConsumption is more than forbidXIMAAmt before update, but is less than after update
+                            summAdjustXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
+                            summAdjustNonXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
+                        } else if (offsetDiff > 0 && curConsumptionBeforeUpdate < updatedRTG.forbidXIMAAmt) {
+                            // Scenario 3: curConsumption is less than forbidXIMAAmt before update, but is more than after update
+                            summAdjustNonXIMAAmt = updatedRTG.forbidXIMAAmt - curConsumptionBeforeUpdate;
+                            summAdjustXIMAAmt = incValidAmt - summAdjustNonXIMAAmt;
+                        } else {
+                            // Scenario 4: curConsumption is more than forbidXIMAAmt before and after update
+                            summAdjustXIMAAmt = incValidAmt;
+                        }
                     } else {
-                        // Scenario 4: curConsumption is more than forbidXIMAAmt before and after update
+                        // All credit reflect on summary valid credit
                         summAdjustXIMAAmt = incValidAmt;
                     }
-                } else {
-                    // All credit reflect on summary valid credit
-                    summAdjustXIMAAmt = incValidAmt;
+
+                    // Update consumption summary upon updating consumption record
+                    updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
+
+                    dbconfig.collection_platform.findOne({platformId: oldData.platformId}).then(
+                        platform => {
+                            // Check whether RTG status changed
+                            let statusUpdObj = {
+                                unlockTime: new Date()
+                            };
+
+                            // Check whether player has lost all credit
+                            if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
+                                statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
+                            }
+
+                            if (updatedRTG.curConsumption == updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
+                                statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
+                            }
+
+                            if (statusUpdObj.status) {
+                                return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
+                                    {
+                                        _id: updatedRTG._id
+                                    },
+                                    statusUpdObj,
+                                    {new: true}
+                                )
+                            }
+                        }
+                    ).catch(errorUtils.reportError);
                 }
-
-                // Update consumption summary upon updating consumption record
-                updateConsumptionSumamry(oldData, summAdjustXIMAAmt, summAdjustNonXIMAAmt).catch(errorUtils.reportError);
-
-                dbconfig.collection_platform.findOne({platformId: oldData.platformId}).then(
-                    platform => {
-                        // Check whether RTG status changed
-                        let statusUpdObj = {
-                            unlockTime: new Date()
-                        };
-
-                        // Check whether player has lost all credit
-                        if (updatedRTG.currentAmt <= platform.autoApproveLostThreshold) {
-                            statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
-                        }
-
-                        if (updatedRTG.curConsumption == updatedRTG.targetConsumption + updatedRTG.forbidXIMAAmt) {
-                            statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
-                        }
-
-                        if (statusUpdObj.status) {
-                            return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
-                                {
-                                    _id: updatedRTG._id
-                                },
-                                statusUpdObj,
-                                {new: true}
-                            )
-                        }
-                    }
-                ).catch(errorUtils.reportError);
             }
         )
     }

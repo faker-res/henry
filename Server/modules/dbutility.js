@@ -76,7 +76,90 @@ var dbUtility = {
         return deferred.promise;
     },
 
+    //region Time
 
+    //region Specific time
+    getFirstDayOfYear: () => {
+        return moment().tz('Asia/Singapore').startOf('year').toDate();
+    },
+
+    //endregion
+    //region Period around given time
+    /*
+     * Get day time frame based on input date
+     */
+    getDayTime: function (inputDate) {
+        var startTime = moment(inputDate).tz('Asia/Singapore').startOf("day").toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').endOf("day").toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    /*
+     * Get week time frame based on input date
+     */
+    getWeekTime: function (inputDate) {
+        // because start of week is monday instead of sunday, -1 day to get the actual 'start of week' (when inputDate land on monday)
+        inputDate = new Date(inputDate);
+        inputDate.setDate(inputDate.getDate() -1);
+        var startTime = moment(inputDate).tz('Asia/Singapore').startOf("week").add(1, 'day').toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').startOf("week").add(1, 'day').add(1, 'week').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getLastBiWeekConsumptionReturnSGTime: function (inputData) {
+        let lastBiWeekTime = dbUtility.getLastBiWeekSGTime();
+        let startTime = lastBiWeekTime.startTime;
+        let endTime = lastBiWeekTime.endTime;
+        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+
+    },
+
+    getBiWeekSGTIme: function (inputDate) {
+        let startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(14, 'days').toDate();
+        let todayDay = moment(inputDate).tz('Asia/Singapore').date();
+
+        if (todayDay >= 15) {
+            startTime = endTime;
+            endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getMonthSGTIme: function (inputDate) {
+        var startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getQuarterSGTime: function (inputDate) {
+        var startTime = moment(inputDate).tz('Asia/Singapore').startOf('quarter').toDate();
+        var endTime = moment(inputDate).tz('Asia/Singapore').endOf('quarter').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+    //endregion
     /**
      * Get past day time frame based on SGT
      */
@@ -498,6 +581,13 @@ var dbUtility = {
         };
     },
 
+    getNdaylaterFromSpecificStartTime: function (n, date) {
+        var n = Number.isInteger(n) ? parseInt(n) : 0;
+
+        return moment(date).add(n,'days').toDate();
+    },
+
+
     /**
      * Get current week time frame based on settlement time
      * @param {number} hour
@@ -521,81 +611,6 @@ var dbUtility = {
 
     getWeeklySettlementTimeForPlatform: function (platformData) {
         return dbUtility.getWeeklySettlementTime(platformData.weeklySettlementDay, platformData.weeklySettlementHour, platformData.weeklySettlementMinute);
-    },
-
-    /*
-     * Get day time frame based on input date
-     */
-    getDayTime: function (inputDate) {
-        var startTime = moment(inputDate).tz('Asia/Singapore').startOf("day").toDate();
-        var endTime = moment(inputDate).tz('Asia/Singapore').endOf("day").toDate();
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-    },
-
-    /*
-     * Get week time frame based on input date
-     */
-    getWeekTime: function (inputDate) {
-        // because start of week is monday instead of sunday, -1 day to get the actual 'start of week' (when inputDate land on monday)
-        inputDate = new Date(inputDate);
-        inputDate.setDate(inputDate.getDate() -1);
-        var startTime = moment(inputDate).tz('Asia/Singapore').startOf("week").add(1, 'day').toDate();
-        var endTime = moment(inputDate).tz('Asia/Singapore').startOf("week").add(1, 'day').add(1, 'week').toDate();
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-    },
-
-    getLastBiWeekConsumptionReturnSGTime: function (inputData) {
-        let lastBiWeekTime = dbUtility.getLastBiWeekSGTime();
-        let startTime = lastBiWeekTime.startTime;
-        let endTime = lastBiWeekTime.endTime;
-        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
-        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
-
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-
-    },
-
-    getBiWeekSGTIme: function (inputDate) {
-        let startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
-        let endTime = moment(startTime).add(14, 'days').toDate();
-        let todayDay = moment(inputDate).tz('Asia/Singapore').date();
-
-        if (todayDay >= 15) {
-            startTime = endTime;
-            endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
-        }
-
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-    },
-
-    getMonthSGTIme: function (inputDate) {
-        var startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
-        var endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
-    },
-
-    getQuarterSGTime: function (inputDate) {
-        var startTime = moment(inputDate).tz('Asia/Singapore').startOf('quarter').toDate();
-        var endTime = moment(inputDate).tz('Asia/Singapore').endOf('quarter').toDate();
-        return {
-            startTime: startTime,
-            endTime: endTime
-        };
     },
 
     getSGTimeOfPassHours: function (hours) {
@@ -686,6 +701,8 @@ var dbUtility = {
 
         return hour >= 12;
     },
+
+    //endregion
 
     generateRandomPositiveNumber: function (min, max) {
         let num = -1;

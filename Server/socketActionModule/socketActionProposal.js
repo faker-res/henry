@@ -146,16 +146,19 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.data);
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_INFO, data], actionName, isValidData);
         },
+
+        createUpdatePartnerCommissionTypeProposal: function createUpdatePartnerCommissionTypeProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.data);
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_COMMISSION_TYPE, data], actionName, isValidData);
+        },
         /**
          * Create new Proposal to update player info
          * @param {json} data - proposal type name
          */
         createUpdatePartnerBankInfoProposal: function createUpdatePartnerBankInfoProposal(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(
-                data && data.platformId && data.data &&
-                data.data.partnerName && data.data.curData && data.data.updateData
-            );
+            var isValidData = Boolean(data && data.platformId && data.data);
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_BANK_INFO, data], actionName, isValidData);
         },
 
@@ -202,6 +205,19 @@ function socketActionProposal(socketIO, socket) {
         },
 
         /**
+         * Create new Proposal to update partner WeChat
+         * @param {json} data - proposal data
+         */
+        createUpdatePartnerWeChatProposal: function createUpdatePartnerWeChatProposal(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(
+                data && data.platformId && data.data &&
+                data.data.partnerName && data.data.curData && data.data.updateData && data.data.updateData.wechat
+            );
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PARTNER_WECHAT, data], actionName, isValidData);
+        },
+
+        /**
          * Create new Proposal to update partner credit
          * @param {json} data - proposal data
          */
@@ -238,6 +254,12 @@ function socketActionProposal(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.type && data.playerObjId);
             socketUtil.emitter(self.socket, dbProposal.getProposalByPlayerIdAndType, [data], actionName, isValidData);
+        },
+
+        getProposalByPartnerIdAndType: function getProposalByPartnerIdAndType(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.type && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbProposal.getProposalByPartnerIdAndType, [data], actionName, isValidData);
         },
 
         getPlatformProposal: function getPlatformProposal(data) {
@@ -327,7 +349,7 @@ function socketActionProposal(socketIO, socket) {
             var index = data.index || 0;
             var size = data.size || 10;
             var sortCol = data.sortCol || {"createTime": -1};
-            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.playerId, data.eventName, data.promoTypeName, data.inputDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getQueryProposalsForPlatformId, [data.platformId, data.type, data.status, data.credit, data.name, data.relateUser, data.relatePlayerId, data.entryType, startTime, endTime, index, size, sortCol, data.displayPhoneNum, data.playerId, data.eventName, data.promoTypeName, data.inputDevice, data.partnerId], actionName, isValidData);
         },
 
         getPlayerProposalsForAdminId: function getPlayerProposalsForAdminId(data) {
@@ -359,6 +381,15 @@ function socketActionProposal(socketIO, socket) {
             var limit = data.limit || 10;
             var sortCol = data.sortCol || {"createTime": -1};
             socketUtil.emitter(self.socket, dbProposal.getDuplicatePlayerRealName, [data.platformId, data.realName, index, limit, sortCol], actionName, isValidData);
+        },
+
+        getDuplicatePhoneNumber: function getDuplicatePhoneNumber(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.phoneNumber);
+            var index = data.index || 0;
+            var limit = data.limit || 10;
+            var sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbProposal.getDuplicatePhoneNumber, [data.platformId, data.phoneNumber, index, limit, sortCol, data.isPlayer], actionName, isValidData);
         },
 
         /**

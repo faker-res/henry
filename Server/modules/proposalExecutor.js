@@ -40,6 +40,7 @@ const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus"
 let dbRewardPoints = require("../db_modules/dbRewardPoints.js");
 let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
+let dbRewardTaskGroup = require("../db_modules/dbRewardTaskGroup");
 let dbOperation = require("../db_common/dbOperations");
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
@@ -86,7 +87,10 @@ var proposalExecutor = {
                             return dbconfig.collection_proposal.findOneAndUpdate({
                                 _id: proposalData._id,
                                 createTime: proposalData.createTime
-                            }, {settleTime: new Date()}).then(
+                            }, {
+                                executeTime: new Date(),
+                                settleTime: new Date()
+                            }).then(
                                 res => {
                                     if (proposalData.mainType === 'Reward' && executionType != "executeManualUnlockPlayerReward") {
                                         return createRewardLogForProposal("GET_FROM_PROPOSAL", proposalData).then(
@@ -131,8 +135,10 @@ var proposalExecutor = {
             this.executions.executeUpdatePartnerCredit.des = "Update partner credit";
             this.executions.executeUpdatePartnerEmail.des = "Update partner email";
             this.executions.executeUpdatePartnerQQ.des = "Update partner QQ";
+            this.executions.executeUpdatePartnerWeChat.des = "Update partner WeChat";
             this.executions.executeUpdatePartnerPhone.des = "Update partner phone number";
             this.executions.executeUpdatePartnerInfo.des = "Update partner information";
+            this.executions.executeUpdatePartnerCommissionType.des = "Update partner commission type";
             this.executions.executePlayerTopUp.des = "Help player top up";
             this.executions.executeFullAttendance.des = "Player full attendance reward";
             this.executions.executeGameProviderReward.des = "Player top up for Game Provider reward";
@@ -166,6 +172,7 @@ var proposalExecutor = {
             this.executions.executePlayerLevelMigration.des = "Player Level Migration";
             this.executions.executePlayerPacketRainReward.des = "Player Packet Rain Reward";
             this.executions.executePlayerPromoCodeReward.des = "Player Promo Code Reward";
+            this.executions.executeDxReward.des = "Player Promo Code Reward";
             this.executions.executePlayerLimitedOfferReward.des = "Player Limited Offer Reward";
             this.executions.executePlayerTopUpReturnGroup.des = "Player Top Up Return Group Reward";
             this.executions.executePlayerRandomRewardGroup.des = "Player Random Reward Group Reward";
@@ -194,6 +201,7 @@ var proposalExecutor = {
             this.rejections.rejectUpdatePartnerEmail.des = "Reject partner update email";
             this.rejections.rejectUpdatePartnerWeChat.des = "Reject partner update weChat";
             this.rejections.rejectUpdatePartnerInfo.des = "Reject partner update information";
+            this.rejections.rejectUpdatePartnerCommissionType.des = "Reject partner update commission type";
             this.rejections.rejectFullAttendance.des = "Reject player full attendance reward";
             this.rejections.rejectGameProviderReward.des = "Reject player for Game Provider Reward";
             this.rejections.rejectFirstTopUp.des = "Reject First Top up reward";
@@ -226,6 +234,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerLevelMigration.des = "Reject Player Level Migration";
             this.rejections.rejectPlayerPacketRainReward.des = "Reject Player Packet Rain Reward";
             this.rejections.rejectPlayerPromoCodeReward.des = "Reject Player Promo Code Reward";
+            this.rejections.rejectDxReward.des = "Reject Player Promo Code Reward";
             this.rejections.rejectPlayerLimitedOfferReward.des = "Reject Player Limited Offer Reward";
             this.rejections.rejectPlayerTopUpReturnGroup.des = "Reject Player Top Up Return Group Reward";
             this.rejections.rejectPlayerRandomRewardGroup.des = "Reject Player Random Reward Group Reward";
@@ -741,18 +750,66 @@ var proposalExecutor = {
                 //data validation
                 //todo::update by using partner name for now since it is unique
                 if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData) {
-                    dbUtil.findOneAndUpdateForShard(
-                        dbconfig.collection_partner,
-                        {partnerName: proposalData.data.partnerName},
-                        proposalData.data.updateData,
-                        constShardKeys.collection_partner
+                    dbconfig.collection_partner.findOne({partnerName: proposalData.data.partnerName}).then(
+                        function (data) {
+                            if (data) {
+                                var partnerUpdate = Object.assign({}, proposalData.data);
+                                delete partnerUpdate.platformId;
+                                delete partnerUpdate.partnerId;
+                                delete partnerUpdate.partnerName;
+                                delete partnerUpdate._id;
+
+                                return dbconfig.collection_partner.findOneAndUpdate(
+                                    {_id: data._id, platform: data.platform},
+                                    partnerUpdate,
+                                    {returnNewDocument: true}
+                                );
+                            }
+                            else {
+                                deferred.reject({name: "DataError", message: "Failed to find partner"});
+                            }
+                        },
+                        function (error) {
+                            deferred.reject({name: "DBError", message: "Failed to find partner", error: error});
+                        }
                     ).then(
                         function (data) {
+                            var loggerInfo = {
+                                source: constProposalEntryType.ADMIN,
+                                bankName: proposalData.data.bankName,
+                                bankAccount: proposalData.data.bankAccount,
+                                bankAccountName: proposalData.data.bankAccountName,
+                                bankAccountType: proposalData.data.bankAccountType,
+                                bankAccountProvince: proposalData.data.bankAccountProvince,
+                                bankAccountCity: proposalData.data.bankAccountCity,
+                                bankAccountDistrict: proposalData.data.bankAccountDistrict,
+                                bankAddress: proposalData.data.bankAddress,
+                                bankBranch: proposalData.data.bankBranch,
+                                targetObjectId: proposalData.data._id,
+                                targetType: constProposalUserType.PARTNERS,
+                                creatorType: constProposalUserType.SYSTEM_USERS,
+                                creatorObjId: proposalData.creator ? proposalData.creator.id : null
+                            }
+                            dbLogger.createBankInfoLog(loggerInfo);
                             deferred.resolve(data);
                         },
-                        function (err) {
-                            deferred.reject({name: "DataError", message: "Failed to update partner bank info", error: err});
+                        function (error) {
+                            deferred.reject({name: "DBError", message: "Failed to update player info", error: error});
                         }
+                    ).then(
+                        dbUtil.findOneAndUpdateForShard(
+                            dbconfig.collection_partner,
+                            {partnerName: proposalData.data.partnerName},
+                            proposalData.data.updateData,
+                            constShardKeys.collection_partner
+                        ).then(
+                            function (data) {
+                                deferred.resolve(data);
+                            },
+                            function (err) {
+                                deferred.reject({name: "DataError", message: "Failed to update partner bank info", error: err});
+                            }
+                        )
                     );
                 }
                 else {
@@ -836,6 +893,31 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update partner email proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update partner weChat proposal type
+             */
+            executeUpdatePartnerWeChat: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.partnerName && proposalData.data.updateData && proposalData.data.updateData.wechat) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_partner,
+                        {partnerName: proposalData.data.partnerName},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_partner
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update partner weChat", error: err});
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update partner weChat proposal data"});
                 }
             },
 
@@ -938,6 +1020,35 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update partner info proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update partner email proposal type
+             */
+            executeUpdatePartnerCommissionType: function (proposalData, deferred) {
+                //data validation
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.updateData) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_partner,
+                        {_id: proposalData.data.partnerObjId},
+                        proposalData.data.updateData,
+                        constShardKeys.collection_partner
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({
+                                name: "DataError",
+                                message: "Failed to update partner commission type",
+                                error: err
+                            });
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update partner commission type proposal data"});
                 }
             },
 
@@ -1546,6 +1657,7 @@ var proposalExecutor = {
                             accountName: player.bankAccountName || "",
                             accountType: player.bankAccountType || "",
                             accountCity: player.bankAccountCity || "",
+                            accountProvince: player.bankAccountProvince || "",
                             accountNo: player.bankAccount || "",
                             bankAddress: player.bankAddress || "",
                             bankName: player.bankName || "",
@@ -2173,6 +2285,34 @@ var proposalExecutor = {
                 }
             },
 
+            executeDxReward: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.DX_REWARD,
+                        rewardType: constRewardType.DX_REWARD,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
+                        eventId: proposalData.data.eventId,
+                        useLockedCredit: proposalData.data.useLockedCredit,
+                        forbidWithdrawIfBalanceAfterUnlock: proposalData.data.forbidWithdrawIfBalanceAfterUnlock
+                    };
+
+                    if (proposalData.data.providerGroup) {
+                        taskData.providerGroup = proposalData.data.providerGroup;
+                    }
+                    createRewardTaskForProposal(proposalData, taskData, deferred, constRewardType.DX_REWARD, proposalData);
+                } else {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Incorrect player DX reward proposal data"
+                    });
+                }
+            },
+
             executePlayerLimitedOfferReward: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
                     let taskData = {
@@ -2688,6 +2828,13 @@ var proposalExecutor = {
             },
 
             /**
+             * reject function for UpdatePartnerCommissionType proposal
+             */
+            rejectUpdatePartnerCommissionType: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
              * reject function for UpdatePartnerCredit proposal
              */
             rejectUpdatePartnerCredit: function (proposalData, deferred) {
@@ -3164,6 +3311,10 @@ var proposalExecutor = {
                 deferred.resolve("Proposal is rejected");
             },
 
+            rejectDxReward: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
             rejectPlayerLimitedOfferReward: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
@@ -3567,8 +3718,9 @@ function createRewardLogForProposal(rewardTypeName, proposalData) {
 }
 
 function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalData) {
-    let transferLog, providerGroup, player, provider, creditChangeLog;
-    let changedValidCredit = 0, changedLockedCredit = 0;
+    let transferLog, player, provider, creditChangeLog;
+    let changedValidCredit = 0, changedLockedCredit = 0, totalCreditAmount = creditAmount;
+
     return dbconfig.collection_playerCreditTransferLog.findOne({transferId}).lean().then(
         transferLogData => {
             if (!transferLogData) {
@@ -3587,11 +3739,6 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
 
             provider = providerData;
 
-            let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({
-                platform: transferLog.platformObjId,
-                providers: provider._id,
-            }).lean();
-
             let playerProm = dbconfig.collection_players.findOne({_id: transferLog.playerObjId}).lean();
 
             let creditChangeLogProm = dbconfig.collection_creditChangeLog.findOne({
@@ -3599,52 +3746,53 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                 transferId: transferId
             }).lean();
 
-            return Promise.all([gameProviderGroupProm, playerProm, creditChangeLogProm]);
+            return Promise.all([playerProm, creditChangeLogProm]);
         }
     ).then(
         data => {
-            if (!data || !data[0] || !data[1]) {
+            if (!data || !data[0]) {
                 return;
             }
-            providerGroup = data[0];
-            player = data[1];
-            creditChangeLog = data[2];
 
-            return dbconfig.collection_rewardTaskGroup.findOne({
-                platformId: transferLog.platformObjId,
-                playerId: transferLog.playerObjId,
-                providerGroup: providerGroup._id,
-                status: constRewardTaskStatus.STARTED
-            }).lean();
+            player = data[0];
+            creditChangeLog = data[1];
+
+            return dbRewardTaskGroup.getPlayerRewardTaskGroup(
+                transferLog.platformObjId,
+                provider._id,
+                transferLog.playerObjId,
+                transferLog.createTime
+            );
         }
     ).then(
         rewardTaskGroup => {
-            console.log("DEBUG LOG :: Getting reward task group for repair transfer ID: " + transferId + " as", rewardTaskGroup);
             if (rewardTaskGroup && rewardTaskGroup._inputRewardAmt) {
                 let inputFreeAmt = rewardTaskGroup._inputFreeAmt;
                 let inputRewardAmt = rewardTaskGroup._inputRewardAmt;
 
                 if (creditChangeLog) {
+                    // Transfer in money missing
                     inputFreeAmt = -creditChangeLog.amount;
                     inputRewardAmt = -creditChangeLog.changedLockedAmount;
+                } else {
+                    // Transfer out money missing
+                    if (creditAmount <= inputRewardAmt) {
+                        inputRewardAmt = creditAmount;
+                    } else {
+                        inputFreeAmt = creditAmount - inputRewardAmt;
+                    }
                 }
 
                 changedValidCredit = inputFreeAmt;
                 changedLockedCredit = inputRewardAmt;
-                let lockedAmount = inputRewardAmt;
-                let validCredit = inputFreeAmt;
 
                 let updateRewardTaskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                     _id: rewardTaskGroup._id,
                     platformId: rewardTaskGroup.platformId
                 }, {
-                    // rewardAmt: lockedAmount,
                     $inc: {
-                        rewardAmt: lockedAmount,
+                        rewardAmt: inputRewardAmt,
                     },
-                    // _inputRewardAmt: 0,
-                    // _inputFreeAmt: 0,
-                    // inProvider: false
                 }, {
                     new: true
                 }).lean();
@@ -3654,7 +3802,7 @@ function fixTransferCreditWithProposalGroup(transferId, creditAmount, proposalDa
                     platform: player.platform
                 }, {
                     $inc: {
-                        validCredit: validCredit > 0 ? validCredit : 0
+                        validCredit: inputFreeAmt > 0 ? inputFreeAmt : 0
                     }
                 }, {
                     new: true

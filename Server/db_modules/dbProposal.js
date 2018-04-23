@@ -508,6 +508,10 @@ var proposal = {
         return dbconfig.collection_proposal.find({type: ObjectId(query.type), "data._id": {$in: [query.playerObjId, ObjectId(query.playerObjId)]}}).exec();
     },
 
+    getProposalByPartnerIdAndType: function (query) {
+        return dbconfig.collection_proposal.find({type: ObjectId(query.type), "data._id": {$in: [query.partnerObjId, ObjectId(query.partnerObjId)]}}).exec();
+    },
+
     /**
      * Get multiple proposal by ids
      * @param {json} ids - Array of proposal ids
@@ -881,6 +885,7 @@ var proposal = {
                                     return dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
                                         {
+                                            executeTime: Date.now(),
                                             noSteps: true,
                                             process: null,
                                             status: constProposalStatus.CANCEL,
@@ -1419,7 +1424,7 @@ var proposal = {
         });
     },
 
-    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice) {//need
+    getQueryProposalsForPlatformId: function (platformId, typeArr, statusArr, credit, userName, relateUser, relatePlayerId, entryType, startTime, endTime, index, size, sortCol, displayPhoneNum, playerId, eventName, promoTypeName, inputDevice, partnerId) {//need
         platformId = Array.isArray(platformId) ? platformId : [platformId];
 
         return dbconfig.collection_proposalType.find({platformId: {$in: platformId}}).lean().then(//removed , prom2
@@ -1485,6 +1490,13 @@ var proposal = {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
                                 {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
+                            ];
+                        }
+
+                        if (partnerId) {
+                            queryObj["$or"] = [
+                                {"data._id": {$in: [partnerId, ObjectId(partnerId)]}},
+                                {"data.partnerObjId": {$in: [partnerId, ObjectId(partnerId)]}}
                             ];
                         }
 
@@ -2019,6 +2031,51 @@ var proposal = {
                     data => {
                         let duplicateRealNamePlayerList = data && data[0] ? data[0] : [];
                         let result = {data: duplicateRealNamePlayerList, size: sameRealNamePlayerCount};
+
+                        return result;
+                    },
+                    err => {
+                        console.log(err);
+                    });
+            });
+    },
+
+    getDuplicatePhoneNumber: function (platformId, phoneNumber, index, limit, sortCol, isPlayer) {
+        index = index || 0;
+        sortCol = sortCol || {createTime: 1};
+        let duplicatePhoneNumberCount = 0;
+        let duplicatePhoneNumberCountProm, duplicatePhoneNumberProm;
+
+        if (isPlayer) {
+            duplicatePhoneNumberCountProm = dbconfig.collection_players.find({platform: platformId, phoneNumber: phoneNumber}).count();
+            duplicatePhoneNumberProm = dbconfig.collection_players.find({platform: platformId, phoneNumber: phoneNumber})
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+                .sort(sortCol).skip(index).limit(limit).lean();
+        } else {
+            duplicatePhoneNumberCountProm = dbconfig.collection_partner.find({platform: platformId, phoneNumber: phoneNumber}).count();
+            duplicatePhoneNumberProm = dbconfig.collection_partner.find({platform: platformId, phoneNumber: phoneNumber})
+                .sort(sortCol).skip(index).limit(limit).lean();
+        }
+
+
+        return Promise.all([duplicatePhoneNumberCountProm, duplicatePhoneNumberProm]).then(
+            data => {
+                let phoneNumberIpArea = [];
+                let duplicatePhoneNumberRecord = data && data[1] ? data[1] : [];
+                duplicatePhoneNumberCount = data[0];
+
+                if (duplicatePhoneNumberRecord && duplicatePhoneNumberRecord.length > 0) {
+                    if (isPlayer) {
+                        phoneNumberIpArea = proposal.getPlayerIpAreaFromRecord(platformId, duplicatePhoneNumberRecord);
+                    } else {
+                        phoneNumberIpArea = proposal.getPartnerIpAreaFromRecord(platformId, duplicatePhoneNumberRecord);
+                    }
+                }
+
+                return Promise.all([phoneNumberIpArea]).then(
+                    data => {
+                        let duplicatePhoneNumberList = data && data[0] ? data[0] : [];
+                        let result = {data: duplicatePhoneNumberList, size: duplicatePhoneNumberCount};
 
                         return result;
                     },

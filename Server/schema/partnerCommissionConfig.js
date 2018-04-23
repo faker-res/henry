@@ -1,11 +1,30 @@
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
-let constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
+//let constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
 
 let partnerCommissionConfigSchema = new Schema({
     //platform
-    platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true, unique: true},
+    platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
+    //game provider group _id
+    provider: {type: Schema.ObjectId, ref: 'gameProviderGroup'},
+    //commission type
+    commissionType: {type: String},
+    //commission setting
+    commissionSetting: [{
+        _id: false,
+
+        //Consumption Bonus Amount Or Consumption Valid Amount
+        playerConsumptionAmountFrom: {type: Number},
+        playerConsumptionAmountTo: {type: Number},
+        //Active Player
+        activePlayerValueFrom: {type: Number},
+        activePlayerValueTo: {type: Number},
+        //Commission Rate
+        commissionRate: {type: Number}
+    }]
+
+    /** To be removed
     //commission param
     //platform fee rate
     platformFeeRate: {type: Number, default: 0},
@@ -40,7 +59,7 @@ let partnerCommissionConfigSchema = new Schema({
     // settlement mode
     settlementMode: {type: String, default: constPartnerCommissionSettlementMode.OPSR},
     // reward rate
-    rewardRate: {type: Number, default: 1}
+    rewardRate: {type: Number, default: 1}**/
 });
 
 module.exports = partnerCommissionConfigSchema;

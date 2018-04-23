@@ -146,6 +146,9 @@ var platformWechatPayGroupModel = db_admin.model('platformWechatPayGroup', platf
 var partnerCommissionConfigSchema = require('./../schema/partnerCommissionConfig');
 var partnerCommissionConfigModel = db_admin.model('partnerCommissionConfig', partnerCommissionConfigSchema, 'partnerCommissionConfig');
 
+var partnerCommissionRateConfigSchema = require('./../schema/partnerCommissionRateConfig');
+var partnerCommissionRateConfigModel = db_admin.model('partnerCommissionRateConfig', partnerCommissionRateConfigSchema, 'partnerCommissionRateConfig');
+
 let gameProviderGroupSchema = require('./../schema/gameProviderGroup');
 let gameProviderGroupModel = db_admin.model('gameProviderGroup', gameProviderGroupSchema, 'gameProviderGroup');
 
@@ -171,6 +174,9 @@ let promoCodeTypeSchema = require('./../schema/promoCodeType');
 let promoCodeTypeModel = db_admin.model('promoCodeType', promoCodeTypeSchema, 'promoCodeType');
 let promoCodeUserGroupSchema = require('./../schema/promoCodeUserGroup');
 let promoCodeUserGroupModel = db_admin.model('promoCodeUserGroup', promoCodeUserGroupSchema, 'promoCodeUserGroup');
+
+let dxMissionSchema = require('../schema/dxMission');
+let dxMissionModel = db_admin.model('dxMission', dxMissionSchema, 'dxMission');
 
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
@@ -308,6 +314,13 @@ let clickCountSchema = require('./../schema/logs2/clickCount');
 let clickCountModel = dbLogs2.model('clickCount', clickCountSchema, 'clickCount');
 let rewardTaskGroupUnlockedRecordSchema = require('./../schema/logs2/rewardTaskGroupUnlockedRecord');
 let rewardTaskGroupUnlockedRecordModel = dbLogs2.model('rewardTaskGroupUnlockedRecord', rewardTaskGroupUnlockedRecordSchema, 'rewardTaskGroupUnlockedRecord');
+let playerBStateSchema = require('./../schema/logs2/playerBState');
+let playerBStateModel = dbLogs2.model('playerBState', playerBStateSchema, 'playerBState');
+let partnerCommSettLogSchema = require('./../schema/logs2/partnerCommSettLog');
+let partnerCommSettLogModel = dbLogs2.model('partnerCommSettLog', partnerCommSettLogSchema, 'partnerCommSettLog');
+
+let dxPhoneSchema = require('./../schema/logs2/dxPhone');
+let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -428,10 +441,14 @@ var dbProperties = {
     collection_messageTemplate: messageTemplateModel,
     collection_platformAnnouncement: platformAnnouncementModel,
     collection_partnerCommissionConfig: partnerCommissionConfigModel,
+    collection_partnerCommissionRateConfig: partnerCommissionRateConfigModel,
 
     collection_geoIp: geoIpModel,
     collection_promoCodeType: promoCodeTypeModel,
     collection_promoCodeUserGroup: promoCodeUserGroupModel,
+
+    collection_dxMission: dxMissionModel,
+    collection_dxPhone: dxPhoneModel,
 
     collection_csOfficer: csOfficerModel,
     collection_csOfficerUrl: csOfficerUrlModel,
@@ -504,6 +521,8 @@ var dbProperties = {
     collection_clickCount: clickCountModel,
     collection_rewardTaskGroupUnlockedRecord: rewardTaskGroupUnlockedRecordModel,
     collection_rewardPointsProgress: rewardPointsProgressModel,
+    collection_playerBState: playerBStateModel,
+    collection_partnerCommSettLog: partnerCommSettLogModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,

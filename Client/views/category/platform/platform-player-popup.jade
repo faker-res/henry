@@ -203,7 +203,7 @@
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformation')&&vm.selectedSinglePlayer.isRealPlayer",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", data-toggle="modal", ng-click="vm.openEditPlayerDialog('withdrawInfo');") {{"EDIT" | translate}}
                                         br
-                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory()') {{"EDIT_HISTORY" | translate}}
+                                        button.btn.btn-primary.common-button-sm(ng-if="checkViewPermission('Platform', 'Player', 'PaymentInformationHistory')",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.getPaymentInfoHistory(true)') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{"Topup Group" | translate}}
@@ -943,9 +943,7 @@
                                 input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
-                                select.form-control(ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)')
-                                    option(value='') {{'any' | translate}}
-                                    option(ng-repeat='(i,v) in vm.bankCards | orderBy : ["bankTypeId", "name"]', value='{{v}}') <b>{{vm.getBankCardTypeTextbyId(v.bankTypeId)}} - {{v.name}} ({{v.accountNumber}}) - {{(v.status == "DISABLED"?"Disable":v.status) | translate}}</b>
+                                select.form-control(ng-options='a as a.displayText group by a.bankCards for a in vm.bankCards', ng-model='vm.chosenBankAcc',ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)', bsp, data-live-search="true")
                             .form-group-col-md-6
                                 label.control-label {{'DEPOSIT_METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerManualTopUp.depositMethod', ng-change='vm.selectedDepositMethod(vm.playerManualTopUp.depositMethod)')
@@ -1486,7 +1484,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{vm.creditChange.modaltitle | translate}} : {{vm.selectedSinglePlayer.name}} ({{vm.selectedSinglePlayer.realName}})
+                h4.modal-title {{vm.creditChange.modaltitle | translate}} : {{vm.selectedSinglePlayer.name}} {{vm.selectedSinglePlayer.realName && '(' + vm.selectedSinglePlayer.realName + ')'}}
             .modal-body
                 .panel.panel-primary
                     .panel-body
@@ -1518,7 +1516,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{'REWARD_POINTS_ADJUSTMENT' | translate}} : {{vm.selectedSinglePlayer.name}} ({{vm.selectedSinglePlayer.realName}})
+                h4.modal-title {{'REWARD_POINTS_ADJUSTMENT' | translate}} : {{vm.selectedSinglePlayer.name}} {{vm.selectedSinglePlayer.realName && '(' + vm.selectedSinglePlayer.realName + ')'}}
             .modal-body(ng-show='!vm.selectedPlatform.data.usePointSystem')
                 .well
                     label.text-danger {{'FAIL' | translate}}
@@ -1713,4 +1711,3 @@
 
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
-

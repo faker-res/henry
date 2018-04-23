@@ -593,6 +593,36 @@ function socketActionPlatform(socketIO, socket) {
             let isValidData = Boolean(data && data.platformId && data.device && data.pageName);
             socketUtil.emitter(self.socket, dbPlatform.getClickCountButtonName, [ObjectId(data.platformId), data.device, data.pageName], actionName, isValidData);
         },
+
+        getPlatformPartnerSettLog: function getPlatformPartnerSettLog(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.modes);
+            socketUtil.emitter(self.socket, dbPlatform.getPlatformPartnerSettLog, [ObjectId(data.platformObjId), data.modes], actionName, isValidData);
+        },
+
+        generatePartnerCommSettPreview: function generatePartnerCommSettPreview(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime], actionName, isValidData);
+        },
+
+        skipNextPartnerCommissionPeriod: function skipNextPartnerCommissionPeriod(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.generatePartnerCommSettPreview, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime, true, data.toLatest], actionName, isValidData);
+        },
+
+        getAllPartnerCommSettPreview: function getAllPartnerCommSettPreview(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getAllPartnerCommSettPreview, [ObjectId(data.platformObjId)], actionName, isValidData);
+        },
+
+        initSettlePartnerComm: function initSettlePartnerComm(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.initSettlePartnerComm, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime], actionName, isValidData);
+        }
     };
     socketActionPlatform.actions = this.actions;
 }

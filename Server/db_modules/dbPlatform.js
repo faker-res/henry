@@ -7,6 +7,7 @@ var env = require('../config/env').config();
 var dbconfig = require('./../modules/dbproperties');
 var constPartnerLevel = require('./../const/constPartnerLevel');
 var constPlayerLevel = require('./../const/constPlayerLevel');
+const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 var constPlayerTrustLevel = require('./../const/constPlayerTrustLevel');
 var constProposalType = require('./../const/constProposalType');
 var constRewardType = require('./../const/constRewardType');
@@ -1528,6 +1529,18 @@ var dbPlatform = {
         var sortCol = data.sortCol || {createTime: -1};
         index = index || 0;
         limit = limit || constSystemParam.MAX_RECORD_NUM;
+        let smsVerificationExpireField = "smsVerificationExpireTime"; //to determine whether check player or partner sms expired time
+        let fieldOption = {smsVerificationExpireTime: 1};
+        let partnerInputDevice =  [
+            constPlayerRegistrationInterface.APP_AGENT,
+            constPlayerRegistrationInterface.H5_AGENT,
+            constPlayerRegistrationInterface.WEB_AGENT
+        ];
+
+        if (data.inputDevice && partnerInputDevice.indexOf(Number(data.inputDevice)) >= 0) {
+            smsVerificationExpireField = "partnerSmsVerificationExpireTime";
+            fieldOption = {partnerSmsVerificationExpireTime: 1};
+        }
 
         if (data.tel == '') {
             delete data.tel;
@@ -1556,12 +1569,12 @@ var dbPlatform = {
         let smsLogCount = 0;
         var a = dbconfig.collection_smsLog.find(query).sort(sortCol).skip(index).limit(limit);
         var b = dbconfig.collection_smsLog.find(query).count();
-        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, {smsVerificationExpireTime: 1}).lean();
+        let platformProm = dbconfig.collection_platform.findOne({_id: data.platformObjId}, fieldOption).lean();
         return Q.all([a, b, platformProm]).then(
             result => {
                 smsLogCount = result[1];
 
-                let smsVerificationExpireTime = result[2] && result[2].smsVerificationExpireTime ? result[2].smsVerificationExpireTime : 5;
+                let smsVerificationExpireTime = result[2] && result[2][smsVerificationExpireField] ? result[2][smsVerificationExpireField] : 5;
 
                 return dbPlatform.getSMSRepeatCount(result[0], smsVerificationExpireTime);
             }
@@ -2611,6 +2624,192 @@ var dbPlatform = {
             }
         );
     },
+
+    getPlatformPartnerSettLog: (platformObjId, modes) => {
+        let promArr = [];
+
+        modes.forEach(mode => {
+            promArr.push(
+                dbconfig.collection_partnerCommSettLog.findOne({
+                    platform: platformObjId,
+                    settMode: mode,
+                    isSettled: true
+                }).sort('-startTime').lean().then(
+                    modeLog => {
+                        let lastSettDate = "-";
+                        let nextSettDate = "-";
+                        let nextDate = {};
+                        let currentCycle = getPartnerCommNextSettDate(mode, getPartnerCommNextSettDate(mode, new Date()));
+
+                        if (modeLog) {
+                            lastSettDate =
+                                dbUtility.getLocalTimeString(modeLog.startTime, "YYYY-MM-DD")
+                                + " - " +
+                                dbUtility.getLocalTimeString(modeLog.endTime.getTime() + 1, "YYYY-MM-DD");
+
+                            nextDate = getPartnerCommNextSettDate(mode, modeLog.endTime.getTime() + 1);
+
+                            if (nextDate && currentCycle && nextDate.startTime.getTime() >= currentCycle.startTime.getTime()) {
+                                nextDate = {}
+                            }
+                        } else {
+                            nextDate = getPartnerCommNextSettDate(mode);
+                        }
+
+                        if (nextDate && nextDate.endTime) {
+                            nextSettDate =
+                                dbUtility.getLocalTimeString(nextDate.startTime, "YYYY-MM-DD")
+                                + " - " +
+                                // Offset for display purpose
+                                dbUtility.getLocalTimeString(nextDate.endTime.getTime() + 1, "YYYY-MM-DD")
+                        }
+
+                        return {
+                            mode: mode,
+                            lastSettDate: lastSettDate,
+                            nextSettDate: nextSettDate,
+                            settStartTime: nextDate.startTime,
+                            settEndTime: nextDate.endTime
+                        }
+                    }
+                )
+            )
+        });
+
+        return Promise.all(promArr);
+    },
+
+    generatePartnerCommSettPreview: (platformObjId, settMode, startTime, endTime, isSkip = false, toLatest = false) => {
+        if (toLatest) {
+            let currentCycle = getPartnerCommNextSettDate(settMode, getPartnerCommNextSettDate(settMode, new Date()));
+            currentCycle = getPartnerCommNextSettDate(settMode, currentCycle.startTime.getTime() - 1);
+            let previousCycle = getPartnerCommNextSettDate(settMode, currentCycle.startTime.getTime() - 1);
+
+            startTime = previousCycle.startTime;
+            endTime = previousCycle.endTime;
+        }
+
+        return dbconfig.collection_partnerCommSettLog.update({
+            platform: platformObjId,
+            settMode: settMode,
+            startTime: startTime,
+            endTime: endTime
+        }, {
+            isSettled: isSkip
+        }, {
+            upsert: true,
+            new: true
+        });
+    },
+
+    getAllPartnerCommSettPreview: (platformObjId) => {
+        return dbconfig.collection_partnerCommSettLog.find({
+            platform: platformObjId,
+            isSettled: false
+        }).sort('settMode').lean();
+    },
+
+    initSettlePartnerComm: (platformObjId, settMode, startTime, endTime) => {
+        let partnersProm = dbconfig.collection_partner.find({
+            platform: platformObjId
+        }, '_id partnerName realName credits').lean();
+        let commConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+            platform: platformObjId,
+            commissionType: settMode
+        }).populate({path: 'provider', model: dbconfig.collection_gameProviderGroup}).lean();
+        let commRateProm = dbconfig.collection_partnerCommissionRateConfig.find({
+            platform: platformObjId
+        }).lean();
+        let providerGroupProm = dbconfig.collection_gameProviderGroup.find({
+            platform: platformObjId
+        }).lean();
+
+        return Promise.all([partnersProm, commConfigProm, commRateProm, providerGroupProm]).then(
+            res => {
+                if (res && res[0] && res[1] && res[2]) {
+                    let partners = res[0];
+                    let commConfig = res[1];
+                    let rateConfig = res[2];
+                    let providerGroup = res[3];
+
+                    let providerDetailPromArr = [];
+                    let playerConsumpPromArr = [];
+
+                    partners.forEach(partner => {
+                        partner.providerComm = partner.providerComm ? partner.providerComm : [];
+
+                        providerDetailPromArr.push(
+                            dbconfig.collection_players.find({
+                                platform: platformObjId,
+                                partner: partner._id
+                            }, '_id name realName').lean().then(
+                                players => {
+                                    players.forEach(player => {
+                                        playerConsumpPromArr.push(
+                                            dbconfig.collection_playerConsumptionRecord.aggregate({
+                                                $match: {
+                                                    platformId: ObjectId(platformObjId),
+                                                    playerId: ObjectId(player._id),
+                                                    createTime: {$gte: new Date(startTime), $lte: new Date(endTime)}
+                                                }
+                                            }, {
+                                                $group: {
+                                                    _id: {
+                                                        playerId: "$playerId",
+                                                        providerId: "$providerId"
+                                                    },
+                                                    totalConsumptionBonus: {$sum: '$bonusAmount'},
+                                                    totalConsumptionValid: {$sum: '$validAmount'}
+                                                }
+                                            }).then(
+                                                consumptionSumm => {
+                                                    if (consumptionSumm && consumptionSumm.length > 0) {
+                                                        consumptionSumm.forEach(summ => {
+                                                            let playerConsumpObj = {
+                                                                bonusAmount: summ.totalConsumptionBonus,
+                                                                validAmount: summ.totalConsumptionValid,
+                                                                playerName: player.name,
+                                                                playerRealName: player.realName
+                                                            };
+
+                                                            if (partner.providerComm.some(e => String(e.providerObjId) === String(summ._id.providerId))) {
+                                                                let existingProviderComm = partner.providerComm.filter(e => String(e.providerObjId) === String(summ._id.providerId))[0];
+
+                                                                existingProviderComm.players.push(playerConsumpObj);
+                                                                existingProviderComm.totalConsumptionBonus += summ.totalConsumptionBonus;
+                                                                existingProviderComm.totalConsumptionValid += summ.totalConsumptionValid;
+                                                            } else {
+                                                                partner.providerComm.push({
+                                                                    providerObjId: summ._id.providerId,
+                                                                    players: [playerConsumpObj],
+                                                                    totalConsumptionBonus: summ.totalConsumptionBonus,
+                                                                    totalConsumptionValid: summ.totalConsumptionValid
+                                                                })
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            ).then(
+                                                () => {
+                                                    // Process partner.providerComm
+
+                                                }
+                                            )
+                                        )
+                                    });
+
+                                    return Promise.all(playerConsumpPromArr);
+                                }
+                            )
+                        )
+                    });
+
+                    return Promise.all(providerDetailPromArr).then(() => res)
+                }
+
+            }
+        );
+    },
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
@@ -2627,6 +2826,23 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     }
     if (createTimeQuery) {
         query[fieldName] = createTimeQuery;
+    }
+}
+
+function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfYear()) {
+    switch (settMode) {
+        case 1:
+            return dbUtility.getDayTime(curTime);
+        case 2:
+        case 5:
+            if (curTime && curTime.startTime) {
+                curTime = curTime.startTime;
+            }
+            return dbUtility.getWeekTime(curTime);
+        case 3:
+            return dbUtility.getBiWeekSGTIme(curTime);
+        case 4:
+            return dbUtility.getMonthSGTIme(curTime);
     }
 }
 

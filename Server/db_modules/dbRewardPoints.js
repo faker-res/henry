@@ -1423,8 +1423,15 @@ let dbRewardPoints = {
                         player = playerData;
                         platform = playerData.platform;
                         platformObjId = playerData.platform._id;
-                        rewardPoints = playerData.rewardPointsObjId.points;
-                        rewardPointsObjId = playerData.rewardPointsObjId._id;
+                        if (playerData.rewardPointsObjId) {
+                            if (playerData.rewardPointsObjId.points) {
+                                rewardPoints = playerData.rewardPointsObjId.points;
+                            }
+
+                            if (playerData.rewardPointsObjId._id) {
+                                rewardPointsObjId = playerData.rewardPointsObjId._id;
+                            }
+                        }
                     }
                 );
             firstProm = playerProm;

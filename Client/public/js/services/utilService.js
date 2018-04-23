@@ -789,6 +789,7 @@ define([], function () {
                 case "AddPlayerRewardTask":
                 case "PlayerLevelUp":
                 case "PlayerPromoCodeReward":
+                case "DxReward":
                 case "PlatformTransactionReward":
                 case "PlayerTopUpReturn":
                 case "PlayerConsumptionIncentive":
@@ -833,6 +834,7 @@ define([], function () {
                 case "UpdatePartnerPhone":
                 case "UpdatePartnerQQ":
                 case "UpdatePartnerWeChat":
+                case "UpdatePartnerCommissionType":
                     groupName = "PARTNER_INFORMATION";
                     break;
                 case "UpdatePlayerCredit":

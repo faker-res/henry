@@ -50,6 +50,7 @@ const constProposalMainType = {
     "PlayerConsecutiveConsumptionReward": constMainType.REWARD,
     "PlayerPacketRainReward": constMainType.REWARD,
     "PlayerPromoCodeReward": constMainType.REWARD,
+    "DxReward": constMainType.REWARD,
     "PlayerLimitedOfferReward": constMainType.REWARD,
     "PlayerTopUpReturnGroup": constMainType.REWARD,
     "PlayerFreeTrialRewardGroup": constMainType.REWARD,
@@ -77,6 +78,8 @@ const constProposalMainType = {
     "UpdatePartnerEmail": constMainType.UPDATE_PARTNER,
     "UpdatePartnerPhone": constMainType.UPDATE_PARTNER,
     "UpdatePartnerQQ": constMainType.UPDATE_PARTNER,
+    "UpdatePartnerWeChat": constMainType.UPDATE_PARTNER,
+    "UpdatePartnerCommissionType": constMainType.UPDATE_PARTNER,
     //"PartnerCommission": constMainType.UPDATE_PARTNER,
     //"UpdatePartnerCredit":constMainType.UPDATE_PARTNER,
 

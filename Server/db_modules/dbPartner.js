@@ -1,3 +1,7 @@
+var dbPartnerFunc = function () {
+};
+module.exports = new dbPartnerFunc();
+
 var dbconfig = require('./../modules/dbproperties');
 var Q = require("q");
 var bcrypt = require('bcrypt');
@@ -20,6 +24,7 @@ var constProposalMainType = require('../const/constProposalMainType');
 let rsaCrypto = require("../modules/rsaCrypto");
 let dbutility = require("./../modules/dbutility");
 let dbPlayerMail = require("../db_modules/dbPlayerMail");
+var localization = require("../modules/localization");
 
 let env = require('../config/env').config();
 
@@ -27,6 +32,7 @@ let SettlementBalancer = require('../settlementModule/settlementBalancer');
 
 const constPlayerLevelPeriod = require('../const/constPlayerLevelPeriod');
 const constPartnerCommissionPeriod = require('../const/constPartnerCommissionPeriod');
+const constPartnerCommissionType = require('../const/constPartnerCommissionType');
 const constProposalStatus = require('../const/constProposalStatus');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
@@ -38,8 +44,21 @@ const constPlayerRegistrationInterface = require("../const/constPlayerRegistrati
 let dbPartner = {
 
     createPartnerAPI: function (partnerData) {
+        let platformData;
         return dbconfig.collection_platform.findOne({platformId: partnerData.platformId}).then(
-            platformData => {
+            platformDataResult => {
+                platformData = platformDataResult;
+                if (platformData) {
+                    if (!platformData.partnerRequireSMSVerification) {
+                        return true;
+                    }
+                    return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, null, true);
+                } else {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            () => {
                 if (platformData) {
                     partnerData.platform = platformData._id;
                     partnerData.isNewSystem = true;
@@ -48,65 +67,56 @@ let dbPartner = {
                     //     partnerData.partnerName = platformData.partnerPrefix + partnerData.partnerName;
                     // }
 
-                    return dbPartner.isPhoneNumberValidToRegister({
-                        phoneNumber: partnerData.phoneNumber,
-                        platform: platformData._id
-                    }).then(
-                        function (data) {
-                            if (("allowSamePhoneNumberToRegister" in platformData) && !platformData.allowSamePhoneNumberToRegister && !data.isPhoneNumberValid) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    message: "Phone number already exists"
-                                });
-                            }
-                            else {
-                                return dbPartner.isExceedPhoneNumberValidToRegister({
-                                    phoneNumber: partnerData.phoneNumber,
-                                    platform: partnerData.platform
-                                }, platformData.samePhoneNumberRegisterCount).then(
-                                    function (isValid) {
-                                        if (isValid.isPhoneNumberValid) {
-                                            if (partnerData.parent) {
-                                                return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
-                                                    parentData => {
-                                                        if (parentData) {
-                                                            partnerData.parent = parentData._id;
-                                                            return dbPartner.createPartnerWithParent(partnerData);
-                                                        }
-                                                        else {
-                                                            return Q.reject({
-                                                                name: "DataError",
-                                                                message: "Cannot find parent partner"
-                                                            });
-                                                        }
-                                                    }
-                                                );
-                                            }
-                                            else {
-                                                return dbPartner.createPartner(partnerData);
-                                            }
-                                        }
-                                        else {
-                                            return Q.reject({
-                                                name: "DataError",
-                                                message: "Phone number already exists"
-                                            });
-                                        }
-                                    }
-                                );
-                            }
-                        },
-                        function (error) {
-                            deferred.reject({
-                                name: "DBError",
-                                message: "Error when finding phone number",
-                                error: error
-                            });
-                        }
-                    );
+                    if (platformData.partnerWhiteListingPhoneNumbers
+                        && platformData.partnerWhiteListingPhoneNumbers.length > 0
+                        && partnerData.phoneNumber
+                        && platformData.partnerWhiteListingPhoneNumbers.indexOf(partnerData.phoneNumber) > -1)
+                        return {isPhoneNumberValid: true};
+
+                    if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
+                        return dbPartner.isExceedPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber),
+                            platform: partnerData.platform
+                        }, platformData.partnerSamePhoneNumberRegisterCount);
+                        // return {isPhoneNumberValid: true};
+                    } else {
+                        return dbPartner.isPhoneNumberValidToRegister({
+                            phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber),
+                            platform: partnerData.platform
+                        });
+                    }
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            (data) => {
+                if (data.isPhoneNumberValid) {
+                    if (partnerData.parent) {
+                        return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
+                            parentData => {
+                                if (parentData) {
+                                    partnerData.parent = parentData._id;
+                                    return dbPartner.createPartnerWithParent(partnerData);
+                                }
+                                else {
+                                    return Q.reject({
+                                        name: "DataError",
+                                        message: "Cannot find parent partner"
+                                    });
+                                }
+                            }
+                        );
+                    }
+                    else {
+                        return dbPartner.createPartner(partnerData);
+                    }
+                } else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Phone number already exists"
+                    });
                 }
             }
         );
@@ -118,22 +128,21 @@ let dbPartner = {
      */
     createPartner: function (partnerdata) {
         let deferred = Q.defer();
-        // let partnerName = partnerdata.partnerName;
+
         let platformData = null;
 
-        if (partnerdata.parent === '') {
-            partnerdata.parent = null;
-        }
         if (!partnerdata.platform) {
             return Q.reject({
                 name: "DataError",
                 message: "You did not provide the 'platform' (ObjectId) field for the new partner"
             });
         }
+
         partnerdata.isNewSystem = true;
+
         // Player name should be alphanumeric and max 15 characters
         let alphaNumRegex = /^([0-9]|[a-z])+([0-9a-z]+)$/i;
-        if (/*partnerdata.partnerName.length > 20 ||*/ !partnerdata.partnerName.match(alphaNumRegex)) {
+        if (!partnerdata.partnerName.match(alphaNumRegex)) {
             // ignore for unit test
             if (env.mode !== "local" && env.mode !== "qa") {
                 return Q.reject({
@@ -149,6 +158,9 @@ let dbPartner = {
                 if (platform) {
                     platformData = platform;
 
+                    if (platformData.partnerDefaultCommissionGroup && !partnerdata.commissionType) {
+                        partnerdata.commissionType = platformData.partnerDefaultCommissionGroup;
+                    };
                     // attach platform prefix to player name if available
                     if (platform.partnerPrefix) {
                         partnerdata.partnerName = platform.partnerPrefix + partnerdata.partnerName;
@@ -162,15 +174,21 @@ let dbPartner = {
                         return Promise.reject(new Error());
                     }
 
-                    if (platformData.allowSamePhoneNumberToRegister === true) {
+                    if (platformData.partnerWhiteListingPhoneNumbers
+                        && platformData.partnerWhiteListingPhoneNumbers.length > 0
+                        && partnerdata.phoneNumber
+                        && platformData.partnerWhiteListingPhoneNumbers.indexOf(partnerdata.phoneNumber) > -1)
+                        return {isPhoneNumberValid: true};
+
+                    if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                         return dbPartner.isExceedPhoneNumberValidToRegister({
-                            phoneNumber: partnerdata.phoneNumber,
+                            phoneNumber: rsaCrypto.encrypt(partnerdata.phoneNumber),
                             platform: partnerdata.platform
-                        }, platformData.samePhoneNumberRegisterCount);
+                        }, platformData.partnerSamePhoneNumberRegisterCount);
                         // return {isPhoneNumberValid: true};
                     } else {
                         return dbPartner.isPhoneNumberValidToRegister({
-                            phoneNumber: partnerdata.phoneNumber,
+                            phoneNumber: rsaCrypto.encrypt(partnerdata.phoneNumber),
                             platform: partnerdata.platform
                         });
                     }
@@ -234,8 +252,7 @@ let dbPartner = {
                 });
                 return Promise.reject(new Error());
             }
-        ).then(
-            function (level) {
+        ).then(level => {
                 return dbPartner.createPartnerDomain(partnerdata).then(
                     () => {
                         // determine registrationInterface
@@ -592,6 +609,9 @@ let dbPartner = {
                 if(k=="level"){
                     data["level"] = mongoose.Types.ObjectId(data["level"]);
                 }
+                if(k=="player"){
+                    data["player"] = mongoose.Types.ObjectId(data["player"]);
+                }
                 query[k]= data[k];
             }
         }
@@ -600,7 +620,7 @@ let dbPartner = {
             //if there is sorting parameter
             var detail = dbconfig.collection_partner.aggregate([
                 {$match: query},
-                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
+                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1, "player":1}},
                 {$sort:data.sortCol},
                 {$skip:data.index},
                 {$limit:data.limit}
@@ -629,7 +649,7 @@ let dbPartner = {
             //if there is not sorting parameter
             var detail = dbconfig.collection_partner.aggregate([  
                 {$match: query},
-                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
+                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1, "player":1}},
                 {$skip:data.index},
                 {$limit:data.limit}
             ]).then(
@@ -737,6 +757,7 @@ let dbPartner = {
     },
     getPartnerItem: function(id, childrencount) {
         return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(id)})
+            .populate({path: "player", model: dbconfig.collection_players, select:{_id:1, name:1, playerId:1}})
             .populate({path: "parent", model: dbconfig.collection_partner})
             .populate({path: "level", model: dbconfig.collection_partnerLevel}).
             then(function(partnerdata){
@@ -1147,7 +1168,7 @@ let dbPartner = {
                 if (platformData) {
                     platformObjId = platformData._id;
                     partnerData.prefixName = platformData.partnerPrefix + partnerData.name;
-                    requireLogInCaptcha = platformData.requireLogInCaptcha || false;
+                    requireLogInCaptcha = platformData.partnerRequireLogInCaptcha || false;
 
                     return dbconfig.collection_partner.findOne({
                         partnerName: partnerData.prefixName.toLowerCase(),
@@ -1197,6 +1218,14 @@ let dbPartner = {
         ).then(
             isMatch => {
                 if (isMatch) {
+                    if (partnerObj.permission.forbidPartnerFromLogin) {
+                        return Q.reject({
+                            name: "DataError",
+                            message: "Partner is forbidden to login",
+                            code: constServerCode.PARTNER_IS_FORBIDDEN
+                        });
+                    }
+
                     if (partnerObj.status == constPartnerStatus.FORBID) {
                         return Q.reject({
                             name: "DataError",
@@ -1204,6 +1233,7 @@ let dbPartner = {
                             code: constServerCode.PARTNER_IS_FORBIDDEN
                         });
                     }
+
                     var newAgentArray = partnerObj.userAgent || [];
                     var uaObj = {
                         browser: userAgent.browser.name || '',
@@ -1211,6 +1241,7 @@ let dbPartner = {
                         os: userAgent.os.name || '',
                     };
                     var bExit = false;
+
                     if(newAgentArray && typeof newAgentArray.forEach == "function" ){
                         newAgentArray.forEach(
                             agent => {
@@ -1268,7 +1299,7 @@ let dbPartner = {
                             var record = new dbconfig.collection_partnerLoginRecord(recordData);
                             return record.save().then(
                                 () => {
-                                    data.platform.requireLogInCaptcha = requireLogInCaptcha;
+                                    data.platform.partnerRequireLogInCaptcha = requireLogInCaptcha;
                                     return data;
                                 }
                             );
@@ -1474,11 +1505,11 @@ let dbPartner = {
             platformData => {
                 if (platformData) {
                     // Check if platform sms verification is required
-                    if (!platformData.requireSMSVerificationForPasswordUpdate) {
+                    if (!platformData.partnerRequireSMSVerificationForPasswordUpdate) {
                         // SMS verification not required
                         return Q.resolve(true);
                     } else {
-                        return dbPlayerMail.verifySMSValidationCode(partnerObj.phoneNumber, platformData, smsCode);
+                        return dbPlayerMail.verifySMSValidationCode(partnerObj.phoneNumber, platformData, smsCode, null, true);
                     }
                 } else {
                     return Q.reject({
@@ -1533,34 +1564,100 @@ let dbPartner = {
     },
 
     updatePartnerBankInfo: function (userAgent, partnerId, bankData) {
-        return dbconfig.collection_partner.findOne({partnerId: partnerId}).then(
-            partnerData => {
-                if (partnerData) {
-                    if (partnerData.bankName || partnerData.bankAccount || partnerData.bankAccountName || partnerData.bankAccountType || partnerData.bankAccountCity || partnerData.bankAddress) {
-                        // bankData.partnerName = partnerData.partnerName;
-                        // bankData.parternId = partnerData.partnerId;
-                        let inputDevice = dbutility.getInputDevice(userAgent,true);
-                        return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform, constProposalType.UPDATE_PARTNER_BANK_INFO, {
-                            data: {
-                                partnerName: partnerData.partnerName,
-                                parternId: partnerData.partnerId,
-                                updateData: bankData
-                            },
-                            inputDeivce: inputDevice
-                        });
-                    }
-                    else {
-                        return dbconfig.collection_partner.update(
-                            {_id: partnerData._id, platform: partnerData.platform},
-                            bankData
-                        );
+        let partnerData;
+        return dbconfig.collection_partner.findOne({partnerId: partnerId})
+            .populate({path: "platform", model: dbconfig.collection_platform})
+            .then(
+                partnerResult => {
+                    partnerData = partnerResult;
+                    if (partnerData && partnerData.platform) {
+                        // Check if partner sms verification is required
+                        if (!partnerData.platform.partnerRequireSMSVerificationForPaymentUpdate) {
+                            // SMS verification not required
+                            return Q.resolve(true);
+                        } else {
+                            return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, partnerData.platform, bankData.smsCode, null, true);
+                        }
+                    } else {
+                        return Q.reject({name: "DataError", message: "Cannot find partner"});
                     }
                 }
+            ).then(
+                () => {
+                if (partnerData.bankName || partnerData.bankAccount || partnerData.bankAccountName || partnerData.bankAccountType || partnerData.bankAccountCity || partnerData.bankAddress) {
+                    // bankData.partnerName = partnerData.partnerName;
+                    // bankData.parternId = partnerData.partnerId;
+                    let inputDevice = dbutility.getInputDevice(userAgent,true);
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, {
+                        creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
+                        data: {
+                            _id: partnerData._id || "",
+                            partnerName: partnerData.partnerName,
+                            parternId: partnerData.partnerId,
+                            updateData: bankData
+                        },
+                        inputDevice: inputDevice? inputDevice: 0
+                    });
+                }
                 else {
-                    return Q.reject({name: "DataError", message: "Cannot find partner"});
+                    return dbconfig.collection_partner.update(
+                        {_id: partnerData._id, platform: partnerData.platform._id},
+                        bankData
+                    );
                 }
             }
         );
+    },
+
+    updatePartnerCommissionType: function (userAgent, partnerId, data) {
+        return dbconfig.collection_partner.findOne({partnerId: partnerId})
+            .populate({path: "platform", model: dbconfig.collection_platform}).then(
+                partnerData => {
+                    if (partnerData && partnerData.platform) {
+                        if (partnerData.commissionType == constPartnerCommissionType.OPTIONAL_REGISTRATION) {
+                            data.commissionType = Number(data.commissionType);
+                            let inputDevice = dbutility.getInputDevice(userAgent,true);
+                            return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform._id, constProposalType.UPDATE_PARTNER_COMMISSION_TYPE, {
+                                creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
+                                data: {
+                                    _id: partnerData._id || "",
+                                    partnerName: partnerData.partnerName,
+                                    parternId: partnerData.partnerId,
+                                    partnerObjId: partnerData._id,
+                                    updateData: data,
+                                    remark: localization.localization.translate(Object.keys(constPartnerCommissionType)[data.commissionType])
+                                },
+                                inputDevice: inputDevice? inputDevice: 0
+                            });
+                        } else {
+                            return Q.reject({name: "DataError", message: "Fail to update commission type"});
+                        }
+                    } else {
+                        return Q.reject({name: "DataError", message: "Cannot find partner"});
+                    }
+                }
+            );
+
+    },
+
+    verifyPartnerBankAccount: function (partnerObjId, bankAccount) {
+        return dbconfig.collection_partner.findOne({_id: partnerObjId, bankAccount: bankAccount}).then(
+            partnerData => {
+                return Boolean(partnerData);
+            }
+        )
+    },
+
+    verifyPartnerPhoneNumber: function (partnerObjId, phoneNumber) {
+        var enPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+        return dbconfig.collection_partner.findOne({
+            _id: partnerObjId,
+            phoneNumber: {$in: [phoneNumber, enPhoneNumber]}
+        }).then(
+            partnerData => {
+                return Boolean(partnerData);
+            }
+        )
     },
 
     getPlayerSimpleList: function (partnerId, queryType, startTime, endTime, startIndex, requestCount, sort) {
@@ -1976,6 +2073,14 @@ let dbPartner = {
                             status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                             name: "DataError",
                             errorMessage: "Partner does not have valid payment information"
+                        });
+                    }
+
+                    if (partnerData.permission && !partnerData.permission.applyBonus) {
+                        return Q.reject({
+                            status: constServerCode.PARTNER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Partner is forbidden to apply bonus"
                         });
                     }
 
@@ -2818,6 +2923,56 @@ let dbPartner = {
 
     updatePartnerCommissionLevel: function (query, update) {
         return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, update);
+    },
+
+    createUpdatePartnerCommissionRateConfig: function  (query, data) {
+        return dbconfig.collection_partnerCommissionRateConfig.findOne({platform: query.platform}).lean().then(
+            configData => {
+                //check if config exist
+                if (!configData) {
+                    var newCommissionRateConfig = new dbconfig.collection_partnerCommissionRateConfig(data);
+                    return newCommissionRateConfig.save();
+                }
+                else {
+                    return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(query, data);
+                }
+            });
+    },
+
+    getPartnerCommissionRateConfig: function (query) {
+        return dbconfig.collection_partnerCommissionRateConfig.findOne(query);
+    },
+
+    createUpdatePartnerCommissionConfig: function  (query, data) {
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType}).lean().then(
+           configData => {
+               //check if config exist
+               if (!configData) {
+                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
+                    return newCommissionConfig.save();
+               }
+               else {
+                   return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
+               }
+           });
+    },
+
+    getPartnerCommissionConfigWithGameProviderGroup: function (query) {
+        return dbconfig.collection_partnerCommissionConfig.find(query);
+    },
+
+    createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data) {
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType, provider: query.provider}).lean().then(
+            configData => {
+                //check if config exist
+                if (!configData) {
+                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
+                    return newCommissionConfig.save();
+                }
+                else {
+                    return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
+                }
+            });
     },
 
     startPlatformPartnerCommissionSettlement: function (platformObjId, bUpdateSettlementTime, isToday) {
@@ -4114,6 +4269,14 @@ let dbPartner = {
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).then(
             partnerData => {
                 if (partnerData) {
+                    if (partnerData.permission && !partnerData.permission.phoneCallFeedback) {
+                        return Q.reject({
+                            status: constServerCode.PARTNER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Partner does not have this permission"
+                        });
+                    }
+
                     if (partnerData.phoneNumber) {
                         // temp remove the encryption
                         // if (partnerData.phoneNumber.length > 20) {
@@ -4160,7 +4323,7 @@ let dbPartner = {
     },
 
     isPartnerNameValidToRegister: function (query) {
-        return dbconfig.collection_partner.findOne({$or:[{partnerName:query.partnerName},{realName:query.realName}], platform: query.platform}).then(
+        return dbconfig.collection_partner.findOne({partnerName:query.partnerName, platform: query.platform}).then(
             partnerData => {
                 if (partnerData) {
                     return {isPartnerNameValid: false};
@@ -4418,9 +4581,10 @@ let dbPartner = {
                 return {data: data[1], size: data[0]}
             }
         )
-    }
-
+    },
 
 };
+var proto = dbPartnerFunc.prototype;
+proto = Object.assign(proto, dbPartner);
 
 module.exports = dbPartner;

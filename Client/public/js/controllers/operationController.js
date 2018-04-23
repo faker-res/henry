@@ -1112,7 +1112,11 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row) {
                             if (data.hasOwnProperty('creator')) {
                                 if(data.creator && data.creator.type && data.creator.type == "partner"){
-                                    return $translate('PARTNER') + ": " + data.creator.id;
+                                    if (data.creator.name) {
+                                        return $translate('PARTNER') + ": " + data.creator.name;
+                                    } else {
+                                        return $translate('PARTNER') + ": " + data.creator.id;
+                                    }
                                 }
                                 return data.creator.name;
                             } else {
@@ -1911,6 +1915,128 @@ define(['js/app'], function (myApp) {
             }
 
             var proposalDetail = $.extend({}, vm.selectedProposal.data);
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["MAIN_TYPE"] = $translate("ManualPlayerTopUp");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
+                proposalDetail["DEPOSIT_METHOD"] = $translate(vm.getDepositMethodbyId[vm.selectedProposal.data.depositMethod]);
+                proposalDetail["ACCNAME"] = vm.selectedProposal.data.realName || " ";
+                proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                proposalDetail["RECEIVE_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankTypeId] || (vm.selectedProposal.data.bankTypeId + " ! " + $translate("not in bank type list"));
+                proposalDetail["RECEIVE_BANK_ACC"] = vm.selectedProposal.data.bankCardNo;
+                proposalDetail["RECEIVE_BANK_ACC_NAME"] = vm.selectedProposal.data.cardOwner;
+                proposalDetail["RECEIVE_BANK_ACC_PROVINCE"] = vm.selectedProposal.data.provinceId;
+                proposalDetail["RECEIVE_BANK_ACC_CITY"] = vm.selectedProposal.data.cityId;
+                proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? new Date(vm.selectedProposal.data.depositTime).toLocaleString() : " ";
+                proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
+                proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
+                proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
+                proposalDetail["REQUEST_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankCardType] || (vm.selectedProposal.data.bankCardType + " ! " + $translate("not in bank type list"));
+                proposalDetail["USE_PMS_CARD_GROUP"] = vm.selectedProposal.data.bPMSGroup || false;
+                proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
+                proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
+                proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
+                proposalDetail["SINGLE_LIMIT"] = " ";
+                proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
+                proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerTopUp") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["MAIN_TYPE"] = $translate("PlayerTopUp");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
+                proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
+                proposalDetail["3rdPartyPlatform"] = vm.selectedProposal.data.merchantUseName || " ";
+                proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
+                proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
+                proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
+                proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
+                proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
+                proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
+                proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
+                proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.permerchantLimits || "0";
+                proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.transactionForPlayerOneDay || "0");
+            }
+
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerWechatTopUp") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["MAIN_TYPE"] = $translate("PlayerWechatTopUp");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
+                proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount;
+                proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name;
+                proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname;
+                proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
+                proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
+                proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
+                proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
+                proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
+                proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
+                proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
+                proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
+                proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
+                proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.weChatQRCode || " ";
+                proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerAlipayTopUp") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["MAIN_TYPE"] = $translate("PlayerAlipayTopUp");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
+                proposalDetail["PLAYER_ALIPAY_NAME_ID"] = vm.selectedProposal.data.userAlipayName;
+                proposalDetail["PLAYER_ALIPAY_REALNAME"] = vm.selectedProposal.data.realName || " ";
+                proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                proposalDetail["RECIPIENTS_APLIPAY_ACC"] = vm.selectedProposal.data.alipayAccount;
+                proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
+                proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
+                proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
+                proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
+                proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
+                proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
+                proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
+                proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
+                proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
+                proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
+                proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.alipayQRCode || " ";
+                proposalDetail["ALIPAY_QR_ADDRESS"] = vm.selectedProposal.data.qrcodeAddress || " ";
+                proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+            }
+
             var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
             for (let i in proposalDetail) {
                 // Add provider group name
@@ -1934,10 +2060,14 @@ define(['js/app'], function (myApp) {
                 }
             }
             vm.selectedProposalDetailForDisplay = $.extend({}, proposalDetail);
-            if (vm.selectedProposalDetailForDisplay['provinceId']) {
-                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay['provinceId']}, function (data) {
+            if (vm.selectedProposalDetailForDisplay['provinceId'] || vm.selectedProposalDetailForDisplay['RECEIVE_BANK_ACC_PROVINCE']) {
+                let provinceField  = 'provinceId';
+                if (vm.selectedProposalDetailForDisplay['RECEIVE_BANK_ACC_PROVINCE'] ) {
+                    provinceField = 'RECEIVE_BANK_ACC_PROVINCE'
+                }
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
                     var text = data.data.province ? data.data.province.name : val;
-                    vm.selectedProposalDetailForDisplay['provinceId'] = text;
+                    vm.selectedProposalDetailForDisplay[provinceField] = text;
                     $scope.safeApply();
                 });
             }
@@ -1949,10 +2079,14 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            if (vm.selectedProposalDetailForDisplay['cityId']) {
-                socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay['cityId']}, function (data) {
+            if (vm.selectedProposalDetailForDisplay['cityId'] || vm.selectedProposalDetailForDisplay['RECEIVE_BANK_ACC_CITY']) {
+                let provinceField = 'cityId';
+                if (vm.selectedProposalDetailForDisplay['RECEIVE_BANK_ACC_CITY']) {
+                    provinceField = "RECEIVE_BANK_ACC_CITY";
+                }
+                socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposalDetailForDisplay[provinceField]}, function (data) {
                     var text = data.data.city ? data.data.city.name : val;
-                    vm.selectedProposalDetailForDisplay['cityId'] = text;
+                    vm.selectedProposalDetailForDisplay[provinceField] = text;
                     $scope.safeApply();
                 });
             }

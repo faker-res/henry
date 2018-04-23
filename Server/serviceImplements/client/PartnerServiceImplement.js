@@ -132,7 +132,7 @@ var PartnerServiceImplement = function () {
         var ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.partnerLoginAPI, [data, ua], isValidData, true, true, true).then(
             function (partnerData) {
-                if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || partnerData.platform.requireLogInCaptcha) {
+                if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || partnerData.platform.partnerRequireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
                         conn.isAuth = true;
                     } else {
@@ -221,6 +221,13 @@ var PartnerServiceImplement = function () {
                 //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
             }
         ).catch(WebSocketUtil.errorHandler).done();
+    };
+
+    this.updatePartnerCommissionType.expectsData = 'partnerId: String, token: String';
+    this.updatePartnerCommissionType.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        var isValidData = Boolean(conn.partnerId && data && data.commissionType);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.updatePartnerCommissionType, [userAgent, conn.partnerId, data], isValidData);
     };
 
     this.fillBankInformation.expectsData = 'partnerId: String';
@@ -374,7 +381,7 @@ var PartnerServiceImplement = function () {
         conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], true);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, null, null, true], isValidData, false, false, true);
     };
 
     this.updatePhoneNumberWithSMS.expectsData = 'partnerId: String, phoneNumber: Number';

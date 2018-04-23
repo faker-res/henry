@@ -131,14 +131,14 @@
 
     proto.createPlayerCreditChangeLog = function (callback, requestData) {
         var data = requestData || {
-                "playerName": "uzhoudada ",
-                "platform": "1",
-                "operationType": "UpdatePlayerCredit",
-                "amount": -21.0,
-                "curAmount": 0.0,
-                "operationTime": "2016-11-20T17:16:31Z",
-                "data": {"pno": "5121611210043"}
-            };
+            "playerName": "uzhoudada ",
+            "platform": "1",
+            "operationType": "UpdatePlayerCredit",
+            "amount": -21.0,
+            "curAmount": 0.0,
+            "operationTime": "2016-11-20T17:16:31Z",
+            "data": {"pno": "5121611210043"}
+        };
         this._service.createPlayerCreditChangeLog.request(data);
         var self = this;
         this._service.createPlayerCreditChangeLog.once(function (data) {
@@ -195,6 +195,57 @@
         this._service.updatePlayer.request(data);
         var self = this;
         this._service.updatePlayer.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.importBIPlayer = function (callback, requestData) {
+        var data = {
+            name: "yunvincevince80",
+            platform: 1,
+            realName: "测试",
+            referral: "a123",
+            partner: "p123",
+            registrationTime: "2018-02-23 18:00",
+            lastAccessTime: "2018-02-23 18:00",
+            loginTimes: 21,
+            topUpTimes: 30,
+            phoneNumber: "15678765674",
+            email: "test@gmail.com",
+            wechat: "test123",
+            qq: "12345678",
+            bankAccount: "8888888888888888",
+            bankAccountCity: "110100",
+            bankAccountDistrict: "110101",
+            bankAccountName: "测试",
+            bankAccountProvince: "110000",
+            bankAccountType: "2",
+            bankAddress: "东城支行",
+            permission: {
+                PlayerDoubleTopUpReturn: true,
+                PlayerTopUpReturn: true,
+                advanceConsumptionReward: true,
+                alipayTransaction: true,
+                applyBonus: true,
+                banReward: false,
+                disableWechatPay: false,
+                forbidPlayerConsumptionIncentive: false,
+                forbidPlayerConsumptionReturn: false,
+                forbidPlayerFromEnteringGame: false,
+                playerConsecutiveConsumptionReward: true,
+                quickpayTransaction: true,
+                topupManual: true,
+                topupOnline: true,
+                transactionReward: true
+            },
+            forbidProviders: [],
+            forbidRewardEvents: []
+        };
+        this._service.importBIPlayer.request(data);
+        var self = this;
+        this._service.importBIPlayer.once(function (data) {
             if (callback && typeof callback === "function") {
                 callback(data);
             }

@@ -1668,7 +1668,7 @@ let dbPlayerInfo = {
                                 console.log(err);
                             }
                         }
-                        return playerData.phoneNumber;
+                        return playerData.phoneNumber.trim();
                     } else {
                         return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
                     }
@@ -2838,14 +2838,14 @@ let dbPlayerInfo = {
                             break;
                     }
                     var logProm = dbLogger.createCreditChangeLogWithLockedCredit(playerId, data.platform, amount, type, data.validCredit, data.lockedCredit, data.lockedCredit, null, logData);
-                    var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
+                    // var levelProm = dbPlayerInfo.checkPlayerLevelUp(playerId, data.platform).catch(console.log);
                     let promArr;
 
                     if (useProviderGroup) {
                         var freeAmountRewardTaskGroupProm = dbPlayerInfo.checkFreeAmountRewardTaskGroup(playerId, data.platform, amount);
-                        promArr = [recordProm, logProm, levelProm, freeAmountRewardTaskGroupProm];
+                        promArr = [recordProm, logProm, freeAmountRewardTaskGroupProm];
                     } else {
-                        promArr = [recordProm, logProm, levelProm];
+                        promArr = [recordProm, logProm];
                     }
 
                     // Check any limited offer matched
@@ -2870,6 +2870,7 @@ let dbPlayerInfo = {
                     // Async - Check reward group task to apply on player top up
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, topupRecordData).catch(errorUtils.reportError);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(playerData._id).catch(errorUtils.reportError);
+                    dbPlayerInfo.checkPlayerLevelUp(playerId, playerData.platform).catch(console.log);
                     deferred.resolve(data && data[0]);
                 }
             },
@@ -4119,7 +4120,7 @@ let dbPlayerInfo = {
                     if (playerObj.permission.forbidPlayerFromLogin) {
                         deferred.reject({
                             name: "DataError",
-                            message: "Player is not enable",
+                            message: "Player is forbidden to login",
                             code: constServerCode.PLAYER_IS_FORBIDDEN
                         });
                         return;
@@ -6175,7 +6176,7 @@ let dbPlayerInfo = {
     isExceedPhoneNumberValidToRegister: function (query, count) {
         return dbconfig.collection_players.findOne(query).count().then(
             playerDataCount => {
-                if (playerDataCount > count) {
+                if (playerDataCount >= count) {
                     return {isPhoneNumberValid: false};
                 } else {
                     return {isPhoneNumberValid: true};
@@ -6854,9 +6855,11 @@ let dbPlayerInfo = {
                                     if (meetsEnoughConditions) {
                                         levelObjId = level._id;
                                         levelUpObj = level;
-                                        levelUpObjId[levelUpCounter] = level._id;
-                                        levelUpObjArr[levelUpCounter] = level;
-                                        levelUpCounter++;
+                                        if (levelUpObjId.indexOf(level._id) < 0 ) {
+                                            levelUpObjId[levelUpCounter] = level._id;
+                                            levelUpObjArr[levelUpCounter] = level;
+                                            levelUpCounter++;
+                                        }
                                     } else {
 
                                         if (!levelUpEnd) {
@@ -8950,7 +8953,7 @@ let dbPlayerInfo = {
                         if (player.platform && player.platform.useProviderGroup) {
                             let unlockAllGroups = Promise.resolve(true);
                             if (bForce) {
-                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id).catch(errorUtils.reportError);
+                                unlockAllGroups = dbRewardTaskGroup.unlockPlayerRewardTask(playerData._id, adminInfo).catch(errorUtils.reportError);
                             }
                             return unlockAllGroups.then(
                                 () => {
@@ -9668,7 +9671,7 @@ let dbPlayerInfo = {
                 }).then(
                     playerData => {
                         if (playerData) {
-                            if (playerData.lastLoginIp == playerIp) {
+                            // if (playerData.lastLoginIp == playerIp) {
                                 if (playerData.isTestPlayer && isDemoPlayerExpire(playerData, playerData.platform.demoPlayerValidDays)) {
                                     deferred.reject({
                                         name: "DataError",
@@ -9683,10 +9686,10 @@ let dbPlayerInfo = {
                                 conn.playerObjId = playerData._id;
                                 conn.platformId = playerData.platform.platformId;
                                 deferred.resolve(true);
-                            }
-                            else {
-                                deferred.reject({name: "DataError", message: "Player ip doesn't match!"});
-                            }
+                            // }
+                            // else {
+                            //     deferred.reject({name: "DataError", message: "Player ip doesn't match!"});
+                            // }
                         }
                         else {
                             deferred.reject({name: "DataError", message: "Can't find player"});
@@ -11454,22 +11457,22 @@ let dbPlayerInfo = {
                             message: "Player do not have permission for reward"
                         });
                     }
-                    return dbPlayerUtil.setPlayerState(playerData._id, "ApplyRewardEvent").then(
+                    return dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true).then(
                         playerState => {
-                            if(playerState) {
+                            if (playerState) {
                                 //check if player's reward task is no credit now
                                 return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
                                     taskStatus => {
                                         return dbconfig.collection_rewardEvent.findOne({
                                             platform: playerData.platform,
                                             code: code
-                                        })
-                                            .populate({path: "type", model: dbconfig.collection_rewardType}).lean();
+                                        }).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
                                     }
                                 );
                             } else {
                                 return Promise.reject({
                                     name: "DBError",
+                                    status: constServerCode.CONCURRENT_DETECTED,
                                     message: "Apply Reward Fail, please try again later"
                                 })
                             }
@@ -11677,6 +11680,23 @@ let dbPlayerInfo = {
                         message: "Can not find reward event"
                     });
                 }
+            }
+        ).then(
+            data => {
+                // Reset BState
+                dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                return data;
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
             }
         );
     },
@@ -13022,7 +13042,7 @@ let dbPlayerInfo = {
 
         let stream = dbconfig.collection_players.aggregate({
             $match: matchObj
-        }).cursor({batchSize: 100}).allowDiskUse(true).exec();
+        }).cursor({batchSize: 50}).allowDiskUse(true).exec();
 
         let balancer = new SettlementBalancer();
 
@@ -13031,7 +13051,7 @@ let dbPlayerInfo = {
                 balancer.processStream(
                     {
                         stream: stream,
-                        batchSize: 100,
+                        batchSize: 50,
                         makeRequest: function (playerIdObjs, request) {
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
@@ -14233,6 +14253,75 @@ let dbPlayerInfo = {
         });
     },
 
+    importDiffPhoneNum: function (platform, phoneNumber, dxMission) {
+        let phoneArr = phoneNumber.split(',').map((item) => item.trim());
+
+        if(phoneArr.length > 0) {
+            let promArr = [];
+
+            return dbconfig.collection_dxMission.findOne({_id: dxMission}).lean().then(
+                dxMissionRes => {
+                    for (let x = 0; x < phoneArr.length; x++) {
+                        promArr.push(
+                            dbPlayerInfo.generateDXCode(dxMission).then(
+                                randomCode => {
+                                    let importData = {
+                                        platform: platform,
+                                        phoneNumber: phoneArr[x],
+                                        dxMission: dxMission,
+                                        code: randomCode,
+                                        url: dxMissionRes.domain + "/" + randomCode
+                                    };
+
+                                    let importPhone = new dbconfig.collection_dxPhone(importData);
+                                    importPhone.save();
+                                }
+                            )
+                        )
+                    }
+
+                    return Promise.all(promArr).then(() => true);
+                }
+            )
+        }
+        return false;
+
+    },
+    generateDXCode: function (dxMission, platformId, tries) {
+        tries = (Number(tries) || 0) + 1;
+        if (tries > 5) {
+            return Promise.reject({
+                message: "Generate dian xiao code failure."
+            })
+        }
+        let randomString = Math.random().toString(36).substring(4,11); // generate random String
+        let dxCode = "";
+
+        let platformProm = Promise.resolve({platformId: platformId});
+        if (!platformId) {
+            platformProm = dbconfig.collection_dxMission.findOne({_id: dxMission}).populate({
+                path: "platform", model: dbconfig.collection_platform
+            }).lean();
+        }
+
+        return platformProm.then(
+            function (missionProm) {
+                platformId = missionProm.platform.platformId;
+                dxCode = missionProm.platform.platformId + randomString;
+                return dbconfig.collection_dxPhone.findOne({code: dxCode}).lean();
+            }
+        ).then(
+            function (dxPhoneExist) {
+                if (dxPhoneExist) {
+                    return dbPlayerInfo.generateDXCode(dxMission, platformId);
+                }
+                else {
+                    return dxCode;
+                }
+            }
+        );
+    },
+
     getWithdrawalInfo: function (platformId, playerId) {
         let result = {
             freeTimes: 0,
@@ -14727,6 +14816,35 @@ let dbPlayerInfo = {
                 });
             });
     },
+
+    getClientData : function(playerId){
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                return playerData ? playerData.clientData : "";
+            }
+        );
+    },
+
+    saveClientData : function(playerId, clientData){
+        return dbconfig.collection_players.findOne({playerId: playerId}).lean().then(
+            playerData => {
+                if(playerData){
+                    return dbconfig.collection_players.findOneAndUpdate({_id: playerData._id, platform: playerData.platform}, {clientData: clientData}).then(
+                        res => {
+                            return clientData;
+                        }
+                    );
+                }
+                else{
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "can not find player"
+                    });
+                }
+            }
+        );
+    }
 
 };
 

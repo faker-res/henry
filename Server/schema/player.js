@@ -304,10 +304,15 @@ var playerSchema = new Schema({
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
     // xima withdrawal check bypass
     ximaWithdraw: {type: Number, default: 0},
+    // dian xiao mission related player
+    dxMission: {type: Schema.ObjectId, ref: 'dxMission'},
+    //client data
+    clientData: {type: String}
 });
 
 //record is unique by name and platform
 playerSchema.index({name: 1, platform: 1});
+playerSchema.index({platform: 1, partner: 1});
 
 playerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('playerId'));
 

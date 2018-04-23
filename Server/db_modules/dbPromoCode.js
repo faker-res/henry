@@ -23,7 +23,6 @@ let dbPromoCode = {
                 return dbconfig.collection_promoCode.find(promoCodeQuery).lean();
             }
         }).then(promoCodeData => {
-            console.log(promoCodeData)
             if (!promoCodeData || !promoCodeData.length) {
                 return Promise.reject({
                     status: constServerCode.DOCUMENT_NOT_FOUND,

@@ -1219,8 +1219,18 @@ var dbMigration = {
                     bValid = true;
                 }
                 break;
+            case "UpdatePartnerWeChat":
+                if (proposalData && proposalData.updateData && proposalData.updateData.weChat != null) {
+                    bValid = true;
+                }
+                break;
             case "UpdatePartnerInfo":
                 if (proposalData && proposalData.updateData) {
+                    bValid = true;
+                }
+                break;
+            case "UpdatePartnerCommissionType":
+                if (proposalData && proposalData.updateData && proposalData.updateData.commissionType) {
                     bValid = true;
                 }
                 break;
@@ -1336,7 +1346,7 @@ var dbMigration = {
                     return Q.reject({name: "DataError", message: "Invalid proposal data"});
                 }
                 var userProm = dbconfig.collection_players.findOne({name: proposalData.loginname}).lean();
-                var partnerProposalType = ["PartnerBonus", "UpdatePartnerBankInfo", "UpdatePartnerPhone", "UpdatePartnerEmail", "UpdatePartnerInfo", "UpdatePartnerQQ", ""];
+                var partnerProposalType = ["PartnerBonus", "UpdatePartnerBankInfo", "UpdatePartnerPhone", "UpdatePartnerEmail", "UpdatePartnerInfo", "UpdatePartnerQQ", "UpdatePartnerWeChat", "UpdatePartnerCommissionType", ""];
                 if (partnerProposalType.indexOf(typeName) >= 0) {
                     bPartnerProposal = true;
                     proposalData.partnerName = proposalData.loginname;
@@ -1774,6 +1784,150 @@ var dbMigration = {
         ).then(
             res => dbMigration.resHandler(data, "partner", "updatePartner"),
             error => dbMigration.errorHandler("partner", "updatePartner", data, error)
+        );
+    },
+
+    importBIPlayer: function(data){
+        data.remark = data.remark || "";
+
+        //check compulsory param
+        if (data.phoneNumber) {
+            var queryRes = queryPhoneLocation(data.phoneNumber);
+            if (queryRes) {
+                data.phoneProvince = queryRes.province;
+                data.phoneCity = queryRes.city;
+                data.phoneType = queryRes.type;
+            }
+        }
+
+        return dbconfig.collection_platform.findOne({platformId: data.platform}).lean().then(
+            platformData => {
+                if (platformData) {
+                    data.platform = platformData._id;
+                    var playerLevel = data.playerLevel ? data.playerLevel : 0;
+                    return dbconfig.collection_playerLevel.findOne({value: playerLevel, platform: platformData._id})
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        ).then(
+            playerLevelData => {
+                if (playerLevelData) {
+                    data.playerLevel = playerLevelData._id;
+                    // return dbPlayerInfo.createPlayerInfo(data);
+                    return data;
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Can not find player level"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    if (playerData.partner) {
+                        //add partner to player if this player has partner
+                        return dbconfig.collection_partner.findOne({platform: data.platform, partnerName: playerData.partner}).then(
+                            partnerData => {
+                                if (partnerData) {
+                                    playerData.partner = partnerData._id;
+                                }
+                                else {
+                                    data.remark += " 查无次代理："+ playerData.partner;
+                                }
+                                return playerData;
+                            }
+                        );
+                    }
+                    else {
+                        return playerData;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            //find bank name id based on code
+            playerData => {
+                if (playerData) {
+                    if (playerData.partner) {
+                        //add partner to player if this player has partner
+                        return dbconfig.collection_players.findOne({platform: data.platform, name: playerData.referral}).then(
+                            referralData => {
+                                if (referralData) {
+                                    playerData.referral = referralData._id;
+                                }
+                                else {
+                                    data.remark += " 查无次推荐人："+ playerData.referral;
+                                }
+                                return playerData;
+                            }
+                        );
+                    }
+                    else {
+                        return playerData;
+                    }
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    //processing permissions
+                    let proms = [];
+                    if( playerData.forbidProviders ){
+                        let providerProm = dbconfig.collection_gameProvider.find({providerId: {$in: playerData.forbidProviders}}).lean();
+                        proms.push(providerProm);
+                    }
+                    if( playerData.forbidRewardEvents ){
+                        let eventProm = dbconfig.collection_rewardEvent.find({platformId: data.platform, name: {$in: playerData.forbidRewardEvents}}).lean();
+                        proms.push(eventProm);
+                    }
+                    return Q.all(proms).then(
+                        resData => {
+                            if( resData && resData[0] && resData[0].length > 0 ){
+                                playerData.forbidProviders = resData[0].map(provider => provider._id);
+                            }
+                            if( resData && resData[1] && resData[1].length > 0 ) {
+                                playerData.forbidRewardEvents = resData[1].map(event => event._id);
+                            }
+                            return resData;
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    return dbMigration.createRequestId(data.requestId).then(
+                        reId => {
+                            return dbPlayerInfo.createPlayerInfo(playerData, true, true);
+                        }
+                    );
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid player data"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    dbPlayerInfo.updateGeoipws(playerData._id, playerData.platform, playerData.lastLoginIp);
+                    return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(playerData, data.phoneNumber);
+                }
+                else {
+                    return playerData;
+                }
+            }
+        ).then(
+            res => dbMigration.resHandler(data, "admin", "createPlayer"),
+            error => dbMigration.errorHandler("player", "createPlayer", data, error)
         );
     }
 

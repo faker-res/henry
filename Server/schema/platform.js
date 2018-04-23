@@ -149,6 +149,30 @@ var platformSchema = new Schema({
     partnerNameMaxLength: {type: Number, default: 0},
     // minimum length for partner name included platform prefix
     partnerNameMinLength: {type: Number, default: 0},
+    // allow partner same phone number to register
+    partnerAllowSamePhoneNumberToRegister: {type: Boolean, default: true},
+    // same partner phone number to register count
+    partnerSamePhoneNumberRegisterCount: {type: Number, default: 1},
+    // partner white listing phone number
+    partnerWhiteListingPhoneNumbers: [{type:String}],
+    // Platform-wide SMS Verification Setting, for create partners
+    partnerRequireSMSVerification: {type: Boolean, default: false},
+    // SMS Verification Setting For partner Password Update
+    partnerRequireSMSVerificationForPasswordUpdate: {type: Boolean, default: false},
+    // SMS Verification Setting For partner Payment Update
+    partnerRequireSMSVerificationForPaymentUpdate: {type: Boolean, default: false},
+    // Partner SMS Verification Expired Time (in Minute)
+    partnerSmsVerificationExpireTime: {type: Number, default: 5},
+    // partner login require captcha verfication
+    partnerRequireLogInCaptcha: {type: Boolean, default: false},
+    // partner get SMS code with captcha
+    partnerRequireCaptchaInSMS: {type: Boolean, default: false},
+    // partner if use phone number 2 steps verification
+    partnerUsePhoneNumberTwoStepsVerification: {type: Boolean, default: false},
+    // set the maximum duration for the partner's unread mail to be showing up
+    partnerUnreadMailMaxDuration: {type: Number, min: 0},
+    // set default partner commission group upon registration
+    partnerDefaultCommissionGroup: {type: Number, default: 0},
     // the count that trigger the failing alert in payment monitor for merchant
     monitorMerchantCount: {type: Number, default: 10},
     // the count that trigger the failing alert in payment monitor for player

@@ -3846,6 +3846,7 @@ let dbPlayerReward = {
             createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
 
+        let eventQueryPeriodTime = dbRewardUtil.getRewardEventIntervalTime({applyTargetDate: new Date()}, eventData);
         let eventQuery = {
             "data.platformObjId": playerData.platform._id,
             "data.playerObjId": playerData._id,
@@ -3894,7 +3895,11 @@ let dbPlayerReward = {
 
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-            eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            if (rewardData.applyTargetDate) {
+                eventQuery.settleTime = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
+            } else {
+                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
         }
 
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
@@ -4390,7 +4395,7 @@ let dbPlayerReward = {
                 switch (eventData.type.name) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                         if (rewardData && rewardData.selectedTopup) {
-                            if (!isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
+                            if (intervalTime && !isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
