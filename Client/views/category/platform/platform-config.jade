@@ -1511,17 +1511,21 @@
 
                     div(ng-if='vm.keywordFilterType === "sms"')
                         p {{"PLEASE_SELECT_CHANNEL" | translate}}:
-                            select.form-control.input-sm(ng-model='vm.keywordFilterChannel', ng-options='channel for channel in channelList' ng-change='vm.updateCurrentKeywords()')
+                            select.form-control.input-sm(ng-model='vm.keywordFilterChannel', ng-options='channel for channel in channelList' ng-change='vm.updateCurrentKeywords()' style="display: inline-block; width: auto; margin-left: 15px")
 
                     div.controls-row
-                        div.col-md-3
-                            textarea(ng-model="vm.keywordFilterNew" rows="20" style="width: 315px")
-                        div.col-md-3
-                            div(style="margin-top:10em;margin-left: auto;margin-right: auto;")
+                        div.col-sm-2(style="height:400px")
+                            h5
+                                strong {{"PLEASE_INSERT" | translate}}{{"SENSITIVE_KEYWORD" | translate}} ({{"SEPARATE_THROUGH_LINE_BREAK" | translate}})
+                            textarea(ng-model="vm.keywordFilterNew" rows="20" style="height: 90%; width: 100%")
+                        div.col-sm-1(style="top:162.5px; text-align:center")
+                            div(style="display: inline-block")
                                 button.btn.btn-primary(ng-click="vm.addFilterKeywords()" style="display: block") {{"ATTACH" | translate}}
                                 button.btn.btn-primary(ng-click="vm.removeKeywordsFromFilter()" style="display: block;margin-top:0.5em") {{"DETACH" | translate}}
-                        div.col-md-3
-                            select#keywordFilterSelect(ng-model="vm.keywordRemoveList" multiple="multiple" ng-options='keyword for keyword in vm.currentKeywords' size="20" style="height: 100%; width: 100%")
+                        div.col-sm-2(style="height:400px")
+                            h5
+                                strong {{"ADDED_SENSITIVE_KEYWORD_LIST" | translate}} ({{vm.currentKeywords.length}})
+                            select#keywordFilterSelect(ng-model="vm.keywordRemoveList" multiple="multiple" ng-options='keyword for keyword in vm.currentKeywords' size="20" style="height: 90%; width: 100%")
 
 
 
