@@ -610,7 +610,6 @@ define(['js/app'], function (myApp) {
             }
         };
 
-
         vm.dateReformat = function (data) {
             if (!data) return '';
             return utilService.getFormatTime(data);
@@ -3694,6 +3693,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPagedTelePlayerTable = function (newSearch) {
+            vm.loadingTeleMarketingOverviewTable = true;
             let sendQuery = {
                 platform: vm.selectedPlatform.id ,
                 dxMission: vm.playerInfoQuery.dxMission || "",
@@ -3719,6 +3719,7 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
+                vm.loadingTeleMarketingOverviewTable = false;
                 $scope.$evalAsync(vm.drawTelePlayerTable(newSearch, vm.teleMarketingPlayerInfo.data, vm.teleMarketingPlayerInfo.count));
             })
         };
@@ -3894,7 +3895,6 @@ define(['js/app'], function (myApp) {
                             //if(row.isRealPlayer) {
                                 if ($scope.checkViewPermission('Platform', 'Player', 'ApplyManualTopup')) {
                                     link.append($('<a>', {
-
                                         'class': 'fa fa-plus-circle',
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.getAllBankCard(); vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
                                         'data-row': JSON.stringify(row),
@@ -3909,9 +3909,8 @@ define(['js/app'], function (myApp) {
                                 link.append($('<br>'));
                                 if ($scope.checkViewPermission('Platform', 'Player', 'applyBonus')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/withdrawBlue.png",
+                                        'src': (row.alerted ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.initPlayerBonus();',
@@ -3924,9 +3923,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'AddRewardTask')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5 margin-right-5',
-                                        'src': "images/icon/rewardBlue.png",
+                                        'src': (row.alerted ? "images/icon/rewardRed.png" : "images/icon/rewardBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.rewardTabClicked();vm.initPlayerAddRewardTask();',
@@ -3939,9 +3937,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'RepairPayment') || $scope.checkViewPermission('Platform', 'Player', 'RepairTransaction')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/reapplyBlue.png",
+                                        'src': (row.alerted ? "images/icon/reapplyRed.png" : "images/icon/reapplyBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
@@ -3953,9 +3950,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'CreditAdjustment')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/creditAdjustBlue.png",
+                                        'src': (row.alerted ? "images/icon/creditAdjustRed.png" : "images/icon/creditAdjustBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
@@ -3968,9 +3964,8 @@ define(['js/app'], function (myApp) {
                                 }
                                 if ($scope.checkViewPermission('Platform', 'Player', 'RewardPointsChange') || $scope.checkViewPermission('Platform', 'Player', 'RewardPointsConvert')) {
                                     link.append($('<img>', {
-                                        'style': (row.alerted ? "color:red;" : ""),
                                         'class': 'margin-right-5',
-                                        'src': "images/icon/rewardPointsBlue.png",
+                                        'src': (row.alerted ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.selectedSinglePlayer =' + JSON.stringify(row['playerData']) + ' ;vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
@@ -4040,7 +4035,6 @@ define(['js/app'], function (myApp) {
 
                     vm.telePlayerSendingMsgTable.customerType='all';
                     vm.telePlayerSendingMsgTable.msgTimesOperator='>=';
-                    vm.smsChannel = 2;
 
                     $('#sendSMSTableStartDatetimePicker').datetimepicker({
                         language: 'en',
@@ -4084,10 +4078,11 @@ define(['js/app'], function (myApp) {
             // vm.telePlayerTable.type = 'none';
             utilService.actionAfterLoaded(('#telePlayerSendingMsgTable'), function () {
 
-                vm.telePlayerSendingMsgTable.pageObj = utilService.createPageForPagingTable("#telePlayerSendingMsgTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "telePlayerSendingMsgTable", vm.getTelePlayerSendingMsgTable)
-                });
+                // vm.telePlayerSendingMsgTable.pageObj = utilService.createPageForPagingTable("#telePlayerSendingMsgTablePage", {}, $translate, function (curP, pageSize) {
+                //     vm.commonPageChangeHandler(curP, pageSize, "telePlayerSendingMsgTable", vm.getTelePlayerSendingMsgTable)
+                // });
                 vm.getTelePlayerSendingMsgTable(true, dxMission);
+                $scope.safeApply()
             });
         }
 
@@ -4118,7 +4113,7 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'getDXPhoneNumberInfo', sendQuery, function (data) {
                 if(data){
-                    vm.teleMarketingSendSMS.count = data.data && data.data.size ? data.data.size : 0;
+                    vm.teleMarketingSendSMS.count = data.data && data.data.dxPhoneData ? data.data.dxPhoneData.length : 0;
                     vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : [];
                     vm.msgTemplate = data.data && data.data.dxMissionData ? data.data.dxMissionData : 0
 
@@ -4142,11 +4137,13 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 vm.loadingTelePlayerSendingSMSTable = false;
-                $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, vm.teleMarketingSendSMS.count));
+                $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data));
+                // $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, vm.teleMarketingSendSMS.count));
             })
         };
 
-        vm.drawTelePlayerMsgTable = function (newSearch, tblData, size) {
+        // vm.drawTelePlayerMsgTable = function (newSearch, tblData, size) {
+        vm.drawTelePlayerMsgTable = function (newSearch, tblData) {
             console.log("telePlayerSendingMsgTable",tblData);
 
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
@@ -4159,9 +4156,9 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {
                         title: $translate('ORDER'),
-                        // render: function(data, type, rowrow, index){
-                        //     return index.row+1 ;
-                        // }
+                        render: function(data, type, row, index){
+                            return index.row+1 ;
+                        }
 
                     },
                     { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber$"},
@@ -4200,23 +4197,29 @@ define(['js/app'], function (myApp) {
 
 
                 ],
-                "paging": false,
+                "paging": true,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
                 }
             });
             tableOptions.language.emptyTable=$translate("No data available in table");
+            // $('#' + 'label').text($translate("total") + ' ' + 100 + ' ' + $translate("records"));
 
-            let telePlayerSendingMsg = utilService.createDatatableWithFooter('#telePlayerSendingMsgTable', tableOptions, {
 
-            });
 
-            vm.telePlayerSendingMsgTable.pageObj.init({maxCount: size}, newSearch);
-            telePlayerSendingMsg.on( 'order.dt', function () {
-                telePlayerSendingMsg.column(0, {order:'applied'}).nodes().each( function (cell, i) {
-                    cell.innerHTML = i+1;
-                } );
-            } ).draw();
+            if (reportTbl) {
+                reportTbl.clear();
+            }
+            var reportTbl = $("#telePlayerSendingMsgTable").DataTable(tableOptions);
+            utilService.setDataTablePageInput('telePlayerSendingMsgTable', reportTbl, $translate);
+             // vm.telePlayerSendingMsgTable.pageObj.init({maxCount: 100}, newSearch);
+
+            // let telePlayerSendingMsg = utilService.createDatatableWithFooter('#telePlayerSendingMsgTable', tableOptions, {});
+            // telePlayerSendingMsg.on( 'order.dt', function () {
+            //     telePlayerSendingMsg.column(0, {order:'applied'}).nodes().each( function (cell, i) {
+            //         cell.innerHTML = i+1;
+            //     } );
+            // } ).draw();
 
             var $checkAll = $(".dataTables_scrollHead thead .customerSelected");
             if ($checkAll.length == 1) {
@@ -4333,7 +4336,7 @@ define(['js/app'], function (myApp) {
                 //vm.msgSendingGroupData.forEach( data => {
                 let sendObj = {
                     //platformId: data.platformId,
-                    channel: 2, //vm.smsChannel,
+                    channel: vm.smsChannel, //vm.smsChannel,
                     msgDetail: vm.msgSendingGroupData,
                     //tel: data.phoneNumber,
                     //dxPhone: data.dxMissionId

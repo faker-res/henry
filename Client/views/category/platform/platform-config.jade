@@ -769,28 +769,33 @@
                                                                 td {{'Rate After Rebate Promo' | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePromo', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        //input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePromo', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        input(style="display: inline-block", ng-model='vm.rateAfterRebatePromo', ng-change='vm.validateNumber(vm.rateAfterRebatePromo, "rateAfterRebatePromo")', ng-disabled='!vm.isCommissionRateEditing')
                                                             tr
                                                                 td {{'Rate After Rebate Platform' | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePlatform', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        //input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebatePlatform', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        input(style="display: inline-block", ng-model='vm.rateAfterRebatePlatform', ng-change='vm.validateNumber(vm.rateAfterRebatePlatform, "rateAfterRebatePlatform")', ng-disabled='!vm.isCommissionRateEditing')
 
                                                             tr(ng-repeat='(idx,val) in vm.rateAfterRebateGameProviderGroup')
                                                                 td {{val.name | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='val.rate', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        //input(type='number', percentage, style="display: inline-block", ng-model='val.rate', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        input(style="display: inline-block", ng-model='val.rate', ng-change='vm.validateNumber(val.rate, "rateAfterRebateGameProviderGroup", idx)', ng-disabled='!vm.isCommissionRateEditing')
                                                             tr
                                                                 td {{'Rate After Rebate Total Deposit' | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalDeposit', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        //input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalDeposit', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        input(style="display: inline-block", ng-model='vm.rateAfterRebateTotalDeposit', ng-change='vm.validateNumber(vm.rateAfterRebateTotalDeposit, "rateAfterRebateTotalDeposit")', ng-disabled='!vm.isCommissionRateEditing')
                                                             tr
                                                                 td {{'Rate After Rebate Total Withdrawal' | translate}}
                                                                 td
                                                                     span.percentage
-                                                                        input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalWithdrawal', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        //input(type='number', percentage, style="display: inline-block", ng-model='vm.rateAfterRebateTotalWithdrawal', ng-disabled='!vm.isCommissionRateEditing')
+                                                                        input(style="display: inline-block", ng-model='vm.rateAfterRebateTotalWithdrawal', ng-change='vm.validateNumber(vm.rateAfterRebateTotalWithdrawal, "rateAfterRebateTotalWithdrawal")', ng-disabled='!vm.isCommissionRateEditing')
                                                     br
                                                     .pull-right
                                                         button.btn.btn-primary.common-button(ng-if='vm.isCommissionRateEditing' ng-click='vm.cancelPartnerRateSetting()') {{'CANCEL' | translate}}
