@@ -15235,9 +15235,11 @@ define(['js/app'], function (myApp) {
                 console.log('apiQuery', apiQuery);
                 socketService.$socket($scope.AppSocket, 'getPartnersByAdvancedQuery', apiQuery, function (reply) {
                     console.log('partnerData', reply);
+                    let size = reply.data.size || 0;
                     setPartnerTableData(reply.data.data);
                     vm.searchPartnerCount = reply.data.size;
-                    vm.advancedPartnerQueryObj.pageObj.init({maxCount: reply.data.size}, true);
+                    vm.advancedPartnerQueryObj.pageObj.init({maxCount: size}, true);
+
                     $scope.safeApply();
                 });
             });
@@ -15892,7 +15894,6 @@ define(['js/app'], function (myApp) {
                         });
 
                         $('#partnerDataTable').resize();
-                        $('#partnerDataTable').resize();
                     }
                 };
                 $.each(tableOptions.columns, function (i, v) {
@@ -15920,8 +15921,10 @@ define(['js/app'], function (myApp) {
                 // Row click
                 $compile(nRow)($scope);
                 vm.currentSelectedPartnerObjId = '';
-                var status = aData.status;
-                aData.credits = parseFloat(aData.credits);
+                var status = aData && aData.status ? aData.status : 1;
+                if (aData && aData.credits) {
+                    aData.credits = parseFloat(aData.credits);
+                }
                 var statusKey = '';
                 $.each(vm.allPartnersStatusString, function (key, val) {
                     if (status == val) {
