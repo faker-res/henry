@@ -129,6 +129,8 @@ const dbRewardTask = {
             providerGroup => {
                 if (providerGroup) {
                     let updObj = {
+                        proposalId: proposalData.proposalId,
+                        lastProposalId: proposalData._id,
                         $inc: {
                             initAmt: rewardData.initAmount,
                             rewardAmt: rewardData.initAmount,
@@ -215,6 +217,8 @@ const dbRewardTask = {
                 }
                 if (providerGroup) {
                     let updObj = {
+                        proposalId: proposalData.proposalId,
+                        lastProposalId: proposalData._id,
                         $inc: {
                             //rewardAmt: rewardData.initAmount,
                             // initAmt: rewardData.initAmount,

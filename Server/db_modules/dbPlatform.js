@@ -30,6 +30,7 @@ var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var rsaCrypto = require("../modules/rsaCrypto");
 var dbRewardEvent = require("../db_modules/dbRewardEvent");
 var dbLogger = require('./../modules/dbLogger');
+const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -804,20 +805,28 @@ var dbPlatform = {
      */
     resetPlatformPlayerLevelData: function (platformObjId, bWeek) {
         //if daily settlement, and if it is the first day of the month, then reset monthly amount
-        var queryOrArray = [{dailyTopUpSum: {$gt: 0}}, {dailyConsumptionSum: {$gt: 0}}, {dailyTopUpIncentiveAmount: {$gt: 0}}];
-        var updateData = {dailyTopUpSum: 0, dailyConsumptionSum: 0, dailyTopUpIncentiveAmount: 0};
+        var queryOrArray = [{dailyTopUpSum: {$gt: 0}}, {dailyConsumptionSum: {$gt: 0}}, {dailyWithdrawSum: {$gt: 0}}, {dailyBonusAmountSum: {$gt: 0}}, {dailyTopUpIncentiveAmount: {$gt: 0}}];
+        var updateData = {dailyTopUpSum: 0, dailyConsumptionSum: 0, dailyWithdrawSum: 0, dailyBonusAmountSum: 0, dailyTopUpIncentiveAmount: 0};
         if (dbUtility.isFirstDayOfMonthSG()) {
             queryOrArray.push({pastMonthTopUpSum: {$gt: 0}});
             queryOrArray.push({pastMonthConsumptionSum: {$gt: 0}});
+            queryOrArray.push({pastMonthWithdrawSum: {$gt: 0}});
+            queryOrArray.push({pastMonthBonusAmountSum: {$gt: 0}});
             updateData.pastMonthTopUpSum = 0;
             updateData.pastMonthConsumptionSum = 0;
+            updateData.pastMonthWithdrawSum = 0;
+            updateData.pastMonthBonusAmountSum = 0;
         }
         //if it is the first day of the week, then reset weekly amount
         if (dbUtility.isFirstDayOfWeekSG()) {
             queryOrArray.push({weeklyTopUpSum: {$gt: 0}});
             queryOrArray.push({weeklyConsumptionSum: {$gt: 0}});
+            queryOrArray.push({weeklyWithdrawSum: {$gt: 0}});
+            queryOrArray.push({weeklyBonusAmountSum: {$gt: 0}});
             updateData.weeklyTopUpSum = 0;
             updateData.weeklyConsumptionSum = 0;
+            updateData.weeklyWithdrawSum = 0;
+            updateData.weeklyBonusAmountSum = 0;
         }
         return dbconfig.collection_players.update(
             {
@@ -1460,14 +1469,23 @@ var dbPlatform = {
                     delay: data.delay
                 };
                 var recipientName = playerData.name || playerData.partnerName;
-                return smsAPI.sending_sendMessage(sendObj).then(
-                    retData => {
-                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, playerData.platform, 'success');
-                        return retData;
-                    },
-                    retErr => {
-                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, playerData.platform, 'failure', retErr);
-                        return Q.reject({message: retErr, data: data});
+
+                return dbPlayerMail.isFilteredKeywordExist(data.message, data.platformId, "sms", data.channel).then(
+                    exist => {
+                        if (exist) {
+                            return Promise.reject({errorMessage: "Content consist of sensitive keyword."});
+                        }
+
+                        return smsAPI.sending_sendMessage(sendObj).then(
+                            retData => {
+                                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, playerData.platform, 'success');
+                                return retData;
+                            },
+                            retErr => {
+                                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, playerData.platform, 'failure', retErr);
+                                return Q.reject({message: retErr, data: data});
+                            }
+                        );
                     }
                 );
             }

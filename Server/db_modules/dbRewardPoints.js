@@ -732,6 +732,18 @@ let dbRewardPoints = {
         );
     },
 
+    applyRewardPoint: (playerObjId, rewardPointsEventObjIds, inputDevice, rewardPointsConfig) => {
+        if(rewardPointsEventObjIds && rewardPointsEventObjIds.length > 0){
+            let proms = [];
+            rewardPointsEventObjIds.forEach(
+                rewardPointsEventObjId => {
+                    proms.push(dbRewardPoints.applyRewardPoint(playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig));
+                }
+            );
+            return Q.all(proms)
+        }
+    },
+
     getLoginRewardPoints: function (playerId, platformId) {
         let playerObj;
         let returnData;

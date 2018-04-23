@@ -36,8 +36,8 @@ let dbDXMission = {
         return dbconfig.collection_dxMission.find({'_id':id});
     },
 
-    getAllDxMission: function () {
-        return dbconfig.collection_dxMission.find();
+    getAllDxMission: function (platform) {
+        return dbconfig.collection_dxMission.find({platform: platform});
     },
 
     createDxMission: function(data){
