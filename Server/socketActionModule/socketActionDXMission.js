@@ -45,9 +45,10 @@ function socketActionDXMission(socketIO, socket) {
         /**
          * get All DX Mission
          */
-        getAllDxMission: function getAllDxMission() {
+        getAllDxMission: function getAllDxMission(data) {
             let actionName = arguments.callee.name;
-            socketUtil.emitter(self.socket, dbDXMission.getAllDxMission, [], actionName);
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbDXMission.getAllDxMission, [data.platform], actionName, isValidData);
         },
 
         /**

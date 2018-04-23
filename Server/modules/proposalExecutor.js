@@ -1671,7 +1671,7 @@ var proposalExecutor = {
                             bonusData => {
                                 if (bonusData) {
                                     sendMessageToPlayer(proposalData,constMessageType.WITHDRAW_SUCCESS,{});
-                                    increasePlayerWithdrawalTimes(player._id, player.platform._id).catch(errorUtils.reportError);
+                                    increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
                                     return bonusData;
                                 }
                                 else {
@@ -3865,8 +3865,17 @@ function isTransferIdRepaired(transferId) {
     );
 }
 
-function increasePlayerWithdrawalTimes(playerObjId, platformObjId) {
-    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId, platform: platformObjId}, {$inc: {withdrawTimes: 1}}).lean().exec();
+function increasePlayerWithdrawalData(playerObjId, platformObjId, amount) {
+    return dbconfig.collection_players.findOneAndUpdate({_id: playerObjId, platform: platformObjId},
+        {
+            $inc: {
+                withdrawTimes: 1,
+                dailyWithdrawSum: amount,
+                weeklyWithdrawSum: amount,
+                pastMonthWithdrawSum: amount,
+                withdrawSum: amount
+            }
+        }).lean().exec();
 }
 
 /**

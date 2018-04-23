@@ -2805,6 +2805,7 @@ let dbPlayerInfo = {
                     if (proposalData && proposalData.data) {
                         if (topUpType == constPlayerTopUpType.MANUAL) {
                             recordData.bankCardType = proposalData.data.bankCardType;
+                            recordData.bankTypeId = proposalData.data.bankTypeId;
                             recordData.depositMethod = proposalData.data.depositMethod;
                         }
                         else if (topUpType == constPlayerTopUpType.ONLINE) {

@@ -757,7 +757,11 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllDxMission = function () {
-            socketService.$socket($scope.AppSocket, 'getAllDxMission', {}, function (data) {
+            let sendData = {
+                platform: vm.selectedPlatform.id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getAllDxMission', sendData, function (data) {
                 vm.allDxMission = data.data;
                 $scope.safeApply();
             });

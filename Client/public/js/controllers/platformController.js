@@ -7779,7 +7779,7 @@ define(['js/app'], function (myApp) {
                                         // vm.playerTopUpGroupLog.length = 0;
                                         cvm.drawChangeLogTable(data.data.data.map(log => {
                                             console.log(log);
-                                            log.createTime = new Date(log.createTime).toLocaleString();
+                                            log.createTime = $scope.timeReformat(new Date(log.createTime));
                                             log.topUpGroupNames$ = Object.keys(log.topUpGroupNames)[0];
                                             log.topUpGroupChanges = log.topUpGroupNames[Object.keys(log.topUpGroupNames)[0]];
 
@@ -16356,6 +16356,8 @@ define(['js/app'], function (myApp) {
                             filteredBankTypeList: vm.filteredBankTypeList,
                             filterBankName: vm.filterBankName,
                             isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
+                            partnerCommission: vm.partnerCommission,
+                            commissionSettingTab: vm.commissionSettingTab,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -20822,8 +20824,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["RECEIVE_BANK_ACC_NAME"] = vm.selectedProposal.data.cardOwner;
                         proposalDetail["RECEIVE_BANK_ACC_PROVINCE"] = vm.selectedProposal.data.provinceId;
                         proposalDetail["RECEIVE_BANK_ACC_CITY"] = vm.selectedProposal.data.cityId;
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? new Date(vm.selectedProposal.data.depositTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
@@ -20880,8 +20882,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount;
                         proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name;
                         proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname;
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
@@ -20911,8 +20913,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                         proposalDetail["RECIPIENTS_APLIPAY_ACC"] = vm.selectedProposal.data.alipayAccount;
                         proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
@@ -20991,8 +20993,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["RECEIVE_BANK_ACC_NAME"] = vm.selectedProposal.data.cardOwner;
                         proposalDetail["RECEIVE_BANK_ACC_PROVINCE"] = vm.selectedProposal.data.provinceId;
                         proposalDetail["RECEIVE_BANK_ACC_CITY"] = vm.selectedProposal.data.cityId;
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? new Date(vm.selectedProposal.data.depositTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
@@ -21049,8 +21051,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount;
                         proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name;
                         proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname;
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
@@ -21080,8 +21082,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                         proposalDetail["RECIPIENTS_APLIPAY_ACC"] = vm.selectedProposal.data.alipayAccount;
                         proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
@@ -22478,7 +22480,11 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getAllDxMission = function () {
-                socketService.$socket($scope.AppSocket, 'getAllDxMission', {}, function (data) {
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getAllDxMission', sendData, function (data) {
                     vm.allDxMission = data.data;
                     $scope.safeApply();
                 });
@@ -25790,7 +25796,7 @@ define(['js/app'], function (myApp) {
                                 log.remarks$ += log.credibilityRemarkNames[j];
                                 j < (len - 1) ? log.remarks$ += ", " : null;
                             }
-                            log.createTime = new Date(log.createTime).toLocaleString();
+                            log.createTime = $scope.timeReformat(new Date(log.createTime));
                         }
                         console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
                         $scope.safeApply();
