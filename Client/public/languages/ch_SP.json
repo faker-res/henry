@@ -3542,7 +3542,7 @@
   "TotalPlayerValidAmount": "总有效投注额",
   "From": "from（含）",
   "To": "to（含）",
-  "Total": "总",
+  "Total_Commission": "总",
   "INSERT": "下方插入",
   "DAILY_ACTIVE": "日活",
   "WEEKLY_ACTIVE": "周活",
