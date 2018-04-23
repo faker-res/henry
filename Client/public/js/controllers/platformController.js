@@ -911,7 +911,12 @@ define(['js/app'], function (myApp) {
                         initFeedbackAdmin();
                         break;
                     case "Partner":
+                        vm.partnerCommission = vm.partnerCommission || {};
                         vm.getAllPartnerCommSettPreview();
+                        vm.getCommissionRateGameProviderGroup();
+                        vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
+
+
                         break;
                     case "Game":
                         vm.platformGameTabClicked();
@@ -7774,7 +7779,7 @@ define(['js/app'], function (myApp) {
                                         // vm.playerTopUpGroupLog.length = 0;
                                         cvm.drawChangeLogTable(data.data.data.map(log => {
                                             console.log(log);
-                                            log.createTime = new Date(log.createTime).toLocaleString();
+                                            log.createTime = $scope.timeReformat(new Date(log.createTime));
                                             log.topUpGroupNames$ = Object.keys(log.topUpGroupNames)[0];
                                             log.topUpGroupChanges = log.topUpGroupNames[Object.keys(log.topUpGroupNames)[0]];
 
@@ -11241,9 +11246,9 @@ define(['js/app'], function (myApp) {
                                         playerId: vm.isOneSelectedPlayer()._id,
                                         unlockTime: new Date().toISOString(),
                                         creator: {
-                                            type: rewardTask.creator.type,
-                                            name: rewardTask.creator.name,
-                                            id: rewardTask.creator.id
+                                            type: "admin",
+                                            name: authService.adminName,
+                                            id: authService.adminId
                                         },
                                         rewardTask: {
                                             type: rewardTask.type.name,
@@ -12361,9 +12366,9 @@ define(['js/app'], function (myApp) {
                             playerId: vm.isOneSelectedPlayer()._id,
                             unlockTime: new Date().toISOString(),
                             creator: {
-                                type: vm.rewardTaskGroupProposalList[indexNO].creator.type,
-                                name: vm.rewardTaskGroupProposalList[indexNO].creator.name,
-                                id: vm.rewardTaskGroupProposalList[indexNO].creator.id
+                                type: "admin",
+                                name: authService.adminName,
+                                id: authService.adminId
                             },
                             rewardTask: {
                                 type: vm.rewardTaskGroupProposalList[indexNO].type.name,
@@ -16212,6 +16217,18 @@ define(['js/app'], function (myApp) {
                     // Mask partners bank account
                     vm.selectedSinglePartner.encodedBankAccount = vm.selectedSinglePartner.bankAccount ?
                         vm.selectedSinglePartner.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePartner.bankAccount.slice(-4) : null;
+
+                    if (vm.selectedSinglePartner.domain && vm.selectedSinglePartner.domain.length > 35) {
+                        vm.selectedSinglePartner.$displayDomain = vm.selectedSinglePartner.domain.substring(0, 30) + "...";
+                    } else {
+                        vm.selectedSinglePartner.$displayDomain = vm.selectedSinglePartner.domain || null;
+                    }
+
+                    if (vm.selectedSinglePartner && vm.selectedSinglePartner.ownDomain && vm.selectedSinglePartner.ownDomain.length > 0) {
+                        vm.selectedSinglePartner.ownDomain$ = vm.selectedSinglePartner.ownDomain.join('\n');
+                    } else {
+                        vm.selectedSinglePartner.ownDomain$ = null;
+                    }
                     vm.selectedPartnerCount = 1;
                     console.log('partner selected', vm.selectedSinglePartner);
                     vm.getProvince();
@@ -16557,31 +16574,13 @@ define(['js/app'], function (myApp) {
                 vm.editPartnerSelectedTab = tab;
             }
 
-            vm.checkPartnerPlayerField = function (fieldName, value, form) {
-                vm.editPartner.isPartnerPlayerValid = true;
-                if (!value || value != '') {
-                    if (vm.editPartner && !vm.editPartner.player) {
-                        socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
-                            fieldName: fieldName,
-                            value: value
-                        }, function (data) {
-                            if (data && data.data && data.data[fieldName]) {
-                                vm.editPartner.playerId = data.data.player_id;
-                                vm.editPartner.isPartnerPlayerExist = data.data.exists;
-                                vm.editPartner.isPartnerPlayerValid = data.data.valid;
-                            }
-                            $scope.safeApply();
-                        });
-                    }
-                }
-            }
-
             vm.openEditPartnerDialog = function (selectedTab) {
                 vm.editPartnerSelectedTab = "";
                 vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
                 vm.prepareEditCritical('partner');
                 vm.prepareEditPartnerPayment();
                 vm.tabClicked(selectedTab);
+                vm.partnerValidity = {};
                 dialogDetails();
 
                 function dialogDetails() {
@@ -16605,12 +16604,16 @@ define(['js/app'], function (myApp) {
                             prepareEditCritical: vm.prepareEditCritical,
                             submitCriticalUpdate: vm.submitCriticalUpdate,
                             isEditingPartnerPayment: vm.isEditingPartnerPayment,
-                            checkPartnerPlayerField: vm.checkPartnerPlayerField,
+                            checkPartnerField: vm.checkPartnerField,
+                            partnerValidity: vm.partnerValidity,
+                            checkOwnDomain: vm.checkOwnDomain,
                             partnerPayment: vm.partnerPayment,
                             allBankTypeList: vm.allBankTypeList,
                             filteredBankTypeList: vm.filteredBankTypeList,
                             filterBankName: vm.filterBankName,
                             isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
+                            partnerCommission: vm.partnerCommission,
+                            commissionSettingTab: vm.commissionSettingTab,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -16629,8 +16632,9 @@ define(['js/app'], function (myApp) {
                             updateEditedPartner: function () {
                                 // this ng-model has to be in date object
                                 this.newPartner.DOB = new Date(this.newPartner.DOB);
-                                if(vm.editPartner.playerId) {
-                                    this.newPartner.player = vm.editPartner.playerId;
+                                if (this.newPartner.playerId) {
+                                    if (vm.partnerValidity && vm.partnerValidity.player && Object.keys(vm.partnerValidity.player).length > 0)
+                                        this.newPartner.player = vm.partnerValidity.player.id;
                                 }
                                 sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
                             },
@@ -16757,6 +16761,13 @@ define(['js/app'], function (myApp) {
                             updateData.remark += ", ";
                         }
                         updateData.remark += $translate(vm.commissionType[updateData.commissionType]);
+                    }
+                    if (updateData.ownDomain) {
+                        if (updateData.ownDomain) {
+                            updateData.ownDomain = updateData.ownDomain.split('\n');
+                        } else {
+                            updateData.ownDomain = [];
+                        }
                     }
 
                     if (isUpdate) {
@@ -17153,7 +17164,7 @@ define(['js/app'], function (myApp) {
                 var time = new Date().getTime();
                 var newDomains = difArrays(vm.selectedSinglePartner.ownDomain, value.split('\n'));
                 socketService.$socket($scope.AppSocket, 'checkOwnDomainValidity', {
-                    partner: vm.newPartner._id,
+                    partner: vm.selectedSinglePartner._id,
                     value: newDomains,
                     time: time
                 }, function (data) {
@@ -17172,31 +17183,38 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
             vm.checkPartnerField = function (fieldName, value, form) {
-                socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
-                    fieldName: fieldName,
-                    value: value
-                }, function (data) {
-                    if (data && data.data && data.data[fieldName]) {
-                        if (data.data[fieldName] != value) {
-                            return vm.checkPartnerField(fieldName, value, form);
-                        }
-                        if (fieldName != 'player') {
-                            vm.partnerValidity[fieldName] = data.data.exists ? false : true;
-                        }
-                        else {
-                            vm.partnerValidity.player = {
-                                validPlayerId: data.data.valid,
-                                exists: data.data.exists,
-                                id: data.data.player_id,
-                                playerId: value
+                if (!value || value != '') {
+                    socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
+                        fieldName: fieldName,
+                        value: value
+                    }, function (data) {
+                        if (data && data.data && data.data[fieldName]) {
+                            if (data.data[fieldName] != value) {
+                                return vm.checkPartnerField(fieldName, value, form);
                             }
+                            if (fieldName != 'player') {
+                                vm.partnerValidity[fieldName] = data.data.exists ? false : true;
+                            }
+                            else {
+                                vm.partnerValidity.player = {
+                                    validPlayerId: data.data.valid,
+                                    exists: data.data.exists,
+                                    id: data.data.player_id,
+                                    playerId: value
+                                }
+                            }
+                        } else {
+                            vm.partnerValidity[fieldName] = false;
                         }
-                    } else {
-                        vm.partnerValidity[fieldName] = false;
-                    }
-                    form.$setValidity('invalidPartnerPlayer', vm.partnerValidity[fieldName])
-                    $scope.safeApply();
-                });
+
+                        if (vm.partnerValidity && vm.partnerValidity.player) {
+                            form.$setValidity('invalidPartnerPlayer', !vm.partnerValidity.player.validPlayerId);
+                        } else {
+                            form.$setValidity('invalidPartnerPlayer', vm.partnerValidity[fieldName]);
+                        }
+                        $scope.safeApply();
+                    });
+                }
             }
 
             vm.initPartnerApiLog = function () {
@@ -19297,9 +19315,119 @@ define(['js/app'], function (myApp) {
                         vm.deletingSmsGroup = null;
                         vm.getPlatformSmsGroups();
                         vm.getAllMessageTypes();
+                        break;
+                    case 'keywordFilter':
+                        vm.keywordFilterType = "sms";
+                        vm.getAllFilteredKeywords();
+                        vm.currentKeywords = [];
+                        vm.keywordRemoveList = [];
+                        vm.keywordFilterChannel = $scope.channelList && $scope.channelList[0];
 
+
+                        vm.scopeChannelList = $scope.channelList; // todo :: debug use, remove later
+                        break;
                 }
             };
+
+            vm.keywordFilterTypeChange = (type) => {
+                vm.keywordFilterType = type;
+
+                vm.updateCurrentKeywords();
+            };
+
+            vm.updateCurrentKeywords = () => {
+                vm.keywordRemoveList = [];
+                vm.currentKeywords = [];
+                for (let i = 0; i < vm.filteredKeywordList.length; i++) {
+                    if (vm.filteredKeywordList[i].type === vm.keywordFilterType) {
+                        if (vm.keywordFilterType === 'sms' && vm.filteredKeywordList[i].smsChannel != vm.keywordFilterChannel) {
+                            continue;
+                        }
+
+                        vm.currentKeywords = vm.filteredKeywordList[i].keywords;
+                        break;
+                    }
+                }
+
+                $scope.safeApply();
+                setTimeout(vm.setupMultiSelect, 0);
+            };
+
+
+            vm.getAllFilteredKeywords = () => {
+                vm.filteredKeywordList = [];
+                socketService.$socket($scope.AppSocket, 'getAllFilteredKeyword', {
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    console.log('getAllFilteredKeyword', data);
+                    vm.filteredKeywordList = data.data;
+
+                    vm.updateCurrentKeywords();
+                });
+            };
+
+            vm.addFilterKeywords = () => {
+                let keywordArr = [];
+                if (vm.keywordFilterNew) {
+                    let keywords = vm.keywordFilterNew.split(/\r?\n/);
+                    for (let i = 0, len = keywords.length; i < len; i++) {
+                        let keyword = keywords[i].trim();
+                        if (keyword) keywordArr.push(keyword);
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'setFilteredKeywords', {
+                    keywords: keywordArr,
+                    smsChannel: vm.keywordFilterChannel || $scope.channelList && $scope.channelList[0] || "0",
+                    type: vm.keywordFilterType,
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    console.log('setFilteredKeywords', data);
+                    if (data && data.data) {
+                        vm.keywordFilterNew = "";
+                        vm.getAllFilteredKeywords();
+                    }
+                });
+
+            };
+
+            vm.setupMultiSelect = () => {
+                $('#keywordFilterSelect option').mousedown(function(e) {
+                    e.preventDefault();
+                    var originalScrollTop = $(this).parent().scrollTop();
+                    $(this).prop('selected', $(this).prop('selected') ? false : true);
+                    var self = this;
+                    $(this).parent().focus();
+                    setTimeout(function() {
+                        $(self).parent().scrollTop(originalScrollTop);
+                    }, 0);
+                    if ($(this).prop('selected')) {
+                        vm.keywordRemoveList.push($(this).html());
+                    }
+                    else {
+                        vm.keywordRemoveList = vm.keywordRemoveList.filter( val => val != $(this).html() );
+                    }
+
+                    return false;
+                });
+
+            };
+
+            vm.removeKeywordsFromFilter = () => {
+                socketService.$socket($scope.AppSocket, 'removeFilteredKeywords', {
+                    keywords: vm.keywordRemoveList,
+                    smsChannel: vm.keywordFilterChannel || $scope.channelList && $scope.channelList[0] || "0",
+                    type: vm.keywordFilterType,
+                    platformObjId: vm.selectedPlatform.id
+                }, function (data) {
+                    console.log('removeFilteredKeywords', data);
+                    if (data && data.data) {
+                        vm.keywordRemoveList = [];
+                        vm.getAllFilteredKeywords();
+                    }
+                });
+            };
+
             vm.getNoInGroupSmsSetting = () => {
                 vm.noGroupSmsSetting = [];
                 for (let messageType in vm.allMessageTypes) {
@@ -20952,8 +21080,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["RECEIVE_BANK_ACC_NAME"] = vm.selectedProposal.data.cardOwner;
                         proposalDetail["RECEIVE_BANK_ACC_PROVINCE"] = vm.selectedProposal.data.provinceId;
                         proposalDetail["RECEIVE_BANK_ACC_CITY"] = vm.selectedProposal.data.cityId;
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? new Date(vm.selectedProposal.data.depositTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
@@ -21010,8 +21138,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount;
                         proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name;
                         proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname;
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
@@ -21041,8 +21169,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                         proposalDetail["RECIPIENTS_APLIPAY_ACC"] = vm.selectedProposal.data.alipayAccount;
                         proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
@@ -21121,8 +21249,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["RECEIVE_BANK_ACC_NAME"] = vm.selectedProposal.data.cardOwner;
                         proposalDetail["RECEIVE_BANK_ACC_PROVINCE"] = vm.selectedProposal.data.provinceId;
                         proposalDetail["RECEIVE_BANK_ACC_CITY"] = vm.selectedProposal.data.cityId;
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? new Date(vm.selectedProposal.data.depositTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
@@ -21179,8 +21307,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount;
                         proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name;
                         proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname;
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
@@ -21210,8 +21338,8 @@ define(['js/app'], function (myApp) {
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                         proposalDetail["RECIPIENTS_APLIPAY_ACC"] = vm.selectedProposal.data.alipayAccount;
                         proposalDetail["RECIPIENTS_APLIPAY_NAME"] = vm.selectedProposal.data.alipayName || " ";
-                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? new Date(vm.selectedProposal.data.depositeTime).toLocaleString() : " ";
-                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? new Date(vm.selectedProposal.data.validTime).toLocaleString() : " ";
+                        proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
+                        proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
@@ -22608,7 +22736,11 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getAllDxMission = function () {
-                socketService.$socket($scope.AppSocket, 'getAllDxMission', {}, function (data) {
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getAllDxMission', sendData, function (data) {
                     vm.allDxMission = data.data;
                     $scope.safeApply();
                 });
@@ -23002,34 +23134,64 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
-                    let existProviderCommissionSetting = [];
+                    $scope.$evalAsync(() => {
+                        let existProviderCommissionSetting = [];
 
-                    if (data && data.data && data.data.length) {
-                        data.data.filter(existSetting => {
-                            vm.gameProviderGroup.filter(gameProviderGroup => {
-                                if (gameProviderGroup._id == existSetting.provider) {
-                                    vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
-                                    if (vm.partnerCommission.gameProviderGroup.length > 0) {
-                                        vm.partnerCommission.gameProviderGroup.filter(data => {
-                                            if (data._id == existSetting.provider) {
-                                                data.srcConfig = existSetting;
-                                                data.showConfig = JSON.parse(JSON.stringify(existSetting));
-                                            }
-                                        });
+                        if (data && data.data && data.data.length) {
+                            data.data.filter(existSetting => {
+                                vm.gameProviderGroup.filter(gameProviderGroup => {
+                                    if (gameProviderGroup._id == existSetting.provider) {
+                                        vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
+                                        if (vm.partnerCommission.gameProviderGroup.length > 0) {
+                                            vm.partnerCommission.gameProviderGroup.filter(data => {
+                                                if (data._id == existSetting.provider) {
+                                                    data.srcConfig = existSetting;
+                                                    data.showConfig = JSON.parse(JSON.stringify(existSetting));
+                                                }
+                                            });
+                                        }
                                     }
-                                }
+                                });
                             });
-                        });
 
-                        data.data.forEach(exist => {
-                            existProviderCommissionSetting.push(exist.provider);
-                        })
+                            data.data.forEach(exist => {
+                                existProviderCommissionSetting.push(exist.provider);
+                            })
 
-                        if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
-                            vm.gameProviderGroup.forEach(function (obj) {
-                                if (existProviderCommissionSetting.indexOf(obj._id) == -1) {
-                                    let tempGameProviderGroupId = obj._id;
-                                    vm.partnerCommission.gameProviderGroup.push(obj);
+                            if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
+                                vm.gameProviderGroup.forEach(function (obj) {
+                                    if (existProviderCommissionSetting.indexOf(obj._id) == -1) {
+                                        let tempGameProviderGroupId = obj._id;
+                                        vm.partnerCommission.gameProviderGroup.push(obj);
+                                        if (vm.partnerCommission.gameProviderGroup.length > 0) {
+                                            vm.partnerCommission.gameProviderGroup.forEach(data => {
+                                                if (data._id == tempGameProviderGroupId) {
+                                                    data.srcConfig = null;
+                                                    data.showConfig = {};
+                                                    data.showConfig.commissionSetting = [];
+                                                    data.showConfig.commissionSetting.push({
+                                                        playerConsumptionAmountFrom: "",
+                                                        playerConsumptionAmountTo: "",
+                                                        activePlayerValueFrom: "",
+                                                        activePlayerValueTo: "",
+                                                        commissionRate: "",
+                                                        isEditing: true,
+                                                        isCreateNew: true
+                                                    });
+                                                    data.showConfig.platform = vm.selectedPlatform.id;
+                                                    data.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                                                }
+                                            })
+                                        }
+                                    }
+                                });
+                            }
+
+                        } else {
+                            if (vm.gameProviderGroup.length > 0) {
+                                vm.gameProviderGroup.forEach(data => {
+                                    let tempGameProviderGroupId = data._id;
+                                    vm.partnerCommission.gameProviderGroup.push(data);
                                     if (vm.partnerCommission.gameProviderGroup.length > 0) {
                                         vm.partnerCommission.gameProviderGroup.forEach(data => {
                                             if (data._id == tempGameProviderGroupId) {
@@ -23050,39 +23212,10 @@ define(['js/app'], function (myApp) {
                                             }
                                         })
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
-
-                    } else {
-                        if (vm.gameProviderGroup.length > 0) {
-                            vm.gameProviderGroup.forEach(data => {
-                                let tempGameProviderGroupId = data._id;
-                                vm.partnerCommission.gameProviderGroup.push(data);
-                                if (vm.partnerCommission.gameProviderGroup.length > 0) {
-                                    vm.partnerCommission.gameProviderGroup.forEach(data => {
-                                        if (data._id == tempGameProviderGroupId) {
-                                            data.srcConfig = null;
-                                            data.showConfig = {};
-                                            data.showConfig.commissionSetting = [];
-                                            data.showConfig.commissionSetting.push({
-                                                playerConsumptionAmountFrom: "",
-                                                playerConsumptionAmountTo: "",
-                                                activePlayerValueFrom: "",
-                                                activePlayerValueTo: "",
-                                                commissionRate: "",
-                                                isEditing: true,
-                                                isCreateNew: true
-                                            });
-                                            data.showConfig.platform = vm.selectedPlatform.id;
-                                            data.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
-                                        }
-                                    })
-                                }
-                            });
-                        }
-                    }
-                    $scope.safeApply();
+                    })
                 });
             }
             vm.getPartnerCommisionConfig = function () {
@@ -25919,7 +26052,7 @@ define(['js/app'], function (myApp) {
                                 log.remarks$ += log.credibilityRemarkNames[j];
                                 j < (len - 1) ? log.remarks$ += ", " : null;
                             }
-                            log.createTime = new Date(log.createTime).toLocaleString();
+                            log.createTime = $scope.timeReformat(new Date(log.createTime));
                         }
                         console.log("vm.playerCredibilityComment", vm.playerCredibilityComment);
                         $scope.safeApply();
