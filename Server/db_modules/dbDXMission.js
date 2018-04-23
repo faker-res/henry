@@ -762,15 +762,18 @@ let dbDXMission = {
 
         let returnedMsg = null;
         let platformObjId = null;
+        let whiteListingPhoneNumbers = null;
         const anHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
         const now = new Date(Date.now()).toISOString();
         const maxIpCount = 5;
+        let allowedWhitePhoneNumber = false;
 
         // check the phoneNumber has been registered
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then( platformData => {
             if (platformData){
 
                 platformObjId = platformData._id;
+                whiteListingPhoneNumbers = platformData.whiteListingPhoneNumbers;
 
                 if (deviceData && deviceData.lastLoginIp && !isBackStageGenerated) {
                     let ipQuery = {
@@ -807,6 +810,13 @@ let dbDXMission = {
             }
         }).then( platformObjId => {
             if(platformObjId){
+                // check whether is in in the whitePhoneNumberList
+                if (whiteListingPhoneNumbers && whiteListingPhoneNumbers.length > 0){
+                    if (whiteListingPhoneNumbers.indexOf(phoneNumber) != -1){
+                        allowedWhitePhoneNumber = true;
+                       return;
+                    }
+                }
                 let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
                 let phoneNumberQuery = {$in: [encryptedPhoneNumber, phoneNumber]};
 
@@ -814,7 +824,6 @@ let dbDXMission = {
             }
         }).then( playerData => {
             if (playerData){
-
                 return Promise.reject({
                     message: localization.translate("This phone number has been registered, only new player can get lucky draw!")
                 });
@@ -832,7 +841,7 @@ let dbDXMission = {
 
                         return dbconfig.collection_dxPhone.findOne({phoneNumber: phoneNumber, dxMission: dxMission._id})
                             .then( dxPhone => {
-                                if(dxPhone){
+                                if(dxPhone && !allowedWhitePhoneNumber){
                                     return Promise.reject({
                                         message: localization.translate("The phone number is already in the mission list, please invite friends for a lucky draw!")
                                     });
