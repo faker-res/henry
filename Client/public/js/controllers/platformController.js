@@ -911,7 +911,12 @@ define(['js/app'], function (myApp) {
                         initFeedbackAdmin();
                         break;
                     case "Partner":
+                        vm.partnerCommission = vm.partnerCommission || {};
                         vm.getAllPartnerCommSettPreview();
+                        vm.getCommissionRateGameProviderGroup();
+                        vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
+
+
                         break;
                     case "Game":
                         vm.platformGameTabClicked();
@@ -22743,34 +22748,64 @@ define(['js/app'], function (myApp) {
                 }
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
-                    let existProviderCommissionSetting = [];
+                    $scope.$evalAsync(() => {
+                        let existProviderCommissionSetting = [];
 
-                    if (data && data.data && data.data.length) {
-                        data.data.filter(existSetting => {
-                            vm.gameProviderGroup.filter(gameProviderGroup => {
-                                if (gameProviderGroup._id == existSetting.provider) {
-                                    vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
-                                    if (vm.partnerCommission.gameProviderGroup.length > 0) {
-                                        vm.partnerCommission.gameProviderGroup.filter(data => {
-                                            if (data._id == existSetting.provider) {
-                                                data.srcConfig = existSetting;
-                                                data.showConfig = JSON.parse(JSON.stringify(existSetting));
-                                            }
-                                        });
+                        if (data && data.data && data.data.length) {
+                            data.data.filter(existSetting => {
+                                vm.gameProviderGroup.filter(gameProviderGroup => {
+                                    if (gameProviderGroup._id == existSetting.provider) {
+                                        vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
+                                        if (vm.partnerCommission.gameProviderGroup.length > 0) {
+                                            vm.partnerCommission.gameProviderGroup.filter(data => {
+                                                if (data._id == existSetting.provider) {
+                                                    data.srcConfig = existSetting;
+                                                    data.showConfig = JSON.parse(JSON.stringify(existSetting));
+                                                }
+                                            });
+                                        }
                                     }
-                                }
+                                });
                             });
-                        });
 
-                        data.data.forEach(exist => {
-                            existProviderCommissionSetting.push(exist.provider);
-                        })
+                            data.data.forEach(exist => {
+                                existProviderCommissionSetting.push(exist.provider);
+                            })
 
-                        if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
-                            vm.gameProviderGroup.forEach(function (obj) {
-                                if (existProviderCommissionSetting.indexOf(obj._id) == -1) {
-                                    let tempGameProviderGroupId = obj._id;
-                                    vm.partnerCommission.gameProviderGroup.push(obj);
+                            if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
+                                vm.gameProviderGroup.forEach(function (obj) {
+                                    if (existProviderCommissionSetting.indexOf(obj._id) == -1) {
+                                        let tempGameProviderGroupId = obj._id;
+                                        vm.partnerCommission.gameProviderGroup.push(obj);
+                                        if (vm.partnerCommission.gameProviderGroup.length > 0) {
+                                            vm.partnerCommission.gameProviderGroup.forEach(data => {
+                                                if (data._id == tempGameProviderGroupId) {
+                                                    data.srcConfig = null;
+                                                    data.showConfig = {};
+                                                    data.showConfig.commissionSetting = [];
+                                                    data.showConfig.commissionSetting.push({
+                                                        playerConsumptionAmountFrom: "",
+                                                        playerConsumptionAmountTo: "",
+                                                        activePlayerValueFrom: "",
+                                                        activePlayerValueTo: "",
+                                                        commissionRate: "",
+                                                        isEditing: true,
+                                                        isCreateNew: true
+                                                    });
+                                                    data.showConfig.platform = vm.selectedPlatform.id;
+                                                    data.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
+                                                }
+                                            })
+                                        }
+                                    }
+                                });
+                            }
+
+                        } else {
+                            if (vm.gameProviderGroup.length > 0) {
+                                vm.gameProviderGroup.forEach(data => {
+                                    let tempGameProviderGroupId = data._id;
+                                    vm.partnerCommission.gameProviderGroup.push(data);
                                     if (vm.partnerCommission.gameProviderGroup.length > 0) {
                                         vm.partnerCommission.gameProviderGroup.forEach(data => {
                                             if (data._id == tempGameProviderGroupId) {
@@ -22791,39 +22826,10 @@ define(['js/app'], function (myApp) {
                                             }
                                         })
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
-
-                    } else {
-                        if (vm.gameProviderGroup.length > 0) {
-                            vm.gameProviderGroup.forEach(data => {
-                                let tempGameProviderGroupId = data._id;
-                                vm.partnerCommission.gameProviderGroup.push(data);
-                                if (vm.partnerCommission.gameProviderGroup.length > 0) {
-                                    vm.partnerCommission.gameProviderGroup.forEach(data => {
-                                        if (data._id == tempGameProviderGroupId) {
-                                            data.srcConfig = null;
-                                            data.showConfig = {};
-                                            data.showConfig.commissionSetting = [];
-                                            data.showConfig.commissionSetting.push({
-                                                playerConsumptionAmountFrom: "",
-                                                playerConsumptionAmountTo: "",
-                                                activePlayerValueFrom: "",
-                                                activePlayerValueTo: "",
-                                                commissionRate: "",
-                                                isEditing: true,
-                                                isCreateNew: true
-                                            });
-                                            data.showConfig.platform = vm.selectedPlatform.id;
-                                            data.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
-                                        }
-                                    })
-                                }
-                            });
-                        }
-                    }
-                    $scope.safeApply();
+                    })
                 });
             }
             vm.getPartnerCommisionConfig = function () {
