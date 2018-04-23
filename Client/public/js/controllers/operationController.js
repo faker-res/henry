@@ -679,7 +679,7 @@ define(['js/app'], function (myApp) {
             if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
                 var str = val.phoneNumber
                 result = val.phoneNumber; //str.substring(0, 3) + "******" + str.slice(-4);
-            } else if (obj.status === "Expired" && fieldName === "validTime") {
+            } else if (obj.status === "Expired" && (fieldName === "validTime" || fieldName === "EXPIRY_DATE")) {
                 var $time = $('<div>', {
                     class: 'inlineBlk margin-right-5'
                 }).text(utilService.getFormatTime(val));
