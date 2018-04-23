@@ -88,7 +88,6 @@ var proposalExecutor = {
                                 _id: proposalData._id,
                                 createTime: proposalData.createTime
                             }, {
-                                executeTime: new Date(),
                                 settleTime: new Date()
                             }).then(
                                 res => {
