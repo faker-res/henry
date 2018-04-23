@@ -15958,6 +15958,18 @@ define(['js/app'], function (myApp) {
                     // Mask partners bank account
                     vm.selectedSinglePartner.encodedBankAccount = vm.selectedSinglePartner.bankAccount ?
                         vm.selectedSinglePartner.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePartner.bankAccount.slice(-4) : null;
+
+                    if (vm.selectedSinglePartner.domain && vm.selectedSinglePartner.domain.length > 35) {
+                        vm.selectedSinglePartner.$displayDomain = vm.selectedSinglePartner.domain.substring(0, 30) + "...";
+                    } else {
+                        vm.selectedSinglePartner.$displayDomain = vm.selectedSinglePartner.domain || null;
+                    }
+
+                    if (vm.selectedSinglePartner && vm.selectedSinglePartner.ownDomain && vm.selectedSinglePartner.ownDomain.length > 0) {
+                        vm.selectedSinglePartner.ownDomain$ = vm.selectedSinglePartner.ownDomain.join('\n');
+                    } else {
+                        vm.selectedSinglePartner.ownDomain$ = null;
+                    }
                     vm.selectedPartnerCount = 1;
                     console.log('partner selected', vm.selectedSinglePartner);
                     vm.getProvince();
@@ -16303,31 +16315,13 @@ define(['js/app'], function (myApp) {
                 vm.editPartnerSelectedTab = tab;
             }
 
-            vm.checkPartnerPlayerField = function (fieldName, value, form) {
-                vm.editPartner.isPartnerPlayerValid = true;
-                if (!value || value != '') {
-                    if (vm.editPartner && !vm.editPartner.player) {
-                        socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
-                            fieldName: fieldName,
-                            value: value
-                        }, function (data) {
-                            if (data && data.data && data.data[fieldName]) {
-                                vm.editPartner.playerId = data.data.player_id;
-                                vm.editPartner.isPartnerPlayerExist = data.data.exists;
-                                vm.editPartner.isPartnerPlayerValid = data.data.valid;
-                            }
-                            $scope.safeApply();
-                        });
-                    }
-                }
-            }
-
             vm.openEditPartnerDialog = function (selectedTab) {
                 vm.editPartnerSelectedTab = "";
                 vm.editPartnerSelectedTab = selectedTab ? selectedTab.toString() : "basicInfo";
                 vm.prepareEditCritical('partner');
                 vm.prepareEditPartnerPayment();
                 vm.tabClicked(selectedTab);
+                vm.partnerValidity = {};
                 dialogDetails();
 
                 function dialogDetails() {
@@ -16351,7 +16345,9 @@ define(['js/app'], function (myApp) {
                             prepareEditCritical: vm.prepareEditCritical,
                             submitCriticalUpdate: vm.submitCriticalUpdate,
                             isEditingPartnerPayment: vm.isEditingPartnerPayment,
-                            checkPartnerPlayerField: vm.checkPartnerPlayerField,
+                            checkPartnerField: vm.checkPartnerField,
+                            partnerValidity: vm.partnerValidity,
+                            checkOwnDomain: vm.checkOwnDomain,
                             partnerPayment: vm.partnerPayment,
                             allBankTypeList: vm.allBankTypeList,
                             filteredBankTypeList: vm.filteredBankTypeList,
@@ -16375,8 +16371,9 @@ define(['js/app'], function (myApp) {
                             updateEditedPartner: function () {
                                 // this ng-model has to be in date object
                                 this.newPartner.DOB = new Date(this.newPartner.DOB);
-                                if(vm.editPartner.playerId) {
-                                    this.newPartner.player = vm.editPartner.playerId;
+                                if (this.newPartner.playerId) {
+                                    if (vm.partnerValidity && vm.partnerValidity.player && Object.keys(vm.partnerValidity.player).length > 0)
+                                        this.newPartner.player = vm.partnerValidity.player.id;
                                 }
                                 sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
                             },
@@ -16503,6 +16500,13 @@ define(['js/app'], function (myApp) {
                             updateData.remark += ", ";
                         }
                         updateData.remark += $translate(vm.commissionType[updateData.commissionType]);
+                    }
+                    if (updateData.ownDomain) {
+                        if (updateData.ownDomain) {
+                            updateData.ownDomain = updateData.ownDomain.split('\n');
+                        } else {
+                            updateData.ownDomain = [];
+                        }
                     }
 
                     if (isUpdate) {
@@ -16899,7 +16903,7 @@ define(['js/app'], function (myApp) {
                 var time = new Date().getTime();
                 var newDomains = difArrays(vm.selectedSinglePartner.ownDomain, value.split('\n'));
                 socketService.$socket($scope.AppSocket, 'checkOwnDomainValidity', {
-                    partner: vm.newPartner._id,
+                    partner: vm.selectedSinglePartner._id,
                     value: newDomains,
                     time: time
                 }, function (data) {
@@ -16918,31 +16922,38 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
             vm.checkPartnerField = function (fieldName, value, form) {
-                socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
-                    fieldName: fieldName,
-                    value: value
-                }, function (data) {
-                    if (data && data.data && data.data[fieldName]) {
-                        if (data.data[fieldName] != value) {
-                            return vm.checkPartnerField(fieldName, value, form);
-                        }
-                        if (fieldName != 'player') {
-                            vm.partnerValidity[fieldName] = data.data.exists ? false : true;
-                        }
-                        else {
-                            vm.partnerValidity.player = {
-                                validPlayerId: data.data.valid,
-                                exists: data.data.exists,
-                                id: data.data.player_id,
-                                playerId: value
+                if (!value || value != '') {
+                    socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
+                        fieldName: fieldName,
+                        value: value
+                    }, function (data) {
+                        if (data && data.data && data.data[fieldName]) {
+                            if (data.data[fieldName] != value) {
+                                return vm.checkPartnerField(fieldName, value, form);
                             }
+                            if (fieldName != 'player') {
+                                vm.partnerValidity[fieldName] = data.data.exists ? false : true;
+                            }
+                            else {
+                                vm.partnerValidity.player = {
+                                    validPlayerId: data.data.valid,
+                                    exists: data.data.exists,
+                                    id: data.data.player_id,
+                                    playerId: value
+                                }
+                            }
+                        } else {
+                            vm.partnerValidity[fieldName] = false;
                         }
-                    } else {
-                        vm.partnerValidity[fieldName] = false;
-                    }
-                    form.$setValidity('invalidPartnerPlayer', vm.partnerValidity[fieldName])
-                    $scope.safeApply();
-                });
+
+                        if (vm.partnerValidity && vm.partnerValidity.player) {
+                            form.$setValidity('invalidPartnerPlayer', !vm.partnerValidity.player.validPlayerId);
+                        } else {
+                            form.$setValidity('invalidPartnerPlayer', vm.partnerValidity[fieldName]);
+                        }
+                        $scope.safeApply();
+                    });
+                }
             }
 
             vm.initPartnerApiLog = function () {
