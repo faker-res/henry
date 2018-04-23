@@ -53,7 +53,31 @@ function socketActionPlayerMail (socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(adminObjId);
             socketUtil.emitter(self.socket, dbPlayerMail.getPlayerMails, [{recipientType: 'admin', recipientId: adminObjId}], actionName, isValidData);
-        }
+        },
+
+        setFilteredKeywords: function setFilteredKeywords (data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.type && data.keywords);
+            socketUtil.emitter(self.socket, dbPlayerMail.setFilteredKeywords, [data.keywords, data.platformObjId, data.type, data.smsChannel], actionName, isValidData);
+        },
+
+        getFilteredKeywords: function getFilteredKeywords (data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.type);
+            socketUtil.emitter(self.socket, dbPlayerMail.getFilteredKeywords, [data.platformObjId, data.type, data.smsChannel], actionName, isValidData);
+        },
+
+        removeFilteredKeywords: function removeFilteredKeywords (data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.type && data.keywords);
+            socketUtil.emitter(self.socket, dbPlayerMail.removeFilteredKeywords, [data.keywords, data.platformObjId, data.type, data.smsChannel], actionName, isValidData);
+        },
+
+        getAllFilteredKeyword: function getAllFilteredKeyword(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlayerMail.getAllFilteredKeyword, [data.platformObjId], actionName, isValidData);
+        },
 
     };
     socketActionPlayerMail.actions = this.actions;

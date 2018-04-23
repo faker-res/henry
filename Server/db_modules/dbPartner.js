@@ -609,6 +609,9 @@ let dbPartner = {
                 if(k=="level"){
                     data["level"] = mongoose.Types.ObjectId(data["level"]);
                 }
+                if(k=="player"){
+                    data["player"] = mongoose.Types.ObjectId(data["player"]);
+                }
                 query[k]= data[k];
             }
         }
@@ -617,7 +620,7 @@ let dbPartner = {
             //if there is sorting parameter
             var detail = dbconfig.collection_partner.aggregate([
                 {$match: query},
-                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
+                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1, "player":1}},
                 {$sort:data.sortCol},
                 {$skip:data.index},
                 {$limit:data.limit}
@@ -646,7 +649,7 @@ let dbPartner = {
             //if there is not sorting parameter
             var detail = dbconfig.collection_partner.aggregate([  
                 {$match: query},
-                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
+                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1, "player":1}},
                 {$skip:data.index},
                 {$limit:data.limit}
             ]).then(
@@ -754,6 +757,7 @@ let dbPartner = {
     },
     getPartnerItem: function(id, childrencount) {
         return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(id)})
+            .populate({path: "player", model: dbconfig.collection_players, select:{_id:1, name:1, playerId:1}})
             .populate({path: "parent", model: dbconfig.collection_partner})
             .populate({path: "level", model: dbconfig.collection_partnerLevel}).
             then(function(partnerdata){
