@@ -467,6 +467,9 @@ var dbPlayerConsumptionRecord = {
                                 pastMonthConsumptionSum: record.validAmount,
                                 consumptionTimes: 1,
                                 bonusAmountSum: record.bonusAmount,
+                                dailyBonusAmountSum: record.bonusAmount,
+                                weeklyBonusAmountSum: record.bonusAmount,
+                                pastMonthBonusAmountSum: record.bonusAmount,
                                 creditBalance: -record.validAmount
                             }
                         }
@@ -568,6 +571,9 @@ var dbPlayerConsumptionRecord = {
                             weeklyConsumptionSum: record.validAmount,
                             pastMonthConsumptionSum: record.validAmount,
                             bonusAmountSum: record.bonusAmount,
+                            dailyBonusAmountSum: record.bonusAmount,
+                            weeklyBonusAmountSum: record.bonusAmount,
+                            pastMonthBonusAmountSum: record.bonusAmount,
                             consumptionTimes: 1
                         }
                     }

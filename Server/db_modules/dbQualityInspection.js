@@ -16,7 +16,9 @@ var dbQualityInspection = {
             user     : 'devselect',
             password : '!Q&US3lcT18',
             database : 'live800_im',
-            port: '3320'
+            port: '3320',
+            queueLimit: 100,
+            connectionLimit: 100
         });
         return connection;
     },
@@ -1379,12 +1381,16 @@ var dbQualityInspection = {
                     }
 
                     console.log("LH TEST QUALITYINSPECTION",data);
+                    console.log("LH TEST QUALITYINSPECTION DATA",qaData);
                     console.log("LH TEST QUALITYINSPECTION UPDATE QUERY",{messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")});
+                    console.log("LH TEST QUALITYINSPECTION FIND DATA",dbconfig.collection_qualityInspection.find(
+                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")}
+                    ));
                     dbconfig.collection_qualityInspection.findOneAndUpdate(
                         {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
                         data
                     ).then(data=>{
-                        console.log(data);
+                        console.log("LH TEST return DATA,",data);
                     })
                 }
             })
@@ -2144,7 +2150,7 @@ var dbQualityInspection = {
         let counter = 0;
         let queryList = [];
         let promiseList = [];
-        
+
         if(connection){
             let promise = new Promise((resolve,reject) => {
                 connection.query(queryString, function (error, results, fields) {

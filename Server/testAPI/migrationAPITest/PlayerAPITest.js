@@ -204,7 +204,7 @@
     proto.importBIPlayer = function (callback, requestData) {
         var data = {
             name: "yunvincevince80",
-            platform: 1,
+            platform: 4,
             realName: "测试",
             referral: "a123",
             partner: "p123",
@@ -217,10 +217,10 @@
             wechat: "test123",
             qq: "12345678",
             bankAccount: "8888888888888888",
-            bankAccountCity: "110100",
-            bankAccountDistrict: "110101",
+            bankAccountCity: "湖南省长沙市",
+            // bankAccountDistrict: "110101",
             bankAccountName: "测试",
-            bankAccountProvince: "110000",
+            bankAccountProvince: "湖南省长沙市",
             bankAccountType: "2",
             bankAddress: "东城支行",
             permission: {
@@ -240,8 +240,8 @@
                 topupOnline: true,
                 transactionReward: true
             },
-            forbidProviders: [],
-            forbidRewardEvents: []
+            forbidProviders: [18, 16],
+            forbidRewardEvents: ["全勤奖励", "冲关奖励"]
         };
         this._service.importBIPlayer.request(data);
         var self = this;
