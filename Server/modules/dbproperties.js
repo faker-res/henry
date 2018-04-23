@@ -34,6 +34,7 @@ var playerBadRecordSchema = require('./../schema/playerBadRecord');
 var playerLoginRecordSchema = require('./../schema/playerLoginRecord');
 var playerLevelConsumptionLimitSchema = require('./../schema/playerLevelConsumptionLimit');
 var playerFeedbackSchema = require('./../schema/playerFeedback');
+let partnerFeedbackSchema = require('./../schema/partnerFeedback');
 
 var proposalSchema = require('./../schema/proposal');
 var proposalProcessSchema = require('./../schema/proposalProcess');
@@ -70,6 +71,9 @@ var playerMailSchema = require('./../schema/playerMail');
 
 let playerFeedbackResultSchema = require('./../schema/playerFeedbackResult');
 let playerFeedbackTopicSchema = require('./../schema/playerFeedbackTopic');
+
+let partnerFeedbackResultSchema = require('./../schema/partnerFeedbackResult');
+let partnerFeedbackTopicSchema = require('./../schema/partnerFeedbackTopic');
 
 let rewardPointsLvlConfigSchema = require('./../schema/rewardPointsLvlConfig');
 let rewardPointsSchema = require('./../schema/rewardPoints');
@@ -181,6 +185,9 @@ let dxMissionModel = db_admin.model('dxMission', dxMissionSchema, 'dxMission');
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
+let partnerFeedbackResultModel = db_admin.model('partnerFeedbackResult', partnerFeedbackResultSchema, 'partnerFeedbackResult');
+let partnerFeedbackTopicModel = db_admin.model('partnerFeedbackTopic', partnerFeedbackTopicSchema, 'partnerFeedbackTopic');
+
 let playerPageAdvertisementInfoModel = db_admin.model('playerPageAdvertisementInfo', playerPageAdvertisementInfoSchema, 'playerPageAdvertisementInfo');
 let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisementInfo', partnerPageAdvertisementInfoSchema, 'partnerPageAdvertisementInfo');
 
@@ -188,6 +195,7 @@ let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
+let partnerFeedbackModel = db_player.model('partnerFeedback', partnerFeedbackSchema, 'partnerFeedback');
 var partnerModel = db_player.model('partner', partnerSchema, 'partner');
 
 var rewardTaskModel = db_player.model('rewardTask', rewardTaskSchema, 'rewardTask');
@@ -414,6 +422,7 @@ var dbProperties = {
     collection_playerBadRecord: playerBadRecordModel,
     collection_playerTrustLevel: playerTrustLevelModel,
     collection_playerFeedback: playerFeedbackModel,
+    collection_partnerFeedback: partnerFeedbackModel,
     collection_playerLoginRecord: playerLoginRecordModel,
     collection_playerLevelConsumptionLevel: playerLevelConsumptionLimitModel,
     collection_playerCredibilityRemark: playerCredibilityRemarkModel,
@@ -456,6 +465,9 @@ var dbProperties = {
 
     collection_playerFeedbackResult: playerFeedbackResultModel,
     collection_playerFeedbackTopic: playerFeedbackTopicModel,
+
+    collection_partnerFeedbackResult: partnerFeedbackResultModel,
+    collection_partnerFeedbackTopic: partnerFeedbackTopicModel,
 
     collection_playerPageAdvertisementInfo: playerPageAdvertisementInfoModel,
     collection_partnerPageAdvertisementInfo: partnerPageAdvertisementInfoModel,
