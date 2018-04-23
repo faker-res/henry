@@ -30,6 +30,7 @@ var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var rsaCrypto = require("../modules/rsaCrypto");
 var dbRewardEvent = require("../db_modules/dbRewardEvent");
 var dbLogger = require('./../modules/dbLogger');
+const dbPlayerMail = require("./../db_modules/dbPlayerMail");
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -1460,14 +1461,23 @@ var dbPlatform = {
                     delay: data.delay
                 };
                 var recipientName = playerData.name || playerData.partnerName;
-                return smsAPI.sending_sendMessage(sendObj).then(
-                    retData => {
-                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, playerData.platform, 'success');
-                        return retData;
-                    },
-                    retErr => {
-                        dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, playerData.platform, 'failure', retErr);
-                        return Q.reject({message: retErr, data: data});
+
+                return dbPlayerMail.isFilteredKeywordExist(data.message, data.platformId, "sms", data.channel).then(
+                    exist => {
+                        if (exist) {
+                            return Promise.reject({errorMessage: "Content consist of sensitive keyword."});
+                        }
+
+                        return smsAPI.sending_sendMessage(sendObj).then(
+                            retData => {
+                                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, playerData.platform, 'success');
+                                return retData;
+                            },
+                            retErr => {
+                                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, playerData.platform, 'failure', retErr);
+                                return Q.reject({message: retErr, data: data});
+                            }
+                        );
                     }
                 );
             }
