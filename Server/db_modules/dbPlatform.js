@@ -2709,13 +2709,106 @@ var dbPlatform = {
         }).sort('settMode').lean();
     },
 
-    initSettlePartnerComm: (platformObjId, settMode) => {
-        // let
-        // return dbconfig.collection_partner.find({}, '_id partnerName realName').lean().then(
-        //     partners => {
-        //
-        //     }
-        // );
+    initSettlePartnerComm: (platformObjId, settMode, startTime, endTime) => {
+        let partnersProm = dbconfig.collection_partner.find({
+            platform: platformObjId
+        }, '_id partnerName realName credits').lean();
+        let commConfigProm = dbconfig.collection_partnerCommissionConfig.find({
+            platform: platformObjId,
+            commissionType: settMode
+        }).populate({path: 'provider', model: dbconfig.collection_gameProviderGroup}).lean();
+        let commRateProm = dbconfig.collection_partnerCommissionRateConfig.find({
+            platform: platformObjId
+        }).lean();
+        let providerGroupProm = dbconfig.collection_gameProviderGroup.find({
+            platform: platformObjId
+        }).lean();
+
+        return Promise.all([partnersProm, commConfigProm, commRateProm, providerGroupProm]).then(
+            res => {
+                if (res && res[0] && res[1] && res[2]) {
+                    let partners = res[0];
+                    let commConfig = res[1];
+                    let rateConfig = res[2];
+                    let providerGroup = res[3];
+
+                    let providerDetailPromArr = [];
+                    let playerConsumpPromArr = [];
+
+                    partners.forEach(partner => {
+                        partner.providerComm = partner.providerComm ? partner.providerComm : [];
+
+                        providerDetailPromArr.push(
+                            dbconfig.collection_players.find({
+                                platform: platformObjId,
+                                partner: partner._id
+                            }, '_id name realName').lean().then(
+                                players => {
+                                    players.forEach(player => {
+                                        playerConsumpPromArr.push(
+                                            dbconfig.collection_playerConsumptionRecord.aggregate({
+                                                $match: {
+                                                    platformId: ObjectId(platformObjId),
+                                                    playerId: ObjectId(player._id),
+                                                    createTime: {$gte: new Date(startTime), $lte: new Date(endTime)}
+                                                }
+                                            }, {
+                                                $group: {
+                                                    _id: {
+                                                        playerId: "$playerId",
+                                                        providerId: "$providerId"
+                                                    },
+                                                    totalConsumptionBonus: {$sum: '$bonusAmount'},
+                                                    totalConsumptionValid: {$sum: '$validAmount'}
+                                                }
+                                            }).then(
+                                                consumptionSumm => {
+                                                    if (consumptionSumm && consumptionSumm.length > 0) {
+                                                        consumptionSumm.forEach(summ => {
+                                                            let playerConsumpObj = {
+                                                                bonusAmount: summ.totalConsumptionBonus,
+                                                                validAmount: summ.totalConsumptionValid,
+                                                                playerName: player.name,
+                                                                playerRealName: player.realName
+                                                            };
+
+                                                            if (partner.providerComm.some(e => String(e.providerObjId) === String(summ._id.providerId))) {
+                                                                let existingProviderComm = partner.providerComm.filter(e => String(e.providerObjId) === String(summ._id.providerId))[0];
+
+                                                                existingProviderComm.players.push(playerConsumpObj);
+                                                                existingProviderComm.totalConsumptionBonus += summ.totalConsumptionBonus;
+                                                                existingProviderComm.totalConsumptionValid += summ.totalConsumptionValid;
+                                                            } else {
+                                                                partner.providerComm.push({
+                                                                    providerObjId: summ._id.providerId,
+                                                                    players: [playerConsumpObj],
+                                                                    totalConsumptionBonus: summ.totalConsumptionBonus,
+                                                                    totalConsumptionValid: summ.totalConsumptionValid
+                                                                })
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            ).then(
+                                                () => {
+                                                    // Process partner.providerComm
+
+                                                }
+                                            )
+                                        )
+                                    });
+
+                                    return Promise.all(playerConsumpPromArr);
+                                }
+                            )
+                        )
+                    });
+
+                    return Promise.all(providerDetailPromArr).then(() => res)
+                }
+
+            }
+        );
     },
 };
 

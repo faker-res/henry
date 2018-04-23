@@ -96,7 +96,7 @@ var DXMissionServiceImplement = function () {
         let isBackStageGenerated = false;
         let smsChannel = 2;
 
-        var isValidData = Boolean(data && data.platformId && data.phoneNumber && data.taskName && data.autoSMS);
+        var isValidData = Boolean(data && data.platformId && data.phoneNumber && data.taskName && data.hasOwnProperty("autoSMS"));
         WebSocketUtil.performAction(conn, wsFunc, data, dbDxMission.insertPhoneToTask, [deviceData, data.platformId, data.phoneNumber.trim(), data.taskName, data.autoSMS, isBackStageGenerated, smsChannel], isValidData, false, false, true);
     };
 
