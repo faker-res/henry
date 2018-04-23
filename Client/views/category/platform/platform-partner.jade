@@ -7,7 +7,7 @@
         a.fa.fa-times.pull-right.margin-all-5(ng-if='vm.searchText', ng-click='vm.searchText=null')
         input#partnerSearch.span.input-sm(type="text", ng-model="vm.searchText", placeholder='{{"SEARCH_HERE" | translate}}')
 .col-md-12(ng-show="checkViewPermission('Platform', 'Partner', 'AdvancedSearch') && vm.curPlatformText")
-    .col-xs-11.col-sm-10.col-md-10.search-filters-container#partnerTable-search-filters.well
+    .col-xs-11.col-sm-10.col-md-12.search-filters-container#partnerTable-search-filters.well
 .col-md-12
     .pull-right.margin-top-5
         text.margin-right-5 {{"Refresh" | translate}}
@@ -557,6 +557,77 @@ p
                                 .inlineBlk.text-danger.margin-left-5 {{vm.linkPlayerStatement}}
             .modal-footer
                 button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-click='vm.submitLinkPlayer()', ng-disabled="!vm.linkPlayerFound") {{'Link Player' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
+// add partner feedback - Modal
+#modalAddPartnerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"FEEDBACK_PARTNER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
+                        .pull-left.padding-all-5
+                        li.active(id='addPartnerFeedbackTab', ng-show="checkViewPermission('Platform', 'Partner','AddFeedback')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPartner()|| vm.selectedPartnerCount!= 1", ng-click="vm.feedbackModalTabPartner = 'addPartnerFeedbackPanel'")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"ADD_FEEDBACK" | translate}}
+                        li(id='partnerFeedbackHistoryTab', ng-show="checkViewPermission('Platform', 'Partner','FeedbackHistory')")
+                            a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPartner()|| vm.selectedPartnerCount!= 1", ng-click="vm.feedbackModalTabPartner = 'partnerFeedbackHistoryPanel'; vm.prepareShowPartnerFeedbackRecord();")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"Feedback History" | translate}}
+
+                #addPartnerFeedbackPanel.panel-body(ng-if="vm.feedbackModalTabPartner === 'addPartnerFeedbackPanel'")
+                    form(name='form_feedback').well
+                        .form-group
+                            label.control-label {{'PARTNER_NAME' | translate}}
+                            label.form-control {{vm.isOneSelectedPartner().partnerName}}
+                        .form-group
+                            label.control-label {{'FEEDBACK_RESULTS' | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPartnerFeedbackResultData={}; vm.deletePartnerFeedbackResultData={};", ng-show="checkViewPermission('Platform', 'Partner','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPartnerFeedbackResult") {{"ADD" | translate}}
+                            select.form-control(style='margin-top:5px;', ng-model='vm.partnerFeedback.result', required)
+                                option(ng-repeat='(i,v) in vm.allPartnerFeedbackResults', value='{{v.key}}') {{v.value}}
+                        .form-group
+                            label.control-label {{'FEEDBACK_TOPIC' | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPartnerFeedbackTopicData={}; vm.deletePartnerFeedbackTopicData={};", ng-show="checkViewPermission('Platform', 'Partner','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPartnerFeedbackTopic") {{"ADD" | translate}}
+                            select.form-control(style='margin-top:5px;', ng-model='vm.partnerFeedback.topic', required)
+                                option(ng-repeat='(i,v) in vm.allPartnerFeedbackTopics', value='{{v.key}}') {{v.value}}
+                        .form-group
+                            label.control-label {{'FEEDBACK_CONTENT' | translate}}
+                            .textareaDetail
+                                textarea.form-control(rows='4', ng-model='vm.partnerFeedback.content')
+
+                #partnerFeedbackHistoryPanel.panel-body(ng-show="vm.feedbackModalTabPartner === 'partnerFeedbackHistoryPanel'")
+                    .well.searchDiv
+                        .inlineBlk
+                            label {{"Start date" | translate}}
+                            .startTime
+                        .inlineBlk
+                            label {{"End date" | translate}}
+                            .endTime
+                        .inlineBlk
+                            button.common-button.btn.btn-primary(ng-click='vm.updatePartnerFeedbackData("#modalAddPartnerFeedback","#partnerFeedbackRecordTable")') {{'FILTER' | translate}}
+                            i.fa.fa-spinner.fa-spin(ng-if='vm.partnerFeedbackRecord.searching')
+                    table#partnerFeedbackRecordTable.simple-table.collapse
+                        thead
+                            tr
+                                th(style='min-width:90px;') {{'TIME' | translate}}
+                                th {{'RESULT' | translate}}
+                                th {{'CONTENT' | translate}}
+                                th {{'adminName' | translate}}
+                                th {{"FEEDBACK_TOPIC" | translate}}
+                        tbody(ng-if='vm.partnerFeedbackData.data.length>0')
+                            tr(ng-repeat='(i,v) in vm.partnerFeedbackData.data')
+                                td(style='min-width:150px;') {{vm.dateReformat(v.createTime)}}
+                                td {{v.result$}}
+                                td(style='white-space: normal;word-wrap: break-word;max-width: 300px;') {{v.content}}
+                                td {{v.adminId.adminName}}
+                                td {{v.topic}}
+
+            .modal-footer(ng-if="vm.feedbackModalTabPartner === 'addPartnerFeedbackPanel'")
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePartnerFeedback();") {{"ADD" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 // Partner actions - Modal

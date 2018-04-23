@@ -15299,7 +15299,7 @@ define(['js/app'], function (myApp) {
                             advSearch: true, "sClass": "wordWrap realNameCell"
                         },
                         {
-                            title: $translate('COMMISSION_TYPE'), "data": 'commissionType',
+                            title: $translate('COMMISSION_TYPE'), "data": 'commissionType', advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 data = data || '';
                                 if ($scope.checkViewPermission('Platform', 'Partner', 'EditCommission')) {
@@ -15464,7 +15464,7 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Platform', 'Partner', 'AddFeedback')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-commenting margin-right-5',
-                                        'ng-click': 'vm.initFeedbackModal();',
+                                        'ng-click': 'vm.initPartnerFeedbackModal();',
                                         'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalAddPartnerFeedback',
