@@ -1383,6 +1383,9 @@ var dbQualityInspection = {
                     console.log("LH TEST QUALITYINSPECTION",data);
                     console.log("LH TEST QUALITYINSPECTION DATA",qaData);
                     console.log("LH TEST QUALITYINSPECTION UPDATE QUERY",{messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")});
+                    console.log("LH TEST QUALITYINSPECTION FIND DATA",dbconfig.collection_qualityInspection.find(
+                        {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")}
+                    ));
                     dbconfig.collection_qualityInspection.findOneAndUpdate(
                         {messageId: data.messageId,"live800Acc.name": new RegExp("^" + data.live800Acc.name, "i")},
                         data
