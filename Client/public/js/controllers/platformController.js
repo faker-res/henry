@@ -23093,7 +23093,7 @@ define(['js/app'], function (myApp) {
                             if (JSON.stringify(gameProviderGroup.showConfig) != JSON.stringify(gameProviderGroup.srcConfig)) {
 
                                 let checkEmpty = gameProviderGroup.showConfig.commissionSetting[0];
-                                if (checkEmpty.playerConsumptionAmountFrom != "" && checkEmpty.playerConsumptionAmountTo != "" && checkEmpty.activePlayerValueFrom != "" && checkEmpty.activePlayerValueTo != "" && checkEmpty.commissionRate != "") {
+                                if (checkEmpty.playerConsumptionAmountFrom != "" && checkEmpty.playerConsumptionAmountTo != "" && checkEmpty.activePlayerValueFrom != "" && checkEmpty.commissionRate != "") {
                                     gameProviderGroup.showConfig.provider = gameProviderGroup._id;
 
                                     let prom = new Promise(function (resolve) {
@@ -23120,8 +23120,8 @@ define(['js/app'], function (myApp) {
                     Promise.all(promises).then(
                         (data) => {
                             if (data) {
-                                $scope.safeApply();
                                 vm.getPartnerCommissionConfigWithGameProviderConfig();
+                                $scope.safeApply();
                             }
                         }
                     );
