@@ -15551,7 +15551,7 @@ let dbPlayerInfo = {
                             $group: {
                                 _id: "$playerId",
                                 providerId: {$first: "$providerId"},
-                                amount: {$first: "$validAmount"},
+                                validAmount: {$first: "$validAmount"},
                                 bonusAmount: {$first: "$bonusAmount"},
                                 createTime : {$first: "$createTime"}
                             }
