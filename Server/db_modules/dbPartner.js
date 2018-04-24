@@ -4583,6 +4583,24 @@ let dbPartner = {
         )
     },
 
+    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig) => {
+        return dbconfig.collection_partner.findById(partnerObjId).lean().then(
+            partnerObj => {
+                if (partnerObj) {
+                    let proposalData = {
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        settingObjId: settingObjId,
+                        oldRate: oldConfig[field],
+                        newRate: newConfig[field],
+                        remark: localization.localization.translate(field)
+                    };
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
+                }
+            }
+        )
+    }
+
 };
 var proto = dbPartnerFunc.prototype;
 proto = Object.assign(proto, dbPartner);
