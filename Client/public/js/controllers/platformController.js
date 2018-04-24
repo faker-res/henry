@@ -15001,9 +15001,6 @@ define(['js/app'], function (myApp) {
                     vm.deletePartnerFeedbackResultData.failure = null;
                 }
             };
-
-            // vm.clearPartnerFeedBackResultDataStatus = function () {
-            // };
             
             vm.addFeedbackResult = function (rowData) {
                 vm.clearFeedBackResultDataStatus(rowData);
@@ -15065,12 +15062,6 @@ define(['js/app'], function (myApp) {
                     );
                 }
             };
-
-            // vm.addPartnerFeedbackResult = function () {
-            //     vm.clearPartnerFeedBackResultDataStatus();
-            //     let reqData = {};
-            //
-            // };
             
             vm.deleteFeedbackResult = function (rowData) {
                 vm.clearFeedBackResultDataStatus(rowData);
@@ -15129,12 +15120,6 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            // vm.deletePartnerFeedbackResult = function () {
-            //     vm.clearPartnerFeedBackResultDataStatus();
-            //     let reqData = {};
-            //
-            // };
-
             vm.clearFeedBackTopicDataStatus = function (rowData) {
                 if (rowData && rowData.playerId) {
                     vm.addPlayerFeedbackTopicData.message = null;
@@ -15156,9 +15141,6 @@ define(['js/app'], function (myApp) {
                     vm.deletePartnerFeedbackTopicData.failure = null;
                 }
             };
-            
-            // vm.clearPartnerFeedBackTopicDataStatus = function () {
-            // };
             
             vm.addFeedbackTopic = function (rowData) {
                 vm.clearFeedBackTopicDataStatus(rowData);
@@ -15220,12 +15202,6 @@ define(['js/app'], function (myApp) {
                     );
                 }
             };
-
-            // vm.addPartnerFeedbackTopic = function () {
-            //     vm.clearPartnerFeedBackTopicDataStatus();
-            //     let reqData = {};
-            //
-            // };
             
             vm.deleteFeedbackTopic = function (rowData) {
                 vm.clearFeedBackTopicDataStatus(rowData);
@@ -15283,12 +15259,6 @@ define(['js/app'], function (myApp) {
                     );
                 }
             };
-            
-            // vm.deletePartnerFeedbackTopic = function () {
-            //     vm.clearPartnerFeedBackTopicDataStatus();
-            //     let reqData = {};
-            //
-            // };
             ///////////////////////////////// player feedback //////////////////////////////////////////
 
 
