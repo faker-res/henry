@@ -43,7 +43,7 @@ let promoCodeSchema = new Schema({
     // Top Up Proposal Used for this promo code
     topUpProposalId: {type: String},
     // Promo Code Proposal Id
-    proposalId: {type: String},
+    proposalId: {type: String, index: true},
     // Promo Code Accepted Amount
     acceptedAmount: {type: Number},
     // Promo Code Top Up Amount
