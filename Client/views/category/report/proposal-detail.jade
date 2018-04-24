@@ -22,7 +22,7 @@ div
         label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd HH:mm:ss'}}
     .label-value
         label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
-        label(ng-if = "vm.selectedProposal.executeTime && vm.selectedProposal.status != vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.executeTime) || 'none'}}
+        label(ng-if = "vm.selectedProposal.executeTime && vm.selectedProposal.status != vm.proposalStatusList.CANCEL && vm.selectedProposal.status != vm.proposalStatusList.EXPIRED") {{vm.dateReformat(vm.selectedProposal.executeTime) || 'none'}}
     .label-value
         label {{'cancelTime' | translate}}&nbsp;:&nbsp;
         label(ng-if = "vm.selectedProposal.executeTime && vm.selectedProposal.status == vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.executeTime) || 'none'}}
