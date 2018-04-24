@@ -912,7 +912,7 @@ let dbDXMission = {
                                                                    }
                                                                    else{
                                                                        return Promise.resolve({
-                                                                           message: localization.translate("Successfully got the rewards, please take note on the message sent by the system.")
+                                                                           message: localization.translate("Player already obtained") + dxMission.creditAmount + localization.translate("dollar cash prize, ") + localization.translate("please take note on the message sent by the system.")
                                                                        });
                                                                    }
                                                                 }
