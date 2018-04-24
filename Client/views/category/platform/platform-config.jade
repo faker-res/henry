@@ -676,7 +676,9 @@
                                                     table.simple-table(ng-if="!vm.partnerCommission.isGameProviderIncluded" style='width:auto;min-width:99.9%')
                                                         thead
                                                             tr
-                                                                th(colspan=6) {{'Total_Commission'| translate}}{{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
+                                                                th(colspan=6)
+                                                                    label(style="color:red") {{'Total_Commission'| translate}}
+                                                                    label {{'Commission'| translate}}:{{vm.commissionSettingTab | translate}}
                                                             tr
                                                                 th(colspan=2) {{vm.playerConsumptionTableHeader | translate}}
                                                                 th(colspan=2) {{vm.activePlayerTableHeader | translate}}
@@ -696,14 +698,15 @@
                                                                 td
                                                                     input.form-control(type='number', ng-model='val.activePlayerValueFrom' ng-disabled='!val.isEditing')
                                                                 td
-                                                                    input.form-control(type='number', ng-model='val.activePlayerValueTo' ng-disabled='!val.isEditing')
+                                                                    input.form-control(type='number', ng-if='val.activePlayerValueTo || val.isEditing', ng-model='val.activePlayerValueTo', ng-disabled='!val.isEditing')
+                                                                    input.form-control(style='text-align: right' type='text', ng-if='!val.activePlayerValueTo && !val.isEditing', value='-', disabled)
                                                                 td
                                                                     span.percentage
                                                                         input(type='number', percentage, style="display: inline-block", ng-model='val.commissionRate' ng-disabled='!val.isEditing')
                                                                 td
                                                                     a(href="" ng-if="!val.isEditing" ng-click="vm.commissionSettingEditRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
                                                                     a(href="" ng-if="val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingCancelRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
-                                                                    text(ng-if="!val.isEditing") /
+                                                                    text(ng-if="!val.isCreateNew") /
                                                                     a(href="" ng-click="vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'INSERT' | translate}}
                                                                     text /
                                                                     a(href="" ng-click="vm.commissionSettingDeleteRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
@@ -732,7 +735,8 @@
                                                                     td
                                                                         input.form-control(type='number', ng-model='commissionSetting.activePlayerValueFrom' ng-disabled='!commissionSetting.isEditing')
                                                                     td
-                                                                        input.form-control(type='number', ng-model='commissionSetting.activePlayerValueTo' ng-disabled='!commissionSetting.isEditing')
+                                                                        input.form-control(type='number', ng-if='commissionSetting.activePlayerValueTo || commissionSetting.isEditing', ng-model='commissionSetting.activePlayerValueTo', ng-disabled='!commissionSetting.isEditing')
+                                                                        input.form-control(style='text-align: right' type='text', ng-if='!commissionSetting.activePlayerValueTo && !commissionSetting.isEditing', value='-', disabled)
                                                                     td
                                                                         span.percentage
                                                                             input(type='number', percentage, style="display: inline-block", ng-model='commissionSetting.commissionRate' ng-disabled='!commissionSetting.isEditing')
