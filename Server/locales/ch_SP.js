@@ -285,6 +285,7 @@ var simplifiedChinese = {
     "This phone number has been registered, only new player can get lucky draw!": "此号码已注册网站会员罗，新会员才能抽奖呢！",
     "The phone number is already in the mission list, please invite friends for a lucky draw!": "此号码已加入此活动了，欢迎介绍朋友抽奖喔！",
     "Successfully got the rewards, please take note on the message sent by the system.": "获奖成功，请注意短信接收。",
+    "Successfully imported into the task, please take note that no message is sent by the system.": "此号码成功导入此活动，请注意短信将不会发送。",
     "LOCAL_CREDIT": "自由额度",
     "No Any MerchantNo Are Available, Please Change TopUp Method":"此在线充值类型无可用的商户号，请更换充值方式。",
     "Player does not have enough reward points": "兑换失败: 很抱歉，可兑换积分不足",

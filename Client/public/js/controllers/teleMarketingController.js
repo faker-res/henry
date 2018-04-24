@@ -1593,10 +1593,10 @@ define(['js/app'], function (myApp) {
                 vm.playerFeedback = {};
                 // vm.getPlatformPlayersData();
 
-                let rowData = vm.playerTableClickedRow.data();
-                rowData.feedbackTimes++;
-                vm.playerTableClickedRow.data(rowData).draw();
-
+                // let rowData = vm.playerTableClickedRow.data();
+                // rowData.feedbackTimes++;
+                // vm.playerTableClickedRow.data(rowData).draw();
+                vm.getPagedTelePlayerTable(true);
                 $scope.safeApply();
             });
         };
@@ -3719,7 +3719,7 @@ define(['js/app'], function (myApp) {
 
                 vm.teleMarketingPlayerInfo.data.forEach((item) => {
                     if(item){
-                        item['registrationTime'] = item.registrationTime ? vm.dateReformat(item.registrationTime) : "";
+                        item.playerData.registrationTime = item.playerData.registrationTime ? vm.dateReformat(item.playerData.registrationTime) : "";
                     }
                 });
 
