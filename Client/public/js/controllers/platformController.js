@@ -16367,6 +16367,8 @@ define(['js/app'], function (myApp) {
                             rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal,
                             commissionSettingEditRow: vm.commissionSettingEditRow,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
+                            selectedCommissionTab: vm.selectedCommissionTab,
+                            customizeCommissionRate: vm.customizeCommissionRate,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -22862,7 +22864,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.getPartnerCommissionConfigWithGameProviderConfig = function () {
-                vm.partnerCommission = {};
+                vm.partnerCommission = {isCustomized: false};
                 vm.partnerCommission.gameProviderGroup = [];
                 vm.partnerCommission.isGameProviderIncluded = false;
 
@@ -22996,6 +22998,8 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.selectedCommissionTab = function (tab) {
+                let isGetConfig = true;
+
                 vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
                 vm.partnerCommission.isEditing = false;
 
@@ -23019,13 +23023,18 @@ define(['js/app'], function (myApp) {
                     case 'MONTHLY_BONUS_AMOUNT':
                         vm.activePlayerTableHeader = 'MONTHLY_ACTIVE_PLAYER';
                         break;
+                    default:
+                        isGetConfig = false;
                 }
 
-                if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                    vm.getPartnerCommissionConfigWithGameProviderConfig();
-                } else {
-                    vm.getPartnerCommisionConfig();
+                if (isGetConfig) {
+                    if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                        vm.getPartnerCommissionConfigWithGameProviderConfig();
+                    } else {
+                        vm.getPartnerCommisionConfig();
+                    }
                 }
+
             };
             vm.commissionSettingNewRow = (valueCollection) => {
 
@@ -23171,6 +23180,23 @@ define(['js/app'], function (myApp) {
                     vm.partnerCommission.isEditing = false;
                     $scope.safeApply();
                 });
+            };
+
+            vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig) => {
+                if (newConfig[idx].commissionRate != oldConfig[idx].commissionRate) {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        settingObjId: setting.srcConfig._id,
+                        field: "commissionRate",
+                        oldConfig: oldConfig[idx],
+                        newConfig: newConfig[idx]
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
+                        console.log('customizePartnerCommission', data);
+                    });
+                }
+
             }
 
             vm.getCommissionRateGameProviderGroup = function () {

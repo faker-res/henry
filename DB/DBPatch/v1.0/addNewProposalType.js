@@ -1,6 +1,6 @@
 /*
  * how to use:
- * mongo --eval "var type='PlayerTopUpReturnGroup';" addNewProposalType.js
+ * mongo --eval "var type='CustomizePartnerCommRate';" addNewProposalType.js
  */
 
 var db = db.getSiblingDB("admindb");
