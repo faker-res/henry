@@ -22,6 +22,13 @@ let partnerCommissionConfigSchema = new Schema({
         activePlayerValueTo: {type: Number},
         //Commission Rate
         commissionRate: {type: Number}
+    }],
+    // Custom rate
+    customSetting: [{
+        _id: false,
+        partner: {type: Schema.ObjectId, ref: 'partner'},
+        //Commission Rate
+        commissionRate: {type: Number}
     }]
 
     /** To be removed
