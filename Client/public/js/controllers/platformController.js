@@ -15908,6 +15908,38 @@ define(['js/app'], function (myApp) {
                     queryFunction: vm.getPartnersByAdvancedQueryDebounced
                 });
                 vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
+
+                if (vm.selectedSinglePartner) {
+                    vm.partnerTable
+                        .rows( function ( idx, data, node ) {
+                            if (data._id == vm.selectedSinglePartner._id) {
+                                vm.maskPartnerInfo(data);
+                                vm.selectedSinglePartner = data;
+                                vm.partnerTableRowClick(data);
+                                vm.selectedPartnerCount = 1;
+                                $(node).addClass('selected');
+                                vm.currentSelectedPartnerObjId = vm.selectedSinglePartner._id;
+                                vm.editPartner = {
+                                    partnerName: vm.selectedSinglePartner.partnerName,
+                                    partnerId: vm.selectedSinglePartner.partnerId,
+                                    registrationTime: vm.selectedSinglePartner.registrationTime,
+                                    email: vm.selectedSinglePartner.email,
+                                    realName: vm.selectedSinglePartner.realName,
+                                    platform: vm.selectedSinglePartner.platform,
+                                    phoneNumber: vm.selectedSinglePartner.phoneNumber,
+                                    gender: vm.selectedSinglePartner.gender,
+                                    DOB: vm.selectedSinglePartner.DOB,
+                                    ownDomain: vm.selectedSinglePartner.ownDomain,
+                                    bankAccount: vm.selectedSinglePartner.bankAccount,
+                                    bankAccountCity: vm.selectedSinglePartner.bankAccountCity,
+                                    bankAccountDistrict: vm.selectedSinglePartner.bankAccountDistrict,
+                                    bankAccountProvince: vm.selectedSinglePartner.bankAccountProvince,
+                                    commissionType: vm.selectedSinglePartner.commissionType,
+                                    player: vm.selectedSinglePartner.player,
+                                };
+                            }
+                        } ).data();
+                }
                 $scope.safeApply();
             };
             vm.sendSMSToPartner = function () {
@@ -15958,21 +15990,7 @@ define(['js/app'], function (myApp) {
                     vm.isOneSelectedPartner = function () {
                         return vm.selectedSinglePartner;
                     };
-                    // Mask partners bank account
-                    vm.selectedSinglePartner.encodedBankAccount = vm.selectedSinglePartner.bankAccount ?
-                        vm.selectedSinglePartner.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePartner.bankAccount.slice(-4) : null;
-
-                    if (vm.selectedSinglePartner.domain && vm.selectedSinglePartner.domain.length > 35) {
-                        vm.selectedSinglePartner.$displayDomain = vm.selectedSinglePartner.domain.substring(0, 30) + "...";
-                    } else {
-                        vm.selectedSinglePartner.$displayDomain = vm.selectedSinglePartner.domain || null;
-                    }
-
-                    if (vm.selectedSinglePartner && vm.selectedSinglePartner.ownDomain && vm.selectedSinglePartner.ownDomain.length > 0) {
-                        vm.selectedSinglePartner.ownDomain$ = vm.selectedSinglePartner.ownDomain.join('\n');
-                    } else {
-                        vm.selectedSinglePartner.ownDomain$ = null;
-                    }
+                    vm.maskPartnerInfo(vm.selectedSinglePartner);
                     vm.selectedPartnerCount = 1;
                     console.log('partner selected', vm.selectedSinglePartner);
                     vm.getProvince();
@@ -16000,6 +16018,23 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             };
+            vm.maskPartnerInfo = function (data) {
+                // Mask partners bank account
+                data.encodedBankAccount = data.bankAccount ?
+                    data.bankAccount.slice(0, 6) + "**********" + data.bankAccount.slice(-4) : null;
+
+                if (data.domain && data.domain.length > 35) {
+                    data.$displayDomain = data.domain.substring(0, 30) + "...";
+                } else {
+                    data.$displayDomain = data.domain || null;
+                }
+
+                if (data && data.ownDomain && data.ownDomain.length > 0) {
+                    data.ownDomain$ = data.ownDomain.join('\n');
+                } else {
+                    data.ownDomain$ = null;
+                }
+            }
             //show partner info modal
             vm.showPartnerInfoModal = function (partnerName) {
                 $('#modalPartnerInfo').modal().show();
@@ -16938,7 +16973,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             }
             vm.checkPartnerField = function (fieldName, value, form) {
-                if (!value || value != '') {
+                if (value != '') {
                     socketService.$socket($scope.AppSocket, 'checkPartnerFieldValidity', {
                         fieldName: fieldName,
                         value: value
@@ -16963,7 +16998,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (vm.partnerValidity && vm.partnerValidity.player) {
-                            form.$setValidity('invalidPartnerPlayer', !vm.partnerValidity.player.validPlayerId);
+                            form.$setValidity('invalidPartnerPlayer', vm.partnerValidity.player.validPlayerId);
                         } else {
                             form.$setValidity('invalidPartnerPlayer', vm.partnerValidity[fieldName]);
                         }
@@ -23036,9 +23071,8 @@ define(['js/app'], function (myApp) {
                 }
 
             };
-            vm.commissionSettingNewRow = (valueCollection) => {
-
-                valueCollection.push({
+            vm.commissionSettingNewRow = (valueCollection, idx) => {
+                valueCollection.splice(idx + 1, 0, {
                     playerConsumptionAmountFrom: "",
                     playerConsumptionAmountTo: "",
                     activePlayerValueFrom: "",
@@ -23056,6 +23090,19 @@ define(['js/app'], function (myApp) {
             };
             vm.commissionSettingDeleteRow = (idx, valueCollection) => {
                 valueCollection.splice(idx, 1);
+
+                if (valueCollection.length == 0) {
+                    valueCollection.push({
+                        playerConsumptionAmountFrom: "",
+                        playerConsumptionAmountTo: "",
+                        activePlayerValueFrom: "",
+                        activePlayerValueTo: "",
+                        commissionRate: "",
+                        isEditing: true,
+                        isCreateNew: true
+                    });
+                }
+
                 if (vm.partnerCommission.showConfig != vm.partnerCommission.srcConfig) {
                     vm.partnerCommission.isEditing = true;
                 } else {
@@ -23100,9 +23147,21 @@ define(['js/app'], function (myApp) {
                     vm.partnerCommission.gameProviderGroup.forEach(gameProviderGroup => {
                         if (gameProviderGroup && gameProviderGroup.showConfig && gameProviderGroup.showConfig.commissionSetting.length > 0) {
                             if (JSON.stringify(gameProviderGroup.showConfig) != JSON.stringify(gameProviderGroup.srcConfig)) {
+                                let tempShowConfig = gameProviderGroup.showConfig;
 
-                                let checkEmpty = gameProviderGroup.showConfig.commissionSetting[0];
-                                if (checkEmpty.playerConsumptionAmountFrom != "" && checkEmpty.playerConsumptionAmountTo != "" && checkEmpty.activePlayerValueFrom != "" && checkEmpty.commissionRate != "") {
+                                if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
+                                    for (let i = 0; i < tempShowConfig.commissionSetting.length; i++) {
+                                        if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
+                                            (tempShowConfig.commissionSetting[i].playerConsumptionAmountTo == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountTo == null) &&
+                                            (tempShowConfig.commissionSetting[i].activePlayerValueFrom == '' || tempShowConfig.commissionSetting[i].activePlayerValueFrom == null) &&
+                                            (tempShowConfig.commissionSetting[i].commissionRate == '' || tempShowConfig.commissionSetting[i].commissionRate == null)) {
+
+                                            tempShowConfig.commissionSetting.splice(i, 1);
+                                        }
+                                    }
+                                }
+
+                                if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     gameProviderGroup.showConfig.provider = gameProviderGroup._id;
 
                                     let prom = new Promise(function (resolve) {
