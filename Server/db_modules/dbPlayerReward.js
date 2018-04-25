@@ -3842,8 +3842,7 @@ let dbPlayerReward = {
 
         let topupMatchQuery = {
             playerId: playerData._id,
-            platformId: playerData.platform._id,
-            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            platformId: playerData.platform._id
         };
 
         let eventQueryPeriodTime = dbRewardUtil.getRewardEventIntervalTime({applyTargetDate: new Date()}, eventData);
