@@ -1724,8 +1724,6 @@ let dbRewardPoints = {
             })
             .then(data => {
 
-                console.log('data11223', data);
-
                 loginRewardPointEvent = data[0] ? data[0] : [];
                 gameRewardPointEvent = data[1] ? data[1] : [];
                 gameProvider = data[2] ? data[2] : [];
@@ -2489,6 +2487,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
 
 function getRewardPointsRanking(rewardPoints) {
     let rewardPointsRankingListArr = [];
+    let rankNo = 0;
 
     if(rewardPoints && rewardPoints.length > 0) {
         rewardPoints.forEach(rank => {
@@ -2503,10 +2502,12 @@ function getRewardPointsRanking(rewardPoints) {
             if(rank.playerLevel && rank.playerLevel.name) {
                 level = rank.playerLevel.name;
             }
+            rankNo = rankNo + 1;
             let ranks = {
                 "account": rank.playerName,
                 "grade": level,
-                "totalPoint": rank.points
+                "totalPoint": rank.points,
+                "rank": rankNo
             }
             rewardPointsRankingListArr.push(ranks);
         });
