@@ -16637,10 +16637,13 @@ define(['js/app'], function (myApp) {
                             rateAfterRebateGameProviderGroup: vm.rateAfterRebateGameProviderGroup,
                             rateAfterRebateTotalDeposit: vm.rateAfterRebateTotalDeposit,
                             rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal,
+                            commissionRateConfig: commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig),
                             commissionSettingEditRow: vm.commissionSettingEditRow,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
+                            customizePartnerRate: vm.customizePartnerRate,
+                            commissionRateEditRow: vm.commissionRateEditRow,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -23368,6 +23371,9 @@ define(['js/app'], function (myApp) {
                     vm.partnerCommission.showConfig = vm.partnerCommission.srcConfig;
                 }
             };
+            vm.commissionRateEditRow = (field, flag) => {
+                vm.commissionRateConfig.isEditing[field] = flag;
+            };
             vm.showHideSubmitCommissionConfigButton = (valueCollection) => {
                 if (valueCollection && valueCollection.length > 0) {
                     vm.partnerCommission.isEditing = false;
@@ -23494,8 +23500,40 @@ define(['js/app'], function (myApp) {
                         console.log('customizePartnerCommission', data);
                     });
                 }
+            };
 
-            }
+            vm.customizePartnerRate = (config) => {
+                let isChanged = false;
+                let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
+
+                normalRates.forEach(e => {
+                    if (config[e] != vm.srcCommissionRateConfig[e]) {
+                        isChanged = true;
+                    }
+                });
+
+                config.rateAfterRebateGameProviderGroup.forEach(e => {
+                    let src = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.filter(grp => String(grp.gameProviderGroupId) === String(e.gameProviderGroupId))[0];
+
+                    if (e.rate != src.rate) {
+                        isChanged = true;
+                    }
+                });
+
+                if (isChanged) {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        settingObjId: config._id,
+                        field: "partnerRate",
+                        oldConfig: vm.srcCommissionRateConfig,
+                        newConfig: config
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
+                        console.log('customizePartnerCommission', data);
+                    });
+                }
+            };
 
             vm.getCommissionRateGameProviderGroup = function () {
                 vm.isCommissionRateEditing = false;
@@ -23519,7 +23557,7 @@ define(['js/app'], function (myApp) {
                         vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
                         vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
                         vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
-
+                        vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
