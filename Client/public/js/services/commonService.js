@@ -57,6 +57,20 @@ define([], () => {
                 });
             }
 
+            // Partner platform rate setting
+            if (commSett && commSett.customRate && commSett.customRate.some(e => String(e.partner) === String(partnerObjId))) {
+                let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
+                let customRateObj = commSett.customRate.filter(e => String(e.partner) === String(partnerObjId))[0];
+
+                normalRates.forEach(e => {
+                    if (commSett[e] != customRateObj[e]) {
+                        commSett[e] = customRateObj[e];
+                        commSett.isCustomizedField = commSett.isCustomizedField || [];
+                        commSett.isCustomizedField.push(e);
+                    }
+                })
+            }
+
             return commSett;
         }
     };
