@@ -4583,8 +4583,297 @@ let dbPartner = {
         )
     },
 
+    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, configObjId, adminInfo) => {
+        return dbconfig.collection_partner.findById(partnerObjId).lean().then(
+            partnerObj => {
+                if (partnerObj) {
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        settingObjId: settingObjId,
+                        oldRate: oldConfig[field],
+                        newRate: newConfig[field],
+                        configObjId: configObjId,
+                        remark: localization.localization.translate(field)
+                    };
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
+                }
+            }
+        )
+    }
+
 };
 var proto = dbPartnerFunc.prototype;
 proto = Object.assign(proto, dbPartner);
 
 module.exports = dbPartner;
+
+function calculateRawCommission (totalDownLineConsumption, commissionRate) {
+    return Number(totalDownLineConsumption) * Number(commissionRate);
+}
+
+function getCommissionRate (commissionRateTable, consumptionAmount, activeDay) {
+    let lastValidCommissionRate = 0;
+    for (let i = 0; i < commissionRateTable.length; i++) {
+        let commissionRequirement = commissionRateTable[i];
+
+        if (commissionRequirement.playerConsumptionAmountFrom && consumptionAmount < commissionRequirement.playerConsumptionAmountFrom
+            || commissionRequirement.playerConsumptionAmountTo && consumptionAmount > commissionRequirement.playerConsumptionAmountTo
+            || commissionRequirement.activePlayerValueFrom && activeDay < commissionRequirement.activePlayerValueFrom
+            || commissionRequirement.activePlayerValueTo && activeDay > commissionRequirement.activePlayerValueTo
+        ) {
+            continue;
+        }
+
+        lastValidCommissionRate = commissionRequirement.commissionRate;
+    }
+
+    return lastValidCommissionRate;
+}
+
+function getCommissionRateTable (platformObjId, commissionType, partnerObjId, providerGroupObjId) {
+    return dbconfig.collection_partnerCommissionConfig.findOne({
+        platform: platformObjId,
+        commissionType: commissionType,
+        provider: providerGroupObjId,
+    }).lean().then(
+        data => {
+            if (!data) {
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Cannot find commission rate, please ensure that you had configure the setting properly."
+                });
+            }
+
+            // todo :: make this function able to get custom commission rate
+
+            return {
+                isCustom: false,
+                table: data.commissionSetting
+            }
+        }
+    )
+}
+
+function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime) {
+    return dbconfig.collection_playerConsumptionRecord.aggregate([
+        {
+            $match: {
+                playerId: playerObjId,
+                createTime: {
+                    $gte: startTime,
+                    $lt: endTime
+                },
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                count: {$sum: {$cond: ["$count", "$count", 1]}},
+                validAmount: {$sum: "$validAmount"},
+                bonusAmount: {$sum: "$bonusAmount"},
+            }
+        }
+    ]).allowDiskUse(true).read("secondaryPreferred").then(
+        consumptionData => {
+            if (!consumptionData || !consumptionData[0]) {
+                consumptionData = [{}];
+            }
+
+            let playerConsumptionTotal = consumptionData[0];
+
+            return {
+                consumptionTimes: playerConsumptionTotal.count || 0,
+                validAmount: playerConsumptionTotal.validAmount || 0,
+                bonusAmount: playerConsumptionTotal.bonusAmount || 0,
+            }
+        }
+    );
+}
+
+function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpTypes) {
+    return dbconfig.collection_proposal.aggregate([
+        {
+            "$match": {
+                "data.playerObjId": playerObjId,
+                "createTime": {
+                    "$gte": new Date(startTime),
+                    "$lte": new Date(endTime)
+                },
+                "mainType": "TopUp",
+                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$type",
+                "typeId": {"$first": "$type"},
+                "count": {"$sum": 1},
+                "amount": {"$sum": "$data.amount"}
+            }
+        }
+    ]).read("secondaryPreferred").then(
+        topUpData => {
+            if (!topUpData || !topUpData[0]) {
+                topUpData = [{}];
+            }
+
+            let playerTopUpDetail = {
+                onlineTopUpAmount: 0,
+                manualTopUpAmount: 0,
+                weChatTopUpAmount: 0,
+                aliPayTopUpAmount: 0,
+                topUpAmount: 0,
+                topUpTimes: 0,
+            };
+
+            for (let i = 0, len = topUpData.length; i < len; i++) {
+                let topUpTypeRecord = topUpData[i];
+
+                switch (topUpTypeRecord.typeId.toString()) {
+                    case topUpTypes.onlineTopUpTypeId:
+                        playerTopUpDetail.onlineTopUpAmount = topUpTypeRecord.amount;
+                        break;
+                    case topUpTypes.manualTopUpTypeId:
+                        playerTopUpDetail.manualTopUpAmount = topUpTypeRecord.amount;
+                        break;
+                    case topUpTypes.weChatTopUpTypeId:
+                        playerTopUpDetail.weChatTopUpAmount = topUpTypeRecord.amount;
+                        break;
+                    case topUpTypes.aliPayTopUpTypeId:
+                        playerTopUpDetail.aliPayTopUpAmount = topUpTypeRecord.amount;
+                        break;
+                }
+
+                playerTopUpDetail.topUpAmount += topUpTypeRecord.amount;
+                playerTopUpDetail.topUpTimes += topUpTypeRecord.count;
+            }
+
+            return playerTopUpDetail;
+        }
+    );
+}
+
+function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
+    return dbconfig.collection_proposal.aggregate([
+        {
+            "$match": {
+                "data.playerObjId": playerObjId,
+                "createTime": {
+                    "$gte": new Date(startTime),
+                    "$lte": new Date(endTime)
+                },
+                "mainType": "PlayerBonus",
+                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+            }
+        },
+        {
+            "$group": {
+                "_id": null,
+                "count": {"$sum": 1},
+                "amount": {"$sum": "$data.amount"}
+            }
+        }
+    ]).read("secondaryPreferred").then(
+        withdrawalInfo => {
+            if (!withdrawalInfo || !withdrawalInfo[0]) {
+                withdrawalInfo = [{}];
+            }
+
+            let withdrawalTotal = withdrawalInfo[0];
+
+            return {
+                withdrawalTimes: withdrawalTotal.count || 0,
+                withdrawalAmount: withdrawalTotal.amount || 0,
+            }
+        }
+    );
+}
+
+function isPlayerActive (activePlayerRequirement, playerConsumptionTimes, playerConsumptionAmount, playerTopUpTimes, playerTopUpAmount) {
+    return Boolean(
+        (playerConsumptionTimes >= activePlayerRequirement.consumptionTimes)
+        && (playerConsumptionAmount >= activePlayerRequirement.consumptionAmount)
+        && (playerTopUpTimes >= activePlayerRequirement.topUpTimes)
+        && (playerTopUpAmount >= activePlayerRequirement.topUpAmount)
+    );
+}
+
+function getRelevantActivePlayerRequirement (platformObjId, commissionType) {
+    let configPrefix = "weeklyActivePlayer";
+    switch (commissionType) {
+        case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+            configPrefix = "dailyActive";
+            break;
+        case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+        case constPartnerCommissionType.WEEKLY_CONSUMPTION:
+            configPrefix = "weeklyActive";
+            break;
+        case constPartnerCommissionType.BIWEEKLY_BONUS_AMOUNT:
+            configPrefix = "halfMonthActive";
+            break;
+        case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+            configPrefix = "monthlyActive";
+            break;
+    }
+
+    return dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean().then(
+        partnerLevelConfig => {
+            return {
+                topUpTimes: partnerLevelConfig[configPrefix + "PlayerTopUpTimes"] || 0,
+                topUpAmount: partnerLevelConfig[configPrefix + "PlayerTopUpAmount"] || 0,
+                consumptionTimes: partnerLevelConfig[configPrefix + "PlayerConsumptionTimes"] || 0,
+                consumptionAmount: partnerLevelConfig[configPrefix + "PlayerConsumptionAmount"] || 0,
+            }
+        }
+    );
+}
+
+function getCommissionPeriod (commissionType) {
+    switch (commissionType) {
+        case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+            return dbutility.getYesterdaySGTime();
+        case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+        case constPartnerCommissionType.WEEKLY_CONSUMPTION:
+            return dbutility.getLastWeekSGTime();
+        case constPartnerCommissionType.BIWEEKLY_BONUS_AMOUNT:
+            return dbutility.getLastBiWeekSGTime();
+        case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+            return dbutility.getLastMonthSGTime();
+        default:
+            return dbutility.getLastWeekSGTime();
+    }
+}
+
+function getPaymentProposalTypes (platformObjId) {
+    return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
+        proposalType => {
+            let topUpTypes = {};
+            for (let i = 0, len = proposalType.length; i < len; i++) {
+                let proposalTypeObj = proposalType[i];
+
+                switch (proposalTypeObj.name) {
+                    case constProposalType.PLAYER_TOP_UP:
+                        topUpTypes.onlineTopUpTypeId = proposalTypeObj._id.toString();
+                        break;
+                    case constProposalType.PLAYER_MANUAL_TOP_UP:
+                        topUpTypes.manualTopUpTypeId = proposalTypeObj._id.toString();
+                        break;
+                    case constProposalType.PLAYER_WECHAT_TOP_UP:
+                        topUpTypes.weChatTopUpTypeId = proposalTypeObj._id.toString();
+                        break;
+                    case constProposalType.PLAYER_ALIPAY_TOP_UP:
+                        topUpTypes.aliPayTopUpTypeId = proposalTypeObj._id.toString();
+                        break;
+                }
+            }
+
+            return topUpTypes;
+        }
+    );
+}

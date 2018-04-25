@@ -71,6 +71,8 @@ const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const dbUtil = require('./../modules/dbutility');
 const constPlayerLevelUpPeriod = require('./../const/constPlayerLevelUpPeriod');
+const constPlayerBillBoardPeriod = require('./../const/constPlayerBillBoardPeriod');
+const constPlayerBillBoardMode = require('./../const/constPlayerBillBoardMode');
 
 // db_modules
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
@@ -14764,6 +14766,883 @@ let dbPlayerInfo = {
                 }
             }
         )
+    },
+
+    getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode) {
+        let prom;
+        let playerDataField;
+        let consumptionField;
+        let recordDate;
+        let returnData = {};
+        let totalRecord = recordCount || 10; //default 10 record
+        let platformObj;
+        let playerObj;
+        if (platformId && !playerId) {
+            prom = dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+                platformData => {
+                    if (platformData && platformData._id) {
+                        platformObj = platformData;
+                    } else {
+                        return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                    }
+                }
+            );
+        } else {
+            prom =  dbconfig.collection_players.findOne({playerId: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                    playerData => {
+                        if (playerData && playerData._id) {
+                            playerObj = playerData;
+                            platformObj = playerData.platform;
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Cannot find player"});
+                        }
+                    }
+                )
+        }
+
+        return prom.then(
+            () => {
+                // total top up ranking
+                if (mode == constPlayerBillBoardMode.DEPOSIT_ALL) {
+                    let querySort = {};
+                    let queryField = {name: 1};
+                    if (periodCheck) {
+                        if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
+                            playerDataField = "dailyTopUpSum";
+                        } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
+                            playerDataField = "weeklyTopUpSum";
+                        } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
+                            playerDataField = "pastMonthTopUpSum";
+                        } else if (periodCheck == constPlayerBillBoardPeriod.NO_PERIOD) {
+                            playerDataField = "topUpSum";
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Invalid period"});
+                        }
+                        querySort[playerDataField] = -1;
+                        querySort.registrationTime = 1;
+                        queryField[playerDataField] = 1;
+                        return dbconfig.collection_players.find({platform: platformObj._id}, queryField).sort(querySort).limit(totalRecord).lean().then(
+                            totalTopUpRanking => {
+                                if (totalTopUpRanking) {
+                                    for (let i = 0; i < totalTopUpRanking.length; i++) {
+                                        totalTopUpRanking[i].rank = i + 1;
+                                        totalTopUpRanking[i].amount = totalTopUpRanking[i][playerDataField] || 0;
+                                        delete totalTopUpRanking[i][playerDataField];
+                                        delete totalTopUpRanking[i]._id;
+                                    }
+                                    returnData.allDeposit = {};
+                                    returnData.allDeposit.boardRanking = totalTopUpRanking;
+                                    if (playerObj) {
+                                        let query = {};
+                                        query[playerDataField] = {$gt: playerObj[playerDataField] || 0};
+                                        query.platform = playerObj.platform._id;
+                                        query._id = {$ne: playerObj._id};
+                                        return dbconfig.collection_players.find(query, queryField).sort(querySort).count().lean().then(
+                                            rankCount => {
+                                                let querySameAmt = {};
+                                                querySameAmt[playerDataField] = {$eq: playerObj[playerDataField] || 0};
+                                                querySameAmt.registrationTime = {$lt: playerObj.registrationTime};
+                                                querySameAmt.platform = playerObj.platform._id;
+                                                querySameAmt._id = {$ne: playerObj._id};
+                                                return dbconfig.collection_players.find(querySameAmt, queryField).sort(querySort).count().lean().then(
+                                                    sameRankCount => {
+                                                        returnData.allDeposit.playerRanking = {
+                                                            name: playerObj.name,
+                                                            amount: playerObj[playerDataField] || 0,
+                                                            rank: rankCount + sameRankCount  + 1
+                                                    }
+                                                        return returnData;
+                                                    })
+                                            }
+                                        )
+                                    } else {
+                                        return returnData;
+                                    }
+                                }
+                            }
+                        );
+                    } else {
+                        recordDate = new Date();
+                        recordDate.setHours(recordDate.getHours() - hourCheck);
+                        return dbconfig.collection_playerTopUpRecord.aggregate([
+                            {
+                                $match: {
+                                    platformId: platformObj._id,
+                                    createTime: {$gte: recordDate}
+                                },
+                            },
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    createTime: {$addToSet: "$createTime"},
+                                    amount: {$sum: "$amount"}
+                                }
+                            }
+                        ]).then(
+                            topUpRecord => {
+                                let playerRanking;
+                                function sortRankingRecord(a, b) {
+                                    if (a.amount < b.amount)
+                                        return 1;
+                                    if (a.amount > b.amount)
+                                        return -1;
+                                    if (a.amount == b.amount) {
+                                        a.createTime = a.createTime.sort(function(a, b){return b-a});
+                                        b.createTime = b.createTime.sort(function(a, b){return b-a});
+                                        if (a.createTime[0] < b.createTime[0]) {
+                                            return -1;
+                                        }
+                                        if (a.createTime[0] > b.createTime[0]) {
+                                            return 1;
+                                        }
+                                    }
+                                    return 0;
+                                }
+                                let sortedData = topUpRecord.sort(sortRankingRecord);
+                                for (let i = 0; i < sortedData.length; i++) {
+                                    sortedData[i].rank = i + 1;
+                                    if (sortedData[i].createTime) {
+                                        delete sortedData[i].createTime;
+                                    }
+                                    if (playerObj && playerObj.name) {
+                                        if (sortedData[i]._id.toString() == playerObj._id.toString()) {
+                                            delete sortedData[i]._id;
+                                            sortedData[i].name = playerObj.name;
+                                            playerRanking = sortedData[i];
+                                        }
+                                    }
+                                }
+                                if (sortedData.length > totalRecord) {
+                                    sortedData.length = totalRecord;
+                                }
+
+                                if (sortedData && sortedData.length) {
+                                    return dbconfig.collection_players.populate(sortedData, {
+                                        path: '_id',
+                                        model: dbconfig.collection_players,
+                                        select: "name"
+                                    }).then(
+                                        populatedData => {
+                                            returnData.allDeposit = {};
+                                            for (let i = 0; i < populatedData.length; i++) {
+                                                if (populatedData[i]._id && populatedData[i]._id.name) {
+                                                    populatedData[i].name = populatedData[i]._id.name;
+                                                    delete populatedData[i]._id;
+                                                }
+                                            }
+                                            returnData.allDeposit.playerRanking = {};
+                                            if (playerRanking) {
+                                                returnData.allDeposit.playerRanking = playerRanking;
+                                            }   else {
+                                                returnData.allDeposit.playerRanking.error = "No top up record for this player";
+                                            }
+
+                                            returnData.allDeposit.boardRanking = populatedData;
+                                            return returnData;
+                                        }
+                                    )
+                                } else {
+                                    return Promise.reject({name: "DataError", message: "No record to show"});
+                                }
+                            }
+                        )
+                    }
+                } else if(mode == constPlayerBillBoardMode.DEPOSIT_SINGLE) {
+                    let matchQuery;
+                    if (periodCheck) {
+                        if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
+                            recordDate = dbUtility.getTodaySGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
+                            recordDate = dbUtility.getCurrentWeekSGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
+                            recordDate = dbUtility.getCurrentMonthSGTIme();
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Invalid period"});
+                        }
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                            },
+                        };
+                    } else {
+                        recordDate = new Date();
+                        recordDate.setHours(recordDate.getHours() - hourCheck);
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate}
+                            },
+                        };
+                    }
+
+                    return dbconfig.collection_playerTopUpRecord.aggregate([
+                        matchQuery,
+                        {
+                           $sort: {
+                               amount: -1,
+                               createTime: 1
+                           }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                amount: {$first: "$amount"},
+                                createTime : {$first: "$createTime"}
+                            }
+                        }
+                    ]).then(
+                        sortedData => {
+                            let playerRanking;
+                            // function sortRankingRecord(a, b) {
+                            //     if (a.amount < b.amount)
+                            //         return 1;
+                            //     if (a.amount > b.amount)
+                            //         return -1;
+                            //     if (a.amount == b.amount) {
+                            //         if (a.createTime < b.createTime) {
+                            //             return -1;
+                            //         }
+                            //         if (a.createTime > b.createTime) {
+                            //             return 1;
+                            //         }
+                            //     }
+                            //     return 0;
+                            // }
+                            // let sortedData = topUpRecord.sort(sortRankingRecord);
+                            for (let i = 0; i < sortedData.length; i++) {
+                                sortedData[i].rank = i + 1;
+                                if (playerObj && playerObj.name) {
+                                    if (sortedData[i]._id.toString() == playerObj._id.toString()) {
+                                        delete sortedData[i]._id;
+                                        sortedData[i].name = playerObj.name;
+                                        playerRanking = sortedData[i];
+                                    }
+                                }
+                            }
+
+                            if (sortedData.length > totalRecord) {
+                                sortedData.length = totalRecord;
+                            }
+
+                            if (sortedData && sortedData.length) {
+                                return dbconfig.collection_players.populate(sortedData, {
+                                    path: '_id',
+                                    model: dbconfig.collection_players,
+                                    select: "name"
+                                }).then(
+                                    populatedData => {
+                                        returnData.singleDeposit = {};
+
+                                        for (let i = 0; i < populatedData.length; i++) {
+                                            populatedData[i].rank = i + 1;
+                                            if (populatedData[i]._id && populatedData[i]._id.name) {
+                                                populatedData[i].name = populatedData[i]._id.name;
+                                                delete populatedData[i]._id;
+                                            }
+                                        }
+
+                                        returnData.singleDeposit.playerRanking = {};
+                                        if (playerRanking) {
+                                            returnData.singleDeposit.playerRanking = playerRanking;
+                                        } else {
+                                            returnData.singleDeposit.playerRanking.error = "No top up record for this player";
+                                        }
+                                        returnData.singleDeposit.boardRanking = populatedData;
+                                        return returnData;
+                                    }
+                                );
+                            } else {
+                                return Promise.reject({name: "DataError", message: "No record to show"});
+                            }
+                        }
+                    )
+                } else if (mode == constPlayerBillBoardMode.WITHDRAW_ALL) {
+                    let querySort = {};
+                    let queryField = {name: 1};
+                    if (periodCheck) {
+                        if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
+                            playerDataField = "dailyWithdrawSum";
+                        } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
+                            playerDataField = "weeklyWithdrawSum";
+                        } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
+                            playerDataField = "pastMonthWithdrawSum";
+                        } else if (periodCheck == constPlayerBillBoardPeriod.NO_PERIOD) {
+                            playerDataField = "withdrawSum";
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Invalid period"});
+                        }
+                        querySort[playerDataField] = -1;
+                        querySort.registrationTime = 1;
+                        queryField[playerDataField] = 1;
+                        return dbconfig.collection_players.find({platform: platformObj._id}, queryField).sort(querySort).limit(totalRecord).lean().then(
+                            totalWithdrawRanking => {
+                                if (totalWithdrawRanking) {
+                                    for (let i = 0; i < totalWithdrawRanking.length; i++) {
+                                        totalWithdrawRanking[i].rank = i + 1;
+                                        totalWithdrawRanking[i].amount = totalWithdrawRanking[i][playerDataField] || 0;
+                                        delete totalWithdrawRanking[i][playerDataField];
+                                        delete totalWithdrawRanking[i]._id;
+                                    }
+                                    returnData.allWithdraw = {};
+                                    returnData.allWithdraw.boardRanking = totalWithdrawRanking;
+                                    if (playerObj) {
+                                        let query = {};
+                                        query[playerDataField] = {$gt: playerObj[playerDataField] || 0};
+                                        query.platform = playerObj.platform._id;
+                                        query._id = {$ne: playerObj._id};
+                                        return dbconfig.collection_players.find(query, queryField).sort(querySort).count().lean().then(
+                                            rankCount => {
+                                                let querySameAmt = {};
+                                                querySameAmt.registrationTime = {$lt: playerObj.registrationTime};
+                                                querySameAmt.platform = playerObj.platform._id;
+                                                querySameAmt._id = {$ne: playerObj._id};
+                                                if (playerObj[playerDataField]) {
+                                                    querySameAmt[playerDataField] = {$eq: playerObj[playerDataField]};
+                                                } else {
+                                                    let queryObj1 = {};
+                                                    queryObj1[playerDataField] = {$exists: false};
+                                                    let queryObj2 = {};
+                                                    queryObj2[playerDataField] = {$eq: 0};
+                                                    querySameAmt.$or =  [queryObj1,queryObj2];
+                                                }
+                                                return dbconfig.collection_players.find(querySameAmt, queryField).sort(querySort).count().lean().then(
+                                                    sameRankCount => {
+                                                        returnData.allWithdraw.playerRanking = {
+                                                            name: playerObj.name,
+                                                            amount: playerObj[playerDataField] || 0,
+                                                            rank: rankCount + sameRankCount + 1
+                                                        };
+                                                        return returnData;
+                                                    })
+                                            }
+                                        )
+                                    } else {
+                                        return returnData;
+                                    }
+                                }
+                            }
+                        );
+                    } else {
+                        recordDate = new Date();
+                        recordDate.setHours(recordDate.getHours() - hourCheck);
+                        return dbconfig.collection_proposal.aggregate([
+                            {
+                                $match: {
+                                    "data.platformId": platformObj._id,
+                                    mainType: constProposalMainType.PlayerBonus,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    createTime: {$gte: recordDate}
+                                },
+                            },
+                            {
+                                $group: {
+                                    _id: "$data.playerObjId",
+                                    createTime: {$addToSet: "$createTime"},
+                                    amount: {$sum: "$data.amount"}
+                                }
+                            }
+                        ]).then(
+                            withdrawRecord => {
+                                let playerRanking;
+                                function sortRankingRecord(a, b) {
+                                    if (a.amount < b.amount)
+                                        return 1;
+                                    if (a.amount > b.amount)
+                                        return -1;
+                                    if (a.amount == b.amount) {
+                                        a.createTime = a.createTime.sort(function(a, b){return b-a});
+                                        b.createTime = b.createTime.sort(function(a, b){return b-a});
+                                        if (a.createTime[0] < b.createTime[0]) {
+                                            return -1;
+                                        }
+                                        if (a.createTime[0] > b.createTime[0]) {
+                                            return 1;
+                                        }
+                                    }
+                                    return 0;
+                                }
+
+                                let sortedData = withdrawRecord.sort(sortRankingRecord);
+
+                                for (let i = 0; i < sortedData.length; i++) {
+                                    sortedData[i].rank = i + 1;
+                                    if (sortedData[i].createTime) {
+                                        delete sortedData[i].createTime;
+                                    }
+                                    if (playerObj && playerObj.name) {
+                                        if (sortedData[i]._id.toString() == playerObj._id.toString()) {
+                                            delete sortedData[i]._id;
+                                            sortedData[i].name = playerObj.name;
+                                            playerRanking = sortedData[i];
+                                        }
+                                    }
+                                }
+                                if (sortedData.length > totalRecord) {
+                                    sortedData.length = totalRecord;
+                                }
+
+                                if (sortedData && sortedData.length) {
+                                    return dbconfig.collection_players.populate(sortedData, {
+                                        path: '_id',
+                                        model: dbconfig.collection_players,
+                                        select: "name"
+                                    }).then(
+                                        populatedData => {
+                                            returnData.allWithdraw = {};
+                                            for (let i = 0; i < populatedData.length; i++) {
+                                                if (populatedData[i]._id && populatedData[i]._id.name) {
+                                                    populatedData[i].name = populatedData[i]._id.name;
+                                                    delete populatedData[i]._id;
+                                                }
+                                            }
+
+                                            returnData.allWithdraw.playerRanking = {};
+                                            if (playerRanking) {
+                                                returnData.allWithdraw.playerRanking = playerRanking;
+                                            } else {
+                                                returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                            }
+
+                                            returnData.allWithdraw.boardRanking = populatedData;
+                                            return returnData;
+                                        }
+                                    )
+                                } else {
+                                    return Promise.reject({name: "DataError", message: "No record to show"});
+                                }
+                            }
+                        )
+                    }
+                } else if (mode == constPlayerBillBoardMode.VALIDBET_ALL) {
+                    let matchQuery;
+                    if (periodCheck) {
+                        if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
+                            recordDate = dbUtility.getTodaySGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
+                            recordDate = dbUtility.getCurrentWeekSGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
+                            recordDate = dbUtility.getCurrentMonthSGTIme();
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Invalid period"});
+                        }
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                            },
+                        };
+                    } else {
+                        recordDate = new Date();
+                        recordDate.setHours(recordDate.getHours() - hourCheck);
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate}
+                            },
+                        };
+                    }
+
+                    return dbconfig.collection_playerConsumptionRecord.aggregate([
+                        matchQuery,
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                providerId: {$addToSet: "$providerId"},
+                                amount: {$sum: "$validAmount"},
+                                createTime : {$addToSet: "$createTime"}
+                            }
+                        }
+                    ]).then(
+                        consumptionRecord => {
+                            function sortRankingRecord(a, b) {
+                                if (a.amount < b.amount)
+                                    return 1;
+                                if (a.amount > b.amount)
+                                    return -1;
+                                if (a.amount == b.amount) {
+                                    a.createTime = a.createTime.sort(function(a, b){return b-a});
+                                    b.createTime = b.createTime.sort(function(a, b){return b-a});
+                                    if (a.createTime[0] < b.createTime[0]) {
+                                        return -1;
+                                    }
+                                    if (a.createTime[0] > b.createTime[0]) {
+                                        return 1;
+                                    }
+                                }
+                                return 0;
+                            }
+                            let playerRanking;
+                            let sortedData = consumptionRecord.sort(sortRankingRecord);
+                            for (let i = 0; i < sortedData.length; i++) {
+                                sortedData[i].rank = i + 1;
+                                if (sortedData[i].createTime) {
+                                    delete sortedData[i].createTime;
+                                }
+                                if (playerObj && playerObj.name) {
+                                    if (sortedData[i]._id.toString() == playerObj._id.toString()) {
+                                        playerRanking = sortedData[i];
+                                    }
+                                }
+                            }
+
+                            if (sortedData.length > totalRecord) {
+                                sortedData.length = totalRecord;
+                            }
+                            if (playerRanking) {
+                                sortedData.push(playerRanking);
+                            }
+
+                            if (sortedData && sortedData.length) {
+                                return dbconfig.collection_players.populate(sortedData, {
+                                    path: '_id',
+                                    model: dbconfig.collection_players,
+                                    select: "name"
+                                }).then(
+                                    populatedData => {
+                                        return dbconfig.collection_players.populate(populatedData, {
+                                            path: 'providerId',
+                                            model: dbconfig.collection_gameProvider,
+                                            select: ["name", "gameTypes"]
+                                        })
+                                    }
+                                ).then(
+                                    populatedProvider => {
+                                        for (let i = 0; i < populatedProvider.length; i++) {
+                                            // populatedProvider[i].rank = i + 1;
+                                            if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
+                                                populatedProvider[i].name = populatedProvider[i]._id.name;
+                                                delete populatedProvider[i]._id;
+                                            }
+
+                                            if (!populatedProvider[i].providerName) {
+                                                populatedProvider[i].providerName = "";
+                                            }
+                                            if (!populatedProvider[i].providerGameTypes) {
+                                                populatedProvider[i].providerGameTypes = "";
+                                            }
+                                            if (populatedProvider[i].providerId && populatedProvider[i].providerId.length) {
+                                                for (let j = 0; j < populatedProvider[i].providerId.length; j++) {
+
+                                                    if (populatedProvider[i].providerName) {
+                                                        populatedProvider[i].providerName += ", ";
+                                                    }
+                                                    if (populatedProvider[i].providerId[j].name) {
+                                                        populatedProvider[i].providerName += populatedProvider[i].providerId[j].name;
+                                                    }
+                                                    if (populatedProvider[i].providerId[j].gameTypes) {
+                                                        for (let k = 0; k < populatedProvider[i].providerId[j].gameTypes.length; k++) {
+                                                            for (let l = 0; l < Object.keys(populatedProvider[i].providerId[j].gameTypes[k]).length; l++) {
+                                                                if (populatedProvider[i].providerGameTypes) {
+                                                                    populatedProvider[i].providerGameTypes += ", ";
+                                                                }
+                                                                populatedProvider[i].providerGameTypes += Object.keys(populatedProvider[i].providerId[j].gameTypes[k])[l];
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                delete populatedProvider[i].providerId;
+                                            }
+                                        }
+
+                                        returnData.allValidbet = {};
+                                        returnData.allValidbet.playerRanking = {};
+                                        if (playerRanking) {
+                                            returnData.allValidbet.playerRanking = populatedProvider[populatedProvider.length-1];
+                                            populatedProvider.length -= 1;
+                                        } else {
+                                            returnData.allValidbet.playerRanking.error = "No consumption record for this player";
+                                        }
+                                        returnData.allValidbet.boardRanking = populatedProvider;
+                                        return returnData;
+                                    }
+                                );
+                            } else {
+                                return Promise.reject({name: "DataError", message: "No record to show"});
+                            }
+                        }
+                    )
+                } else if (mode == constPlayerBillBoardMode.WIN_ALL) {
+                    let matchQuery;
+                    if (periodCheck) {
+                        if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
+                            recordDate = dbUtility.getTodaySGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
+                            recordDate = dbUtility.getCurrentWeekSGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
+                            recordDate = dbUtility.getCurrentMonthSGTIme();
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Invalid period"});
+                        }
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                            },
+                        };
+                    } else {
+                        recordDate = new Date();
+                        recordDate.setHours(recordDate.getHours() - hourCheck);
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate}
+                            },
+                        };
+                    }
+
+                    return dbconfig.collection_playerConsumptionRecord.aggregate([
+                        matchQuery,
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                providerId: {$addToSet: "$providerId"},
+                                amount: {$sum: "$bonusAmount"},
+                                createTime : {$addToSet: "$createTime"}
+                            }
+                        }
+                    ]).then(
+                        consumptionRecord => {
+                            function sortRankingRecord(a, b) {
+                                if (a.amount < b.amount)
+                                    return 1;
+                                if (a.amount > b.amount)
+                                    return -1;
+                                if (a.amount == b.amount) {
+                                    a.createTime = a.createTime.sort(function(a, b){return b-a});
+                                    b.createTime = b.createTime.sort(function(a, b){return b-a});
+                                    if (a.createTime[0] < b.createTime[0]) {
+                                        return -1;
+                                    }
+                                    if (a.createTime[0] > b.createTime[0]) {
+                                        return 1;
+                                    }
+                                }
+                                return 0;
+                            }
+                            let playerRanking;
+                            let sortedData = consumptionRecord.sort(sortRankingRecord);
+
+                            for (let i = 0; i < sortedData.length; i++) {
+                                sortedData[i].rank = i + 1;
+                                if (sortedData[i].createTime) {
+                                    delete sortedData[i].createTime;
+                                }
+                                if (playerObj && playerObj.name) {
+                                    if (sortedData[i]._id.toString() == playerObj._id.toString()) {
+                                        playerRanking = sortedData[i];
+                                    }
+                                }
+                            }
+
+                            if (sortedData.length > totalRecord) {
+                                sortedData.length = totalRecord;
+                            }
+                            if (playerRanking) {
+                                sortedData.push(playerRanking);
+                            }
+
+                            if (sortedData && sortedData.length) {
+                                return dbconfig.collection_players.populate(sortedData, {
+                                    path: '_id',
+                                    model: dbconfig.collection_players,
+                                    select: "name"
+                                }).then(
+                                    populatedData => {
+                                        return dbconfig.collection_players.populate(populatedData, {
+                                            path: 'providerId',
+                                            model: dbconfig.collection_gameProvider,
+                                            select: ["name", "gameTypes"]
+                                        })
+                                    }
+                                ).then(
+                                    populatedProvider => {
+                                        for (let i = 0; i < populatedProvider.length; i++) {
+                                            // populatedProvider[i].rank = i + 1;
+                                            if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
+                                                populatedProvider[i].name = populatedProvider[i]._id.name;
+                                                delete populatedProvider[i]._id;
+                                            }
+
+                                            if (!populatedProvider[i].providerName) {
+                                                populatedProvider[i].providerName = "";
+                                            }
+                                            if (!populatedProvider[i].providerGameTypes) {
+                                                populatedProvider[i].providerGameTypes = "";
+                                            }
+                                            if (populatedProvider[i].providerId && populatedProvider[i].providerId.length) {
+                                                for (let j = 0; j < populatedProvider[i].providerId.length; j++) {
+
+                                                    if (populatedProvider[i].providerName) {
+                                                        populatedProvider[i].providerName += ", ";
+                                                    }
+                                                    if (populatedProvider[i].providerId[j].name) {
+                                                        populatedProvider[i].providerName += populatedProvider[i].providerId[j].name;
+                                                    }
+                                                    if (populatedProvider[i].providerId[j].gameTypes) {
+                                                        for (let k = 0; k < populatedProvider[i].providerId[j].gameTypes.length; k++) {
+                                                            for (let l = 0; l < Object.keys(populatedProvider[i].providerId[j].gameTypes[k]).length; l++) {
+                                                                if (populatedProvider[i].providerGameTypes) {
+                                                                    populatedProvider[i].providerGameTypes += ", ";
+                                                                }
+                                                                populatedProvider[i].providerGameTypes += Object.keys(populatedProvider[i].providerId[j].gameTypes[k])[l];
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                delete populatedProvider[i].providerId;
+                                            }
+                                        }
+                                        returnData.allWin = {};
+                                        returnData.allWin.playerRanking = {};
+                                        if (playerRanking) {
+                                            returnData.allWin.playerRanking = populatedProvider[populatedProvider.length-1];
+                                            populatedProvider.length -= 1;
+                                        } else {
+                                            returnData.allWin.playerRanking.error = "No consumption record for this player";
+                                        }
+                                        returnData.allWin.boardRanking = populatedProvider;
+                                        return returnData;
+                                    }
+                                );
+                            } else {
+                                return Promise.reject({name: "DataError", message: "No record to show"});
+                            }
+                        }
+                    )
+                } else if (mode == constPlayerBillBoardMode.WIN_SINGLE) {
+                    let matchQuery;
+                    if (periodCheck) {
+                        if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
+                            recordDate = dbUtility.getTodaySGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
+                            recordDate = dbUtility.getCurrentWeekSGTime();
+                        } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
+                            recordDate = dbUtility.getCurrentMonthSGTIme();
+                        } else {
+                            return Promise.reject({name: "DataError", message: "Invalid period"});
+                        }
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                            },
+                        };
+                    } else {
+                        recordDate = new Date();
+                        recordDate.setHours(recordDate.getHours() - hourCheck);
+                        matchQuery = {
+                            $match: {
+                                platformId: platformObj._id,
+                                createTime: {$gte: recordDate}
+                            },
+                        };
+                    }
+
+                    return dbconfig.collection_playerConsumptionRecord.aggregate([
+                        matchQuery,
+                        {
+                            $sort: {
+                                winRatio: -1,
+                                createTime: 1
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$playerId",
+                                providerId: {$first: "$providerId"},
+                                validAmount: {$first: "$validAmount"},
+                                bonusAmount: {$first: "$bonusAmount"},
+                                createTime : {$first: "$createTime"}
+                            }
+                        }
+                    ]).then(
+                        sortedData => {
+                            let playerRanking;
+                            for (let i = 0; i < sortedData.length; i++) {
+                                sortedData[i].rank = i + 1;
+                                if (playerObj && playerObj.name) {
+                                    if (sortedData[i]._id.toString() == playerObj._id.toString()) {
+                                        playerRanking = sortedData[i];
+                                    }
+                                }
+                            }
+
+                            if (sortedData.length > totalRecord) {
+                                sortedData.length = totalRecord;
+                            }
+                            if (playerRanking) {
+                                sortedData.push(playerRanking);
+                            }
+
+                            if (sortedData && sortedData.length) {
+                                return dbconfig.collection_players.populate(sortedData, {
+                                    path: '_id',
+                                    model: dbconfig.collection_players,
+                                    select: "name"
+                                }).then(
+                                    populatedData => {
+                                        return dbconfig.collection_players.populate(populatedData, {
+                                            path: 'providerId',
+                                            model: dbconfig.collection_gameProvider,
+                                            select: ["name", "gameTypes"]
+                                        })
+                                    }
+                                ).then(
+                                    populatedProvider => {
+                                        for (let i = 0; i < populatedProvider.length; i++) {
+                                            // populatedProvider[i].rank = i + 1;
+                                            if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
+                                                populatedProvider[i].name = populatedProvider[i]._id.name;
+                                                delete populatedProvider[i]._id;
+                                            }
+
+                                            if (!populatedProvider[i].providerGameTypes) {
+                                                populatedProvider[i].providerGameTypes = "";
+                                            }
+                                            if (!populatedProvider[i].providerName) {
+                                                populatedProvider[i].providerName = "";
+                                            }
+                                            if (populatedProvider[i].providerId) {
+                                                populatedProvider[i].providerName = populatedProvider[i].providerId.name? populatedProvider[i].providerId.name: "";
+                                                if (populatedProvider[i].providerId.gameTypes.length) {
+                                                    for (let j = 0; j < populatedProvider[i].providerId.gameTypes.length; j++) {
+                                                        for (let k = 0; k < Object.keys(populatedProvider[i].providerId.gameTypes[j]).length; k++) {
+                                                            if (populatedProvider[i].providerGameTypes) {
+                                                                populatedProvider[i].providerGameTypes += ", ";
+                                                            }
+                                                            populatedProvider[i].providerGameTypes += Object.keys(populatedProvider[i].providerId.gameTypes[j])[k];
+                                                        }
+                                                    }
+                                                }
+                                                delete populatedProvider[i].providerId;
+                                            }
+                                        }
+
+                                        returnData.singleWin = {};
+                                        returnData.singleWin.playerRanking = {};
+                                        if (playerRanking) {
+                                            returnData.singleWin.playerRanking = populatedProvider[populatedProvider.length-1];
+                                            populatedProvider.length -= 1;
+                                        } else {
+                                            returnData.singleWin.playerRanking.error = "No consumption record for this player";
+                                        }
+                                        returnData.singleWin.boardRanking = populatedProvider;
+                                        return returnData;
+                                    }
+                                );
+                            } else {
+                                return Promise.reject({name: "DataError", message: "No record to show"});
+                            }
+                        }
+                    )
+                } else {
+                    return Promise.reject({name: "DataError", message: "Invalid ranking mode"});
+                }
+            }
+        )
+
     },
 
     loginJblShow: function (playerObjId) {

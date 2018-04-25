@@ -88,7 +88,6 @@ var proposalExecutor = {
                                 _id: proposalData._id,
                                 createTime: proposalData.createTime
                             }, {
-                                executeTime: new Date(),
                                 settleTime: new Date()
                             }).then(
                                 res => {
@@ -184,6 +183,7 @@ var proposalExecutor = {
             this.executions.executePlayerMinusRewardPoints.des = "Player Minus Reward Points";
             this.executions.executePlayerConvertRewardPoints.des = "Player Convert Reward Points";
             this.executions.executePlayerAutoConvertRewardPoints.des = "Player Auto Convert Reward Points";
+            this.executions.executeCustomizePartnerCommRate.des = "Customize Partner Commmission Rate";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -246,6 +246,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerMinusRewardPoints.des = "Reject Player Minus Reward Points";
             this.rejections.rejectPlayerConvertRewardPoints.des = "Reject Player Convert Reward Points";
             this.rejections.rejectPlayerAutoConvertRewardPoints.des = "Reject Player Auto Convert Reward Points";
+            this.rejections.rejectCustomizePartnerCommRate.des = "Reject Customize Partner Commmission Rate";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2704,6 +2705,44 @@ var proposalExecutor = {
                     deferred.reject({name: "DataError", message: "Incorrect player auto convert reward points proposal data"});
                 }
             },
+
+            executeCustomizePartnerCommRate: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.settingObjId) {
+                    dbconfig.collection_partnerCommissionConfig.findById(proposalData.data.settingObjId).then(
+                        config => {
+                            if (config && config.customSetting && config.customSetting.some(sett => String(sett.partner === String(proposalData.data.partnerObjId)))) {
+                                return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
+                                    platform: config.platform,
+                                    "customSetting.partner": proposalData.data.partnerObjId
+                                }, {
+                                    $set: {
+                                        "customSetting.$.configObjId": proposalData.data.configObjId,
+                                        "customSetting.$.commissionRate": proposalData.data.newRate
+                                    }
+                                }, {
+                                    new: true
+                                })
+                            } else {
+                                return dbconfig.collection_partnerCommissionConfig.findByIdAndUpdate(proposalData.data.settingObjId, {
+                                    $push: {
+                                        customSetting: {
+                                            partner: proposalData.data.partnerObjId,
+                                            commissionRate: proposalData.data.newRate,
+                                            configObjId: proposalData.data.configObjId
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    ).then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    )
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect customize partner commission rate data"});
+                }
+            },
         },
 
         /**
@@ -3408,6 +3447,10 @@ var proposalExecutor = {
                         deferred.resolve("Proposal is rejected");
                     }
                 );
+            },
+
+            rejectCustomizePartnerCommRate: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
             },
         }
     }

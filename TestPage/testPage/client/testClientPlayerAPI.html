@@ -1600,6 +1600,47 @@
     </div>
 </div>
 
+<h3>Player Bill Board (玩家充值投注排行榜)</h3>
+<div class="test-container">
+    <!--For testing player logout API (5)-->
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Check Period
+            <input type=text name="periodCheck">
+        </label>
+    </div>
+    <div>
+        <label>Check Hour
+            <input type=number name="hourCheck">
+        </label>
+    </div>
+    <div>
+        <label>Ranking Count
+            <input type=number name="recordCount">
+        </label>
+    </div>
+    <div>
+        <label>Player ID
+            <input type=text name="playerId">
+        </label>
+    </div>
+    <div>
+        <label>Ranking Mode
+            <input type=text name="mode">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="getPlayerBillBoard">Get Ranking</button>
+    </div>
+    <div>
+        <textarea id="getPlayerBillBoardOutput"></textarea>
+    </div>
+</div>
+
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
