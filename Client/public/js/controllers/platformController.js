@@ -16628,7 +16628,7 @@ define(['js/app'], function (myApp) {
                             filteredBankTypeList: vm.filteredBankTypeList,
                             filterBankName: vm.filterBankName,
                             isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
-                            partnerCommission: vm.partnerCommission,
+                            partnerCommission: commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission),
                             commissionSettingTab: vm.commissionSettingTab,
                             playerConsumptionTableHeader: vm.playerConsumptionTableHeader,
                             activePlayerTableHeader: vm.activePlayerTableHeader,
@@ -23181,9 +23181,10 @@ define(['js/app'], function (myApp) {
                                 });
                             });
 
+                            // get which provider is available
                             data.data.forEach(exist => {
                                 existProviderCommissionSetting.push(exist.provider);
-                            })
+                            });
 
                             if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
                                 vm.gameProviderGroup.forEach(function (obj) {
@@ -23485,7 +23486,8 @@ define(['js/app'], function (myApp) {
                         settingObjId: setting.srcConfig._id,
                         field: "commissionRate",
                         oldConfig: oldConfig[idx],
-                        newConfig: newConfig[idx]
+                        newConfig: newConfig[idx],
+                        configObjId: oldConfig[idx]._id
                     };
 
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
