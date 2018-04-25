@@ -22,6 +22,43 @@ define([], () => {
                 $(document).trigger('resize');
             });
         };
+
+        /**
+         * Check if partner has custom rate
+         * @param partnerObjId
+         * @param commSett
+         * @returns {*}
+         */
+        this.applyPartnerCustomRate = (partnerObjId, commSett) => {
+            if (commSett && commSett.gameProviderGroup) {
+                commSett.gameProviderGroup = commSett.gameProviderGroup.map(grp => {
+                    if (
+                        grp.srcConfig.customSetting
+                        && grp.srcConfig.customSetting.length > 0
+                        && grp.srcConfig.customSetting.some(e => String(e.partner) === String(partnerObjId))
+                    ) {
+                        let customRateObj = grp.srcConfig.customSetting.filter(e => String(e.partner) === String(partnerObjId))[0];
+
+                        grp.srcConfig.commissionSetting = grp.srcConfig.commissionSetting.map(e => {
+                            if (String(e._id) === String(customRateObj.configObjId)) {
+                                e.commissionRate = customRateObj.commissionRate;
+                                e.isCustomized = true;
+                                commSett.isCustomized = true;
+                            }
+
+                            return e;
+                        })
+                    }
+
+                    // Apply to showConfig
+                    grp.showConfig = grp.srcConfig;
+
+                    return grp;
+                });
+            }
+
+            return commSett;
+        }
     };
 
     let commonServiceApp = angular.module('commonService', []);

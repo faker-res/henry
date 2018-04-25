@@ -3,6 +3,7 @@ var log = require("./../modules/logger");
 var Q = require("q");
 var dbUtility = require('./../modules/dbutility');
 var mysql = require("mysql");
+var errorUtils = require("./../modules/errorUtils.js");
 const constQualityInspectionStatus = require('./../const/constQualityInspectionStatus');
 const constQualityInspectionRoleName = require('./../const/constQualityInspectionRoleName');
 const jsdom = require("jsdom");
@@ -2207,12 +2208,13 @@ var dbQualityInspection = {
 
                             let proms = [];
 
-                            let childPromise = new Promise((resolve,reject) => {
+                            //let childPromise = new Promise((resolve,reject) => {
                                 connection.query(query, function (detailsError, detailsResults, fields) {
 
                                     if(detailsError){
-                                        console.log(detailsError);
-                                        reject(detailsError);
+                                        console.error(detailsError);
+                                        errorUtils.reportError(err);
+                                        //reject(detailsError);
                                     }
 
                                     if(detailsResults){
@@ -2267,26 +2269,26 @@ var dbQualityInspection = {
                                                             console.log("LH CHECK QI SCHEDULER BBBBBBBBBBBBBBBBBB",counter);
                                                             dbconfig.collection_live800RecordDaySummary(updateData).save();
                                                             console.log("LH CHECK QI SCHEDULER CCCCCCCCCCCCCCCCCCCCCCCCCCCC",updateData);
-                                                            resolve();
+                                                            //resolve();
                                                         }
-                                                });
+                                                    });
                                             }
                                         }
                                     );
                                 })
-                            });
+                            //});
 
-                            promiseList.push(childPromise);
+                            //promiseList.push(childPromise);
                         }
                     })
 
-                    return Promise.all(promiseList);
+                    //return Promise.all(promiseList);
                 }
             });
         }else{
             return Q.reject({name: "DBError", message: "Connection to mySQL dropped."});
         }
-     },
+    },
 
     RestructureConversationContent: function(dbResult){
         let proms = [];

@@ -12,8 +12,6 @@ let partnerCommissionConfigSchema = new Schema({
     commissionType: {type: String},
     //commission setting
     commissionSetting: [{
-        _id: false,
-
         //Consumption Bonus Amount Or Consumption Valid Amount
         playerConsumptionAmountFrom: {type: Number},
         playerConsumptionAmountTo: {type: Number},
@@ -26,6 +24,7 @@ let partnerCommissionConfigSchema = new Schema({
     // Custom rate
     customSetting: [{
         _id: false,
+        configObjId: {type: Schema.ObjectId},
         partner: {type: Schema.ObjectId, ref: 'partner'},
         //Commission Rate
         commissionRate: {type: Number}

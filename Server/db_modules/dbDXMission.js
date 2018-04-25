@@ -753,7 +753,7 @@ let dbDXMission = {
         }
     },
 
-    insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated, smsChannel) {
+    insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated) {
         if (!platformId && !phoneNumber && !taskName) {
             return Promise.reject({
                 errorMessage: "Invalid data"
@@ -868,25 +868,65 @@ let dbDXMission = {
                                                     let msgDetails = [];
 
                                                     let smsData = {
-                                                        channel: smsChannel,
+                                                        // channel: smsChannel,
                                                         platformId: platformObjId,
                                                         dbDXMissionId: dxMission._id,
                                                         phoneNumber: phoneNumber.trim(),
                                                     };
 
-                                                    msgDetails.push(smsData);
-                                                    let sendingObj = {
-                                                        msgDetail: msgDetails
-                                                    };
+                                                    return smsAPI.channel_getChannelList({}).then( channelList => {
 
-                                                    dbDXMission.sendSMSToPlayer(null, null, sendingObj);
+                                                        if (channelList && channelList.channels && channelList.channels.length > 0){
+
+                                                            if (channelList.channels.indexOf(3) != -1){
+                                                                smsData.channel = 3;
+                                                            }
+                                                            else if (channelList.channels.indexOf(2) != -1){
+                                                                smsData.channel = 2;
+                                                            }
+                                                            else{
+
+                                                                return Promise.reject({name: "DBError", message: "Channel 1 and Channel 2 do not exist"});
+                                                            }
+                                                            return smsData;
+
+                                                        }
+                                                        else{
+                                                            return Promise.reject({name: "DBError", message: "No channel exists"});
+                                                        }
+
+                                                    }).then( smsDetail => {
+                                                        if(smsDetail){
+
+                                                            msgDetails.push(smsDetail);
+                                                            let sendingObj = {
+                                                                msgDetail: msgDetails
+                                                            };
+                                                            
+                                                            return dbDXMission.sendSMSToPlayer(null, null, sendingObj).then( returnedMsg => {
+
+                                                                if (returnedMsg && returnedMsg[0]){
+                                                                   if (returnedMsg[0].failure){
+                                                                       return Promise.reject({name: "DBError", message: returnedMsg[0].message || "SMS is failed to send"});
+                                                                   }
+                                                                   else{
+                                                                       return Promise.resolve({
+                                                                           message: localization.translate("Player already obtained") + dxMission.creditAmount + localization.translate("dollar cash prize, ") + localization.translate("please take note on the message sent by the system.")
+                                                                       });
+                                                                   }
+                                                                }
+
+                                                            });
+                                                        }
+                                                     })
+                                                    // dbDXMission.sendSMSToPlayer(null, null, sendingObj);
+                                                }else{
+                                                    return Promise.resolve({
+                                                        message: localization.translate("Successfully imported into the task, please take note that no message is sent by the system.")
+                                                    });
                                                 }
 
-                                                return Promise.resolve({
-                                                    message: localization.translate("Successfully got the rewards, please take note on the message sent by the system.")
-                                                });
                                             })
-
 
                                         }
                                     )
@@ -939,7 +979,7 @@ let dbDXMission = {
                     message => {
                         let sendObj = {
                             tel: msg.phoneNumber.trim(),
-                            channel: data.channel || 2,
+                            channel: data.channel || msg.channel,
                             platformId: phoneData.platform.platformId,
                             message: message,
                             data: {
@@ -966,7 +1006,7 @@ let dbDXMission = {
                         // if (sendObj.tel == "11112365258"){
                         //     return {failure: true};
                         // }else{
-                        //     return {}
+                        //     return {msg};
                         // }
                     }
                 ))

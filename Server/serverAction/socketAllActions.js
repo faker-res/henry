@@ -17,6 +17,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionPlayerLevel'),
     require('./../socketActionModule/socketActionPlayerTrustLevel'),
     require('./../socketActionModule/socketActionPlayerFeedback'),
+    require('./../socketActionModule/socketActionPartnerFeedback'),
     require('./../socketActionModule/socketActionPlayerLoginRecord'),
     require('./../socketActionModule/socketActionPlayerTopUpIntentRecord'),
     require('./../socketActionModule/socketActionPlayerRegistrationIntentRecord'),
