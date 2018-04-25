@@ -752,6 +752,7 @@
   "Partner Information": "代理信息",
   "Partner Commission Info": "佣金设置",
   "Partner Rate Setting": "费用设置",
+  "partnerRate": "费用比例",
   "Rate After Rebate Promo": "佣金需扣除的优惠比例（预设值）",
   "Rate After Rebate Platform": "佣金需扣除的平台费比例（预设值）",
   "Rate After Rebate Total Deposit": "佣金需扣除的『总存款』手续费比例（预设值）",
@@ -3616,5 +3617,15 @@
   "TASK_REMARK": "任务备注",
   "TASK_CREATE_TIME": "任务创建时间",
   "TOTAL_SENT_MESSAGE": "已发短信数量",
-  "TOTAL_PLAYER_CLICKED": "总开户数（触击数量）"
+  "TOTAL_PLAYER_CLICKED": "总开户数（触击数量）",
+  "queryByTaskName": "按任务名称查询",
+  "queryByCreationStartDate": "按开始日期查询",
+  "queryByCreationEndDate": "按结束日期查询",
+  "queryByTotalImportedList": "按导入名单总数查询",
+  "queryByTotalPlayerRegistration": "按总开户数查询",
+  "queryByTotalPlayerDeposit": "按存款人数查询",
+  "queryByTotalPlayerMultiDeposit": "按多笔存款人数查询",
+  "queryByTotalValidPlayer": "按有效户人数查询",
+  "queryByTotalDepositAmount": "按总存-提查询",
+  "queryByTotalValidConsumption": "按总有效投注额查询"
 }
