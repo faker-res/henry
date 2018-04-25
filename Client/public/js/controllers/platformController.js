@@ -23380,7 +23380,7 @@ define(['js/app'], function (myApp) {
             };
             vm.submitPartnerCommissionConfigWithGameProviderGroup = function () {
                 if (vm.partnerCommission && vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length) {
-                    let promises = [];
+                    let p = Promise.resolve();
 
                     vm.partnerCommission.gameProviderGroup.forEach(gameProviderGroup => {
                         if (gameProviderGroup && gameProviderGroup.showConfig && gameProviderGroup.showConfig.commissionSetting.length > 0) {
@@ -23402,42 +23402,35 @@ define(['js/app'], function (myApp) {
                                 if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     gameProviderGroup.showConfig.provider = gameProviderGroup._id;
 
-                                    let prom = new Promise(function (resolve) {
-                                        var sendData = {
-                                            query: {
-                                                platform: gameProviderGroup.showConfig.platform ? gameProviderGroup.showConfig.platform : vm.selectedPlatform.id,
-                                                commissionType: gameProviderGroup.showConfig.commissionType ? gameProviderGroup.showConfig.commissionType : vm.constPartnerCommisionType[vm.commissionSettingTab],
-                                                provider: gameProviderGroup._id
-                                            },
-                                            updateData: gameProviderGroup.showConfig
-                                        }
+                                    var sendData = {
+                                        query: {
+                                            platform: tempShowConfig.platform ? tempShowConfig.platform : vm.selectedPlatform.id,
+                                            _id: tempShowConfig._id
+                                        },
+                                        updateData: tempShowConfig
+                                    }
 
-                                        socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
-                                            resolve(data);
-                                        });
+                                    p = p.then(function () {
+                                        return $scope.$socketPromise('createUpdatePartnerCommissionConfigWithGameProviderGroup', sendData).then(res => {
+                                            console.log('success', res);
+                                        })
                                     });
-
-                                    promises.push(prom);
                                 }
                             }
                         }
                     });
 
-                    Promise.all(promises).then(
-                        (data) => {
-                            if (data) {
-                                vm.getPartnerCommissionConfigWithGameProviderConfig();
-                                $scope.safeApply();
-                            }
-                        }
-                    );
+                    return p.then(()=> {
+                        vm.getPartnerCommissionConfigWithGameProviderConfig();
+                        $scope.safeApply();
+                    });
                 }
             }
             vm.createUpdatePartnerCommissionConfig = function () {
                 var sendData = {
                     query: {
                         platform: vm.selectedPlatform.id,
-                        commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
+                        _id: vm.partnerCommission.showConfig._id
                     },
                     updateData: vm.partnerCommission.showConfig
                 }
