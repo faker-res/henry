@@ -3626,5 +3626,6 @@
   "queryByTotalPlayerMultiDeposit": "按多笔存款人数查询",
   "queryByTotalValidPlayer": "按有效户人数查询",
   "queryByTotalDepositAmount": "按总存-提查询",
-  "queryByTotalValidConsumption": "按总有效投注额查询"
+  "queryByTotalValidConsumption": "按总有效投注额查询",
+  "CHECK_RECORDED_RECORD": "查询已收录对话数量"
 }

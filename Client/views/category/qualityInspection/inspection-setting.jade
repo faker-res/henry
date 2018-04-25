@@ -156,6 +156,10 @@
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.summarizeLive800Record()')
                         text {{'SUBMIT' | translate}}
                         img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.getSummarizedLive800RecordCount()')
+                        text {{'CHECK_RECORDED_RECORD' | translate}}
+                        img.img-edit
+                    label(ng-show="vm.summarizedDataDetail") {{vm.summarizedDataDetail}}
                     .inlineBlk(ng-show='vm.loadingSummarizeLive800Record')
                         i.fa.fa-spin.fa-spinner
 //
