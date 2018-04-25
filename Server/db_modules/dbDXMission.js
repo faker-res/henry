@@ -902,8 +902,7 @@ let dbDXMission = {
                                                             let sendingObj = {
                                                                 msgDetail: msgDetails
                                                             };
-
-                                                            console.log("sendSMSToPlayer",sendingObj);
+                                                            
                                                             return dbDXMission.sendSMSToPlayer(null, null, sendingObj).then( returnedMsg => {
 
                                                                 if (returnedMsg && returnedMsg[0]){
