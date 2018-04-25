@@ -685,31 +685,27 @@ let dbPartner = {
      * @param - data {json} can include  one or more of the following fields
      *  {  bankAccount , partnerName, partnerId, level }
      */
-    getPartnersByAdvancedQuery: function (platformId, data) {
-        var count = 0;
-        var query = {};
-        query.platform  = mongoose.Types.ObjectId(platformId);
-        for(var k in data){
-            if(k!="limit" && k!="index" && k!="pageObj" && k!="sortCol"&& k!="platformId"){
+    getPartnersByAdvancedQuery: function (platformId, query, index, limit, sortObj) {
+        let partnerInfo;
 
-                if(k=="status"){
-                    data["status"] = parseInt(data["status"]);
-                }
-                if(k=="level"){
-                    data["level"] = mongoose.Types.ObjectId(data["level"]);
-                }
-                query[k]= data[k];
-            }
+        query.platform  = mongoose.Types.ObjectId(platformId);
+
+        if (query && query.phoneNumber) {
+            query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), query.phoneNumber]};
         }
-        count = dbconfig.collection_partner.find( query ).count();
-        if(data.sortCol){
+
+        let count = dbconfig.collection_partner.find(query).count();
+
+        if (sortObj){
             //if there is sorting parameter
-            var detail = dbconfig.collection_partner.aggregate([
+            partnerInfo = dbconfig.collection_partner.aggregate([
                 {$match:query},
-                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
-                {$sort:data.sortCol},
-                {$skip:data.index},
-                {$limit:data.limit}
+                {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                        "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                        "monthlyActivePlayer":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "settledCommission":1, "_id":1, }},
+                {$sort:sortObj},
+                {$skip:index},
+                {$limit:limit}
             ]).then(
                 aggr => {
                     var retData = [];
@@ -718,15 +714,28 @@ let dbPartner = {
                         retData.push(prom);
                     }
                     return Q.all(retData);
-            });
-            
-        }else{
-            //if there is not sorting parameter
-            var detail = dbconfig.collection_partner.aggregate([
+            }).then(
+                partners => {
+                    for (let i = 0; i < partners.length; i++) {
+                        if (partners[i].phoneNumber) {
+                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
+                        }
+                    }
+                    return partners;
+                },
+                error => {
+                    Q.reject({name: "DBError", message: "Error finding partners.", error: error});
+                }
+            );
+        } else {
+            //if there is no sorting parameter
+            partnerInfo = dbconfig.collection_partner.aggregate([
                 {$match:query},
-                {$project:{ childrencount: {$size: { "$ifNull": [ "$children", [] ] }},"partnerId":1, "partnerName":1 ,"realName":1, "phoneNumber":1, "status":1, "parent":1, "totalReferrals":1, "credits":1, "registrationTime":1, "level":1, "lastAccessTime":1, "lastLoginIp":1,"_id":1, "validReward":1}},
-                {$skip:data.index},
-                {$limit:data.limit}
+                {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
+                        "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
+                        "monthlyActivePlayer":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "settledCommission":1, "_id":1, }},
+                {$skip:index},
+                {$limit:limit}
             ]).then(
             aggr => {
                 var retData = [];
@@ -751,10 +760,11 @@ let dbPartner = {
             );
             
         }
-        return Q.all([count, detail]).then( function(data){
+        return Q.all([count, partnerInfo]).then( function(data){
             return {size:data[0],data:data[1]}
         })
     },
+
     getPartnerItem: function(id, childrencount) {
         return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(id)})
             .populate({path: "player", model: dbconfig.collection_players, select:{_id:1, name:1, playerId:1}})
