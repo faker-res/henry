@@ -411,13 +411,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $scope.fontSizeAdaptive = function(element){
-        element.style.fontSize = '20px';
-        let parentWidth = parseInt(window.getComputedStyle(element.parentElement).width);
-        let elemWidth = parseInt(window.getComputedStyle(element).width);
-        elemWidth = isNaN(elemWidth) ? 0 : elemWidth;
-    
-        if (elemWidth > parentWidth-50){
-            element.style.fontSize = '16px';
+        if( element ){
+            element.style.fontSize = '20px';
+            let parentWidth = parseInt(window.getComputedStyle(element.parentElement).width);
+            let elemWidth = parseInt(window.getComputedStyle(element).width);
+            elemWidth = isNaN(elemWidth) ? 0 : elemWidth;
+
+            if (elemWidth > parentWidth-50){
+                element.style.fontSize = '16px';
+            }
         }
     };
 
