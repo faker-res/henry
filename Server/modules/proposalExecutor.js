@@ -2716,6 +2716,7 @@ var proposalExecutor = {
                                     "customSetting.partner": proposalData.data.partnerObjId
                                 }, {
                                     $set: {
+                                        "customSetting.$.configObjId": proposalData.data.configObjId,
                                         "customSetting.$.commissionRate": proposalData.data.newRate
                                     }
                                 }, {
@@ -2726,7 +2727,8 @@ var proposalExecutor = {
                                     $push: {
                                         customSetting: {
                                             partner: proposalData.data.partnerObjId,
-                                            commissionRate: proposalData.data.newRate
+                                            commissionRate: proposalData.data.newRate,
+                                            configObjId: proposalData.data.configObjId
                                         }
                                     }
                                 });

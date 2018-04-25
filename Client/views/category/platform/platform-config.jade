@@ -707,7 +707,7 @@
                                                                     a(href="" ng-if="!val.isEditing" ng-click="vm.commissionSettingEditRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
                                                                     a(href="" ng-if="val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingCancelRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
                                                                     text(ng-if="!val.isCreateNew") /
-                                                                    a(href="" ng-click="vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'INSERT' | translate}}
+                                                                    a(href="" ng-click="vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting, $index)", style="cursor:pointer") {{'INSERT' | translate}}
                                                                     text /
                                                                     a(href="" ng-click="vm.commissionSettingDeleteRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
 
@@ -744,7 +744,7 @@
                                                                         a(href="" ng-if="!commissionSetting.isEditing" ng-click="vm.commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
                                                                         a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
                                                                         text(ng-if="!commissionSetting.isCreateNew") /
-                                                                        a(href="" ng-click="vm.commissionSettingNewRow(gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'INSERT' | translate}}
+                                                                        a(href="" ng-click="vm.commissionSettingNewRow(gpg.showConfig.commissionSetting, $index)", style="cursor:pointer") {{'INSERT' | translate}}
                                                                         text /
                                                                         a(href="" ng-click="vm.commissionSettingDeleteRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
                                                             br

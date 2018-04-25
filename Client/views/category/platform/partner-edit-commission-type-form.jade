@@ -34,7 +34,7 @@ form(name="form_edit_partner_commission_type", novalidate)
         .col-md-12.panel.panel-body.panel-primary
             .panel-body.common-right-panel-body
                 div.tab-content
-                    h4 {{'Partner Commission Info' | translate}}
+                    h4 {{'Customize commission rate' | translate}}
                     table.simple-table(ng-if="!partnerCommission.isGameProviderIncluded" style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -92,7 +92,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                                     td
                                         input.form-control(type='number', ng-model='commissionSetting.activePlayerValueTo' disabled)
                                     td
-                                        span.percentage
+                                        span.percentage(ng-style='commissionSetting.isCustomized ? {color: "red"} : {}')
                                             input(type='number', percentage, style="display: inline-block", ng-model='commissionSetting.commissionRate' ng-disabled='!commissionSetting.isEditing')
                                     td
                                         a(href="" ng-if="!commissionSetting.isEditing" ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
