@@ -3455,10 +3455,8 @@ function checkApplyTopUpReturn(player, topUpReturnCode, userAgentStr, inputData,
 
                     let topupMatchQuery = {
                         playerId: player._id,
-                        platformId: player.platform._id,
-                        createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+                        platformId: player.platform._id
                     };
-
 
                     if (rewardEvent.condition && rewardEvent.condition.topupType && rewardEvent.condition.topupType.length > 0) {
                         topupMatchQuery.topUpType = {$in: rewardEvent.condition.topupType}
@@ -3490,17 +3488,15 @@ function checkApplyTopUpReturn(player, topUpReturnCode, userAgentStr, inputData,
                             $lte: intervalTime.endTime
                         };
                     }
-                    let eventInPeriodProm = Promise.resolve(0);
+                    let eventInPeriodProm = Promise.resolve([]);
                     if (rewardEvent.param && rewardEvent.param.countInRewardInterval) {
                         eventInPeriodProm = dbconfig.collection_proposal.find(eventQuery).lean();
                     }
 
-                    let topupInPeriodProm = Promise.resolve(0);
+                    let topupInPeriodProm = Promise.resolve([]);
                     if (rewardEvent.condition.topUpCountType && rewardEvent.condition) {
                         topupInPeriodProm = dbconfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
                     }
-
-
                     // let rewardData = {};
 
                     return Promise.all([pendingCount, eventInPeriodProm, topupInPeriodProm]).then(
