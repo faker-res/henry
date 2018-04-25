@@ -2944,7 +2944,7 @@ let dbPartner = {
     },
 
     createUpdatePartnerCommissionConfig: function  (query, data) {
-        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType}).lean().then(
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
            configData => {
                //check if config exist
                if (!configData) {
@@ -2952,6 +2952,7 @@ let dbPartner = {
                     return newCommissionConfig.save();
                }
                else {
+                   delete data._id;
                    return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
                }
            });
@@ -2962,14 +2963,14 @@ let dbPartner = {
     },
 
     createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data) {
-        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType, provider: query.provider}).lean().then(
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
             configData => {
                 //check if config exist
                 if (!configData) {
-                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
-                    return newCommissionConfig.save();
+                    return dbconfig.collection_partnerCommissionConfig(data).save();
                 }
                 else {
+                    delete data._id;
                     return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
                 }
             });
