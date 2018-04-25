@@ -2708,33 +2708,15 @@ var proposalExecutor = {
 
             executeCustomizePartnerCommRate: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.settingObjId) {
-                    dbconfig.collection_partnerCommissionConfig.findById(proposalData.data.settingObjId).then(
-                        config => {
-                            if (config && config.customSetting && config.customSetting.some(sett => String(sett.partner === String(proposalData.data.partnerObjId)))) {
-                                return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
-                                    platform: config.platform,
-                                    "customSetting.partner": proposalData.data.partnerObjId
-                                }, {
-                                    $set: {
-                                        "customSetting.$.configObjId": proposalData.data.configObjId,
-                                        "customSetting.$.commissionRate": proposalData.data.newRate
-                                    }
-                                }, {
-                                    new: true
-                                })
-                            } else {
-                                return dbconfig.collection_partnerCommissionConfig.findByIdAndUpdate(proposalData.data.settingObjId, {
-                                    $push: {
-                                        customSetting: {
-                                            partner: proposalData.data.partnerObjId,
-                                            commissionRate: proposalData.data.newRate,
-                                            configObjId: proposalData.data.configObjId
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    ).then(
+                    let prom = Promise.resolve(true);
+
+                    if (proposalData.data.configObjId) {
+                        prom = updatePartnerCommissionConfig(proposalData);
+                    } else {
+                        prom = updatePartnerCommRateConfig(proposalData);
+                    }
+
+                    prom.then(
                         data => deferred.resolve(data),
                         error => deferred.reject(error)
                     )
@@ -4050,6 +4032,72 @@ function setProposalIdInData(proposal) {
     }
 
     return proposal;
+}
+
+function updatePartnerCommissionConfig (proposalData) {
+    return dbconfig.collection_partnerCommissionConfig.findById(proposalData.data.settingObjId).then(
+        config => {
+            if (config && config.customSetting && config.customSetting.some(sett => String(sett.partner === String(proposalData.data.partnerObjId)))) {
+                return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
+                    platform: config.platform,
+                    "customSetting.partner": proposalData.data.partnerObjId
+                }, {
+                    $set: {
+                        "customSetting.$.configObjId": proposalData.data.configObjId,
+                        "customSetting.$.commissionRate": proposalData.data.newRate
+                    }
+                }, {
+                    new: true
+                })
+            } else {
+                return dbconfig.collection_partnerCommissionConfig.findByIdAndUpdate(proposalData.data.settingObjId, {
+                    $push: {
+                        customSetting: {
+                            partner: proposalData.data.partnerObjId,
+                            commissionRate: proposalData.data.newRate,
+                            configObjId: proposalData.data.configObjId
+                        }
+                    }
+                });
+            }
+        }
+    )
+}
+
+function updatePartnerCommRateConfig (proposalData) {
+    return dbconfig.collection_partnerCommissionRateConfig.findById(proposalData.data.settingObjId).then(
+        config => {
+            if (config && config.customRate && config.customRate.some(sett => String(sett.partner === String(proposalData.data.partnerObjId)))) {
+                return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate({
+                    platform: config.platform,
+                    "customRate.partner": proposalData.data.partnerObjId
+                }, {
+                    $set: {
+                        "customRate.$.rateAfterRebatePromo": proposalData.data.newRate.rateAfterRebatePromo,
+                        "customRate.$.rateAfterRebatePlatform": proposalData.data.newRate.rateAfterRebatePlatform,
+                        "customRate.$.rateAfterRebateGameProviderGroup": proposalData.data.newRate.rateAfterRebateGameProviderGroup,
+                        "customRate.$.rateAfterRebateTotalDeposit": proposalData.data.newRate.rateAfterRebateTotalDeposit,
+                        "customRate.$.rateAfterRebateTotalWithdrawal": proposalData.data.newRate.rateAfterRebateTotalWithdrawal
+                    }
+                }, {
+                    new: true
+                })
+            } else {
+                return dbconfig.collection_partnerCommissionRateConfig.findByIdAndUpdate(proposalData.data.settingObjId, {
+                    $push: {
+                        customRate: {
+                            partner: proposalData.data.partnerObjId,
+                            rateAfterRebatePromo: proposalData.data.newRate.rateAfterRebatePromo,
+                            rateAfterRebatePlatform: proposalData.data.newRate.rateAfterRebatePlatform,
+                            rateAfterRebateGameProviderGroup: proposalData.data.newRate.rateAfterRebateGameProviderGroup,
+                            rateAfterRebateTotalDeposit: proposalData.data.newRate.rateAfterRebateTotalDeposit,
+                            rateAfterRebateTotalWithdrawal: proposalData.data.newRate.rateAfterRebateTotalWithdrawal,
+                        }
+                    }
+                });
+            }
+        }
+    )
 }
 
 var proto = proposalExecutorFunc.prototype;

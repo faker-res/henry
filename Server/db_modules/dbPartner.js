@@ -2944,7 +2944,7 @@ let dbPartner = {
     },
 
     createUpdatePartnerCommissionConfig: function  (query, data) {
-        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType}).lean().then(
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
            configData => {
                //check if config exist
                if (!configData) {
@@ -2952,6 +2952,7 @@ let dbPartner = {
                     return newCommissionConfig.save();
                }
                else {
+                   delete data._id;
                    return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
                }
            });
@@ -2962,14 +2963,14 @@ let dbPartner = {
     },
 
     createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data) {
-        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, commissionType: query.commissionType, provider: query.provider}).lean().then(
+        return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
             configData => {
                 //check if config exist
                 if (!configData) {
-                    var newCommissionConfig = new dbconfig.collection_partnerCommissionConfig(data);
-                    return newCommissionConfig.save();
+                    return dbconfig.collection_partnerCommissionConfig(data).save();
                 }
                 else {
+                    delete data._id;
                     return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(query, data);
                 }
             });
@@ -4587,21 +4588,39 @@ let dbPartner = {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
                 if (partnerObj) {
-                    let proposalData = {
-                        creator: adminInfo || {
-                            type: 'partner',
-                            name: partnerObj.partnerName,
-                            id: partnerObj._id
-                        },
-                        partnerObjId: partnerObjId,
-                        partnerName: partnerObj.partnerName,
-                        settingObjId: settingObjId,
-                        oldRate: oldConfig[field],
-                        newRate: newConfig[field],
-                        configObjId: configObjId,
-                        remark: localization.localization.translate(field)
-                    };
-                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
+                    if (configObjId) {
+                        let proposalData = {
+                            creator: adminInfo || {
+                                type: 'partner',
+                                name: partnerObj.partnerName,
+                                id: partnerObj._id
+                            },
+                            partnerObjId: partnerObjId,
+                            partnerName: partnerObj.partnerName,
+                            settingObjId: settingObjId,
+                            oldRate: oldConfig[field],
+                            newRate: newConfig[field],
+                            configObjId: configObjId,
+                            remark: localization.localization.translate(field)
+                        };
+                        return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
+                    } else {
+                        let proposalData = {
+                            creator: adminInfo || {
+                                type: 'partner',
+                                name: partnerObj.partnerName,
+                                id: partnerObj._id
+                            },
+                            partnerObjId: partnerObjId,
+                            partnerName: partnerObj.partnerName,
+                            settingObjId: settingObjId,
+                            oldRate: oldConfig,
+                            newRate: newConfig,
+                            remark: localization.localization.translate(field)
+                        };
+                        return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
+                    }
+
                 }
             }
         )

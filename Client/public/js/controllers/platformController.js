@@ -16637,10 +16637,13 @@ define(['js/app'], function (myApp) {
                             rateAfterRebateGameProviderGroup: vm.rateAfterRebateGameProviderGroup,
                             rateAfterRebateTotalDeposit: vm.rateAfterRebateTotalDeposit,
                             rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal,
+                            commissionRateConfig: commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig),
                             commissionSettingEditRow: vm.commissionSettingEditRow,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
+                            customizePartnerRate: vm.customizePartnerRate,
+                            commissionRateEditRow: vm.commissionRateEditRow,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -23363,10 +23366,19 @@ define(['js/app'], function (myApp) {
 
                 vm.showHideSubmitCommissionConfigButton(valueCollection);
                 if (vm.partnerCommission.isGameProviderIncluded) {
-                    valueCollection[idx] = originalCollection[idx];
+                    if(valueCollection[idx] && !valueCollection[idx].isEditing) {
+                        originalCollection.filter(originalSetting => {
+                            if(valueCollection[idx]._id == originalSetting._id) {
+                                valueCollection[idx] = JSON.parse(JSON.stringify(originalSetting));;
+                            }
+                        });
+                    }
                 } else {
                     vm.partnerCommission.showConfig = vm.partnerCommission.srcConfig;
                 }
+            };
+            vm.commissionRateEditRow = (field, flag) => {
+                vm.commissionRateConfig.isEditing[field] = flag;
             };
             vm.showHideSubmitCommissionConfigButton = (valueCollection) => {
                 if (valueCollection && valueCollection.length > 0) {
@@ -23380,7 +23392,7 @@ define(['js/app'], function (myApp) {
             };
             vm.submitPartnerCommissionConfigWithGameProviderGroup = function () {
                 if (vm.partnerCommission && vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length) {
-                    let promises = [];
+                    let p = Promise.resolve();
 
                     vm.partnerCommission.gameProviderGroup.forEach(gameProviderGroup => {
                         if (gameProviderGroup && gameProviderGroup.showConfig && gameProviderGroup.showConfig.commissionSetting.length > 0) {
@@ -23402,42 +23414,35 @@ define(['js/app'], function (myApp) {
                                 if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     gameProviderGroup.showConfig.provider = gameProviderGroup._id;
 
-                                    let prom = new Promise(function (resolve) {
-                                        var sendData = {
-                                            query: {
-                                                platform: gameProviderGroup.showConfig.platform ? gameProviderGroup.showConfig.platform : vm.selectedPlatform.id,
-                                                commissionType: gameProviderGroup.showConfig.commissionType ? gameProviderGroup.showConfig.commissionType : vm.constPartnerCommisionType[vm.commissionSettingTab],
-                                                provider: gameProviderGroup._id
-                                            },
-                                            updateData: gameProviderGroup.showConfig
-                                        }
+                                    var sendData = {
+                                        query: {
+                                            platform: tempShowConfig.platform ? tempShowConfig.platform : vm.selectedPlatform.id,
+                                            _id: tempShowConfig._id
+                                        },
+                                        updateData: tempShowConfig
+                                    }
 
-                                        socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
-                                            resolve(data);
-                                        });
+                                    p = p.then(function () {
+                                        return $scope.$socketPromise('createUpdatePartnerCommissionConfigWithGameProviderGroup', sendData).then(res => {
+                                            console.log('success', res);
+                                        })
                                     });
-
-                                    promises.push(prom);
                                 }
                             }
                         }
                     });
 
-                    Promise.all(promises).then(
-                        (data) => {
-                            if (data) {
-                                vm.getPartnerCommissionConfigWithGameProviderConfig();
-                                $scope.safeApply();
-                            }
-                        }
-                    );
+                    return p.then(()=> {
+                        vm.getPartnerCommissionConfigWithGameProviderConfig();
+                        $scope.safeApply();
+                    });
                 }
             }
             vm.createUpdatePartnerCommissionConfig = function () {
                 var sendData = {
                     query: {
                         platform: vm.selectedPlatform.id,
-                        commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
+                        _id: vm.partnerCommission.showConfig._id
                     },
                     updateData: vm.partnerCommission.showConfig
                 }
@@ -23494,8 +23499,40 @@ define(['js/app'], function (myApp) {
                         console.log('customizePartnerCommission', data);
                     });
                 }
+            };
 
-            }
+            vm.customizePartnerRate = (config) => {
+                let isChanged = false;
+                let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
+
+                normalRates.forEach(e => {
+                    if (config[e] != vm.srcCommissionRateConfig[e]) {
+                        isChanged = true;
+                    }
+                });
+
+                config.rateAfterRebateGameProviderGroup.forEach(e => {
+                    let src = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.filter(grp => String(grp.gameProviderGroupId) === String(e.gameProviderGroupId))[0];
+
+                    if (e.rate != src.rate) {
+                        isChanged = true;
+                    }
+                });
+
+                if (isChanged) {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        settingObjId: config._id,
+                        field: "partnerRate",
+                        oldConfig: vm.srcCommissionRateConfig,
+                        newConfig: config
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
+                        console.log('customizePartnerCommission', data);
+                    });
+                }
+            };
 
             vm.getCommissionRateGameProviderGroup = function () {
                 vm.isCommissionRateEditing = false;
@@ -23519,7 +23556,7 @@ define(['js/app'], function (myApp) {
                         vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
                         vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
                         vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
-
+                        vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
