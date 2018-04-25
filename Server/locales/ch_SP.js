@@ -24,6 +24,12 @@ var simplifiedChinese = {
     "MONTHLY_BONUS_AMOUNT": "1月-输赢值",
     "WEEKLY_CONSUMPTION": "7天-投注额",
     "Fail to update commission type": "佣金模式更新失败",
+    "No top up record for this player": "玩家没有充值记录",
+    "No record to show": "没有记录",
+    "Invalid period": "查询周期无效",
+    "No withdraw record for this player": "玩家没有提款记录",
+    "No consumption record for this player": "玩家没有投注记录",
+    "Invalid ranking mode": "无效排行模式",
 
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
