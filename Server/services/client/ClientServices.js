@@ -53,6 +53,7 @@
                 "getSMSCode",
                 "sendSMSCodeToPlayer",
                 "verifyPhoneNumberBySMSCode",
+                "getPlayerBillBoard",
                 "updatePaymentInfo",
                 "updatePlayerPartnerPaymentInfo",
                 "updateSmsSetting",

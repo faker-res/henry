@@ -90,15 +90,18 @@
     };
 
     proto.verifyPhoneNumberBySMSCode = function (callback, requestData) {
-        var data = requestData || {
-            smsCode: '123456'
-        };
         this.playerService.verifyPhoneNumberBySMSCode.request(data);
         this.playerService.verifyPhoneNumberBySMSCode.once(function (data) {
             if (typeof callback === "function") {
                 callback(data);
             }
         });
+    };
+
+    proto.getPlayerBillBoard = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.getPlayerBillBoard.request(data);
+        this.playerService.getPlayerBillBoard.once(callback);
     };
 
     proto.create = function (callback, requestData) {
