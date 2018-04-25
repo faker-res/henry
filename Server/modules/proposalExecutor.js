@@ -4073,11 +4073,11 @@ function updatePartnerCommRateConfig (proposalData) {
                     "customRate.partner": proposalData.data.partnerObjId
                 }, {
                     $set: {
-                        "customSetting.$.rateAfterRebatePromo": proposalData.data.newRate.rateAfterRebatePromo,
-                        "customSetting.$.rateAfterRebatePlatform": proposalData.data.newRate.rateAfterRebatePlatform,
-                        "customSetting.$.rateAfterRebateGameProviderGroup": proposalData.data.newRate.rateAfterRebateGameProviderGroup,
-                        "customSetting.$.rateAfterRebateTotalDeposit": proposalData.data.newRate.rateAfterRebateTotalDeposit,
-                        "customSetting.$.rateAfterRebateTotalWithdrawal": proposalData.data.newRate.rateAfterRebateTotalWithdrawal
+                        "customRate.$.rateAfterRebatePromo": proposalData.data.newRate.rateAfterRebatePromo,
+                        "customRate.$.rateAfterRebatePlatform": proposalData.data.newRate.rateAfterRebatePlatform,
+                        "customRate.$.rateAfterRebateGameProviderGroup": proposalData.data.newRate.rateAfterRebateGameProviderGroup,
+                        "customRate.$.rateAfterRebateTotalDeposit": proposalData.data.newRate.rateAfterRebateTotalDeposit,
+                        "customRate.$.rateAfterRebateTotalWithdrawal": proposalData.data.newRate.rateAfterRebateTotalWithdrawal
                     }
                 }, {
                     new: true
