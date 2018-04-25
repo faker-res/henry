@@ -803,7 +803,7 @@ function socketActionPlayer(socketIO, socket) {
          */
         applyManualTopUpRequest: function applyManualTopUpRequest(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod && data.lastBankcardNo);
+            var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod);
             let userAgent = '';
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS, null, data.topUpReturnCode], actionName, isValidData);
         },

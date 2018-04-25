@@ -216,7 +216,7 @@ define([], function () {
                 //console.warn("[authService.js] Nobody can call action '%s' because it has no access rules!  (Except for superuser.)  Please add '%s' to roleChecker.linkedViews.", socketAction, socketAction);
                 //return false;
 
-                console.warn("[authService.js] Everybody can call action '%s' because it has no access rules!  Please add '%s' to roleChecker.linkedViews.", socketAction, socketAction);
+                // console.warn("[authService.js] Everybody can call action '%s' because it has no access rules!  Please add '%s' to roleChecker.linkedViews.", socketAction, socketAction);
                 return true;
             } else {
                 // Check to see if one of the ACL requirements is satisfied by one of the user's roles
