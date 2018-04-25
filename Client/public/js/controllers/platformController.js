@@ -23363,7 +23363,13 @@ define(['js/app'], function (myApp) {
 
                 vm.showHideSubmitCommissionConfigButton(valueCollection);
                 if (vm.partnerCommission.isGameProviderIncluded) {
-                    valueCollection = originalCollection.splice(idx, 1);
+                    if(valueCollection[idx] && !valueCollection[idx].isEditing) {
+                        originalCollection.filter(originalSetting => {
+                            if(valueCollection[idx]._id == originalSetting._id) {
+                                valueCollection[idx] = JSON.parse(JSON.stringify(originalSetting));;
+                            }
+                        });
+                    }
                 } else {
                     vm.partnerCommission.showConfig = vm.partnerCommission.srcConfig;
                 }
