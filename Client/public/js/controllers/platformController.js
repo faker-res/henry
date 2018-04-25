@@ -23363,7 +23363,7 @@ define(['js/app'], function (myApp) {
 
                 vm.showHideSubmitCommissionConfigButton(valueCollection);
                 if (vm.partnerCommission.isGameProviderIncluded) {
-                    valueCollection[idx] = originalCollection[idx];
+                    valueCollection = originalCollection.splice(idx, 1);
                 } else {
                     vm.partnerCommission.showConfig = vm.partnerCommission.srcConfig;
                 }
