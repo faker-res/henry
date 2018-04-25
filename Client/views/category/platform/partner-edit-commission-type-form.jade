@@ -119,7 +119,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                         tr
                             td {{'Rate After Rebate Promo' | translate}}
                             td
-                                span.percentage
+                                span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebatePromo") >= 0 ? {color: "red"} : {}')
                                     input(style="display: inline-block", ng-model='commissionRateConfig.rateAfterRebatePromo' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebatePromo"]')
                             td
                                 a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="commissionRateEditRow('rateAfterRebatePromo', true);" style="cursor:pointer") {{'Edit' | translate}}
@@ -130,7 +130,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                         tr
                             td {{'Rate After Rebate Platform' | translate}}
                             td
-                                span.percentage
+                                span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebatePlatform") >= 0 ? {color: "red"} : {}')
                                     input(style="display: inline-block", ng-model='commissionRateConfig.rateAfterRebatePlatform' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]')
                             td
                                 a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionRateEditRow('rateAfterRebatePlatform', true);" style="cursor:pointer") {{'Edit' | translate}}
@@ -142,7 +142,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                         tr(ng-repeat='(idx,val) in commissionRateConfig.rateAfterRebateGameProviderGroup')
                             td {{val.name | translate}}
                             td
-                                span.percentage
+                                span.percentage(ng-style='val.isCustomized ? {color: "red"} : {}')
                                     //input(type='number', percentage, style="display: inline-block", ng-model='val.rate', ng-disabled='!vm.isCommissionRateEditing')
                                     input(style="display: inline-block", ng-model='val.rate' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]')
                             td
@@ -154,7 +154,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                         tr
                             td {{'Rate After Rebate Total Deposit' | translate}}
                             td
-                                span.percentage
+                                span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebateTotalDeposit") >= 0 ? {color: "red"} : {}')
                                     input(style="display: inline-block", ng-model='commissionRateConfig.rateAfterRebateTotalDeposit' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]')
                             td
                                 a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="commissionRateEditRow('rateAfterRebateTotalDeposit', true);" style="cursor:pointer") {{'Edit' | translate}}
@@ -165,7 +165,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                         tr
                             td {{'Rate After Rebate Total Withdrawal' | translate}}
                             td
-                                span.percentage
+                                span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebateTotalWithdrawal") >= 0 ? {color: "red"} : {}')
                                     input(style="display: inline-block", ng-model='commissionRateConfig.rateAfterRebateTotalWithdrawal' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]')
                             td
                                 a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="commissionRateEditRow('rateAfterRebateTotalWithdrawal', true);" style="cursor:pointer") {{'Edit' | translate}}
