@@ -23441,6 +23441,7 @@ define(['js/app'], function (myApp) {
 
                 vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
                 vm.partnerCommission.isEditing = false;
+                vm.partnerCommission.isCustomized = false;
 
                 if (vm.commissionSettingTab != 'WEEKLY_CONSUMPTION') {
                     vm.playerConsumptionTableHeader = 'TotalPlayerConsumptionBonusAmount';
