@@ -20,6 +20,8 @@ var dxPhone = new Schema({
     playerObjId: {type: Schema.ObjectId, ref: 'player'},
     // the IP when applying
     ip: {type: String, default: "", index: true},
+    // number of times of sending sms to this number
+    sendingTimes: {type: Number, default: 0},
 
 
 });

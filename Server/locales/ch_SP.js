@@ -304,6 +304,7 @@ var simplifiedChinese = {
     "to redeem": "兑换",
     "credit": "真钱",
     "Remaining": "剩余",
+    "partnerRate": "费用比例",
     "daily reward point redemption limit is reach": "已达今日可兑换限额",
     "reward points, to redeem": "积分， 兑换",
     "reward points has exceed the redemption limit, has been returned to your account": "积分超出可兑换限额，已退回至您的帐户",
