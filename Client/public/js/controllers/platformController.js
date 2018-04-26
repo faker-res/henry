@@ -23664,7 +23664,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.customizePartnerRate = (config, field) => {
+            vm.customizePartnerRate = (config, field, isRevert) => {
                 let isChanged = false;
                 let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
 
