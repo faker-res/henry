@@ -99,7 +99,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                                         a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
                                         text(ng-if="!commissionSetting.isCreateNew") /
                                         a(href="" ng-if="commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'Customize' | translate}}
-                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Reset default' | translate}}
+                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting, true)", style="cursor:pointer") {{'Reset default' | translate}}
                             br
                     br
                     .pull-right
