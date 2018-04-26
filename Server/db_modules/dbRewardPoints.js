@@ -2520,7 +2520,8 @@ function getPlayerPointInfo(rewardPointsData, playerData) {
         if (playerData && playerData._id) {
             rewardPointsData.filter(playerRank => {
 
-               if (playerRank.playerObjId.toString() == playerData._id.toString()) {
+               if (playerRank.playerObjId
+                   && (playerRank.playerObjId.toString() == playerData._id.toString())) {
 
                    if(playerRank.playerLevel && playerRank.playerLevel.name) {
                        level = playerRank.playerLevel.name;
