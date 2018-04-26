@@ -6297,6 +6297,10 @@ let dbPlayerInfo = {
                             eventName: eventNameRec,
                             eventCode: proposals[i].data.eventCode,
                             status: status
+                        };
+
+                        if (!rec.rewardAmount) {
+                            rec.rewardAmount = 0;
                         }
 
                         if (proposals[i].data.PROMO_CODE_TYPE) {
