@@ -1067,6 +1067,7 @@ define(['js/app'], function (myApp) {
                 vm.platformSettlement = {};
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
+                vm.partnerAdvanceSearchQuery = {};
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
                     playerType: 'Real Player (all)'
@@ -5216,7 +5217,8 @@ define(['js/app'], function (myApp) {
                     }
                     $scope.safeApply();
                 });
-            }
+            };
+
             vm.searchForExactPlayerDebounced = $scope.debounceSearch(function (playerExactSearchText) {
                 //console.log("playerExactSearchText", playerExactSearchText);
                 if (playerExactSearchText === "") {
@@ -6923,6 +6925,33 @@ define(['js/app'], function (myApp) {
 
                 var currentQueryValues = {};
                 $(config.filtersElement).empty();
+
+                function getRegTimeQueryValue() {
+                    let startValue = $('#regDateTimePicker2').data('datetimepicker').getLocalDate();
+                    let endValue = $('#regEndDateTimePicker2').data('datetimepicker').getLocalDate();
+                    let queryValue = {};
+                    if ($('#regDateTimePicker2 input').val()) {
+                        queryValue["$gte"] = startValue;
+                    }
+                    if ($('#regEndDateTimePicker2 input').val()) {
+                        queryValue["$lt"] = endValue;
+                    }
+                    return $.isEmptyObject(queryValue) ? null : queryValue;
+                }
+
+                function getAccessTimeQueryValue() {
+                    let startValue = $('#lastAccessDateTimePicker2').data('datetimepicker').getLocalDate();
+                    let endValue = $('#lastAccessEndDateTimePicker2').data('datetimepicker').getLocalDate();
+                    let queryValue = {};
+                    if ($('#lastAccessDateTimePicker2 input').val()) {
+                        queryValue["$gte"] = startValue;
+                    }
+                    if ($('#lastAccessEndDateTimePicker2 input').val()) {
+                        queryValue["$lt"] = endValue;
+                    }
+                    return $.isEmptyObject(queryValue) ? null : queryValue;
+                }
+
                 config.tableOptions.columns.forEach(function (columnConfig, i) {
                     var shouldBeSearchable = columnConfig.advSearch;
                     if (shouldBeSearchable) {
@@ -6936,11 +6965,70 @@ define(['js/app'], function (myApp) {
                             .append(label).append(input);
                         $(config.filtersElement).append(newFilter);
 
+                        if (fieldName === "registrationTime") {
+                            $('#regDateTimePicker2').datetimepicker().off('changeDate');
+                            $('#regDateTimePicker2').datetimepicker().on('changeDate', function () {
+                                getQueryFunction(config, filterConfig, 'registrationTime', getRegTimeQueryValue(), true);
+                            });
+                        }
+
+                        if (fieldName === "registrationEndTime") {
+                            $('#regEndDateTimePicker2').datetimepicker().off('changeDate');
+                            $('#regEndDateTimePicker2').datetimepicker().on('changeDate', function () {
+                                getQueryFunction(config, filterConfig, 'registrationTime', getRegTimeQueryValue(), true);
+                            });
+                        }
+
+                        if (fieldName === "lastAccessTime") {
+                            $('#lastAccessDateTimePicker2').datetimepicker().off('changeDate');
+                            $('#lastAccessDateTimePicker2').datetimepicker().on('changeDate', function () {
+                                getQueryFunction(config, filterConfig, 'lastAccessTime', getAccessTimeQueryValue(), true);
+                            });
+                        }
+
+                        if (fieldName === "lastAccessEndTime") {
+                            $('#lastAccessEndDateTimePicker2').datetimepicker().off('changeDate');
+                            $('#lastAccessEndDateTimePicker2').datetimepicker().on('changeDate', function () {
+                                getQueryFunction(config, filterConfig, 'lastAccessTime', getAccessTimeQueryValue(), true);
+                            });
+                        }
+
                         // Listen for user editing the textbox, and pass the search to datatable
                         //var ptCol = vm.playerTable.columns(i);
                         input.on('keyup change', (function (evt) {
-                            var queryValue = this.value;
-                            getQueryFunction(config, filterConfig, fieldName, queryValue, false);
+                            //Text inputs do not fire the change event until they lose focus.
+                            if (evt.currentTarget.tagName == "INPUT" && evt.type == 'change') return;
+                            var queryValue = '';
+                            // Do Additional listening to the keyup event of datetime picker by the className of the div
+                            if (this.className == 'datetimepicker form-control') {
+                                // assign the value of input (firstchild of the div) to queryValue
+                                if (evt.currentTarget.id == "regDateTimePicker2" || evt.currentTarget.id == "regEndDateTimePicker2") {
+                                    queryValue = getRegTimeQueryValue();
+                                    getQueryFunction(config, filterConfig, "registrationTime", queryValue, false);
+                                } else if (evt.currentTarget.id == "lastAccessDateTimePicker2" || evt.currentTarget.id == "lastAccessEndDateTimePicker2") {
+                                    queryValue = getAccessTimeQueryValue();
+                                    getQueryFunction(config, filterConfig, "lastAccessTime", queryValue, false);
+                                }
+                            }
+                            else if (filterConfig && filterConfig.type === "multi") {
+                                let values = [];
+                                let options = this && this.options;
+                                for (let i = 0; i < options.length; i++) {
+                                    let option = options[i];
+                                    if (option.selected && option.text !== "—") {
+                                        values.push(option.value || option.text);
+                                    }
+                                }
+
+                                if (values.length === 0) {
+                                    values = null;
+                                }
+                                getQueryFunction(config, filterConfig, fieldName, values, false);
+                            }
+                            else {
+                                queryValue = this.value;
+                                getQueryFunction(config, filterConfig, fieldName, queryValue, false);
+                            }
                         }));
                     }
                 });
@@ -15562,24 +15650,78 @@ define(['js/app'], function (myApp) {
                             },
                         },
                         {
-                            title: $translate('CREDIT'),
+                            title: $translate('CREDIT'), advSearch: true,
                             "sClass": "alignRight sumFloat",
                             data: 'credits'
                         },
                         {
-                            title: $translate('REGISTRATION_TIME'), data: 'registrationTime'
-                            // render: function (data, type, row) {
-                            //     return utilService.getFormatTime(data);
-                            // }
+                            title: $translate('REGISTRATION_TIME'),
+                            data: 'registrationTime',
+                            advSearch: true,
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "regDateTimePicker2",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft",
+                            render: function (data, type, row) {
+                                return utilService.getFormatTime(data);
+                            }
                         },
                         {
-                            title: $translate('LAST_ACCESS_TIME'), data: 'lastAccessTime'
-                            // render: function (data, type, row) {
-                            //     return utilService.getFormatTime(data);
-                            // }
+                            "visible": false,
+                            title: $translate('REGISTRATION_TIME_END'),
+                            data: 'registrationEndTime',
+                            advSearch: true,
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "regEndDateTimePicker2",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft"
                         },
                         {
-                            title: $translate('LOGIN_TIMES'), data: "loginTimes", advSearch: true,
+                            title: $translate('LAST_ACCESS_TIME'),
+                            data: 'lastAccessTime',
+                            advSearch: true,
+                            type: "datetimepicker",
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "lastAccessDateTimePicker2",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft",
+                            render: function (data, type, row) {
+                                return utilService.getFormatTime(data);
+                            }
+                        },
+                        {
+                            "visible": false,
+                            title: $translate('LAST_ACCESS_TIME_END'),
+                            data: 'lastAccessEndTime',
+                            advSearch: true,
+                            type: "datetimepicker",
+                            filterConfig: {
+                                type: "datetimepicker",
+                                id: "lastAccessEndDateTimePicker2",
+                                options: {
+                                    language: 'en',
+                                    format: 'dd/MM/yyyy hh:mm:ss',
+                                }
+                            },
+                            "sClass": "alignLeft"
+                        },
+                        {
+                            title: $translate('LOGIN_TIMES'), data: "loginTimes",
                             render: function (data, type, row) {
                                 data = data || '0';
                                 return $('<a data-target="#modalPartnerApiLog" style="z-index: auto" data-toggle="modal" data-container="body" ' +
@@ -15589,6 +15731,15 @@ define(['js/app'], function (myApp) {
                                     .prop('outerHTML');
                             },
                             "sClass": "alignRight"
+                        },
+                        {
+                            title: $translate('phoneNumber'), data: "phoneNumber", advSearch: true, "sClass": "", //"visible": false,
+                            render: function (data, type, row) {
+                                let link = $('<a>', {
+                                    'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
+                                }).text(data);
+                                return link.prop('outerHTML');
+                            }
                         },
                         {
                             title: $translate('DAILY_ACTIVE'), data: "dailyActivePlayer", advSearch: true, "sClass": "",
@@ -16637,10 +16788,13 @@ define(['js/app'], function (myApp) {
                             rateAfterRebateGameProviderGroup: vm.rateAfterRebateGameProviderGroup,
                             rateAfterRebateTotalDeposit: vm.rateAfterRebateTotalDeposit,
                             rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal,
+                            commissionRateConfig: commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig),
                             commissionSettingEditRow: vm.commissionSettingEditRow,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
+                            customizePartnerRate: vm.customizePartnerRate,
+                            commissionRateEditRow: vm.commissionRateEditRow,
                             currentProvince: vm.currentProvince,
                             provinceList: vm.provinceList,
                             changeProvince: vm.changeProvince,
@@ -21162,9 +21316,9 @@ define(['js/app'], function (myApp) {
                         proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                         proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
-                        proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount;
-                        proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name;
-                        proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname;
+                        proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount || " ";
+                        proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name || " ";
+                        proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname || " ";
                         proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
                         proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -21249,6 +21403,18 @@ define(['js/app'], function (myApp) {
                 })
             };
 
+            vm.copyTopUpProposal = function () {
+                if (vm.selectedProposal && vm.selectedProposal.data) {
+                    commonService.copyObjToText($translate, vm.selectedProposal.data, "REMARKS","modalProposal");
+                }
+            }
+
+            vm.showCopyProposal = function () {
+                if (vm.selectedProposal && vm.selectedProposal.mainType && vm.selectedProposal.mainType == "TopUp" && vm.selectedProposal.data) {
+                    return true;
+                };
+                return false;
+            }
 
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
@@ -23363,10 +23529,19 @@ define(['js/app'], function (myApp) {
 
                 vm.showHideSubmitCommissionConfigButton(valueCollection);
                 if (vm.partnerCommission.isGameProviderIncluded) {
-                    valueCollection[idx] = originalCollection[idx];
+                    if(valueCollection[idx] && !valueCollection[idx].isEditing) {
+                        originalCollection.filter(originalSetting => {
+                            if(valueCollection[idx]._id == originalSetting._id) {
+                                valueCollection[idx] = JSON.parse(JSON.stringify(originalSetting));;
+                            }
+                        });
+                    }
                 } else {
                     vm.partnerCommission.showConfig = vm.partnerCommission.srcConfig;
                 }
+            };
+            vm.commissionRateEditRow = (field, flag) => {
+                vm.commissionRateConfig.isEditing[field] = flag;
             };
             vm.showHideSubmitCommissionConfigButton = (valueCollection) => {
                 if (valueCollection && valueCollection.length > 0) {
@@ -23380,7 +23555,7 @@ define(['js/app'], function (myApp) {
             };
             vm.submitPartnerCommissionConfigWithGameProviderGroup = function () {
                 if (vm.partnerCommission && vm.partnerCommission.gameProviderGroup && vm.partnerCommission.gameProviderGroup.length) {
-                    let promises = [];
+                    let p = Promise.resolve();
 
                     vm.partnerCommission.gameProviderGroup.forEach(gameProviderGroup => {
                         if (gameProviderGroup && gameProviderGroup.showConfig && gameProviderGroup.showConfig.commissionSetting.length > 0) {
@@ -23402,42 +23577,35 @@ define(['js/app'], function (myApp) {
                                 if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     gameProviderGroup.showConfig.provider = gameProviderGroup._id;
 
-                                    let prom = new Promise(function (resolve) {
-                                        var sendData = {
-                                            query: {
-                                                platform: gameProviderGroup.showConfig.platform ? gameProviderGroup.showConfig.platform : vm.selectedPlatform.id,
-                                                commissionType: gameProviderGroup.showConfig.commissionType ? gameProviderGroup.showConfig.commissionType : vm.constPartnerCommisionType[vm.commissionSettingTab],
-                                                provider: gameProviderGroup._id
-                                            },
-                                            updateData: gameProviderGroup.showConfig
-                                        }
+                                    var sendData = {
+                                        query: {
+                                            platform: tempShowConfig.platform ? tempShowConfig.platform : vm.selectedPlatform.id,
+                                            _id: tempShowConfig._id
+                                        },
+                                        updateData: tempShowConfig
+                                    }
 
-                                        socketService.$socket($scope.AppSocket, 'createUpdatePartnerCommissionConfigWithGameProviderGroup', sendData, function (data) {
-                                            resolve(data);
-                                        });
+                                    p = p.then(function () {
+                                        return $scope.$socketPromise('createUpdatePartnerCommissionConfigWithGameProviderGroup', sendData).then(res => {
+                                            console.log('success', res);
+                                        })
                                     });
-
-                                    promises.push(prom);
                                 }
                             }
                         }
                     });
 
-                    Promise.all(promises).then(
-                        (data) => {
-                            if (data) {
-                                vm.getPartnerCommissionConfigWithGameProviderConfig();
-                                $scope.safeApply();
-                            }
-                        }
-                    );
+                    return p.then(()=> {
+                        vm.getPartnerCommissionConfigWithGameProviderConfig();
+                        $scope.safeApply();
+                    });
                 }
             }
             vm.createUpdatePartnerCommissionConfig = function () {
                 var sendData = {
                     query: {
                         platform: vm.selectedPlatform.id,
-                        commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
+                        _id: vm.partnerCommission.showConfig._id
                     },
                     updateData: vm.partnerCommission.showConfig
                 }
@@ -23494,8 +23662,40 @@ define(['js/app'], function (myApp) {
                         console.log('customizePartnerCommission', data);
                     });
                 }
+            };
 
-            }
+            vm.customizePartnerRate = (config) => {
+                let isChanged = false;
+                let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
+
+                normalRates.forEach(e => {
+                    if (config[e] != vm.srcCommissionRateConfig[e]) {
+                        isChanged = true;
+                    }
+                });
+
+                config.rateAfterRebateGameProviderGroup.forEach(e => {
+                    let src = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.filter(grp => String(grp.gameProviderGroupId) === String(e.gameProviderGroupId))[0];
+
+                    if (e.rate != src.rate) {
+                        isChanged = true;
+                    }
+                });
+
+                if (isChanged) {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        settingObjId: config._id,
+                        field: "partnerRate",
+                        oldConfig: vm.srcCommissionRateConfig,
+                        newConfig: config
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
+                        console.log('customizePartnerCommission', data);
+                    });
+                }
+            };
 
             vm.getCommissionRateGameProviderGroup = function () {
                 vm.isCommissionRateEditing = false;
@@ -23519,7 +23719,7 @@ define(['js/app'], function (myApp) {
                         vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
                         vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
                         vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
-
+                        vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
@@ -28580,7 +28780,7 @@ define(['js/app'], function (myApp) {
                 ];
 
                 $scope.safeApply();
-            }
+            };
 
             vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);
 

@@ -2843,6 +2843,30 @@ define(['js/app'], function (myApp) {
                 vm.loadingSummarizeLive800Record = true;
                 socketService.$socket($scope.AppSocket, 'summarizeLive800Record', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        vm.summarizedDataDetail = "";
+                        vm.loadingSummarizeLive800Record = false;
+                    })
+                });
+            }
+
+            vm.getSummarizedLive800RecordCount = function(){
+                vm.loadingSummarizeLive800Record = true;
+                vm.summarizedDataDetail = "";
+                var startTime = $('#live800SummarizeStartDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#live800SummarizeEndDatetimePicker').data('datetimepicker').getLocalDate();
+
+                let sendData = {
+                    startTime: startTime,
+                    endTime: endTime
+                };
+
+                vm.loadingSummarizeLive800Record = true;
+                socketService.$socket($scope.AppSocket, 'getSummarizedLive800RecordCount', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if(data.data){
+                            vm.summarizedDataDetail = "Live 800 Record: " +  data.data[0].mysqlLive800Record + ", FPMS Record: " + data.data[0].mongoLive800Record;
+                        }
+
                         vm.loadingSummarizeLive800Record = false;
                     })
                 });

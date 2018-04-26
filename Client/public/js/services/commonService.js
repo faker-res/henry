@@ -23,6 +23,42 @@ define([], () => {
             });
         };
 
+        this.copyObjToText = function ($translate, ObjToCopy, fieldEnd, modalId) {
+            let copiedText = "";
+            let objLength;
+            if (fieldEnd) {
+                objLength = Object.keys(ObjToCopy).indexOf(fieldEnd) + 1;
+                if (objLength <= 0) {
+                    objLength = Object.keys(ObjToCopy).length;
+                }
+            } else {
+                objLength = Object.keys(ObjToCopy).length;
+            }
+            for (let i = 0; i < objLength; i++) {
+                if (copiedText) {
+                    copiedText += " \n";
+                }
+                copiedText += $translate(Object.keys(ObjToCopy)[i]) + ": " + ObjToCopy[Object.keys(ObjToCopy)[i]];
+            }
+            copyToClipboard(copiedText, modalId);
+        };
+
+        function copyToClipboard(text, modalId) {
+            var dummy = document.createElement("TEXTAREA");
+            let elementBody;
+            if (modalId) {
+                elementBody = document.getElementById(modalId)
+            } else {
+                elementBody = document.body
+            }
+            elementBody.appendChild(dummy);
+            dummy.setAttribute("id", "dummy_id");
+            document.getElementById('dummy_id').value = text;
+            dummy.select();
+            document.execCommand("copy");
+            elementBody.removeChild(dummy);
+        }
+
         /**
          * Check if partner has custom rate
          * @param partnerObjId
@@ -55,6 +91,33 @@ define([], () => {
 
                     return grp;
                 });
+            }
+
+            // Partner platform rate setting
+            if (commSett && commSett.customRate && commSett.customRate.some(e => String(e.partner) === String(partnerObjId))) {
+                let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
+                let customRateObj = commSett.customRate.filter(e => String(e.partner) === String(partnerObjId))[0];
+
+                normalRates.forEach(e => {
+                    if (commSett[e] != customRateObj[e]) {
+                        commSett[e] = customRateObj[e];
+                        commSett.isCustomizedField = commSett.isCustomizedField || [];
+                        commSett.isCustomizedField.push(e);
+                        commSett.isCustomized = true;
+                    }
+                })
+
+                if (commSett.rateAfterRebateGameProviderGroup && commSett.rateAfterRebateGameProviderGroup.length) {
+                    commSett.rateAfterRebateGameProviderGroup.forEach(e => {
+                        let customProviderRateObj = customRateObj.rateAfterRebateGameProviderGroup.filter(cust => String(e.gameProviderGroupId) === String(cust.gameProviderGroupId))[0];
+
+                        if (e.rate != customProviderRateObj.rate) {
+                            e.rate = customProviderRateObj.rate;
+                            e.isCustomized = true;
+                            commSett.isCustomized = true;
+                        }
+                    })
+                }
             }
 
             return commSett;
