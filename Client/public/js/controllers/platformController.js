@@ -1067,7 +1067,10 @@ define(['js/app'], function (myApp) {
                 vm.platformSettlement = {};
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
-                vm.partnerAdvanceSearchQuery = {};
+                vm.partnerAdvanceSearchQuery = {
+                    creditsOperator: ">=",
+                    dailyActivePlayerOperator: ">=",
+                };
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
                     playerType: 'Real Player (all)'
@@ -6997,15 +7000,15 @@ define(['js/app'], function (myApp) {
                         //var ptCol = vm.playerTable.columns(i);
                         input.on('keyup change', (function (evt) {
                             //Text inputs do not fire the change event until they lose focus.
-                            if (evt.currentTarget.tagName == "INPUT" && evt.type == 'change') return;
-                            var queryValue = '';
+                            if (evt.currentTarget.tagName === "INPUT" && evt.type === 'change') return;
+                            let queryValue = '';
                             // Do Additional listening to the keyup event of datetime picker by the className of the div
-                            if (this.className == 'datetimepicker form-control') {
+                            if (this.className === 'datetimepicker form-control') {
                                 // assign the value of input (firstchild of the div) to queryValue
-                                if (evt.currentTarget.id == "regDateTimePicker2" || evt.currentTarget.id == "regEndDateTimePicker2") {
+                                if (evt.currentTarget.id === "regDateTimePicker2" || evt.currentTarget.id === "regEndDateTimePicker2") {
                                     queryValue = getRegTimeQueryValue();
                                     getQueryFunction(config, filterConfig, "registrationTime", queryValue, false);
-                                } else if (evt.currentTarget.id == "lastAccessDateTimePicker2" || evt.currentTarget.id == "lastAccessEndDateTimePicker2") {
+                                } else if (evt.currentTarget.id === "lastAccessDateTimePicker2" || evt.currentTarget.id === "lastAccessEndDateTimePicker2") {
                                     queryValue = getAccessTimeQueryValue();
                                     getQueryFunction(config, filterConfig, "lastAccessTime", queryValue, false);
                                 }

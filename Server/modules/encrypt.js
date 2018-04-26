@@ -202,11 +202,15 @@ var encrypt = {
         let realName = data.hasOwnProperty('realName') ? data.realName : "";
         let partnerId = data.hasOwnProperty('partnerId') ? data.partnerId : "";
         let commissionType = data.hasOwnProperty('commissionType') ? data.commissionType : "";
-        let credits = data.hasOwnProperty('credits') ? data.credits : "";
+        let creditsOperator = data.hasOwnProperty('creditsOperator') ? data.creditsOperator : "";
+        let creditsInput1 = data.hasOwnProperty('creditsInput1') ? data.creditsInput1 : "";
+        let creditsInput2 = data.hasOwnProperty('creditsInput2') ? data.creditsInput2 : "";
         let registrationTime = data.hasOwnProperty('registrationTime') ? data.registrationTime : "";
         let lastAccessTime = data.hasOwnProperty('lastAccessTime') ? data.lastAccessTime : "";
         let phoneNumber = data.hasOwnProperty('phoneNumber') ? data.phoneNumber : "";
-        let dailyActivePlayer = data.hasOwnProperty('dailyActivePlayer') ? data.dailyActivePlayer : "";
+        let dailyActivePlayerOperator = data.hasOwnProperty('dailyActivePlayerOperator') ? data.dailyActivePlayerOperator : "";
+        let dailyActivePlayerInput1 = data.hasOwnProperty('dailyActivePlayerInput1') ? data.dailyActivePlayerInput1 : "";
+        let dailyActivePlayerInput2 = data.hasOwnProperty('dailyActivePlayerInput2') ? data.dailyActivePlayerInput2 : "";
         let weeklyActivePlayer = data.hasOwnProperty('weeklyActivePlayer') ? data.weeklyActivePlayer : "";
         let monthlyActivePlayer = data.hasOwnProperty('monthlyActivePlayer') ? data.monthlyActivePlayer : "";
         let validPlayers = data.hasOwnProperty('validPlayers') ? data.validPlayers : "";
@@ -228,8 +232,21 @@ var encrypt = {
         if (commissionType !== '') {
             query["commissionType"] = parseInt(commissionType);
         }
-        if (credits !== '') {
-            query["credits"] = parseInt(credits);
+        if (creditsOperator && creditsInput1) {
+            switch (creditsOperator) {
+                case '<=':
+                    query["credits"] = {$lte: creditsInput1};
+                    break;
+                case '>=':
+                    query["credits"] = {$gte: creditsInput1};
+                    break;
+                case '=':
+                    query["credits"] = creditsInput1;
+                    break;
+                case 'range':
+                    if (creditsInput2) query["credits"] = {$gte: creditsInput1, $lte: creditsInput2};
+                    break;
+            }
         }
         if (registrationTime !== '') {
             query["registrationTime"] = registrationTime;
@@ -240,8 +257,21 @@ var encrypt = {
         if (phoneNumber !== '') {
             query["phoneNumber"] = phoneNumber;
         }
-        if (dailyActivePlayer !== '') {
-            query["dailyActivePlayer"] = dailyActivePlayer;
+        if (dailyActivePlayerOperator && dailyActivePlayerInput1) {
+            switch (dailyActivePlayerOperator) {
+                case '<=':
+                    query["dailyActivePlayer"] = {$lte: dailyActivePlayerInput1};
+                    break;
+                case '>=':
+                    query["dailyActivePlayer"] = {$gte: dailyActivePlayerInput1};
+                    break;
+                case '=':
+                    query["dailyActivePlayer"] = dailyActivePlayerInput1;
+                    break;
+                case 'range':
+                    if (dailyActivePlayerInput2) query["dailyActivePlayer"] = {$gte: dailyActivePlayerInput1, $lte: dailyActivePlayerInput2};
+                    break;
+            }
         }
         if (weeklyActivePlayer !== '') {
             query["weeklyActivePlayer"] = weeklyActivePlayer;
