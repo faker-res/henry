@@ -416,6 +416,9 @@ var dbPlayerConsumptionWeekSummary = {
                                                             let consumpDiff = el.validAmount - curValidAmt - curNonXIMAAmt - consumedValidAmount;
                                                             let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
+                                                            // Solve computed very small amount issue
+                                                            consumpDiff = consumpDiff < Number.EPSILON ? 0 : consumpDiff;
+
                                                             // Offset if it matters
                                                             if (proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + consumpDiff > 0) {
                                                                 // Log the offset

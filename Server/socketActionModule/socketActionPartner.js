@@ -431,7 +431,7 @@ function socketActionPartner(socketIO, socket) {
         customizePartnerCommission: function customizePartnerCommission (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.partnerObjId && data.settingObjId && data.field);
-            socketUtil.emitter(self.socket, dbPartner.customizePartnerCommission, [data.partnerObjId, data.settingObjId, data.field, data.oldConfig, data.newConfig, data.configObjId, {
+            socketUtil.emitter(self.socket, dbPartner.customizePartnerCommission, [data.partnerObjId, data.settingObjId, data.field, data.oldConfig, data.newConfig, data.configObjId, data.isRevert, {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
