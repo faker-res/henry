@@ -21316,9 +21316,9 @@ define(['js/app'], function (myApp) {
                         proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                         proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
-                        proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount;
-                        proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name;
-                        proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname;
+                        proposalDetail["RECIPIENTS_WECHAT_ACC"] = vm.selectedProposal.data.weChatAccount || " ";
+                        proposalDetail["RECIPIENTS_WECHAT_NAME"] = vm.selectedProposal.data.name || " ";
+                        proposalDetail["RECIPIENTS_WECHAT_NICK"] = vm.selectedProposal.data.nickname || " ";
                         proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
                         proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -21403,6 +21403,18 @@ define(['js/app'], function (myApp) {
                 })
             };
 
+            vm.copyTopUpProposal = function () {
+                if (vm.selectedProposal && vm.selectedProposal.data) {
+                    commonService.copyObjToText($translate, vm.selectedProposal.data, "REMARKS","modalProposal");
+                }
+            }
+
+            vm.showCopyProposal = function () {
+                if (vm.selectedProposal && vm.selectedProposal.mainType && vm.selectedProposal.mainType == "TopUp" && vm.selectedProposal.data) {
+                    return true;
+                };
+                return false;
+            }
 
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
