@@ -23647,24 +23647,25 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig) => {
-                if (newConfig[idx].commissionRate != oldConfig[idx].commissionRate) {
+            vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig, isRevert = false) => {
+                if (newConfig[idx].commissionRate != oldConfig[idx].commissionRate || isRevert) {
                     let sendData = {
                         partnerObjId: vm.selectedSinglePartner._id,
                         settingObjId: setting.srcConfig._id,
                         field: "commissionRate",
                         oldConfig: oldConfig[idx],
                         newConfig: newConfig[idx],
-                        configObjId: oldConfig[idx]._id
+                        configObjId: oldConfig[idx]._id,
+                        isRevert: isRevert
                     };
 
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
-                        console.log('customizePartnerCommission', data);
+                        $scope.$evalAsync(() => vm.selectedCommissionTab(vm.commissionSettingTab));
                     });
                 }
             };
 
-            vm.customizePartnerRate = (config, field, isRevert) => {
+            vm.customizePartnerRate = (config, field, isRevert = false) => {
                 let isChanged = false;
                 let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
 
@@ -23682,13 +23683,59 @@ define(['js/app'], function (myApp) {
                     }
                 });
 
+                if (isRevert) {
+                    if (field === 'rateAfterRebateGameProviderGroup') {
+                        let oriSett = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup;
+
+                        config.rateAfterRebateGameProviderGroup = config.rateAfterRebateGameProviderGroup.map(e => {
+                            if (e.isRevert) {
+                                config.customRate = config.customRate.map(f => {
+                                    if (String(f.partner) === String(vm.selectedSinglePartner._id)) {
+                                        f.rateAfterRebateGameProviderGroup = f.rateAfterRebateGameProviderGroup.map(g => {
+                                            if (String(g.gameProviderGroupId) === String(e.gameProviderGroupId)) {
+                                                oriSett.forEach(h => {
+                                                    if (String(h.gameProviderGroupId) === String(g.gameProviderGroupId)) {
+                                                        g.rate = h.rate;
+                                                        isChanged = true;
+                                                        delete g.isRevert;
+                                                        delete g.isCustomized;
+                                                        delete e.isRevert;
+                                                        delete e.isCustomized;
+                                                        e = g;
+                                                    }
+                                                })
+                                            }
+                                            return g;
+                                        })
+                                    }
+
+                                    return f;
+                                });
+                            }
+
+                            return e;
+                        })
+                    } else {
+                        config.customRate = config.customRate.map(e => {
+                            if (String(e.partner) === String(vm.selectedSinglePartner._id)) {
+                                e[field] = vm.srcCommissionRateConfig[field];
+                                config[field] = vm.srcCommissionRateConfig[field];
+                                isChanged = true;
+                            }
+
+                            return e;
+                        })
+                    }
+                }
+
                 if (isChanged) {
                     let sendData = {
                         partnerObjId: vm.selectedSinglePartner._id,
                         settingObjId: config._id,
                         field: "partnerRate",
                         oldConfig: vm.srcCommissionRateConfig,
-                        newConfig: config
+                        newConfig: config,
+                        isRevert: isRevert
                     };
 
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {

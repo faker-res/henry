@@ -4594,7 +4594,7 @@ let dbPartner = {
         )
     },
 
-    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, configObjId, adminInfo) => {
+    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, configObjId, isRevert, adminInfo) => {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
                 if (partnerObj) {
@@ -4611,7 +4611,8 @@ let dbPartner = {
                             oldRate: oldConfig[field],
                             newRate: newConfig[field],
                             configObjId: configObjId,
-                            remark: localization.localization.translate(field)
+                            remark: localization.localization.translate(field),
+                            isRevert: isRevert
                         };
                         return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
                     } else {
@@ -4626,7 +4627,8 @@ let dbPartner = {
                             settingObjId: settingObjId,
                             oldRate: oldConfig,
                             newRate: newConfig,
-                            remark: localization.localization.translate(field)
+                            remark: localization.localization.translate(field),
+                            isRevert: isRevert
                         };
                         return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
                     }

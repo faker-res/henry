@@ -99,7 +99,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                                         a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
                                         text(ng-if="!commissionSetting.isCreateNew") /
                                         a(href="" ng-if="commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'Customize' | translate}}
-                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Reset default' | translate}}
+                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting, true)", style="cursor:pointer") {{'Reset default' | translate}}
                             br
                     br
                     .pull-right
@@ -126,7 +126,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="commissionRateEditRow('rateAfterRebatePromo', false);" style="cursor:pointer") {{'CANCEL' | translate}}
                                 text /
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePromo')", style="cursor:pointer") {{'Customize' | translate}}
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Reset default' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePromo', true)", style="cursor:pointer") {{'Reset default' | translate}}
                         tr
                             td {{'Rate After Rebate Platform' | translate}}
                             td
@@ -141,7 +141,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                                     a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionRateEditRow('rateAfterRebatePlatform', false);" style="cursor:pointer") {{'CANCEL' | translate}}
                                     text /
                                     a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePlatform')", style="cursor:pointer") {{'Customize' | translate}}
-                                    a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Reset default' | translate}}
+                                    a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePlatform', true)", style="cursor:pointer") {{'Reset default' | translate}}
                                 div(ng-if="!Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
                                     text -
 
@@ -156,7 +156,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="commissionRateEditRow('rateAfterRebateGameProviderGroup', false);" style="cursor:pointer") {{'CANCEL' | translate}}
                                 text /
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateGameProviderGroup')", style="cursor:pointer") {{'Customize' | translate}}
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Reset default' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="val.isRevert = true; customizePartnerRate(commissionRateConfig, 'rateAfterRebateGameProviderGroup', true)", style="cursor:pointer") {{'Reset default' | translate}}
                         tr
                             td {{'Rate After Rebate Total Deposit' | translate}}
                             td
@@ -167,7 +167,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="commissionRateEditRow('rateAfterRebateTotalDeposit', false);" style="cursor:pointer") {{'CANCEL' | translate}}
                                 text /
                                 a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalDeposit')", style="cursor:pointer") {{'Customize' | translate}}
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Reset default' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalDeposit', true)", style="cursor:pointer") {{'Reset default' | translate}}
                         tr
                             td {{'Rate After Rebate Total Withdrawal' | translate}}
                             td

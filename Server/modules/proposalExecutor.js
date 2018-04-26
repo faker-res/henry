@@ -4039,22 +4039,31 @@ function updatePartnerCommissionConfig (proposalData) {
         config => {
             if (config
                 && config.customSetting
-                && config.customSetting.some(sett =>
-                    String(sett.partner) === String(proposalData.data.partnerObjId)
-                        && String(sett.configObjId) === String(proposalData.data.configObjId)
+                && config.customSetting.some(sett => String(sett.configObjId) === String(proposalData.data.configObjId)
                 )
             ) {
+                let updateObj = {};
+
+                if (proposalData.data.isRevert) {
+                    updateObj = {
+                        $pull: {
+                            customSetting: {
+                                configObjId: proposalData.data.configObjId
+                            }
+                        }
+                    }
+                } else {
+                    updateObj = {
+                        $set: {
+                            "customSetting.$.commissionRate": proposalData.data.newRate
+                        }
+                    };
+                }
+
                 return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
                     platform: config.platform,
-                    "customSetting.partner": proposalData.data.partnerObjId,
                     "customSetting.configObjId": proposalData.data.configObjId,
-                }, {
-                    $set: {
-                        "customSetting.$.commissionRate": proposalData.data.newRate
-                    }
-                }, {
-                    new: true
-                })
+                }, updateObj, {new: true})
             } else {
                 return dbconfig.collection_partnerCommissionConfig.findByIdAndUpdate(proposalData.data.settingObjId, {
                     $push: {
