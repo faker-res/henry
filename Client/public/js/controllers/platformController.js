@@ -23684,15 +23684,48 @@ define(['js/app'], function (myApp) {
                 });
 
                 if (isRevert) {
-                    config.customRate = config.customRate.map(e => {
-                        if (String(e.partner) === String(vm.selectedSinglePartner._id)) {
-                            e[field] = vm.srcCommissionRateConfig[field];
-                            config[field] = vm.srcCommissionRateConfig[field];
-                            isChanged = true;
-                        }
+                    if (field === 'rateAfterRebateGameProviderGroup') {
+                        let oriSett = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup;
 
-                        return e;
-                    })
+                        config.rateAfterRebateGameProviderGroup = config.rateAfterRebateGameProviderGroup.map(e => {
+                            if (e.isRevert) {
+                                config.customRate = config.customRate.map(f => {
+                                    if (String(f.partner) === String(vm.selectedSinglePartner._id)) {
+                                        f.rateAfterRebateGameProviderGroup = f.rateAfterRebateGameProviderGroup.map(g => {
+                                            if (String(g.gameProviderGroupId) === String(e.gameProviderGroupId)) {
+                                                oriSett.forEach(h => {
+                                                    if (String(h.gameProviderGroupId) === String(g.gameProviderGroupId)) {
+                                                        g.rate = h.rate;
+                                                        isChanged = true;
+                                                        delete g.isRevert;
+                                                        delete g.isCustomized;
+                                                        delete e.isRevert;
+                                                        delete e.isCustomized;
+                                                        e = g;
+                                                    }
+                                                })
+                                            }
+                                            return g;
+                                        })
+                                    }
+
+                                    return f;
+                                });
+                            }
+
+                            return e;
+                        })
+                    } else {
+                        config.customRate = config.customRate.map(e => {
+                            if (String(e.partner) === String(vm.selectedSinglePartner._id)) {
+                                e[field] = vm.srcCommissionRateConfig[field];
+                                config[field] = vm.srcCommissionRateConfig[field];
+                                isChanged = true;
+                            }
+
+                            return e;
+                        })
+                    }
                 }
 
                 if (isChanged) {
