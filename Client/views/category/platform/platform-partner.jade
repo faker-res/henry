@@ -75,6 +75,90 @@
                 input.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
                 div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'") ~
                 input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.dailyActivePlayerInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'WEEKLY_ACTIVE' | translate}}
+            div
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'MONTHLY_ACTIVE' | translate}}
+            div
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'VALID_PLAYER' | translate}}
+            div
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.validPlayersInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'TOTAL_CHILDREN_COUNT' | translate}}
+            div
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.childrencountOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.childrencountInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.childrencountOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.childrencountInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.childrencountOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
+            div
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenDepositInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'TOTAL_CHILDREN_BALANCE' | translate}}
+            div
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filter.col-xs-12.col-sm-6.col-md-3
+            label.control-label {{'SETTLED_COMMISSION' | translate}}
+            div
+                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.settledCommissionOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    option(value='>=') >=
+                    option(value='=') =
+                    option(value='<=') <=
+                    option(value='range') {{'range' | translate}}
+                div(style= "width:8px;display:inline-block")
+                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.settledCommissionInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.settledCommissionOperator === 'range'") ~
+                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.settledCommissionInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.settledCommissionOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
 
 .col-md-12
     .pull-right.margin-top-5

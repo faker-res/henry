@@ -211,13 +211,27 @@ var encrypt = {
         let dailyActivePlayerOperator = data.hasOwnProperty('dailyActivePlayerOperator') ? data.dailyActivePlayerOperator : "";
         let dailyActivePlayerInput1 = data.hasOwnProperty('dailyActivePlayerInput1') ? data.dailyActivePlayerInput1 : "";
         let dailyActivePlayerInput2 = data.hasOwnProperty('dailyActivePlayerInput2') ? data.dailyActivePlayerInput2 : "";
-        let weeklyActivePlayer = data.hasOwnProperty('weeklyActivePlayer') ? data.weeklyActivePlayer : "";
-        let monthlyActivePlayer = data.hasOwnProperty('monthlyActivePlayer') ? data.monthlyActivePlayer : "";
-        let validPlayers = data.hasOwnProperty('validPlayers') ? data.validPlayers : "";
-        let childrencount = data.hasOwnProperty('childrencount') ? data.childrencount : "";
-        let totalChildrenDeposit = data.hasOwnProperty('totalChildrenDeposit') ? data.totalChildrenDeposit : "";
-        let totalChildrenBalance = data.hasOwnProperty('totalChildrenBalance') ? data.totalChildrenBalance : "";
-        let settledCommission = data.hasOwnProperty('settledCommission') ? data.settledCommission : "";
+        let weeklyActivePlayerOperator = data.hasOwnProperty('weeklyActivePlayerOperator') ? data.weeklyActivePlayerOperator : "";
+        let weeklyActivePlayerInput1 = data.hasOwnProperty('weeklyActivePlayerInput1') ? data.weeklyActivePlayerInput1 : "";
+        let weeklyActivePlayerInput2 = data.hasOwnProperty('weeklyActivePlayerInput2') ? data.weeklyActivePlayerInput2 : "";
+        let monthlyActivePlayerOperator = data.hasOwnProperty('monthlyActivePlayerOperator') ? data.monthlyActivePlayerOperator : "";
+        let monthlyActivePlayerInput1 = data.hasOwnProperty('monthlyActivePlayerInput1') ? data.monthlyActivePlayerInput1 : "";
+        let monthlyActivePlayerInput2 = data.hasOwnProperty('monthlyActivePlayerInput2') ? data.monthlyActivePlayerInput2 : "";
+        let validPlayersOperator = data.hasOwnProperty('validPlayersOperator') ? data.validPlayersOperator : "";
+        let validPlayersInput1 = data.hasOwnProperty('validPlayersInput1') ? data.validPlayersInput1 : "";
+        let validPlayersInput2 = data.hasOwnProperty('validPlayersInput2') ? data.validPlayersInput2 : "";
+        let childrencountOperator = data.hasOwnProperty('childrencountOperator') ? data.childrencountOperator : "";
+        let childrencountInput1 = data.hasOwnProperty('childrencountInput1') ? data.childrencountInput1 : "";
+        let childrencountInput2 = data.hasOwnProperty('childrencountInput2') ? data.childrencountInput2 : "";
+        let totalChildrenDepositOperator = data.hasOwnProperty('totalChildrenDepositOperator') ? data.totalChildrenDepositOperator : "";
+        let totalChildrenDepositInput1 = data.hasOwnProperty('totalChildrenDepositInput1') ? data.totalChildrenDepositInput1 : "";
+        let totalChildrenDepositInput2 = data.hasOwnProperty('totalChildrenDepositInput2') ? data.totalChildrenDepositInput2 : "";
+        let totalChildrenBalanceOperator = data.hasOwnProperty('totalChildrenBalanceOperator') ? data.totalChildrenBalanceOperator : "";
+        let totalChildrenBalanceInput1 = data.hasOwnProperty('totalChildrenBalanceInput1') ? data.totalChildrenBalanceInput1 : "";
+        let totalChildrenBalanceInput2 = data.hasOwnProperty('totalChildrenBalanceInput2') ? data.totalChildrenBalanceInput2 : "";
+        let settledCommissionOperator = data.hasOwnProperty('settledCommissionOperator') ? data.settledCommissionOperator : "";
+        let settledCommissionInput1 = data.hasOwnProperty('settledCommissionInput1') ? data.settledCommissionInput1 : "";
+        let settledCommissionInput2 = data.hasOwnProperty('settledCommissionInput2') ? data.settledCommissionInput2 : "";
 
         let query = {};
         if (partnerId !== '') {
@@ -273,26 +287,117 @@ var encrypt = {
                     break;
             }
         }
-        if (weeklyActivePlayer !== '') {
-            query["weeklyActivePlayer"] = weeklyActivePlayer;
+        if (weeklyActivePlayerOperator && weeklyActivePlayerInput1) {
+            switch (weeklyActivePlayerOperator) {
+                case '<=':
+                    query["weeklyActivePlayer"] = {$lte: weeklyActivePlayerInput1};
+                    break;
+                case '>=':
+                    query["weeklyActivePlayer"] = {$gte: weeklyActivePlayerInput1};
+                    break;
+                case '=':
+                    query["weeklyActivePlayer"] = weeklyActivePlayerInput1;
+                    break;
+                case 'range':
+                    if (weeklyActivePlayerInput2) query["weeklyActivePlayer"] = {$gte: weeklyActivePlayerInput1, $lte: weeklyActivePlayerInput2};
+                    break;
+            }
         }
-        if (monthlyActivePlayer !== '') {
-            query["monthlyActivePlayer"] = monthlyActivePlayer;
+        if (monthlyActivePlayerOperator && monthlyActivePlayerInput1) {
+            switch (monthlyActivePlayerOperator) {
+                case '<=':
+                    query["monthlyActivePlayer"] = {$lte: monthlyActivePlayerInput1};
+                    break;
+                case '>=':
+                    query["monthlyActivePlayer"] = {$gte: monthlyActivePlayerInput1};
+                    break;
+                case '=':
+                    query["monthlyActivePlayer"] = monthlyActivePlayerInput1;
+                    break;
+                case 'range':
+                    if (monthlyActivePlayerInput2) query["monthlyActivePlayer"] = {$gte: monthlyActivePlayerInput1, $lte: monthlyActivePlayerInput2};
+                    break;
+            }
         }
-        if (validPlayers !== '') {
-            query["validPlayers"] = parseInt(validPlayers);
+        if (validPlayersOperator && validPlayersInput1) {
+            switch (validPlayersOperator) {
+                case '<=':
+                    query["validPlayers"] = {$lte: validPlayersInput1};
+                    break;
+                case '>=':
+                    query["validPlayers"] = {$gte: validPlayersInput1};
+                    break;
+                case '=':
+                    query["validPlayers"] = validPlayersInput1;
+                    break;
+                case 'range':
+                    if (validPlayersInput2) query["validPlayers"] = {$gte: validPlayersInput1, $lte: validPlayersInput2};
+                    break;
+            }
         }
-        if (childrencount !== '') {
-            query["childrencount"] = childrencount;
+        if (childrencountOperator && childrencountInput1) {
+            switch (childrencountOperator) {
+                case '<=':
+                    query["childrencount"] = {$lte: childrencountInput1};
+                    break;
+                case '>=':
+                    query["childrencount"] = {$gte: childrencountInput1};
+                    break;
+                case '=':
+                    query["childrencount"] = childrencountInput1;
+                    break;
+                case 'range':
+                    if (childrencountInput2) query["childrencount"] = {$gte: childrencountInput1, $lte: childrencountInput2};
+                    break;
+            }
         }
-        if (totalChildrenDeposit !== '') {
-            query["totalChildrenDeposit"] = totalChildrenDeposit;
+        if (totalChildrenDepositOperator && totalChildrenDepositInput1) {
+            switch (totalChildrenDepositOperator) {
+                case '<=':
+                    query["totalChildrenDeposit"] = {$lte: totalChildrenDepositInput1};
+                    break;
+                case '>=':
+                    query["totalChildrenDeposit"] = {$gte: totalChildrenDepositInput1};
+                    break;
+                case '=':
+                    query["totalChildrenDeposit"] = totalChildrenDepositInput1;
+                    break;
+                case 'range':
+                    if (totalChildrenDepositInput2) query["totalChildrenDeposit"] = {$gte: totalChildrenDepositInput1, $lte: totalChildrenDepositInput2};
+                    break;
+            }
         }
-        if (totalChildrenBalance !== '') {
-            query["totalChildrenBalance"] = totalChildrenBalance;
+        if (totalChildrenBalanceOperator && totalChildrenBalanceInput1) {
+            switch (totalChildrenBalanceOperator) {
+                case '<=':
+                    query["totalChildrenBalance"] = {$lte: totalChildrenBalanceInput1};
+                    break;
+                case '>=':
+                    query["totalChildrenBalance"] = {$gte: totalChildrenBalanceInput1};
+                    break;
+                case '=':
+                    query["totalChildrenBalance"] = totalChildrenBalanceInput1;
+                    break;
+                case 'range':
+                    if (totalChildrenBalanceInput2) query["totalChildrenBalance"] = {$gte: totalChildrenBalanceInput1, $lte: totalChildrenBalanceInput2};
+                    break;
+            }
         }
-        if (settledCommission !== '') {
-            query["settledCommission"] = settledCommission;
+        if (settledCommissionOperator && settledCommissionInput1) {
+            switch (settledCommissionOperator) {
+                case '<=':
+                    query["settledCommission"] = {$lte: settledCommissionInput1};
+                    break;
+                case '>=':
+                    query["settledCommission"] = {$gte: settledCommissionInput1};
+                    break;
+                case '=':
+                    query["settledCommission"] = settledCommissionInput1;
+                    break;
+                case 'range':
+                    if (settledCommissionInput2) query["settledCommission"] = {$gte: settledCommissionInput1, $lte: settledCommissionInput2};
+                    break;
+            }
         }
         return query;
     },

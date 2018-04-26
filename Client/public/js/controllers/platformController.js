@@ -1070,6 +1070,13 @@ define(['js/app'], function (myApp) {
                 vm.partnerAdvanceSearchQuery = {
                     creditsOperator: ">=",
                     dailyActivePlayerOperator: ">=",
+                    weeklyActivePlayerOperator: ">=",
+                    monthlyActivePlayerOperator: ">=",
+                    validPlayersOperator: ">=",
+                    childrencountOperator: ">=",
+                    totalChildrenDepositOperator: ">=",
+                    totalChildrenBalanceOperator: ">=",
+                    settledCommissionOperator: ">=",
                 };
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
@@ -15771,7 +15778,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('VALID'), data: "validPlayers", advSearch: true, "sClass": "",
+                            title: $translate('VALID_PLAYER'), data: "validPlayers", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
