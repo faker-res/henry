@@ -6924,8 +6924,7 @@ define(['js/app'], function (myApp) {
                 // })
             }
 
-            function createAdvancedSearchFilters(config) {
-
+            function createPartnerAdvancedSearchFilters(config) {
                 var currentQueryValues = {};
                 $(config.filtersElement).empty();
 
@@ -15545,7 +15544,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
+            vm.getPartnersByAdvanceQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
 
                 utilService.hideAllPopoversExcept();
                 vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
@@ -16292,10 +16291,11 @@ define(['js/app'], function (myApp) {
                 vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
                 utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
 
-                createAdvancedSearchFilters({
+                createPartnerAdvancedSearchFilters({
                     tableOptions: tableOptions,
-                    filtersElement: '#partnerTable-search-filters',
-                    queryFunction: vm.getPartnersByAdvancedQueryDebounced
+                    // filtersElement: '#partnerTable-search-filters',
+                    filtersElement: '',
+                    queryFunction: vm.getPartnersByAdvanceQueryDebounced
                 });
                 vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
 
@@ -25899,7 +25899,7 @@ define(['js/app'], function (myApp) {
                         if (vm.advancedPartnerQueryObj.sortCol[sortKey] != preVal) {
                             vm.advancedPartnerQueryObj.sortCol = {};
                             vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                            vm.getPartnersByAdvancedQueryDebounced();
+                            vm.getPartnersByAdvanceQueryDebounced();
                         }
                     }
                 });
