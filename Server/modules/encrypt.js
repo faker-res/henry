@@ -198,23 +198,26 @@ var encrypt = {
 
     /* build query string for advanced search of Partners */
     buildPartnerQueryString: function (data) {
+        let partnerName = data.hasOwnProperty('partnerName') ? data.partnerName : "";
+        let realName = data.hasOwnProperty('realName') ? data.realName : "";
+        let partnerId = data.hasOwnProperty('partnerId') ? data.partnerId : "";
+        let commissionType = data.hasOwnProperty('commissionType') ? data.commissionType : "";
+        let credits = data.hasOwnProperty('credits') ? data.credits : "";
+        let registrationTime = data.hasOwnProperty('registrationTime') ? data.registrationTime : "";
+        let lastAccessTime = data.hasOwnProperty('lastAccessTime') ? data.lastAccessTime : "";
+        let phoneNumber = data.hasOwnProperty('phoneNumber') ? data.phoneNumber : "";
+        let dailyActivePlayer = data.hasOwnProperty('dailyActivePlayer') ? data.dailyActivePlayer : "";
+        let weeklyActivePlayer = data.hasOwnProperty('weeklyActivePlayer') ? data.weeklyActivePlayer : "";
+        let monthlyActivePlayer = data.hasOwnProperty('monthlyActivePlayer') ? data.monthlyActivePlayer : "";
+        let validPlayers = data.hasOwnProperty('validPlayers') ? data.validPlayers : "";
+        let childrencount = data.hasOwnProperty('childrencount') ? data.childrencount : "";
+        let totalChildrenDeposit = data.hasOwnProperty('totalChildrenDeposit') ? data.totalChildrenDeposit : "";
+        let totalChildrenBalance = data.hasOwnProperty('totalChildrenBalance') ? data.totalChildrenBalance : "";
+        let settledCommission = data.hasOwnProperty('settledCommission') ? data.settledCommission : "";
 
-        var bankAccount = data.hasOwnProperty('bankAccount') ? data.bankAccount : "";
-        var partnerName = data.hasOwnProperty('partnerName') ? data.partnerName : "";
-        var realName = data.hasOwnProperty('realName') ? data.realName : "";
-        var partnerId = data.hasOwnProperty('partnerId') ? data.partnerId : "";
-        var level = data.hasOwnProperty('level') ? data.level : "";
-        var status = data.hasOwnProperty('status') ? data.status : "";
-
-        var query = {};
+        let query = {};
         if (partnerId !== '') {
             query["partnerId"] = new RegExp('.*' + partnerId + '.*');
-        }
-        if (level !== '') {
-            query["level"] = level;
-        }
-        if (status !== '') {
-            query["status"] = status;
         }
         if (partnerName !== '') {
             query["partnerName"] = new RegExp('.*' + partnerName + '.*');
@@ -222,11 +225,46 @@ var encrypt = {
         if (realName !== '') {
             query["realName"] = new RegExp('.*' + realName + '.*');
         }
-        if (bankAccount !== '') {
-            query["bankAccount"] = bankAccount;
+        if (commissionType !== '') {
+            query["commissionType"] = parseInt(commissionType);
+        }
+        if (credits !== '') {
+            query["credits"] = parseInt(credits);
+        }
+        if (registrationTime !== '') {
+            query["registrationTime"] = registrationTime;
+        }
+        if (lastAccessTime !== '') {
+            query["lastAccessTime"] = lastAccessTime;
+        }
+        if (phoneNumber !== '') {
+            query["phoneNumber"] = phoneNumber;
+        }
+        if (dailyActivePlayer !== '') {
+            query["dailyActivePlayer"] = dailyActivePlayer;
+        }
+        if (weeklyActivePlayer !== '') {
+            query["weeklyActivePlayer"] = weeklyActivePlayer;
+        }
+        if (monthlyActivePlayer !== '') {
+            query["monthlyActivePlayer"] = monthlyActivePlayer;
+        }
+        if (validPlayers !== '') {
+            query["validPlayers"] = parseInt(validPlayers);
+        }
+        if (childrencount !== '') {
+            query["childrencount"] = childrencount;
+        }
+        if (totalChildrenDeposit !== '') {
+            query["totalChildrenDeposit"] = totalChildrenDeposit;
+        }
+        if (totalChildrenBalance !== '') {
+            query["totalChildrenBalance"] = totalChildrenBalance;
+        }
+        if (settledCommission !== '') {
+            query["settledCommission"] = settledCommission;
         }
         return query;
-
     },
     /*
 
