@@ -69,7 +69,8 @@ define([], () => {
             if (commSett && commSett.gameProviderGroup) {
                 commSett.gameProviderGroup = commSett.gameProviderGroup.map(grp => {
                     if (
-                        grp.srcConfig.customSetting
+                        grp.srcConfig
+                        && grp.srcConfig.customSetting
                         && grp.srcConfig.customSetting.length > 0
                         && grp.srcConfig.customSetting.some(e => String(e.partner) === String(partnerObjId))
                     ) {
