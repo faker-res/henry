@@ -23,6 +23,42 @@ define([], () => {
             });
         };
 
+        this.copyObjToText = function ($translate, ObjToCopy, fieldEnd, modalId) {
+            let copiedText = "";
+            let objLength;
+            if (fieldEnd) {
+                objLength = Object.keys(ObjToCopy).indexOf(fieldEnd) + 1;
+                if (objLength <= 0) {
+                    objLength = Object.keys(ObjToCopy).length;
+                }
+            } else {
+                objLength = Object.keys(ObjToCopy).length;
+            }
+            for (let i = 0; i < objLength; i++) {
+                if (copiedText) {
+                    copiedText += " \n";
+                }
+                copiedText += $translate(Object.keys(ObjToCopy)[i]) + ": " + ObjToCopy[Object.keys(ObjToCopy)[i]];
+            }
+            copyToClipboard(copiedText, modalId);
+        };
+
+        function copyToClipboard(text, modalId) {
+            var dummy = document.createElement("TEXTAREA");
+            let elementBody;
+            if (modalId) {
+                elementBody = document.getElementById(modalId)
+            } else {
+                elementBody = document.body
+            }
+            elementBody.appendChild(dummy);
+            dummy.setAttribute("id", "dummy_id");
+            document.getElementById('dummy_id').value = text;
+            dummy.select();
+            document.execCommand("copy");
+            elementBody.removeChild(dummy);
+        }
+
         /**
          * Check if partner has custom rate
          * @param partnerObjId
@@ -33,25 +69,28 @@ define([], () => {
             if (commSett && commSett.gameProviderGroup) {
                 commSett.gameProviderGroup = commSett.gameProviderGroup.map(grp => {
                     if (
-                        grp.srcConfig.customSetting
+                        grp.srcConfig
+                        && grp.srcConfig.customSetting
                         && grp.srcConfig.customSetting.length > 0
                         && grp.srcConfig.customSetting.some(e => String(e.partner) === String(partnerObjId))
                     ) {
-                        let customRateObj = grp.srcConfig.customSetting.filter(e => String(e.partner) === String(partnerObjId))[0];
+                        let customRateObjs = grp.srcConfig.customSetting.filter(e => String(e.partner) === String(partnerObjId));
 
                         grp.srcConfig.commissionSetting = grp.srcConfig.commissionSetting.map(e => {
-                            if (String(e._id) === String(customRateObj.configObjId)) {
-                                e.commissionRate = customRateObj.commissionRate;
-                                e.isCustomized = true;
-                                commSett.isCustomized = true;
-                            }
+                            customRateObjs.forEach(f => {
+                                if (String(e._id) === String(f.configObjId)) {
+                                    e.commissionRate = f.commissionRate;
+                                    e.isCustomized = true;
+                                    commSett.isCustomized = true;
+                                }
+                            });
 
                             return e;
                         })
                     }
 
                     // Apply to showConfig
-                    grp.showConfig = grp.srcConfig;
+                    grp.showConfig = JSON.parse(JSON.stringify(grp.srcConfig));
 
                     return grp;
                 });
