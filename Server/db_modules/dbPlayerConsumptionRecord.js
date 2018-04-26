@@ -771,10 +771,6 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    updateConsumptionRecord: (recordData) => {
-        return dbPlayerConsumptionRecord.updateExternalPlayerConsumptionRecordData(data, recordData);
-    },
-
     /**
      *  Update player consumption record
      * @param {Json} data
