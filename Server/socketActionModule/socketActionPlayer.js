@@ -468,7 +468,7 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerPermissionLog: function getPlayerPermissionLog(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.playerId);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPermissionLog, [data.platform, data.playerId, data.createTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerPermissionLog, [ObjectId(data.platform), ObjectId(data.playerId), data.createTime], actionName, isValidData);
         },
 
         getPlayerReferrals: function getPlayerReferrals(data) {
