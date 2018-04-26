@@ -98,6 +98,7 @@ var roleChecker = {
         'getRewardTypesConfig': true,
         'getPlayerConsumptionReturn': true,
         'getPagePlayerByAdvanceQuery': true,
+        'getPartnersByAdvancedQuery': true,
         'getQueryProposalsForAdminId': true,
         'getPlayerProposalsForAdminId': true,
         "getOnePlayerInfo": true,
