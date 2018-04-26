@@ -4037,13 +4037,19 @@ function setProposalIdInData(proposal) {
 function updatePartnerCommissionConfig (proposalData) {
     return dbconfig.collection_partnerCommissionConfig.findById(proposalData.data.settingObjId).then(
         config => {
-            if (config && config.customSetting && config.customSetting.some(sett => String(sett.partner === String(proposalData.data.partnerObjId)))) {
+            if (config
+                && config.customSetting
+                && config.customSetting.some(sett =>
+                    String(sett.partner) === String(proposalData.data.partnerObjId)
+                        && String(sett.configObjId) === String(proposalData.data.configObjId)
+                )
+            ) {
                 return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
                     platform: config.platform,
-                    "customSetting.partner": proposalData.data.partnerObjId
+                    "customSetting.partner": proposalData.data.partnerObjId,
+                    "customSetting.configObjId": proposalData.data.configObjId,
                 }, {
                     $set: {
-                        "customSetting.$.configObjId": proposalData.data.configObjId,
                         "customSetting.$.commissionRate": proposalData.data.newRate
                     }
                 }, {

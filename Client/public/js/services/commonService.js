@@ -69,25 +69,28 @@ define([], () => {
             if (commSett && commSett.gameProviderGroup) {
                 commSett.gameProviderGroup = commSett.gameProviderGroup.map(grp => {
                     if (
-                        grp.srcConfig.customSetting
+                        grp.srcConfig
+                        && grp.srcConfig.customSetting
                         && grp.srcConfig.customSetting.length > 0
                         && grp.srcConfig.customSetting.some(e => String(e.partner) === String(partnerObjId))
                     ) {
-                        let customRateObj = grp.srcConfig.customSetting.filter(e => String(e.partner) === String(partnerObjId))[0];
+                        let customRateObjs = grp.srcConfig.customSetting.filter(e => String(e.partner) === String(partnerObjId));
 
                         grp.srcConfig.commissionSetting = grp.srcConfig.commissionSetting.map(e => {
-                            if (String(e._id) === String(customRateObj.configObjId)) {
-                                e.commissionRate = customRateObj.commissionRate;
-                                e.isCustomized = true;
-                                commSett.isCustomized = true;
-                            }
+                            customRateObjs.forEach(f => {
+                                if (String(e._id) === String(f.configObjId)) {
+                                    e.commissionRate = f.commissionRate;
+                                    e.isCustomized = true;
+                                    commSett.isCustomized = true;
+                                }
+                            });
 
                             return e;
                         })
                     }
 
                     // Apply to showConfig
-                    grp.showConfig = grp.srcConfig;
+                    grp.showConfig = JSON.parse(JSON.stringify(grp.srcConfig));
 
                     return grp;
                 });

@@ -23664,7 +23664,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.customizePartnerRate = (config) => {
+            vm.customizePartnerRate = (config, field, isRevert) => {
                 let isChanged = false;
                 let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
 
@@ -23692,7 +23692,9 @@ define(['js/app'], function (myApp) {
                     };
 
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
-                        console.log('customizePartnerCommission', data);
+                        $scope.$evalAsync(() => {
+                            vm.commissionRateEditRow(field, false);
+                        })
                     });
                 }
             };

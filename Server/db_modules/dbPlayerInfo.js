@@ -6293,7 +6293,7 @@ let dbPlayerInfo = {
                             playerName: playerName,
                             createTime: proposals[i].createTime,
                             rewardType: proposals[i].type ? proposals[i].type.name : "",
-                            rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
+                            rewardAmount: proposals[i].data.rewardAmount != null ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
                             eventName: eventNameRec,
                             eventCode: proposals[i].data.eventCode,
                             status: status
