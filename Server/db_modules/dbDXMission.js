@@ -753,7 +753,7 @@ let dbDXMission = {
         }
     },
 
-    insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated, smsChannel) {
+    insertPhoneToTask: function (deviceData, platformId, phoneNumber, taskName, autoSMS, isBackStageGenerated) {
         if (!platformId && !phoneNumber && !taskName) {
             return Promise.reject({
                 errorMessage: "Invalid data"
@@ -823,7 +823,7 @@ let dbDXMission = {
                 return dbconfig.collection_players.findOne({platform: platformObjId, phoneNumber: phoneNumberQuery}).lean()
             }
         }).then( playerData => {
-            if (playerData){
+            if (playerData && !allowedWhitePhoneNumber){
                 return Promise.reject({
                     message: localization.translate("This phone number has been registered, only new player can get lucky draw!")
                 });
@@ -841,55 +841,118 @@ let dbDXMission = {
 
                         return dbconfig.collection_dxPhone.findOne({phoneNumber: phoneNumber, dxMission: dxMission._id})
                             .then( dxPhone => {
-                                if(dxPhone && !allowedWhitePhoneNumber){
-                                    return Promise.reject({
-                                        message: localization.translate("The phone number is already in the mission list, please invite friends for a lucky draw!")
-                                    });
+                                if(dxPhone){
+                                    // the number is not in the whitePhoneNumber list and its sendingTimes is more than 3 times -> not to send again
+                                    if (!allowedWhitePhoneNumber && dxPhone.sendingTimes >= 3){
+                                        return Promise.reject({
+                                            message: localization.translate("The phone number is already in the mission list, please invite friends for a lucky draw!")
+                                        });
+                                    }else{
+                                        // either is in whitePhoneNumber list or the sendingTimes < 3 -> resend the msg with the same link
+                                        return { platformId: platformObjId, dbDXMissionId: dxPhone.dxMission, phoneNumber: dxPhone.phoneNumber.trim()}
+
+                                    }
                                 }
                                 else{
-                                    // import the number to the keyed-in dxMission and send out msg if needed
-                                    return dbPlayerInfo.generateDXCode(dxMission).then(
-                                        randomCode => {
-                                            let importData = {
-                                                platform: platformObjId,
-                                                phoneNumber: phoneNumber,
-                                                dxMission: dxMission._id,
-                                                code: randomCode,
-                                                url: dxMission.domain + "/" + randomCode,
-                                                ip: deviceData.lastLoginIp,
-                                            };
+                                    //import the number to the keyed-in dxMission and send out msg if needed
+                                        return dbPlayerInfo.generateDXCode(dxMission).then(
+                                            randomCode => {
+                                                let importData = {
+                                                    platform: platformObjId,
+                                                    phoneNumber: phoneNumber,
+                                                    dxMission: dxMission._id,
+                                                    code: randomCode,
+                                                    url: dxMission.domain + "/" + randomCode,
+                                                    ip: deviceData.lastLoginIp,
+                                                };
 
-                                            let importPhone = new dbconfig.collection_dxPhone(importData);
-                                            return importPhone.save().then ( () => {
+                                                let importPhone = new dbconfig.collection_dxPhone(importData);
+                                                return importPhone.save().then( () => {
+                                                    //sending msg if required
+                                                    if (parseInt(autoSMS)) {
 
-                                                // sending msg if required
-                                                if (parseInt(autoSMS)){
+                                                        let smsData = {
+                                                            // channel: smsChannel,
+                                                            platformId: platformObjId,
+                                                            dbDXMissionId: dxMission._id,
+                                                            phoneNumber: phoneNumber.trim(),
+                                                        };
+                                                        return smsData;
+                                                    }
+                                                    else{
+                                                        return Promise.resolve({
+                                                            message: localization.translate("Successfully imported into the task, please take note that no message is sent by the system.")
+                                                        });
+                                                    }
+                                                })
+                                            });
+                                }
+                            }).then( inData => {
+                                if (inData){
+                                    if (parseInt(autoSMS)) {
+                                        return smsAPI.channel_getChannelList({}).then(channelList => {
+                                            if (channelList && channelList.channels && channelList.channels.length > 0) {
 
-                                                    let msgDetails = [];
-
-                                                    let smsData = {
-                                                        channel: smsChannel,
-                                                        platformId: platformObjId,
-                                                        dbDXMissionId: dxMission._id,
-                                                        phoneNumber: phoneNumber.trim(),
-                                                    };
-
-                                                    msgDetails.push(smsData);
-                                                    let sendingObj = {
-                                                        msgDetail: msgDetails
-                                                    };
-
-                                                    dbDXMission.sendSMSToPlayer(null, null, sendingObj);
+                                                if (channelList.channels.indexOf(3) != -1) {
+                                                    inData.channel = 3;
                                                 }
+                                                else if (channelList.channels.indexOf(2) != -1) {
+                                                    inData.channel = 2;
+                                                }
+                                                else {
 
-                                                return Promise.resolve({
-                                                    message: localization.translate("Successfully got the rewards, please take note on the message sent by the system.")
+                                                    return Promise.reject({
+                                                        name: "DBError",
+                                                        message: "Channel 1 and Channel 2 do not exist"
+                                                    });
+                                                }
+                                                return inData;
+
+                                            }
+                                            else {
+                                                return Promise.reject({name: "DBError", message: "No channel exists"});
+                                            }
+                                        }).then(smsDetail => {
+                                            if (smsDetail) {
+                                                let msgDetails = [];
+                                                msgDetails.push(smsDetail);
+                                                let sendingObj = {
+                                                    msgDetail: msgDetails
+                                                };
+                                                return dbDXMission.sendSMSToPlayer(null, null, sendingObj).then(returnedMsg => {
+                                                    if (returnedMsg && returnedMsg[0]) {
+
+                                                        if (returnedMsg[0].failure) {
+                                                            return Promise.reject({
+                                                                name: "DBError",
+                                                                message: returnedMsg[0].message || "SMS is failed to send"
+                                                            });
+                                                        }
+                                                        else {
+                                                            let searchQuery = {
+                                                                phoneNumber: smsDetail.phoneNumber,
+                                                                platform: smsDetail.platformId,
+                                                                dxMission: smsDetail.dbDXMissionId
+                                                            };
+
+                                                            return dbconfig.collection_dxPhone.findOneAndUpdate(searchQuery, {$inc: {sendingTimes: 1}}).then(() => {
+                                                                return Promise.resolve({
+                                                                    message: localization.translate("Player already obtained") + dxMission.creditAmount + localization.translate("dollar cash prize, ") + localization.translate("please take note on the message sent by the system.")
+                                                                });
+                                                            })
+
+                                                        }
+                                                    }
+
                                                 });
-                                            })
-
-
-                                        }
-                                    )
+                                            }
+                                        })
+                                    }
+                                    else{
+                                        return Promise.resolve({
+                                            message: localization.translate("Successfully imported into the task, please take note that no message is sent by the system.")
+                                        });
+                                    }
                                 }
                             })
 
@@ -911,10 +974,11 @@ let dbDXMission = {
             data.msgDetail.forEach( msg => {
 
                 let findQuery = {};
-                if (msg && msg.dbDXMissionId && msg.phoneNumber){
+                if (msg && msg.dbDXMissionId && msg.phoneNumber && msg.platformId){
                     findQuery = {
                         dxMission: msg.dbDXMissionId,
-                        phoneNumber: msg.phoneNumber
+                        phoneNumber: msg.phoneNumber,
+                        platform: msg.platformId
                     };
                 }
                 else if (msg && msg.dxMissionId){
@@ -939,7 +1003,7 @@ let dbDXMission = {
                     message => {
                         let sendObj = {
                             tel: msg.phoneNumber.trim(),
-                            channel: data.channel || 2,
+                            channel: data.channel || msg.channel,
                             platformId: phoneData.platform.platformId,
                             message: message,
                             data: {
@@ -963,11 +1027,11 @@ let dbDXMission = {
                         );
 
                         // dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'success');
-                        // if (sendObj.tel == "11112365258"){
-                        //     return {failure: true};
-                        // }else{
-                        //     return {}
-                        // }
+                        // // if (sendObj.tel == "11112365258"){
+                        // //     return {failure: true};
+                        // // }else{
+                        //     return {name:"lol"};
+                        // // // }
                     }
                 ))
             })

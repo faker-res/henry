@@ -43,7 +43,7 @@ define([], () => {
             copyToClipboard(copiedText, modalId);
         };
 
-        function copyToClipboard(text, modalId){
+        function copyToClipboard(text, modalId) {
             var dummy = document.createElement("TEXTAREA");
             let elementBody;
             if (modalId) {
@@ -57,6 +57,70 @@ define([], () => {
             dummy.select();
             document.execCommand("copy");
             elementBody.removeChild(dummy);
+        }
+
+        /**
+         * Check if partner has custom rate
+         * @param partnerObjId
+         * @param commSett
+         * @returns {*}
+         */
+        this.applyPartnerCustomRate = (partnerObjId, commSett) => {
+            if (commSett && commSett.gameProviderGroup) {
+                commSett.gameProviderGroup = commSett.gameProviderGroup.map(grp => {
+                    if (
+                        grp.srcConfig.customSetting
+                        && grp.srcConfig.customSetting.length > 0
+                        && grp.srcConfig.customSetting.some(e => String(e.partner) === String(partnerObjId))
+                    ) {
+                        let customRateObj = grp.srcConfig.customSetting.filter(e => String(e.partner) === String(partnerObjId))[0];
+
+                        grp.srcConfig.commissionSetting = grp.srcConfig.commissionSetting.map(e => {
+                            if (String(e._id) === String(customRateObj.configObjId)) {
+                                e.commissionRate = customRateObj.commissionRate;
+                                e.isCustomized = true;
+                                commSett.isCustomized = true;
+                            }
+
+                            return e;
+                        })
+                    }
+
+                    // Apply to showConfig
+                    grp.showConfig = grp.srcConfig;
+
+                    return grp;
+                });
+            }
+
+            // Partner platform rate setting
+            if (commSett && commSett.customRate && commSett.customRate.some(e => String(e.partner) === String(partnerObjId))) {
+                let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
+                let customRateObj = commSett.customRate.filter(e => String(e.partner) === String(partnerObjId))[0];
+
+                normalRates.forEach(e => {
+                    if (commSett[e] != customRateObj[e]) {
+                        commSett[e] = customRateObj[e];
+                        commSett.isCustomizedField = commSett.isCustomizedField || [];
+                        commSett.isCustomizedField.push(e);
+                        commSett.isCustomized = true;
+                    }
+                })
+
+                if (commSett.rateAfterRebateGameProviderGroup && commSett.rateAfterRebateGameProviderGroup.length) {
+                    commSett.rateAfterRebateGameProviderGroup.forEach(e => {
+                        let customProviderRateObj = customRateObj.rateAfterRebateGameProviderGroup.filter(cust => String(e.gameProviderGroupId) === String(cust.gameProviderGroupId))[0];
+
+                        if (e.rate != customProviderRateObj.rate) {
+                            e.rate = customProviderRateObj.rate;
+                            e.isCustomized = true;
+                            commSett.isCustomized = true;
+                        }
+                    })
+                }
+            }
+
+            return commSett;
         }
     };
 
