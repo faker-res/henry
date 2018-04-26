@@ -15046,11 +15046,13 @@ let dbPlayerInfo = {
                                             }
                                         }
 
-                                        returnData.singleDeposit.playerRanking = {};
-                                        if (playerRanking) {
-                                            returnData.singleDeposit.playerRanking = playerRanking;
-                                        } else {
-                                            returnData.singleDeposit.playerRanking.error = "No top up record for this player";
+                                        if (playerObj) {
+                                            returnData.singleDeposit.playerRanking = {};
+                                            if (playerRanking) {
+                                                returnData.singleDeposit.playerRanking = playerRanking;
+                                            } else {
+                                                returnData.singleDeposit.playerRanking.error = "No top up record for this player";
+                                            }
                                         }
                                         returnData.singleDeposit.boardRanking = populatedData;
                                         return returnData;
@@ -15254,7 +15256,8 @@ let dbPlayerInfo = {
                             $group: {
                                 _id: "$playerId",
                                 providerId: {$addToSet: "$providerId"},
-                                gameId: {$addToSet: "$gameId"},
+                                gameId: {$addToSet: {$cond:  [{$not: ["$cpGameType"]}, "$gameId","$null"]} },
+                                cpGameType: {$addToSet:  {$ifNull: ['$cpGameType', '$null'] } },
                                 amount: {$sum: "$validAmount"},
                                 createTime : {$addToSet: "$createTime"}
                             }
@@ -15327,6 +15330,15 @@ let dbPlayerInfo = {
                                             }
                                             if (!populatedProvider[i].gameName) {
                                                 populatedProvider[i].gameName = "";
+                                            }
+                                            if (populatedProvider[i].cpGameType) {
+                                                for (let z = 0; z < populatedProvider[i].cpGameType.length; z++) {
+                                                    if (populatedProvider[i].gameName) {
+                                                        populatedProvider[i].gameName += ", ";
+                                                    }
+                                                    populatedProvider[i].gameName += populatedProvider[i].cpGameType[z];
+                                                }
+                                                delete populatedProvider[i].cpGameType;
                                             }
                                             if (populatedProvider[i].gameId) {
                                                 for (let k = 0; k < populatedProvider[i].gameId.length; k++) {
@@ -15407,7 +15419,8 @@ let dbPlayerInfo = {
                             $group: {
                                 _id: "$playerId",
                                 providerId: {$addToSet: "$providerId"},
-                                gameId: {$addToSet: "$gameId"},
+                                gameId: {$addToSet: {$cond:  [{$not: ["$cpGameType"]}, "$gameId","$null"]} },
+                                cpGameType: {$addToSet:  {$ifNull: ['$cpGameType', '$null'] } },
                                 amount: {$sum: "$bonusAmount"},
                                 createTime : {$addToSet: "$createTime"}
                             }
@@ -15482,6 +15495,16 @@ let dbPlayerInfo = {
                                             if (!populatedProvider[i].gameName) {
                                                 populatedProvider[i].gameName = "";
                                             }
+                                            if (populatedProvider[i].cpGameType) {
+                                                for (let z = 0; z < populatedProvider[i].cpGameType.length; z++) {
+                                                    if (populatedProvider[i].gameName) {
+                                                        populatedProvider[i].gameName += ", ";
+                                                    }
+                                                    populatedProvider[i].gameName += populatedProvider[i].cpGameType[z];
+                                                }
+                                                delete populatedProvider[i].cpGameType;
+                                            }
+
                                             if (populatedProvider[i].gameId) {
                                                 for (let k = 0; k < populatedProvider[i].gameId.length; k++) {
                                                     if (populatedProvider[i].gameName) {
@@ -15579,12 +15602,29 @@ let dbPlayerInfo = {
                                 validAmount: {$first: "$validAmount"},
                                 bonusAmount: {$first: "$bonusAmount"},
                                 createTime : {$first: "$createTime"},
-                                gameId: {$first: "$gameId"},
+                                gameId: {$first: {$cond:  [{$not: ["$cpGameType"]}, "$gameId","$null"]} },
+                                cpGameType: {$first:  {$ifNull: ['$cpGameType', '$null'] } },
                                 winRatio: {$first: "$winRatio"}
                             }
                         }
                     ]).then(
-                        sortedData => {
+                        consumptionRecord => {
+                            function sortRankingRecord(a, b) {
+                                if (a.winRatio < b.winRatio)
+                                    return 1;
+                                if (a.winRatio > b.winRatio)
+                                    return -1;
+                                if (a.winRatio == b.winRatio) {
+                                    if (a.createTime < b.createTime) {
+                                        return -1;
+                                    }
+                                    if (a.createTime > b.createTime) {
+                                        return 1;
+                                    }
+                                }
+                                return 0;
+                            }
+                            let sortedData = consumptionRecord.sort(sortRankingRecord);
                             let playerRanking;
                             for (let i = 0; i < sortedData.length; i++) {
                                 sortedData[i].rank = i + 1;
@@ -15627,12 +15667,16 @@ let dbPlayerInfo = {
                                             if (!populatedProvider[i].gameName) {
                                                 populatedProvider[i].gameName = "";
                                             }
+                                            if (populatedProvider[i].cpGameType) {
+                                                populatedProvider[i].gameName = populatedProvider[i].cpGameType;
+                                            }
+                                            delete populatedProvider[i].cpGameType;
                                             if (populatedProvider[i].gameId) {
                                                 if (populatedProvider[i].gameId.name) {
                                                     populatedProvider[i].gameName = populatedProvider[i].gameId.name;
                                                 }
-                                                delete populatedProvider[i].gameId;
                                             }
+                                            delete populatedProvider[i].gameId;
                                             if (!populatedProvider[i].providerName) {
                                                 populatedProvider[i].providerName = "";
                                             }
