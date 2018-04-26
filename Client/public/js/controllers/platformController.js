@@ -13483,7 +13483,7 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 var sendData = {
-                    playerId: vm.popOverPlayerPermission._id,
+                    playerId: vm.selectedSinglePlayer._id,
                     platform: vm.selectedPlatform.id,
                     createTime: {
                         $gte: new Date(vm.playerPermissionQuery.startTime.data('datetimepicker').getLocalDate()),
