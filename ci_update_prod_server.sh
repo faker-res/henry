@@ -34,6 +34,7 @@ NODE_ENV=${env} forever start -a -l client.log -o clientOut.log -e clientErr.log
 NODE_ENV=${env} forever start -a -l provider.log -o providerOut.log -e providerErr.log Server/providerAPIServer.js
 NODE_ENV=${env} forever start -a -l payment.log -o paymentOut.log -e paymentErr.log Server/paymentAPIServer.js
 
+NODE_ENV=${env} forever start -a -l mig.log -o migOut.log -e migErr.log Server/dataMigrationServer.js
 
 
 
