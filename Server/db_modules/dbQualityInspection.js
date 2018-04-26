@@ -2278,9 +2278,9 @@ var dbQualityInspection = {
                                                         }
                                                     }
                                                 );
-
-                                                resolve();
                                             }
+
+                                            resolve();
                                         });
                                 })
 
@@ -2308,11 +2308,8 @@ var dbQualityInspection = {
             startTime = new Date(startTime);
             endTime = new Date(endTime);
 
-            startDate.setHours(0, 0, 0, 0);
-            startDate.setDate(startTime.getDate());
-
-            endDate.setHours(23, 59, 59, 999);
-            endDate.setDate(endTime.getDate());
+            endTime.setHours(23, 59, 59, 999);
+            endTime.setDate(endTime.getDate() - 1);
 
             startDate = dbUtility.getLocalTimeString(startTime);
             endDate = dbUtility.getLocalTimeString(endTime);
