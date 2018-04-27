@@ -257,6 +257,7 @@ var simplifiedChinese = {
     "Player reach participate limit": "玩家已达参加次数上限",
     "Player does not have enough consumption": "玩家没有足够的投注额",
     "Player already applied for the reward point.": "领取失败：很抱歉，已经领取过此项积分奖励。",
+    "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢"
     //todo::add missing messages here
 
     /*
