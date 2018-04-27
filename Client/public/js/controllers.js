@@ -567,6 +567,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "FORBID"
     };
 
+    $scope.constPartnerCommissionSettlementStatus = {
+        PREVIEW: 0,
+        EXECUTED: 1,
+        RESET_THEN_EXECUTED: 2,
+        EXECUTED_THEN_RESET: 3,
+        SKIPPED: 4
+    };
+
     $scope.rewardInterval = {
         1: "Daily",
         2: "Weekly",
