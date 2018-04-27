@@ -1599,7 +1599,18 @@ define(['js/app'], function (myApp) {
                         console.log('res', res);
                     }
                 );
-            }
+
+                $scope.$socketPromise("getPartnerCommissionLog", {
+                    platformObjId: vm.selectedPlatform.id,
+                    commissionType: prev.settMode,
+                    startTime: prev.startTime,
+                    endTime: prev.endTime
+                }).then(
+                    partnerCommObj => {
+                        console.log('partnerCommObj', partnerCommObj);
+                    }
+                )
+            };
 
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';
