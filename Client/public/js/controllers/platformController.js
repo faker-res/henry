@@ -1067,7 +1067,17 @@ define(['js/app'], function (myApp) {
                 vm.platformSettlement = {};
                 vm.advancedPartnerQueryObj = {limit: 10, index: 0};
                 vm.getCredibilityRemarks();
-                vm.partnerAdvanceSearchQuery = {};
+                vm.partnerAdvanceSearchQuery = {
+                    creditsOperator: ">=",
+                    dailyActivePlayerOperator: ">=",
+                    weeklyActivePlayerOperator: ">=",
+                    monthlyActivePlayerOperator: ">=",
+                    validPlayersOperator: ">=",
+                    childrencountOperator: ">=",
+                    totalChildrenDepositOperator: ">=",
+                    totalChildrenBalanceOperator: ">=",
+                    settledCommissionOperator: ">=",
+                };
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
                     playerType: 'Real Player (all)'
@@ -6921,8 +6931,7 @@ define(['js/app'], function (myApp) {
                 // })
             }
 
-            function createAdvancedSearchFilters(config) {
-
+            function createPartnerAdvancedSearchFilters(config) {
                 var currentQueryValues = {};
                 $(config.filtersElement).empty();
 
@@ -6997,15 +7006,15 @@ define(['js/app'], function (myApp) {
                         //var ptCol = vm.playerTable.columns(i);
                         input.on('keyup change', (function (evt) {
                             //Text inputs do not fire the change event until they lose focus.
-                            if (evt.currentTarget.tagName == "INPUT" && evt.type == 'change') return;
-                            var queryValue = '';
+                            if (evt.currentTarget.tagName === "INPUT" && evt.type === 'change') return;
+                            let queryValue = '';
                             // Do Additional listening to the keyup event of datetime picker by the className of the div
-                            if (this.className == 'datetimepicker form-control') {
+                            if (this.className === 'datetimepicker form-control') {
                                 // assign the value of input (firstchild of the div) to queryValue
-                                if (evt.currentTarget.id == "regDateTimePicker2" || evt.currentTarget.id == "regEndDateTimePicker2") {
+                                if (evt.currentTarget.id === "regDateTimePicker2" || evt.currentTarget.id === "regEndDateTimePicker2") {
                                     queryValue = getRegTimeQueryValue();
                                     getQueryFunction(config, filterConfig, "registrationTime", queryValue, false);
-                                } else if (evt.currentTarget.id == "lastAccessDateTimePicker2" || evt.currentTarget.id == "lastAccessEndDateTimePicker2") {
+                                } else if (evt.currentTarget.id === "lastAccessDateTimePicker2" || evt.currentTarget.id === "lastAccessEndDateTimePicker2") {
                                     queryValue = getAccessTimeQueryValue();
                                     getQueryFunction(config, filterConfig, "lastAccessTime", queryValue, false);
                                 }
@@ -15542,7 +15551,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.getPartnersByAdvancedQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
+            vm.getPartnersByAdvanceQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
 
                 utilService.hideAllPopoversExcept();
                 vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
@@ -15769,7 +15778,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('VALID'), data: "validPlayers", advSearch: true, "sClass": "",
+                            title: $translate('VALID_PLAYER'), data: "validPlayers", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
@@ -16289,10 +16298,11 @@ define(['js/app'], function (myApp) {
                 vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
                 utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
 
-                createAdvancedSearchFilters({
+                createPartnerAdvancedSearchFilters({
                     tableOptions: tableOptions,
-                    filtersElement: '#partnerTable-search-filters',
-                    queryFunction: vm.getPartnersByAdvancedQueryDebounced
+                    // filtersElement: '#partnerTable-search-filters',
+                    filtersElement: '',
+                    queryFunction: vm.getPartnersByAdvanceQueryDebounced
                 });
                 vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size});
 
@@ -23302,6 +23312,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.getPartnerCommissionConfigWithGameProviderConfig = function () {
+                vm.isSettingExist = true;
                 vm.partnerCommission = {isCustomized: false};
                 vm.partnerCommission.gameProviderGroup = [];
                 vm.partnerCommission.isGameProviderIncluded = false;
@@ -23369,7 +23380,7 @@ define(['js/app'], function (myApp) {
                                                         activePlayerValueFrom: "",
                                                         activePlayerValueTo: "",
                                                         commissionRate: "",
-                                                        isEditing: true,
+                                                        isEditing: false,
                                                         isCreateNew: true
                                                     });
                                                     data.showConfig.platform = vm.selectedPlatform.id;
@@ -23398,7 +23409,7 @@ define(['js/app'], function (myApp) {
                                                     activePlayerValueFrom: "",
                                                     activePlayerValueTo: "",
                                                     commissionRate: "",
-                                                    isEditing: true,
+                                                    isEditing: false,
                                                     isCreateNew: true
                                                 });
                                                 data.showConfig.platform = vm.selectedPlatform.id;
@@ -23407,12 +23418,15 @@ define(['js/app'], function (myApp) {
                                         })
                                     }
                                 });
+                                vm.partnerCommission.isEditing = false;
+                                vm.isSettingExist = false;
                             }
                         }
                     })
                 });
             }
             vm.getPartnerCommisionConfig = function () {
+                vm.isSettingExist = true;
                 vm.partnerCommission.isGameProviderIncluded = false;
                 var sendData = {
                     query: {
@@ -23430,9 +23444,7 @@ define(['js/app'], function (myApp) {
                         vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting);
 
                     }
-                    if (!vm.partnerCommission.srcConfig) {
-                        vm.partnerCommission.isEditing = true;
-                    }
+
                     $scope.safeApply();
                 });
             }
@@ -23477,21 +23489,36 @@ define(['js/app'], function (myApp) {
 
             };
             vm.commissionSettingNewRow = (valueCollection, idx) => {
-                valueCollection.splice(idx + 1, 0, {
-                    playerConsumptionAmountFrom: "",
-                    playerConsumptionAmountTo: "",
-                    activePlayerValueFrom: "",
-                    activePlayerValueTo: "",
-                    commissionRate: "",
-                    isEditing: true,
-                    isCreateNew: true
-                });
+                if (!valueCollection.length) {
+                    valueCollection.splice(idx + 1, 0, {
+                        playerConsumptionAmountFrom: "",
+                        playerConsumptionAmountTo: "",
+                        activePlayerValueFrom: "",
+                        activePlayerValueTo: "",
+                        commissionRate: "",
+                        isEditing: false,
+                        isCreateNew: true
+                    });
+                    vm.partnerCommission.isEditing = false;
+                    vm.isSettingExist = false
+                } else {
+                    valueCollection.splice(idx + 1, 0, {
+                        playerConsumptionAmountFrom: "",
+                        playerConsumptionAmountTo: "",
+                        activePlayerValueFrom: "",
+                        activePlayerValueTo: "",
+                        commissionRate: "",
+                        isEditing: true,
+                        isCreateNew: true
+                    });
+                    vm.partnerCommission.isEditing = true;
+                }
 
                 if (vm.gameProviderGroup && vm.gameProviderGroup.length <= 0) {
                     vm.partnerCommission.showConfig.platform = vm.selectedPlatform.id;
                     vm.partnerCommission.showConfig.commissionType = vm.constPartnerCommisionType[vm.commissionSettingTab];
                 }
-                vm.partnerCommission.isEditing = true;
+
             };
             vm.commissionSettingDeleteRow = (idx, valueCollection) => {
                 valueCollection.splice(idx, 1);
@@ -23511,7 +23538,7 @@ define(['js/app'], function (myApp) {
                 if (vm.partnerCommission.showConfig != vm.partnerCommission.srcConfig) {
                     vm.partnerCommission.isEditing = true;
                 } else {
-                    vm.showHideSubmitCommissionConfigButton(valueCollection);
+                   vm.showHideSubmitCommissionConfigButton(valueCollection);
                 }
             };
             vm.commissionSettingEditRow = (idx, valueCollection) => {
@@ -23533,7 +23560,7 @@ define(['js/app'], function (myApp) {
                     if(valueCollection[idx] && !valueCollection[idx].isEditing) {
                         originalCollection.filter(originalSetting => {
                             if(valueCollection[idx]._id == originalSetting._id) {
-                                valueCollection[idx] = JSON.parse(JSON.stringify(originalSetting));;
+                                valueCollection[idx] = JSON.parse(JSON.stringify(originalSetting));
                             }
                         });
                     }
@@ -23541,6 +23568,54 @@ define(['js/app'], function (myApp) {
                     vm.partnerCommission.showConfig = vm.partnerCommission.srcConfig;
                 }
             };
+
+            vm.isSetAllDisablePartnerConfigSetting = function (showSetting, isEditing, isProviderGroupIncluded, srcSetting) {
+                if (isProviderGroupIncluded) {
+                    for (var i in showSetting) {
+                        if (showSetting[i].showConfig && showSetting[i].showConfig.commissionSetting) {
+                            for (var j in showSetting[i].showConfig.commissionSetting) {
+                                showSetting[i].showConfig.commissionSetting[j].isEditing = isEditing;
+                            }
+                        }
+                    }
+                } else {
+                    if (showSetting.commissionSetting && showSetting.commissionSetting.length) {
+                        for (var i in showSetting.commissionSetting) {
+                            showSetting.commissionSetting[i].isEditing = isEditing;
+                        }
+                    }
+                }
+
+                if (isEditing) {
+                    vm.partnerCommission.isEditing = true;
+                    vm.isSettingExist = true;
+                } else {
+                    vm.partnerCommission.isEditing = false;
+                    vm.isSettingExist = false;
+
+                    if (isProviderGroupIncluded) {
+                        for (var i in showSetting) {
+                            for (var j in srcSetting) {
+                                if (showSetting[i]._id == srcSetting[j]._id) {
+
+                                    if (!showSetting[i].srcConfig) {
+                                        showSetting[i].showConfig = JSON.parse(JSON.stringify(srcSetting[j].showConfig));
+                                    } else {
+                                        showSetting[i].showConfig = JSON.parse(JSON.stringify(srcSetting[j].srcConfig));
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (!srcSetting) {
+                            showSetting.commissionSetting = showSetting.commissionSetting;
+                        } else {
+                            showSetting.commissionSetting = srcSetting.commissionSetting;
+                        }
+                    }
+                }
+            };
+
             vm.commissionRateEditRow = (field, flag) => {
                 vm.commissionRateConfig.isEditing[field] = flag;
             };
@@ -23566,7 +23641,6 @@ define(['js/app'], function (myApp) {
                                 if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     for (let i = 0; i < tempShowConfig.commissionSetting.length; i++) {
                                         if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
-                                            (tempShowConfig.commissionSetting[i].playerConsumptionAmountTo == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountTo == null) &&
                                             (tempShowConfig.commissionSetting[i].activePlayerValueFrom == '' || tempShowConfig.commissionSetting[i].activePlayerValueFrom == null) &&
                                             (tempShowConfig.commissionSetting[i].commissionRate == '' || tempShowConfig.commissionSetting[i].commissionRate == null)) {
 
@@ -25958,7 +26032,7 @@ define(['js/app'], function (myApp) {
                         if (vm.advancedPartnerQueryObj.sortCol[sortKey] != preVal) {
                             vm.advancedPartnerQueryObj.sortCol = {};
                             vm.advancedPartnerQueryObj.sortCol[sortKey] = sortDire == "asc" ? 1 : -1;
-                            vm.getPartnersByAdvancedQueryDebounced();
+                            vm.getPartnersByAdvanceQueryDebounced();
                         }
                     }
                 });
