@@ -15617,23 +15617,23 @@ let dbPlayerInfo = {
                             }
                         }
                     ]).then(
-                        sortedData => {
-                            // function sortRankingRecord(a, b) {
-                            //     if (a.winRatio < b.winRatio)
-                            //         return 1;
-                            //     if (a.winRatio > b.winRatio)
-                            //         return -1;
-                            //     if (a.winRatio == b.winRatio) {
-                            //         if (a.createTime < b.createTime) {
-                            //             return -1;
-                            //         }
-                            //         if (a.createTime > b.createTime) {
-                            //             return 1;
-                            //         }
-                            //     }
-                            //     return 0;
-                            // }
-                            // let sortedData = consumptionRecord.sort(sortRankingRecord);
+                        consumptionRecord => {
+                            function sortRankingRecord(a, b) {
+                                if (a.winRatio < b.winRatio)
+                                    return 1;
+                                if (a.winRatio > b.winRatio)
+                                    return -1;
+                                if (a.winRatio == b.winRatio) {
+                                    if (a.createTime < b.createTime) {
+                                        return -1;
+                                    }
+                                    if (a.createTime > b.createTime) {
+                                        return 1;
+                                    }
+                                }
+                                return 0;
+                            }
+                            let sortedData = consumptionRecord.sort(sortRankingRecord);
                             let playerRanking;
                             for (let i = 0; i < sortedData.length; i++) {
                                 sortedData[i].rank = i + 1;
