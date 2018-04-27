@@ -4,22 +4,17 @@ let Schema = mongoose.Schema;
 let partnerCommissionRateConfigSchema = new Schema({
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
+    // If exists, this setting is customized for this partner
+    partner: {type: Schema.ObjectId, ref: 'partner'},
+    // Rates
     rateAfterRebatePromo: {type: String},
     rateAfterRebatePlatform: {type: String},
     rateAfterRebateGameProviderGroup: [],
     rateAfterRebateTotalDeposit: {type: String},
-    rateAfterRebateTotalWithdrawal: {type: String},
-    // Custom rate
-    customRate: [{
-        _id: false,
-        partner: {type: Schema.ObjectId, ref: 'partner'},
-        rateAfterRebatePromo: {type: String},
-        rateAfterRebatePlatform: {type: String},
-        rateAfterRebateGameProviderGroup: [],
-        rateAfterRebateTotalDeposit: {type: String},
-        rateAfterRebateTotalWithdrawal: {type: String},
-    }]
+    rateAfterRebateTotalWithdrawal: {type: String}
 });
+
+partnerCommissionRateConfigSchema.index({platform: 1, partner: 1});
 
 module.exports = partnerCommissionRateConfigSchema;
 
