@@ -130,6 +130,7 @@ let dbPartner = {
         let deferred = Q.defer();
 
         let platformData = null;
+        let partnerLevel = null;
 
         if (!partnerdata.platform) {
             return Q.reject({
@@ -252,7 +253,38 @@ let dbPartner = {
                 });
                 return Promise.reject(new Error());
             }
-        ).then(level => {
+        ).then(
+            level => {
+                partnerLevel = level;
+
+                if(partnerdata.bindPlayer){
+                    return dbconfig.collection_players.findOne({name: partnerdata.bindPlayer}).then(
+                        playerData => {
+                            if(playerData){
+                                return playerData._id;
+                            }else{
+                                deferred.reject({
+                                    name: "DataError",
+                                    message: "Player not exists"
+                                });
+                                return Promise.reject(new Error());
+                            }
+                        },
+                        error => {
+                            deferred.reject({
+                                name: "DataError",
+                                message: "Error in checking player name validity",
+                                error: error
+                            });
+                            return Promise.reject(new Error());
+                        }
+                    )
+                }
+
+                return;
+
+            }
+        ).then(playerId => {
                 return dbPartner.createPartnerDomain(partnerdata).then(
                     () => {
                         // determine registrationInterface
@@ -294,8 +326,12 @@ let dbPartner = {
                             partnerdata.loginTimes = 1;
                         }
 
+                        if(playerId){
+                            partnerdata.player = playerId;
+                        }
+
                         let partner = new dbconfig.collection_partner(partnerdata);
-                        partner.level = level;
+                        partner.level = partnerLevel;
                         partner.partnerName = partnerdata.partnerName.toLowerCase();
                         return partner.save();
                     },
