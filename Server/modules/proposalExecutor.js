@@ -4039,7 +4039,7 @@ function updatePartnerCommissionConfig (proposalData) {
         platform: proposalData.data.newRate.platform,
         provider: proposalData.data.newRate.provider,
         commissionType: proposalData.data.newRate.commissionType,
-        partner: proposalData.data.newRate.partner
+        partner: proposalData.data.partnerObjId
     };
 
     if (proposalData.data.isRevert) {
@@ -4056,7 +4056,7 @@ function updatePartnerCommissionConfig (proposalData) {
 function updatePartnerCommRateConfig (proposalData) {
     let qObj = {
         platform: proposalData.data.newRate.platform,
-        partner: proposalData.data.newRate.partner
+        partner: proposalData.data.partnerObjId
     };
 
     if (proposalData.data.isDelete) {
