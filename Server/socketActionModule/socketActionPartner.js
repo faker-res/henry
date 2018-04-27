@@ -436,7 +436,13 @@ function socketActionPartner(socketIO, socket) {
                 name: getAdminName(),
                 id: getAdminId()
             }], actionName, isValidData);
-        }
+        },
+
+        getPartnerCommissionLog: function getPartnerCommissionLog (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.commissionType && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerCommissionLog, [data.platformObjId, data.commissionType, data.startTime, data.endTime], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
