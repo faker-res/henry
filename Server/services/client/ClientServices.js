@@ -404,7 +404,10 @@
                 "getPartnerCommissionValue",
                 "getPartnerPlayerRegistrationStats",
                 "getSMSCode",
-                "updatePhoneNumberWithSMS"
+                "updatePhoneNumberWithSMS",
+                "updatePartnerQQ",
+                "updatePartnerWeChat",
+                "updatePartnerEmail"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

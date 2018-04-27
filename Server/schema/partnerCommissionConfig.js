@@ -8,10 +8,13 @@ let partnerCommissionConfigSchema = new Schema({
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     //game provider group _id
     provider: {type: Schema.ObjectId, ref: 'gameProviderGroup'},
+    // If exists, this setting is customized for this partner
+    partner: {type: Schema.ObjectId, ref: 'partner'},
     //commission type
     commissionType: {type: String},
     //commission setting
     commissionSetting: [{
+        _id: false,
         //Consumption Bonus Amount Or Consumption Valid Amount
         playerConsumptionAmountFrom: {type: Number},
         playerConsumptionAmountTo: {type: Number},
@@ -20,53 +23,10 @@ let partnerCommissionConfigSchema = new Schema({
         activePlayerValueTo: {type: Number},
         //Commission Rate
         commissionRate: {type: Number}
-    }],
-    // Custom rate
-    customSetting: [{
-        _id: false,
-        configObjId: {type: Schema.ObjectId},
-        partner: {type: Schema.ObjectId, ref: 'partner'},
-        //Commission Rate
-        commissionRate: {type: Number}
     }]
-
-    /** To be removed
-    //commission param
-    //platform fee rate
-    platformFeeRate: {type: Number, default: 0},
-    //service fee rate
-    serviceFeeRate: {type: Number, default: 0},
-    //commission period: day, week, month
-    commissionPeriod: {type: String},
-    //commission level config
-    commissionLevelConfig: [{
-        _id: false,
-        //level value, used for level comparison
-        value: {type: Number, required: true},
-        minProfitAmount: {type: Number},
-        maxProfitAmount: {type: Number},
-        minActivePlayer: {type: Number},
-        commissionRate: {type: Number}
-    }],
-    //commission rate for children
-    childrenCommissionRate: [{
-        _id: false,
-        level: Number,
-        rate: Number
-    }],
-    //bonus commission times
-    bonusCommissionHistoryTimes: Number,
-    //bonus commission rate
-    bonusRate: Number,
-    //minimum commission amount
-    minCommissionAmount: {type: Number, default: 0},
-    //reset period，number of days to clear negative value
-    resetPeriod: {type: Number, default: 0},
-    // settlement mode
-    settlementMode: {type: String, default: constPartnerCommissionSettlementMode.OPSR},
-    // reward rate
-    rewardRate: {type: Number, default: 1}**/
 });
+
+partnerCommissionConfigSchema.index({platform: 1, provider: 1, commissionType: 1, partner: 1});
 
 module.exports = partnerCommissionConfigSchema;
 

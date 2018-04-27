@@ -314,8 +314,8 @@ var simplifiedChinese = {
     "This player has applied for max reward times in event period": "您已经达到了该优惠申请次数上限，若有疑问请联系客服",
     "ALL_PROVIDERS": "全部供应商",
     "This phone number has applied for max reward times in event period": "此电话已经达到了该优惠周期内的申请上限",
-    "Password should be alphanumeric and within 20 characters": "密码只能为6-20位的数字和字母"
-
+    "Password should be alphanumeric and within 20 characters": "密码只能为6-20位的数字和字母",
+    "Player does not have permission for reward point task": "目前进行维护当中，详情请联系客服谘询，谢谢"
     //todo::add missing messages here
 
     /*
