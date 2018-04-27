@@ -4859,6 +4859,104 @@ let dbPartner = {
         }).lean();
     },
 
+    /**
+     * Create new Proposal to update partner QQ
+     * @param {json} data - proposal data
+     */
+    createPartnerQQProposal: function createPartnerQQProposal(query, data) {
+        return dbconfig.collection_partner.findOne(query).lean().then(
+            partnerData => {
+                let proposalData = {
+                    data: {
+                        partnerName: partnerData.partnerName,
+                        updateData: {qq: data.qq}
+                    }
+                }
+
+                if (partnerData.qq) {
+                    proposalData.data.curData = {qq: partnerData.qq};
+                }
+
+                if (partnerData.qq && !data.qq) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if (!partnerData.qq && !data.qq) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform, constProposalType.UPDATE_PARTNER_QQ, proposalData);
+                }
+            }
+        )
+    },
+
+    /**
+     * Create new Proposal to update partner WeChat
+     * @param {json} data - proposal data
+     */
+    createPartnerWeChatProposal: function createPartnerWeChatProposal(query, data) {
+        return dbconfig.collection_partner.findOne(query).lean().then(
+            partnerData => {
+                let proposalData = {
+                    data: {
+                        partnerName: partnerData.partnerName,
+                        updateData: {wechat: data.wechat}
+                    }
+                }
+
+                if (partnerData.wechat) {
+                    proposalData.data.curData = {wechat: partnerData.wechat};
+                }
+
+                if (partnerData.wechat && !data.wechat) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if (!partnerData.wechat && !data.wechat) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform, constProposalType.UPDATE_PARTNER_WECHAT, proposalData);
+                }
+            }
+        )
+    },
+
+    /**
+     * Create new Proposal to update partner email
+     * @param {json} data - proposal data
+     */
+    createPartnerEmailProposal: function createPartnerEmailProposal(query, data) {
+        return dbconfig.collection_partner.findOne(query).lean().then(
+            partnerData => {
+                let proposalData = {
+                    data: {
+                        partnerName: partnerData.partnerName,
+                        updateData: {email: data.email}
+                    }
+                }
+
+                if (partnerData.email) {
+                    proposalData.data.curData = {email: partnerData.email};
+                }
+
+                if (partnerData.email && !data.email) {
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "INVALID_DATA"
+                    });
+                } else if (!partnerData.email && !data.email) {
+                    return Promise.resolve();
+                } else {
+                    return dbProposal.createProposalWithTypeNameWithProcessInfo(partnerData.platform, constProposalType.UPDATE_PARTNER_EMAIL, proposalData);
+                }
+            }
+        )
+    },
 };
 var proto = dbPartnerFunc.prototype;
 proto = Object.assign(proto, dbPartner);
