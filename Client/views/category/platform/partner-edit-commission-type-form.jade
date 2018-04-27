@@ -181,5 +181,5 @@ form(name="form_edit_partner_commission_type", novalidate)
                                 a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalWithdrawal', true)", style="cursor:pointer") {{'Reset default' | translate}}
     .pull-right
         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"CANCEL" | translate}}
-        button.dialogEditPartnerSubmitBtn.btn.btn-primary.common-button(data-dismiss='dialog', ng-disabled='form_edit_partner_commission_type.$invalid || form_edit_partner_commission_type.$pristine', ng-click="updateEditedPartner();") {{"SUBMIT_CHANGES" | translate}}
-        button.btn.btn-danger.common-button(ng-click="partnerCommission.isCustomized = true;") {{"Customize commission rate" | translate}}
+        button.dialogEditPartnerSubmitBtn.btn.btn-primary.common-button(ng-if="!partnerCommission.isCustomized" data-dismiss='dialog', ng-disabled='form_edit_partner_commission_type.$invalid || form_edit_partner_commission_type.$pristine', ng-click="updateEditedPartner();") {{"SUBMIT_CHANGES" | translate}}
+        button.btn.btn-danger.common-button(ng-if="!partnerCommission.isCustomized" ng-click="partnerCommission.isCustomized = true;") {{"Customize commission rate" | translate}}
