@@ -4638,13 +4638,24 @@ let dbPartner = {
         );
     },
 
-    calculatePartnerCommissionDetail: function (partnerObjId, commissionType) {
+    settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime) {
+        let proms = [];
+        partnerObjIdArr.map(partnerObjId => {
+            let prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime);
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
+
+    calculatePartnerCommissionDetail: function (partnerObjId, commissionType, startTime, endTime) {
         let partner = {};
         let platform = {};
         let downLines = [];
         let providerGroups = [];
         let paymentProposalTypes = [];
-        let partnerCommissionConfigRate = {};
+        let rewardProposalTypes = [];
+        let partnerCommissionRateConfig = {};
         let commissionRateTables = [];
         let activePlayerRequirement = {};
         let downLinesRawCommissionDetail = [];
@@ -4652,8 +4663,23 @@ let dbPartner = {
         let providerGroupConsumptionData = {};
         let commissionRates = {};
         let rawCommissions = [];
+        let grossCommission = 0;
+        let totalPlatformFee = 0;
+        let totalReward = 0;
+        let totalRewardFee = 0;
+        let totalTopUp = 0;
+        let totalTopUpFee = 0;
+        let totalWithdrawal = 0;
+        let totalWithdrawalFee = 0;
+        let nettCommission = 0;
 
         let commissionPeriod = getCommissionPeriod(commissionType);
+        if (startTime && endTime) {
+            commissionPeriod = {
+                startTime: startTime,
+                endTime: endTime
+            };
+        }
 
         let partnerProm = dbconfig.collection_partner.findOne({_id: partnerObjId})
             .populate({path: "platform", model: dbconfig.collection_platform}).lean();
@@ -4684,9 +4710,10 @@ let dbPartner = {
                 let commissionRateTableProm = getAllCommissionRateTable(platform._id, commissionType, partner._id, providerGroups);
                 let activePlayerRequirementProm = getRelevantActivePlayerRequirement(platform._id, commissionType);
                 let paymentProposalTypesProm = getPaymentProposalTypes(platform._id);
-                let partnerCommissionConfigRateProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platform._id}).lean();
+                let rewardProposalTypesProm = getRewardProposalTypes(platform._id);
+                let partnerCommissionConfigRateProm = getPartnerCommissionConfigRate(platform._id, partner._id);
 
-                return Promise.all([commissionRateTableProm, activePlayerRequirementProm, paymentProposalTypesProm, partnerCommissionConfigRateProm]);
+                return Promise.all([commissionRateTableProm, activePlayerRequirementProm, paymentProposalTypesProm, rewardProposalTypesProm, partnerCommissionConfigRateProm]);
             }
         ).then(
             data => {
@@ -4696,12 +4723,14 @@ let dbPartner = {
 
                 paymentProposalTypes = data[2];
 
-                partnerCommissionConfigRate = data[3];
+                rewardProposalTypes = data[3];
+
+                partnerCommissionRateConfig = data[4];
 
                 let downLinesRawDetailProms = [];
 
                 downLines.map(player => {
-                    let prom = getAllPlayerCommissionRawDetails(player._id, commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, paymentProposalTypes, activePlayerRequirement)
+                    let prom = getAllPlayerCommissionRawDetails(player._id, commissionType, commissionPeriod.startTime, commissionPeriod.endTime, providerGroups, paymentProposalTypes, rewardProposalTypes, activePlayerRequirement);
                     downLinesRawDetailProms.push(prom);
                 });
 
@@ -4715,22 +4744,91 @@ let dbPartner = {
 
                 providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(downLinesRawCommissionDetail, providerGroups);
 
+                // todo :: add a version where there is no provider group
+
                 commissionRateTables.map(groupRate => {
+                    let isCustomCommissionRate = groupRate.rateTable.isCustom;
                     commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, providerGroupConsumptionData[groupRate.groupName].validAmount, activeDownLines);
 
                     let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
                         : providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 
+                    let platformFeeRateData = {};
+                    partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
+                        if (group.name === groupRate.groupName) {
+                            platformFeeRateData.rate = group.rate;
+                            platformFeeRateData.isCustom = Boolean(group.isCustom);
+                        }
+                    });
+
+                    let platformFeeRate = Number(partnerCommissionRateConfig.rateAfterRebateGameProviderGroup[groupRate.groupName].rate);
+                    let isCustomPlatformFeeRate = partnerCommissionRateConfig.rateAfterRebateGameProviderGroup[groupRate.groupName].isCustom;
+
+                    let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName]);
+                    let platformFee =  platformFeeRate * totalConsumption;
+                    totalPlatformFee += platformFee;
+
                     rawCommissions.push({
                         groupName: groupRate.groupName,
-                        amount: calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName]),
+                        amount: rawCommission,
+                        commissionRate: commissionRates[groupRate.groupName],
+                        isCustomCommissionRate: isCustomCommissionRate,
+                        platformFee: platformFee,
+                        platformFeeRate: platformFeeRate,
+                        isCustomPlatformFeeRate: isCustomPlatformFeeRate,
                     });
+
+                    grossCommission += rawCommission;
                 });
 
-                // todo :: add player calculate reward
+                totalReward = getTotalReward(downLinesRawData);
+                totalRewardFee = totalReward * partnerCommissionRateConfig.rateAfterRebatePromo;
+
+                totalTopUp = getTotalTopUp(downLinesRawData);
+                totalTopUpFee = totalTopUp * partnerCommissionRateConfig.rateAfterRebateTotalDeposit;
+
+                totalWithdrawal = getTotalWithdrawal(downLinesRawData);
+                totalWithdrawalFee = totalWithdrawal * partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal;
+
+                nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
+
+                let commissionData = {
+                    partner: partner._id,
+                    platform: platform._id,
+                    commissionType: commissionType,
+                    startTime: commissionPeriod.startTime,
+                    endTime: commissionPeriod.endTime,
+                    partnerName: partner.partnerName,
+                    partnerRealName: partner.realName,
+                    downLinesRawCommissionDetail: downLinesRawCommissionDetail,
+                    activeDownLines: activeDownLines,
+                    partnerCommissionRateConfig: partnerCommissionRateConfig,
+                    rawCommissions: rawCommissions,
+                    totalReward: totalReward,
+                    totalRewardFee: totalRewardFee,
+                    totalPlatformFee: totalPlatformFee,
+                    totalTopUp: totalTopUp,
+                    totalTopUpFee: totalTopUpFee,
+                    totalWithdrawal: totalWithdrawal,
+                    totalWithdrawalFee: totalWithdrawalFee,
+                    nettCommission: nettCommission,
+                };
+
+                return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
+                    partner: partner._id,
+                    platform: platform._id,
+                    startTime: commissionPeriod.startTime,
+                    endTime: commissionPeriod.endTime,
+                    commissionType: commissionType,
+                }, commissionData, {upsert: true, new: true}).lean();
             }
-        )
+        ).then(
+            partnerCommissionLog => {
+                // todo :: add pastActiveDownLines and pastNettCommission
+                return partnerCommissionLog;
+            }
+        );
     },
 
 };
@@ -5025,6 +5123,40 @@ function getCommissionPeriod (commissionType) {
     }
 }
 
+function getRewardProposalTypes (platformObjId) {
+    return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
+        proposalType => {
+            let rewardTypes = {};
+            for (let i = 0, len = proposalType.length; i < len; i++) {
+                let proposalTypeObj = proposalType[i];
+
+                switch (proposalTypeObj.name) {
+                    case constProposalType.ADD_PLAYER_REWARD_TASK:
+                        rewardTypes.manualReward = proposalTypeObj._id.toString();
+                        break;
+                    case constProposalType.PLAYER_CONSUMPTION_RETURN:
+                        rewardTypes.consumptionReturn = proposalTypeObj._id.toString();
+                        break;
+                    case constProposalType.PLAYER_LIMITED_OFFER_REWARD:
+                        rewardTypes.limitedOffer = proposalTypeObj._id.toString();
+                        break;
+                    case constProposalType.PLAYER_PROMO_CODE_REWARD:
+                        rewardTypes.promoCode = proposalTypeObj._id.toString();
+                        break;
+                    case constProposalType.PLAYER_CONVERT_REWARD_POINTS:
+                        rewardTypes.convertRewardPoint = proposalTypeObj._id.toString();
+                        break;
+                    case constProposalType.PLAYER_AUTO_CONVERT_REWARD_POINTS:
+                        rewardTypes.autoConvertRewardPoint = proposalTypeObj._id.toString();
+                        break;
+                }
+            }
+
+            return rewardTypes;
+        }
+    );
+}
+
 function getPaymentProposalTypes (platformObjId) {
     return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
         proposalType => {
@@ -5053,23 +5185,31 @@ function getPaymentProposalTypes (platformObjId) {
     );
 }
 
-function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, activePlayerRequirement) {
+function getAllPlayerCommissionRawDetails (playerObjId, commissionType, startTime, endTime, providerGroups, topUpTypes, rewardTypes, activePlayerRequirement) {
     let consumptionDetailProm = getPlayerCommissionConsumptionDetail(playerObjId, startTime, endTime, providerGroups);
     let topUpDetailProm = getPlayerCommissionTopUpDetail(playerObjId, startTime, endTime, topUpTypes);
     let withdrawalDetailProm = getPlayerCommissionWithdrawDetail(playerObjId, startTime, endTime);
+    let rewardDetailProm = getPlayerCommissionRewardDetail(playerObjId, startTime, endTime, rewardTypes);
+    let namesProm = dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1}).lean();
 
-    return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm]).then(
+    return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm]).then(
         data => {
             let consumptionDetail = data[0];
             let topUpDetail = data[1];
             let withdrawalDetail = data[2];
+            let rewardDetail = data[3];
+            let name = (data[4] && data[4].name) || "";
+            let realName = (data[4] && data[4].realName) || "";
 
             let active = isPlayerActive(activePlayerRequirement, consumptionDetail.consumptionTimes, consumptionDetail.validAmount, topUpDetail.topUpTimes, topUpDetail.topUpAmount);
 
             return {
+                name,
+                realName,
                 consumptionDetail,
                 topUpDetail,
                 withdrawalDetail,
+                rewardDetail,
                 active,
             };
         }
@@ -5109,4 +5249,155 @@ function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, provid
     });
 
     return total;
+}
+
+function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewardTypes) {
+    let rewardProm = dbconfig.collection_proposal.aggregate([
+        {
+            "$match": {
+                "data.playerObjId": playerObjId,
+                "createTime": {
+                    "$gte": new Date(startTime),
+                    "$lte": new Date(endTime)
+                },
+                "mainType": "Reward",
+                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$type",
+                "typeId": "$type",
+                "amount": {"$sum": "$data.rewardAmount"}
+            }
+        }
+    ]).read("secondaryPreferred");
+
+    return rewardProm.then(
+        rewardData => {
+            if (!rewardData || !rewardData[0]) {
+                rewardData = [{}];
+            }
+
+            let playerRewardDetail = {
+                systemReward: 0,
+                manualReward: 0,
+                consumptionReturn: 0,
+                limitedOffer: 0,
+                promoCode: 0,
+                pointConversion: 0,
+                total: 0
+            };
+
+            for (let i = 0, len = rewardData.length; i < len; i++) {
+                let rewardTypeTotal = rewardData[i];
+
+                switch (rewardTypeTotal.typeId.toString()) {
+                    case rewardTypes.manualReward:
+                        playerRewardDetail.manualReward = rewardTypeTotal.amount;
+                        break;
+                    case rewardTypes.consumptionReturn:
+                        playerRewardDetail.consumptionReturn = rewardTypeTotal.amount;
+                        break;
+                    case rewardTypes.limitedOffer:
+                        playerRewardDetail.limitedOffer = rewardTypeTotal.amount;
+                        break;
+                    case rewardTypes.promoCode:
+                        playerRewardDetail.promoCode = rewardTypeTotal.amount;
+                        break;
+                    case rewardTypes.convertRewardPoint:
+                    case rewardTypes.autoConvertRewardPoint:
+                        playerRewardDetail.pointConversion += rewardTypeTotal.amount;
+                        break;
+                    default:
+                        playerRewardDetail.systemReward += rewardTypeTotal.amount;
+                }
+
+                playerRewardDetail.total += rewardTypeTotal.amount;
+            }
+
+            return playerRewardDetail;
+        }
+    );
+}
+
+function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
+    return dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId}).lean().then(
+        rateData => {
+            let rateConfig = {
+                rateAfterRebatePromo: rateData.rateAfterRebatePromo,
+                rateAfterRebatePlatform: rateData.rateAfterRebatePlatform,
+                rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup,
+                rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit,
+                rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal,
+            };
+
+            if (rateData.customRate && rateData.customRate.length > 0) {
+                let customRateArr = rateData.customRate;
+                customRateArr.map(customRateData => {
+                    if (String(customRateData.partner) === String(partnerObjId)) {
+                        if (rateConfig.rateAfterRebatePromo !== customRateData.rateAfterRebatePromo) {
+                            rateConfig.rateAfterRebatePromoIsCustom = true;
+                            rateConfig.rateAfterRebatePromo = customRateData.rateAfterRebatePromo;
+                        }
+
+                        if (rateConfig.rateAfterRebatePlatform !== customRateData.rateAfterRebatePlatform) {
+                            rateConfig.rateAfterRebatePlatformIsCustom = true;
+                            rateConfig.rateAfterRebatePlatform = customRateData.rateAfterRebatePlatform;
+                        }
+
+                        if (rateConfig.rateAfterRebateTotalDeposit !== customRateData.rateAfterRebateTotalDeposit) {
+                            rateConfig.rateAfterRebateTotalDepositIsCustom = true;
+                            rateConfig.rateAfterRebateTotalDeposit = customRateData.rateAfterRebateTotalDeposit;
+                        }
+
+                        if (rateConfig.rateAfterRebateTotalWithdrawal !== customRateData.rateAfterRebateTotalWithdrawal) {
+                            rateConfig.rateAfterRebateTotalWithdrawalIsCustom = true;
+                            rateConfig.rateAfterRebateTotalWithdrawal = customRateData.rateAfterRebateTotalWithdrawal;
+                        }
+
+                        rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                            customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
+                                if (defaultGroup.name === customGroup.name
+                                && defaultGroup.rate !== customGroup.rate
+                                ) {
+                                    defaultGroup.isCustom = true;
+                                    defaultGroup.rate = customGroup.rate;
+                                }
+                            });
+                        });
+
+                    }
+                });
+
+            }
+
+            return rateConfig;
+        }
+    );
+}
+
+function getTotalTopUp(downLineRawDetail) {
+    let total = 0;
+    downLineRawDetail.map(downLine => {
+        total += downLine.topUpDetail.topUpAmount || 0;
+    });
+}
+
+function getTotalReward(downLineRawDetail) {
+    let total = 0;
+    downLineRawDetail.map(downLine => {
+        total += downLine.rewardDetail.total || 0;
+    });
+}
+
+function getTotalWithdrawal(downLineRawDetail) {
+    let total = 0;
+    downLineRawDetail.map(downLine => {
+        total += downLine.withdrawalDetail.withdrawalAmount || 0;
+    });
+}
+
+function getPlayerNames (playerObjId) {
+    return dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1}).lean();
 }

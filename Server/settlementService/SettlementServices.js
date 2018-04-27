@@ -56,6 +56,7 @@
                 "bulkPlayerApplyReward",
                 "batchCreditTransferOut",
                 "performUnlockPlatformProviderGroup",
+                "settlePartnersCommission",
                 "getConsumptionActivePlayerAfterTopupQueryMatch"
             ];
             addServiceFunctions(sinonet, this, functionNames);
