@@ -4867,6 +4867,15 @@ let dbPartner = {
         );
     },
 
+    getPartnerCommissionLog: function (platformObjId, commissionType, startTime, endTime) {
+        return dbconfig.collection_partnerCommissionLog.find({
+            "platform": platformObjId,
+            commissionType: commissionType,
+            startTime: startTime,
+            endTime: endTime
+        }).lean();
+    },
+
 };
 var proto = dbPartnerFunc.prototype;
 proto = Object.assign(proto, dbPartner);
