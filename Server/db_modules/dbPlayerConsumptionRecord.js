@@ -771,16 +771,6 @@ var dbPlayerConsumptionRecord = {
         );
     },
 
-    updateConsumptionRecord: (recordData) => {
-        return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
-            data => {
-                if (data) {
-                    return dbPlayerConsumptionRecord.updateExternalPlayerConsumptionRecordData(data, recordData);
-                }
-            }
-        );
-    },
-
     /**
      *  Update player consumption record
      * @param {Json} data

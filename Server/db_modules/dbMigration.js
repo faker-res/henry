@@ -1921,16 +1921,17 @@ var dbMigration = {
             playerData => {
                 if (playerData) {
                     dbPlayerInfo.updateGeoipws(playerData._id, playerData.platform, playerData.lastLoginIp);
-                    return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(playerData, data.phoneNumber);
+                    // return dbPlayerInfo.findAndUpdateSimilarPlayerInfo(playerData, data.phoneNumber);
                 }
                 else {
                     return playerData;
                 }
             }
-        ).then(
-            res => dbMigration.resHandler(data, "admin", "createPlayer"),
-            error => dbMigration.errorHandler("player", "createPlayer", data, error)
         );
+        //     .then(
+        //     res => dbMigration.resHandler(data, "admin", "createPlayer"),
+        //     error => dbMigration.errorHandler("player", "createPlayer", data, error)
+        // );
     }
 
 };

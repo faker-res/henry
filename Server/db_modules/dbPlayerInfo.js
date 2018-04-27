@@ -6293,7 +6293,7 @@ let dbPlayerInfo = {
                             playerName: playerName,
                             createTime: proposals[i].createTime,
                             rewardType: proposals[i].type ? proposals[i].type.name : "",
-                            rewardAmount: proposals[i].data.rewardAmount ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
+                            rewardAmount: proposals[i].data.rewardAmount != null ? Number(proposals[i].data.rewardAmount) : proposals[i].data.currentAmount,
                             eventName: eventNameRec,
                             eventCode: proposals[i].data.eventCode,
                             status: status
@@ -14793,6 +14793,9 @@ let dbPlayerInfo = {
                     playerData => {
                         if (playerData && playerData._id) {
                             playerObj = playerData;
+                            if (playerObj && playerObj.name) {
+                                playerObj.name = censoredPlayerName(playerObj.name);
+                            }
                             platformObj = playerData.platform;
                         } else {
                             return Promise.reject({name: "DataError", message: "Cannot find player"});
@@ -14927,15 +14930,18 @@ let dbPlayerInfo = {
                                             returnData.allDeposit = {};
                                             for (let i = 0; i < populatedData.length; i++) {
                                                 if (populatedData[i]._id && populatedData[i]._id.name) {
-                                                    populatedData[i].name = populatedData[i]._id.name;
+                                                    populatedData[i].name = censoredPlayerName(populatedData[i]._id.name);
                                                     delete populatedData[i]._id;
                                                 }
                                             }
-                                            returnData.allDeposit.playerRanking = {};
-                                            if (playerRanking) {
-                                                returnData.allDeposit.playerRanking = playerRanking;
-                                            }   else {
-                                                returnData.allDeposit.playerRanking.error = "No top up record for this player";
+
+                                            if (playerObj) {
+                                                returnData.allDeposit.playerRanking = {};
+                                                if (playerRanking) {
+                                                    returnData.allDeposit.playerRanking = playerRanking;
+                                                } else {
+                                                    returnData.allDeposit.playerRanking.error = "No top up record for this player";
+                                                }
                                             }
 
                                             returnData.allDeposit.boardRanking = populatedData;
@@ -15038,16 +15044,18 @@ let dbPlayerInfo = {
                                         for (let i = 0; i < populatedData.length; i++) {
                                             populatedData[i].rank = i + 1;
                                             if (populatedData[i]._id && populatedData[i]._id.name) {
-                                                populatedData[i].name = populatedData[i]._id.name;
+                                                populatedData[i].name = censoredPlayerName(populatedData[i]._id.name);
                                                 delete populatedData[i]._id;
                                             }
                                         }
 
-                                        returnData.singleDeposit.playerRanking = {};
-                                        if (playerRanking) {
-                                            returnData.singleDeposit.playerRanking = playerRanking;
-                                        } else {
-                                            returnData.singleDeposit.playerRanking.error = "No top up record for this player";
+                                        if (playerObj) {
+                                            returnData.singleDeposit.playerRanking = {};
+                                            if (playerRanking) {
+                                                returnData.singleDeposit.playerRanking = playerRanking;
+                                            } else {
+                                                returnData.singleDeposit.playerRanking.error = "No top up record for this player";
+                                            }
                                         }
                                         returnData.singleDeposit.boardRanking = populatedData;
                                         return returnData;
@@ -15194,15 +15202,18 @@ let dbPlayerInfo = {
                                             for (let i = 0; i < populatedData.length; i++) {
                                                 if (populatedData[i]._id && populatedData[i]._id.name) {
                                                     populatedData[i].name = populatedData[i]._id.name;
+                                                    populatedData[i].name = censoredPlayerName(populatedData[i]._id.name);
                                                     delete populatedData[i]._id;
                                                 }
                                             }
 
-                                            returnData.allWithdraw.playerRanking = {};
-                                            if (playerRanking) {
-                                                returnData.allWithdraw.playerRanking = playerRanking;
-                                            } else {
-                                                returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                            if (playerObj) {
+                                                returnData.allWithdraw.playerRanking = {};
+                                                if (playerRanking) {
+                                                    returnData.allWithdraw.playerRanking = playerRanking;
+                                                } else {
+                                                    returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                                }
                                             }
 
                                             returnData.allWithdraw.boardRanking = populatedData;
@@ -15250,6 +15261,8 @@ let dbPlayerInfo = {
                             $group: {
                                 _id: "$playerId",
                                 providerId: {$addToSet: "$providerId"},
+                                gameId: {$addToSet: {$cond:  [{$not: ["$cpGameType"]}, "$gameId","$null"]} },
+                                cpGameType: {$addToSet:  {$ifNull: ['$cpGameType', '$null'] } },
                                 amount: {$sum: "$validAmount"},
                                 createTime : {$addToSet: "$createTime"}
                             }
@@ -15295,32 +15308,53 @@ let dbPlayerInfo = {
                             }
 
                             if (sortedData && sortedData.length) {
-                                return dbconfig.collection_players.populate(sortedData, {
-                                    path: '_id',
-                                    model: dbconfig.collection_players,
-                                    select: "name"
-                                }).then(
-                                    populatedData => {
-                                        return dbconfig.collection_players.populate(populatedData, {
-                                            path: 'providerId',
-                                            model: dbconfig.collection_gameProvider,
-                                            select: ["name", "gameTypes"]
-                                        })
+                                return dbconfig.collection_players.populate(sortedData,  [{
+                                        path: '_id',
+                                        model: dbconfig.collection_players,
+                                        select: "name"
+                                    },{
+                                        path: 'providerId',
+                                        model: dbconfig.collection_gameProvider,
+                                        select: "name"
+                                    },{
+                                        path: "gameId",
+                                        model: dbconfig.collection_game,
+                                        select: "name"
                                     }
-                                ).then(
+                                ]).then(
                                     populatedProvider => {
                                         for (let i = 0; i < populatedProvider.length; i++) {
                                             // populatedProvider[i].rank = i + 1;
                                             if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
-                                                populatedProvider[i].name = populatedProvider[i]._id.name;
+                                                populatedProvider[i].name = censoredPlayerName(populatedProvider[i]._id.name);
                                                 delete populatedProvider[i]._id;
                                             }
 
                                             if (!populatedProvider[i].providerName) {
                                                 populatedProvider[i].providerName = "";
                                             }
-                                            if (!populatedProvider[i].providerGameTypes) {
-                                                populatedProvider[i].providerGameTypes = "";
+                                            if (!populatedProvider[i].gameName) {
+                                                populatedProvider[i].gameName = "";
+                                            }
+                                            if (populatedProvider[i].cpGameType) {
+                                                for (let z = 0; z < populatedProvider[i].cpGameType.length; z++) {
+                                                    if (populatedProvider[i].gameName) {
+                                                        populatedProvider[i].gameName += ", ";
+                                                    }
+                                                    populatedProvider[i].gameName += populatedProvider[i].cpGameType[z];
+                                                }
+                                                delete populatedProvider[i].cpGameType;
+                                            }
+                                            if (populatedProvider[i].gameId) {
+                                                for (let k = 0; k < populatedProvider[i].gameId.length; k++) {
+                                                    if (populatedProvider[i].gameName) {
+                                                        populatedProvider[i].gameName += ", ";
+                                                    }
+                                                    if (populatedProvider[i].gameId[k].name) {
+                                                        populatedProvider[i].gameName += populatedProvider[i].gameId[k].name;
+                                                    }
+                                                }
+                                                delete populatedProvider[i].gameId;
                                             }
                                             if (populatedProvider[i].providerId && populatedProvider[i].providerId.length) {
                                                 for (let j = 0; j < populatedProvider[i].providerId.length; j++) {
@@ -15331,28 +15365,20 @@ let dbPlayerInfo = {
                                                     if (populatedProvider[i].providerId[j].name) {
                                                         populatedProvider[i].providerName += populatedProvider[i].providerId[j].name;
                                                     }
-                                                    if (populatedProvider[i].providerId[j].gameTypes) {
-                                                        for (let k = 0; k < populatedProvider[i].providerId[j].gameTypes.length; k++) {
-                                                            for (let l = 0; l < Object.keys(populatedProvider[i].providerId[j].gameTypes[k]).length; l++) {
-                                                                if (populatedProvider[i].providerGameTypes) {
-                                                                    populatedProvider[i].providerGameTypes += ", ";
-                                                                }
-                                                                populatedProvider[i].providerGameTypes += Object.keys(populatedProvider[i].providerId[j].gameTypes[k])[l];
-                                                            }
-                                                        }
-                                                    }
                                                 }
                                                 delete populatedProvider[i].providerId;
                                             }
                                         }
 
                                         returnData.allValidbet = {};
-                                        returnData.allValidbet.playerRanking = {};
-                                        if (playerRanking) {
-                                            returnData.allValidbet.playerRanking = populatedProvider[populatedProvider.length-1];
-                                            populatedProvider.length -= 1;
-                                        } else {
-                                            returnData.allValidbet.playerRanking.error = "No consumption record for this player";
+                                        if (playerObj) {
+                                            returnData.allValidbet.playerRanking = {};
+                                            if (playerRanking) {
+                                                returnData.allValidbet.playerRanking = populatedProvider[populatedProvider.length - 1];
+                                                populatedProvider.length -= 1;
+                                            } else {
+                                                returnData.allValidbet.playerRanking.error = "No consumption record for this player";
+                                            }
                                         }
                                         returnData.allValidbet.boardRanking = populatedProvider;
                                         return returnData;
@@ -15378,7 +15404,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     } else {
@@ -15387,7 +15414,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate}
+                                createTime: {$gte: recordDate},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     }
@@ -15398,6 +15426,8 @@ let dbPlayerInfo = {
                             $group: {
                                 _id: "$playerId",
                                 providerId: {$addToSet: "$providerId"},
+                                gameId: {$addToSet: {$cond:  [{$not: ["$cpGameType"]}, "$gameId","$null"]} },
+                                cpGameType: {$addToSet:  {$ifNull: ['$cpGameType', '$null'] } },
                                 amount: {$sum: "$bonusAmount"},
                                 createTime : {$addToSet: "$createTime"}
                             }
@@ -15444,32 +15474,54 @@ let dbPlayerInfo = {
                             }
 
                             if (sortedData && sortedData.length) {
-                                return dbconfig.collection_players.populate(sortedData, {
+                                return dbconfig.collection_players.populate(sortedData, [{
                                     path: '_id',
                                     model: dbconfig.collection_players,
                                     select: "name"
-                                }).then(
-                                    populatedData => {
-                                        return dbconfig.collection_players.populate(populatedData, {
-                                            path: 'providerId',
-                                            model: dbconfig.collection_gameProvider,
-                                            select: ["name", "gameTypes"]
-                                        })
-                                    }
-                                ).then(
+                                },{
+                                    path: 'providerId',
+                                    model: dbconfig.collection_gameProvider,
+                                    select: "name"
+                                },{
+                                    path: "gameId",
+                                    model: dbconfig.collection_game,
+                                    select: "name"
+                                }
+                                ]).then(
                                     populatedProvider => {
                                         for (let i = 0; i < populatedProvider.length; i++) {
                                             // populatedProvider[i].rank = i + 1;
                                             if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
-                                                populatedProvider[i].name = populatedProvider[i]._id.name;
+                                                populatedProvider[i].name = censoredPlayerName(populatedProvider[i]._id.name);
                                                 delete populatedProvider[i]._id;
                                             }
 
                                             if (!populatedProvider[i].providerName) {
                                                 populatedProvider[i].providerName = "";
                                             }
-                                            if (!populatedProvider[i].providerGameTypes) {
-                                                populatedProvider[i].providerGameTypes = "";
+                                            if (!populatedProvider[i].gameName) {
+                                                populatedProvider[i].gameName = "";
+                                            }
+                                            if (populatedProvider[i].cpGameType) {
+                                                for (let z = 0; z < populatedProvider[i].cpGameType.length; z++) {
+                                                    if (populatedProvider[i].gameName) {
+                                                        populatedProvider[i].gameName += ", ";
+                                                    }
+                                                    populatedProvider[i].gameName += populatedProvider[i].cpGameType[z];
+                                                }
+                                                delete populatedProvider[i].cpGameType;
+                                            }
+
+                                            if (populatedProvider[i].gameId) {
+                                                for (let k = 0; k < populatedProvider[i].gameId.length; k++) {
+                                                    if (populatedProvider[i].gameName) {
+                                                        populatedProvider[i].gameName += ", ";
+                                                    }
+                                                    if (populatedProvider[i].gameId[k].name) {
+                                                        populatedProvider[i].gameName += populatedProvider[i].gameId[k].name;
+                                                    }
+                                                }
+                                                delete populatedProvider[i].gameId;
                                             }
                                             if (populatedProvider[i].providerId && populatedProvider[i].providerId.length) {
                                                 for (let j = 0; j < populatedProvider[i].providerId.length; j++) {
@@ -15480,27 +15532,29 @@ let dbPlayerInfo = {
                                                     if (populatedProvider[i].providerId[j].name) {
                                                         populatedProvider[i].providerName += populatedProvider[i].providerId[j].name;
                                                     }
-                                                    if (populatedProvider[i].providerId[j].gameTypes) {
-                                                        for (let k = 0; k < populatedProvider[i].providerId[j].gameTypes.length; k++) {
-                                                            for (let l = 0; l < Object.keys(populatedProvider[i].providerId[j].gameTypes[k]).length; l++) {
-                                                                if (populatedProvider[i].providerGameTypes) {
-                                                                    populatedProvider[i].providerGameTypes += ", ";
-                                                                }
-                                                                populatedProvider[i].providerGameTypes += Object.keys(populatedProvider[i].providerId[j].gameTypes[k])[l];
-                                                            }
-                                                        }
-                                                    }
+                                                    // if (populatedProvider[i].providerId[j].gameTypes) {
+                                                    //     for (let k = 0; k < populatedProvider[i].providerId[j].gameTypes.length; k++) {
+                                                    //         for (let l = 0; l < Object.keys(populatedProvider[i].providerId[j].gameTypes[k]).length; l++) {
+                                                    //             if (populatedProvider[i].gameName) {
+                                                    //                 populatedProvider[i].gameName += ", ";
+                                                    //             }
+                                                    //             populatedProvider[i].gameName += Object.keys(populatedProvider[i].providerId[j].gameTypes[k])[l];
+                                                    //         }
+                                                    //     }
+                                                    // }
                                                 }
                                                 delete populatedProvider[i].providerId;
                                             }
                                         }
                                         returnData.allWin = {};
-                                        returnData.allWin.playerRanking = {};
-                                        if (playerRanking) {
-                                            returnData.allWin.playerRanking = populatedProvider[populatedProvider.length-1];
-                                            populatedProvider.length -= 1;
-                                        } else {
-                                            returnData.allWin.playerRanking.error = "No consumption record for this player";
+                                        if (playerObj) {
+                                            returnData.allWin.playerRanking = {};
+                                            if (playerRanking) {
+                                                returnData.allWin.playerRanking = populatedProvider[populatedProvider.length - 1];
+                                                populatedProvider.length -= 1;
+                                            } else {
+                                                returnData.allWin.playerRanking.error = "No consumption record for this player";
+                                            }
                                         }
                                         returnData.allWin.boardRanking = populatedProvider;
                                         return returnData;
@@ -15526,7 +15580,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     } else {
@@ -15535,7 +15590,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate}
+                                createTime: {$gte: recordDate},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     }
@@ -15554,11 +15610,30 @@ let dbPlayerInfo = {
                                 providerId: {$first: "$providerId"},
                                 validAmount: {$first: "$validAmount"},
                                 bonusAmount: {$first: "$bonusAmount"},
-                                createTime : {$first: "$createTime"}
+                                createTime : {$first: "$createTime"},
+                                gameId: {$first: {$cond:  [{$not: ["$cpGameType"]}, "$gameId","$null"]} },
+                                cpGameType: {$first:  {$ifNull: ['$cpGameType', '$null'] } },
+                                winRatio: {$first: "$winRatio"}
                             }
                         }
                     ]).then(
                         sortedData => {
+                            // function sortRankingRecord(a, b) {
+                            //     if (a.winRatio < b.winRatio)
+                            //         return 1;
+                            //     if (a.winRatio > b.winRatio)
+                            //         return -1;
+                            //     if (a.winRatio == b.winRatio) {
+                            //         if (a.createTime < b.createTime) {
+                            //             return -1;
+                            //         }
+                            //         if (a.createTime > b.createTime) {
+                            //             return 1;
+                            //         }
+                            //     }
+                            //     return 0;
+                            // }
+                            // let sortedData = consumptionRecord.sort(sortRankingRecord);
                             let playerRanking;
                             for (let i = 0; i < sortedData.length; i++) {
                                 sortedData[i].rank = i + 1;
@@ -15577,56 +15652,58 @@ let dbPlayerInfo = {
                             }
 
                             if (sortedData && sortedData.length) {
-                                return dbconfig.collection_players.populate(sortedData, {
+                                return dbconfig.collection_players.populate(sortedData, [{
                                     path: '_id',
                                     model: dbconfig.collection_players,
                                     select: "name"
-                                }).then(
-                                    populatedData => {
-                                        return dbconfig.collection_players.populate(populatedData, {
-                                            path: 'providerId',
-                                            model: dbconfig.collection_gameProvider,
-                                            select: ["name", "gameTypes"]
-                                        })
-                                    }
-                                ).then(
+                                },{
+                                    path: 'providerId',
+                                    model: dbconfig.collection_gameProvider,
+                                    select: "name"
+                                },{
+                                    path: "gameId",
+                                    model: dbconfig.collection_game,
+                                    select: "name"
+                                }
+                                ]).then(
                                     populatedProvider => {
                                         for (let i = 0; i < populatedProvider.length; i++) {
-                                            // populatedProvider[i].rank = i + 1;
                                             if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
-                                                populatedProvider[i].name = populatedProvider[i]._id.name;
+                                                populatedProvider[i].name = censoredPlayerName(populatedProvider[i]._id.name);
                                                 delete populatedProvider[i]._id;
                                             }
 
-                                            if (!populatedProvider[i].providerGameTypes) {
-                                                populatedProvider[i].providerGameTypes = "";
+                                            if (!populatedProvider[i].gameName) {
+                                                populatedProvider[i].gameName = "";
                                             }
+                                            if (populatedProvider[i].cpGameType) {
+                                                populatedProvider[i].gameName = populatedProvider[i].cpGameType;
+                                            }
+                                            delete populatedProvider[i].cpGameType;
+                                            if (populatedProvider[i].gameId) {
+                                                if (populatedProvider[i].gameId.name) {
+                                                    populatedProvider[i].gameName = populatedProvider[i].gameId.name;
+                                                }
+                                            }
+                                            delete populatedProvider[i].gameId;
                                             if (!populatedProvider[i].providerName) {
                                                 populatedProvider[i].providerName = "";
                                             }
                                             if (populatedProvider[i].providerId) {
                                                 populatedProvider[i].providerName = populatedProvider[i].providerId.name? populatedProvider[i].providerId.name: "";
-                                                if (populatedProvider[i].providerId.gameTypes.length) {
-                                                    for (let j = 0; j < populatedProvider[i].providerId.gameTypes.length; j++) {
-                                                        for (let k = 0; k < Object.keys(populatedProvider[i].providerId.gameTypes[j]).length; k++) {
-                                                            if (populatedProvider[i].providerGameTypes) {
-                                                                populatedProvider[i].providerGameTypes += ", ";
-                                                            }
-                                                            populatedProvider[i].providerGameTypes += Object.keys(populatedProvider[i].providerId.gameTypes[j])[k];
-                                                        }
-                                                    }
-                                                }
                                                 delete populatedProvider[i].providerId;
                                             }
                                         }
 
                                         returnData.singleWin = {};
-                                        returnData.singleWin.playerRanking = {};
-                                        if (playerRanking) {
-                                            returnData.singleWin.playerRanking = populatedProvider[populatedProvider.length-1];
-                                            populatedProvider.length -= 1;
-                                        } else {
-                                            returnData.singleWin.playerRanking.error = "No consumption record for this player";
+                                        if (playerObj) {
+                                            returnData.singleWin.playerRanking = {};
+                                            if (playerRanking) {
+                                                returnData.singleWin.playerRanking = populatedProvider[populatedProvider.length - 1];
+                                                populatedProvider.length -= 1;
+                                            } else {
+                                                returnData.singleWin.playerRanking.error = "No consumption record for this player";
+                                            }
                                         }
                                         returnData.singleWin.boardRanking = populatedProvider;
                                         return returnData;
@@ -15728,6 +15805,14 @@ let dbPlayerInfo = {
 
 };
 
+function censoredPlayerName(name) {
+    let censoredName, front, censor = "***", rear;
+    front = name.substr(0,2);
+    rear = name.substr(5);
+    censoredName = front + censor + rear;
+    censoredName = censoredName.substr(0, name.length);
+    return censoredName;
+}
 /**
  * Check any limited offer intention pending for apply when top up
  * @param proposalData
