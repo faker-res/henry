@@ -14934,11 +14934,14 @@ let dbPlayerInfo = {
                                                     delete populatedData[i]._id;
                                                 }
                                             }
-                                            returnData.allDeposit.playerRanking = {};
-                                            if (playerRanking) {
-                                                returnData.allDeposit.playerRanking = playerRanking;
-                                            }   else {
-                                                returnData.allDeposit.playerRanking.error = "No top up record for this player";
+
+                                            if (playerObj) {
+                                                returnData.allDeposit.playerRanking = {};
+                                                if (playerRanking) {
+                                                    returnData.allDeposit.playerRanking = playerRanking;
+                                                } else {
+                                                    returnData.allDeposit.playerRanking.error = "No top up record for this player";
+                                                }
                                             }
 
                                             returnData.allDeposit.boardRanking = populatedData;
@@ -15204,11 +15207,13 @@ let dbPlayerInfo = {
                                                 }
                                             }
 
-                                            returnData.allWithdraw.playerRanking = {};
-                                            if (playerRanking) {
-                                                returnData.allWithdraw.playerRanking = playerRanking;
-                                            } else {
-                                                returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                            if (playerObj) {
+                                                returnData.allWithdraw.playerRanking = {};
+                                                if (playerRanking) {
+                                                    returnData.allWithdraw.playerRanking = playerRanking;
+                                                } else {
+                                                    returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                                }
                                             }
 
                                             returnData.allWithdraw.boardRanking = populatedData;
@@ -15399,7 +15404,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                winRatio: {$ne: null}
                             },
                         };
                     } else {
@@ -15408,7 +15414,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate}
+                                createTime: {$gte: recordDate},
+                                winRatio: {$ne: null}
                             },
                         };
                     }
@@ -15573,7 +15580,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                winRatio: {$ne: null}
                             },
                         };
                     } else {
@@ -15582,7 +15590,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate}
+                                createTime: {$gte: recordDate},
+                                winRatio: {$ne: null}
                             },
                         };
                     }
