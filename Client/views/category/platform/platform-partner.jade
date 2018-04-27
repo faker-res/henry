@@ -1027,4 +1027,40 @@ p
                     | {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.endTime) }} )
             .modal-body
                 div
-                    text test
+                    table.common-table.simple-table.collapse(style='margin-top:10px;font-size:12px')
+                        thead
+                            tr
+                                th {{'PARTNER_NAME' | translate}}
+                                th {{'PARTNER REAL NAME' | translate}}
+                                th {{'TOTAL_TOPUP_TIMES' | translate}}
+                                th {{'TOTAL_CONSUMPTION_TIMES' | translate}}
+                                th {{'PARTNER_NAME' | translate}}
+                                th {{'PARTNER REAL NAME' | translate}}
+                                th {{'TOTAL_TOPUP_TIMES' | translate}}
+                                th {{'TOTAL_CONSUMPTION_TIMES' | translate}}
+                                th {{'PARTNER_NAME' | translate}}
+                                th {{'PARTNER REAL NAME' | translate}}
+                                th {{'TOTAL_TOPUP_TIMES' | translate}}
+                                th {{'TOTAL_CONSUMPTION_TIMES' | translate}}
+                                th {{'PARTNER_NAME' | translate}}
+                                th {{'PARTNER REAL NAME' | translate}}
+                                th {{'TOTAL_TOPUP_TIMES' | translate}}
+                                th {{'TOTAL_CONSUMPTION_TIMES' | translate}}
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.')
+                                td {{v.partnerName}}
+                                td {{v.playerRealName}}
+                                td {{v.partnerCommissionRateConfig.rateAfterRebateGameProviderGroup[0].name}}
+                                td {{v.partnerCommissionRateConfig.rateAfterRebateGameProviderGroup[1].name}}
+                                td {{v.partnerCommissionRateConfig.rateAfterRebateGameProviderGroup[2].name}}
+                                td {{v.total_players}}
+                                td {{v.total_topup_times}}
+                                td {{v.total_consumption_times}}
+                                td {{v._id.partnerName}}
+                                td {{v.total_players}}
+                                td {{v.total_topup_times}}
+                                td {{v.total_consumption_times}}
+                                td {{v._id.partnerName}}
+                                td {{v.total_players}}
+                                td {{v.total_topup_times}}
+                                td {{v.total_consumption_times}}
