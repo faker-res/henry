@@ -1681,7 +1681,7 @@
   "PlayerRegistrationIntention": "玩家注册意向",
   "AlipayTopUp": "支付宝充值",
   "QuickpayTopUp": "秒付宝充值",
-  "Invalid PlayerId": "无效的玩家ID",
+  "Invalid PlayerName": "无效的玩家账号",
   "partnerBindPlayerText": "(绑定玩家只可绑定一次，不可修改)",
   "ANNOUNCEMENTS": "公告板",
   "Announcement": "公告",
@@ -3628,5 +3628,6 @@
   "queryByTotalValidPlayer": "按有效户人数查询",
   "queryByTotalDepositAmount": "按总存-提查询",
   "queryByTotalValidConsumption": "按总有效投注额查询",
-  "CHECK_RECORDED_RECORD": "查询已收录对话数量"
+  "CHECK_RECORDED_RECORD": "查询已收录对话数量",
+  "Player does not exist": "玩家不存在"
 }

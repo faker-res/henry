@@ -14934,11 +14934,14 @@ let dbPlayerInfo = {
                                                     delete populatedData[i]._id;
                                                 }
                                             }
-                                            returnData.allDeposit.playerRanking = {};
-                                            if (playerRanking) {
-                                                returnData.allDeposit.playerRanking = playerRanking;
-                                            }   else {
-                                                returnData.allDeposit.playerRanking.error = "No top up record for this player";
+
+                                            if (playerObj) {
+                                                returnData.allDeposit.playerRanking = {};
+                                                if (playerRanking) {
+                                                    returnData.allDeposit.playerRanking = playerRanking;
+                                                } else {
+                                                    returnData.allDeposit.playerRanking.error = "No top up record for this player";
+                                                }
                                             }
 
                                             returnData.allDeposit.boardRanking = populatedData;
@@ -15204,11 +15207,13 @@ let dbPlayerInfo = {
                                                 }
                                             }
 
-                                            returnData.allWithdraw.playerRanking = {};
-                                            if (playerRanking) {
-                                                returnData.allWithdraw.playerRanking = playerRanking;
-                                            } else {
-                                                returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                            if (playerObj) {
+                                                returnData.allWithdraw.playerRanking = {};
+                                                if (playerRanking) {
+                                                    returnData.allWithdraw.playerRanking = playerRanking;
+                                                } else {
+                                                    returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                                }
                                             }
 
                                             returnData.allWithdraw.boardRanking = populatedData;
@@ -15399,7 +15404,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     } else {
@@ -15408,7 +15414,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate}
+                                createTime: {$gte: recordDate},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     }
@@ -15573,7 +15580,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     } else {
@@ -15582,7 +15590,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate}
+                                createTime: {$gte: recordDate},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     }
@@ -15608,23 +15617,23 @@ let dbPlayerInfo = {
                             }
                         }
                     ]).then(
-                        consumptionRecord => {
-                            function sortRankingRecord(a, b) {
-                                if (a.winRatio < b.winRatio)
-                                    return 1;
-                                if (a.winRatio > b.winRatio)
-                                    return -1;
-                                if (a.winRatio == b.winRatio) {
-                                    if (a.createTime < b.createTime) {
-                                        return -1;
-                                    }
-                                    if (a.createTime > b.createTime) {
-                                        return 1;
-                                    }
-                                }
-                                return 0;
-                            }
-                            let sortedData = consumptionRecord.sort(sortRankingRecord);
+                        sortedData => {
+                            // function sortRankingRecord(a, b) {
+                            //     if (a.winRatio < b.winRatio)
+                            //         return 1;
+                            //     if (a.winRatio > b.winRatio)
+                            //         return -1;
+                            //     if (a.winRatio == b.winRatio) {
+                            //         if (a.createTime < b.createTime) {
+                            //             return -1;
+                            //         }
+                            //         if (a.createTime > b.createTime) {
+                            //             return 1;
+                            //         }
+                            //     }
+                            //     return 0;
+                            // }
+                            // let sortedData = consumptionRecord.sort(sortRankingRecord);
                             let playerRanking;
                             for (let i = 0; i < sortedData.length; i++) {
                                 sortedData[i].rank = i + 1;
