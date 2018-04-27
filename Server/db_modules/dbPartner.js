@@ -982,7 +982,7 @@ let dbPartner = {
         var obj = {};
         obj[name] = value;
         if (name == 'player') {
-            return dbconfig.collection_players.findOne({playerId: value}).then(
+            return dbconfig.collection_players.findOne({name: value}).then(
                 data => {
                     if (data) {
                         obj.valid = true;

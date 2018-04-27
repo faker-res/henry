@@ -16823,7 +16823,7 @@ define(['js/app'], function (myApp) {
                             updateEditedPartner: function () {
                                 // this ng-model has to be in date object
                                 this.newPartner.DOB = new Date(this.newPartner.DOB);
-                                if (this.newPartner.playerId) {
+                                if (this.newPartner.playerName) {
                                     if (vm.partnerValidity && vm.partnerValidity.player && Object.keys(vm.partnerValidity.player).length > 0)
                                         this.newPartner.player = vm.partnerValidity.player.id;
                                 }
@@ -16954,11 +16954,18 @@ define(['js/app'], function (myApp) {
                         updateData.remark += $translate(vm.commissionType[updateData.commissionType]);
                     }
                     if (updateData.ownDomain) {
-                        if (updateData.ownDomain) {
-                            updateData.ownDomain = updateData.ownDomain.split('\n');
-                        } else {
-                            updateData.ownDomain = [];
+                        updateData.ownDomain = updateData.ownDomain.split('\n');
+
+                        if (updateData.remark) {
+                            updateData.remark += ", ";
                         }
+                        updateData.remark += $translate("own domain");
+                    }
+                    if (updateData.player) {
+                        if (updateData.remark) {
+                            updateData.remark += ", ";
+                        }
+                        updateData.remark += $translate("Bind Player");
                     }
 
                     if (isUpdate) {
@@ -17388,7 +17395,7 @@ define(['js/app'], function (myApp) {
                             }
                             else {
                                 vm.partnerValidity.player = {
-                                    validPlayerId: data.data.valid,
+                                    validPlayerName: data.data.valid,
                                     exists: data.data.exists,
                                     id: data.data.player_id,
                                     playerId: value
@@ -17399,7 +17406,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (vm.partnerValidity && vm.partnerValidity.player) {
-                            form.$setValidity('invalidPartnerPlayer', vm.partnerValidity.player.validPlayerId);
+                            form.$setValidity('invalidPartnerPlayer', vm.partnerValidity.player.validPlayerName);
                         } else {
                             form.$setValidity('invalidPartnerPlayer', vm.partnerValidity[fieldName]);
                         }
