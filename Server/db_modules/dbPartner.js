@@ -2986,7 +2986,7 @@ let dbPartner = {
     },
 
     getPartnerCommissionRateConfig: function (query) {
-        return dbconfig.collection_partnerCommissionRateConfig.findOne(query);
+        return dbconfig.collection_partnerCommissionRateConfig.find(query);
     },
 
     createUpdatePartnerCommissionConfig: function  (query, data) {
@@ -4630,45 +4630,28 @@ let dbPartner = {
         )
     },
 
-    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, configObjId, isRevert, adminInfo) => {
+    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, isPlatformRate, isRevert, isDelete, adminInfo) => {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
                 if (partnerObj) {
-                    if (configObjId) {
-                        let proposalData = {
-                            creator: adminInfo || {
-                                type: 'partner',
-                                name: partnerObj.partnerName,
-                                id: partnerObj._id
-                            },
-                            partnerObjId: partnerObjId,
-                            partnerName: partnerObj.partnerName,
-                            settingObjId: settingObjId,
-                            oldRate: oldConfig[field],
-                            newRate: newConfig[field],
-                            configObjId: configObjId,
-                            remark: localization.localization.translate(field),
-                            isRevert: isRevert
-                        };
-                        return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
-                    } else {
-                        let proposalData = {
-                            creator: adminInfo || {
-                                type: 'partner',
-                                name: partnerObj.partnerName,
-                                id: partnerObj._id
-                            },
-                            partnerObjId: partnerObjId,
-                            partnerName: partnerObj.partnerName,
-                            settingObjId: settingObjId,
-                            oldRate: oldConfig,
-                            newRate: newConfig,
-                            remark: localization.localization.translate(field),
-                            isRevert: isRevert
-                        };
-                        return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
-                    }
-
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        settingObjId: settingObjId,
+                        oldRate: oldConfig,
+                        newRate: newConfig,
+                        remark: localization.localization.translate(field),
+                        isRevert: isRevert,
+                        isPlatformRate: isPlatformRate,
+                        isDelete: isDelete
+                    };
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {data: proposalData});
                 }
             }
         );
@@ -4677,7 +4660,7 @@ let dbPartner = {
     settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime) {
         let proms = [];
         partnerObjIdArr.map(partnerObjId => {
-            let prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime);
+            let prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             proms.push(prom);
         });
 
@@ -4798,8 +4781,8 @@ let dbPartner = {
                         }
                     });
 
-                    let platformFeeRate = Number(partnerCommissionRateConfig.rateAfterRebateGameProviderGroup[groupRate.groupName].rate);
-                    let isCustomPlatformFeeRate = partnerCommissionRateConfig.rateAfterRebateGameProviderGroup[groupRate.groupName].isCustom;
+                    let platformFeeRate = Number(platformFeeRateData.rate);
+                    let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName]);
                     let platformFee =  platformFeeRate * totalConsumption;
@@ -4865,6 +4848,15 @@ let dbPartner = {
                 return partnerCommissionLog;
             }
         );
+    },
+
+    getPartnerCommissionLog: function (platformObjId, commissionType, startTime, endTime) {
+        return dbconfig.collection_partnerCommissionLog.find({
+            "platform": platformObjId,
+            commissionType: commissionType,
+            startTime: startTime,
+            endTime: endTime
+        }).lean();
     },
 
 };
@@ -4961,7 +4953,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
     ]).allowDiskUse(true).read("secondaryPreferred").then(
         consumptionData => {
             if (!consumptionData || !consumptionData[0]) {
-                consumptionData = [{}];
+                consumptionData = [];
             }
 
             let consumptionDetail = {
@@ -5029,7 +5021,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
     ]).read("secondaryPreferred").then(
         topUpData => {
             if (!topUpData || !topUpData[0]) {
-                topUpData = [{}];
+                topUpData = [];
             }
 
             let playerTopUpDetail = {
@@ -5044,7 +5036,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
             for (let i = 0, len = topUpData.length; i < len; i++) {
                 let topUpTypeRecord = topUpData[i];
 
-                switch (topUpTypeRecord.typeId.toString()) {
+                switch (String(topUpTypeRecord.typeId)) {
                     case topUpTypes.onlineTopUpTypeId:
                         playerTopUpDetail.onlineTopUpAmount = topUpTypeRecord.amount;
                         break;
@@ -5303,7 +5295,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
         {
             "$group": {
                 "_id": "$type",
-                "typeId": "$type",
+                "typeId": {"$first": "$type"},
                 "amount": {"$sum": "$data.rewardAmount"}
             }
         }
@@ -5312,7 +5304,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
     return rewardProm.then(
         rewardData => {
             if (!rewardData || !rewardData[0]) {
-                rewardData = [{}];
+                rewardData = [];
             }
 
             let playerRewardDetail = {
@@ -5328,7 +5320,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
             for (let i = 0, len = rewardData.length; i < len; i++) {
                 let rewardTypeTotal = rewardData[i];
 
-                switch (rewardTypeTotal.typeId.toString()) {
+                switch (String(rewardTypeTotal.typeId)) {
                     case rewardTypes.manualReward:
                         playerRewardDetail.manualReward = rewardTypeTotal.amount;
                         break;
@@ -5418,6 +5410,8 @@ function getTotalTopUp(downLineRawDetail) {
     downLineRawDetail.map(downLine => {
         total += downLine.topUpDetail.topUpAmount || 0;
     });
+
+    return total;
 }
 
 function getTotalReward(downLineRawDetail) {
@@ -5425,6 +5419,8 @@ function getTotalReward(downLineRawDetail) {
     downLineRawDetail.map(downLine => {
         total += downLine.rewardDetail.total || 0;
     });
+
+    return total;
 }
 
 function getTotalWithdrawal(downLineRawDetail) {
@@ -5432,6 +5428,8 @@ function getTotalWithdrawal(downLineRawDetail) {
     downLineRawDetail.map(downLine => {
         total += downLine.withdrawalDetail.withdrawalAmount || 0;
     });
+
+    return total;
 }
 
 function getPlayerNames (playerObjId) {

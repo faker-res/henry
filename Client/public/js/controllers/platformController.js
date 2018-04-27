@@ -16789,7 +16789,7 @@ define(['js/app'], function (myApp) {
                             filteredBankTypeList: vm.filteredBankTypeList,
                             filterBankName: vm.filterBankName,
                             isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
-                            partnerCommission: commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission),
+                            partnerCommission: commonService.applyPartnerCustomRate(selectedPartner._id, vm.partnerCommission, vm.customPartnerCommission),
                             commissionSettingTab: vm.commissionSettingTab,
                             playerConsumptionTableHeader: vm.playerConsumptionTableHeader,
                             activePlayerTableHeader: vm.activePlayerTableHeader,
@@ -16798,7 +16798,7 @@ define(['js/app'], function (myApp) {
                             rateAfterRebateGameProviderGroup: vm.rateAfterRebateGameProviderGroup,
                             rateAfterRebateTotalDeposit: vm.rateAfterRebateTotalDeposit,
                             rateAfterRebateTotalWithdrawal: vm.rateAfterRebateTotalWithdrawal,
-                            commissionRateConfig: commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig),
+                            commissionRateConfig: commonService.applyPartnerCustomRate(selectedPartner._id, vm.commissionRateConfig, vm.custCommissionRateConfig),
                             commissionSettingEditRow: vm.commissionSettingEditRow,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
@@ -23318,7 +23318,7 @@ define(['js/app'], function (myApp) {
                     return vm.getPartnerCommisionConfig();
                 });
             }
-            vm.getPartnerCommissionConfigWithGameProviderConfig = function () {
+            vm.getPartnerCommissionConfigWithGameProviderConfig = function (partnerObjId) {
                 vm.isSettingExist = true;
                 vm.partnerCommission = {isCustomized: false};
                 vm.partnerCommission.gameProviderGroup = [];
@@ -23351,11 +23351,11 @@ define(['js/app'], function (myApp) {
                         if (data && data.data && data.data.length) {
                             data.data.filter(existSetting => {
                                 vm.gameProviderGroup.filter(gameProviderGroup => {
-                                    if (gameProviderGroup._id == existSetting.provider) {
+                                    if (gameProviderGroup._id == existSetting.provider && !vm.partnerCommission.gameProviderGroup.some(e => e.name === gameProviderGroup.name)) {
                                         vm.partnerCommission.gameProviderGroup.push(gameProviderGroup);
                                         if (vm.partnerCommission.gameProviderGroup.length > 0) {
                                             vm.partnerCommission.gameProviderGroup.filter(data => {
-                                                if (data._id == existSetting.provider) {
+                                                if (data._id == existSetting.provider && !existSetting.partner) {
                                                     data.srcConfig = existSetting;
                                                     data.showConfig = JSON.parse(JSON.stringify(existSetting));
                                                 }
@@ -23363,6 +23363,11 @@ define(['js/app'], function (myApp) {
                                         }
                                     }
                                 });
+
+                                if (existSetting.partner) {
+                                    vm.customPartnerCommission = vm.customPartnerCommission || [];
+                                    vm.customPartnerCommission.push(existSetting);
+                                }
                             });
 
                             // get which provider is available
@@ -23429,6 +23434,10 @@ define(['js/app'], function (myApp) {
                                 vm.isSettingExist = false;
                             }
                         }
+
+                        if (partnerObjId) {
+                            vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
+                        }
                     })
                 });
             }
@@ -23455,7 +23464,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
             }
-            vm.selectedCommissionTab = function (tab) {
+            vm.selectedCommissionTab = function (tab, partnerObjId) {
                 let isGetConfig = true;
 
                 vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
@@ -23488,7 +23497,7 @@ define(['js/app'], function (myApp) {
 
                 if (isGetConfig) {
                     if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                        vm.getPartnerCommissionConfigWithGameProviderConfig();
+                        vm.getPartnerCommissionConfigWithGameProviderConfig(partnerObjId);
                     } else {
                         vm.getPartnerCommisionConfig();
                     }
@@ -23730,40 +23739,29 @@ define(['js/app'], function (myApp) {
             };
 
             vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig, isRevert = false) => {
-                if (newConfig[idx].commissionRate != oldConfig[idx].commissionRate || isRevert) {
+                // Check setting has changed or not
+                if (newConfig || isRevert) {
                     let sendData = {
                         partnerObjId: vm.selectedSinglePartner._id,
                         settingObjId: setting.srcConfig._id,
                         field: "commissionRate",
-                        oldConfig: oldConfig[idx],
-                        newConfig: newConfig[idx],
-                        configObjId: oldConfig[idx]._id,
-                        isRevert: isRevert
+                        oldConfig: oldConfig,
+                        newConfig: newConfig,
+                        isRevert: isRevert,
+                        isPlatformRate: false
                     };
 
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
-                        $scope.$evalAsync(() => vm.selectedCommissionTab(vm.commissionSettingTab));
+                        $scope.$evalAsync(() => {
+                            vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        });
                     });
                 }
             };
 
             vm.customizePartnerRate = (config, field, isRevert = false) => {
-                let isChanged = false;
+                let isDelete = true;
                 let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
-
-                normalRates.forEach(e => {
-                    if (config[e] != vm.srcCommissionRateConfig[e]) {
-                        isChanged = true;
-                    }
-                });
-
-                config.rateAfterRebateGameProviderGroup.forEach(e => {
-                    let src = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.filter(grp => String(grp.gameProviderGroupId) === String(e.gameProviderGroupId))[0];
-
-                    if (e.rate != src.rate) {
-                        isChanged = true;
-                    }
-                });
 
                 if (isRevert) {
                     if (field === 'rateAfterRebateGameProviderGroup') {
@@ -23771,61 +23769,53 @@ define(['js/app'], function (myApp) {
 
                         config.rateAfterRebateGameProviderGroup = config.rateAfterRebateGameProviderGroup.map(e => {
                             if (e.isRevert) {
-                                config.customRate = config.customRate.map(f => {
-                                    if (String(f.partner) === String(vm.selectedSinglePartner._id)) {
-                                        f.rateAfterRebateGameProviderGroup = f.rateAfterRebateGameProviderGroup.map(g => {
-                                            if (String(g.gameProviderGroupId) === String(e.gameProviderGroupId)) {
-                                                oriSett.forEach(h => {
-                                                    if (String(h.gameProviderGroupId) === String(g.gameProviderGroupId)) {
-                                                        g.rate = h.rate;
-                                                        isChanged = true;
-                                                        delete g.isRevert;
-                                                        delete g.isCustomized;
-                                                        delete e.isRevert;
-                                                        delete e.isCustomized;
-                                                        e = g;
-                                                    }
-                                                })
-                                            }
-                                            return g;
-                                        })
+                                oriSett.forEach(h => {
+                                    if (String(h.gameProviderGroupId) === String(e.gameProviderGroupId)) {
+                                        e.rate = h.rate;
+                                        delete e.isRevert;
+                                        delete e.isCustomized;
                                     }
-
-                                    return f;
-                                });
+                                })
                             }
 
                             return e;
                         })
                     } else {
-                        config.customRate = config.customRate.map(e => {
-                            if (String(e.partner) === String(vm.selectedSinglePartner._id)) {
-                                e[field] = vm.srcCommissionRateConfig[field];
-                                config[field] = vm.srcCommissionRateConfig[field];
-                                isChanged = true;
-                            }
-
-                            return e;
-                        })
+                        config[field] = vm.srcCommissionRateConfig[field];
                     }
                 }
 
-                if (isChanged) {
-                    let sendData = {
-                        partnerObjId: vm.selectedSinglePartner._id,
-                        settingObjId: config._id,
-                        field: "partnerRate",
-                        oldConfig: vm.srcCommissionRateConfig,
-                        newConfig: config,
-                        isRevert: isRevert
-                    };
+                normalRates.forEach(e => {
+                    if (config[e] != vm.srcCommissionRateConfig[e]) {
+                        isDelete = false;
+                    }
+                });
 
-                    socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
-                        $scope.$evalAsync(() => {
-                            vm.commissionRateEditRow(field, false);
-                        })
-                    });
-                }
+                config.rateAfterRebateGameProviderGroup.forEach(e => {
+                    let src = vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup.filter(grp => String(grp.gameProviderGroupId) === String(e.gameProviderGroupId))[0];
+
+                    if (e.rate != src.rate) {
+                        isDelete = false;
+                    }
+                });
+
+                let sendData = {
+                    partnerObjId: vm.selectedSinglePartner._id,
+                    settingObjId: config._id,
+                    field: "partnerRate",
+                    oldConfig: vm.srcCommissionRateConfig,
+                    newConfig: config,
+                    isRevert: isRevert,
+                    isPlatformRate: true,
+                    isDelete: isDelete
+                };
+
+                socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.commissionRateEditRow(field, false);
+                    })
+                });
+
             };
 
             vm.getCommissionRateGameProviderGroup = function () {
@@ -23835,22 +23825,30 @@ define(['js/app'], function (myApp) {
                 vm.rateAfterRebatePlatform = null;
                 vm.rateAfterRebateTotalDeposit = null;
                 vm.rateAfterRebateTotalWithdrawal = null;
+                vm.custCommissionRateConfig = [];
 
-                var sendData = {
+                let sendData = {
                     query: { platform: vm.selectedPlatform.id }
-                }
+                };
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
                     if (data && data.data) {
-                        vm.srcCommissionRateConfig = data.data;
-                        vm.commissionRateConfig = JSON.parse(JSON.stringify(data.data));
+                        data.data.forEach(config => {
+                            if (config.partner) {
+                                vm.custCommissionRateConfig.push(config);
+                            } else {
+                                // source config
+                                vm.srcCommissionRateConfig = config;
+                                vm.commissionRateConfig = JSON.parse(JSON.stringify(config));
 
-                        vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
-                        vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
-                        vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
-                        vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
-                        vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
-                        vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
+                                vm.rateAfterRebatePromo = vm.commissionRateConfig.rateAfterRebatePromo;
+                                vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
+                                vm.rateAfterRebateGameProviderGroup = vm.commissionRateConfig.rateAfterRebateGameProviderGroup;
+                                vm.rateAfterRebateTotalDeposit = vm.commissionRateConfig.rateAfterRebateTotalDeposit;
+                                vm.rateAfterRebateTotalWithdrawal = vm.commissionRateConfig.rateAfterRebateTotalWithdrawal;
+                                vm.commissionRateConfig.isEditing = vm.commissionRateConfig.isEditing || {};
+                            }
+                        })
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {
