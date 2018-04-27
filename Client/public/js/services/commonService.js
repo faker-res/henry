@@ -67,6 +67,8 @@ define([], () => {
          * @returns {*}
          */
         this.applyPartnerCustomRate = (partnerObjId, commSett, custSett) => {
+            commSett.isCustomized = false;
+
             if (commSett && commSett.gameProviderGroup && custSett && custSett.some(e => String(e.partner) === String(partnerObjId))) {
                 let custObjs = custSett.filter(e => String(e.partner) === String(partnerObjId));
                 commSett.isCustomized = true;
