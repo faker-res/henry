@@ -4638,7 +4638,17 @@ let dbPartner = {
         );
     },
 
-    calculatePartnerCommissionDetail: function (partnerObjId, commissionType) {
+    settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime) {
+        let proms = [];
+        partnerObjIdArr.map(partnerObjId => {
+            let prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime);
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
+
+    calculatePartnerCommissionDetail: function (partnerObjId, commissionType, startTime, endTime) {
         let partner = {};
         let platform = {};
         let downLines = [];
@@ -4664,6 +4674,12 @@ let dbPartner = {
         let nettCommission = 0;
 
         let commissionPeriod = getCommissionPeriod(commissionType);
+        if (startTime && endTime) {
+            commissionPeriod = {
+                startTime: startTime,
+                endTime: endTime
+            };
+        }
 
         let partnerProm = dbconfig.collection_partner.findOne({_id: partnerObjId})
             .populate({path: "platform", model: dbconfig.collection_platform}).lean();
@@ -4807,7 +4823,12 @@ let dbPartner = {
                     commissionType: commissionType,
                 }, commissionData, {upsert: true, new: true}).lean();
             }
-        )
+        ).then(
+            partnerCommissionLog => {
+                // todo :: add pastActiveDownLines and pastNettCommission
+                return partnerCommissionLog;
+            }
+        );
     },
 
 };
