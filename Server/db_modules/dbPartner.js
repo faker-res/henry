@@ -4724,6 +4724,9 @@ let dbPartner = {
 
                 let downLinesProm = dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
                 let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platform._id}).lean();
+                if (!platform.useProviderGroup) {
+                    providerGroupProm = Promise.resolve([]);
+                }
 
                 return Promise.all([downLinesProm, providerGroupProm]);
 
@@ -4780,12 +4783,19 @@ let dbPartner = {
                         : providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 
                     let platformFeeRateData = {};
-                    partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
-                        if (group.name === groupRate.groupName) {
-                            platformFeeRateData.rate = group.rate;
-                            platformFeeRateData.isCustom = Boolean(group.isCustom);
-                        }
-                    });
+
+                    if (groupRate.groupName == 'noGroup') {
+                        platformFeeRateData.rate = partnerCommissionRateConfig.rateAfterRebatePlatform;
+                        platformFeeRateData.isCustom = partnerCommissionRateConfig.rateAfterRebatePlatformIsCustom;
+                    }
+                    else {
+                        partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
+                            if (group.name === groupRate.groupName) {
+                                platformFeeRateData.rate = group.rate;
+                                platformFeeRateData.isCustom = Boolean(group.isCustom);
+                            }
+                        });
+                    }
 
                     let platformFeeRate = Number(platformFeeRateData.rate);
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
@@ -4998,6 +5008,8 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
 }
 
 function getCommissionRateTable (platformObjId, commissionType, partnerObjId, providerGroupObjId) {
+    providerGroupObjId = providerGroupObjId || {$exists: false};
+
     let platformConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
         platform: platformObjId,
         commissionType: commissionType,
@@ -5047,17 +5059,31 @@ function getCommissionRateTable (platformObjId, commissionType, partnerObjId, pr
 function getAllCommissionRateTable (platformObjId, commissionType, partnerObjId, providerGroups) {
     let proms = [];
 
-    providerGroups.map(group => {
-        let prom = getCommissionRateTable(platformObjId, commissionType, partnerObjId, group._id).then(
+    if (providerGroups && providerGroups.length > 0) {
+        providerGroups.map(group => {
+            let prom = getCommissionRateTable(platformObjId, commissionType, partnerObjId, group._id).then(
+                rateTable => {
+                    return {
+                        groupName: group.name,
+                        rateTable: rateTable
+                    }
+                }
+            );
+            proms.push(prom);
+        });
+    }
+    else {
+        let prom = getCommissionRateTable(platformObjId, commissionType, partnerObjId).then(
             rateTable => {
                 return {
-                    groupName: group.name,
+                    groupName: "noGroup",
                     rateTable: rateTable
                 }
             }
         );
+
         proms.push(prom);
-    });
+    }
 
     return Promise.all(proms);
 }
@@ -5096,7 +5122,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
 
             let consumptionProviderDetail = {};
 
-            if (providerGroups) {
+            if (providerGroups && providerGroups.length > 0) {
                 providerGroups.map(group => {
                     consumptionProviderDetail[group.name] = {
                         consumptionTimes: 0,
@@ -5390,23 +5416,40 @@ function getActiveDownLineCount (downLineRawDetail) {
 function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, providerGroups) {
     let total = {};
 
-    providerGroups.map(group => {
-        total[group.name] = {
+    if (providerGroups && providerGroups.length > 0) {
+        providerGroups.map(group => {
+            total[group.name] = {
+                validAmount: 0,
+                bonusAmount: 0,
+                consumptionTimes: 0,
+            };
+        });
+
+        downLineRawDetail.map(downLine => {
+            providerGroups.map(group => {
+                if(downLine.consumptionDetail.consumptionProviderDetail[group.name]) {
+                    total[group.name].validAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].validAmount;
+                    total[group.name].bonusAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount;
+                    total[group.name].consumptionTimes += downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes;
+                }
+            });
+        });
+    }
+    else {
+        total['noGroup'] = {
             validAmount: 0,
             bonusAmount: 0,
             consumptionTimes: 0,
         };
-    });
 
-    downLineRawDetail.map(downLine => {
-        providerGroups.map(group => {
-            if(downLine.consumptionDetail.consumptionProviderDetail[group.name]) {
-                total[group.name].validAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].validAmount;
-                total[group.name].bonusAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount;
-                total[group.name].consumptionTimes += downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes;
+        downLineRawDetail.map(downLine => {
+            if(downLine.consumptionDetail) {
+                total['noGroup'].validAmount += downLine.consumptionDetail.validAmount;
+                total['noGroup'].bonusAmount += downLine.consumptionDetail.bonusAmount;
+                total['noGroup'].consumptionTimes += downLine.consumptionDetail.consumptionTimes;
             }
         });
-    });
+    }
 
     return total;
 }
