@@ -23476,6 +23476,7 @@ define(['js/app'], function (myApp) {
 
                         if (partnerObjId) {
                             vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
+                            vm.getPlatformPartnersData();
                         }
                     })
                 });
