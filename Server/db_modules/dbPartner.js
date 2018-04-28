@@ -3008,6 +3008,22 @@ let dbPartner = {
         return dbconfig.collection_partnerCommissionConfig.find(query);
     },
 
+    getCustomizeCommissionConfigPartner: function (query) {
+        let commissionConfigProm = dbconfig.collection_partnerCommissionConfig.find(query, {_id:0, partner:1}).lean();
+        let commissionRateConfigProm = dbconfig.collection_partnerCommissionRateConfig.find(query, {_id:0, partner:1}).lean();
+
+        return Promise.all([commissionConfigProm, commissionRateConfigProm]).then(
+            data => {
+                if (!data || data[0] || data [1]) {
+                    let commissionConfigPartner = data[0], commissionRateConfigPartner = data[1];
+                    return commissionConfigPartner.concat(commissionRateConfigPartner.filter(function (item) {
+                        return commissionConfigPartner.indexOf(item) < 0;
+                    }));
+                }
+            }
+        );
+    },
+
     createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data) {
         return dbconfig.collection_partnerCommissionConfig.findOne({platform: query.platform, _id: query._id}).lean().then(
             configData => {
