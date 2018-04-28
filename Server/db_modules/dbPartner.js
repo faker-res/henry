@@ -39,6 +39,7 @@ const constProposalUserType = require('../const/constProposalUserType');
 const constPartnerCommissionSettlementMode = require('../const/constPartnerCommissionSettlementMode');
 const constPartnerStatus = require('../const/constPartnerStatus');
 const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const constPartnerCommissionLogStatus = require("../const/constPartnerCommissionLogStatus");
 
 
 let dbPartner = {
@@ -4674,10 +4675,16 @@ let dbPartner = {
         );
     },
 
-    settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime) {
+    settlePartnersCommission: function (partnerObjIdArr, commissionType, startTime, endTime, isSkip) {
         let proms = [];
         partnerObjIdArr.map(partnerObjId => {
-            let prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+            let prom;
+            if (isSkip) {
+                prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+            }
+            else {
+                prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+            }
             proms.push(prom);
         });
 
@@ -5422,7 +5429,7 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
     );
 }
 
-function getTotalTopUp(downLineRawDetail) {
+function getTotalTopUp (downLineRawDetail) {
     let total = 0;
     downLineRawDetail.map(downLine => {
         total += downLine.topUpDetail.topUpAmount || 0;
@@ -5431,7 +5438,7 @@ function getTotalTopUp(downLineRawDetail) {
     return total;
 }
 
-function getTotalReward(downLineRawDetail) {
+function getTotalReward (downLineRawDetail) {
     let total = 0;
     downLineRawDetail.map(downLine => {
         total += downLine.rewardDetail.total || 0;
@@ -5440,7 +5447,7 @@ function getTotalReward(downLineRawDetail) {
     return total;
 }
 
-function getTotalWithdrawal(downLineRawDetail) {
+function getTotalWithdrawal (downLineRawDetail) {
     let total = 0;
     downLineRawDetail.map(downLine => {
         total += downLine.withdrawalDetail.withdrawalAmount || 0;
@@ -5449,6 +5456,23 @@ function getTotalWithdrawal(downLineRawDetail) {
     return total;
 }
 
-function getPlayerNames (playerObjId) {
-    return dbconfig.collection_players.findOne({_id: playerObjId}, {name:1, realName:1}).lean();
+function generateSkipCommissionLog (partnerObjId, commissionType, startTime, endTime) {
+    return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
+        partner => {
+            return dbconfig.collection_partnerCommissionLog({
+                partner: partner._id,
+                platform: partner.platform,
+                partnerName: partner.partnerName,
+                partnerRealName: partner.realName,
+                commissionType: commissionType,
+                startTime: startTime,
+                endTime: endTime,
+                status: constPartnerCommissionLogStatus.SKIPPED,
+            }).save();
+        }
+    );
 }
+
+// function updatePastThreeRecord (currentLog) {
+//     let startTime = currentLog.
+// }
