@@ -4724,6 +4724,9 @@ let dbPartner = {
 
                 let downLinesProm = dbconfig.collection_players.find({platform: platform._id, partner: partner._id}).lean();
                 let providerGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platform._id}).lean();
+                if (!platform.useProviderGroup) {
+                    providerGroupProm = Promise.resolve([]);
+                }
 
                 return Promise.all([downLinesProm, providerGroupProm]);
 
@@ -4773,7 +4776,6 @@ let dbPartner = {
                 // todo :: add a version where there is no provider group
 
                 commissionRateTables.map(groupRate => {
-                    let isCustomCommissionRate = groupRate.rateTable.isCustom;
                     commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, providerGroupConsumptionData[groupRate.groupName].validAmount, activeDownLines);
 
                     let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
@@ -4781,12 +4783,19 @@ let dbPartner = {
                         : providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 
                     let platformFeeRateData = {};
-                    partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
-                        if (group.name === groupRate.groupName) {
-                            platformFeeRateData.rate = group.rate;
-                            platformFeeRateData.isCustom = Boolean(group.isCustom);
-                        }
-                    });
+
+                    if (groupRate.groupName == 'noGroup') {
+                        platformFeeRateData.rate = partnerCommissionRateConfig.rateAfterRebatePlatform;
+                        platformFeeRateData.isCustom = partnerCommissionRateConfig.rateAfterRebatePlatformIsCustom;
+                    }
+                    else {
+                        partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
+                            if (group.name === groupRate.groupName) {
+                                platformFeeRateData.rate = group.rate;
+                                platformFeeRateData.isCustom = Boolean(group.isCustom);
+                            }
+                        });
+                    }
 
                     let platformFeeRate = Number(platformFeeRateData.rate);
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
@@ -4798,8 +4807,8 @@ let dbPartner = {
                     rawCommissions.push({
                         groupName: groupRate.groupName,
                         amount: rawCommission,
-                        commissionRate: commissionRates[groupRate.groupName],
-                        isCustomCommissionRate: isCustomCommissionRate,
+                        commissionRate: commissionRates[groupRate.groupName].commissionRate,
+                        isCustomCommissionRate: commissionRates[groupRate.groupName].isCustom,
                         platformFee: platformFee,
                         platformFeeRate: platformFeeRate,
                         isCustomPlatformFeeRate: isCustomPlatformFeeRate,
@@ -4851,7 +4860,7 @@ let dbPartner = {
             }
         ).then(
             partnerCommissionLog => {
-                // todo :: add pastActiveDownLines and pastNettCommission
+                updatePastThreeRecord(partnerCommissionLog).catch(errorUtils.reportError);
                 return partnerCommissionLog;
             }
         );
@@ -4976,6 +4985,7 @@ function calculateRawCommission (totalDownLineConsumption, commissionRate) {
 
 function getCommissionRate (commissionRateTable, consumptionAmount, activeCount) {
     let lastValidCommissionRate = 0;
+    let isCustom = false;
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
 
@@ -4988,31 +4998,60 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
         }
 
         lastValidCommissionRate = commissionRequirement.commissionRate;
+        isCustom = Boolean(commissionRequirement.isCustom);
     }
 
-    return lastValidCommissionRate;
+    return {
+        commissionRate: lastValidCommissionRate,
+        isCustom: isCustom
+    };
 }
 
 function getCommissionRateTable (platformObjId, commissionType, partnerObjId, providerGroupObjId) {
-    return dbconfig.collection_partnerCommissionConfig.findOne({
+    providerGroupObjId = providerGroupObjId || {$exists: false};
+
+    let platformConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
         platform: platformObjId,
         commissionType: commissionType,
         provider: providerGroupObjId,
-    }).lean().then(
+        partner: {$exists: false}
+    }).lean();
+
+    let customConfigProm = dbconfig.collection_partnerCommissionConfig.findOne({
+        platform: platformObjId,
+        commissionType: commissionType,
+        provider: providerGroupObjId,
+        partner: partnerObjId
+    }).lean();
+
+    return Promise.all([platformConfigProm, customConfigProm]).then(
         data => {
-            if (!data) {
+            if (!data || !data[0]) {
                 return Promise.reject({
                     name: "DataError",
                     message: "Cannot find commission rate, please ensure that you had configure the setting properly."
                 });
             }
 
-            // todo :: make this function able to get custom commission rate
+            let platformConfig = data[0];
 
-            return {
-                isCustom: false,
-                table: data.commissionSetting
+            if (data[1]) {
+                let customConfig = data[1];
+                platformConfig.commissionSetting.map(platformRate => {
+                    customConfig.commissionSetting.map(customRate => {
+                        if (platformRate.playerConsumptionAmountFrom === customRate.playerConsumptionAmountFrom
+                        && platformRate.playerConsumptionAmountTo === customRate.playerConsumptionAmountTo
+                        && platformRate.activePlayerValueFrom === customRate.activePlayerValueFrom
+                        && platformRate.activePlayerValueTo === customRate.activePlayerValueTo
+                        && platformRate.commissionRate !== customRate.commissionRate) {
+                            platformRate.isCustom = true;
+                            platformRate.commissionRate = customRate.commissionRate;
+                        }
+                    });
+                });
             }
+
+            return platformConfig.commissionSetting;
         }
     );
 }
@@ -5020,17 +5059,31 @@ function getCommissionRateTable (platformObjId, commissionType, partnerObjId, pr
 function getAllCommissionRateTable (platformObjId, commissionType, partnerObjId, providerGroups) {
     let proms = [];
 
-    providerGroups.map(group => {
-        let prom = getCommissionRateTable(platformObjId, commissionType, partnerObjId, group._id).then(
+    if (providerGroups && providerGroups.length > 0) {
+        providerGroups.map(group => {
+            let prom = getCommissionRateTable(platformObjId, commissionType, partnerObjId, group._id).then(
+                rateTable => {
+                    return {
+                        groupName: group.name,
+                        rateTable: rateTable
+                    }
+                }
+            );
+            proms.push(prom);
+        });
+    }
+    else {
+        let prom = getCommissionRateTable(platformObjId, commissionType, partnerObjId).then(
             rateTable => {
                 return {
-                    groupName: group.name,
+                    groupName: "noGroup",
                     rateTable: rateTable
                 }
             }
         );
+
         proms.push(prom);
-    });
+    }
 
     return Promise.all(proms);
 }
@@ -5069,7 +5122,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
 
             let consumptionProviderDetail = {};
 
-            if (providerGroups) {
+            if (providerGroups && providerGroups.length > 0) {
                 providerGroups.map(group => {
                     consumptionProviderDetail[group.name] = {
                         consumptionTimes: 0,
@@ -5363,23 +5416,40 @@ function getActiveDownLineCount (downLineRawDetail) {
 function getTotalPlayerConsumptionByProviderGroupName (downLineRawDetail, providerGroups) {
     let total = {};
 
-    providerGroups.map(group => {
-        total[group.name] = {
+    if (providerGroups && providerGroups.length > 0) {
+        providerGroups.map(group => {
+            total[group.name] = {
+                validAmount: 0,
+                bonusAmount: 0,
+                consumptionTimes: 0,
+            };
+        });
+
+        downLineRawDetail.map(downLine => {
+            providerGroups.map(group => {
+                if(downLine.consumptionDetail.consumptionProviderDetail[group.name]) {
+                    total[group.name].validAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].validAmount;
+                    total[group.name].bonusAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount;
+                    total[group.name].consumptionTimes += downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes;
+                }
+            });
+        });
+    }
+    else {
+        total['noGroup'] = {
             validAmount: 0,
             bonusAmount: 0,
             consumptionTimes: 0,
         };
-    });
 
-    downLineRawDetail.map(downLine => {
-        providerGroups.map(group => {
-            if(downLine.consumptionDetail.consumptionProviderDetail[group.name]) {
-                total[group.name].validAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].validAmount;
-                total[group.name].bonusAmount += downLine.consumptionDetail.consumptionProviderDetail[group.name].bonusAmount;
-                total[group.name].consumptionTimes += downLine.consumptionDetail.consumptionProviderDetail[group.name].consumptionTimes;
+        downLineRawDetail.map(downLine => {
+            if(downLine.consumptionDetail) {
+                total['noGroup'].validAmount += downLine.consumptionDetail.validAmount;
+                total['noGroup'].bonusAmount += downLine.consumptionDetail.bonusAmount;
+                total['noGroup'].consumptionTimes += downLine.consumptionDetail.consumptionTimes;
             }
         });
-    });
+    }
 
     return total;
 }
@@ -5455,8 +5525,16 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
 }
 
 function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
-    return dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId}).lean().then(
-        rateData => {
+    let platformConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: {$exists: false}}).lean();
+    let customConfigProm = dbconfig.collection_partnerCommissionRateConfig.findOne({platform: platformObjId, partner: partnerObjId}).lean();
+
+    return Promise.all([platformConfigProm, customConfigProm]).then(
+        data => {
+            let rateData = {};
+            if (data[0]) {
+                rateData = data[0];
+            }
+
             let rateConfig = {
                 rateAfterRebatePromo: rateData.rateAfterRebatePromo,
                 rateAfterRebatePlatform: rateData.rateAfterRebatePlatform,
@@ -5465,46 +5543,39 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                 rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal,
             };
 
-            if (rateData.customRate && rateData.customRate.length > 0) {
-                let customRateArr = rateData.customRate;
-                customRateArr.map(customRateData => {
-                    if (String(customRateData.partner) === String(partnerObjId)) {
-                        if (rateConfig.rateAfterRebatePromo !== customRateData.rateAfterRebatePromo) {
-                            rateConfig.rateAfterRebatePromoIsCustom = true;
-                            rateConfig.rateAfterRebatePromo = customRateData.rateAfterRebatePromo;
+            if (data[1]) {
+                let customRateData = data[1];
+                if (rateConfig.rateAfterRebatePromo !== customRateData.rateAfterRebatePromo) {
+                    rateConfig.rateAfterRebatePromoIsCustom = true;
+                    rateConfig.rateAfterRebatePromo = customRateData.rateAfterRebatePromo;
+                }
+
+                if (rateConfig.rateAfterRebatePlatform !== customRateData.rateAfterRebatePlatform) {
+                    rateConfig.rateAfterRebatePlatformIsCustom = true;
+                    rateConfig.rateAfterRebatePlatform = customRateData.rateAfterRebatePlatform;
+                }
+
+                if (rateConfig.rateAfterRebateTotalDeposit !== customRateData.rateAfterRebateTotalDeposit) {
+                    rateConfig.rateAfterRebateTotalDepositIsCustom = true;
+                    rateConfig.rateAfterRebateTotalDeposit = customRateData.rateAfterRebateTotalDeposit;
+                }
+
+                if (rateConfig.rateAfterRebateTotalWithdrawal !== customRateData.rateAfterRebateTotalWithdrawal) {
+                    rateConfig.rateAfterRebateTotalWithdrawalIsCustom = true;
+                    rateConfig.rateAfterRebateTotalWithdrawal = customRateData.rateAfterRebateTotalWithdrawal;
+                }
+
+                rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                    customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
+                        if (defaultGroup.name === customGroup.name
+                            && defaultGroup.rate !== customGroup.rate
+                        ) {
+                            defaultGroup.isCustom = true;
+                            defaultGroup.rate = customGroup.rate;
                         }
-
-                        if (rateConfig.rateAfterRebatePlatform !== customRateData.rateAfterRebatePlatform) {
-                            rateConfig.rateAfterRebatePlatformIsCustom = true;
-                            rateConfig.rateAfterRebatePlatform = customRateData.rateAfterRebatePlatform;
-                        }
-
-                        if (rateConfig.rateAfterRebateTotalDeposit !== customRateData.rateAfterRebateTotalDeposit) {
-                            rateConfig.rateAfterRebateTotalDepositIsCustom = true;
-                            rateConfig.rateAfterRebateTotalDeposit = customRateData.rateAfterRebateTotalDeposit;
-                        }
-
-                        if (rateConfig.rateAfterRebateTotalWithdrawal !== customRateData.rateAfterRebateTotalWithdrawal) {
-                            rateConfig.rateAfterRebateTotalWithdrawalIsCustom = true;
-                            rateConfig.rateAfterRebateTotalWithdrawal = customRateData.rateAfterRebateTotalWithdrawal;
-                        }
-
-                        rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
-                            customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
-                                if (defaultGroup.name === customGroup.name
-                                && defaultGroup.rate !== customGroup.rate
-                                ) {
-                                    defaultGroup.isCustom = true;
-                                    defaultGroup.rate = customGroup.rate;
-                                }
-                            });
-                        });
-
-                    }
+                    });
                 });
-
             }
-
             return rateConfig;
         }
     );
@@ -5540,7 +5611,7 @@ function getTotalWithdrawal (downLineRawDetail) {
 function generateSkipCommissionLog (partnerObjId, commissionType, startTime, endTime) {
     return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
         partner => {
-            return dbconfig.collection_partnerCommissionLog({
+            return dbconfig.collection_partnerCommissionLog.update({
                 partner: partner._id,
                 platform: partner.platform,
                 partnerName: partner.partnerName,
@@ -5548,12 +5619,50 @@ function generateSkipCommissionLog (partnerObjId, commissionType, startTime, end
                 commissionType: commissionType,
                 startTime: startTime,
                 endTime: endTime,
-                status: constPartnerCommissionLogStatus.SKIPPED,
-            }).save();
+            }, {
+                $set: {
+                    status: constPartnerCommissionLogStatus.SKIPPED,
+                }
+            }, {
+                new: true,
+                upsert: true
+            })
         }
     );
 }
 
-// function updatePastThreeRecord (currentLog) {
-//     let startTime = currentLog.
-// }
+function updatePastThreeRecord (currentLog) {
+    return dbconfig.collection_partnerCommissionLog.find({
+        partner: currentLog.partner,
+        platform: currentLog.platform,
+        commissionType: currentLog.commissionType,
+        startTime: {$lt: currentLog.startTime}
+    }).sort({startTime: -1}).limit(3).lean().then(
+        pastThreeRecord => {
+            let pastThreeActiveDownLines = [];
+            let pastThreeNettCommission = [];
+
+            pastThreeRecord.map(log => {
+                if (log.status === constPartnerCommissionLogStatus.SKIPPED) {
+                    pastThreeActiveDownLines.push("SKIP");
+                    pastThreeNettCommission.push("SKIP");
+                }
+                else {
+                    pastThreeActiveDownLines.push(log.activeDownLines);
+                    pastThreeNettCommission.push(log.nettCommission);
+                }
+            });
+
+            return dbconfig.collection_partnerCommissionLog.update({
+                partner: currentLog.partner,
+                platform: currentLog.platform,
+                commissionType: currentLog.commissionType,
+                startTime: currentLog.startTime,
+                endTime: currentLog.endTime,
+            }, {
+                pastActiveDownLines: pastThreeActiveDownLines,
+                pastNettCommission: pastThreeNettCommission,
+            }).lean();
+        }
+    );
+}
