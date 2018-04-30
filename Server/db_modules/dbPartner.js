@@ -5472,7 +5472,7 @@ let dbPartner = {
                 }
             ).then(
                 () => {
-                    updateCommissionLogStatus(log, settleType, remark);
+                    updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
                     return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
                 }
             ).catch(errorUtils.reportError);
@@ -6247,6 +6247,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     totalWithdrawal: commissionLog.totalWithdrawal,
                     adminName: adminInfo ? adminInfo.name : "",
                     amount: commissionLog.nettCommission,
+                    status: constPartnerCommissionLogStatus.PREVIEW,
                     remark: remark
                 },
                 entryType: constProposalEntryType.ADMIN,
@@ -6259,7 +6260,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
 }
 
 function updateCommSettLog(platformObjId, commissionType, startTime, endTime) {
-    return dbconfig.collection_updateCommSettLog.findOneAndUpdate({
+    return dbconfig.collection_partnerCommSettLog.findOneAndUpdate({
         platform: platformObjId,
         settMode: commissionType,
         startTime: startTime,
