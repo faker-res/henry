@@ -67,6 +67,9 @@ define([], () => {
          * @returns {*}
          */
         this.applyPartnerCustomRate = (partnerObjId, commSett, custSett) => {
+            commSett = !commSett ? {} : commSett;
+            commSett.isCustomized = false;
+
             if (commSett && commSett.gameProviderGroup && custSett && custSett.some(e => String(e.partner) === String(partnerObjId))) {
                 let custObjs = custSett.filter(e => String(e.partner) === String(partnerObjId));
                 commSett.isCustomized = true;
@@ -78,18 +81,22 @@ define([], () => {
                         }
                     });
 
-                    grp.showConfig.commissionSetting.forEach(e => {
-                        grp.srcConfig.commissionSetting.forEach(f => {
-                            if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
-                                && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
-                                && e.activePlayerValueFrom === f.activePlayerValueFrom
-                                && e.activePlayerValueTo === f.activePlayerValueTo
-                                && Number(e.commissionRate) !== Number(f.commissionRate)
-                            ) {
-                                e.isCustomized = true;
+                    if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
+                        grp.showConfig.commissionSetting.forEach(e => {
+                            if(grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length > 0) {
+                                grp.srcConfig.commissionSetting.forEach(f => {
+                                    if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
+                                        && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
+                                        && e.activePlayerValueFrom === f.activePlayerValueFrom
+                                        && e.activePlayerValueTo === f.activePlayerValueTo
+                                        && Number(e.commissionRate) !== Number(f.commissionRate)
+                                    ) {
+                                        e.isCustomized = true;
+                                    }
+                                });
                             }
-                        })
-                    });
+                        });
+                    }
 
                     return grp;
                 });

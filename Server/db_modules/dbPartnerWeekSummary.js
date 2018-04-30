@@ -488,7 +488,7 @@ var dbPartnerWeekSummary = {
 
                             // If migration is run twice, we should not process a partner multiple times.
                             // (Because that could result in them being promoted twice, or their failMeetingTargetWeeks being incremented twice!)
-                            if (partner.datePartnerLevelMigrationWasLastProcessed.getTime() < startTime.getTime()) {
+                            if (partner.datePartnerLevelMigrationWasLastProcessed.getTime() < startTime.getTime() && partner.level) {
 
                                 // If the partner has no summary, that means they had no activity, so we create some dummy data to reflect that.
                                 const summary = summariesById[partnerId] || {

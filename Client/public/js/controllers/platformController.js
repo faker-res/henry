@@ -1599,7 +1599,18 @@ define(['js/app'], function (myApp) {
                         console.log('res', res);
                     }
                 );
-            }
+
+                $scope.$socketPromise("getPartnerCommissionLog", {
+                    platformObjId: vm.selectedPlatform.id,
+                    commissionType: prev.settMode,
+                    startTime: prev.startTime,
+                    endTime: prev.endTime
+                }).then(
+                    partnerCommObj => {
+                        console.log('partnerCommObj', partnerCommObj);
+                    }
+                )
+            };
 
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';
@@ -15543,8 +15554,30 @@ define(['js/app'], function (myApp) {
                             vm.partnerPlayerObj[v.partnerId] = v;
                         });
                         vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
-                        vm.drawPartnerTable(data.data);
 
+                        var sendQuery = {
+                            query: {
+                                platform: vm.selectedPlatform.id,
+                                partner: {$in: partnersObjId}
+                            }
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) { console.log('customCommissionConfig',customCommissionConfig)
+                            if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
+                                customCommissionConfig.data.forEach(customSetting => {
+                                    if (data && data.data && data.data.data) {
+                                        data.data.data.map(data => {
+                                            if(data._id
+                                                && customSetting.partner
+                                                && (data._id.toString() == customSetting.partner.toString())) {
+                                                data.isCustomizeSettingExist = true;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                            vm.drawPartnerTable(data.data);
+                        });
                     });
                     $('#partnerRefreshIcon').removeClass('fa-spin');
 
@@ -15643,12 +15676,21 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 data = data || '';
                                 if ($scope.checkViewPermission('Platform', 'Partner', 'EditCommission')) {
-                                    return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
-                                        'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
-                                        'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
-                                        .attr('data-row', JSON.stringify(row))
-                                        .text($translate(vm.commissionType[data]))
-                                        .prop('outerHTML');
+                                    if (row && row.isCustomizeSettingExist) {
+                                        return $('<a style="z-index: auto; color:red" data-toggle="modal" data-container="body" ' +
+                                            'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
+                                            'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
+                                            .attr('data-row', JSON.stringify(row))
+                                            .text($translate(vm.commissionType[data]))
+                                            .prop('outerHTML');
+                                    } else {
+                                        return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                            'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
+                                            'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
+                                            .attr('data-row', JSON.stringify(row))
+                                            .text($translate(vm.commissionType[data]))
+                                            .prop('outerHTML');
+                                    }
                                 } else {
                                     return $('<span style="z-index: auto" data-toggle="modal" data-container="body" ' +
                                         'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ></span>')
@@ -19472,9 +19514,6 @@ define(['js/app'], function (myApp) {
                         vm.partnerCommission = {};
                         vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-                        // vm.getPartnerCommissionPeriodConst();
-                        // vm.getPartnerCommissionSettlementModeConst();
-                        //vm.getPartnerCommisionConfig();
                         break;
                     case 'announcement':
                         vm.getAllPlatformAnnouncements();
@@ -23437,6 +23476,7 @@ define(['js/app'], function (myApp) {
 
                         if (partnerObjId) {
                             vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
+                            vm.getPlatformPartnersData();
                         }
                     })
                 });
@@ -23832,7 +23872,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
-                    if (data && data.data) {
+                    if (data && data.data && data.data.length > 0) {
                         data.data.forEach(config => {
                             if (config.partner) {
                                 vm.custCommissionRateConfig.push(config);

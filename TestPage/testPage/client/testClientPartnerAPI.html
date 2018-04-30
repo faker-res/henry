@@ -667,6 +667,51 @@
     </div>
 </div>
 
+<h3>Update Partner QQ (编辑代理QQ)</h3>
+
+<div class="test-container">
+    <div>
+        <label>QQ
+            <input id="qq" type=text name="qq">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the partner information API (8)-->
+        <button id="updatePartnerQQ" data-api-name="updatePartnerQQ">Update</button>
+    </div>
+</div>
+
+<h3>Update Partner WeChat (编辑代理微信)</h3>
+
+<div class="test-container">
+    <div>
+        <label>WeChat
+            <input id="wechat" type=text name="wechat">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePartnerWeChat" data-api-name="updatePartnerWeChat">Update</button>
+    </div>
+</div>
+
+<h3>Update Partner Email (编辑代理邮箱)</h3>
+
+<div class="test-container">
+    <div>
+        <label>Email
+            <input id="email" type=text name="email">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <!--For testing Modify the player information API (8)-->
+        <button id="updatePartnerEmail" data-api-name="updatePartnerEmail">Update</button>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPartnerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
         function (ClientServices, WebSocketClient, TestHelper, ClientPartnerAPITest, ClientConnectionAPITest) {
