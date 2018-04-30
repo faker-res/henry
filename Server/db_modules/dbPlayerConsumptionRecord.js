@@ -729,7 +729,10 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
-                    recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
+                    recordData.winRatio = 0;
+                    if(recordData.bonusAmount && recordData.validAmount){
+                        recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
+                    }
                     delete recordData.name;
 
                     if (isProviderGroup) {
