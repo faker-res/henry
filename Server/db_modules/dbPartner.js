@@ -4648,7 +4648,6 @@ let dbPartner = {
         )
     },
 
-    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, isPlatformRate, isRevert, isDelete, adminInfo) => {
     getReferralsList: (partnerArr)  => {
         let partnerProm = [];
         partnerArr.forEach(partner => {
@@ -4666,8 +4665,8 @@ let dbPartner = {
         if(partnerDetail && partnerDetail.length > 0) {
             let playerIdList = [];
 
-            partnerDetail.forEach(partnerInDeteil => {
-                playerIdList.push(ObjectId(partnerInDeteil._id));
+            partnerDetail.forEach(partnerInDetail => {
+                playerIdList.push(ObjectId(partnerInDetail._id));
             });
 
             let platformId = ObjectId(partnerDetail[0].platform);
@@ -4822,8 +4821,8 @@ let dbPartner = {
         if(partnerDetail && partnerDetail.length > 0) {
             let playerIdList = [];
 
-            partnerDetail.forEach(partnerInDeteil => {
-                playerIdList.push(ObjectId(partnerInDeteil._id));
+            partnerDetail.forEach(partnerInDetail => {
+                playerIdList.push(ObjectId(partnerInDetail._id));
             });
 
             let platformId = ObjectId(partnerDetail[0].platform);
@@ -4905,8 +4904,8 @@ let dbPartner = {
             let totalTopUpAmount = 0;
             let totalBonusAmount = 0;
 
-            partnerDetail.forEach(partnerInDeteil => {
-                playerIdList.push(ObjectId(partnerInDeteil._id));
+            partnerDetail.forEach(partnerInDetail => {
+                playerIdList.push(ObjectId(partnerInDetail._id));
             });
 
             let platformId = ObjectId(partnerDetail[0].platform);
@@ -4981,8 +4980,8 @@ let dbPartner = {
             let playerIdList = [];
             let totalValidCredit = 0;
 
-            partnerDetail.forEach(partnerInDeteil => {
-                playerIdList.push(ObjectId(partnerInDeteil._id));
+            partnerDetail.forEach(partnerInDetail => {
+                playerIdList.push(ObjectId(partnerInDetail._id));
             });
 
             let platformId = ObjectId(partnerDetail[0].platform);
@@ -5010,7 +5009,7 @@ let dbPartner = {
         }
     },
 
-    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, configObjId, isRevert, adminInfo) => {
+    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, isPlatformRate, isRevert, isDelete, adminInfo) => {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
                 if (partnerObj) {
