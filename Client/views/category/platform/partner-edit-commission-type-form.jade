@@ -30,7 +30,7 @@ form(name="form_edit_partner_commission_type", novalidate)
                         label.radio-inline {{'CLOSED_COMMISSION' | translate}}
                             input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='0' ng-click="selectedCommissionTab('CLOSED');")
         br
-    div(ng-if="partnerCommission.isCustomized")
+    div(ng-if="partnerCommission.isCustomized || commissionRateConfig.isCustomized")
         .col-md-12.panel.panel-body.panel-primary
             .panel-body.common-right-panel-body
                 div.tab-content
@@ -98,8 +98,8 @@ form(name="form_edit_partner_commission_type", novalidate)
                                         a(href="" ng-if="!commissionSetting.isEditing" ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
                                         a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
                                         text(ng-if="!commissionSetting.isCreateNew") /
-                                        a(href="" ng-if="commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting)", style="cursor:pointer") {{'Customize' | translate}}
-                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting, true)", style="cursor:pointer") {{'Reset default' | translate}}
+                                        a(href="" ng-if="commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig, gpg.srcConfig)", style="cursor:pointer") {{'Customize' | translate}}
+                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig, gpg.srcConfig, true)", style="cursor:pointer") {{'Reset default' | translate}}
                             br
                     br
                     .pull-right

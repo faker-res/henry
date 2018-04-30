@@ -2710,10 +2710,10 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.settingObjId) {
                     let prom = Promise.resolve(true);
 
-                    if (proposalData.data.configObjId) {
-                        prom = updatePartnerCommissionConfig(proposalData);
-                    } else {
+                    if (proposalData.data.isPlatformRate) {
                         prom = updatePartnerCommRateConfig(proposalData);
+                    } else {
+                        prom = updatePartnerCommissionConfig(proposalData);
                     }
 
                     prom.then(
@@ -4035,84 +4035,40 @@ function setProposalIdInData(proposal) {
 }
 
 function updatePartnerCommissionConfig (proposalData) {
-    return dbconfig.collection_partnerCommissionConfig.findById(proposalData.data.settingObjId).then(
-        config => {
-            if (config
-                && config.customSetting
-                && config.customSetting.some(sett => String(sett.configObjId) === String(proposalData.data.configObjId)
-                )
-            ) {
-                let updateObj = {};
+    let qObj = {
+        platform: proposalData.data.newRate.platform,
+        provider: proposalData.data.newRate.provider,
+        commissionType: proposalData.data.newRate.commissionType,
+        partner: proposalData.data.partnerObjId
+    };
 
-                if (proposalData.data.isRevert) {
-                    updateObj = {
-                        $pull: {
-                            customSetting: {
-                                configObjId: proposalData.data.configObjId
-                            }
-                        }
-                    }
-                } else {
-                    updateObj = {
-                        $set: {
-                            "customSetting.$.commissionRate": proposalData.data.newRate
-                        }
-                    };
-                }
+    if (proposalData.data.isRevert) {
+        return dbconfig.collection_partnerCommissionConfig.findOneAndRemove(qObj)
+    } else {
+        proposalData.data.newRate.partner = proposalData.data.partnerObjId;
+        delete proposalData.data.newRate._id;
+        delete proposalData.data.newRate.__v;
 
-                return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate({
-                    platform: config.platform,
-                    "customSetting.configObjId": proposalData.data.configObjId,
-                }, updateObj, {new: true})
-            } else {
-                return dbconfig.collection_partnerCommissionConfig.findByIdAndUpdate(proposalData.data.settingObjId, {
-                    $push: {
-                        customSetting: {
-                            partner: proposalData.data.partnerObjId,
-                            commissionRate: proposalData.data.newRate,
-                            configObjId: proposalData.data.configObjId
-                        }
-                    }
-                });
-            }
-        }
-    )
+        return dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true})
+    }
 }
 
 function updatePartnerCommRateConfig (proposalData) {
-    return dbconfig.collection_partnerCommissionRateConfig.findById(proposalData.data.settingObjId).then(
-        config => {
-            if (config && config.customRate && config.customRate.some(sett => String(sett.partner === String(proposalData.data.partnerObjId)))) {
-                return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate({
-                    platform: config.platform,
-                    "customRate.partner": proposalData.data.partnerObjId
-                }, {
-                    $set: {
-                        "customRate.$.rateAfterRebatePromo": proposalData.data.newRate.rateAfterRebatePromo,
-                        "customRate.$.rateAfterRebatePlatform": proposalData.data.newRate.rateAfterRebatePlatform,
-                        "customRate.$.rateAfterRebateGameProviderGroup": proposalData.data.newRate.rateAfterRebateGameProviderGroup,
-                        "customRate.$.rateAfterRebateTotalDeposit": proposalData.data.newRate.rateAfterRebateTotalDeposit,
-                        "customRate.$.rateAfterRebateTotalWithdrawal": proposalData.data.newRate.rateAfterRebateTotalWithdrawal
-                    }
-                }, {
-                    new: true
-                })
-            } else {
-                return dbconfig.collection_partnerCommissionRateConfig.findByIdAndUpdate(proposalData.data.settingObjId, {
-                    $push: {
-                        customRate: {
-                            partner: proposalData.data.partnerObjId,
-                            rateAfterRebatePromo: proposalData.data.newRate.rateAfterRebatePromo,
-                            rateAfterRebatePlatform: proposalData.data.newRate.rateAfterRebatePlatform,
-                            rateAfterRebateGameProviderGroup: proposalData.data.newRate.rateAfterRebateGameProviderGroup,
-                            rateAfterRebateTotalDeposit: proposalData.data.newRate.rateAfterRebateTotalDeposit,
-                            rateAfterRebateTotalWithdrawal: proposalData.data.newRate.rateAfterRebateTotalWithdrawal,
-                        }
-                    }
-                });
-            }
-        }
-    )
+    let qObj = {
+        platform: proposalData.data.newRate.platform,
+        partner: proposalData.data.partnerObjId
+    };
+
+    if (proposalData.data.isDelete) {
+        return dbconfig.collection_partnerCommissionRateConfig.findOneAndRemove(qObj);
+    } else {
+        proposalData.data.newRate.partner = proposalData.data.partnerObjId;
+        delete proposalData.data.newRate._id;
+        delete proposalData.data.newRate.__v;
+        delete proposalData.data.newRate.isEditing;
+
+        return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
+    }
 }
 
 var proto = proposalExecutorFunc.prototype;

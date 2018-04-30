@@ -273,6 +273,12 @@ var SettlementServiceImplement = function () {
         let args = [data.platformId, data.dayStartTime, data.dayEndTime, data.activePlayerConsumptionTimes, data.activePlayerConsumptionAmount, data.activePlayerValue, data.partnerLevelConfig,  data.consumptionCollectionName, data.isFilterValidPlayer, data.playerObjs, data.isRealPlayer, data.isTestPlayer, data.hasPartner];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionActivePlayerAfterTopupQueryMatch, args, isValidData);
     };
+
+    this.settlePartnersCommission.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.partnerObjIdArr && data.commissionType && data.startTime && data.endTime);
+        let args = [data.partnerObjIdArr, data.commissionType, data.startTime, data.endTime, data.isSkip];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.settlePartnersCommission, args, isValidData);
+    };
 };
 
 let proto = SettlementServiceImplement.prototype = Object.create(PlayerService.prototype);
