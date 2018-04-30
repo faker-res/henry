@@ -11204,6 +11204,7 @@ define(['js/app'], function (myApp) {
                     realName: vm.playerManualTopUp.realName,
                     topUpReturnCode: vm.playerManualTopUp.topUpReturnCode
                 };
+                console.log("walaoeh",sendData)
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
                 socketService.$socket($scope.AppSocket, 'applyManualTopUpRequest', sendData,
@@ -13975,6 +13976,7 @@ define(['js/app'], function (myApp) {
                     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_manual_topup"] .createTime');
                     vm.playerManualTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
+                vm.refreshSPicker();
                 $scope.safeApply();
             };
 
