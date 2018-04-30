@@ -57,6 +57,7 @@
                 "batchCreditTransferOut",
                 "performUnlockPlatformProviderGroup",
                 "settlePartnersCommission",
+                "getCurrentPartnersCommission",
                 "getConsumptionActivePlayerAfterTopupQueryMatch"
             ];
             addServiceFunctions(sinonet, this, functionNames);

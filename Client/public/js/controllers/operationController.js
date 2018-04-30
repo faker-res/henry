@@ -890,7 +890,7 @@ define(['js/app'], function (myApp) {
             var sendData = {
                 playerId: src.data.playerId,
                 proposalId: src.proposalId,
-                delayTime: parseInt((nowDate.getTime() + 24 * 3600000 - oldDate.getTime()) / 60000)
+                delayTime: parseInt((nowDate.getTime() + 1 * 3600000 - oldDate.getTime()) / 60000)
             }
             socketService.$socket($scope.AppSocket, 'delayManualTopupRequest', sendData, function (data) {
                 console.log("update data", data);

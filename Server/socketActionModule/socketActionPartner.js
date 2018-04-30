@@ -466,6 +466,12 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.bulkSettlePartnerCommission, [data.applySettlementArray, adminInfo, data.platformObjId, data.commissionType, data.startTime, data.endTime], actionName, isValidData);
         },
 
+        getCurrentPartnerCommissionDetail: function getCurrentPartnerCommissionDetail (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.commissionType);
+            socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType], actionName, isValidData);
+        },
+
         getReferralsList: function getReferralsList (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);

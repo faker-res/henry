@@ -6909,14 +6909,27 @@ let dbPlayerInfo = {
                                    platformPeriodTime = dbUtil.getLastMonthSGTime();
                                }
 
-                               let topUpProm = dbconfig.collection_playerTopUpRecord.find(
+                               // let topUpProm = dbconfig.collection_playerTopUpRecord.find(
+                               //     {
+                               //         platformId: ObjectId(playerObj.platform),
+                               //         createTime: {
+                               //             $gte: new Date(platformPeriodTime.startTime),
+                               //             $lt: new Date(platformPeriodTime.endTime)
+                               //         },
+                               //         playerId: ObjectId(playerObj._id)
+                               //     }
+                               // ).lean();
+
+                               let topUpProm = dbconfig.collection_proposal.find(
                                    {
-                                       platformId: ObjectId(playerObj.platform),
+                                       mainType: constProposalMainType.PlayerTopUp,
+                                       status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                                       "data.platformId": ObjectId(playerObj.platform),
                                        createTime: {
                                            $gte: new Date(platformPeriodTime.startTime),
                                            $lt: new Date(platformPeriodTime.endTime)
                                        },
-                                       playerId: ObjectId(playerObj._id)
+                                       "data.playerObjId": ObjectId(playerObj._id)
                                    }
                                ).lean();
 
@@ -6961,7 +6974,11 @@ let dbPlayerInfo = {
                                                            recordSum += queryRecord[c][queryAmountField];
                                                        }
                                                    } else {
-                                                       recordSum += queryRecord[c][queryAmountField];
+                                                       if (bTopUp) {
+                                                           recordSum += queryRecord[c]["data"][queryAmountField];
+                                                       } else {
+                                                           recordSum += queryRecord[c][queryAmountField];
+                                                       }
                                                    }
                                                }
                                            }
