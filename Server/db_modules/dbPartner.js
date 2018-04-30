@@ -4773,14 +4773,12 @@ let dbPartner = {
 
                 providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(downLinesRawCommissionDetail, providerGroups);
 
-                // todo :: add a version where there is no provider group
-
                 commissionRateTables.map(groupRate => {
                     commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, providerGroupConsumptionData[groupRate.groupName].validAmount, activeDownLines);
 
                     let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
-                        : providerGroupConsumptionData[groupRate.groupName].bonusAmount;
+                        : -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 
                     let platformFeeRateData = {};
 
@@ -4801,6 +4799,9 @@ let dbPartner = {
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName]);
+                    if (rawCommission < 0) {
+                        rawCommission = 0;
+                    }
                     let platformFee =  platformFeeRate * totalConsumption;
                     totalPlatformFee += platformFee;
 
