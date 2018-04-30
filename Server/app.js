@@ -149,14 +149,14 @@ clientApiInstances.createSMSAPI().then(
 );
 
 //todo::tmp code for testing
-const imessage = require('osa-imessage');
-imessage.send('+6581863681', 'Hello World haha!');
-
-imessage.listen().on('message', (msg) => {
-    if (!msg.fromMe) console.log(`'${msg.text}' from ${msg.handle}`)
-});
-
-imessage.getRecentChats(20);
+// const imessage = require('osa-imessage');
+// imessage.send('+6581863681', 'Hello World haha!');
+//
+// imessage.listen().on('message', (msg) => {
+//     if (!msg.fromMe) console.log(`'${msg.text}' from ${msg.handle}`)
+// });
+//
+// imessage.getRecentChats(20);
 
 // var dbUtil = require("./modules/dbutility");
 //
