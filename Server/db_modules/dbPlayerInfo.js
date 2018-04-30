@@ -6878,7 +6878,7 @@ let dbPlayerInfo = {
                                                 errorCode = constServerCode.NO_REACH_TOPUP;
                                                 errorMsg = 'NO_REACH_TOPUP';
                                             }
-                                            console.log("checkError",errorMsg,playerObj.name? playerObj.name: "",playersTopupForPeriod, conditionSet.topupLimit, playersConsumptionForPeriod)
+
                                         }
                                         // because it will loop All the level, so i set a flag in here,
                                         // to show what's the condition the player dont meet .
@@ -7024,7 +7024,7 @@ let dbPlayerInfo = {
                                                                levelUpErrorCode = constServerCode.NO_REACH_TOPUP;
                                                                levelUpErrorMsg = 'NO_REACH_TOPUP';
                                                            }
-                                                            console.log("checkError",levelUpErrorMsg,playerObj.name? playerObj.name: "",topUpSumPeriod[topupPeriod], conditionSet.topupLimit, consumptionSumPeriod[consumptionPeriod])
+
                                                        }
                                                        checkLevelUpEnd = true;
                                                    }
