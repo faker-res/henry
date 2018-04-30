@@ -26,6 +26,7 @@ function socketActionPartner(socketIO, socket) {
     this.socket = socket;
 
     let self = this;
+    let adminInfo = {};
 
     function getAdminId() {
         return self.socket.decoded_token && self.socket.decoded_token._id;
@@ -33,6 +34,14 @@ function socketActionPartner(socketIO, socket) {
 
     function getAdminName() {
         return self.socket.decoded_token && self.socket.decoded_token.adminName;
+    }
+
+    if (getAdminId() && getAdminName()) {
+        adminInfo = {
+            name: getAdminName(),
+            type: 'admin',
+            id: getAdminId()
+        }
     }
 
     this.actions = {
@@ -450,6 +459,14 @@ function socketActionPartner(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId && data.commissionType && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPartner.getPartnerCommissionLog, [data.platformObjId, data.commissionType, data.startTime, data.endTime], actionName, isValidData);
         },
+
+        bulkApplyPartnerCommission: function bulkApplyPartnerCommission (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.applySettlementArray && data.platformObjId && data.commissionType && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPartner.bulkSettlePartnerCommission, [data.applySettlementArray, adminInfo, data.platformObjId, data.commissionType, data.startTime, data.endTime], actionName, isValidData);
+        },
+
+
     };
 
     socketActionPartner.actions = this.actions;

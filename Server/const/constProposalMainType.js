@@ -97,6 +97,7 @@ const constProposalMainType = {
     "PlayerMinusRewardPoints": constMainType.OTHERS,        //Reward Points
     "PlayerConvertRewardPoints": constMainType.OTHERS,      //Reward Points
     "PlayerAutoConvertRewardPoints": constMainType.OTHERS,  //Reward Points
+    "SettlePartnerCommission": constMainType.OTHERS,
 
 };
 

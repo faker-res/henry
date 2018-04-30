@@ -4789,14 +4789,12 @@ let dbPartner = {
 
                 providerGroupConsumptionData = getTotalPlayerConsumptionByProviderGroupName(downLinesRawCommissionDetail, providerGroups);
 
-                // todo :: add a version where there is no provider group
-
                 commissionRateTables.map(groupRate => {
                     commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, providerGroupConsumptionData[groupRate.groupName].validAmount, activeDownLines);
 
                     let totalConsumption = commissionType === constPartnerCommissionType.WEEKLY_CONSUMPTION
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
-                        : providerGroupConsumptionData[groupRate.groupName].bonusAmount;
+                        : -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 
                     let platformFeeRateData = {};
 
@@ -4817,6 +4815,9 @@ let dbPartner = {
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName]);
+                    if (rawCommission < 0) {
+                        rawCommission = 0;
+                    }
                     let platformFee =  platformFeeRate * totalConsumption;
                     totalPlatformFee += platformFee;
 
@@ -4850,6 +4851,7 @@ let dbPartner = {
                     commissionType: commissionType,
                     startTime: commissionPeriod.startTime,
                     endTime: commissionPeriod.endTime,
+                    partnerId: partner.partnerId,
                     partnerName: partner.partnerName,
                     partnerRealName: partner.realName,
                     downLinesRawCommissionDetail: downLinesRawCommissionDetail,
@@ -4988,6 +4990,71 @@ let dbPartner = {
                 }
             }
         )
+    },
+
+    applyClearPartnerCredit: (partnerObjId, commissionLog, adminName, remark) => {
+        return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
+            partnerData => {
+                let proposalData = {
+                    partnerObjId: partnerData._id,
+                    platformObjId: partnerData.platform,
+                    partnerName: partnerData.partnerName,
+                    updateAmount: -Number(partnerData.credits),
+                    curAmount: partnerData.credits,
+                    realName: partnerData.realName,
+                    remark: remark,
+                    adminName: adminName,
+                    isIgnoreAudit: true,
+                    logObjId: commissionLog._id
+                };
+
+                return dbProposal.checkUpdateCreditProposal(partnerData.platform, constProposalType.UPDATE_PARTNER_CREDIT, proposalData);
+            }
+        );
+    },
+
+    bulkSettlePartnerCommission: (applySettlementArray, adminInfo, platformObjId, commissionType, startTime, endTime) => {
+        if (!applySettlementArray || applySettlementArray.length < 1) {
+            return;
+        }
+
+        updateCommSettLog(platformObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+
+        let proms = [];
+
+        applySettlementArray.map(commissionApplication => {
+            let logObjId = commissionApplication.logId;
+            let settleType = commissionApplication.settleType;
+            let remark = commissionApplication.remark;
+            let log = {};
+
+            let prom = dbconfig.collection_partnerCommissionLog.findOne({_id: logObjId}).lean().then(
+                logData => {
+                    if (!logData) {
+                        return Promise.reject({
+                            message: "Error in getting partner commission log."
+                        });
+                    }
+
+                    log = logData;
+
+                    let resetProm = Promise.resolve();
+                    if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+                        resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
+                    }
+                    return resetProm;
+                }
+            ).then(
+                () => {
+                    updateCommissionLogStatus(log, settleType, remark);
+                    return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+                }
+            ).catch(errorUtils.reportError);
+
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
     },
 };
 var proto = dbPartnerFunc.prototype;
@@ -5681,4 +5748,76 @@ function updatePastThreeRecord (currentLog) {
             }).lean();
         }
     );
+}
+
+
+
+function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo, remark) {
+    // find proposal type
+    return dbconfig.collection_proposalType.findOne({name: constProposalType.SETTLE_PARTNER_COMMISSION, platformId: commissionLog.platform}).lean().then(
+        proposalType => {
+            if (!proposalType) {
+                return Promise.reject({
+                    message: "Error in getting proposal type"
+                });
+            }
+
+            // create proposal data
+            let proposalData = {
+                type: proposalType._id,
+                creator: adminInfo ? adminInfo : {
+                    type: 'partner',
+                    name: commissionLog.partnerName,
+                    id: commissionLog.partner
+                },
+                data: {
+                    partnerObjId: commissionLog.partner,
+                    platformObjId: commissionLog.platform,
+                    partnerId: commissionLog.partnerId,
+                    partnerName: commissionLog.partnerName,
+                    partnerRealName: commissionLog.partnerRealName,
+                    startTime: commissionLog.startTime,
+                    endTime: commissionLog.endTime,
+                    commissionType: commissionLog.commissionType,
+                    partnerCommissionRateConfig: commissionLog.partnerCommissionRateConfig,
+                    rawCommissions: commissionLog.rawCommissions,
+                    totalRewardFee: commissionLog.totalRewardFee,
+                    totalReward: commissionLog.totalReward,
+                    totalTopUpFee: commissionLog.totalTopUpFee,
+                    totalTopUp: commissionLog.totalTopUp,
+                    totalWithdrawalFee: commissionLog.totalWithdrawalFee,
+                    totalWithdrawal: commissionLog.totalWithdrawal,
+                    adminName: adminInfo ? adminInfo.name : "",
+                    amount: commissionLog.nettCommission,
+                    remark: remark
+                },
+                entryType: constProposalEntryType.ADMIN,
+                userType: constProposalUserType.PARTNERS
+            };
+
+            return dbProposal.createProposalWithTypeId(proposalType._id, proposalData);
+        }
+    );
+}
+
+function updateCommSettLog(platformObjId, commissionType, startTime, endTime) {
+    return dbconfig.collection_updateCommSettLog.findOneAndUpdate({
+        platform: platformObjId,
+        settMode: commissionType,
+        startTime: startTime,
+        endTime: endTime,
+    }, {
+        isSettled: true,
+    }, {
+        new: true
+    }).lean();
+}
+
+function updateCommissionLogStatus (log, status, remark = "") {
+    return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
+        _id: log._id,
+    }, {
+        status: status,
+        remark: remark
+    });
 }

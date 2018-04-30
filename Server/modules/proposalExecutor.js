@@ -184,6 +184,7 @@ var proposalExecutor = {
             this.executions.executePlayerConvertRewardPoints.des = "Player Convert Reward Points";
             this.executions.executePlayerAutoConvertRewardPoints.des = "Player Auto Convert Reward Points";
             this.executions.executeCustomizePartnerCommRate.des = "Customize Partner Commmission Rate";
+            this.executions.executeSettlePartnerCommission.des = "Settle Partner Commission";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -247,6 +248,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerConvertRewardPoints.des = "Reject Player Convert Reward Points";
             this.rejections.rejectPlayerAutoConvertRewardPoints.des = "Reject Player Auto Convert Reward Points";
             this.rejections.rejectCustomizePartnerCommRate.des = "Reject Customize Partner Commmission Rate";
+            this.rejections.rejectSettlePartnerCommission.des = "Reject Settle Partner Commission";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -2725,6 +2727,24 @@ var proposalExecutor = {
                     deferred.reject({name: "DataError", message: "Incorrect customize partner commission rate data"});
                 }
             },
+
+            executeSettlePartnerCommission: function (proposalData, deferred) {
+                const constPartnerCommissionLogStatus = require("./../const/constPartnerCommissionLogStatus");
+                if (proposalData && proposalData.data && proposalData.data.partnerObjId) {
+                    proposalData.data.proposalId = proposalData.proposalId;
+                    return dbPartner.changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.amount, constProposalType.SETTLE_PARTNER_COMMISSION, proposalData).then(
+                        partnerCreditChanged => {
+                            if (proposalData.data.commissionType == constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+                                return dbPartner.applyClearPartnerCredit(proposalData.data.partnerObjId, {commissionType: proposalData.data.commissionType}, proposalData.data.adminName, proposalData.data.remark);
+                            }
+                            return Promise.resolve();
+                        }
+                    ).then(
+                        data => deferred.resolve(data),
+                        error => deferred.reject(error)
+                    );
+                }
+            },
         },
 
         /**
@@ -3432,6 +3452,10 @@ var proposalExecutor = {
             },
 
             rejectCustomizePartnerCommRate: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectSettlePartnerCommission: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
         }
