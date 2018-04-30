@@ -583,7 +583,7 @@ var roleChecker = {
         },
         Report: {
             General: {
-                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
+                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes", "getPlatformPartnerSettlementStatus"],
                 TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
