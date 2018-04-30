@@ -15762,7 +15762,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
 
                         if ( index !== -1){
-                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size : 0;
+                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size.toFixed(2) : 0;
                         }
                     });
                     vm.totalChildrenDepositBoolean = false;
@@ -15786,7 +15786,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
 
                         if ( index !== -1){
-                            partner.data[index].totalChildrenBalance = inData.size ? inData.size : 0;
+                            partner.data[index].totalChildrenBalance = inData.size ? inData.size.toFixed(2) : 0;
                         }
                     });
                     vm.totalChildrenBalanceBoolean = false;
