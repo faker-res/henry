@@ -4682,8 +4682,82 @@ let dbPartner = {
                 prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             else {
-                prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+                prom = dbPartner.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
+
+    generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
+        return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime).then(
+            commissionDetail => {
+                return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
+                    partner: commissionDetail._id,
+                    platform: commissionDetail._id,
+                    startTime: startTime,
+                    endTime: endTime,
+                    commissionType: commissionType,
+                }, commissionDetail, {upsert: true, new: true}).lean();
+            }
+        ).then(
+            partnerCommissionLog => {
+                updatePastThreeRecord(partnerCommissionLog).catch(errorUtils.reportError);
+                return partnerCommissionLog;
+            }
+        );
+    },
+
+    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType) {
+        let result = [];
+        let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
+
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            return balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (partners, request) {
+                        request("player", "getCurrentPartnersCommission", {
+                            commissionType: commissionType,
+                            partnerObjIdArr: partners.map(function (partner) {
+                                return partner._id;
+                            })
+                        });
+                    },
+                    processResponse: function (record) {
+                        result = result.concat(record.data);
+                    }
+                }
+            );
+        }).then(
+            () => {
+                return result;
+            }
+        )
+    },
+
+    generateCurrentPartnersCommissionDetail: function (partnerObjIds, commissionType) {
+        let currentPeriod = getCurrentCommissionPeriod(commissionType);
+
+        let proms = [];
+
+        partnerObjIds.map(partnerObjId => {
+            let commissionDetail = {};
+            let prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, currentPeriod.startTime, currentPeriod.endTime).then(
+                commissionData => {
+                    commissionDetail = commissionData;
+                    return getPreviousThreeDetailIfExist(partnerObjId, commissionType, currentPeriod.startTime);
+                }
+            ).then(
+                pastData => {
+                    commissionDetail.pastActiveDownLines = pastData.pastThreeActiveDownLines;
+                    commissionDetail.pastNettCommission = pastData.pastThreeNettCommission;
+                    return commissionDetail;
+                }
+            ).catch(errorUtils.reportError);
             proms.push(prom);
         });
 
@@ -4845,7 +4919,7 @@ let dbPartner = {
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
-                let commissionData = {
+                return {
                     partner: partner._id,
                     platform: platform._id,
                     commissionType: commissionType,
@@ -4867,19 +4941,6 @@ let dbPartner = {
                     totalWithdrawalFee: totalWithdrawalFee,
                     nettCommission: nettCommission,
                 };
-
-                return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
-                    partner: partner._id,
-                    platform: platform._id,
-                    startTime: commissionPeriod.startTime,
-                    endTime: commissionPeriod.endTime,
-                    commissionType: commissionType,
-                }, commissionData, {upsert: true, new: true}).lean();
-            }
-        ).then(
-            partnerCommissionLog => {
-                updatePastThreeRecord(partnerCommissionLog).catch(errorUtils.reportError);
-                return partnerCommissionLog;
             }
         );
     },
@@ -5392,6 +5453,38 @@ function getCommissionPeriod (commissionType) {
     }
 }
 
+function getCurrentCommissionPeriod (commissionType) {
+    switch (commissionType) {
+        case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+            return dbutility.getTodaySGTime();
+        case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+        case constPartnerCommissionType.WEEKLY_CONSUMPTION:
+            return dbutility.getCurrentWeekSGTime();
+        case constPartnerCommissionType.BIWEEKLY_BONUS_AMOUNT:
+            return dbutility.getCurrentBiWeekSGTIme();
+        case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+            return dbutility.getCurrentMonthSGTIme();
+        default:
+            return dbutility.getCurrentWeekSGTime();
+    }
+}
+
+function getTargetCommissionPeriod (commissionType, date) {
+    switch (commissionType) {
+        case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+            return dbutility.getDayTime(date);
+        case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+        case constPartnerCommissionType.WEEKLY_CONSUMPTION:
+            return dbutility.getWeekTime(date);
+        case constPartnerCommissionType.BIWEEKLY_BONUS_AMOUNT:
+            return dbutility.getBiWeekSGTIme(date);
+        case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+            return dbutility.getMonthSGTIme(date);
+        default:
+            return dbutility.getWeekTime(date);
+    }
+}
+
 function getRewardProposalTypes (platformObjId) {
     return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
         proposalType => {
@@ -5820,4 +5913,56 @@ function updateCommissionLogStatus (log, status, remark = "") {
         status: status,
         remark: remark
     });
+}
+
+function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime) {
+    let pastThreeActiveDownLines = [];
+    let pastThreeNettCommission = [];
+    startTime = new Date(startTime);
+    let firstLastPeriod = new Date(startTime).setMinutes(startTime.getMinutes()-5);
+    let secondLastPeriod = new Date(firstLastPeriod.startTime).setMinutes(firstLastPeriod.startTime.getMinutes()-5);
+    let thirdLastPeriod = new Date(secondLastPeriod.startTime).setMinutes(secondLastPeriod.startTime.getMinutes()-5);
+
+    let firstLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: firstLastPeriod.startTime,
+        endTime: firstLastPeriod.endTime
+    }).lean();
+    let secondLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: secondLastPeriod.startTime,
+        endTime: secondLastPeriod.endTime
+    }).lean();
+    let thirdLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: thirdLastPeriod.startTime,
+        endTime: thirdLastPeriod.endTime
+    }).lean();
+
+    return Promise.all([firstLastRecordProm, secondLastRecordProm, thirdLastRecordProm]).then(
+        records => {
+            records.map(record => {
+                if  (!record) {
+                    pastThreeActiveDownLines.push("-");
+                    pastThreeNettCommission.push("-");
+                }
+                else if (record.status === constPartnerCommissionLogStatus.SKIPPED) {
+                    pastThreeActiveDownLines.push("SKIP");
+                    pastThreeNettCommission.push("SKIP");
+                }
+                else {
+                    pastThreeActiveDownLines.push(record.activeDownLines);
+                    pastThreeNettCommission.push(record.nettCommission);
+                }
+            });
+
+            return {
+                pastThreeActiveDownLines,
+                pastThreeNettCommission
+            }
+        }
+    );
 }
