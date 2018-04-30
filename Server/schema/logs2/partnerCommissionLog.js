@@ -18,6 +18,8 @@ var partnerCommissionLog = new Schema({
     partnerName: {type: String},
     // partner real name
     partnerRealName: {type: String},
+    // partnerCredit at settlement moment
+    partnerCredit: {type: Number},
     // downline individual details
     downLinesRawCommissionDetail: [],
     // active downline amount

@@ -25,6 +25,7 @@ let rsaCrypto = require("../modules/rsaCrypto");
 let dbutility = require("./../modules/dbutility");
 let dbPlayerMail = require("../db_modules/dbPlayerMail");
 var localization = require("../modules/localization");
+let ObjectId = mongoose.Types.ObjectId;
 
 let env = require('../config/env').config();
 
@@ -4647,6 +4648,367 @@ let dbPartner = {
         )
     },
 
+    getReferralsList: (partnerArr)  => {
+        let partnerProm = [];
+        partnerArr.forEach(partner => {
+            partnerProm.push(dbconfig.collection_players.find({partner: partner._id, platform: partner.platform}).lean())
+        });
+        return Promise.all(partnerProm).then(
+            data => {
+                // console.log('RESULT===', data);
+                return data;
+            }
+        );
+    },
+
+    getPartnerActivePlayer: (partnerDetail, activeTime, period) => {
+        if(partnerDetail && partnerDetail.length > 0) {
+            let playerIdList = [];
+
+            partnerDetail.forEach(partnerInDetail => {
+                playerIdList.push(ObjectId(partnerInDetail._id));
+            });
+
+            let platformId = ObjectId(partnerDetail[0].platform);
+            let partnerId = ObjectId(partnerDetail[0].partner);
+
+            return dbconfig.collection_partnerLevelConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
+                if (!config) {
+                    Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
+                }
+
+                switch (period) {
+                    case 'day':
+                        activePlayerTopUpTimes = config.dailyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = config.dailyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = config.dailyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = config.dailyActivePlayerConsumptionAmount;
+                        break;
+                    case 'week':
+                        activePlayerTopUpTimes = config.weeklyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = config.weeklyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = config.weeklyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = config.weeklyActivePlayerConsumptionAmount;
+                        break;
+                    case 'month':
+                    default:
+                        activePlayerTopUpTimes = config.monthlyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = config.monthlyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = config.monthlyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = config.monthlyActivePlayerConsumptionAmount;
+                        break;
+                }
+
+                return dbconfig.collection_playerTopUpRecord.aggregate(
+                    {
+                        $match: {
+                            playerId: {$in: playerIdList},
+                            platformId: platformId,
+                            createTime: {
+                                $gte: new Date(activeTime.startTime),
+                                $lt: new Date(activeTime.endTime),
+                            }
+                        }
+
+                    },
+                    {
+                        $group: {
+                            _id: "$playerId",
+                            topUpAmount: {$sum: "$amount"},
+                            topUpCount: {$sum: 1}
+                        }
+                    }).read("secondaryPreferred").then(topUpRecord => {
+                    if (topUpRecord) {
+                        topUpRecord.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
+
+                        let playerList = [];
+
+                        topUpRecord.forEach( record => {
+                            playerList.push(ObjectId(record._id));
+                        });
+
+                        return dbconfig.collection_playerConsumptionRecord.aggregate(
+                            {
+                                $match: {
+                                    playerId: {$in: playerList},
+                                    platformId: platformId,
+                                    createTime: {
+                                        $gte: new Date(activeTime.startTime),
+                                        $lt: new Date(activeTime.endTime),
+                                    }
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    consumptionAmount: {$sum: "$amount"},
+                                    consumptionCount: {$sum: 1}
+                                }
+                            }).read("secondaryPreferred").then(records => {
+                                records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
+                                return {partnerId: partnerId, size: records.length}
+                            }
+                        )
+                    }
+                })
+            });
+        }
+    },
+
+    getDailyActivePlayerCount: (partnerArr)  => {
+        let todayTime = dbutility.getTodaySGTime();
+        let dailyActivePlayerProm = [];
+        let period = 'day';
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                dailyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, todayTime, period) );
+            }
+        });
+
+        return Promise.all(dailyActivePlayerProm).then( data => {
+            return data;
+        })
+    },
+
+    getWeeklyActivePlayerCount: (partnerArr)  => {
+        let currentWeek = dbutility.getCurrentWeekSGTime();
+        let weeklyActivePlayerProm = [];
+        let period = 'week';
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                weeklyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, currentWeek, period) );
+            }
+        });
+
+        return Promise.all(weeklyActivePlayerProm).then( data => {
+            return data;
+        })
+    },
+
+    getMonthlyActivePlayerCount: (partnerArr)  => {
+        let currentMonth = dbutility.getCurrentMonthSGTIme();
+        let monthlyActivePlayerProm = [];
+        let period = 'month';
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                monthlyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, currentMonth, period) );
+            }
+        });
+
+        return Promise.all(monthlyActivePlayerProm).then( data => {
+            return data;
+        })
+    },
+
+    getValidPlayersCount: (partnerArr)  => {
+        let validPlayersProm = [];
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                validPlayersProm.push( dbPartner.getValidPlayers(partner) );
+            }
+        });
+
+        return Promise.all(validPlayersProm).then( data => {
+            return data;
+        })
+    },
+
+    getValidPlayers: (partnerDetail) => {
+        if(partnerDetail && partnerDetail.length > 0) {
+            let playerIdList = [];
+
+            partnerDetail.forEach(partnerInDetail => {
+                playerIdList.push(ObjectId(partnerInDetail._id));
+            });
+
+            let platformId = ObjectId(partnerDetail[0].platform);
+            let partnerId = ObjectId(partnerDetail[0].partner);
+
+            return dbconfig.collection_partnerLevelConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
+                if (!config) {
+                    Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
+                }
+                let validPlayerTopUpTimes = config.validPlayerTopUpTimes;
+                let validPlayerTopUpAmount = config.validPlayerTopUpAmount;
+                let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes;
+                let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount;
+
+                return dbconfig.collection_playerTopUpRecord.aggregate(
+                    {
+                        $match: {
+                            playerId: {$in: playerIdList},
+                            platformId: platformId,
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$playerId",
+                            topUpAmount: {$sum: "$amount"},
+                            topUpCount: {$sum: 1}
+                        }
+                    }).read("secondaryPreferred").then(topUpRecord => {
+                    if (topUpRecord) {
+                        topUpRecord.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
+
+                        let playerList = [];
+
+                        topUpRecord.forEach( record => {
+                            playerList.push(ObjectId(record._id));
+                        });
+
+                        return dbconfig.collection_playerConsumptionRecord.aggregate(
+                            {
+                                $match: {
+                                    playerId: {$in: playerList},
+                                    platformId: platformId,
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    consumptionAmount: {$sum: "$amount"},
+                                    consumptionCount: {$sum: 1}
+                                }
+                            }).read("secondaryPreferred").then(records => {
+                                records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+                                return {partnerId: partnerId, size: records.length}
+                            }
+                        )
+                    }
+                })
+            });
+        }
+    },
+
+    getTotalChildrenDeposit: (partnerArr)  => {
+        let totalChildrenDepositProm = [];
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                totalChildrenDepositProm.push( dbPartner.getTotalChildrenCredit(partner) );
+            }
+        });
+
+        return Promise.all(totalChildrenDepositProm).then( data => {
+            return data;
+        })
+    },
+
+    getTotalChildrenCredit: (partnerDetail) => {
+        if(partnerDetail && partnerDetail.length > 0) {
+            let playerIdList = [];
+            let totalTopUpAmount = 0;
+            let totalBonusAmount = 0;
+
+            partnerDetail.forEach(partnerInDetail => {
+                playerIdList.push(ObjectId(partnerInDetail._id));
+            });
+
+            let platformId = ObjectId(partnerDetail[0].platform);
+            let partnerId = ObjectId(partnerDetail[0].partner);
+
+            return dbconfig.collection_playerTopUpRecord.aggregate(
+                {
+                    $match: {
+                        playerId: {$in: playerIdList},
+                        platformId: platformId,
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$playerId",
+                        topUpAmount: {$sum: "$amount"},
+                        topUpCount: {$sum: 1}
+                    }
+                }).read("secondaryPreferred").then(topUpRecord => {
+                if (topUpRecord) {
+                    topUpRecord.map(player => totalTopUpAmount += player.topUpAmount);
+
+                    let playerList = [];
+
+                    topUpRecord.forEach( record => {
+                        playerList.push(ObjectId(record._id));
+                    });
+
+                    return dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                "data.playerObjId": {$in: playerList},
+                                "data.platformId": platformId,
+                                "mainType": "PlayerBonus",
+                                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: "$data.playerName",
+                                bonusAmount: {$sum: "$data.amount"},
+                                bonusCount: {$sum: 1}
+                            }
+                        }).read("secondaryPreferred").then(records => {
+                            records.map(player => totalBonusAmount += player.bonusAmount);
+                            let totalCredit = (totalTopUpAmount - totalBonusAmount);
+
+                            return {partnerId: partnerId, size: totalCredit}
+                        }
+                    )
+                }
+            });
+        }
+    },
+
+    getTotalChildrenBalance: (partnerArr)  => {
+        let totalChildrenBalanceProm = [];
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                totalChildrenBalanceProm.push( dbPartner.getTotalChildrenValidCredit(partner) );
+            }
+        });
+
+        return Promise.all(totalChildrenBalanceProm).then( data => {
+            return data;
+        })
+    },
+
+    getTotalChildrenValidCredit: (partnerDetail) => {
+        if(partnerDetail && partnerDetail.length > 0) {
+            let playerIdList = [];
+            let totalValidCredit = 0;
+
+            partnerDetail.forEach(partnerInDetail => {
+                playerIdList.push(ObjectId(partnerInDetail._id));
+            });
+
+            let platformId = ObjectId(partnerDetail[0].platform);
+            let partnerId = ObjectId(partnerDetail[0].partner);
+
+            return dbconfig.collection_players.aggregate(
+                {
+                    $match: {
+                        _id: {$in: playerIdList},
+                        platform: platformId,
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$playerId",
+                        validCredit: {$sum: "$validCredit"},
+                        validCreditCount: {$sum: 1}
+                    }
+                }).read("secondaryPreferred").then(topUpRecord => {
+                if (topUpRecord) {
+                    topUpRecord.map(player => totalValidCredit += player.validCredit);
+                    return {partnerId: partnerId, size: totalValidCredit};
+                }
+            });
+        }
+    },
+
     customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, isPlatformRate, isRevert, isDelete, adminInfo) => {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
@@ -4682,8 +5044,83 @@ let dbPartner = {
                 prom = generateSkipCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
             else {
-                prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
+                prom = dbPartner.generatePartnerCommissionLog(partnerObjId, commissionType, startTime, endTime).catch(errorUtils.reportError);
             }
+            proms.push(prom);
+        });
+
+        return Promise.all(proms);
+    },
+
+    generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
+        return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime)
+            .then(
+            commissionDetail => {
+                return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
+                    partner: commissionDetail.partner,
+                    platform: commissionDetail.platform,
+                    startTime: startTime,
+                    endTime: endTime,
+                    commissionType: commissionType,
+                }, commissionDetail, {upsert: true, new: true}).lean();
+            }
+        ).then(
+            partnerCommissionLog => {
+                updatePastThreeRecord(partnerCommissionLog).catch(errorUtils.reportError);
+                return partnerCommissionLog;
+            }
+        );
+    },
+
+    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType) {
+        let result = [];
+        let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
+
+        let balancer = new SettlementBalancer();
+        return balancer.initConns().then(function () {
+            return balancer.processStream(
+                {
+                    stream: stream,
+                    batchSize: constSystemParam.BATCH_SIZE,
+                    makeRequest: function (partners, request) {
+                        request("player", "getCurrentPartnersCommission", {
+                            commissionType: commissionType,
+                            partnerObjIdArr: partners.map(function (partner) {
+                                return partner._id;
+                            })
+                        });
+                    },
+                    processResponse: function (record) {
+                        result = result.concat(record.data);
+                    }
+                }
+            );
+        }).then(
+            () => {
+                return result;
+            }
+        )
+    },
+
+    generateCurrentPartnersCommissionDetail: function (partnerObjIds, commissionType) {
+        let currentPeriod = getCurrentCommissionPeriod(commissionType);
+
+        let proms = [];
+
+        partnerObjIds.map(partnerObjId => {
+            let commissionDetail = {};
+            let prom = dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, currentPeriod.startTime, currentPeriod.endTime).then(
+                commissionData => {
+                    commissionDetail = commissionData;
+                    return getPreviousThreeDetailIfExist(partnerObjId, commissionType, currentPeriod.startTime);
+                }
+            ).then(
+                pastData => {
+                    commissionDetail.pastActiveDownLines = pastData.pastThreeActiveDownLines;
+                    commissionDetail.pastNettCommission = pastData.pastThreeNettCommission;
+                    return commissionDetail;
+                }
+            ).catch(errorUtils.reportError);
             proms.push(prom);
         });
 
@@ -4814,10 +5251,11 @@ let dbPartner = {
                     let platformFeeRate = Number(platformFeeRateData.rate);
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
 
-                    let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName]);
+                    let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
                     if (rawCommission < 0) {
                         rawCommission = 0;
                     }
+
                     let platformFee =  platformFeeRate * totalConsumption;
                     totalPlatformFee += platformFee;
 
@@ -4845,7 +5283,7 @@ let dbPartner = {
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
-                let commissionData = {
+                return {
                     partner: partner._id,
                     platform: platform._id,
                     commissionType: commissionType,
@@ -4854,6 +5292,7 @@ let dbPartner = {
                     partnerId: partner.partnerId,
                     partnerName: partner.partnerName,
                     partnerRealName: partner.realName,
+                    partnerCredit: partner.credits,
                     downLinesRawCommissionDetail: downLinesRawCommissionDetail,
                     activeDownLines: activeDownLines,
                     partnerCommissionRateConfig: partnerCommissionRateConfig,
@@ -4867,19 +5306,6 @@ let dbPartner = {
                     totalWithdrawalFee: totalWithdrawalFee,
                     nettCommission: nettCommission,
                 };
-
-                return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
-                    partner: partner._id,
-                    platform: platform._id,
-                    startTime: commissionPeriod.startTime,
-                    endTime: commissionPeriod.endTime,
-                    commissionType: commissionType,
-                }, commissionData, {upsert: true, new: true}).lean();
-            }
-        ).then(
-            partnerCommissionLog => {
-                updatePastThreeRecord(partnerCommissionLog).catch(errorUtils.reportError);
-                return partnerCommissionLog;
             }
         );
     },
@@ -5046,7 +5472,7 @@ let dbPartner = {
                 }
             ).then(
                 () => {
-                    updateCommissionLogStatus(log, settleType, remark);
+                    updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
                     return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
                 }
             ).catch(errorUtils.reportError);
@@ -5389,6 +5815,38 @@ function getCommissionPeriod (commissionType) {
             return dbutility.getLastMonthSGTime();
         default:
             return dbutility.getLastWeekSGTime();
+    }
+}
+
+function getCurrentCommissionPeriod (commissionType) {
+    switch (commissionType) {
+        case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+            return dbutility.getTodaySGTime();
+        case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+        case constPartnerCommissionType.WEEKLY_CONSUMPTION:
+            return dbutility.getCurrentWeekSGTime();
+        case constPartnerCommissionType.BIWEEKLY_BONUS_AMOUNT:
+            return dbutility.getCurrentBiWeekSGTIme();
+        case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+            return dbutility.getCurrentMonthSGTIme();
+        default:
+            return dbutility.getCurrentWeekSGTime();
+    }
+}
+
+function getTargetCommissionPeriod (commissionType, date) {
+    switch (commissionType) {
+        case constPartnerCommissionType.DAILY_BONUS_AMOUNT:
+            return dbutility.getDayTime(date);
+        case constPartnerCommissionType.WEEKLY_BONUS_AMOUNT:
+        case constPartnerCommissionType.WEEKLY_CONSUMPTION:
+            return dbutility.getWeekTime(date);
+        case constPartnerCommissionType.BIWEEKLY_BONUS_AMOUNT:
+            return dbutility.getBiWeekSGTIme(date);
+        case constPartnerCommissionType.MONTHLY_BONUS_AMOUNT:
+            return dbutility.getMonthSGTIme(date);
+        default:
+            return dbutility.getWeekTime(date);
     }
 }
 
@@ -5789,6 +6247,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     totalWithdrawal: commissionLog.totalWithdrawal,
                     adminName: adminInfo ? adminInfo.name : "",
                     amount: commissionLog.nettCommission,
+                    status: constPartnerCommissionLogStatus.PREVIEW,
                     remark: remark
                 },
                 entryType: constProposalEntryType.ADMIN,
@@ -5801,7 +6260,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
 }
 
 function updateCommSettLog(platformObjId, commissionType, startTime, endTime) {
-    return dbconfig.collection_updateCommSettLog.findOneAndUpdate({
+    return dbconfig.collection_partnerCommSettLog.findOneAndUpdate({
         platform: platformObjId,
         settMode: commissionType,
         startTime: startTime,
@@ -5820,4 +6279,56 @@ function updateCommissionLogStatus (log, status, remark = "") {
         status: status,
         remark: remark
     });
+}
+
+function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime) {
+    let pastThreeActiveDownLines = [];
+    let pastThreeNettCommission = [];
+    startTime = new Date(startTime);
+    let firstLastPeriod = new Date(startTime).setMinutes(startTime.getMinutes()-5);
+    let secondLastPeriod = new Date(firstLastPeriod.startTime).setMinutes(firstLastPeriod.startTime.getMinutes()-5);
+    let thirdLastPeriod = new Date(secondLastPeriod.startTime).setMinutes(secondLastPeriod.startTime.getMinutes()-5);
+
+    let firstLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: firstLastPeriod.startTime,
+        endTime: firstLastPeriod.endTime
+    }).lean();
+    let secondLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: secondLastPeriod.startTime,
+        endTime: secondLastPeriod.endTime
+    }).lean();
+    let thirdLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
+        partner: partnerObjId,
+        commissionType: commissionType,
+        startTime: thirdLastPeriod.startTime,
+        endTime: thirdLastPeriod.endTime
+    }).lean();
+
+    return Promise.all([firstLastRecordProm, secondLastRecordProm, thirdLastRecordProm]).then(
+        records => {
+            records.map(record => {
+                if  (!record) {
+                    pastThreeActiveDownLines.push("-");
+                    pastThreeNettCommission.push("-");
+                }
+                else if (record.status === constPartnerCommissionLogStatus.SKIPPED) {
+                    pastThreeActiveDownLines.push("SKIP");
+                    pastThreeNettCommission.push("SKIP");
+                }
+                else {
+                    pastThreeActiveDownLines.push(record.activeDownLines);
+                    pastThreeNettCommission.push(record.nettCommission);
+                }
+            });
+
+            return {
+                pastThreeActiveDownLines,
+                pastThreeNettCommission
+            }
+        }
+    );
 }
