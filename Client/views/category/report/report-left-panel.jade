@@ -41,6 +41,8 @@
                                 text {{'PARTNERPLAYERBOUNS_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PARTNERCOMMISSION_REPORT}}" ng-click='vm.loadPage("PARTNERCOMMISSION_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PARTNERCOMMISSION_REPORT')")
                                 text {{'PARTNERCOMMISSION_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PARTNER_SETTLEMENT_HISTORY_REPORT}}" ng-click='vm.loadPage("PARTNER_SETTLEMENT_HISTORY_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PARTNER_SETTLEMENT_HISTORY_REPORT')")
+                                text {{'PARTNER_SETTLEMENT_HISTORY_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PLAYERDOMAIN_REPORT}}" ng-click='vm.loadPage("PLAYERDOMAIN_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYERDOMAIN_REPORT')")
                                 text {{'PLAYERDOMAIN_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.WINRATE_REPORT}}" ng-click='vm.loadPage("WINRATE_REPORT")', ng-if="checkViewPermission('Report', 'General', 'WINRATE_REPORT')")

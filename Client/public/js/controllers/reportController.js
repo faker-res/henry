@@ -86,6 +86,9 @@ define(['js/app'], function (myApp) {
             expired: "EXPIRED"
         };
 
+        vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
+        vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
+
         //get all platform data from server
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
@@ -5216,6 +5219,109 @@ define(['js/app'], function (myApp) {
         }
         // end partner commission report
 
+        // start partner commission report
+        vm.searchPartnerSettlementHistory = function (newSearch) {
+            vm.drawPartnerSettlementHistoryTable({},0,true);
+            // $('#partnerSettlementTableSpin').show();
+            //
+            // let startTime = vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate();
+            // let endTime = vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate();
+            //
+            // Q.resolve().then(
+            //     () => {
+            //         var midnightThisMorningSG = getDayStartTime();
+            //         if (endTime >= midnightThisMorningSG) {
+            //             return $scope.$socketPromise('manualPlatformPartnerCommissionSettlement', {platformId: vm.curPlatformId}, true);
+            //         }
+            //     }
+            // ).then(
+            //     () => {
+            //         var sendData = {
+            //             platformId: vm.curPlatformId,
+            //             partnerName: vm.partnerCommissionQuery.partnerName,
+            //             startTime: startTime,
+            //             endTime: endTime,
+            //             limit: vm.partnerCommissionQuery.limit || 10,
+            //             index: newSearch ? 0 : (vm.partnerCommissionQuery.index || 0),
+            //             sortCol: vm.partnerCommissionQuery.sortCol || {}
+            //         };
+            //
+            //         return $scope.$socketPromise('getPartnerCommissionReport', sendData, true).then(
+            //             function (data) {
+            //                 console.log("getPartnerCommissionReport", data);
+            //                 vm.partnerSettlementQuery.totalCount = data.data.size ? data.data.size : 0;
+            //                 vm.partnerSettlementQuery.message = data.data.message || '';
+            //                 $scope.safeApply();
+            //                 vm.partnerSettlementTable(data.data.data.map(item => {
+            //                     item.profitAmount$ = parseFloat(item.profitAmount).toFixed(2);
+            //                     item.serviceFee$ = parseFloat(item.serviceFee).toFixed(2);
+            //                     item.platformFee$ = parseFloat(item.platformFee).toFixed(2);
+            //                     item.marketCost$ = parseFloat(item.marketCost).toFixed(2);
+            //                     item.totalRewardAmount$ = parseFloat(item.totalRewardAmount).toFixed(2);
+            //                     item.operationFee$ = parseFloat(item.operationFee).toFixed(2);
+            //                     item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
+            //                     item.totalPlayerBonusAmount$ = parseFloat(item.totalPlayerBonusAmount).toFixed(2);
+            //                     // item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
+            //                     item.totalCommissionAmount$ = parseFloat(item.totalCommissionAmount).toFixed(2);
+            //                     item.totalCommissionOfChildren$ = parseFloat(item.totalCommissionOfChildren).toFixed(2);
+            //                     return item;
+            //                 }), vm.partnerSettlementQuery.totalCount, data.data.summary, newSearch);
+            //             }
+            //         );
+            //     }
+            // ).catch(console.error).then(
+            //     () => $('#partnerSettlementTableSpin').hide()
+            // );
+        };
+        vm.drawPartnerSettlementHistoryTable = function (tableData, size, newSearch) {
+            var tableOptions = {
+                data: tableData,
+                "order": vm.partnerSettlementQuery.aaSorting || [],
+                aoColumnDefs: [
+                    {'sortCol': 'profitAmount', 'aTargets': [1]},
+                    {'sortCol': 'serviceFee', 'aTargets': [2]},
+                    {'sortCol': 'platformFee', 'aTargets': [3]},
+                    {'sortCol': 'totalRewardAmount', 'aTargets': [4]},
+                    {'sortCol': 'marketCost', 'aTargets': [5]},
+                    {'sortCol': 'operationFee', 'aTargets': [6]},
+                    {'sortCol': 'totalTopUpAmount', 'aTargets': [7]},
+                    {'sortCol': 'totalPlayerBonusAmount', 'aTargets': [8]},
+                    {'sortCol': 'totalCommissionAmount', 'aTargets': [9]},
+                    {'sortCol': 'totalCommissionOfChildren', 'aTargets': [10]},
+                    {targets: '_all', defaultContent: 0, bSortable: true}
+                ],
+                columns: [
+                    {title: $translate("PARTNER_NAME"), data: "_id.partnerName", sClass: "sumText", bSortable: false},
+                    {title: $translate('REAL_NAME'), data: "profitAmount$", sClass: "sumFloat alignRight"},
+                    {title: $translate('COMMISSION_TYPE'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('BJL_REAL_COMMISSION'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('KLC_LOTTERY_COMMISSION'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('SOCCER_SPORTS_COMMISSION'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('SLOT_MACHINE_COMMISSION'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('REQUIRED_PROMO_DEDUCTION'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('REQUIRED_PLATFORM_FEES_DEDUCTION'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('REQUIRED_DEPOSIT_FEES_DEDUCTION'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('REQUIRED_WITHDRAWAL_FEES_DEDUCTION'), data: "serviceFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('TOTAL_CHILDREN_CONSUMPTION'), data: "platformFee$", sClass: "sumFloat alignRight"},
+                    {title: $translate('TOTAL_CHILDREN_DEPOSIT'), data: "totalRewardAmount$", sClass: "sumFloat alignRight"},
+                    {title: $translate('commissionAmount'), data: "marketCost$", sClass: "sumFloat alignRight"},
+                ],
+                "bAutoWidth": true,
+                "paging": false,
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            vm.partnerSettlementTable = utilService.createDatatableWithFooter('#partnerSettlementTable', tableOptions, {});
+            vm.partnerSettlementQuery.pageObj.init({maxCount: size}, newSearch);
+            $('#partnerSettlementTable').off('order.dt');
+            $('#partnerSettlementTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'partnerSettlementQuery', vm.searchPartnerSettlementHistory);
+            });
+            setTimeout(function () {
+                $('#partnerSettlementTable_wrapper').resize();
+            }, 500);
+        }
+        // end partner commission report
+
         // start of general reward proposal report
         vm.generalRewardProposalSearch = function (newSearch) {
             vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
@@ -5547,6 +5653,79 @@ define(['js/app'], function (myApp) {
             obj.endTime.data('datetimepicker').setLocalDate(new Date(endTime));
         };
 
+        //dtp is dateTimePicker
+        vm.commonChangeDatePickerStyle = function(dtp, status, options) {
+            let monthOffset = options.monthOffset;
+            let daysInMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day:not(.old):not(.new)');
+            let daysInPreviousMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day.old');
+            let daysInNextMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day.new');
+            let selectedYear = dtp.getLocalDate().getYear() + 1900;
+            let selectedMonth = dtp.getLocalDate().getMonth() + 1;
+            let selectedDate = dtp.getLocalDate().getDate();
+            let curYear = selectedYear;
+            let curMonth = selectedMonth + monthOffset;
+            let displayDate;
+
+            function renderStyle(dayHolder, year, month, date) {
+                let dayStatus = (status[year] && status[year][month] && status[year][month][date]) ?
+                    status[year][month][date] : null;
+                switch(dayStatus) {
+                    case $scope.constPartnerCommissionSettlementStatus.SKIPPED:
+                        dayHolder.style.background = 'grey';
+                        dayHolder.style.textDecoration = 'line-through';
+                        break;
+                    case $scope.constPartnerCommissionSettlementStatus.PREVIEW:
+                    case $scope.constPartnerCommissionSettlementStatus.EXECUTED:
+                    case $scope.constPartnerCommissionSettlementStatus.RESET_THEN_EXECUTED:
+                    case $scope.constPartnerCommissionSettlementStatus.EXECUTED_THEN_RESET:
+                        dayHolder.style.background = 'green';
+                        break;
+                    default:
+                        dayHolder.style.background = 'white';
+                        break;
+                }
+
+                dayHolder.style.borderRadius = '0px';
+                if(month == curMonth) {
+                    dayHolder.style.border = '1px solid black';
+                }
+                if(date == selectedDate && month == selectedMonth && year == selectedYear) {
+                    dayHolder.style.borderRadius = '100%';
+                    dayHolder.style.border = '2px solid rgb(51, 122, 183)';
+                    dayHolder.style.color = 'black';
+                    dayHolder.style.fontWeight = 'bold';
+                }
+            }
+
+            function dateAdjustment(date) {
+                if (date.month < 1) {
+                    date.month = 12 + date.month;
+                    date.year--;
+                } else if (date.month > 12) {
+                    date.month = date.month - 12;
+                    date.year++;
+                }
+                return date;
+            }
+
+            displayDate = dateAdjustment({year: curYear, month: curMonth});
+            curYear = displayDate.year;
+            curMonth = displayDate.month;
+            //current month
+            daysInMonth.forEach(dayHolder => {
+                renderStyle(dayHolder, displayDate.year, displayDate.month, parseInt(dayHolder.textContent));
+            });
+            //previous month
+            displayDate = dateAdjustment({year: curYear, month: curMonth-1});
+            daysInPreviousMonth.forEach(dayHolder => {
+                renderStyle(dayHolder, displayDate.year, displayDate.month, parseInt(dayHolder.textContent));
+            });
+            //next month
+            displayDate = dateAdjustment({year: curYear, month: curMonth+1});
+            daysInNextMonth.forEach(dayHolder => {
+                renderStyle(dayHolder, displayDate.year, displayDate.month, parseInt(dayHolder.textContent));
+            })
+        };
         vm.commonPageChangeHandler = function (curP, pageSize, objKey, searchFunc) {
             var isChange = false;
             if (!curP) {
@@ -6563,6 +6742,67 @@ define(['js/app'], function (myApp) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerCommissionQuery", vm.searchPartnerCommissionData)
                     });
                 })
+                $scope.safeApply();
+            }  else if (choice == "PARTNER_SETTLEMENT_HISTORY_REPORT") {
+                vm.partnerSettlementQuery = {};
+                vm.partnerSettlementQuery.totalCount = 0;
+                let dateTimePickerStartPopup, dateTimePickerEndPopup;
+
+                let styleDateTimePickerStart = function(ev) {
+                    if(ev.target == dateTimePickerStartPopup.querySelector('.datepicker-days thead .prev') && !ev.target.classList.contains('disabled')) {
+                        vm.partnerSettlementQueryStartDateCurMonthOffset--;
+                    }
+                    if(ev.target == dateTimePickerStartPopup.querySelector('.datepicker-days thead .next') && !ev.target.classList.contains('disabled')) {
+                        vm.partnerSettlementQueryStartDateCurMonthOffset++;
+                    }
+                    if(ev.type == "changeDate") {
+                        vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
+                    }
+                    setTimeout(function() {
+                        vm.commonChangeDatePickerStyle(
+                            vm.partnerSettlementQuery.startTime.data('datetimepicker'),
+                            {},
+                            {monthOffset:vm.partnerSettlementQueryStartDateCurMonthOffset});
+                    }, 1);
+                };
+
+                let styleDateTimePickerEnd = function(ev) {
+                    console.log(ev);
+                    if(ev.target == dateTimePickerEndPopup.querySelector('.datepicker-days thead .prev') && !ev.target.classList.contains('disabled')) {
+                        vm.partnerSettlementQueryEndDateCurMonthOffset--;
+                    }
+                    if(ev.target == dateTimePickerEndPopup.querySelector('.datepicker-days thead .next') && !ev.target.classList.contains('disabled')) {
+                        vm.partnerSettlementQueryEndDateCurMonthOffset++;
+                    }
+                    if(ev.type == "changeDate") {
+                        vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
+                    }
+                    setTimeout(function() {
+                        vm.commonChangeDatePickerStyle(
+                            vm.partnerSettlementQuery.endTime.data('datetimepicker'),
+                            {},
+                            {monthOffset:vm.partnerSettlementQueryEndDateCurMonthOffset});
+                    }, 1);
+                };
+
+                utilService.actionAfterLoaded("#partnerSettlementTablePage", function () {
+                    vm.commonInitTime(vm.partnerSettlementQuery, '#partnerSettlementQuery');
+                    vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "partnerSettlementQuery", vm.searchPartnerSettlementHistory)
+                    });
+
+                    dateTimePickerStartPopup = vm.partnerSettlementQuery.startTime.data('datetimepicker').widget[0];
+                    dateTimePickerStartPopup.querySelector('.datepicker-days thead .prev').addEventListener('click', styleDateTimePickerStart);
+                    dateTimePickerStartPopup.querySelector('.datepicker-days thead .next').addEventListener('click', styleDateTimePickerStart);
+                    vm.partnerSettlementQuery.startTime.on('show', styleDateTimePickerStart);
+                    vm.partnerSettlementQuery.startTime.on('changeDate', styleDateTimePickerStart);
+
+                    dateTimePickerEndPopup = vm.partnerSettlementQuery.endTime.data('datetimepicker').widget[0];
+                    dateTimePickerEndPopup.querySelector('.datepicker-days thead .prev').addEventListener('click', styleDateTimePickerEnd);
+                    dateTimePickerEndPopup.querySelector('.datepicker-days thead .next').addEventListener('click', styleDateTimePickerEnd);
+                    vm.partnerSettlementQuery.endTime.on('show', styleDateTimePickerEnd);
+                    vm.partnerSettlementQuery.endTime.on('changeDate', styleDateTimePickerEnd);
+                });
                 $scope.safeApply();
             } else if (choice == "ACTIONLOG_REPORT") {
                 vm.actionLogQuery = vm.actionLogQuery || {};

@@ -1081,6 +1081,35 @@
             span.text-danger.margin-left-5 {{vm.partnerCommissionQuery.message | translate}}
             table.common-table#partnerCommissionTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerCommissionTablePage
+        div(ng-if='vm.showPageName=="PARTNER_SETTLEMENT_HISTORY_REPORT"')
+            #partnerSettlementQuery.block-query.col-md-12.well
+                div
+                    label {{"COMMISSION_TYPE"|translate}}
+                    select.form-control(ng-model='vm.partnerSettlementQuery.commissionType')
+                        option(value='1') {{'DAILY_BONUS_AMOUNT' | translate}}
+                        option(value='2') {{'WEEKLY_BONUS_AMOUNT' | translate}}
+                        option(value='3') {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
+                        option(value='4') {{'MONTHLY_BONUS_AMOUNT' | translate}}
+                        option(value='5') {{'WEEKLY_CONSUMPTION' | translate}}
+                div
+                    label {{"PARTNER_NAME"|translate}}
+                    input.form-control.span.input-sm(type="text", ng-model="vm.partnerSettlementQuery.partnerName")
+                div
+                    label {{"CALENDER"|translate}} {{"Start date"|translate}}
+                    .startTime
+                div
+                    label {{"CALENDER"|translate}} {{"End date"|translate}}
+                    .endTime
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchPartnerSettlementHistory(true)') {{'SEARCH' | translate}}
+                    span#partnerSettlementTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}}
+            span.text-danger.margin-left-5 {{vm.partnerSettlementQuery.message | translate}}
+            table.common-table#partnerSettlementTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+            #partnerSettlementTablePage
         div(ng-if='vm.showPageName=="FEEDBACK_REPORT"')
             #feedbackReportQuery.block-query.col-md-12.well
                 div
