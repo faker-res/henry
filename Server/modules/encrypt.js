@@ -220,9 +220,9 @@ var encrypt = {
         let validPlayersOperator = data.hasOwnProperty('validPlayersOperator') ? data.validPlayersOperator : "";
         let validPlayersInput1 = data.hasOwnProperty('validPlayersInput1') ? data.validPlayersInput1 : "";
         let validPlayersInput2 = data.hasOwnProperty('validPlayersInput2') ? data.validPlayersInput2 : "";
-        let childrencountOperator = data.hasOwnProperty('childrencountOperator') ? data.childrencountOperator : "";
-        let childrencountInput1 = data.hasOwnProperty('childrencountInput1') ? data.childrencountInput1 : "";
-        let childrencountInput2 = data.hasOwnProperty('childrencountInput2') ? data.childrencountInput2 : "";
+        let totalReferralsOperator = data.hasOwnProperty('totalReferralsOperator') ? data.totalReferralsOperator : "";
+        let totalReferralsInput1 = data.hasOwnProperty('totalReferralsInput1') ? data.totalReferralsInput1 : "";
+        let totalReferralsInput2 = data.hasOwnProperty('totalReferralsInput2') ? data.totalReferralsInput2 : "";
         let totalChildrenDepositOperator = data.hasOwnProperty('totalChildrenDepositOperator') ? data.totalChildrenDepositOperator : "";
         let totalChildrenDepositInput1 = data.hasOwnProperty('totalChildrenDepositInput1') ? data.totalChildrenDepositInput1 : "";
         let totalChildrenDepositInput2 = data.hasOwnProperty('totalChildrenDepositInput2') ? data.totalChildrenDepositInput2 : "";
@@ -335,19 +335,19 @@ var encrypt = {
                     break;
             }
         }
-        if (childrencountOperator && childrencountInput1) {
-            switch (childrencountOperator) {
+        if (totalReferralsOperator && totalReferralsInput1) {
+            switch (totalReferralsOperator) {
                 case '<=':
-                    query["childrencount"] = {$lte: childrencountInput1};
+                    query["totalReferrals"] = {$lte: totalReferralsInput1};
                     break;
                 case '>=':
-                    query["childrencount"] = {$gte: childrencountInput1};
+                    query["totalReferrals"] = {$gte: totalReferralsInput1};
                     break;
                 case '=':
-                    query["childrencount"] = childrencountInput1;
+                    query["totalReferrals"] = totalReferralsInput1;
                     break;
                 case 'range':
-                    if (childrencountInput2) query["childrencount"] = {$gte: childrencountInput1, $lte: childrencountInput2};
+                    if (totalReferralsInput2) query["totalReferrals"] = {$gte: totalReferralsInput1, $lte: totalReferralsInput2};
                     break;
             }
         }

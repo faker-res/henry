@@ -1073,7 +1073,7 @@ define(['js/app'], function (myApp) {
                     weeklyActivePlayerOperator: ">=",
                     monthlyActivePlayerOperator: ">=",
                     validPlayersOperator: ">=",
-                    childrencountOperator: ">=",
+                    totalReferralsOperator: ">=",
                     totalChildrenDepositOperator: ">=",
                     totalChildrenBalanceOperator: ">=",
                     settledCommissionOperator: ">=",
@@ -15797,7 +15797,6 @@ define(['js/app'], function (myApp) {
                     partner.validPlayers = partner.validPlayers ? partner.validPlayers : 0;
                     partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
-                    partner.settledCommission = partner.settledCommission ? partner.settledCommission : 0;
                 });
                 vm.partners = data.data;
                 vm.platformPartnerCount = data.size;
