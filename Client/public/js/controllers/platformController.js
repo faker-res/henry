@@ -11204,7 +11204,6 @@ define(['js/app'], function (myApp) {
                     realName: vm.playerManualTopUp.realName,
                     topUpReturnCode: vm.playerManualTopUp.topUpReturnCode
                 };
-                console.log("walaoeh",sendData)
                 vm.playerManualTopUp.submitted = true;
                 $scope.safeApply();
                 socketService.$socket($scope.AppSocket, 'applyManualTopUpRequest', sendData,
