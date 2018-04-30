@@ -98,6 +98,7 @@ var roleChecker = {
         'getRewardTypesConfig': true,
         'getPlayerConsumptionReturn': true,
         'getPagePlayerByAdvanceQuery': true,
+        'getPartnersByAdvancedQuery': true,
         'getQueryProposalsForAdminId': true,
         'getPlayerProposalsForAdminId': true,
         "getOnePlayerInfo": true,
@@ -596,6 +597,7 @@ var roleChecker = {
                 PLAYERDOMAIN_REPORT: ['getPlayerDomainReport', 'getDepartmentDetailsByPlatformObjId'],
                 WINRATE_REPORT: ['winRateReport'],
                 FEEDBACK_REPORT: [],
+                PARTNER_SETTLEMENT_HISTORY_REPORT: [],
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],

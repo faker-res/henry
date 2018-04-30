@@ -399,6 +399,25 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.partnerId, newPhoneNumber, data.smsCode, 1], isValidData);
     };
 
+    //update partner QQ
+    this.updatePartnerQQ.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerQQProposal, [{partnerId: conn.partnerId}, data], isValidData);
+    };
+
+    this.updatePartnerWeChat.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerWeChatProposal, [{partnerId: conn.partnerId}, data], isValidData);
+    };
+
+    this.updatePartnerEmail.onRequest = function (wsFunc, conn, data) {
+
+        var isValidData = Boolean(conn.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createPartnerEmailProposal, [{partnerId: conn.partnerId}, data], isValidData);
+    };
+
 };
 var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.prototype);
 proto.constructor = PartnerServiceImplement;

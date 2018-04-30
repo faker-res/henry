@@ -1582,6 +1582,9 @@ let dbRewardPoints = {
                 }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
 
                 if (playerRecord) {
+                    if(playerRecord && playerRecord.permission && !playerRecord.permission.rewardPointsTask){
+                        return Promise.reject({name: "DataError", message: "Player does not have permission for reward point task"});
+                    }
                     playerData = playerRecord;
                     rewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerRecord._id);
                     playerLevelProm = getPlayerLevelValue(playerRecord._id);
@@ -1595,8 +1598,8 @@ let dbRewardPoints = {
                 playerLevelRecord = playerTopupRewardPointsRecord[2] ? playerTopupRewardPointsRecord[2] : [];
 
                 if(rewardPointRecord){
-                    // let rewardProgressList = rewardPointRecord && rewardPointRecord.progress ? rewardPointRecord.progress : [];
                     let rewardProgressProm = [];
+
                     if (topupRewardPointEvent.length) {
                         topupRewardPointEvent.forEach(relevantData => {
                             if (relevantData && relevantData._id) {
@@ -1619,7 +1622,7 @@ let dbRewardPoints = {
                                     rewardProgressList.splice(j, 1);
                                 }
                             }
-                            // let rewardProgressListChanged = false;
+
                             let prom = [];
                             if (playerData) {
                                 for (let i = 0; i < topupRewardPointEvent.length; i++) {
@@ -1642,7 +1645,6 @@ let dbRewardPoints = {
                                                 let eventProgress = getEventProgress(rewardProgressList, event);
                                                 eventProgress.rewardPointsObjId = rewardPointRecord._id;
                                                 let progressChanged = updateTopupProgressCount(eventProgress, event, periodTopupAmount);
-                                                // rewardProgressListChanged = rewardProgressListChanged || progressChanged;
                                                 if (progressChanged && periodTopupAmount > 0) {
                                                     if (eventProgress._id) {
                                                         let objId = eventProgress._id;
@@ -1666,21 +1668,6 @@ let dbRewardPoints = {
                                 }
                                 return Promise.all(prom);
                             }
-                            // return Promise.all(prom).then(
-                            //     () => {
-                            //         if (rewardProgressListChanged) {
-                            //             return dbConfig.collection_rewardPoints.findOneAndUpdate({
-                            //                 platformObjId: rewardPointRecord.platformObjId,
-                            //                 playerObjId: rewardPointRecord.playerObjId
-                            //             }, {
-                            //                 progress: rewardProgressList
-                            //             }, {new: true}).lean();
-                            //         }
-                            //         else {
-                            //             return Promise.resolve(rewardPointRecord);
-                            //         }
-                            //     }
-                            // );
                         },
                         err => {
                             return Promise.reject({
@@ -1692,7 +1679,6 @@ let dbRewardPoints = {
                 }
             })
             .then(rewardPoints => {
-                let limit = 10;
                 let sortCol = {points: -1, lastUpdate: 1};
 
                 let loginRewardPointProm = dbConfig.collection_rewardPointsEvent.find({
@@ -1712,26 +1698,33 @@ let dbRewardPoints = {
                 let rewardPointsRankingProm = dbConfig.collection_rewardPoints.find({
                     platformObjId: platformData._id
                 }, {
+                    playerObjId: 1,
                     playerName: 1,
                     playerLevel: 1,
                     points: 1,
                     _id: 0
-                }).sort(sortCol).limit(limit)
+                }).sort(sortCol)
                     .populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean();
 
-                // return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPoints, rewardPointsRankingProm])
                 return Promise.all([loginRewardPointProm, gameRewardPointProm, gameProviderProm, rewardPointsRankingProm])
             })
             .then(data => {
+                let limit = 10;
 
                 loginRewardPointEvent = data[0] ? data[0] : [];
                 gameRewardPointEvent = data[1] ? data[1] : [];
                 gameProvider = data[2] ? data[2] : [];
-                // let rewardPoints = data[3] ? data[3] : [];
                 rewardPointsRanking = data[3] ? data[3] : [];
 
-                let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking);
-                returnData.pointRanking = rewardPointsRankingListArr;
+                if (rewardPointsRanking && rewardPointsRanking.length > 0) {
+                    let rewardPointsRankingListArr = getRewardPointsRanking(rewardPointsRanking.slice(0, limit));
+                    returnData.pointRanking = rewardPointsRankingListArr;
+
+                    if (playerData) {
+                        let playerPointInfoListArr = getPlayerPointInfo(rewardPointsRanking, playerData);
+                        returnData.playerPointInfo = playerPointInfoListArr;
+                    }
+                }
 
                 let gameRewardProm = [];
                 if(gameRewardPointEvent && gameRewardPointEvent.length > 0){
@@ -2516,3 +2509,38 @@ function getRewardPointsRanking(rewardPoints) {
     return rewardPointsRankingListArr;
 }
 
+function getPlayerPointInfo(rewardPointsData, playerData) {
+    let playerPointInfoListArr = [];
+    let rankNo = 0;
+    let level = "";
+
+    if (rewardPointsData && rewardPointsData.length > 0) {
+        rewardPointsData.map(rewardPoint => {
+            rankNo = rankNo + 1;
+            rewardPoint.rank = rankNo;
+        });
+
+        if (playerData && playerData._id) {
+            rewardPointsData.filter(playerRank => {
+
+               if (playerRank.playerObjId
+                   && (playerRank.playerObjId.toString() == playerData._id.toString())) {
+
+                   if(playerRank.playerLevel && playerRank.playerLevel.name) {
+                       level = playerRank.playerLevel.name;
+                   }
+
+                   let playerPointInfo = {
+                       "rank": playerRank.rank,
+                       "grade": level,
+                       "totalPoint": playerRank.points
+                   }
+
+                   playerPointInfoListArr.push(playerPointInfo);
+               }
+            });
+        }
+    }
+
+    return playerPointInfoListArr;
+}
