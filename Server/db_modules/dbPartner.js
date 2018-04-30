@@ -25,6 +25,7 @@ let rsaCrypto = require("../modules/rsaCrypto");
 let dbutility = require("./../modules/dbutility");
 let dbPlayerMail = require("../db_modules/dbPlayerMail");
 var localization = require("../modules/localization");
+let ObjectId = mongoose.Types.ObjectId;
 
 let env = require('../config/env').config();
 
@@ -4592,6 +4593,367 @@ let dbPartner = {
                 return {data: data[1], size: data[0]}
             }
         )
+    },
+
+    getReferralsList: (partnerArr)  => {
+        let partnerProm = [];
+        partnerArr.forEach(partner => {
+            partnerProm.push(dbconfig.collection_players.find({partner: partner._id, platform: partner.platform}).lean())
+        });
+        return Promise.all(partnerProm).then(
+            data => {
+                // console.log('RESULT===', data);
+                return data;
+            }
+        );
+    },
+
+    getPartnerActivePlayer: (partnerDetail, activeTime, period) => {
+        if(partnerDetail && partnerDetail.length > 0) {
+            let playerIdList = [];
+
+            partnerDetail.forEach(partnerInDeteil => {
+                playerIdList.push(ObjectId(partnerInDeteil._id));
+            });
+            
+            let platformId = ObjectId(partnerDetail[0].platform);
+            let partnerId = ObjectId(partnerDetail[0].partner);
+
+            return dbconfig.collection_partnerLevelConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
+                if (!config) {
+                    Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
+                }
+
+                switch (period) {
+                    case 'day':
+                        activePlayerTopUpTimes = config.dailyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = config.dailyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = config.dailyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = config.dailyActivePlayerConsumptionAmount;
+                        break;
+                    case 'week':
+                        activePlayerTopUpTimes = config.weeklyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = config.weeklyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = config.weeklyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = config.weeklyActivePlayerConsumptionAmount;
+                        break;
+                    case 'month':
+                    default:
+                        activePlayerTopUpTimes = config.monthlyActivePlayerTopUpTimes;
+                        activePlayerTopUpAmount = config.monthlyActivePlayerTopUpAmount;
+                        activePlayerConsumptionTimes = config.monthlyActivePlayerConsumptionTimes;
+                        activePlayerConsumptionAmount = config.monthlyActivePlayerConsumptionAmount;
+                        break;
+                }
+
+                return dbconfig.collection_playerTopUpRecord.aggregate(
+                    {
+                        $match: {
+                            playerId: {$in: playerIdList},
+                            platformId: platformId,
+                            createTime: {
+                                $gte: new Date(activeTime.startTime),
+                                $lt: new Date(activeTime.endTime),
+                            }
+                        }
+
+                    },
+                    {
+                        $group: {
+                            _id: "$playerId",
+                            topUpAmount: {$sum: "$amount"},
+                            topUpCount: {$sum: 1}
+                        }
+                    }).read("secondaryPreferred").then(topUpRecord => {
+                    if (topUpRecord) {
+                        topUpRecord.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
+
+                        let playerList = [];
+
+                        topUpRecord.forEach( record => {
+                            playerList.push(ObjectId(record._id));
+                        });
+
+                        return dbconfig.collection_playerConsumptionRecord.aggregate(
+                            {
+                                $match: {
+                                    playerId: {$in: playerList},
+                                    platformId: platformId,
+                                    createTime: {
+                                        $gte: new Date(activeTime.startTime),
+                                        $lt: new Date(activeTime.endTime),
+                                    }
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    consumptionAmount: {$sum: "$amount"},
+                                    consumptionCount: {$sum: 1}
+                                }
+                            }).read("secondaryPreferred").then(records => {
+                                records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
+                                return {partnerId: partnerId, size: records.length}
+                            }
+                        )
+                    }
+                })
+            });
+        }
+    },
+
+    getDailyActivePlayerCount: (partnerArr)  => {
+        let todayTime = dbutility.getTodaySGTime();
+        let dailyActivePlayerProm = [];
+        let period = 'day';
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                dailyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, todayTime, period) );
+            }
+        });
+
+        return Promise.all(dailyActivePlayerProm).then( data => {
+            return data;
+        })
+    },
+
+    getWeeklyActivePlayerCount: (partnerArr)  => {
+        let currentWeek = dbutility.getCurrentWeekSGTime();
+        let weeklyActivePlayerProm = [];
+        let period = 'week';
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                weeklyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, currentWeek, period) );
+            }
+        });
+
+        return Promise.all(weeklyActivePlayerProm).then( data => {
+            return data;
+        })
+    },
+
+    getMonthlyActivePlayerCount: (partnerArr)  => {
+        let currentMonth = dbutility.getCurrentMonthSGTIme();
+        let monthlyActivePlayerProm = [];
+        let period = 'month';
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                monthlyActivePlayerProm.push( dbPartner.getPartnerActivePlayer(partner, currentMonth, period) );
+            }
+        });
+
+        return Promise.all(monthlyActivePlayerProm).then( data => {
+            return data;
+        })
+    },
+
+    getValidPlayersCount: (partnerArr)  => {
+        let validPlayersProm = [];
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                validPlayersProm.push( dbPartner.getValidPlayers(partner) );
+            }
+        });
+
+        return Promise.all(validPlayersProm).then( data => {
+            return data;
+        })
+    },
+
+    getValidPlayers: (partnerDetail) => {
+        if(partnerDetail && partnerDetail.length > 0) {
+            let playerIdList = [];
+
+            partnerDetail.forEach(partnerInDeteil => {
+                playerIdList.push(ObjectId(partnerInDeteil._id));
+            });
+
+            let platformId = ObjectId(partnerDetail[0].platform);
+            let partnerId = ObjectId(partnerDetail[0].partner);
+
+            return dbconfig.collection_partnerLevelConfig.findOne({platform: ObjectId(platformId)}).lean().then(config => {
+                if (!config) {
+                    Q.reject({name: "DataError", message: "Cannot find partnerLvlConfig"});
+                }
+                let validPlayerTopUpTimes = config.validPlayerTopUpTimes;
+                let validPlayerTopUpAmount = config.validPlayerTopUpAmount;
+                let validPlayerConsumptionTimes = config.validPlayerConsumptionTimes;
+                let validPlayerConsumptionAmount = config.validPlayerConsumptionAmount;
+                
+                return dbconfig.collection_playerTopUpRecord.aggregate(
+                    {
+                        $match: {
+                            playerId: {$in: playerIdList},
+                            platformId: platformId,
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$playerId",
+                            topUpAmount: {$sum: "$amount"},
+                            topUpCount: {$sum: 1}
+                        }
+                    }).read("secondaryPreferred").then(topUpRecord => {
+                    if (topUpRecord) {
+                        topUpRecord.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
+
+                        let playerList = [];
+
+                        topUpRecord.forEach( record => {
+                            playerList.push(ObjectId(record._id));
+                        });
+
+                        return dbconfig.collection_playerConsumptionRecord.aggregate(
+                            {
+                                $match: {
+                                    playerId: {$in: playerList},
+                                    platformId: platformId,
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: "$playerId",
+                                    consumptionAmount: {$sum: "$amount"},
+                                    consumptionCount: {$sum: 1}
+                                }
+                            }).read("secondaryPreferred").then(records => {
+                                records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+                                return {partnerId: partnerId, size: records.length}
+                            }
+                        )
+                    }
+                })
+            });
+        }
+    },
+
+    getTotalChildrenDeposit: (partnerArr)  => {
+        let totalChildrenDepositProm = [];
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                totalChildrenDepositProm.push( dbPartner.getTotalChildrenCredit(partner) );
+            }
+        });
+
+        return Promise.all(totalChildrenDepositProm).then( data => {
+            return data;
+        })
+    },
+
+    getTotalChildrenCredit: (partnerDetail) => {
+        if(partnerDetail && partnerDetail.length > 0) {
+            let playerIdList = [];
+            let totalTopUpAmount = 0;
+            let totalBonusAmount = 0;
+
+            partnerDetail.forEach(partnerInDeteil => {
+                playerIdList.push(ObjectId(partnerInDeteil._id));
+            });
+
+            let platformId = ObjectId(partnerDetail[0].platform);
+            let partnerId = ObjectId(partnerDetail[0].partner);
+
+            return dbconfig.collection_playerTopUpRecord.aggregate(
+                {
+                    $match: {
+                        playerId: {$in: playerIdList},
+                        platformId: platformId,
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$playerId",
+                        topUpAmount: {$sum: "$amount"},
+                        topUpCount: {$sum: 1}
+                    }
+                }).read("secondaryPreferred").then(topUpRecord => {
+                if (topUpRecord) {
+                    topUpRecord.map(player => totalTopUpAmount += player.topUpAmount);
+
+                    let playerList = [];
+
+                    topUpRecord.forEach( record => {
+                        playerList.push(ObjectId(record._id));
+                    });
+
+                    return dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                "data.playerObjId": {$in: playerList},
+                                "data.platformId": platformId,
+                                "mainType": "PlayerBonus",
+                                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: "$data.playerName",
+                                bonusAmount: {$sum: "$data.amount"},
+                                bonusCount: {$sum: 1}
+                            }
+                        }).read("secondaryPreferred").then(records => {
+                            records.map(player => totalBonusAmount += player.bonusAmount);
+                            let totalCredit = (totalTopUpAmount - totalBonusAmount);
+
+                            return {partnerId: partnerId, size: totalCredit}
+                        }
+                    )
+                }
+            });
+        }
+    },
+
+    getTotalChildrenBalance: (partnerArr)  => {
+        let totalChildrenBalanceProm = [];
+
+        partnerArr.referral.forEach(partner => {
+            if (partner && partner.length){
+                totalChildrenBalanceProm.push( dbPartner.getTotalChildrenValidCredit(partner) );
+            }
+        });
+
+        return Promise.all(totalChildrenBalanceProm).then( data => {
+            return data;
+        })
+    },
+
+    getTotalChildrenValidCredit: (partnerDetail) => {
+        if(partnerDetail && partnerDetail.length > 0) {
+            let playerIdList = [];
+            let totalValidCredit = 0;
+
+            partnerDetail.forEach(partnerInDeteil => {
+                playerIdList.push(ObjectId(partnerInDeteil._id));
+            });
+
+            let platformId = ObjectId(partnerDetail[0].platform);
+            let partnerId = ObjectId(partnerDetail[0].partner);
+
+            return dbconfig.collection_players.aggregate(
+                {
+                    $match: {
+                        _id: {$in: playerIdList},
+                        platform: platformId,
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$playerId",
+                        validCredit: {$sum: "$validCredit"},
+                        validCreditCount: {$sum: 1}
+                    }
+                }).read("secondaryPreferred").then(topUpRecord => {
+                if (topUpRecord) {
+                    topUpRecord.map(player => totalValidCredit += player.validCredit);
+                    return {partnerId: partnerId, size: totalValidCredit.toFixed(2)};
+                }
+            });
+        }
     },
 
     customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, configObjId, isRevert, adminInfo) => {
