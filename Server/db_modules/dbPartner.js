@@ -5419,19 +5419,25 @@ let dbPartner = {
     },
 
     applyClearPartnerCredit: (partnerObjId, commissionLog, adminName, remark) => {
+        console.log('aaaaaaaa')
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
             partnerData => {
+                console.log('bbbbbbbb')
                 let proposalData = {
-                    partnerObjId: partnerData._id,
-                    platformObjId: partnerData.platform,
-                    partnerName: partnerData.partnerName,
-                    updateAmount: -Number(partnerData.credits),
-                    curAmount: partnerData.credits,
-                    realName: partnerData.realName,
-                    remark: remark,
-                    adminName: adminName,
-                    isIgnoreAudit: true,
-                    logObjId: commissionLog._id
+                    data: {
+                        partnerObjId: partnerData._id,
+                        platformObjId: partnerData.platform,
+                        partnerName: partnerData.partnerName,
+                        updateAmount: -Number(partnerData.credits),
+                        curAmount: partnerData.credits,
+                        realName: partnerData.realName,
+                        remark: remark,
+                        adminName: adminName,
+                        isIgnoreAudit: true,
+                        commissionType: commissionLog.commissionType,
+                        logObjId: commissionLog._id,
+                    },
+                    isPartner: true,
                 };
 
                 return dbProposal.checkUpdateCreditProposal(partnerData.platform, constProposalType.UPDATE_PARTNER_CREDIT, proposalData);
@@ -6246,8 +6252,10 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     totalWithdrawalFee: commissionLog.totalWithdrawalFee,
                     totalWithdrawal: commissionLog.totalWithdrawal,
                     adminName: adminInfo ? adminInfo.name : "",
+                    settleType: statusApply,
                     amount: commissionLog.nettCommission,
                     status: constPartnerCommissionLogStatus.PREVIEW,
+                    logObjId: commissionLog._id,
                     remark: remark
                 },
                 entryType: constProposalEntryType.ADMIN,
