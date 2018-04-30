@@ -19,6 +19,7 @@ const constProposalType = {
     UPDATE_PARTNER_INFO: "UpdatePartnerInfo",
     UPDATE_PARTNER_COMMISSION_TYPE: "UpdatePartnerCommissionType",
     CUSTOMIZE_PARTNER_COMM_RATE: "CustomizePartnerCommRate",
+    SETTLE_PARTNER_COMMISSION: "SettlePartnerCommission",
     FULL_ATTENDANCE: "FullAttendance",
     PLAYER_CONSUMPTION_RETURN: "PlayerConsumptionReturn",
     PARTNER_CONSUMPTION_RETURN: "PartnerConsumptionReturn",

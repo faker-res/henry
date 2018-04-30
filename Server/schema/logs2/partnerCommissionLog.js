@@ -12,10 +12,14 @@ var partnerCommissionLog = new Schema({
     startTime: {type: Date, index: true},
     // end time of period
     endTime: {type: Date, index: true},
+    // partnerId
+    partnerId: {type: String},
     // partner name
     partnerName: {type: String},
     // partner real name
     partnerRealName: {type: String},
+    // partnerCredit at settlement moment
+    partnerCredit: {type: Number},
     // downline individual details
     downLinesRawCommissionDetail: [],
     // active downline amount

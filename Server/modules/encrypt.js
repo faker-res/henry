@@ -220,18 +220,18 @@ var encrypt = {
         let validPlayersOperator = data.hasOwnProperty('validPlayersOperator') ? data.validPlayersOperator : "";
         let validPlayersInput1 = data.hasOwnProperty('validPlayersInput1') ? data.validPlayersInput1 : "";
         let validPlayersInput2 = data.hasOwnProperty('validPlayersInput2') ? data.validPlayersInput2 : "";
-        let childrencountOperator = data.hasOwnProperty('childrencountOperator') ? data.childrencountOperator : "";
-        let childrencountInput1 = data.hasOwnProperty('childrencountInput1') ? data.childrencountInput1 : "";
-        let childrencountInput2 = data.hasOwnProperty('childrencountInput2') ? data.childrencountInput2 : "";
+        let totalReferralsOperator = data.hasOwnProperty('totalReferralsOperator') ? data.totalReferralsOperator : "";
+        let totalReferralsInput1 = data.hasOwnProperty('totalReferralsInput1') ? data.totalReferralsInput1 : "";
+        let totalReferralsInput2 = data.hasOwnProperty('totalReferralsInput2') ? data.totalReferralsInput2 : "";
         let totalChildrenDepositOperator = data.hasOwnProperty('totalChildrenDepositOperator') ? data.totalChildrenDepositOperator : "";
         let totalChildrenDepositInput1 = data.hasOwnProperty('totalChildrenDepositInput1') ? data.totalChildrenDepositInput1 : "";
         let totalChildrenDepositInput2 = data.hasOwnProperty('totalChildrenDepositInput2') ? data.totalChildrenDepositInput2 : "";
         let totalChildrenBalanceOperator = data.hasOwnProperty('totalChildrenBalanceOperator') ? data.totalChildrenBalanceOperator : "";
         let totalChildrenBalanceInput1 = data.hasOwnProperty('totalChildrenBalanceInput1') ? data.totalChildrenBalanceInput1 : "";
         let totalChildrenBalanceInput2 = data.hasOwnProperty('totalChildrenBalanceInput2') ? data.totalChildrenBalanceInput2 : "";
-        let settledCommissionOperator = data.hasOwnProperty('settledCommissionOperator') ? data.settledCommissionOperator : "";
-        let settledCommissionInput1 = data.hasOwnProperty('settledCommissionInput1') ? data.settledCommissionInput1 : "";
-        let settledCommissionInput2 = data.hasOwnProperty('settledCommissionInput2') ? data.settledCommissionInput2 : "";
+        let commissionAmountFromChildrenOperator = data.hasOwnProperty('commissionAmountFromChildrenOperator') ? data.commissionAmountFromChildrenOperator : "";
+        let commissionAmountFromChildrenInput1 = data.hasOwnProperty('commissionAmountFromChildrenInput1') ? data.commissionAmountFromChildrenInput1 : "";
+        let commissionAmountFromChildrenInput2 = data.hasOwnProperty('commissionAmountFromChildrenInput2') ? data.commissionAmountFromChildrenInput2 : "";
 
         let query = {};
         if (partnerId !== '') {
@@ -335,19 +335,19 @@ var encrypt = {
                     break;
             }
         }
-        if (childrencountOperator && childrencountInput1) {
-            switch (childrencountOperator) {
+        if (totalReferralsOperator && totalReferralsInput1) {
+            switch (totalReferralsOperator) {
                 case '<=':
-                    query["childrencount"] = {$lte: childrencountInput1};
+                    query["totalReferrals"] = {$lte: totalReferralsInput1};
                     break;
                 case '>=':
-                    query["childrencount"] = {$gte: childrencountInput1};
+                    query["totalReferrals"] = {$gte: totalReferralsInput1};
                     break;
                 case '=':
-                    query["childrencount"] = childrencountInput1;
+                    query["totalReferrals"] = totalReferralsInput1;
                     break;
                 case 'range':
-                    if (childrencountInput2) query["childrencount"] = {$gte: childrencountInput1, $lte: childrencountInput2};
+                    if (totalReferralsInput2) query["totalReferrals"] = {$gte: totalReferralsInput1, $lte: totalReferralsInput2};
                     break;
             }
         }
@@ -383,19 +383,19 @@ var encrypt = {
                     break;
             }
         }
-        if (settledCommissionOperator && settledCommissionInput1) {
-            switch (settledCommissionOperator) {
+        if (commissionAmountFromChildrenOperator && commissionAmountFromChildrenInput1) {
+            switch (commissionAmountFromChildrenOperator) {
                 case '<=':
-                    query["settledCommission"] = {$lte: settledCommissionInput1};
+                    query["commissionAmountFromChildren"] = {$lte: commissionAmountFromChildrenInput1};
                     break;
                 case '>=':
-                    query["settledCommission"] = {$gte: settledCommissionInput1};
+                    query["commissionAmountFromChildren"] = {$gte: commissionAmountFromChildrenInput1};
                     break;
                 case '=':
-                    query["settledCommission"] = settledCommissionInput1;
+                    query["commissionAmountFromChildren"] = commissionAmountFromChildrenInput1;
                     break;
                 case 'range':
-                    if (settledCommissionInput2) query["settledCommission"] = {$gte: settledCommissionInput1, $lte: settledCommissionInput2};
+                    if (commissionAmountFromChildrenInput2) query["commissionAmountFromChildren"] = {$gte: commissionAmountFromChildrenInput1, $lte: commissionAmountFromChildrenInput2};
                     break;
             }
         }

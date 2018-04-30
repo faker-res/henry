@@ -1073,10 +1073,10 @@ define(['js/app'], function (myApp) {
                     weeklyActivePlayerOperator: ">=",
                     monthlyActivePlayerOperator: ">=",
                     validPlayersOperator: ">=",
-                    childrencountOperator: ">=",
+                    totalReferralsOperator: ">=",
                     totalChildrenDepositOperator: ">=",
                     totalChildrenBalanceOperator: ">=",
-                    settledCommissionOperator: ">=",
+                    commissionAmountFromChildrenOperator: ">=",
                 };
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
@@ -15520,6 +15520,14 @@ define(['js/app'], function (myApp) {
                     "limit": 10,
                 };
 
+                // init boolean
+                vm.dailyActivePlayerBoolean = true;
+                vm.weeklyActivePlayerBoolean = true;
+                vm.monthlyActivePlayerBoolean = true;
+                vm.validPlayersBoolean = true;
+                vm.totalChildrenDepositBoolean = true;
+                vm.totalChildrenBalanceBoolean = true;
+
                 vm.advancedPartnerQueryObj.sortCol = vm.advancedPartnerQueryObj.sortCol || {registrationTime: -1};
 
                 var sendData = {
@@ -15554,16 +15562,38 @@ define(['js/app'], function (myApp) {
                             vm.partnerPlayerObj[v.partnerId] = v;
                         });
                         vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
-                        vm.drawPartnerTable(data.data);
 
+                        var sendQuery = {
+                            query: {
+                                platform: vm.selectedPlatform.id,
+                                partner: {$in: partnersObjId}
+                            }
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) { console.log('customCommissionConfig',customCommissionConfig)
+                            if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
+                                customCommissionConfig.data.forEach(customSetting => {
+                                    if (data && data.data && data.data.data) {
+                                        data.data.data.map(data => {
+                                            if(data._id
+                                                && customSetting.partner
+                                                && (data._id.toString() == customSetting.partner.toString())) {
+                                                data.isCustomizeSettingExist = true;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                            vm.drawPartnerTable(data.data);
+                        });
                     });
+
                     $('#partnerRefreshIcon').removeClass('fa-spin');
 
                 }
             };
 
             vm.getPartnersByAdvanceQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
-
                 utilService.hideAllPopoversExcept();
                 vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
                 for (var k in partnerQuery) {
@@ -15597,8 +15627,179 @@ define(['js/app'], function (myApp) {
                     $('#playerDataTable').resize();
                 }, 300);
             };
+
+            vm.getReferralsList = function (partner) {
+                socketService.$socket($scope.AppSocket, 'getReferralsList', partner, function (data) {
+                    if (vm.dailyActivePlayerBoolean) {
+                        vm.getDailyActivePlayerCount(data.data, partner);
+                    }
+                    if (vm.weeklyActivePlayerBoolean) {
+                        vm.getWeeklyActivePlayerCount(data.data, partner);
+                    }
+                    if (vm.monthlyActivePlayerBoolean) {
+                        vm.getMonthlyActivePlayerCount(data.data, partner);
+                    }
+                    if (vm.validPlayersBoolean) {
+                        vm.getValidPlayersCount(data.data, partner);
+                    }
+                    if (vm.totalChildrenDepositBoolean) {
+                        vm.getTotalChildrenDeposit(data.data, partner);
+                    }
+                    if (vm.totalChildrenBalanceBoolean) {
+                        vm.getTotalChildrenBalance(data.data, partner);
+                    }
+                    $scope.safeApply();
+                })
+            };
+
+            vm.getDailyActivePlayerCount = function (referral, partner) {
+                //start loading spinner
+
+                let sendQuery = {
+                    referral: referral,
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getDailyActivePlayerCount', sendQuery, function (data) {
+                    // append back the active player number into draw Table data
+                    data.data.forEach( inData => {
+                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+
+                        if ( index !== -1){
+                            partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
+                        }
+                    });
+                    vm.dailyActivePlayerBoolean = false;
+                    vm.drawPartnerTable(partner);
+                    //end loading spinner
+                    $scope.safeApply();
+                })
+            };
+
+            vm.getWeeklyActivePlayerCount = function (referral, partner) {
+                //start loading spinner
+
+                let sendQuery = {
+                    referral: referral,
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getWeeklyActivePlayerCount', sendQuery, function (data) {
+                    // append back the active player number into draw Table data
+                    data.data.forEach( inData => {
+                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+
+                        if ( index !== -1){
+                            partner.data[index].weeklyActivePlayer = inData.size ? inData.size : 0;
+                        }
+                    });
+                    vm.weeklyActivePlayerBoolean = false;
+                    vm.drawPartnerTable(partner);
+                    //end loading spinner
+                    $scope.safeApply();
+                })
+            };
+
+            vm.getMonthlyActivePlayerCount = function (referral, partner) {
+                //start loading spinner
+
+                let sendQuery = {
+                    referral: referral,
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getMonthlyActivePlayerCount', sendQuery, function (data) {
+                    // append back the active player number into draw Table data
+                    data.data.forEach( inData => {
+                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+
+                        if ( index !== -1){
+                            partner.data[index].monthlyActivePlayer = inData.size ? inData.size : 0;
+                        }
+                    });
+                    vm.monthlyActivePlayerBoolean = false;
+                    vm.drawPartnerTable(partner);
+                    //end loading spinner
+                    $scope.safeApply();
+                })
+            };
+
+            vm.getValidPlayersCount = function (referral, partner) {
+                //start loading spinner
+
+                let sendQuery = {
+                    referral: referral,
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getValidPlayersCount', sendQuery, function (data) {
+                    // append back the active player number into draw Table data
+                    data.data.forEach( inData => {
+                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+
+                        if ( index !== -1){
+                            partner.data[index].validPlayers = inData.size ? inData.size : 0;
+                        }
+                    });
+                    vm.validPlayersBoolean = false;
+                    vm.drawPartnerTable(partner);
+                    //end loading spinner
+                    $scope.safeApply();
+                })
+            };
+
+            vm.getTotalChildrenDeposit = function (referral, partner) {
+                //start loading spinner
+
+                let sendQuery = {
+                    referral: referral,
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getTotalChildrenDeposit', sendQuery, function (data) {
+                    // append back the active player number into draw Table data
+                    data.data.forEach( inData => {
+                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+
+                        if ( index !== -1){
+                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size.toFixed(2) : 0;
+                        }
+                    });
+                    vm.totalChildrenDepositBoolean = false;
+                    vm.drawPartnerTable(partner);
+                    //end loading spinner
+                    $scope.safeApply();
+                })
+            };
+
+            vm.getTotalChildrenBalance = function (referral, partner) {
+                //start loading spinner
+
+                let sendQuery = {
+                    referral: referral,
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getTotalChildrenBalance', sendQuery, function (data) {
+                    // append back the active player number into draw Table data
+                    data.data.forEach( inData => {
+                        let index =  partner.data.findIndex(p => p._id === inData.partnerId);
+
+                        if ( index !== -1){
+                            partner.data[index].totalChildrenBalance = inData.size ? inData.size.toFixed(2) : 0;
+                        }
+                    });
+                    vm.totalChildrenBalanceBoolean = false;
+                    vm.drawPartnerTable(partner);
+                    //end loading spinner
+                    $scope.safeApply();
+                })
+            };
+
             //draw partner table based on data
             vm.drawPartnerTable = function (data) {
+                vm.getReferralsList(data);
+
                 //convert decimal to 2 digits
                 data.data.forEach((partner) => {
                     if (partner.credits) {
@@ -15614,9 +15815,9 @@ define(['js/app'], function (myApp) {
                     partner.dailyActivePlayer = partner.dailyActivePlayer ? partner.dailyActivePlayer : 0;
                     partner.weeklyActivePlayer = partner.weeklyActivePlayer ? partner.weeklyActivePlayer : 0;
                     partner.monthlyActivePlayer = partner.monthlyActivePlayer ? partner.monthlyActivePlayer : 0;
+                    partner.validPlayers = partner.validPlayers ? partner.validPlayers : 0;
                     partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
-                    partner.settledCommission = partner.settledCommission ? partner.settledCommission : 0;
                 });
                 vm.partners = data.data;
                 vm.platformPartnerCount = data.size;
@@ -15654,12 +15855,21 @@ define(['js/app'], function (myApp) {
                             render: function (data, type, row) {
                                 data = data || '';
                                 if ($scope.checkViewPermission('Platform', 'Partner', 'EditCommission')) {
-                                    return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
-                                        'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
-                                        'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
-                                        .attr('data-row', JSON.stringify(row))
-                                        .text($translate(vm.commissionType[data]))
-                                        .prop('outerHTML');
+                                    if (row && row.isCustomizeSettingExist) {
+                                        return $('<a style="z-index: auto; color:red" data-toggle="modal" data-container="body" ' +
+                                            'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
+                                            'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
+                                            .attr('data-row', JSON.stringify(row))
+                                            .text($translate(vm.commissionType[data]))
+                                            .prop('outerHTML');
+                                    } else {
+                                        return $('<a style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                            'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ' +
+                                            'ng-click="vm.onClickPartnerCheck(\'' + row._id + '\', vm.openEditPartnerDialog, \'commissionInfo\');"></a>')
+                                            .attr('data-row', JSON.stringify(row))
+                                            .text($translate(vm.commissionType[data]))
+                                            .prop('outerHTML');
+                                    }
                                 } else {
                                     return $('<span style="z-index: auto" data-toggle="modal" data-container="body" ' +
                                         'data-placement="bottom" data-trigger="focus" type="button" data-html="true" href="#" ></span>')
@@ -15798,7 +16008,7 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {
-                            title: $translate('TOTAL_CHILDREN_COUNT'), data: "childrencount", advSearch: true, "sClass": "",
+                            title: $translate('TOTAL_CHILDREN_COUNT'), data: "totalReferrals", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
@@ -15832,7 +16042,7 @@ define(['js/app'], function (myApp) {
                         },
                         {
                             title: $translate('SETTLED_COMMISSION'),
-                            data: "settledCommission",
+                            data: "commissionAmountFromChildren",
                             advSearch: true,
                             "sClass": "",
                             render: function (data, type, row) {
@@ -19483,9 +19693,6 @@ define(['js/app'], function (myApp) {
                         vm.partnerCommission = {};
                         vm.getCommissionRateGameProviderGroup();
                         vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-                        // vm.getPartnerCommissionPeriodConst();
-                        // vm.getPartnerCommissionSettlementModeConst();
-                        //vm.getPartnerCommisionConfig();
                         break;
                     case 'announcement':
                         vm.getAllPlatformAnnouncements();
@@ -23448,6 +23655,7 @@ define(['js/app'], function (myApp) {
 
                         if (partnerObjId) {
                             vm.partnerCommission = commonService.applyPartnerCustomRate(partnerObjId, vm.partnerCommission, vm.customPartnerCommission);
+                            vm.getPlatformPartnersData();
                         }
                     })
                 });
@@ -23843,7 +24051,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPartnerCommissionRateConfig', sendData, function (data) {
-                    if (data && data.data) {
+                    if (data && data.data && data.data.length > 0) {
                         data.data.forEach(config => {
                             if (config.partner) {
                                 vm.custCommissionRateConfig.push(config);

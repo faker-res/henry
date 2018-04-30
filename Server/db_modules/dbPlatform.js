@@ -2709,10 +2709,7 @@ var dbPlatform = {
             endTime = previousCycle.endTime;
         }
 
-        if (!isSkip) {
-            calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime).catch(errorUtils.reportError);
-        }
-
+        calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip).catch(errorUtils.reportError);
 
         return dbconfig.collection_partnerCommSettLog.update({
             platform: platformObjId,
@@ -2927,7 +2924,7 @@ function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfY
     }
 }
 
-function calculatePartnerCommissionInfo (platformObjId, commissionType, startTime, endTime) {
+function calculatePartnerCommissionInfo (platformObjId, commissionType, startTime, endTime, isSkip) {
     let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
 
     let balancer = new SettlementBalancer();
@@ -2941,6 +2938,7 @@ function calculatePartnerCommissionInfo (platformObjId, commissionType, startTim
                         commissionType: commissionType,
                         startTime: startTime,
                         endTime: endTime,
+                        isSkip: Boolean(isSkip),
                         partnerObjIdArr: partners.map(function (partner) {
                             return partner._id;
                         })
