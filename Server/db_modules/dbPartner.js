@@ -4691,11 +4691,12 @@ let dbPartner = {
     },
 
     generatePartnerCommissionLog: function (partnerObjId, commissionType, startTime, endTime) {
-        return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime).then(
+        return dbPartner.calculatePartnerCommissionDetail(partnerObjId, commissionType, startTime, endTime)
+            .then(
             commissionDetail => {
                 return dbconfig.collection_partnerCommissionLog.findOneAndUpdate({
-                    partner: commissionDetail._id,
-                    platform: commissionDetail._id,
+                    partner: commissionDetail.partner,
+                    platform: commissionDetail.platform,
                     startTime: startTime,
                     endTime: endTime,
                     commissionType: commissionType,
@@ -4888,10 +4889,11 @@ let dbPartner = {
                     let platformFeeRate = Number(platformFeeRateData.rate);
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
 
-                    let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName]);
+                    let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
                     if (rawCommission < 0) {
                         rawCommission = 0;
                     }
+
                     let platformFee =  platformFeeRate * totalConsumption;
                     totalPlatformFee += platformFee;
 
