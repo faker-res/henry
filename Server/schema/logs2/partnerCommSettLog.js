@@ -12,6 +12,8 @@ let partnerCommSettLog = new Schema({
     endTime: {type: Date, required: true},
     // Is settled
     isSettled: {type: Boolean, default: false},
+    // Is skipped
+    isSkipped: {type: Boolean, default: false},
 });
 
 partnerCommSettLog.index({platform: 1, settMode: 1, startTime: 1, endTime: 1});
