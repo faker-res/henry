@@ -4854,6 +4854,7 @@ let dbPartner = {
                     partnerId: partner.partnerId,
                     partnerName: partner.partnerName,
                     partnerRealName: partner.realName,
+                    partnerCredit: partner.credits,
                     downLinesRawCommissionDetail: downLinesRawCommissionDetail,
                     activeDownLines: activeDownLines,
                     partnerCommissionRateConfig: partnerCommissionRateConfig,
