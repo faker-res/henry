@@ -5003,7 +5003,7 @@ let dbPartner = {
                 }).read("secondaryPreferred").then(topUpRecord => {
                 if (topUpRecord) {
                     topUpRecord.map(player => totalValidCredit += player.validCredit);
-                    return {partnerId: partnerId, size: totalValidCredit.toFixed(2)};
+                    return {partnerId: partnerId, size: totalValidCredit};
                 }
             });
         }
