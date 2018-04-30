@@ -1076,7 +1076,7 @@ define(['js/app'], function (myApp) {
                     totalReferralsOperator: ">=",
                     totalChildrenDepositOperator: ">=",
                     totalChildrenBalanceOperator: ">=",
-                    settledCommissionOperator: ">=",
+                    commissionAmountFromChildrenOperator: ">=",
                 };
                 vm.playerAdvanceSearchQuery = {
                     creditOperator: ">=",
@@ -15572,7 +15572,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPartnersByAdvanceQueryDebounced = $scope.debounceSearch(function (partnerQuery) {
-
                 utilService.hideAllPopoversExcept();
                 vm.advancedPartnerQueryObj = $.extend({}, vm.advancedPartnerQueryObj, partnerQuery);
                 for (var k in partnerQuery) {
