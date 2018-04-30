@@ -470,9 +470,49 @@ function socketActionPartner(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.commissionType);
             socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType], actionName, isValidData);
-        }
+        },
 
+        getReferralsList: function getReferralsList (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getReferralsList, [data.data], actionName, isValidData);
+        },
 
+        getDailyActivePlayerCount: function getDailyActivePlayerCount (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getDailyActivePlayerCount, [data], actionName, isValidData);
+        },
+
+        getWeeklyActivePlayerCount: function getWeeklyActivePlayerCount (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getWeeklyActivePlayerCount, [data], actionName, isValidData);
+        },
+
+        getMonthlyActivePlayerCount: function getMonthlyActivePlayerCount (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getMonthlyActivePlayerCount, [data], actionName, isValidData);
+        },
+
+        getValidPlayersCount: function getValidPlayersCount (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getValidPlayersCount, [data], actionName, isValidData);
+        },
+
+        getTotalChildrenDeposit: function getTotalChildrenDeposit (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getTotalChildrenDeposit, [data], actionName, isValidData);
+        },
+
+        getTotalChildrenBalance: function getTotalChildrenBalance (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPartner.getTotalChildrenBalance, [data], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
