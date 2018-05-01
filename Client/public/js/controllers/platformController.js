@@ -13975,6 +13975,7 @@ define(['js/app'], function (myApp) {
                     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_manual_topup"] .createTime');
                     vm.playerManualTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                 });
+                vm.refreshSPicker();
                 $scope.safeApply();
             };
 
