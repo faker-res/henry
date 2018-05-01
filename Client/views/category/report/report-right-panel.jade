@@ -1105,6 +1105,12 @@
                     button.btn.btn-success(ng-click='vm.searchPartnerSettlementHistory(true)') {{'SEARCH' | translate}}
                     span#partnerSettlementTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
+                div(style="display:block;font-size:10px;color:rgb(0,0,255);margin-top:10px;")
+                    div(style="display:block;font-size:12px;color:black;") {{"Calender legend" | translate}}
+                    div(style="display:inline;") *{{"Gray (strikethrough) indicates skipped settlement" | translate}}
+                    div(style="display:inline;margin-left:10px;") *{{"Select date range to show settlement details" | translate}}
+                    div(style="display:block;") *{{"Green indicates executed settlement" | translate}}
+                    div(style="display:block;") *{{"White indicates unexecuted settlement" | translate}}
             .clearfix
             label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}}
             span.text-danger.margin-left-5 {{vm.partnerSettlementQuery.message | translate}}

@@ -86,9 +86,6 @@ define(['js/app'], function (myApp) {
             expired: "EXPIRED"
         };
 
-        vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
-        vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
-
         //get all platform data from server
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
@@ -5653,13 +5650,26 @@ define(['js/app'], function (myApp) {
             obj.endTime.data('datetimepicker').setLocalDate(new Date(endTime));
         };
 
+        vm.getPlatformPartnerSettlementStatus = function(startTime, endTime, callback) {
+            let sendData = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: startTime,
+                endTime: endTime
+            };
+            console.log("getPlatformPartnerSettlementStatus sendData", sendData);
+            socketService.$socket($scope.AppSocket, 'getPlatformPartnerSettlementStatus', sendData, function (data) {
+                vm.platformPartnerSettlementStatus = data.data;
+                callback();
+            });
+        };
         //dtp is dateTimePicker
-        vm.commonChangeDatePickerStyle = function(dtp, status, options) {
+        vm.commonChangeDatePickerStyle = function(dtp, options) {
+            let status = vm.platformPartnerSettlementStatus;
             let monthOffset = options.monthOffset;
             let daysInMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day:not(.old):not(.new)');
             let daysInPreviousMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day.old');
             let daysInNextMonth = dtp.widget[0].querySelectorAll('.datepicker-days tbody .day.new');
-            let selectedYear = dtp.getLocalDate().getYear() + 1900;
+            let selectedYear = dtp.getLocalDate().getFullYear();
             let selectedMonth = dtp.getLocalDate().getMonth() + 1;
             let selectedDate = dtp.getLocalDate().getDate();
             let curYear = selectedYear;
@@ -5667,17 +5677,16 @@ define(['js/app'], function (myApp) {
             let displayDate;
 
             function renderStyle(dayHolder, year, month, date) {
-                let dayStatus = (status[year] && status[year][month] && status[year][month][date]) ?
-                    status[year][month][date] : null;
+                let dayStatus = (status[year] && status[year][month]) ? status[year][month][date] : null;
                 switch(dayStatus) {
-                    case $scope.constPartnerCommissionSettlementStatus.SKIPPED:
+                    case $scope.constPartnerCommissionLogStatus.SKIPPED:
                         dayHolder.style.background = 'grey';
                         dayHolder.style.textDecoration = 'line-through';
                         break;
-                    case $scope.constPartnerCommissionSettlementStatus.PREVIEW:
-                    case $scope.constPartnerCommissionSettlementStatus.EXECUTED:
-                    case $scope.constPartnerCommissionSettlementStatus.RESET_THEN_EXECUTED:
-                    case $scope.constPartnerCommissionSettlementStatus.EXECUTED_THEN_RESET:
+                    case $scope.constPartnerCommissionLogStatus.PREVIEW:
+                    case $scope.constPartnerCommissionLogStatus.EXECUTED:
+                    case $scope.constPartnerCommissionLogStatus.RESET_THEN_EXECUTED:
+                    case $scope.constPartnerCommissionLogStatus.EXECUTED_THEN_RESET:
                         dayHolder.style.background = 'green';
                         break;
                     default:
@@ -6744,10 +6753,21 @@ define(['js/app'], function (myApp) {
                 })
                 $scope.safeApply();
             }  else if (choice == "PARTNER_SETTLEMENT_HISTORY_REPORT") {
+                vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
+                vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
                 vm.partnerSettlementQuery = {};
                 vm.partnerSettlementQuery.totalCount = 0;
                 let dateTimePickerStartPopup, dateTimePickerEndPopup;
 
+                let getStartTimePlatformPartnerSettlementStatus = function(callback) {
+                    let refDate = vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate();
+                    refDate = new Date(refDate.setDate(1));
+                    let startDate = refDate.setMonth(
+                        vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate().getMonth()+vm.partnerSettlementQueryStartDateCurMonthOffset-1);
+                    refDate = new Date(refDate.setMonth(refDate.getMonth()+3));
+                    let endDate = refDate.setDate(refDate.getDate()-1);
+                    vm.getPlatformPartnerSettlementStatus(new Date(startDate), new Date(endDate), callback);
+                };
                 let styleDateTimePickerStart = function(ev) {
                     if(ev.target == dateTimePickerStartPopup.querySelector('.datepicker-days thead .prev') && !ev.target.classList.contains('disabled')) {
                         vm.partnerSettlementQueryStartDateCurMonthOffset--;
@@ -6758,16 +6778,25 @@ define(['js/app'], function (myApp) {
                     if(ev.type == "changeDate") {
                         vm.partnerSettlementQueryStartDateCurMonthOffset = 0;
                     }
-                    setTimeout(function() {
+
+                    getStartTimePlatformPartnerSettlementStatus(function(){
                         vm.commonChangeDatePickerStyle(
                             vm.partnerSettlementQuery.startTime.data('datetimepicker'),
-                            {},
-                            {monthOffset:vm.partnerSettlementQueryStartDateCurMonthOffset});
-                    }, 1);
+                            {monthOffset:vm.partnerSettlementQueryStartDateCurMonthOffset}
+                        )
+                    });
                 };
 
+                let getEndTimePlatformPartnerSettlementStatus = function(callback) {
+                    let refDate = vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate();
+                    refDate = new Date(refDate.setDate(1));
+                    let startDate = refDate.setMonth(
+                        vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate().getMonth()+vm.partnerSettlementQueryEndDateCurMonthOffset-1);
+                    refDate = new Date(refDate.setMonth(refDate.getMonth()+3));
+                    let endDate = refDate.setDate(refDate.getDate()-1);
+                    vm.getPlatformPartnerSettlementStatus(new Date(startDate), new Date(endDate), callback);
+                };
                 let styleDateTimePickerEnd = function(ev) {
-                    console.log(ev);
                     if(ev.target == dateTimePickerEndPopup.querySelector('.datepicker-days thead .prev') && !ev.target.classList.contains('disabled')) {
                         vm.partnerSettlementQueryEndDateCurMonthOffset--;
                     }
@@ -6777,12 +6806,13 @@ define(['js/app'], function (myApp) {
                     if(ev.type == "changeDate") {
                         vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
                     }
-                    setTimeout(function() {
+
+                    getEndTimePlatformPartnerSettlementStatus(function(){
                         vm.commonChangeDatePickerStyle(
                             vm.partnerSettlementQuery.endTime.data('datetimepicker'),
-                            {},
-                            {monthOffset:vm.partnerSettlementQueryEndDateCurMonthOffset});
-                    }, 1);
+                            {monthOffset:vm.partnerSettlementQueryEndDateCurMonthOffset}
+                        )
+                    });
                 };
 
                 utilService.actionAfterLoaded("#partnerSettlementTablePage", function () {

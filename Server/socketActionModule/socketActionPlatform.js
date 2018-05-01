@@ -622,6 +622,12 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.settMode && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlatform.initSettlePartnerComm, [ObjectId(data.platformObjId), data.settMode, data.startTime, data.endTime], actionName, isValidData);
+        },
+
+        getPlatformPartnerSettlementStatus: function getPlatformPartnerSettlementStatus(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPlatform.getPlatformPartnerSettlementStatus, [ObjectId(data.platformObjId), data.startTime, data.endTime], actionName, isValidData);
         }
     };
     socketActionPlatform.actions = this.actions;
