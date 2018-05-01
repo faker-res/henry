@@ -5500,8 +5500,8 @@ let dbPartner = {
             endTime: endTime
         };
 
-        let count = dbconfig.collection_partnerCommissionLog.count(query);
-        let result = dbconfig.collection_partnerCommissionLog.find(query).sort(sortCol).skip(index).limit(limit);
+        let count = dbconfig.collection_partnerCommissionLog.count(query).read("secondaryPreferred");
+        let result = dbconfig.collection_partnerCommissionLog.find(query).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
 
         return Promise.all([count, result]).then(data => {
             return {count: data[0], data: data[1]};
