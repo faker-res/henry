@@ -5244,13 +5244,13 @@ define(['js/app'], function (myApp) {
             loadingSpinner.show();
             $scope.$socketPromise('getPartnerSettlementHistory', sendData, true).then(data => {
                 console.log('searchPartnerSettlementHistory retData',data);
-                vm.partnerSettlementQuery.totalCount = data.count;
-                let searchResult = data.data;
+                vm.partnerSettlementQuery.totalCount = data.data.count;
+                let searchResult = data.data.data;
                 searchResult.map(item => {
                     // data processing here
                 })
                 loadingSpinner.hide();
-                vm.drawPartnerSettlementHistoryTable(searchResult, 0, newSearch);
+                vm.drawPartnerSettlementHistoryTable(searchResult, vm.partnerSettlementQuery.totalCount, newSearch);
             });
         };
         vm.drawPartnerSettlementHistoryTable = function (tableData, size, newSearch) {
