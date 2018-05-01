@@ -1589,6 +1589,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initSettlePartnerComm = (prev) => {
+                vm.partnerSettlementSubmitted = false;
                 vm.partnerCommVar = {};
                 vm.partnerDLCommDetailTotal = {};
 
@@ -1666,6 +1667,7 @@ define(['js/app'], function (myApp) {
 
             /* Check for no remark entry if settleMethod is not normal settlement */
             vm.checkPartnerCommissionLogRemark = function () {
+                vm.partnerSettlementSubmitted = true;
                 delete vm.partnerCommVar.checkedRemark;
                 vm.partnerCommissionLog.forEach( partner => {
                     if (partner) {
