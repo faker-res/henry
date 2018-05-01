@@ -5488,6 +5488,25 @@ let dbPartner = {
 
         return Promise.all(proms);
     },
+
+    getPartnerSettlementHistory: (partnerName, commissionType, startTime, endTime, sortCol, index, limit) => {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'_id': -1};
+        let query = {
+            partnerName: partnerName,
+            commissionType: commissionType,
+            startTime: startTime,
+            endTime: endTime
+        };
+
+        let count = dbconfig.collection_partnerCommissionLog.count(query).read("secondaryPreferred");
+        let result = dbconfig.collection_partnerCommissionLog.find(query).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
+
+        return Promise.all([count, result]).then(data => {
+            return {count: data[0], data: data[1]};
+        })
+    },
 };
 var proto = dbPartnerFunc.prototype;
 proto = Object.assign(proto, dbPartner);

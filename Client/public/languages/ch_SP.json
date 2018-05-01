@@ -3591,6 +3591,7 @@
   "Green indicates executed settlement": "绿色表示已经结算",
   "White indicates unexecuted settlement": "白色表示尚未结算",
   "Select date range to show settlement details": "选择当日代表展示该日被结算的数据",
+  "Either Commission Type or Partner Name must be filled in": "佣金模式 或 代理账号 必填",
 
   "RECEIVE_BANK_TYPE": "收款银行类型",
   "RECEIVE_BANK_ACC": "收款银行账号",

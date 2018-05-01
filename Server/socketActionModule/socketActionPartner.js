@@ -513,6 +513,12 @@ function socketActionPartner(socketIO, socket) {
             let isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPartner.getTotalChildrenBalance, [data], actionName, isValidData);
         },
+
+        getPartnerSettlementHistory: function getPartnerSettlementHistory (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.partnerName || data.commissionType && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerSettlementHistory, [data.partnerName, data.commissionType, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;

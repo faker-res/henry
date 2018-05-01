@@ -5218,57 +5218,40 @@ define(['js/app'], function (myApp) {
 
         // start partner commission report
         vm.searchPartnerSettlementHistory = function (newSearch) {
-            vm.drawPartnerSettlementHistoryTable({},0,true);
-            // $('#partnerSettlementTableSpin').show();
-            //
-            // let startTime = vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate();
-            // let endTime = vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate();
-            //
-            // Q.resolve().then(
-            //     () => {
-            //         var midnightThisMorningSG = getDayStartTime();
-            //         if (endTime >= midnightThisMorningSG) {
-            //             return $scope.$socketPromise('manualPlatformPartnerCommissionSettlement', {platformId: vm.curPlatformId}, true);
-            //         }
-            //     }
-            // ).then(
-            //     () => {
-            //         var sendData = {
-            //             platformId: vm.curPlatformId,
-            //             partnerName: vm.partnerCommissionQuery.partnerName,
-            //             startTime: startTime,
-            //             endTime: endTime,
-            //             limit: vm.partnerCommissionQuery.limit || 10,
-            //             index: newSearch ? 0 : (vm.partnerCommissionQuery.index || 0),
-            //             sortCol: vm.partnerCommissionQuery.sortCol || {}
-            //         };
-            //
-            //         return $scope.$socketPromise('getPartnerCommissionReport', sendData, true).then(
-            //             function (data) {
-            //                 console.log("getPartnerCommissionReport", data);
-            //                 vm.partnerSettlementQuery.totalCount = data.data.size ? data.data.size : 0;
-            //                 vm.partnerSettlementQuery.message = data.data.message || '';
-            //                 $scope.safeApply();
-            //                 vm.partnerSettlementTable(data.data.data.map(item => {
-            //                     item.profitAmount$ = parseFloat(item.profitAmount).toFixed(2);
-            //                     item.serviceFee$ = parseFloat(item.serviceFee).toFixed(2);
-            //                     item.platformFee$ = parseFloat(item.platformFee).toFixed(2);
-            //                     item.marketCost$ = parseFloat(item.marketCost).toFixed(2);
-            //                     item.totalRewardAmount$ = parseFloat(item.totalRewardAmount).toFixed(2);
-            //                     item.operationFee$ = parseFloat(item.operationFee).toFixed(2);
-            //                     item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
-            //                     item.totalPlayerBonusAmount$ = parseFloat(item.totalPlayerBonusAmount).toFixed(2);
-            //                     // item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
-            //                     item.totalCommissionAmount$ = parseFloat(item.totalCommissionAmount).toFixed(2);
-            //                     item.totalCommissionOfChildren$ = parseFloat(item.totalCommissionOfChildren).toFixed(2);
-            //                     return item;
-            //                 }), vm.partnerSettlementQuery.totalCount, data.data.summary, newSearch);
-            //             }
-            //         );
-            //     }
-            // ).catch(console.error).then(
-            //     () => $('#partnerSettlementTableSpin').hide()
-            // );
+            vm.partnerSettlementQuery.message = '';
+            let loadingSpinner = $('#partnerSettlementTableSpin');
+            let commissionType = vm.partnerSettlementQuery.commissionType;
+            let partnerName = vm.partnerSettlementQuery.partnerName;
+            let sendData = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: new Date(vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate()),
+                endTime: new Date(vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate()),
+                limit: vm.partnerSettlementQuery.limit,
+                index: vm.partnerSettlementQuery.index,
+                sortCol: vm.partnerSettlementQuery.sortCol
+            };
+            if(commissionType === '' && partnerName === '') {
+                vm.partnerSettlementQuery.message = 'Either Commission Type or Partner Name must be filled in';
+                return;
+            }
+            if(commissionType !== '') {
+                sendData.commissionType = commissionType;
+            }
+            if(partnerName !== '') {
+                sendData.partnerName = partnerName;
+            }
+
+            loadingSpinner.show();
+            $scope.$socketPromise('getPartnerSettlementHistory', sendData, true).then(data => {
+                console.log('searchPartnerSettlementHistory retData',data);
+                vm.partnerSettlementQuery.totalCount = data.data.count;
+                let searchResult = data.data.data;
+                searchResult.map(item => {
+                    // data processing here
+                })
+                loadingSpinner.hide();
+                vm.drawPartnerSettlementHistoryTable(searchResult, vm.partnerSettlementQuery.totalCount, newSearch);
+            });
         };
         vm.drawPartnerSettlementHistoryTable = function (tableData, size, newSearch) {
             var tableOptions = {
@@ -6757,6 +6740,8 @@ define(['js/app'], function (myApp) {
                 vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
                 vm.partnerSettlementQuery = {};
                 vm.partnerSettlementQuery.totalCount = 0;
+                vm.partnerSettlementQuery.commissionType = '';
+                vm.partnerSettlementQuery.partnerName = '';
                 let dateTimePickerStartPopup, dateTimePickerEndPopup;
 
                 let getStartTimePlatformPartnerSettlementStatus = function(callback) {
