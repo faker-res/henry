@@ -6723,6 +6723,8 @@ define(['js/app'], function (myApp) {
                     });
                 })
                 $scope.safeApply();
+            } else if (choice == "REAL_TIME_COMMISSION_REPORT") {
+                vm.realTimeCommissionQuery = {};
             } else if (choice == "PARTNERCOMMISSION_REPORT") {
                 vm.partnerCommissionQuery = {};
                 vm.partnerCommissionQuery.status = 'all';
