@@ -567,6 +567,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         2: "FORBID"
     };
 
+    $scope.constPartnerCommissionLogStatus = {
+        PREVIEW: 0,
+        EXECUTED: 1,
+        RESET_THEN_EXECUTED: 2,
+        EXECUTED_THEN_RESET: 3,
+        SKIPPED: 4
+    };
+
     $scope.rewardInterval = {
         1: "Daily",
         2: "Weekly",
@@ -1536,6 +1544,25 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             },0)
         });
 
+    };
+
+    /* Calculate total sum of value in array, key1 and key2 are object keys (put "" if no key is required) */
+    $scope.calculateTotalSum = function (dataArray, key1, key2) {
+        let total = 0;
+        if (dataArray) {
+            if (key1 && key1.length > 0) {
+                if (key2 && key2.length > 0) {
+                    total = dataArray.length !== 0 ? dataArray.reduce((a, item) => a + (Number.isFinite(item[key1][key2]) ? item[key1][key2] : 0), 0) : 0;
+                }
+                else {
+                    total = dataArray.length !== 0 ? dataArray.reduce((a, item) => a + (Number.isFinite(item[key1]) ? item[key1] : 0), 0) : 0;
+                }
+            }
+            else {
+                total = dataArray.length !== 0 ? dataArray.reduce((a, item) => a + (Number.isFinite(item) ? item : 0), 0) : 0;
+            }
+        }
+        return total;
     };
 
     $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))

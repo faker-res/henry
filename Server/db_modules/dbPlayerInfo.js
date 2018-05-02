@@ -6909,14 +6909,27 @@ let dbPlayerInfo = {
                                    platformPeriodTime = dbUtil.getLastMonthSGTime();
                                }
 
-                               let topUpProm = dbconfig.collection_playerTopUpRecord.find(
+                               // let topUpProm = dbconfig.collection_playerTopUpRecord.find(
+                               //     {
+                               //         platformId: ObjectId(playerObj.platform),
+                               //         createTime: {
+                               //             $gte: new Date(platformPeriodTime.startTime),
+                               //             $lt: new Date(platformPeriodTime.endTime)
+                               //         },
+                               //         playerId: ObjectId(playerObj._id)
+                               //     }
+                               // ).lean();
+
+                               let topUpProm = dbconfig.collection_proposal.find(
                                    {
-                                       platformId: ObjectId(playerObj.platform),
+                                       mainType: constProposalMainType.PlayerTopUp,
+                                       status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                                       "data.platformId": ObjectId(playerObj.platform),
                                        createTime: {
                                            $gte: new Date(platformPeriodTime.startTime),
                                            $lt: new Date(platformPeriodTime.endTime)
                                        },
-                                       playerId: ObjectId(playerObj._id)
+                                       "data.playerObjId": ObjectId(playerObj._id)
                                    }
                                ).lean();
 
@@ -6961,7 +6974,11 @@ let dbPlayerInfo = {
                                                            recordSum += queryRecord[c][queryAmountField];
                                                        }
                                                    } else {
-                                                       recordSum += queryRecord[c][queryAmountField];
+                                                       if (bTopUp) {
+                                                           recordSum += queryRecord[c]["data"][queryAmountField];
+                                                       } else {
+                                                           recordSum += queryRecord[c][queryAmountField];
+                                                       }
                                                    }
                                                }
                                            }
@@ -14934,11 +14951,14 @@ let dbPlayerInfo = {
                                                     delete populatedData[i]._id;
                                                 }
                                             }
-                                            returnData.allDeposit.playerRanking = {};
-                                            if (playerRanking) {
-                                                returnData.allDeposit.playerRanking = playerRanking;
-                                            }   else {
-                                                returnData.allDeposit.playerRanking.error = "No top up record for this player";
+
+                                            if (playerObj) {
+                                                returnData.allDeposit.playerRanking = {};
+                                                if (playerRanking) {
+                                                    returnData.allDeposit.playerRanking = playerRanking;
+                                                } else {
+                                                    returnData.allDeposit.playerRanking.error = "No top up record for this player";
+                                                }
                                             }
 
                                             returnData.allDeposit.boardRanking = populatedData;
@@ -15204,11 +15224,13 @@ let dbPlayerInfo = {
                                                 }
                                             }
 
-                                            returnData.allWithdraw.playerRanking = {};
-                                            if (playerRanking) {
-                                                returnData.allWithdraw.playerRanking = playerRanking;
-                                            } else {
-                                                returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                            if (playerObj) {
+                                                returnData.allWithdraw.playerRanking = {};
+                                                if (playerRanking) {
+                                                    returnData.allWithdraw.playerRanking = playerRanking;
+                                                } else {
+                                                    returnData.allWithdraw.playerRanking.error = "No withdraw record for this player";
+                                                }
                                             }
 
                                             returnData.allWithdraw.boardRanking = populatedData;
@@ -15399,7 +15421,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     } else {
@@ -15408,7 +15431,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate}
+                                createTime: {$gte: recordDate},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     }
@@ -15573,7 +15597,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime}
+                                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     } else {
@@ -15582,7 +15607,8 @@ let dbPlayerInfo = {
                         matchQuery = {
                             $match: {
                                 platformId: platformObj._id,
-                                createTime: {$gte: recordDate}
+                                createTime: {$gte: recordDate},
+                                $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
                             },
                         };
                     }
