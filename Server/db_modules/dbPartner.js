@@ -771,17 +771,17 @@ let dbPartner = {
                 {$match:query},
                 {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
                         "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "settledCommission":1, "_id":1, }},
+                        "monthlyActivePlayer":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "commissionAmountFromChildren":1, "_id":1, }},
                 {$skip:index},
                 {$limit:limit}
             ]).then(
-            aggr => {
-                var retData = [];
-                for (var index in aggr) {
-                    var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                    retData.push(prom);
-                }
-                return Q.all(retData);
+                aggr => {
+                    var retData = [];
+                    for (var index in aggr) {
+                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                        retData.push(prom);
+                    }
+                    return Q.all(retData);
             }).then(
                 partners => {
                     for (let i = 0; i < partners.length; i++) {
@@ -796,8 +796,8 @@ let dbPartner = {
                     Q.reject({name: "DBError", message: "Error finding partners.", error: error});
                 }
             );
-            
         }
+
         return Q.all([count, partnerInfo]).then( function(data){
             return {size:data[0],data:data[1]}
         })
@@ -4655,7 +4655,6 @@ let dbPartner = {
         });
         return Promise.all(partnerProm).then(
             data => {
-                // console.log('RESULT===', data);
                 return data;
             }
         );
@@ -4746,6 +4745,44 @@ let dbPartner = {
                                 }
                             }).read("secondaryPreferred").then(records => {
                                 records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
+
+                                switch (period) {
+                                    case 'day':
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {dailyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                    case 'week':
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {weeklyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                    case 'month':
+                                    default:
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {monthlyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                }
+
                                 return {partnerId: partnerId, size: records.length}
                             }
                         )
@@ -4875,6 +4912,17 @@ let dbPartner = {
                                 }
                             }).read("secondaryPreferred").then(records => {
                                 records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+
+                                dbconfig.collection_partner.findOneAndUpdate(
+                                    {
+                                        _id: partnerId,
+                                        platform: platformId,
+                                    },
+                                    {
+                                        $set: {validPlayers: records.length}
+                                    }
+                                ).exec();
+
                                 return {partnerId: partnerId, size: records.length}
                             }
                         )
@@ -4952,6 +5000,17 @@ let dbPartner = {
                         }).read("secondaryPreferred").then(records => {
                             records.map(player => totalBonusAmount += player.bonusAmount);
                             let totalCredit = (totalTopUpAmount - totalBonusAmount);
+                            totalCredit = totalCredit.toFixed(2);
+
+                            dbconfig.collection_partner.findOneAndUpdate(
+                                {
+                                    _id: partnerId,
+                                    platform: platformId,
+                                },
+                                {
+                                    $set: {totalChildrenDeposit: totalCredit}
+                                }
+                            ).exec();
 
                             return {partnerId: partnerId, size: totalCredit}
                         }
@@ -5003,6 +5062,18 @@ let dbPartner = {
                 }).read("secondaryPreferred").then(topUpRecord => {
                 if (topUpRecord) {
                     topUpRecord.map(player => totalValidCredit += player.validCredit);
+                    totalValidCredit = totalValidCredit.toFixed(2);
+
+                    dbconfig.collection_partner.findOneAndUpdate(
+                        {
+                            _id: partnerId,
+                            platform: platformId,
+                        },
+                        {
+                            $set: {totalChildrenBalance: totalValidCredit}
+                        }
+                    ).exec();
+
                     return {partnerId: partnerId, size: totalValidCredit};
                 }
             });
