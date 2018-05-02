@@ -1509,11 +1509,7 @@
                 .panel.panel-primary
                     .panel-body
                         .tab-content
-                            div(ng-if='vm.proposalDialog == "proposalTopUp"')
-                                #ProposalDetail.tab-pane.fade.in.active
-                                    //include ./proposal-dialog-detail
-                                    include ./proposal-detail
-                            div(ng-if='vm.proposalDialog == "proposal"')
+                            div(ng-if='vm.proposalDialog == "proposalTopUp" || vm.proposalDialog == "proposal"')
                                 #ProposalDetail.tab-pane.fade.in.active
                                     include ./proposal-detail
                             #Workflow.tab-pane.fade(mouse-capture, style="max-height:600px;overflow-y:auto")
