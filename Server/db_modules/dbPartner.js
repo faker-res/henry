@@ -5072,9 +5072,18 @@ let dbPartner = {
         );
     },
 
-    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType) {
+    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName) {
         let result = [];
-        let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
+        let query = {platform: platformObjId};
+
+        if (partnerName) {
+            query.partnerName = partnerName;
+        }
+        else {
+            query.commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+        }
+
+        let stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
 
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
@@ -5083,6 +5092,11 @@ let dbPartner = {
                     stream: stream,
                     batchSize: constSystemParam.BATCH_SIZE,
                     makeRequest: function (partners, request) {
+                        if (partners.length === 1) {
+                            if (partners[0].commissionType) {
+                                commissionType = partners[0].commissionType || commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+                            }
+                        }
                         request("player", "getCurrentPartnersCommission", {
                             commissionType: commissionType,
                             partnerObjIdArr: partners.map(function (partner) {
@@ -5419,10 +5433,8 @@ let dbPartner = {
     },
 
     applyClearPartnerCredit: (partnerObjId, commissionLog, adminName, remark) => {
-        console.log('aaaaaaaa')
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
             partnerData => {
-                console.log('bbbbbbbb')
                 let proposalData = {
                     data: {
                         partnerObjId: partnerData._id,
@@ -5487,6 +5499,25 @@ let dbPartner = {
         });
 
         return Promise.all(proms);
+    },
+
+    getPartnerSettlementHistory: (partnerName, commissionType, startTime, endTime, sortCol, index, limit) => {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'_id': -1};
+        let query = {
+            partnerName: partnerName,
+            commissionType: commissionType,
+            startTime: startTime,
+            endTime: endTime
+        };
+
+        let count = dbconfig.collection_partnerCommissionLog.count(query).read("secondaryPreferred");
+        let result = dbconfig.collection_partnerCommissionLog.find(query).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
+
+        return Promise.all([count, result]).then(data => {
+            return {count: data[0], data: data[1]};
+        })
     },
 };
 var proto = dbPartnerFunc.prototype;

@@ -468,8 +468,8 @@ function socketActionPartner(socketIO, socket) {
 
         getCurrentPartnerCommissionDetail: function getCurrentPartnerCommissionDetail (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.commissionType);
-            socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType, data.partnerName], actionName, isValidData);
         },
 
         getReferralsList: function getReferralsList (data) {
@@ -512,6 +512,12 @@ function socketActionPartner(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
             socketUtil.emitter(self.socket, dbPartner.getTotalChildrenBalance, [data], actionName, isValidData);
+        },
+
+        getPartnerSettlementHistory: function getPartnerSettlementHistory (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.partnerName || data.commissionType && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerSettlementHistory, [data.partnerName, data.commissionType, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
         },
     };
 

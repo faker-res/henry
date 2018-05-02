@@ -1086,6 +1086,7 @@
                 div
                     label {{"COMMISSION_TYPE"|translate}}
                     select.form-control(ng-model='vm.partnerSettlementQuery.commissionType')
+                        option(value='') {{'any' | translate}}
                         option(value='1') {{'DAILY_BONUS_AMOUNT' | translate}}
                         option(value='2') {{'WEEKLY_BONUS_AMOUNT' | translate}}
                         option(value='3') {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
@@ -1105,6 +1106,8 @@
                     button.btn.btn-success(ng-click='vm.searchPartnerSettlementHistory(true)') {{'SEARCH' | translate}}
                     span#partnerSettlementTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
+                div(style="display:block;")
+                    span.text-danger.margin-left-5 {{vm.partnerSettlementQuery.message | translate}}
                 div(style="display:block;font-size:10px;color:rgb(0,0,255);margin-top:10px;")
                     div(style="display:block;font-size:12px;color:black;") {{"Calender legend" | translate}}
                     div(style="display:inline;") *{{"Gray (strikethrough) indicates skipped settlement" | translate}}
@@ -1113,7 +1116,6 @@
                     div(style="display:block;") *{{"White indicates unexecuted settlement" | translate}}
             .clearfix
             label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}}
-            span.text-danger.margin-left-5 {{vm.partnerSettlementQuery.message | translate}}
             table.common-table#partnerSettlementTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerSettlementTablePage
         div(ng-if='vm.showPageName=="FEEDBACK_REPORT"')
@@ -1507,11 +1509,7 @@
                 .panel.panel-primary
                     .panel-body
                         .tab-content
-                            div(ng-if='vm.proposalDialog == "proposalTopUp"')
-                                #ProposalDetail.tab-pane.fade.in.active
-                                    //include ./proposal-dialog-detail
-                                    include ./proposal-detail
-                            div(ng-if='vm.proposalDialog == "proposal"')
+                            div(ng-if='vm.proposalDialog == "proposalTopUp" || vm.proposalDialog == "proposal"')
                                 #ProposalDetail.tab-pane.fade.in.active
                                     include ./proposal-detail
                             #Workflow.tab-pane.fade(mouse-capture, style="max-height:600px;overflow-y:auto")
