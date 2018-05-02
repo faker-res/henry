@@ -468,7 +468,7 @@ function socketActionPartner(socketIO, socket) {
 
         getCurrentPartnerCommissionDetail: function getCurrentPartnerCommissionDetail (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
+            let isValidData = Boolean(data && data.platformObjId && (data.commissionType || data.partnerName));
             socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType, data.partnerName], actionName, isValidData);
         },
 

@@ -1118,6 +1118,28 @@
             label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}}
             table.common-table#partnerSettlementTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerSettlementTablePage
+        div(ng-if='vm.showPageName=="REAL_TIME_COMMISSION_REPORT"')
+            #realTimeCommissionQuery.block-query.col-md-12.well
+                div
+                    label {{"COMMISSION_TYPE" | translate}}
+                    select.form-control(ng-model='vm.realTimeCommissionQuery.commissionType' style='max-width:300px')
+                        option(value='1') {{"DAILY_BONUS_AMOUNT" | translate}}
+                        option(value='2') {{"WEEKLY_BONUS_AMOUNT" | translate}}
+                        option(value='3') {{"BIWEEKLY_BONUS_AMOUNT" | translate}}
+                        option(value='4') {{"MONTHLY_BONUS_AMOUNT" | translate}}
+                        option(value='5') {{"WEEKLY_CONSUMPTION" | translate}}
+                div
+                    label {{"PARTNER_NAME" | translate}}
+                    input.form-control.span.input-sm(type="text", ng-model="vm.realTimeCommissionQuery.partnerName")
+                div
+                    label &nbsp;
+                    button.btn.btn-success(ng-click='vm.searchRealTimePartnerCommissionData(true)') {{'SEARCH' | translate}}
+                    span#realTimeCommissionTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.realTimeCommissionLoadingStatus}}
+            .clearfix
+
+
         div(ng-if='vm.showPageName=="FEEDBACK_REPORT"')
             #feedbackReportQuery.block-query.col-md-12.well
                 div

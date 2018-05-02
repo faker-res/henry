@@ -49,6 +49,8 @@
                                 text {{'WINRATE_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.FEEDBACK_REPORT}}" ng-click='vm.loadPage("FEEDBACK_REPORT")', ng-if="checkViewPermission('Report', 'General', 'FEEDBACK_REPORT')")
                                 text {{'FEEDBACK_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.REAL_TIME_COMMISSION_REPORT}}" ng-click='vm.loadPage("REAL_TIME_COMMISSION_REPORT")', ng-if="checkViewPermission('Report', 'General', 'REAL_TIME_COMMISSION_REPORT')")
+                                text {{'REAL_TIME_COMMISSION_REPORT' | translate}}
 
             .panel.panel-default
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#rewardReports')

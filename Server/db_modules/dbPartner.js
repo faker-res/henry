@@ -5318,6 +5318,7 @@ let dbPartner = {
                     totalTopUpFee: totalTopUpFee,
                     totalWithdrawal: totalWithdrawal,
                     totalWithdrawalFee: totalWithdrawalFee,
+                    status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
                 };
             }
@@ -6324,27 +6325,27 @@ function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime)
     let pastThreeActiveDownLines = [];
     let pastThreeNettCommission = [];
     startTime = new Date(startTime);
-    let firstLastPeriod = new Date(startTime).setMinutes(startTime.getMinutes()-5);
-    let secondLastPeriod = new Date(firstLastPeriod.startTime).setMinutes(firstLastPeriod.startTime.getMinutes()-5);
-    let thirdLastPeriod = new Date(secondLastPeriod.startTime).setMinutes(secondLastPeriod.startTime.getMinutes()-5);
+    let firstLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(startTime).setMinutes(startTime.getMinutes()-5)));
+    let secondLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(firstLastPeriod.startTime).setMinutes(firstLastPeriod.startTime.getMinutes()-5)));
+    let thirdLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(secondLastPeriod.startTime).setMinutes(secondLastPeriod.startTime.getMinutes()-5)));
 
     let firstLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
         partner: partnerObjId,
         commissionType: commissionType,
-        startTime: firstLastPeriod.startTime,
-        endTime: firstLastPeriod.endTime
+        startTime: new Date(firstLastPeriod.startTime),
+        endTime: new Date(firstLastPeriod.endTime)
     }).lean();
     let secondLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
         partner: partnerObjId,
         commissionType: commissionType,
-        startTime: secondLastPeriod.startTime,
-        endTime: secondLastPeriod.endTime
+        startTime: new Date(secondLastPeriod.startTime),
+        endTime: new Date(secondLastPeriod.endTime)
     }).lean();
     let thirdLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
         partner: partnerObjId,
         commissionType: commissionType,
-        startTime: thirdLastPeriod.startTime,
-        endTime: thirdLastPeriod.endTime
+        startTime: new Date(thirdLastPeriod.startTime),
+        endTime: new Date(thirdLastPeriod.endTime)
     }).lean();
 
     return Promise.all([firstLastRecordProm, secondLastRecordProm, thirdLastRecordProm]).then(
