@@ -22,6 +22,8 @@ var dxPhone = new Schema({
     ip: {type: String, default: "", index: true},
     // number of times of sending sms to this number
     sendingTimes: {type: Number, default: 0},
+    //remark
+    remark: {type: String}
 
 
 });
