@@ -1967,11 +1967,11 @@ define(['js/app'], function (myApp) {
                 });
 
                 proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
-                    + "(" + $translate("TOTAL") + ": " + vm.selectedProposal.data.totalTopUp + "/"
+                    + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalTopUp + "/"
                     + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
 
                 proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
-                    + "(" + $translate("TOTAL") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
+                    + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
                     + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
 
                 let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
