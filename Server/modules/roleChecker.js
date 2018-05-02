@@ -600,6 +600,7 @@ var roleChecker = {
                 WINRATE_REPORT: ['winRateReport'],
                 FEEDBACK_REPORT: [],
                 PARTNER_SETTLEMENT_HISTORY_REPORT: [],
+                REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],
