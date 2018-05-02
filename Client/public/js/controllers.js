@@ -1459,7 +1459,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.timeReformat = function (data) {
         return utilService.$getTimeFromStdTimeFormat(data);
-    }
+    };
+
+    $scope.dateReformat = function (data) {
+        return $scope.timeReformat(data).slice(0, 10);
+    };
+
     $scope.renderParameters = function (data) {
         //console.log("Rendering data:",data);
         var view = $('<div>');
