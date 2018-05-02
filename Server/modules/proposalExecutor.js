@@ -402,6 +402,9 @@ var proposalExecutor = {
                         }
                     ).then(
                         player => {
+                            // DEBUG EXECUTED HALF WAY
+                            console.log('executeUpdatePlayerCredit player', player, proposalData);
+
                             if (!player) {
                                 deferred.reject({
                                     name: "DataError",
