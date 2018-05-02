@@ -5318,6 +5318,7 @@ let dbPartner = {
                     totalTopUpFee: totalTopUpFee,
                     totalWithdrawal: totalWithdrawal,
                     totalWithdrawalFee: totalWithdrawalFee,
+                    status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
                 };
             }
