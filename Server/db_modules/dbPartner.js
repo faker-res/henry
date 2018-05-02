@@ -5075,15 +5075,16 @@ let dbPartner = {
     getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName) {
         let result = [];
         let query = {platform: platformObjId};
+        commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
 
         if (partnerName) {
             query.partnerName = partnerName;
         }
         else {
-            query.commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+            query.commissionType = commissionType;
         }
 
-        let stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
+        let stream = dbconfig.collection_partner.find(query, {commissionType: 1}).cursor({batchSize: 100});
 
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
@@ -5094,7 +5095,7 @@ let dbPartner = {
                     makeRequest: function (partners, request) {
                         if (partners.length === 1) {
                             if (partners[0].commissionType) {
-                                commissionType = partners[0].commissionType || commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+                                commissionType = partners[0].commissionType || commissionType;
                             }
                         }
                         request("player", "getCurrentPartnersCommission", {
