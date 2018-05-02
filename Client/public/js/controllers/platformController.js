@@ -20671,7 +20671,9 @@ define(['js/app'], function (myApp) {
 
             vm.searchRewardPointsLog = (index, limit) => {
                 var sendQuery = {
-                    query: {},
+                    query: {
+                        platformId: vm.selectedPlatform.id
+                    },
                     index: index,
                     limit: limit || 10,
                     sort: vm.rewardPointsLogPageAASorting.sortCol || {'createTime': -1}

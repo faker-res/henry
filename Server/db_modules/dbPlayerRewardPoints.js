@@ -333,7 +333,8 @@ let dbPlayerRewardPoints = {
                                 currentDayAppliedAmount: currentDayAppliedAmount,
                                 maxDayApplyAmount: maxDayApplyAmount,
                                 proposalId: proposalId,
-                                creator: creatorName
+                                creator: creatorName,
+                                platformId: platformObjId
                             };
 
                             dbLogger.createRewardPointsLog(logData);

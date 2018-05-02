@@ -682,7 +682,8 @@ let dbRewardPoints = {
                     maxDayApplyAmount: dailyMaxPoints,
                     playerLevelName: playerLevelName,
                     remark: remarks,
-                    rewardTarget: pointEvent.target
+                    rewardTarget: pointEvent.target,
+                    platformId: pointEvent.platformObjId
                 };
 
                 let logDetailProm = Promise.resolve(logDetail);
