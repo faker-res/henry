@@ -2475,6 +2475,78 @@ define(['js/app'], function (myApp) {
 
 
 
+        ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
+        vm.searchRealTimePartnerCommissionData = function () {
+            let loadingSpinner = $('#realTimeCommissionTableSpin');
+            loadingSpinner.show();
+            vm.realTimeCommissionLoadingStatus = "";
+            let query = {
+                platformObjId: vm.selectedPlatform._id,
+                commissionType: vm.realTimeCommissionQuery.commissionType,
+                partnerName: vm.realTimeCommissionQuery.partnerName ? vm.realTimeCommissionQuery.partnerName.trim() : "",
+            };
+
+            if (!(vm.realTimeCommissionQuery.commissionType || vm.realTimeCommissionQuery.partnerName && vm.realTimeCommissionQuery.partnerName.trim())) {
+                vm.realTimeCommissionLoadingStatus = $translate("Please insert either commission type or partner name for search");
+                loadingSpinner.hide();
+                return;
+            }
+
+            socketService.$socket($scope.AppSocket, 'getCurrentPartnerCommissionDetail', query, function (data) {
+                loadingSpinner.hide();
+                console.log('getCurrentPartnerCommissionDetail', data);
+
+                $scope.$evalAsync(() => {
+                    vm.realTimeCommissionData = data.data || [];
+                    vm.realTimeCommissionData.forEach( partner => {
+                        if (partner) {
+                            partner.isAnyCustomPlatformFeeRate = false;
+                            (partner.rawCommissions).forEach( (group, idxgroup) => {
+                                partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                if (group.isCustomPlatformFeeRate == true){
+                                    vm.partnerCommVar.platformFeeTab = idxgroup;
+                                }
+                            });
+                        }
+                    });
+                });
+            }, function (error) {
+                loadingSpinner.hide();
+                vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
+                console.log('getCurrentPartnerCommissionDetail error', error);
+            });
+        };
+
+        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType){
+            for (var i in vm.partnerDLCommDetailTotal){
+                delete vm.partnerDLCommDetailTotal[i];
+            }
+
+            if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0) {
+                if (!partnerDownLineCommDetail[0]) {
+                    partnerDownLineCommDetail.push({});
+                }
+                (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach( key => {
+                    if (key === "consumptionProviderDetail") {
+                        (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach( subkey1 => {
+                            vm.partnerDLCommDetailTotal[subkey1] = {};
+
+                            (Object.keys(partnerDownLineCommDetail[0][detailType][key][subkey1])).forEach( subkey2 => {
+                                vm.partnerDLCommDetailTotal[subkey1][subkey2] =
+                                    partnerDownLineCommDetail.length !== 0 ? partnerDownLineCommDetail.reduce((a, item) =>
+                                        a + (Number.isFinite(item[detailType][key][subkey1][subkey2]) ? item[detailType][key][subkey1][subkey2] : 0), 0) : 0;
+                            });
+                        });
+                    }
+                    else {
+                        vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
+                        vm.partnerDLCommDetailTotal[key] = $scope.calculateTotalSum(partnerDownLineCommDetail, detailType, key);
+                    }
+                });
+            }
+            $scope.safeApply();
+        };
+
         ////////////////////FEEDBACK REPORT//////////////////////
         vm.searchFeedbackReport = function (newSearch) {
             $('#feedbackReportTableSpin').show();
@@ -6725,6 +6797,9 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             } else if (choice == "REAL_TIME_COMMISSION_REPORT") {
                 vm.realTimeCommissionQuery = {};
+                vm.realTimeCommissionLoadingStatus = "";
+                vm.realTimeCommissionData = [];
+                vm.partnerCommVar = {};
             } else if (choice == "PARTNERCOMMISSION_REPORT") {
                 vm.partnerCommissionQuery = {};
                 vm.partnerCommissionQuery.status = 'all';

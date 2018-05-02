@@ -1646,6 +1646,9 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0){
+                    if (!partnerDownLineCommDetail[0]) {
+                        partnerDownLineCommDetail.push({});
+                    }
                     (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach( key => {
                         if (key === "consumptionProviderDetail") {
                             (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach( subkey1 => {
@@ -1658,6 +1661,7 @@ define(['js/app'], function (myApp) {
                             });
                         }
                         else {
+                            vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
                             vm.partnerDLCommDetailTotal[key] = $scope.calculateTotalSum(partnerDownLineCommDetail, detailType, key);
                         }
                     });
