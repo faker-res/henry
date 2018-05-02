@@ -5387,6 +5387,15 @@ define(['js/app'], function (myApp) {
                             if (rowData.credits) {
                                 rowData.credits = rowData.credits.toFixed(2);
                             }
+                            if (rowData.totalChildrenDeposit) {
+                                rowData.totalChildrenDeposit = rowData.totalChildrenDeposit.toFixed(2);
+                            }
+                            if (rowData.totalChildrenBalance) {
+                                rowData.totalChildrenBalance = rowData.totalChildrenBalance.toFixed(2);
+                            }
+                            if (rowData.commissionAmountFromChildren) {
+                                rowData.commissionAmountFromChildren = rowData.commissionAmountFromChildren.toFixed(2);
+                            }
                             if (rowData.registrationTime) {
                                 rowData.registrationTime = utilService.getFormatTime(rowData.registrationTime);
                             }
@@ -5396,7 +5405,6 @@ define(['js/app'], function (myApp) {
                             if (table) {
                                 table.row.add(rowData);
                             }
-
                         }
                     });
                 }
@@ -15870,7 +15878,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
 
                         if ( index !== -1){
-                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size.toFixed(2) : 0;
+                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size : 0;
                         }
                     });
                     vm.totalChildrenDepositBoolean = false;
@@ -15894,7 +15902,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
 
                         if ( index !== -1){
-                            partner.data[index].totalChildrenBalance = inData.size ? inData.size.toFixed(2) : 0;
+                            partner.data[index].totalChildrenBalance = inData.size ? inData.size : 0;
                         }
                     });
                     vm.totalChildrenBalanceBoolean = false;
@@ -15926,6 +15934,7 @@ define(['js/app'], function (myApp) {
                     partner.validPlayers = partner.validPlayers ? partner.validPlayers : 0;
                     partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
+                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? partner.commissionAmountFromChildren : 0;
                 });
                 vm.partners = data.data;
                 vm.platformPartnerCount = data.size;
@@ -16128,7 +16137,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('TOTAL_CHILDREN_DEPOSIT'),
                             data: "totalChildrenDeposit",
                             advSearch: true,
-                            "sClass": "",
+                            "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
@@ -16140,7 +16149,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('TOTAL_CHILDREN_BALANCE'),
                             data: "totalChildrenBalance",
                             advSearch: true,
-                            "sClass": "",
+                            "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
@@ -16152,7 +16161,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('SETTLED_COMMISSION'),
                             data: "commissionAmountFromChildren",
                             advSearch: true,
-                            "sClass": "",
+                            "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
