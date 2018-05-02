@@ -5072,9 +5072,18 @@ let dbPartner = {
         );
     },
 
-    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType) {
+    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName) {
         let result = [];
-        let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
+        let query = {platform: platformObjId};
+
+        if (partnerName) {
+            query.partnerName = partnerName;
+        }
+        else {
+            query.commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+        }
+
+        let stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
 
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
@@ -5083,6 +5092,11 @@ let dbPartner = {
                     stream: stream,
                     batchSize: constSystemParam.BATCH_SIZE,
                     makeRequest: function (partners, request) {
+                        if (partners.length === 1) {
+                            if (partners[0].commissionType) {
+                                commissionType = partners[0].commissionType || commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+                            }
+                        }
                         request("player", "getCurrentPartnersCommission", {
                             commissionType: commissionType,
                             partnerObjIdArr: partners.map(function (partner) {
@@ -5419,10 +5433,8 @@ let dbPartner = {
     },
 
     applyClearPartnerCredit: (partnerObjId, commissionLog, adminName, remark) => {
-        console.log('aaaaaaaa')
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
             partnerData => {
-                console.log('bbbbbbbb')
                 let proposalData = {
                     data: {
                         partnerObjId: partnerData._id,

@@ -468,8 +468,8 @@ function socketActionPartner(socketIO, socket) {
 
         getCurrentPartnerCommissionDetail: function getCurrentPartnerCommissionDetail (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.commissionType);
-            socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPartner.getCurrentPartnerCommissionDetail, [data.platformObjId, data.commissionType, data.partnerName], actionName, isValidData);
         },
 
         getReferralsList: function getReferralsList (data) {
