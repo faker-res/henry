@@ -15,6 +15,7 @@ define(['js/app'], function (myApp) {
         vm.creditChange = {};
         vm.rewardPointsChange = {};
         vm.rewardPointsConvert = {};
+        vm.phoneNumberInfo = {};
         vm.depositMethodList = $scope.depositMethodList;
         vm.createTeleMarketingDefault = {
             description: '',
@@ -4131,7 +4132,7 @@ define(['js/app'], function (myApp) {
                         item['topupTimes'] = item.playerObjId && item.playerObjId.topUpTimes ? item.playerObjId.topUpTimes : 0;
                         item['loginTimes'] = item.playerObjId && item.playerObjId.loginTimes ? item.playerObjId.loginTimes : 0;
                         item['count'] = item.count ? item.count : 0;
-
+                        item['remark$'] = item.remark ? item.remark : "";
                         // if ( item['playerName'] == '-') {
                         //     item['isLocked'] = false;
                         // }
@@ -4149,7 +4150,7 @@ define(['js/app'], function (myApp) {
         // vm.drawTelePlayerMsgTable = function (newSearch, tblData, size) {
         vm.drawTelePlayerMsgTable = function (newSearch, tblData) {
             console.log("telePlayerSendingMsgTable",tblData);
-
+            vm.phoneNumberInfo.remark = {};
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: tblData,
                 "aaSorting": vm.telePlayerSendingMsgTable.sortCol || [[4, 'desc']],
@@ -4165,7 +4166,18 @@ define(['js/app'], function (myApp) {
                         }
 
                     },
-                    { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber$"},
+                    {
+                        title: $translate('IMPORTED_PHONE_NUMBER'),
+                        data: "phoneNumber$",
+                        render: function (data, type, row) {
+                            var link = $('<a>', {
+
+                                'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.phoneNumber + '",' + JSON.stringify(row) + ');',
+
+                            }).text(data);
+                            return link.prop('outerHTML');
+                        }
+                    },
                     { title: $translate('SMS URL'), data: "url"},
                     { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
                     { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "createTime"},
@@ -4174,8 +4186,6 @@ define(['js/app'], function (myApp) {
                     { title: $translate('SENDING_TIMES'), data: "count"},
                     { title: $translate('loginTimes'), data: "loginTimes"},
                     { title: $translate('TOP_UP_TIMES'), data: "topupTimes"},
-
-
                     {
                         "title": $translate('Multiselect'),
                         bSortable: false,
@@ -4198,10 +4208,56 @@ define(['js/app'], function (myApp) {
                             };
                         },
                     },
+                    {
+                        "title": $translate('REMARKS'),
+                        render: function (data, type, row, index) {
+                            var link = $('<div>', {});
+                            if (!row.isLocked) {
+                                link.append($('<input>', {
+                                    type: 'text',
+                                    "ng-init": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "] = '" + row.remark$ + "'",
+                                    "ng-show": '!vm.showPhoneNumberRemark',
+                                    "ng-model": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "]",
+                                    "disabled": "true",
+                                    'style': "margin-right: 5px;",
+                                }));
+
+                                link.append($('<button>', {
+                                    type: 'edit',
+                                    text: $translate('EDIT'),
+                                    "ng-click": 'vm.showPhoneNumberRemark = true;',
+                                    "ng-show": '!vm.showPhoneNumberRemark',
+                                    class: "btn btn-danger"
+                                }));
+
+                                link.append($('<input>', {
+                                    type: 'text',
+                                    "ng-model": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "]",
+                                    "ng-show": 'vm.showPhoneNumberRemark',
+                                    "data-_id": row._id,
+                                    'style': "margin-right: 5px;",
+                                }));
+
+                                link.append($('<button>', {
+                                    type: 'edit',
+                                    text: $translate('SAVE'),
+                                    "ng-click": 'vm.savePhoneNumberInfoRemark();',
+                                    "ng-show": 'vm.showPhoneNumberRemark',
+                                    class: "btn btn-success"
+                                }));
+
+                                return link.prop('outerHTML');
+                            } else {
+                                let text = '<span>'+ '-' +'</span>';
+                                return "<div>" + text + "</div>";
+                            };
+                        },
+                    }
 
 
                 ],
                 "paging": true,
+                "scrollX": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
                 }
@@ -4261,6 +4317,41 @@ define(['js/app'], function (myApp) {
             });
             $('#telePlayerSendingMsgTable').resize();
 
+        }
+
+        vm.savePhoneNumberInfoRemark = function (data){
+
+            var sendObj = {
+                platform: vm.selectedPlatform.id,
+                dxMission: vm.telePlayerSendingMsgTable.dxMissionId,
+                remarkObj: vm.phoneNumberInfo.remark
+            }
+
+            socketService.$socket($scope.AppSocket, 'updatePhoneNumberRemark', sendObj, function (data) {
+                console.log("update phone number remark status", data)
+            }, function (error) {
+                console.log("error", error);
+            })
+
+            vm.showPhoneNumberRemark = false;
+        }
+
+        vm.callNewPlayerBtn = function (phoneNumber, data) {
+
+            vm.getSMSTemplate();
+            var phoneCall = {
+                playerId: data.playerObjId.playerId,
+                name: data.playerObjId.name,
+                toText: data.playerName ? data.playerName : data.playerObjId.name,
+                platform: "jinshihao",
+                loadingNumber: true,
+            }
+            $scope.initPhoneCall(phoneCall);
+
+            $scope.phoneCall.phone = phoneNumber;
+            $scope.phoneCall.loadingNumber = false;
+            $scope.safeApply();
+            $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
         }
 
         // generate telePlayer Sending Message function table ====================End==================
