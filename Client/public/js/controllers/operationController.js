@@ -67,6 +67,14 @@ define(['js/app'], function (myApp) {
             APP_AGENT: 6
         };
 
+        vm.commissionTypeList = {
+            1: "DAILY_BONUS_AMOUNT",
+            2: "WEEKLY_BONUS_AMOUNT",
+            3: "BIWEEKLY_BONUS_AMOUNT",
+            4: "MONTHLY_BONUS_AMOUNT",
+            5: "WEEKLY_CONSUMPTION",
+        };
+
         vm.newProposalNum = 0;
         var allProposalStatusClr = {
             Pending: 'colorYellow',
@@ -1915,6 +1923,62 @@ define(['js/app'], function (myApp) {
             }
 
             var proposalDetail = $.extend({}, vm.selectedProposal.data);
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "SettlePartnerCommission") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                let grossCommission = 0;
+                let totalPlatformFee = 0;
+
+                let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
+
+                proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
+                proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
+                proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.partnerId);
+                proposalDetail["COMMISSION_TYPE"] = $translate(vm.commissionTypeList[vm.selectedProposal.data.commissionType]);
+
+                vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                    grossCommission += rawCommission.amount;
+                    let str = rawCommission.amount + $translate("YEN") + " "
+                        + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
+                        + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
+
+                    proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
+                });
+
+                proposalDetail["REQUIRED_PROMO_DEDUCTION"] = vm.selectedProposal.data.totalRewardFee + $translate("YEN")
+                    + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalReward + "/"
+                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
+
+                proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
+                vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                    totalPlatformFee += rawCommission.platformFee;
+                    let str = rawCommission.platformFee + $translate("YEN") + " "
+                        + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
+                        + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+
+                    proposalDetail["- " + rawCommission.groupName] =  str;
+                });
+
+                proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
+                    + "(" + $translate("TOTAL") + ": " + vm.selectedProposal.data.totalTopUp + "/"
+                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
+
+                proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
+                    + "(" + $translate("TOTAL") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
+                    + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
+
+                let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
+
+                proposalDetail["COMMISSION_TOTAL"] = vm.selectedProposal.data.amount + " "
+                    + "(" + grossCommission + "-" + totalFee + ")";
+            }
 
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                 proposalDetail = {};

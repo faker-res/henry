@@ -5075,15 +5075,16 @@ let dbPartner = {
     getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName) {
         let result = [];
         let query = {platform: platformObjId};
+        commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
 
         if (partnerName) {
             query.partnerName = partnerName;
         }
         else {
-            query.commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+            query.commissionType = commissionType;
         }
 
-        let stream = dbconfig.collection_partner.find(query, {_id: 1}).cursor({batchSize: 100});
+        let stream = dbconfig.collection_partner.find(query, {commissionType: 1}).cursor({batchSize: 100});
 
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
@@ -5094,7 +5095,7 @@ let dbPartner = {
                     makeRequest: function (partners, request) {
                         if (partners.length === 1) {
                             if (partners[0].commissionType) {
-                                commissionType = partners[0].commissionType || commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+                                commissionType = partners[0].commissionType || commissionType;
                             }
                         }
                         request("player", "getCurrentPartnersCommission", {
@@ -5270,30 +5271,33 @@ let dbPartner = {
                         rawCommission = 0;
                     }
 
-                    let platformFee =  platformFeeRate * totalConsumption;
+                    let platformFee =  platformFeeRate * totalConsumption / 100;
+                    platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
 
                     rawCommissions.push({
                         groupName: groupRate.groupName,
                         amount: rawCommission,
+                        totalConsumption: totalConsumption,
                         commissionRate: commissionRates[groupRate.groupName].commissionRate,
                         isCustomCommissionRate: commissionRates[groupRate.groupName].isCustom,
                         platformFee: platformFee,
                         platformFeeRate: platformFeeRate,
                         isCustomPlatformFeeRate: isCustomPlatformFeeRate,
+                        siteBonusAmount: -providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                     });
 
                     grossCommission += rawCommission;
                 });
 
                 totalReward = getTotalReward(downLinesRawData);
-                totalRewardFee = totalReward * partnerCommissionRateConfig.rateAfterRebatePromo;
+                totalRewardFee = totalReward * partnerCommissionRateConfig.rateAfterRebatePromo / 100;
 
                 totalTopUp = getTotalTopUp(downLinesRawData);
-                totalTopUpFee = totalTopUp * partnerCommissionRateConfig.rateAfterRebateTotalDeposit;
+                totalTopUpFee = totalTopUp * partnerCommissionRateConfig.rateAfterRebateTotalDeposit / 100;
 
                 totalWithdrawal = getTotalWithdrawal(downLinesRawData);
-                totalWithdrawalFee = totalWithdrawal * partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal;
+                totalWithdrawalFee = totalWithdrawal * partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100;
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
