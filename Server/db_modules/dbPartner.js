@@ -5271,30 +5271,33 @@ let dbPartner = {
                         rawCommission = 0;
                     }
 
-                    let platformFee =  platformFeeRate * totalConsumption;
+                    let platformFee =  platformFeeRate * totalConsumption / 100;
+                    platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
 
                     rawCommissions.push({
                         groupName: groupRate.groupName,
                         amount: rawCommission,
+                        totalConsumption: totalConsumption,
                         commissionRate: commissionRates[groupRate.groupName].commissionRate,
                         isCustomCommissionRate: commissionRates[groupRate.groupName].isCustom,
                         platformFee: platformFee,
                         platformFeeRate: platformFeeRate,
                         isCustomPlatformFeeRate: isCustomPlatformFeeRate,
+                        siteBonusAmount: -providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                     });
 
                     grossCommission += rawCommission;
                 });
 
                 totalReward = getTotalReward(downLinesRawData);
-                totalRewardFee = totalReward * partnerCommissionRateConfig.rateAfterRebatePromo;
+                totalRewardFee = totalReward * partnerCommissionRateConfig.rateAfterRebatePromo / 100;
 
                 totalTopUp = getTotalTopUp(downLinesRawData);
-                totalTopUpFee = totalTopUp * partnerCommissionRateConfig.rateAfterRebateTotalDeposit;
+                totalTopUpFee = totalTopUp * partnerCommissionRateConfig.rateAfterRebateTotalDeposit / 100;
 
                 totalWithdrawal = getTotalWithdrawal(downLinesRawData);
-                totalWithdrawalFee = totalWithdrawal * partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal;
+                totalWithdrawalFee = totalWithdrawal * partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100;
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
