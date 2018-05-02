@@ -4210,8 +4210,6 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         "title": $translate('REMARKS'),
-                        //bSortable: false,
-                        //sClass: "customerSelected",
                         render: function (data, type, row, index) {
                             var link = $('<div>', {});
                             if (!row.isLocked) {
@@ -4334,7 +4332,6 @@ define(['js/app'], function (myApp) {
             }, function (error) {
                 console.log("error", error);
             })
-
 
             vm.showPhoneNumberRemark = false;
         }
