@@ -2738,7 +2738,9 @@ var proposalExecutor = {
                     return dbPartner.changePartnerCredit(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.amount, constProposalType.SETTLE_PARTNER_COMMISSION, proposalData).then(
                         partnerCreditChanged => {
                             if (proposalData.data.settleType == constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
-                                return dbPartner.applyClearPartnerCredit(proposalData.data.partnerObjId, {commissionType: proposalData.data.commissionType, _id: proposalData.data.logObjId}, proposalData.data.adminName, proposalData.data.remark);
+                                let originalRemark = proposalData.data.remark && proposalData.data.remark.slice(6);
+                                let remark = "(" + proposalData.proposalId + ") " + originalRemark;
+                                return dbPartner.applyClearPartnerCredit(proposalData.data.partnerObjId, {commissionType: proposalData.data.commissionType, _id: proposalData.data.logObjId}, proposalData.data.adminName, remark);
                             }
                             return Promise.resolve();
                         }
