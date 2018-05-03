@@ -94,6 +94,12 @@ function socketActionDXMission(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
             socketUtil.emitter(self.socket, dbDXMission.getDXPlayerInfo, [data.platform, data.dxMission, data.type, data.searchCriteria, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        updatePhoneNumberRemark: function updatePhoneNumberRemark(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform && data.dxMission);
+            socketUtil.emitter(self.socket, dbDXMission.updatePhoneNumberRemark, [data.platform, data.dxMission, data.remarkObj], actionName, isValidData);
         }
 
     };

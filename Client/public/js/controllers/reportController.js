@@ -2475,6 +2475,78 @@ define(['js/app'], function (myApp) {
 
 
 
+        ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
+        vm.searchRealTimePartnerCommissionData = function () {
+            let loadingSpinner = $('#realTimeCommissionTableSpin');
+            loadingSpinner.show();
+            vm.realTimeCommissionLoadingStatus = "";
+            let query = {
+                platformObjId: vm.selectedPlatform._id,
+                commissionType: vm.realTimeCommissionQuery.commissionType,
+                partnerName: vm.realTimeCommissionQuery.partnerName ? vm.realTimeCommissionQuery.partnerName.trim() : "",
+            };
+
+            if (!(vm.realTimeCommissionQuery.commissionType || vm.realTimeCommissionQuery.partnerName && vm.realTimeCommissionQuery.partnerName.trim())) {
+                vm.realTimeCommissionLoadingStatus = $translate("Please insert either commission type or partner name for search");
+                loadingSpinner.hide();
+                return;
+            }
+
+            socketService.$socket($scope.AppSocket, 'getCurrentPartnerCommissionDetail', query, function (data) {
+                loadingSpinner.hide();
+                console.log('getCurrentPartnerCommissionDetail', data);
+
+                $scope.$evalAsync(() => {
+                    vm.realTimeCommissionData = data.data || [];
+                    vm.realTimeCommissionData.forEach( partner => {
+                        if (partner) {
+                            partner.isAnyCustomPlatformFeeRate = false;
+                            (partner.rawCommissions).forEach( (group, idxgroup) => {
+                                partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                if (group.isCustomPlatformFeeRate == true){
+                                    vm.partnerCommVar.platformFeeTab = idxgroup;
+                                }
+                            });
+                        }
+                    });
+                });
+            }, function (error) {
+                loadingSpinner.hide();
+                vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
+                console.log('getCurrentPartnerCommissionDetail error', error);
+            });
+        };
+
+        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType){
+            for (var i in vm.partnerDLCommDetailTotal){
+                delete vm.partnerDLCommDetailTotal[i];
+            }
+
+            if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0) {
+                if (!partnerDownLineCommDetail[0]) {
+                    partnerDownLineCommDetail.push({});
+                }
+                (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach( key => {
+                    if (key === "consumptionProviderDetail") {
+                        (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach( subkey1 => {
+                            vm.partnerDLCommDetailTotal[subkey1] = {};
+
+                            (Object.keys(partnerDownLineCommDetail[0][detailType][key][subkey1])).forEach( subkey2 => {
+                                vm.partnerDLCommDetailTotal[subkey1][subkey2] =
+                                    partnerDownLineCommDetail.length !== 0 ? partnerDownLineCommDetail.reduce((a, item) =>
+                                        a + (Number.isFinite(item[detailType][key][subkey1][subkey2]) ? item[detailType][key][subkey1][subkey2] : 0), 0) : 0;
+                            });
+                        });
+                    }
+                    else {
+                        vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
+                        vm.partnerDLCommDetailTotal[key] = $scope.calculateTotalSum(partnerDownLineCommDetail, detailType, key);
+                    }
+                });
+            }
+            $scope.safeApply();
+        };
+
         ////////////////////FEEDBACK REPORT//////////////////////
         vm.searchFeedbackReport = function (newSearch) {
             $('#feedbackReportTableSpin').show();
@@ -3078,6 +3150,20 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerReport = function (newSearch) {
             $('#loadingPlayerReportTableSpin').show();
 
+            let admins = [];
+
+            if (vm.playerQuery.departments) {
+                if (vm.playerQuery.roles) {
+                    vm.queryRoles.map(e => {
+                        if (vm.playerQuery.roles.indexOf(e._id) >= 0) {
+                            e.users.map(f => admins.push(f.adminName))
+                        }
+                    })
+                } else {
+                    vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                }
+            }
+
             console.log(vm.playerQuery);
             var sendquery = {
                 platformId: vm.curPlatformId,
@@ -3102,7 +3188,9 @@ define(['js/app'], function (myApp) {
                     bonusTimesValueTwo: vm.playerQuery.bonusTimesValueTwo,
                     topUpAmountOperator: vm.playerQuery.topUpAmountOperator,
                     topUpAmountValue: vm.playerQuery.topUpAmountValue,
-                    topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo
+                    topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo,
+                    csPromoteWay: vm.playerQuery.csPromoteWay,
+                    admins: vm.playerQuery.admins && vm.playerQuery.admins.length > 0 ? vm.playerQuery.admins : admins,
                 },
                 index: newSearch ? 0 : (vm.playerQuery.index || 0),
                 limit: vm.playerQuery.limit || 5000,
@@ -5218,57 +5306,40 @@ define(['js/app'], function (myApp) {
 
         // start partner commission report
         vm.searchPartnerSettlementHistory = function (newSearch) {
-            vm.drawPartnerSettlementHistoryTable({},0,true);
-            // $('#partnerSettlementTableSpin').show();
-            //
-            // let startTime = vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate();
-            // let endTime = vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate();
-            //
-            // Q.resolve().then(
-            //     () => {
-            //         var midnightThisMorningSG = getDayStartTime();
-            //         if (endTime >= midnightThisMorningSG) {
-            //             return $scope.$socketPromise('manualPlatformPartnerCommissionSettlement', {platformId: vm.curPlatformId}, true);
-            //         }
-            //     }
-            // ).then(
-            //     () => {
-            //         var sendData = {
-            //             platformId: vm.curPlatformId,
-            //             partnerName: vm.partnerCommissionQuery.partnerName,
-            //             startTime: startTime,
-            //             endTime: endTime,
-            //             limit: vm.partnerCommissionQuery.limit || 10,
-            //             index: newSearch ? 0 : (vm.partnerCommissionQuery.index || 0),
-            //             sortCol: vm.partnerCommissionQuery.sortCol || {}
-            //         };
-            //
-            //         return $scope.$socketPromise('getPartnerCommissionReport', sendData, true).then(
-            //             function (data) {
-            //                 console.log("getPartnerCommissionReport", data);
-            //                 vm.partnerSettlementQuery.totalCount = data.data.size ? data.data.size : 0;
-            //                 vm.partnerSettlementQuery.message = data.data.message || '';
-            //                 $scope.safeApply();
-            //                 vm.partnerSettlementTable(data.data.data.map(item => {
-            //                     item.profitAmount$ = parseFloat(item.profitAmount).toFixed(2);
-            //                     item.serviceFee$ = parseFloat(item.serviceFee).toFixed(2);
-            //                     item.platformFee$ = parseFloat(item.platformFee).toFixed(2);
-            //                     item.marketCost$ = parseFloat(item.marketCost).toFixed(2);
-            //                     item.totalRewardAmount$ = parseFloat(item.totalRewardAmount).toFixed(2);
-            //                     item.operationFee$ = parseFloat(item.operationFee).toFixed(2);
-            //                     item.totalTopUpAmount$ = parseFloat(item.totalTopUpAmount).toFixed(2);
-            //                     item.totalPlayerBonusAmount$ = parseFloat(item.totalPlayerBonusAmount).toFixed(2);
-            //                     // item.totalBonusAmount$ = parseFloat(item.totalBonusAmount).toFixed(2);
-            //                     item.totalCommissionAmount$ = parseFloat(item.totalCommissionAmount).toFixed(2);
-            //                     item.totalCommissionOfChildren$ = parseFloat(item.totalCommissionOfChildren).toFixed(2);
-            //                     return item;
-            //                 }), vm.partnerSettlementQuery.totalCount, data.data.summary, newSearch);
-            //             }
-            //         );
-            //     }
-            // ).catch(console.error).then(
-            //     () => $('#partnerSettlementTableSpin').hide()
-            // );
+            vm.partnerSettlementQuery.message = '';
+            let loadingSpinner = $('#partnerSettlementTableSpin');
+            let commissionType = vm.partnerSettlementQuery.commissionType;
+            let partnerName = vm.partnerSettlementQuery.partnerName;
+            let sendData = {
+                platformObjId: vm.selectedPlatform._id,
+                startTime: new Date(vm.partnerSettlementQuery.startTime.data('datetimepicker').getLocalDate()),
+                endTime: new Date(vm.partnerSettlementQuery.endTime.data('datetimepicker').getLocalDate()),
+                limit: vm.partnerSettlementQuery.limit,
+                index: vm.partnerSettlementQuery.index,
+                sortCol: vm.partnerSettlementQuery.sortCol
+            };
+            if(commissionType === '' && partnerName === '') {
+                vm.partnerSettlementQuery.message = 'Either Commission Type or Partner Name must be filled in';
+                return;
+            }
+            if(commissionType !== '') {
+                sendData.commissionType = commissionType;
+            }
+            if(partnerName !== '') {
+                sendData.partnerName = partnerName;
+            }
+
+            loadingSpinner.show();
+            $scope.$socketPromise('getPartnerSettlementHistory', sendData, true).then(data => {
+                console.log('searchPartnerSettlementHistory retData',data);
+                vm.partnerSettlementQuery.totalCount = data.data.count;
+                let searchResult = data.data.data;
+                searchResult.map(item => {
+                    // data processing here
+                })
+                loadingSpinner.hide();
+                vm.drawPartnerSettlementHistoryTable(searchResult, vm.partnerSettlementQuery.totalCount, newSearch);
+            });
         };
         vm.drawPartnerSettlementHistoryTable = function (tableData, size, newSearch) {
             var tableOptions = {
@@ -6493,6 +6564,52 @@ define(['js/app'], function (myApp) {
             }
             else if (choice == "PLAYER_REPORT") {
                 utilService.actionAfterLoaded('#playerReportTablePage', function () {
+                    // Get Promote CS and way lists
+                    vm.allPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
+                        function (data) {
+                            $scope.$evalAsync(() => {
+                                vm.allPromoteWay = data.data;
+                                endLoadMultipleSelect('.spicker');
+                            })
+                        },
+                        function (err) {
+                            console.log(err);
+                        }
+                    );
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
+                        data => {
+                            $scope.$evalAsync(() => {
+                                let parentId;
+                                vm.queryDepartments = [];
+                                vm.queryRoles = [];
+
+                                data.data.map(e => {
+                                    if (e.departmentName == vm.selectedPlatform.name) {
+                                        vm.queryDepartments.push(e);
+                                        parentId = e._id;
+                                    }
+                                });
+
+                                data.data.map(e => {
+                                    if (String(parentId) == String(e.parent)) {
+                                        vm.queryDepartments.push(e);
+                                    }
+                                });
+
+                                endLoadMultipleSelect('.spicker');
+
+                                if (typeof(callback) == 'function') {
+                                    callback(data.data);
+                                }
+                            });
+                        }
+                    );
                     // todo :: change date to yesterday
                     var yesterday = utilService.setNDaysAgo(new Date(), 1);
                     var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
@@ -6740,6 +6857,11 @@ define(['js/app'], function (myApp) {
                     });
                 })
                 $scope.safeApply();
+            } else if (choice == "REAL_TIME_COMMISSION_REPORT") {
+                vm.realTimeCommissionQuery = {};
+                vm.realTimeCommissionLoadingStatus = "";
+                vm.realTimeCommissionData = [];
+                vm.partnerCommVar = {};
             } else if (choice == "PARTNERCOMMISSION_REPORT") {
                 vm.partnerCommissionQuery = {};
                 vm.partnerCommissionQuery.status = 'all';
@@ -6757,6 +6879,8 @@ define(['js/app'], function (myApp) {
                 vm.partnerSettlementQueryEndDateCurMonthOffset = 0;
                 vm.partnerSettlementQuery = {};
                 vm.partnerSettlementQuery.totalCount = 0;
+                vm.partnerSettlementQuery.commissionType = '';
+                vm.partnerSettlementQuery.partnerName = '';
                 let dateTimePickerStartPopup, dateTimePickerEndPopup;
 
                 let getStartTimePlatformPartnerSettlementStatus = function(callback) {

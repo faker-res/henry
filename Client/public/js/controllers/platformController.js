@@ -453,6 +453,8 @@ define(['js/app'], function (myApp) {
                 5: 'WEEKLY_CONSUMPTION'
             };
 
+            vm.partnerCommissionLog= {};
+
             vm.prepareToBeDeletedProviderGroupId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
@@ -1587,6 +1589,16 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initSettlePartnerComm = (prev) => {
+                vm.partnerSettlementSubmitted = false;
+                vm.partnerCommVar = {};
+                vm.partnerDLCommDetailTotal = {};
+
+                vm.partnerCommVar.platformFeeTab = 0;
+                vm.partnerCommVar.settMode = prev.settMode;
+                vm.partnerCommVar.startTime = prev.startTime;
+                vm.partnerCommVar.endTime = prev.endTime;
+
+
                 vm.selectedSettlePartnerCommPrev = prev;
 
                 $scope.$socketPromise("initSettlePartnerComm", {
@@ -1607,10 +1619,105 @@ define(['js/app'], function (myApp) {
                     endTime: prev.endTime
                 }).then(
                     partnerCommObj => {
-                        console.log('partnerCommObj', partnerCommObj);
+                        console.log('partnerCommissionLog', partnerCommObj);
+                        vm.partnerCommissionLog = partnerCommObj.data;
+                        vm.partnerCommissionLog.forEach( partner => {
+                                if (partner){
+                                    partner.isAnyCustomPlatformFeeRate = false;
+                                    (partner.rawCommissions).forEach( (group, idxgroup) => {
+                                        partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                        if (group.isCustomPlatformFeeRate == true){
+                                            vm.partnerCommVar.platformFeeTab = idxgroup;
+                                        }
+                                        }
+                                    );
+                                }
+                            }
+                        );
+                        $scope.safeApply();
                     }
                 )
             };
+
+            /* Calculate sum for partner downlines commission details */
+            vm.calculatePartnerDLTotalDetail= function (partnerDownLineCommDetail, detailType){
+                for (var i in vm.partnerDLCommDetailTotal){
+                    delete vm.partnerDLCommDetailTotal[i];
+                }
+
+                if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0){
+                    if (!partnerDownLineCommDetail[0]) {
+                        partnerDownLineCommDetail.push({});
+                    }
+                    (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach( key => {
+                        if (key === "consumptionProviderDetail") {
+                            (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach( subkey1 => {
+                                vm.partnerDLCommDetailTotal[subkey1] = {};
+                                (Object.keys(partnerDownLineCommDetail[0][detailType][key][subkey1])).forEach( subkey2 => {
+                                    vm.partnerDLCommDetailTotal[subkey1][subkey2] =
+                                        partnerDownLineCommDetail.length !== 0 ? partnerDownLineCommDetail.reduce((a, item) =>
+                                            a + (Number.isFinite(item[detailType][key][subkey1][subkey2]) ? item[detailType][key][subkey1][subkey2] : 0), 0) : 0;
+                                });
+                            });
+                        }
+                        else {
+                            vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
+                            vm.partnerDLCommDetailTotal[key] = $scope.calculateTotalSum(partnerDownLineCommDetail, detailType, key);
+                        }
+                    });
+                }
+                $scope.safeApply();
+            };
+
+            /* Check for no remark entry if settleMethod is not normal settlement */
+            vm.checkPartnerCommissionLogRemark = function () {
+                delete vm.partnerCommVar.checkedRemark;
+                vm.partnerCommissionLog.forEach( partner => {
+                    if (partner) {
+                        if (partner.settleMethod != "1") {
+                            if (!partner.remarks || partner.remarks == ""){
+                                vm.partnerCommVar.checkedRemark = "Please Add Remark If Not Normal Executed!";
+                            }
+                        }
+                    }
+                });
+                if (!vm.partnerCommVar.checkedRemark){
+                    vm.partnerSettlementSubmitted = true;
+                    vm.bulkApplyPartnerCommission();
+                }
+            };
+
+            /* Apply bulk partner commission settlement */
+            vm.bulkApplyPartnerCommission = function () {
+                let applyPartnerCommSettlementArray = [];
+                vm.partnerCommissionLog.forEach( partner => {
+                    if (partner){
+                        applyPartnerCommSettlementArray.push(
+                            {
+                                logId: partner._id,
+                                settleType: parseInt(partner.settleMethod),
+                                remark: partner.remarks ? partner.remarks : "-"
+                            }
+                        )
+                    }
+                    }
+                );
+                console.log('applyPartnerCommSettlementArray', applyPartnerCommSettlementArray);
+
+                let sendData = {
+                    applySettlementArray: applyPartnerCommSettlementArray,
+                    platformObjId: vm.selectedPlatform.data._id,
+                    commissionType: vm.partnerCommVar.settMode,
+                    startTime: vm.partnerCommVar.startTime,
+                    endTime: vm.partnerCommVar.endTime
+                };
+
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'bulkApplyPartnerCommission', sendData, function (data) {
+                    console.log('returnOutput', data);
+                });
+            };
+
 
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';
@@ -5280,6 +5387,15 @@ define(['js/app'], function (myApp) {
                             if (rowData.credits) {
                                 rowData.credits = rowData.credits.toFixed(2);
                             }
+                            if (rowData.totalChildrenDeposit) {
+                                rowData.totalChildrenDeposit = rowData.totalChildrenDeposit.toFixed(2);
+                            }
+                            if (rowData.totalChildrenBalance) {
+                                rowData.totalChildrenBalance = rowData.totalChildrenBalance.toFixed(2);
+                            }
+                            if (rowData.commissionAmountFromChildren) {
+                                rowData.commissionAmountFromChildren = rowData.commissionAmountFromChildren.toFixed(2);
+                            }
                             if (rowData.registrationTime) {
                                 rowData.registrationTime = utilService.getFormatTime(rowData.registrationTime);
                             }
@@ -5289,7 +5405,6 @@ define(['js/app'], function (myApp) {
                             if (table) {
                                 table.row.add(rowData);
                             }
-
                         }
                     });
                 }
@@ -15763,7 +15878,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
 
                         if ( index !== -1){
-                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size.toFixed(2) : 0;
+                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size : 0;
                         }
                     });
                     vm.totalChildrenDepositBoolean = false;
@@ -15787,7 +15902,7 @@ define(['js/app'], function (myApp) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
 
                         if ( index !== -1){
-                            partner.data[index].totalChildrenBalance = inData.size ? inData.size.toFixed(2) : 0;
+                            partner.data[index].totalChildrenBalance = inData.size ? inData.size : 0;
                         }
                     });
                     vm.totalChildrenBalanceBoolean = false;
@@ -15819,6 +15934,7 @@ define(['js/app'], function (myApp) {
                     partner.validPlayers = partner.validPlayers ? partner.validPlayers : 0;
                     partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
+                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? partner.commissionAmountFromChildren : 0;
                 });
                 vm.partners = data.data;
                 vm.platformPartnerCount = data.size;
@@ -16021,7 +16137,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('TOTAL_CHILDREN_DEPOSIT'),
                             data: "totalChildrenDeposit",
                             advSearch: true,
-                            "sClass": "",
+                            "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
@@ -16033,7 +16149,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('TOTAL_CHILDREN_BALANCE'),
                             data: "totalChildrenBalance",
                             advSearch: true,
-                            "sClass": "",
+                            "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
@@ -16045,7 +16161,7 @@ define(['js/app'], function (myApp) {
                             title: $translate('SETTLED_COMMISSION'),
                             data: "commissionAmountFromChildren",
                             advSearch: true,
-                            "sClass": "",
+                            "sClass": "alignRight sumFloat",
                             render: function (data, type, row) {
                                 let link = $('<a>', {
                                     'ng-click': 'vm.showPartnerInfoModal("' + data + '")'
@@ -16709,6 +16825,7 @@ define(['js/app'], function (myApp) {
                 vm.newPartner = {};
                 vm.newPartner.gender = "true";
                 vm.tempPassword = "";
+                vm.partnerValidity = {};
                 $(".partnerParentFalse").hide();
                 $(".partnerParentTrue").hide();
                 vm.partnerParentChange("id");
@@ -20897,7 +21014,9 @@ define(['js/app'], function (myApp) {
 
             vm.searchRewardPointsLog = (index, limit) => {
                 var sendQuery = {
-                    query: {},
+                    query: {
+                        platformId: vm.selectedPlatform.id
+                    },
                     index: index,
                     limit: limit || 10,
                     sort: vm.rewardPointsLogPageAASorting.sortCol || {'createTime': -1}

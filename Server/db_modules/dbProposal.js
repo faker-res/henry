@@ -3759,6 +3759,223 @@ var proposal = {
         )
     },
 
+    getManualApprovalRecords: (platformId, startDate, endDate, period, mainTypeList) => {
+        let proms = [];
+        let allProms = [];
+        let countProm = [];
+        let allCountProm = [];
+
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        let groupCondition = {$or: [{'data.isAutoApproval':false}, {'noSteps':false}, {'data.isIgnoredAudit': false}]};
+
+        var getKey = (obj,val) => Object.keys(obj).find(key => obj[key] === val);
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+        while (dayStartTime.getTime() < endDate.getTime()) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+            var matchObj = {
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+               "data.platformId": ObjectId(platformId),
+            };
+
+            countProm.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj,  {mainType: {$in: mainTypeList}})
+                },
+                {
+                    $group: {
+                        _id: "$mainType",
+                        count: {$sum: 1}
+                    }
+                }).read("secondaryPreferred"));
+
+            allCountProm.push(dbconfig.collection_proposal.find(matchObj).lean().count());
+
+            proms.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj, {mainType: {$in: mainTypeList}}, groupCondition)
+                },
+                {
+                    $group: {
+                        _id: {mainType: "$mainType", status: "$status"},
+                        count: {$sum: 1}
+                    }
+                }).read("secondaryPreferred").then(result => {
+
+                    let holder = {};
+                    let retResult = [];
+                    if (result && result.length > 0){
+
+                        result.forEach(d => {
+
+                            if (holder.hasOwnProperty(d._id.mainType)) {
+                                if (d._id.status == "Approved"){
+                                    holder[d._id.mainType] = [holder[d._id.mainType][0] + d.count, holder[d._id.mainType][1]];
+                                }
+                                else if(d._id.status == "Rejected"){
+                                    holder[d._id.mainType] = [holder[d._id.mainType][0], holder[d._id.mainType][1] + d.count];
+                                }
+
+                            } else {
+                                if (d._id.status == "Approved"){
+                                    holder[d._id.mainType] = [d.count, 0];
+                                }
+                                else if(d._id.status == "Rejected"){
+                                    holder[d._id.mainType] = [0, d.count];
+                                }
+                            }
+
+                        });
+
+                        for (var prop in holder) {
+                            retResult.push({
+                                mainType: prop,
+                                successCount: holder[prop][0],
+                                rejectCount: holder[prop][1],
+                                manualCount: holder[prop][0] + holder[prop][1]
+                            })
+
+                        }
+
+                        if(retResult.length != mainTypeList.length){
+                            mainTypeList.forEach( type => {
+                                let index = retResult.findIndex(p => p.mainType == type);
+                                if (index == -1){
+                                    retResult.push({mainType: type, successCount: 0, rejectCount: 0, manualCount: 0});
+                                }
+                            })
+                        }
+
+                    }
+                    else{
+
+                        mainTypeList.forEach(type => {
+                            retResult.push({mainType: type, successCount: 0, rejectCount: 0, manualCount: 0});
+                        })
+                    }
+
+                return retResult;
+            }));
+
+            allProms.push(dbconfig.collection_proposal.aggregate(
+                {$match:
+                    Object.assign({}, matchObj, groupCondition)
+                },
+                {
+                    $group: {
+                        _id: {status: "$status"},
+                        count: {$sum: 1}
+                    }
+                }).read("secondaryPreferred").then(allResult => {
+
+                let returnResult = [];
+                if (allResult && allResult.length > 0) {
+
+                    let successCount = 0;
+                    let rejectCount = 0;
+
+                    allResult.forEach(d => {
+                        if (d._id.status == "Approved") {
+                            successCount += d.count;
+                        }
+                        else if (d._id.status == "Rejected") {
+                            rejectCount += d.count
+                        }
+                    });
+
+                    returnResult.push({successCount: successCount, rejectCount: rejectCount, manualCount: successCount + rejectCount});
+
+                }
+                else {
+
+                    returnResult.push({successCount: 0, rejectCount: 0, manualCount: 0});
+
+                }
+                return returnResult
+            }));
+
+            dayStartTime = dayEndTime;
+        }
+        return Promise.all([Promise.all(countProm), Promise.all(proms), Promise.all(allCountProm), Promise.all(allProms)]).then(data => {
+            if (!data && !data[0] && !data[1] && !data[2] && !data[3]) {
+                return Q.reject({name: 'DataError', message: 'Can not find the proposal data'})
+            }
+
+            let tempDate = startDate;
+            let tempDate2 = startDate;
+
+            let res = [];
+            let allRes = [];
+
+            for (let i = 0; i < data[1].length; i++) {  // number of date
+
+
+                if (data[1][i].length > 0) {
+
+                    if (data[0][i].length == 0){
+                        data[1][i].forEach( inData => {
+                            inData.count = 0;
+                        })
+                    }
+                    else{
+                        data[1][i].forEach( inData => {
+                            let index = data[0][i].findIndex(t => t._id == inData.mainType);
+                            if (index != -1) {
+                                inData.count = data[0][i][index].count
+                            }
+                            else{
+                                inData.count = 0 // set count = 0 for those mainTypes are not included in the countProm
+                            }
+                        })
+                    }
+
+                }
+
+                res.push({date: tempDate, data: data[1][i]});
+                tempDate = getNextDate(tempDate);
+
+            }
+
+            for(let j = 0; j < data[3].length; j++){
+                if (data[3][j].length > 0){
+
+                    data[3][j].forEach( inData => {
+
+                        inData.count = data[2][j] ? data[2][j] : 0;
+                        allRes.push({date: tempDate2, data: inData});
+                    })
+
+                }
+
+                tempDate2 = getNextDate(tempDate2);
+            }
+
+            return [res, allRes];
+
+        });
+    },
+
     getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate, analysisCategory) => {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {

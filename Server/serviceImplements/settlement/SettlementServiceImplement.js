@@ -192,7 +192,7 @@ var SettlementServiceImplement = function () {
     this.getConsumptionDetailOfPlayers.expectsData = 'platformObjId: ObjectId, playerObjIds: [], startTime: Date, endTime: Date, query: {}';
     this.getConsumptionDetailOfPlayers.onRequest = function(wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime && data.playerObjIds);
-        var args = [ObjectId(data.platformId), data.startTime, data.endTime, data.query, data.playerObjIds, data.option];
+        var args = [ObjectId(data.platformId), data.startTime, data.endTime, data.query, data.playerObjIds, data.option, data.isPromoteWay];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionDetailOfPlayers, args, isValidData);
     };
 
@@ -281,8 +281,8 @@ var SettlementServiceImplement = function () {
     };
 
     this.getCurrentPartnersCommission.onRequest = (wsFunc, conn, data) => {
-        let isValidData = Boolean(data && data.partnerObjIdArr && data.commissionType && data.startTime && data.endTime);
-        let args = [data.partnerObjIdArr, data.commissionType, data.startTime, data.endTime];
+        let isValidData = Boolean(data && data.partnerObjIdArr && data.commissionType);
+        let args = [data.partnerObjIdArr, data.commissionType];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.generateCurrentPartnersCommissionDetail, args, isValidData);
     };
 };

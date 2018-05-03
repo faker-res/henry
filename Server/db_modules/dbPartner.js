@@ -731,6 +731,23 @@ let dbPartner = {
         if (query && query.phoneNumber) {
             query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), query.phoneNumber]};
         }
+        
+        if (query && query.registrationTime) {
+            if (query.registrationTime["$gte"]) {
+                query.registrationTime["$gte"] = new Date(query.registrationTime["$gte"]);
+            }
+            if (query.registrationTime["$lt"]) {
+                query.registrationTime["$lt"] = new Date(query.registrationTime["$lt"]);
+            }
+        }
+        if (query && query.lastAccessTime) {
+            if (query.lastAccessTime["$gte"]) {
+                query.lastAccessTime["$gte"] = new Date(query.lastAccessTime["$gte"]);
+            }
+            if (query.lastAccessTime["$lt"]) {
+                query.lastAccessTime["$lt"] = new Date(query.lastAccessTime["$lt"]);
+            }
+        }
 
         let count = dbconfig.collection_partner.find(query).count();
 
@@ -771,17 +788,17 @@ let dbPartner = {
                 {$match:query},
                 {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
                         "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "settledCommission":1, "_id":1, }},
+                        "monthlyActivePlayer":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "commissionAmountFromChildren":1, "_id":1, }},
                 {$skip:index},
                 {$limit:limit}
             ]).then(
-            aggr => {
-                var retData = [];
-                for (var index in aggr) {
-                    var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                    retData.push(prom);
-                }
-                return Q.all(retData);
+                aggr => {
+                    var retData = [];
+                    for (var index in aggr) {
+                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                        retData.push(prom);
+                    }
+                    return Q.all(retData);
             }).then(
                 partners => {
                     for (let i = 0; i < partners.length; i++) {
@@ -796,8 +813,8 @@ let dbPartner = {
                     Q.reject({name: "DBError", message: "Error finding partners.", error: error});
                 }
             );
-            
         }
+
         return Q.all([count, partnerInfo]).then( function(data){
             return {size:data[0],data:data[1]}
         })
@@ -4655,7 +4672,6 @@ let dbPartner = {
         });
         return Promise.all(partnerProm).then(
             data => {
-                // console.log('RESULT===', data);
                 return data;
             }
         );
@@ -4746,6 +4762,44 @@ let dbPartner = {
                                 }
                             }).read("secondaryPreferred").then(records => {
                                 records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
+
+                                switch (period) {
+                                    case 'day':
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {dailyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                    case 'week':
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {weeklyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                    case 'month':
+                                    default:
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {monthlyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                }
+
                                 return {partnerId: partnerId, size: records.length}
                             }
                         )
@@ -4875,6 +4929,17 @@ let dbPartner = {
                                 }
                             }).read("secondaryPreferred").then(records => {
                                 records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+
+                                dbconfig.collection_partner.findOneAndUpdate(
+                                    {
+                                        _id: partnerId,
+                                        platform: platformId,
+                                    },
+                                    {
+                                        $set: {validPlayers: records.length}
+                                    }
+                                ).exec();
+
                                 return {partnerId: partnerId, size: records.length}
                             }
                         )
@@ -4952,6 +5017,17 @@ let dbPartner = {
                         }).read("secondaryPreferred").then(records => {
                             records.map(player => totalBonusAmount += player.bonusAmount);
                             let totalCredit = (totalTopUpAmount - totalBonusAmount);
+                            totalCredit = totalCredit.toFixed(2);
+
+                            dbconfig.collection_partner.findOneAndUpdate(
+                                {
+                                    _id: partnerId,
+                                    platform: platformId,
+                                },
+                                {
+                                    $set: {totalChildrenDeposit: totalCredit}
+                                }
+                            ).exec();
 
                             return {partnerId: partnerId, size: totalCredit}
                         }
@@ -5003,6 +5079,18 @@ let dbPartner = {
                 }).read("secondaryPreferred").then(topUpRecord => {
                 if (topUpRecord) {
                     topUpRecord.map(player => totalValidCredit += player.validCredit);
+                    totalValidCredit = totalValidCredit.toFixed(2);
+
+                    dbconfig.collection_partner.findOneAndUpdate(
+                        {
+                            _id: partnerId,
+                            platform: platformId,
+                        },
+                        {
+                            $set: {totalChildrenBalance: totalValidCredit}
+                        }
+                    ).exec();
+
                     return {partnerId: partnerId, size: totalValidCredit};
                 }
             });
@@ -5072,9 +5160,19 @@ let dbPartner = {
         );
     },
 
-    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType) {
+    getCurrentPartnerCommissionDetail: function (platformObjId, commissionType, partnerName) {
         let result = [];
-        let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
+        let query = {platform: platformObjId};
+        commissionType = commissionType || constPartnerCommissionType.DAILY_BONUS_AMOUNT;
+
+        if (partnerName) {
+            query.partnerName = partnerName;
+        }
+        else {
+            query.commissionType = commissionType;
+        }
+
+        let stream = dbconfig.collection_partner.find(query, {commissionType: 1}).cursor({batchSize: 100});
 
         let balancer = new SettlementBalancer();
         return balancer.initConns().then(function () {
@@ -5083,6 +5181,11 @@ let dbPartner = {
                     stream: stream,
                     batchSize: constSystemParam.BATCH_SIZE,
                     makeRequest: function (partners, request) {
+                        if (partners.length === 1) {
+                            if (partners[0].commissionType) {
+                                commissionType = partners[0].commissionType || commissionType;
+                            }
+                        }
                         request("player", "getCurrentPartnersCommission", {
                             commissionType: commissionType,
                             partnerObjIdArr: partners.map(function (partner) {
@@ -5256,30 +5359,33 @@ let dbPartner = {
                         rawCommission = 0;
                     }
 
-                    let platformFee =  platformFeeRate * totalConsumption;
+                    let platformFee =  platformFeeRate * totalConsumption / 100;
+                    platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
 
                     rawCommissions.push({
                         groupName: groupRate.groupName,
                         amount: rawCommission,
+                        totalConsumption: totalConsumption,
                         commissionRate: commissionRates[groupRate.groupName].commissionRate,
                         isCustomCommissionRate: commissionRates[groupRate.groupName].isCustom,
                         platformFee: platformFee,
                         platformFeeRate: platformFeeRate,
                         isCustomPlatformFeeRate: isCustomPlatformFeeRate,
+                        siteBonusAmount: -providerGroupConsumptionData[groupRate.groupName].bonusAmount,
                     });
 
                     grossCommission += rawCommission;
                 });
 
                 totalReward = getTotalReward(downLinesRawData);
-                totalRewardFee = totalReward * partnerCommissionRateConfig.rateAfterRebatePromo;
+                totalRewardFee = totalReward * partnerCommissionRateConfig.rateAfterRebatePromo / 100;
 
                 totalTopUp = getTotalTopUp(downLinesRawData);
-                totalTopUpFee = totalTopUp * partnerCommissionRateConfig.rateAfterRebateTotalDeposit;
+                totalTopUpFee = totalTopUp * partnerCommissionRateConfig.rateAfterRebateTotalDeposit / 100;
 
                 totalWithdrawal = getTotalWithdrawal(downLinesRawData);
-                totalWithdrawalFee = totalWithdrawal * partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal;
+                totalWithdrawalFee = totalWithdrawal * partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100;
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
 
@@ -5304,6 +5410,7 @@ let dbPartner = {
                     totalTopUpFee: totalTopUpFee,
                     totalWithdrawal: totalWithdrawal,
                     totalWithdrawalFee: totalWithdrawalFee,
+                    status: constPartnerCommissionLogStatus.PREVIEW,
                     nettCommission: nettCommission,
                 };
             }
@@ -5419,10 +5526,8 @@ let dbPartner = {
     },
 
     applyClearPartnerCredit: (partnerObjId, commissionLog, adminName, remark) => {
-        console.log('aaaaaaaa')
         return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
             partnerData => {
-                console.log('bbbbbbbb')
                 let proposalData = {
                     data: {
                         partnerObjId: partnerData._id,
@@ -5472,13 +5577,20 @@ let dbPartner = {
 
                     let resetProm = Promise.resolve();
                     if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+                        remark = "结算前清空馀额：" + remark
                         resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
                     }
                     return resetProm;
                 }
             ).then(
-                () => {
+                resetProposal => {
                     updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
+                    if (resetProposal && resetProposal.proposalId) {
+                        remark = "(" + resetProposal.proposalId + ") "+ remark;
+                    }
+                    if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+                        remark = "结算后清空馀额：" + remark;
+                    }
                     return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
                 }
             ).catch(errorUtils.reportError);
@@ -5487,6 +5599,25 @@ let dbPartner = {
         });
 
         return Promise.all(proms);
+    },
+
+    getPartnerSettlementHistory: (partnerName, commissionType, startTime, endTime, sortCol, index, limit) => {
+        index = index || 0;
+        limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
+        sortCol = sortCol || {'_id': -1};
+        let query = {
+            partnerName: partnerName,
+            commissionType: commissionType,
+            startTime: startTime,
+            endTime: endTime
+        };
+
+        let count = dbconfig.collection_partnerCommissionLog.count(query).read("secondaryPreferred");
+        let result = dbconfig.collection_partnerCommissionLog.find(query).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
+
+        return Promise.all([count, result]).then(data => {
+            return {count: data[0], data: data[1]};
+        })
     },
 };
 var proto = dbPartnerFunc.prototype;
@@ -6096,20 +6227,32 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                     rateConfig.rateAfterRebatePromoIsCustom = true;
                     rateConfig.rateAfterRebatePromo = customRateData.rateAfterRebatePromo;
                 }
+                else {
+                    rateConfig.rateAfterRebatePromoIsCustom = false;
+                }
 
                 if (rateConfig.rateAfterRebatePlatform !== customRateData.rateAfterRebatePlatform) {
                     rateConfig.rateAfterRebatePlatformIsCustom = true;
                     rateConfig.rateAfterRebatePlatform = customRateData.rateAfterRebatePlatform;
+                }
+                else {
+                    rateConfig.rateAfterRebatePlatformIsCustom = false;
                 }
 
                 if (rateConfig.rateAfterRebateTotalDeposit !== customRateData.rateAfterRebateTotalDeposit) {
                     rateConfig.rateAfterRebateTotalDepositIsCustom = true;
                     rateConfig.rateAfterRebateTotalDeposit = customRateData.rateAfterRebateTotalDeposit;
                 }
+                else {
+                    rateConfig.rateAfterRebateTotalDepositIsCustom = false;
+                }
 
                 if (rateConfig.rateAfterRebateTotalWithdrawal !== customRateData.rateAfterRebateTotalWithdrawal) {
                     rateConfig.rateAfterRebateTotalWithdrawalIsCustom = true;
                     rateConfig.rateAfterRebateTotalWithdrawal = customRateData.rateAfterRebateTotalWithdrawal;
+                }
+                else {
+                    rateConfig.rateAfterRebateTotalWithdrawalIsCustom = false;
                 }
 
                 rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
@@ -6119,6 +6262,9 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                         ) {
                             defaultGroup.isCustom = true;
                             defaultGroup.rate = customGroup.rate;
+                        }
+                        else {
+                            defaultGroup.isCustom = false;
                         }
                     });
                 });
@@ -6226,6 +6372,9 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                 });
             }
 
+            let commissionTypeName = getCommissionTypeName(commissionLog.commissionType);
+            let proposalRemark = commissionTypeName + ", " + remark;
+
             // create proposal data
             let proposalData = {
                 type: proposalType._id,
@@ -6256,7 +6405,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     amount: commissionLog.nettCommission,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     logObjId: commissionLog._id,
-                    remark: remark
+                    remark: proposalRemark
                 },
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.PARTNERS
@@ -6293,27 +6442,27 @@ function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime)
     let pastThreeActiveDownLines = [];
     let pastThreeNettCommission = [];
     startTime = new Date(startTime);
-    let firstLastPeriod = new Date(startTime).setMinutes(startTime.getMinutes()-5);
-    let secondLastPeriod = new Date(firstLastPeriod.startTime).setMinutes(firstLastPeriod.startTime.getMinutes()-5);
-    let thirdLastPeriod = new Date(secondLastPeriod.startTime).setMinutes(secondLastPeriod.startTime.getMinutes()-5);
+    let firstLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(startTime).setMinutes(startTime.getMinutes()-5)));
+    let secondLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(firstLastPeriod.startTime).setMinutes(firstLastPeriod.startTime.getMinutes()-5)));
+    let thirdLastPeriod = getTargetCommissionPeriod(commissionType, new Date(new Date(secondLastPeriod.startTime).setMinutes(secondLastPeriod.startTime.getMinutes()-5)));
 
     let firstLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
         partner: partnerObjId,
         commissionType: commissionType,
-        startTime: firstLastPeriod.startTime,
-        endTime: firstLastPeriod.endTime
+        startTime: new Date(firstLastPeriod.startTime),
+        endTime: new Date(firstLastPeriod.endTime)
     }).lean();
     let secondLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
         partner: partnerObjId,
         commissionType: commissionType,
-        startTime: secondLastPeriod.startTime,
-        endTime: secondLastPeriod.endTime
+        startTime: new Date(secondLastPeriod.startTime),
+        endTime: new Date(secondLastPeriod.endTime)
     }).lean();
     let thirdLastRecordProm = dbconfig.collection_partnerCommissionLog.findOne({
         partner: partnerObjId,
         commissionType: commissionType,
-        startTime: thirdLastPeriod.startTime,
-        endTime: thirdLastPeriod.endTime
+        startTime: new Date(thirdLastPeriod.startTime),
+        endTime: new Date(thirdLastPeriod.endTime)
     }).lean();
 
     return Promise.all([firstLastRecordProm, secondLastRecordProm, thirdLastRecordProm]).then(
@@ -6339,4 +6488,19 @@ function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime)
             }
         }
     );
+}
+
+function getCommissionTypeName (commissionType) {
+    switch (Number(commissionType)) {
+        case 1:
+            return "1天-输赢值";
+        case 2:
+            return "7天-输赢值";
+        case 3:
+            return "半月-输赢值";
+        case 4:
+            return "1月-输赢值";
+        case 5:
+            return "7天-投注额";
+    }
 }
