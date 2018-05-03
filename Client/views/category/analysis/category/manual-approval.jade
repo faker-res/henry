@@ -1,0 +1,279 @@
+.section
+    .row
+        .titlePic
+            .title
+                text {{vm.showPageName | translate}}
+                .pull-right
+                    a.fa.fa-cog(ng-click='vm.toggleGraphSettingPanel("#manualApprovalAnalysis .block-query","manualApproval")')
+                        text.pull-left.margin-right-5 {{vm.optionText.manualApproval | translate}}
+    #manualApprovalAnalysis
+        .col-md-12.block-query.well(style='margin-bottom:3px;')
+            div
+                label {{'PERIOD' | translate}}
+                select.form-control(ng-model='vm.queryPara.manualApproval.periodText')
+                    option(value='day') {{"DAY"|translate}}
+                    option(value='week') {{"WEEK"|translate}}
+                    option(value='month') {{"MONTH"|translate}}
+            div
+                label {{"Start date"|translate}}
+                .startTime
+            div
+                label {{"End date"|translate}}
+                .endTime
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-click='vm.drawManualApprovalRate();') {{'SEARCH' | translate}}
+        .row
+            .col-md-6
+                label.text-primary {{"PLAYER_BONUS_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #pie-playerBonusManualApproval.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.manualApprovalDataSort( 'playerBonus', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('playerBonus','data.count')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('playerBonus','data.successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('playerBonus','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('playerBonus','data.manualCount')") {{'Total_ManualApproval' | translate}}
+
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.playerBonusAvgData.totalCount }}
+                                td
+                                    span {{ vm.playerBonusAvgData.successCount }}
+                                td
+                                    span {{ vm.playerBonusAvgData.rejectCount }}
+                                td
+                                    span {{ vm.playerBonusAvgData.manualCount }}
+                            tr(ng-repeat='(i, v) in vm.playerBonusData | orderBy: vm.manualApprovalSort.playerBonus')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.data.count }}
+                                td
+                                    span {{ v.data.successCount }}
+                                td
+                                    span {{ v.data.rejectCount }}
+                                td
+                                    span {{ v.data.manualCount}}
+
+        .row
+            .col-md-6
+                label.text-primary {{"UPDATE_PLAYER_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #pie-updatePlayerManualApproval.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.manualApprovalDataSort( 'updatePlayer', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','data.count')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','data.successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updatePlayer','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.updatePlayerAvgData.totalCount }}
+                                td
+                                    span {{ vm.updatePlayerAvgData.successCount }}
+                                td
+                                    span {{ vm.updatePlayerAvgData.rejectCount }}
+                                td
+                                    span {{ vm.updatePlayerAvgData.manualCount }}
+                            tr(ng-repeat='(i, v) in vm.updatePlayerData | orderBy: vm.manualApprovalSort.updatePlayer')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.data.count }}
+                                td
+                                    span {{ v.data.successCount }}
+                                td
+                                    span {{ v.data.rejectCount }}
+                                td
+                                    span {{ v.data.manualCount}}
+
+        .row
+            .col-md-6
+                label.text-primary {{"UPDATE_PARTNER_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #pie-updatePartnerManualApproval.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.manualApprovalDataSort( 'updateParner', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updateParner','data.count')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updateParner','data.successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updateParner','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('updateParner','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.updatePartnerAvgData.totalCount }}
+                                td
+                                    span {{ vm.updatePartnerAvgData.successCount }}
+                                td
+                                    span {{ vm.updatePartnerAvgData.rejectCount }}
+                                td
+                                    span {{ vm.updatePartnerAvgData.manualCount }}
+                            tr(ng-repeat='(i, v) in vm.updatePartnerData | orderBy: vm.manualApprovalSort.updateParner')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.data.count }}
+                                td
+                                    span {{ v.data.successCount }}
+                                td
+                                    span {{ v.data.rejectCount }}
+                                td
+                                    span {{ v.data.manualCount}}
+
+        .row
+            .col-md-6
+                label.text-primary {{"ALL_REWARD_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #pie-rewardManualApproval.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.manualApprovalDataSort( 'allReward', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('allReward','data.count')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('allReward','data.successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('allReward','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('allReward','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.rewardAvgData.totalCount }}
+                                td
+                                    span {{ vm.rewardAvgData.successCount }}
+                                td
+                                    span {{ vm.rewardAvgData.rejectCount }}
+                                td
+                                    span {{ vm.rewardAvgData.manualCount }}
+                            tr(ng-repeat='(i, v) in vm.rewardData | orderBy: vm.manualApprovalSort.allReward')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.data.count }}
+                                td
+                                    span {{ v.data.successCount }}
+                                td
+                                    span {{ v.data.rejectCount }}
+                                td
+                                    span {{ v.data.manualCount}}
+
+        .row
+            .col-md-6
+                label.text-primary {{"MISCELLANEOUS_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #pie-othersManualApproval.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                //label.text-primary {{vm.queryPara.topUp.amountTag | translate}} VS {{vm.platformTopUpDataPeriodText | translate}}
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.manualApprovalDataSort( 'miscellaneous', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','data.count')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','data.successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('miscellaneous','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.othersAvgData.totalCount }}
+                                td
+                                    span {{ vm.othersAvgData.successCount }}
+                                td
+                                    span {{ vm.othersAvgData.rejectCount }}
+                                td
+                                    span {{ vm.othersAvgData.manualCount }}
+                            tr(ng-repeat='(i, v) in vm.othersData | orderBy: vm.manualApprovalSort.miscellaneous')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.data.count }}
+                                td
+                                    span {{ v.data.successCount }}
+                                td
+                                    span {{ v.data.rejectCount }}
+                                td
+                                    span {{ v.data.manualCount}}
+
+        .row
+            .col-md-6
+                label.text-primary {{"ALL_PROPOSAL_MANUAL_APPROVAL_RATE" | translate}} VS {{vm.queryPara.manualApproval.periodText | translate}}
+                .graph
+                    .panel.panel-default
+                        #pie-allManualApproval.lineChart.graphDiv
+            .col-md-6
+                label &nbsp;
+                .graph
+                    table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%')
+                        thead
+                            tr
+                                th(ng-click="vm.manualApprovalDataSort( 'all', 'date')") {{ vm.queryPara.manualApproval.periodText | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('all','data.count')") {{"Total_Proposal"| translate}}
+                                th(ng-click="vm.manualApprovalDataSort('all','data.successCount')") {{'Approved_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('all','data.rejectCount')") {{'Rejected_Manual_Approval' | translate}}
+                                th(ng-click="vm.manualApprovalDataSort('all','data.manualCount')") {{'Total_ManualApproval' | translate}}
+                        tbody
+                            tr
+                                td
+                                    span {{ "average value" | translate }}
+                                td
+                                    span {{ vm.allAvgData.totalCount }}
+                                td
+                                    span {{ vm.allAvgData.successCount }}
+                                td
+                                    span {{ vm.allAvgData.rejectCount }}
+                                td
+                                    span {{ vm.allAvgData.manualCount }}
+                            tr(ng-repeat='(i, v) in vm.allManualApprovalData | orderBy: vm.manualApprovalSort.all')
+                                td
+                                    span {{ v.date | date:"yyyy-MM-dd" }}
+                                td
+                                    span {{ v.data.count }}
+                                td
+                                    span {{ v.data.successCount }}
+                                td
+                                    span {{ v.data.rejectCount }}
+                                td
+                                    span {{ v.data.manualCount}}
+
+
+p(ng-init="vm.loadPageFunc(vm.showPageName)")
