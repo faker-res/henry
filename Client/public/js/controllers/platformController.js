@@ -15071,7 +15071,7 @@ define(['js/app'], function (myApp) {
                     vm.submitPlayerFeedbackQuery();
                 });
             };
-            
+
             vm.getPlayerCreditinFeedbackInfo = function () {
                 vm.curFeedbackPlayer.gameCredit = {};
                 for (var i in vm.platformProviderList) {
@@ -15173,7 +15173,7 @@ define(['js/app'], function (myApp) {
                     console.log("vm.allPartnerFeedbackResults", err)
                 });
             };
-            
+
             vm.getAllPlayerFeedbackTopics = function () {
                 return $scope.$socketPromise('getAllPlayerFeedbackTopics').then(
                     function (data) {
@@ -15225,7 +15225,7 @@ define(['js/app'], function (myApp) {
                     vm.deletePartnerFeedbackResultData.failure = null;
                 }
             };
-            
+
             vm.addFeedbackResult = function (rowData) {
                 vm.clearFeedBackResultDataStatus(rowData);
                 let reqData = {};
@@ -15286,7 +15286,7 @@ define(['js/app'], function (myApp) {
                     );
                 }
             };
-            
+
             vm.deleteFeedbackResult = function (rowData) {
                 vm.clearFeedBackResultDataStatus(rowData);
                 let reqData = {};
@@ -15365,7 +15365,7 @@ define(['js/app'], function (myApp) {
                     vm.deletePartnerFeedbackTopicData.failure = null;
                 }
             };
-            
+
             vm.addFeedbackTopic = function (rowData) {
                 vm.clearFeedBackTopicDataStatus(rowData);
                 let reqData = {};
@@ -15426,7 +15426,7 @@ define(['js/app'], function (myApp) {
                     );
                 }
             };
-            
+
             vm.deleteFeedbackTopic = function (rowData) {
                 vm.clearFeedBackTopicDataStatus(rowData);
                 let reqData = {};
@@ -15629,6 +15629,14 @@ define(['js/app'], function (myApp) {
                     return;
                 }
                 $('#partnerRefreshIcon').addClass('fa-spin');
+                $('#partnerLoadingIcon').addClass('fa fa-spinner fa-spin');
+
+                vm.partnerLoadingDailyActivePlayer = true;
+                vm.partnerLoadingWeeklyActivePlayer = true;
+                vm.partnerLoadingMonthlyActivePlayer = true;
+                vm.partnerLoadingValidPlayers = true;
+                vm.partnerLoadingTotalChildrenDeposit = true;
+                vm.partnerLoadingTotalChildrenBalance = true;
 
                 vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {
                     "platformId": vm.selectedPlatform.id,
@@ -15744,6 +15752,35 @@ define(['js/app'], function (myApp) {
                 }, 300);
             };
 
+            utilService.actionAfterLoaded('#resetPartnerQuery', function () {
+                $('#resetPartnerQuery').off('click');
+                $('#resetPartnerQuery').click(function () {
+                    utilService.clearDatePickerDate('#regDateTimePicker2');
+                    utilService.clearDatePickerDate('#regEndDateTimePicker2');
+                    utilService.clearDatePickerDate('#lastAccessDateTimePicker2');
+                    utilService.clearDatePickerDate('#lastAccessEndDateTimePicker2');
+                    let resetQuery = {};
+                    resetQuery.index = vm.advancedPartnerQueryObj.index;
+                    resetQuery.limit = vm.advancedPartnerQueryObj.limit;
+                    resetQuery.pageObj = vm.advancedPartnerQueryObj.pageObj;
+                    resetQuery.sortCol = vm.advancedPartnerQueryObj.sortCol;
+                    vm.advancedPartnerQueryObj = resetQuery;
+                    console.log('vm.advancedPartnerQueryObj===', vm.advancedPartnerQueryObj);
+                    vm.partnerAdvanceSearchQuery = {
+                        creditsOperator: ">=",
+                        dailyActivePlayerOperator: ">=",
+                        weeklyActivePlayerOperator: ">=",
+                        monthlyActivePlayerOperator: ">=",
+                        validPlayersOperator: ">=",
+                        totalReferralsOperator: ">=",
+                        totalChildrenDepositOperator: ">=",
+                        totalChildrenBalanceOperator: ">=",
+                        commissionAmountFromChildrenOperator: ">=",
+                    };
+                    vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery);
+                })
+            });
+
             vm.getReferralsList = function (partner) {
                 socketService.$socket($scope.AppSocket, 'getReferralsList', partner, function (data) {
                     if (vm.dailyActivePlayerBoolean) {
@@ -15769,46 +15806,41 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getDailyActivePlayerCount = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getDailyActivePlayerCount', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back daily active player into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].dailyActivePlayer = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingDailyActivePlayer = false;
                     vm.dailyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
                     $scope.safeApply();
                 })
             };
 
             vm.getWeeklyActivePlayerCount = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getWeeklyActivePlayerCount', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back weekly active player into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].weeklyActivePlayer = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingWeeklyActivePlayer = false;
                     vm.weeklyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
                     //end loading spinner
@@ -15817,46 +15849,41 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getMonthlyActivePlayerCount = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getMonthlyActivePlayerCount', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back monthly active player into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].monthlyActivePlayer = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingMonthlyActivePlayer = false;
                     vm.monthlyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
                     $scope.safeApply();
                 })
             };
 
             vm.getValidPlayersCount = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getValidPlayersCount', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back valid players into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].validPlayers = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingValidPlayers = false;
                     vm.validPlayersBoolean = false;
                     vm.drawPartnerTable(partner);
                     //end loading spinner
@@ -15865,49 +15892,43 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getTotalChildrenDeposit = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getTotalChildrenDeposit', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back total children deposit into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].totalChildrenDeposit = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingTotalChildrenDeposit = false;
                     vm.totalChildrenDepositBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
                     $scope.safeApply();
                 })
             };
 
             vm.getTotalChildrenBalance = function (referral, partner) {
-                //start loading spinner
-
                 let sendQuery = {
                     referral: referral,
                     platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'getTotalChildrenBalance', sendQuery, function (data) {
-                    // append back the active player number into draw Table data
+                    // append back total children balance into draw table data
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
-
-                        if ( index !== -1){
+                        if ( index !== -1) {
                             partner.data[index].totalChildrenBalance = inData.size ? inData.size : 0;
                         }
                     });
+                    vm.partnerLoadingTotalChildrenBalance = false;
                     vm.totalChildrenBalanceBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
                     $scope.safeApply();
                 })
             };
@@ -15936,6 +15957,12 @@ define(['js/app'], function (myApp) {
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
                     partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? partner.commissionAmountFromChildren : 0;
                 });
+
+                if (!vm.partnerLoadingDailyActivePlayer && !vm.partnerLoadingWeeklyActivePlayer && !vm.partnerLoadingMonthlyActivePlayer &&
+                    !vm.partnerLoadingValidPlayers && !vm.partnerLoadingTotalChildrenDeposit && !vm.partnerLoadingTotalChildrenBalance) {
+                    $('#partnerLoadingIcon').removeClass('fa fa-spinner fa-spin');
+                }
+
                 vm.partners = data.data;
                 vm.platformPartnerCount = data.size;
                 vm.selectedPartnerCount = 0;
