@@ -433,11 +433,10 @@ var proposalExecutor = {
                             //make sure credit can not be negative number
                             if (newPlayer.validCredit < 0) {
                                 newPlayer.validCredit = 0;
+                                return newPlayer.save();
                             }
-                            if (newPlayer.lockedCredit < 0) {
-                                newPlayer.lockedCredit = 0;
-                            }
-                            return newPlayer.save();
+
+                            return newPlayer;
                         }
                     ).then(
                         player => {
