@@ -15,6 +15,7 @@ define(['js/app'], function (myApp) {
         vm.creditChange = {};
         vm.rewardPointsChange = {};
         vm.rewardPointsConvert = {};
+        vm.phoneNumberInfo = {};
         vm.depositMethodList = $scope.depositMethodList;
         vm.createTeleMarketingDefault = {
             description: '',
@@ -4046,7 +4047,8 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#sendSMSTableStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $("#sendSMSTableStartDatetimePicker").data('datetimepicker').setLocalDate( $('#teleMarketingOverviewStartDatetimePicker').data('datetimepicker').getLocalDate() );
 
                     $('#sendSMSTableEndDatetimePicker').datetimepicker({
                         language: 'en',
@@ -4054,7 +4056,7 @@ define(['js/app'], function (myApp) {
                         pick12HourFormat: true
                     });
 
-                    $("#sendSMSTableEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                    $("#sendSMSTableEndDatetimePicker").data('datetimepicker').setLocalDate( $('#teleMarketingOverviewEndDatetimePicker').data('datetimepicker').getLocalDate() );
 
                     $('#sendSMSTableMsgStartDatetimePicker').datetimepicker({
                         language: 'en',
@@ -4103,8 +4105,8 @@ define(['js/app'], function (myApp) {
             if (vm.telePlayerSendingMsgTable){
                 sendQuery.customerType= vm.telePlayerSendingMsgTable.customerType ? vm.telePlayerSendingMsgTable.customerType : "all";
 
-                sendQuery.importedTelStartTime =$('#sendSMSTableStartDatetimePicker').data('datetimepicker') ? $('#sendSMSTableStartDatetimePicker').data('datetimepicker').getLocalDate() : utilService.getThisMonthStartTime();
-                sendQuery.importedTelEndTime = $('#sendSMSTableEndDatetimePicker').data('datetimepicker') ? $('#sendSMSTableEndDatetimePicker').data('datetimepicker').getLocalDate() : utilService.getThisMonthEndTime();
+                sendQuery.importedTelStartTime = $('#sendSMSTableStartDatetimePicker').data('datetimepicker') ? $('#sendSMSTableStartDatetimePicker').data('datetimepicker').getLocalDate() : $('#teleMarketingOverviewStartDatetimePicker').data('datetimepicker').getLocalDate();
+                sendQuery.importedTelEndTime = $('#sendSMSTableEndDatetimePicker').data('datetimepicker') ? $('#sendSMSTableEndDatetimePicker').data('datetimepicker').getLocalDate() : $('#teleMarketingOverviewEndDatetimePicker').data('datetimepicker').getLocalDate();
 
                 sendQuery.lastSendingStartTime =$('#sendSMSTableMsgStartDatetimePicker').data('datetimepicker') ? $('#sendSMSTableMsgStartDatetimePicker').data('datetimepicker').getLocalDate() : null;
                 sendQuery.lastSendingEndTime = $('#sendSMSTableMsgEndDatetimePicker').data('datetimepicker') ? $('#sendSMSTableMsgEndDatetimePicker').data('datetimepicker').getLocalDate() : null;
@@ -4131,7 +4133,7 @@ define(['js/app'], function (myApp) {
                         item['topupTimes'] = item.playerObjId && item.playerObjId.topUpTimes ? item.playerObjId.topUpTimes : 0;
                         item['loginTimes'] = item.playerObjId && item.playerObjId.loginTimes ? item.playerObjId.loginTimes : 0;
                         item['count'] = item.count ? item.count : 0;
-
+                        item['remark$'] = item.remark ? item.remark : "";
                         // if ( item['playerName'] == '-') {
                         //     item['isLocked'] = false;
                         // }
@@ -4149,7 +4151,7 @@ define(['js/app'], function (myApp) {
         // vm.drawTelePlayerMsgTable = function (newSearch, tblData, size) {
         vm.drawTelePlayerMsgTable = function (newSearch, tblData) {
             console.log("telePlayerSendingMsgTable",tblData);
-
+            vm.phoneNumberInfo.remark = {};
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: tblData,
                 "aaSorting": vm.telePlayerSendingMsgTable.sortCol || [[4, 'desc']],
@@ -4165,7 +4167,18 @@ define(['js/app'], function (myApp) {
                         }
 
                     },
-                    { title: $translate('IMPORTED_PHONE_NUMBER'), data: "phoneNumber$"},
+                    {
+                        title: $translate('IMPORTED_PHONE_NUMBER'),
+                        data: "phoneNumber$",
+                        render: function (data, type, row) {
+                            var link = $('<a>', {
+
+                                'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.phoneNumber + '",' + JSON.stringify(row) + ');',
+
+                            }).text(data);
+                            return link.prop('outerHTML');
+                        }
+                    },
                     { title: $translate('SMS URL'), data: "url"},
                     { title: $translate('CUSTOMER_ACCOUNT_ID'), data: "playerName"},
                     { title: $translate('TIME_IMPORTED_PHONE_NUMBER'), data: "createTime"},
@@ -4174,8 +4187,6 @@ define(['js/app'], function (myApp) {
                     { title: $translate('SENDING_TIMES'), data: "count"},
                     { title: $translate('loginTimes'), data: "loginTimes"},
                     { title: $translate('TOP_UP_TIMES'), data: "topupTimes"},
-
-
                     {
                         "title": $translate('Multiselect'),
                         bSortable: false,
@@ -4198,6 +4209,51 @@ define(['js/app'], function (myApp) {
                             };
                         },
                     },
+                    {
+                        "title": $translate('REMARKS'),
+                        render: function (data, type, row, index) {
+                            var link = $('<div>', {});
+                            if (!row.isLocked) {
+                                link.append($('<input>', {
+                                    type: 'text',
+                                    "ng-init": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "] = '" + row.remark$ + "'",
+                                    "ng-show": '!vm.showPhoneNumberRemark',
+                                    "ng-model": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "]",
+                                    "disabled": "true",
+                                    'style': "margin-right: 5px;",
+                                }));
+
+                                link.append($('<button>', {
+                                    type: 'edit',
+                                    text: $translate('EDIT'),
+                                    "ng-click": 'vm.showPhoneNumberRemark = true;',
+                                    "ng-show": '!vm.showPhoneNumberRemark',
+                                    class: "btn btn-danger"
+                                }));
+
+                                link.append($('<input>', {
+                                    type: 'text',
+                                    "ng-model": "vm.phoneNumberInfo.remark[" + row.phoneNumber + "]",
+                                    "ng-show": 'vm.showPhoneNumberRemark',
+                                    "data-_id": row._id,
+                                    'style': "margin-right: 5px;",
+                                }));
+
+                                link.append($('<button>', {
+                                    type: 'edit',
+                                    text: $translate('SAVE'),
+                                    "ng-click": 'vm.savePhoneNumberInfoRemark();',
+                                    "ng-show": 'vm.showPhoneNumberRemark',
+                                    class: "btn btn-success"
+                                }));
+
+                                return link.prop('outerHTML');
+                            } else {
+                                let text = '<span>'+ '-' +'</span>';
+                                return "<div>" + text + "</div>";
+                            };
+                        },
+                    }
 
 
                 ],
@@ -4263,6 +4319,41 @@ define(['js/app'], function (myApp) {
 
         }
 
+        vm.savePhoneNumberInfoRemark = function (data){
+
+            var sendObj = {
+                platform: vm.selectedPlatform.id,
+                dxMission: vm.telePlayerSendingMsgTable.dxMissionId,
+                remarkObj: vm.phoneNumberInfo.remark
+            }
+
+            socketService.$socket($scope.AppSocket, 'updatePhoneNumberRemark', sendObj, function (data) {
+                console.log("update phone number remark status", data)
+            }, function (error) {
+                console.log("error", error);
+            })
+
+            vm.showPhoneNumberRemark = false;
+        }
+
+        vm.callNewPlayerBtn = function (phoneNumber, data) {
+
+            vm.getSMSTemplate();
+            var phoneCall = {
+                playerId: data.playerObjId.playerId,
+                name: data.playerObjId.name,
+                toText: data.playerName ? data.playerName : data.playerObjId.name,
+                platform: "jinshihao",
+                loadingNumber: true,
+            }
+            $scope.initPhoneCall(phoneCall);
+
+            $scope.phoneCall.phone = phoneNumber;
+            $scope.phoneCall.loadingNumber = false;
+            $scope.safeApply();
+            $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+        }
+
         // generate telePlayer Sending Message function table ====================End==================
 
         vm.updateMultiselectCustomer = function () {
@@ -4294,56 +4385,14 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
-        // vm.sendMsgToTelePlayer = function (){
-        //     if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0){
-        //         let counterSuccess = 0, counterFailure = 0;
-        //         vm.msgSendingGroupData.forEach( data => {
-        //             let sendObj = {
-        //                 platformId: data.platformId,
-        //                 channel: 2,
-        //                 tel: data.phoneNumber,
-        //                 dxPhone: data.dxMissionId
-        //             };
-        //
-        //             socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {
-        //                 if(data.success) {
-        //                     counterSuccess++;
-        //                     console.log("SMS Sent:", data);
-        //                     if (counterSuccess == vm.msgSendingGroupData.length) {
-        //                         vm.responseMsg = $translate("SUCCESS");
-        //                     }
-        //                 } else {
-        //                     counterFailure++;
-        //                     vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
-        //                 }
-        //                 $scope.safeApply();
-        //
-        //             }, function (error) {
-        //                     console.log("error", error);
-        //                     counterFailure++;
-        //                     vm.responseMsg = '(' + counterFailure + ')' + $translate("FAIL");
-        //                     $scope.safeApply();
-        //                 }
-        //             );
-        //
-        //         });
-        //
-        //
-        //
-        //
-        //     }
-        // }
         vm.sendMsgToTelePlayer = function () {
             if (vm.msgSendingGroupData && vm.msgSendingGroupData.length > 0) {
 
                 let counterSuccess = 0, counterFailure = 0;
-                //vm.msgSendingGroupData.forEach( data => {
+
                 let sendObj = {
-                    //platformId: data.platformId,
                     channel: vm.smsChannel, //vm.smsChannel,
                     msgDetail: vm.msgSendingGroupData,
-                    //tel: data.phoneNumber,
-                    //dxPhone: data.dxMissionId
                 };
 
                 socketService.$socket($scope.AppSocket, 'sendSMSToDXPlayer', sendObj, function (data) {

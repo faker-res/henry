@@ -53,7 +53,8 @@ var dbRewardPointsLog = {
             currentDayAppliedAmount: proposalData.data.currentDayAppliedAmount,
             maxDayApplyAmount: proposalData.data.maxDayApplyAmount,
             proposalId: proposalData.proposalId,
-            creator: proposalData.creator.name
+            creator: proposalData.creator.name,
+            platformId: proposalData.data.platformObjId
         };
         dbLogger.createRewardPointsLog(logData);
     },

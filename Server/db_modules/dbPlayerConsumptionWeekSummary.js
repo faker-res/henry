@@ -417,12 +417,13 @@ var dbPlayerConsumptionWeekSummary = {
                                                             let returnRatio = proposalData.data.returnDetail["GameType:" + el._id] ? proposalData.data.returnDetail["GameType:" + el._id].ratio : 0;
 
                                                             // Solve computed very small amount issue
-                                                            consumpDiff = consumpDiff < Number.EPSILON ? 0 : consumpDiff;
+                                                            consumpDiff = consumpDiff > -0.01 && consumpDiff < 0.01 ? 0 : consumpDiff;
 
                                                             // Offset if it matters
                                                             if (proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + consumpDiff > 0) {
                                                                 // Log the offset
-                                                                proposalData.data.devCheckMsg =
+                                                                proposalData.data.devCheckMsg = proposalData.data.devCheckMsg || "";
+                                                                proposalData.data.devCheckMsg +=
                                                                     "GameType: " + el._id + ", " +
                                                                     "Original: " + proposalData.data.returnDetail["GameType:" + el._id].consumeValidAmount + ", ";
 
@@ -432,7 +433,7 @@ var dbPlayerConsumptionWeekSummary = {
                                                                 proposalData.data.consumeValidAmount += consumpDiff;
 
                                                                 proposalData.data.devCheckMsg +=
-                                                                    "Offset: " + el.validAmount + "-" + curValidAmt + "-" + curNonXIMAAmt + "-" + consumedValidAmount
+                                                                    "Offset: " + el.validAmount + "-" + curValidAmt + "-" + curNonXIMAAmt + "-" + consumedValidAmount + "; "
                                                             }
                                                         }
                                                     });

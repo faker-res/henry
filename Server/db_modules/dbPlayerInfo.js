@@ -12966,7 +12966,8 @@ let dbPlayerInfo = {
                                         query: query,
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
-                                        })
+                                        }),
+                                        isPromoteWay: true
                                     });
                                 },
                                 processResponse: function (record) {
@@ -12980,26 +12981,6 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                //handle sum of field here
-                for (let z = 0; z < result.length; z++) {
-                    resultSum.manualTopUpAmount += result[z].manualTopUpAmount;
-                    resultSum.weChatTopUpAmount += result[z].weChatTopUpAmount;
-                    resultSum.aliPayTopUpAmount += result[z].aliPayTopUpAmount;
-                    resultSum.onlineTopUpAmount += result[z].onlineTopUpAmount;
-                    resultSum.topUpTimes += result[z].topUpTimes;
-                    resultSum.topUpAmount += result[z].topUpAmount;
-                    resultSum.bonusTimes += result[z].bonusTimes;
-                    resultSum.bonusAmount += result[z].bonusAmount;
-                    resultSum.rewardAmount += result[z].rewardAmount;
-                    resultSum.consumptionReturnAmount += result[z].consumptionReturnAmount;
-                    resultSum.consumptionTimes += result[z].consumptionTimes;
-                    resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
-                    resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
-                    // resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
-                    resultSum.consumptionAmount += result[z].consumptionAmount;
-                }
-                resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
-
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -13020,6 +13001,30 @@ let dbPlayerInfo = {
                     });
                 }
 
+
+                // Output filter promote way
+                result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
+                result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
+                //handle sum of field here
+                for (let z = 0; z < result.length; z++) {
+                    resultSum.manualTopUpAmount += result[z].manualTopUpAmount;
+                    resultSum.weChatTopUpAmount += result[z].weChatTopUpAmount;
+                    resultSum.aliPayTopUpAmount += result[z].aliPayTopUpAmount;
+                    resultSum.onlineTopUpAmount += result[z].onlineTopUpAmount;
+                    resultSum.topUpTimes += result[z].topUpTimes;
+                    resultSum.topUpAmount += result[z].topUpAmount;
+                    resultSum.bonusTimes += result[z].bonusTimes;
+                    resultSum.bonusAmount += result[z].bonusAmount;
+                    resultSum.rewardAmount += result[z].rewardAmount;
+                    resultSum.consumptionReturnAmount += result[z].consumptionReturnAmount;
+                    resultSum.consumptionTimes += result[z].consumptionTimes;
+                    resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
+                    resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
+                    // resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
+                    resultSum.consumptionAmount += result[z].consumptionAmount;
+                }
+                resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
 
                 let outputResult = [];
 
@@ -13209,7 +13214,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
         option = option || {};
         let proms = [];
         let proposalType = [];
@@ -13260,7 +13265,19 @@ let dbPlayerInfo = {
                         proms.push(prom);
                     }
                     else {
-                        proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
+                        if (isPromoteWay) { // for search with filter promote way
+                            prom = dbconfig.collection_players.findOne({
+                                _id: playerObjIds[p]
+                            }).then(
+                                playerData => {
+                                    return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain);
+                                }
+                            );
+                        } else {
+                            prom = getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime));
+                        }
+                        // proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
+                        proms.push(prom);
                     }
 
                 }

@@ -1038,46 +1038,7 @@ let dbDXMission = {
 
             return Q.all(prom)
         }
-        // return dbconfig.collection_dxPhone.findOne({_id: data.dxPhone}).populate({
-        //     path: "dxMission", model: dbconfig.collection_dxMission
-        // }).populate({
-        //     path: "platform", model: dbconfig.collection_platform
-        // }).then(
-        //     dxPhoneRes => {
-        //         if (dxPhoneRes) {
-        //             phoneData = dxPhoneRes;
-        //
-        //             return replaceMailKeywords(phoneData.dxMission.invitationTemplate, phoneData.dxMission, phoneData);
-        //         }
-        //     }
-        // ).then(
-        //     message => {
-        //         let sendObj = {
-        //             tel: data.tel.trim(),
-        //             channel: 2,
-        //             platformId: phoneData.platform.platformId,
-        //             message: message,
-        //             data: {
-        //                 dxMission: phoneData.dxMission
-        //             }
-        //         };
-        //         let recipientName = data.name || '';
-        //
-        //         return smsAPI.sending_sendMessage(sendObj).then(
-        //             retData => {
-        //                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
-        //                 console.log("SMS SENT SUCCESSFULLY");
-        //                 return retData;
-        //             },
-        //             retErr => {
-        //                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'failure', retErr);
-        //                 console.log("SMS SENT FAILED");
-        //                 return Q.reject({message: retErr, data: data});
-        //             }
-        //         );
-        //         // return dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platformId, 'success');
-        //     }
-        // );
+
     },
 
     getDXPhoneNumberInfo: function (platformObjId, dxMission, index, limit, sortCol, data) {
@@ -1414,6 +1375,7 @@ let dbDXMission = {
                 let findQuery = {
                     tel: {$regex: newRegexPhoneNumber},
                     "data.dxMission": dxMissionObjId,
+                    status: "success"
                 };
 
                 if (lastSendingStartTime && lastSendingEndTime){
@@ -1455,6 +1417,27 @@ let dbDXMission = {
             });
 
             return Q.all(smsLogProm);
+        }
+    },
+
+    updatePhoneNumberRemark: function(platform, dxMission, remarkObj) {
+
+        if(remarkObj){
+            for (var phoneNumber in remarkObj) {
+                if (remarkObj.hasOwnProperty(phoneNumber)) {
+                    var remark = remarkObj[phoneNumber];
+                    dbconfig.collection_dxPhone.findOneAndUpdate({platform: platform, dxMission: dxMission, phoneNumber: phoneNumber},{remark: remark}).then(
+                        () => {
+                            return;
+                        },error => {
+                            return Promise.reject({
+                                name: "DataError",
+                                errorMessage: "Update remark failed."
+                            });
+                        }
+                    );
+                }
+            }
         }
     }
 };

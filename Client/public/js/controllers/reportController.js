@@ -119,6 +119,7 @@ define(['js/app'], function (myApp) {
                 proposalId: proposalId
             }, function (data) {
                 vm.selectedProposal = data.data;
+                vm.proposalDetailStyle = {};
                 let playerName = vm.selectedProposal.data.playerName;
                 let typeId = vm.selectedProposal.type._id;
                 let typeName = [vm.selectedProposal.type.name];
@@ -132,6 +133,99 @@ define(['js/app'], function (myApp) {
                 //     }
                 // }
                 vm.wechatNameConvert();
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "SettlePartnerCommission") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+                    let grossCommission = 0;
+                    let totalPlatformFee = 0;
+
+                    let customizedStyle = {
+                        'font-weight': 'bold',
+                        'color': 'red'
+                    };
+                    let isCustomized = false;
+
+                    let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
+
+                    proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
+                    proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                    proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
+                    proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
+                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
+                    proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
+
+                    vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                        grossCommission += rawCommission.amount;
+                        let str = rawCommission.amount + $translate("YEN") + " "
+                            + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
+                            + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
+
+                        proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
+
+                        if (rawCommission.isCustomCommissionRate) {
+                            vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
+                            isCustomized = true;
+                        }
+                    });
+
+                    proposalDetail["REQUIRED_PROMO_DEDUCTION"] = vm.selectedProposal.data.totalRewardFee + $translate("YEN")
+                        + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalReward + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
+
+                    if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
+                        vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
+                        isCustomized = true;
+                    }
+
+                    proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
+                    vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                        totalPlatformFee += rawCommission.platformFee;
+                        let str = rawCommission.platformFee + $translate("YEN") + " "
+                            + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
+                            + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+
+                        proposalDetail["- " + rawCommission.groupName] =  str;
+
+                        if (rawCommission.isCustomPlatformFeeRate) {
+                            vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
+                            isCustomized = true;
+                        }
+                    });
+
+                    proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
+                        + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalTopUp + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
+
+                    if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
+                        vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
+                        isCustomized = true;
+                    }
+
+                    proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
+                        + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
+
+                    if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                        vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;
+                        isCustomized = true;
+                    }
+
+                    if (isCustomized) {
+                        vm.proposalDetailStyle["COMMISSION_TYPE"] = customizedStyle;
+                    }
+
+                    let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
+
+                    proposalDetail["COMMISSION_TOTAL"] = vm.selectedProposal.data.amount + " "
+                        + "(" + grossCommission + "-" + totalFee + ")";
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                     let proposalDetail = {};
@@ -2475,6 +2569,78 @@ define(['js/app'], function (myApp) {
 
 
 
+        ////////////////////PARTNER REAL TIME COMMISSION REPORT//////////////////////
+        vm.searchRealTimePartnerCommissionData = function () {
+            let loadingSpinner = $('#realTimeCommissionTableSpin');
+            loadingSpinner.show();
+            vm.realTimeCommissionLoadingStatus = "";
+            let query = {
+                platformObjId: vm.selectedPlatform._id,
+                commissionType: vm.realTimeCommissionQuery.commissionType,
+                partnerName: vm.realTimeCommissionQuery.partnerName ? vm.realTimeCommissionQuery.partnerName.trim() : "",
+            };
+
+            if (!(vm.realTimeCommissionQuery.commissionType || vm.realTimeCommissionQuery.partnerName && vm.realTimeCommissionQuery.partnerName.trim())) {
+                vm.realTimeCommissionLoadingStatus = $translate("Please insert either commission type or partner name for search");
+                loadingSpinner.hide();
+                return;
+            }
+
+            socketService.$socket($scope.AppSocket, 'getCurrentPartnerCommissionDetail', query, function (data) {
+                loadingSpinner.hide();
+                console.log('getCurrentPartnerCommissionDetail', data);
+
+                $scope.$evalAsync(() => {
+                    vm.realTimeCommissionData = data.data || [];
+                    vm.realTimeCommissionData.forEach( partner => {
+                        if (partner) {
+                            partner.isAnyCustomPlatformFeeRate = false;
+                            (partner.rawCommissions).forEach( (group, idxgroup) => {
+                                partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                if (group.isCustomPlatformFeeRate == true){
+                                    vm.partnerCommVar.platformFeeTab = idxgroup;
+                                }
+                            });
+                        }
+                    });
+                });
+            }, function (error) {
+                loadingSpinner.hide();
+                vm.realTimeCommissionLoadingStatus = (error && error.errorMessage) || $translate("RESPONSE_TIMEOUT");
+                console.log('getCurrentPartnerCommissionDetail error', error);
+            });
+        };
+
+        vm.calculatePartnerDLTotalDetail = function (partnerDownLineCommDetail, detailType){
+            for (var i in vm.partnerDLCommDetailTotal){
+                delete vm.partnerDLCommDetailTotal[i];
+            }
+
+            if (partnerDownLineCommDetail && partnerDownLineCommDetail.length > 0) {
+                if (!partnerDownLineCommDetail[0]) {
+                    partnerDownLineCommDetail.push({});
+                }
+                (Object.keys(partnerDownLineCommDetail[0][detailType])).forEach( key => {
+                    if (key === "consumptionProviderDetail") {
+                        (Object.keys(partnerDownLineCommDetail[0][detailType][key])).forEach( subkey1 => {
+                            vm.partnerDLCommDetailTotal[subkey1] = {};
+
+                            (Object.keys(partnerDownLineCommDetail[0][detailType][key][subkey1])).forEach( subkey2 => {
+                                vm.partnerDLCommDetailTotal[subkey1][subkey2] =
+                                    partnerDownLineCommDetail.length !== 0 ? partnerDownLineCommDetail.reduce((a, item) =>
+                                        a + (Number.isFinite(item[detailType][key][subkey1][subkey2]) ? item[detailType][key][subkey1][subkey2] : 0), 0) : 0;
+                            });
+                        });
+                    }
+                    else {
+                        vm.partnerDLCommDetailTotal = vm.partnerDLCommDetailTotal || {};
+                        vm.partnerDLCommDetailTotal[key] = $scope.calculateTotalSum(partnerDownLineCommDetail, detailType, key);
+                    }
+                });
+            }
+            $scope.safeApply();
+        };
+
         ////////////////////FEEDBACK REPORT//////////////////////
         vm.searchFeedbackReport = function (newSearch) {
             $('#feedbackReportTableSpin').show();
@@ -3078,6 +3244,20 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerReport = function (newSearch) {
             $('#loadingPlayerReportTableSpin').show();
 
+            let admins = [];
+
+            if (vm.playerQuery.departments) {
+                if (vm.playerQuery.roles) {
+                    vm.queryRoles.map(e => {
+                        if (vm.playerQuery.roles.indexOf(e._id) >= 0) {
+                            e.users.map(f => admins.push(f.adminName))
+                        }
+                    })
+                } else {
+                    vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                }
+            }
+
             console.log(vm.playerQuery);
             var sendquery = {
                 platformId: vm.curPlatformId,
@@ -3102,7 +3282,9 @@ define(['js/app'], function (myApp) {
                     bonusTimesValueTwo: vm.playerQuery.bonusTimesValueTwo,
                     topUpAmountOperator: vm.playerQuery.topUpAmountOperator,
                     topUpAmountValue: vm.playerQuery.topUpAmountValue,
-                    topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo
+                    topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo,
+                    csPromoteWay: vm.playerQuery.csPromoteWay,
+                    admins: vm.playerQuery.admins && vm.playerQuery.admins.length > 0 ? vm.playerQuery.admins : admins,
                 },
                 index: newSearch ? 0 : (vm.playerQuery.index || 0),
                 limit: vm.playerQuery.limit || 5000,
@@ -5891,12 +6073,106 @@ define(['js/app'], function (myApp) {
         }
 
         vm.showProposalModalNew = function (proposalId) {
+            vm.proposalDetailStyle = {};
             vm.proposalDialog = 'proposal';
             socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                 platformId: vm.selectedPlatform._id,
                 proposalId: proposalId
             }, function (data) {
                 vm.selectedProposal = data.data;
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "SettlePartnerCommission") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+                    let grossCommission = 0;
+                    let totalPlatformFee = 0;
+
+                    let customizedStyle = {
+                        'font-weight': 'bold',
+                        'color': 'red'
+                    };
+                    let isCustomized = false;
+
+                    let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
+
+                    proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
+                    proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                    proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
+                    proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
+                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
+                    proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
+
+                    vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                        grossCommission += rawCommission.amount;
+                        let str = rawCommission.amount + $translate("YEN") + " "
+                            + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
+                            + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
+
+                        proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
+
+                        if (rawCommission.isCustomCommissionRate) {
+                            vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
+                            isCustomized = true;
+                        }
+                    });
+
+                    proposalDetail["REQUIRED_PROMO_DEDUCTION"] = vm.selectedProposal.data.totalRewardFee + $translate("YEN")
+                        + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalReward + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
+
+                    if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
+                        vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
+                        isCustomized = true;
+                    }
+
+                    proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
+                    vm.selectedProposal.data.rawCommissions.map(rawCommission => {
+                        totalPlatformFee += rawCommission.platformFee;
+                        let str = rawCommission.platformFee + $translate("YEN") + " "
+                            + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
+                            + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+
+                        proposalDetail["- " + rawCommission.groupName] =  str;
+
+                        if (rawCommission.isCustomPlatformFeeRate) {
+                            vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
+                            isCustomized = true;
+                        }
+                    });
+
+                    proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
+                        + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalTopUp + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
+
+                    if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
+                        vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
+                        isCustomized = true;
+                    }
+
+                    proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
+                        + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
+                        + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
+
+                    if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                        vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;
+                        isCustomized = true;
+                    }
+
+                    if (isCustomized) {
+                        vm.proposalDetailStyle["COMMISSION_TYPE"] = customizedStyle;
+                    }
+
+                    let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
+
+                    proposalDetail["COMMISSION_TOTAL"] = vm.selectedProposal.data.amount + " "
+                        + "(" + grossCommission + "-" + totalFee + ")";
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
                     let proposalDetail = {};
@@ -6508,6 +6784,52 @@ define(['js/app'], function (myApp) {
             }
             else if (choice == "PLAYER_REPORT") {
                 utilService.actionAfterLoaded('#playerReportTablePage', function () {
+                    // Get Promote CS and way lists
+                    vm.allPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
+                        function (data) {
+                            $scope.$evalAsync(() => {
+                                vm.allPromoteWay = data.data;
+                                endLoadMultipleSelect('.spicker');
+                            })
+                        },
+                        function (err) {
+                            console.log(err);
+                        }
+                    );
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
+                        data => {
+                            $scope.$evalAsync(() => {
+                                let parentId;
+                                vm.queryDepartments = [];
+                                vm.queryRoles = [];
+
+                                data.data.map(e => {
+                                    if (e.departmentName == vm.selectedPlatform.name) {
+                                        vm.queryDepartments.push(e);
+                                        parentId = e._id;
+                                    }
+                                });
+
+                                data.data.map(e => {
+                                    if (String(parentId) == String(e.parent)) {
+                                        vm.queryDepartments.push(e);
+                                    }
+                                });
+
+                                endLoadMultipleSelect('.spicker');
+
+                                if (typeof(callback) == 'function') {
+                                    callback(data.data);
+                                }
+                            });
+                        }
+                    );
                     // todo :: change date to yesterday
                     var yesterday = utilService.setNDaysAgo(new Date(), 1);
                     var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
@@ -6755,6 +7077,11 @@ define(['js/app'], function (myApp) {
                     });
                 })
                 $scope.safeApply();
+            } else if (choice == "REAL_TIME_COMMISSION_REPORT") {
+                vm.realTimeCommissionQuery = {};
+                vm.realTimeCommissionLoadingStatus = "";
+                vm.realTimeCommissionData = [];
+                vm.partnerCommVar = {};
             } else if (choice == "PARTNERCOMMISSION_REPORT") {
                 vm.partnerCommissionQuery = {};
                 vm.partnerCommissionQuery.status = 'all';

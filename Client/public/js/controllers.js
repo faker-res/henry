@@ -545,6 +545,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "TEST_PLAYERS"
     };
 
+    $scope.commissionTypeList = {
+        1: "DAILY_BONUS_AMOUNT",
+        2: "WEEKLY_BONUS_AMOUNT",
+        3: "BIWEEKLY_BONUS_AMOUNT",
+        4: "MONTHLY_BONUS_AMOUNT",
+        5: "WEEKLY_CONSUMPTION",
+    };
+
     $scope.constPlayerStatus = {
         1: "NORMAL",
         2: "FORBID_GAME",
@@ -1459,7 +1467,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.timeReformat = function (data) {
         return utilService.$getTimeFromStdTimeFormat(data);
-    }
+    };
+
+    $scope.dateReformat = function (data) {
+        return $scope.timeReformat(data).slice(0, 10);
+    };
+
     $scope.renderParameters = function (data) {
         //console.log("Rendering data:",data);
         var view = $('<div>');
