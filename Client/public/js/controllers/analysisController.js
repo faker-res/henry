@@ -1063,8 +1063,6 @@ define(['js/app'], function (myApp) {
                     if (data.data[0] && data.data[1]){
                         vm.manualApprovalData = data.data[0];
                         vm.allManualApprovalData = data.data[1];
-                        console.log('vm.manualApprovalData', vm.manualApprovalData);
-                        console.log('vm.allManualApprovalData', vm.allManualApprovalData);
 
                         vm.isShowLoadingSpinner('#manualApprovalAnalysis', false);
 
