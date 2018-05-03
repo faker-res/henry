@@ -166,6 +166,7 @@
         a#partnerRefreshIcon.fa.fa-refresh(ng-click='vm.getPlatformPartnersData()')
 .col-md-12
     label(ng-show='vm.platformPlayerCount') {{'Total Partner' | translate}} : {{vm.platformPartnerCount}} ({{"Search Result" | translate}} : {{vm.searchPartnerCount}})
+    #partnerLoadingIcon(style="margin-left:10px")
 
 p
 .col-md-12(style="min-height:150px;")
