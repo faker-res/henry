@@ -580,7 +580,8 @@ var roleChecker = {
                 TopupMethodRate: ['getTopUpMethodAnalysisByPlatform','getTopUpMethodCountByPlatform'],
                 DemoPlayer: ['getDemoPlayerAnalysis'],
                 ClickCount: ['getClickCountAnalysis'],
-                PlayerDomain: ['getPlayerDomainAnalysisData']
+                PlayerDomain: ['getPlayerDomainAnalysisData'],
+                ManualApproval: ['getManualApprovalRecords']
             }
         },
         Report: {
