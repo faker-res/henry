@@ -3150,6 +3150,20 @@ define(['js/app'], function (myApp) {
         vm.searchPlayerReport = function (newSearch) {
             $('#loadingPlayerReportTableSpin').show();
 
+            let admins = [];
+
+            if (vm.playerQuery.departments) {
+                if (vm.playerQuery.roles) {
+                    vm.queryRoles.map(e => {
+                        if (vm.playerQuery.roles.indexOf(e._id) >= 0) {
+                            e.users.map(f => admins.push(f.adminName))
+                        }
+                    })
+                } else {
+                    vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                }
+            }
+
             console.log(vm.playerQuery);
             var sendquery = {
                 platformId: vm.curPlatformId,
@@ -3174,7 +3188,9 @@ define(['js/app'], function (myApp) {
                     bonusTimesValueTwo: vm.playerQuery.bonusTimesValueTwo,
                     topUpAmountOperator: vm.playerQuery.topUpAmountOperator,
                     topUpAmountValue: vm.playerQuery.topUpAmountValue,
-                    topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo
+                    topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo,
+                    csPromoteWay: vm.playerQuery.csPromoteWay,
+                    admins: vm.playerQuery.admins && vm.playerQuery.admins.length > 0 ? vm.playerQuery.admins : admins,
                 },
                 index: newSearch ? 0 : (vm.playerQuery.index || 0),
                 limit: vm.playerQuery.limit || 5000,
@@ -6548,6 +6564,52 @@ define(['js/app'], function (myApp) {
             }
             else if (choice == "PLAYER_REPORT") {
                 utilService.actionAfterLoaded('#playerReportTablePage', function () {
+                    // Get Promote CS and way lists
+                    vm.allPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
+                        function (data) {
+                            $scope.$evalAsync(() => {
+                                vm.allPromoteWay = data.data;
+                                endLoadMultipleSelect('.spicker');
+                            })
+                        },
+                        function (err) {
+                            console.log(err);
+                        }
+                    );
+
+                    // Get Departments Detail
+                    socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform._id},
+                        data => {
+                            $scope.$evalAsync(() => {
+                                let parentId;
+                                vm.queryDepartments = [];
+                                vm.queryRoles = [];
+
+                                data.data.map(e => {
+                                    if (e.departmentName == vm.selectedPlatform.name) {
+                                        vm.queryDepartments.push(e);
+                                        parentId = e._id;
+                                    }
+                                });
+
+                                data.data.map(e => {
+                                    if (String(parentId) == String(e.parent)) {
+                                        vm.queryDepartments.push(e);
+                                    }
+                                });
+
+                                endLoadMultipleSelect('.spicker');
+
+                                if (typeof(callback) == 'function') {
+                                    callback(data.data);
+                                }
+                            });
+                        }
+                    );
                     // todo :: change date to yesterday
                     var yesterday = utilService.setNDaysAgo(new Date(), 1);
                     var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
