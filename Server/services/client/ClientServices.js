@@ -120,6 +120,8 @@
                 "verifyUserPasswordWithTransferIn",
                 "clickCount",
                 "getPlatformSmsGroups",
+                "getClientData",
+                "saveClientData"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

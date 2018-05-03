@@ -1671,7 +1671,6 @@ define(['js/app'], function (myApp) {
 
             /* Check for no remark entry if settleMethod is not normal settlement */
             vm.checkPartnerCommissionLogRemark = function () {
-                vm.partnerSettlementSubmitted = true;
                 delete vm.partnerCommVar.checkedRemark;
                 vm.partnerCommissionLog.forEach( partner => {
                     if (partner) {
@@ -1683,6 +1682,7 @@ define(['js/app'], function (myApp) {
                     }
                 });
                 if (!vm.partnerCommVar.checkedRemark){
+                    vm.partnerSettlementSubmitted = true;
                     vm.bulkApplyPartnerCommission();
                 }
             };
@@ -16823,6 +16823,7 @@ define(['js/app'], function (myApp) {
                 vm.newPartner = {};
                 vm.newPartner.gender = "true";
                 vm.tempPassword = "";
+                vm.partnerValidity = {};
                 $(".partnerParentFalse").hide();
                 $(".partnerParentTrue").hide();
                 vm.partnerParentChange("id");

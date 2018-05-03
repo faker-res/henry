@@ -46,7 +46,9 @@ form(name="form_new_partner", novalidate)
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label {{"Bind Player" | translate}} {{"partnerBindPlayerText" | translate}}
-            input.form-control(type="text", placeholder="{{'Bind Player' | translate}}", ng-model="vm.newPartner.bindPlayer")
+            input.form-control(type="text", placeholder="{{'Bind Player' | translate}}", ng-model="vm.newPartner.bindPlayer", ng-change="vm.checkPartnerField('player',vm.newPartner.bindPlayer, form_new_partner)")
+            span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.player.validPlayerName===false && !vm.partnerValidity.player.exists') {{'Invalid PlayerName' | translate}}
+            span.help-block(style='color: #b94a48', ng-show='vm.partnerValidity.player.exists===true') {{'playerName' | translate}}&nbsp;{{'existed already' | translate}}
         .form-group.col-md-6
             label.control-label {{"own domain" | translate}}
             input.form-control(type="text", placeholder='{{"own domain" | translate}}', ng-model="vm.newPartner.ownDomain")
