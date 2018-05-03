@@ -67,14 +67,6 @@ define(['js/app'], function (myApp) {
             APP_AGENT: 6
         };
 
-        vm.commissionTypeList = {
-            1: "DAILY_BONUS_AMOUNT",
-            2: "WEEKLY_BONUS_AMOUNT",
-            3: "BIWEEKLY_BONUS_AMOUNT",
-            4: "MONTHLY_BONUS_AMOUNT",
-            5: "WEEKLY_CONSUMPTION",
-        };
-
         vm.newProposalNum = 0;
         var allProposalStatusClr = {
             Pending: 'colorYellow',
@@ -1988,7 +1980,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
                 proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
-                proposalDetail["COMMISSION_TYPE"] = $translate(vm.commissionTypeList[vm.selectedProposal.data.commissionType]);
+                proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                     grossCommission += rawCommission.amount;
