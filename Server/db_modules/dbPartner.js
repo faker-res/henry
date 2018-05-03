@@ -5805,7 +5805,7 @@ function getPlayerCommissionTopUpDetail (playerObjId, startTime, endTime, topUpT
     return dbconfig.collection_proposal.aggregate([
         {
             "$match": {
-                "data.playerObjId": playerObjId,
+                "data.playerObjId": {$in: [ObjectId(playerObjId), String(playerObjId)]},
                 "createTime": {
                     "$gte": new Date(startTime),
                     "$lte": new Date(endTime)
@@ -5868,7 +5868,7 @@ function getPlayerCommissionWithdrawDetail (playerObjId, startTime, endTime) {
     return dbconfig.collection_proposal.aggregate([
         {
             "$match": {
-                "data.playerObjId": playerObjId,
+                "data.playerObjId": {$in: [ObjectId(playerObjId), String(playerObjId)]},
                 "createTime": {
                     "$gte": new Date(startTime),
                     "$lte": new Date(endTime)
@@ -6136,7 +6136,7 @@ function getPlayerCommissionRewardDetail (playerObjId, startTime, endTime, rewar
     let rewardProm = dbconfig.collection_proposal.aggregate([
         {
             "$match": {
-                "data.playerObjId": playerObjId,
+                "data.playerObjId": {$in: [ObjectId(playerObjId), String(playerObjId)]},
                 "createTime": {
                     "$gte": new Date(startTime),
                     "$lte": new Date(endTime)
