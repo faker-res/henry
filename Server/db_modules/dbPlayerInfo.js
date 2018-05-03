@@ -12981,26 +12981,6 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                //handle sum of field here
-                for (let z = 0; z < result.length; z++) {
-                    resultSum.manualTopUpAmount += result[z].manualTopUpAmount;
-                    resultSum.weChatTopUpAmount += result[z].weChatTopUpAmount;
-                    resultSum.aliPayTopUpAmount += result[z].aliPayTopUpAmount;
-                    resultSum.onlineTopUpAmount += result[z].onlineTopUpAmount;
-                    resultSum.topUpTimes += result[z].topUpTimes;
-                    resultSum.topUpAmount += result[z].topUpAmount;
-                    resultSum.bonusTimes += result[z].bonusTimes;
-                    resultSum.bonusAmount += result[z].bonusAmount;
-                    resultSum.rewardAmount += result[z].rewardAmount;
-                    resultSum.consumptionReturnAmount += result[z].consumptionReturnAmount;
-                    resultSum.consumptionTimes += result[z].consumptionTimes;
-                    resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
-                    resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
-                    // resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
-                    resultSum.consumptionAmount += result[z].consumptionAmount;
-                }
-                resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
-
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -13022,17 +13002,37 @@ let dbPlayerInfo = {
                 }
 
 
+                // Output filter promote way
+                result = query.csPromoteWay && query.csPromoteWay.length > 0 ? result.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : result;
+                result = query.admins && query.admins.length > 0 ? result.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : result;
+
+                //handle sum of field here
+                for (let z = 0; z < result.length; z++) {
+                    resultSum.manualTopUpAmount += result[z].manualTopUpAmount;
+                    resultSum.weChatTopUpAmount += result[z].weChatTopUpAmount;
+                    resultSum.aliPayTopUpAmount += result[z].aliPayTopUpAmount;
+                    resultSum.onlineTopUpAmount += result[z].onlineTopUpAmount;
+                    resultSum.topUpTimes += result[z].topUpTimes;
+                    resultSum.topUpAmount += result[z].topUpAmount;
+                    resultSum.bonusTimes += result[z].bonusTimes;
+                    resultSum.bonusAmount += result[z].bonusAmount;
+                    resultSum.rewardAmount += result[z].rewardAmount;
+                    resultSum.consumptionReturnAmount += result[z].consumptionReturnAmount;
+                    resultSum.consumptionTimes += result[z].consumptionTimes;
+                    resultSum.validConsumptionAmount += result[z].validConsumptionAmount;
+                    resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
+                    // resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
+                    resultSum.consumptionAmount += result[z].consumptionAmount;
+                }
+                resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
+
                 let outputResult = [];
 
                 for (let i = 0, len = limit; i < len; i++) {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
-                // Output filter promote way
-                outputResult = query.csPromoteWay && query.csPromoteWay.length > 0 ? outputResult.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : outputResult;
-                outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : outputResult;
-
-                return {size: outputResult.length, data: outputResult, total: resultSum};
+                return {size: result.length, data: outputResult, total: resultSum};
             }
         );
     },
