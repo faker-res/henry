@@ -231,6 +231,22 @@
                     label {{'Player Name' | translate}}
                     input.form-control.span.input-sm(ng-model="vm.playerQuery.name")
                 div
+                    label {{"csPromoteWay"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerQuery.csPromoteWay', multiple, data-actions-box='true')
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                div
+                    label {{"REGISTRATION_DEPARTMENT"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerQuery.departments', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryRole(vm.playerQuery)")
+                        option(ng-repeat='(i,v) in vm.queryDepartments', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.departmentName}}
+                div
+                    label {{"REGISTRATION_ROLE"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerQuery.roles', multiple, data-actions-box='true' data-width="200px" ng-change="vm.setQueryAdmins(vm.playerQuery)")
+                        option(ng-repeat='(i,v) in vm.queryRoles', value='{{v._id}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.roleName}}
+                div
+                    label {{"REGISTRATION_ADMIN"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerQuery.admins', multiple, data-actions-box='true' data-width="200px")
+                        option(ng-repeat='(i,v) in vm.queryAdmins', value='{{v.adminName}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.adminName}}
+                div
                     label {{"Consumption Times"|translate}}
                     select.form-control(ng-model="vm.playerQuery.consumptionTimesOperator" style="width:75px;display:inline-block")
                         option(value='>=') {{'>='}}
