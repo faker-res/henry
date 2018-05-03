@@ -5560,13 +5560,20 @@ let dbPartner = {
 
                     let resetProm = Promise.resolve();
                     if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+                        remark = "结算前清空馀额：" + remark
                         resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
                     }
                     return resetProm;
                 }
             ).then(
-                () => {
+                resetProposal => {
                     updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
+                    if (resetProposal && resetProposal.proposalId) {
+                        remark = "(" + resetProposal.proposalId + ") "+ remark;
+                    }
+                    if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+                        remark = "结算后清空馀额：" + remark;
+                    }
                     return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
                 }
             ).catch(errorUtils.reportError);
@@ -6203,20 +6210,32 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                     rateConfig.rateAfterRebatePromoIsCustom = true;
                     rateConfig.rateAfterRebatePromo = customRateData.rateAfterRebatePromo;
                 }
+                else {
+                    rateConfig.rateAfterRebatePromoIsCustom = false;
+                }
 
                 if (rateConfig.rateAfterRebatePlatform !== customRateData.rateAfterRebatePlatform) {
                     rateConfig.rateAfterRebatePlatformIsCustom = true;
                     rateConfig.rateAfterRebatePlatform = customRateData.rateAfterRebatePlatform;
+                }
+                else {
+                    rateConfig.rateAfterRebatePlatformIsCustom = false;
                 }
 
                 if (rateConfig.rateAfterRebateTotalDeposit !== customRateData.rateAfterRebateTotalDeposit) {
                     rateConfig.rateAfterRebateTotalDepositIsCustom = true;
                     rateConfig.rateAfterRebateTotalDeposit = customRateData.rateAfterRebateTotalDeposit;
                 }
+                else {
+                    rateConfig.rateAfterRebateTotalDepositIsCustom = false;
+                }
 
                 if (rateConfig.rateAfterRebateTotalWithdrawal !== customRateData.rateAfterRebateTotalWithdrawal) {
                     rateConfig.rateAfterRebateTotalWithdrawalIsCustom = true;
                     rateConfig.rateAfterRebateTotalWithdrawal = customRateData.rateAfterRebateTotalWithdrawal;
+                }
+                else {
+                    rateConfig.rateAfterRebateTotalWithdrawalIsCustom = false;
                 }
 
                 rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
@@ -6226,6 +6245,9 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                         ) {
                             defaultGroup.isCustom = true;
                             defaultGroup.rate = customGroup.rate;
+                        }
+                        else {
+                            defaultGroup.isCustom = false;
                         }
                     });
                 });
@@ -6333,6 +6355,9 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                 });
             }
 
+            let commissionTypeName = getCommissionTypeName(commissionLog.commissionType);
+            let proposalRemark = commissionTypeName + ", " + remark;
+
             // create proposal data
             let proposalData = {
                 type: proposalType._id,
@@ -6363,7 +6388,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     amount: commissionLog.nettCommission,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     logObjId: commissionLog._id,
-                    remark: remark
+                    remark: proposalRemark
                 },
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.PARTNERS
@@ -6446,4 +6471,19 @@ function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime)
             }
         }
     );
+}
+
+function getCommissionTypeName (commissionType) {
+    switch (Number(commissionType)) {
+        case 1:
+            return "1天-输赢值";
+        case 2:
+            return "7天-输赢值";
+        case 3:
+            return "半月-输赢值";
+        case 4:
+            return "1月-输赢值";
+        case 5:
+            return "7天-投注额";
+    }
 }
