@@ -15752,6 +15752,35 @@ define(['js/app'], function (myApp) {
                 }, 300);
             };
 
+            utilService.actionAfterLoaded('#resetPartnerQuery', function () {
+                $('#resetPartnerQuery').off('click');
+                $('#resetPartnerQuery').click(function () {
+                    utilService.clearDatePickerDate('#regDateTimePicker2');
+                    utilService.clearDatePickerDate('#regEndDateTimePicker2');
+                    utilService.clearDatePickerDate('#lastAccessDateTimePicker2');
+                    utilService.clearDatePickerDate('#lastAccessEndDateTimePicker2');
+                    let resetQuery = {};
+                    resetQuery.index = vm.advancedPartnerQueryObj.index;
+                    resetQuery.limit = vm.advancedPartnerQueryObj.limit;
+                    resetQuery.pageObj = vm.advancedPartnerQueryObj.pageObj;
+                    resetQuery.sortCol = vm.advancedPartnerQueryObj.sortCol;
+                    vm.advancedPartnerQueryObj = resetQuery;
+                    console.log('vm.advancedPartnerQueryObj===', vm.advancedPartnerQueryObj);
+                    vm.partnerAdvanceSearchQuery = {
+                        creditsOperator: ">=",
+                        dailyActivePlayerOperator: ">=",
+                        weeklyActivePlayerOperator: ">=",
+                        monthlyActivePlayerOperator: ">=",
+                        validPlayersOperator: ">=",
+                        totalReferralsOperator: ">=",
+                        totalChildrenDepositOperator: ">=",
+                        totalChildrenBalanceOperator: ">=",
+                        commissionAmountFromChildrenOperator: ">=",
+                    };
+                    vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery);
+                })
+            });
+
             vm.getReferralsList = function (partner) {
                 socketService.$socket($scope.AppSocket, 'getReferralsList', partner, function (data) {
                     if (vm.dailyActivePlayerBoolean) {
