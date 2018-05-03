@@ -31,6 +31,7 @@ var rsaCrypto = require("../modules/rsaCrypto");
 var dbRewardEvent = require("../db_modules/dbRewardEvent");
 var dbLogger = require('./../modules/dbLogger');
 const dbPlayerMail = require("./../db_modules/dbPlayerMail");
+const dbPartner = require("./../db_modules/dbPartner");
 
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
@@ -44,6 +45,7 @@ const constSystemParam = require('../const/constSystemParam');
 const errorUtils = require('../modules/errorUtils');
 const request = require('request');
 const constSMSPurpose = require("../const/constSMSPurpose");
+const constPartnerCommissionLogStatus = require("../const/constPartnerCommissionLogStatus");
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -2707,13 +2709,16 @@ var dbPlatform = {
             endTime = previousCycle.endTime;
         }
 
+        calculatePartnerCommissionInfo(platformObjId, settMode, startTime, endTime, isSkip).catch(errorUtils.reportError);
+
         return dbconfig.collection_partnerCommSettLog.update({
             platform: platformObjId,
             settMode: settMode,
             startTime: startTime,
             endTime: endTime
         }, {
-            isSettled: isSkip
+            isSettled: isSkip,
+            isSkipped: isSkip
         }, {
             upsert: true,
             new: true
@@ -2828,6 +2833,61 @@ var dbPlatform = {
             }
         );
     },
+
+    getPlatformPartnerSettlementStatus: (platformObjId, startTime, endTime) => {
+        return dbconfig.collection_partnerCommSettLog.find({
+            platform: platformObjId,
+            $or: [{
+                startTime: {
+                    $gte: startTime,
+                    $lte: endTime
+                },
+                endTime: {
+                    $gte: startTime,
+                    $lte: endTime
+                }
+            }]
+        }).lean().then(
+            data => {
+                let statusList = {};
+                data.forEach(v => {
+                    let status = null;
+                    if (v.isSettled && v.isSkipped) {
+                        status = constPartnerCommissionLogStatus.SKIPPED;
+                    } else if (v.isSettled && !v.isSkipped) {
+                        status = constPartnerCommissionLogStatus.EXECUTED;
+                    } else if (!v.isSettled && !v.isSkipped) {
+                        status = constPartnerCommissionLogStatus.PREVIEW;
+                    }
+                    let startDate = dbUtility.getTargetSGTime(v.startTime).startTime;
+                    let logEndTime = new Date(v.endTime).getTime() - 2 * 60 * 1000;    //minus 2 minutes in case end time is the start time of next day, i.e. 00:00:00
+                    let endDate = dbUtility.getTargetSGTime(logEndTime).startTime;
+                    let timeDiff = Math.abs(endDate - startDate);
+                    let diffDay = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                    if (status !== null) {
+                        for (let x = 0; x <= diffDay; x++) {
+                            let convertedDate = new Date(startDate.getTime() + 8 * 3600 * 1000 + (x * 24 * 3600 * 1000));
+                            let refDate = convertedDate.getUTCDate();
+                            let refMonth = convertedDate.getUTCMonth() + 1;
+                            let refYear = convertedDate.getUTCFullYear();
+
+                            if (!statusList[refYear]) {
+                                statusList[refYear] = {};
+                            }
+                            if (!statusList[refYear][refMonth]) {
+                                statusList[refYear][refMonth] = {};
+                            }
+                            if (!statusList[refYear][refMonth].hasOwnProperty(refDate) || statusList[refYear][refMonth][refDate] === constPartnerCommissionLogStatus.SKIPPED) {
+                                statusList[refYear][refMonth][refDate] = status;
+                            }
+                        }
+                    }
+                });
+                return statusList;
+            }
+        );
+    }
 };
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
@@ -2862,6 +2922,31 @@ function getPartnerCommNextSettDate(settMode, curTime = dbUtility.getFirstDayOfY
         case 4:
             return dbUtility.getMonthSGTIme(curTime);
     }
+}
+
+function calculatePartnerCommissionInfo (platformObjId, commissionType, startTime, endTime, isSkip) {
+    let stream = dbconfig.collection_partner.find({platform: platformObjId, commissionType: commissionType}, {_id: 1}).cursor({batchSize: 100});
+
+    let balancer = new SettlementBalancer();
+    return balancer.initConns().then(function () {
+        return balancer.processStream(
+            {
+                stream: stream,
+                batchSize: constSystemParam.BATCH_SIZE,
+                makeRequest: function (partners, request) {
+                    request("player", "settlePartnersCommission", {
+                        commissionType: commissionType,
+                        startTime: startTime,
+                        endTime: endTime,
+                        isSkip: Boolean(isSkip),
+                        partnerObjIdArr: partners.map(function (partner) {
+                            return partner._id;
+                        })
+                    });
+                }
+            }
+        );
+    });
 }
 
 module.exports = dbPlatform;

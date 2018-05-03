@@ -314,7 +314,9 @@ var roleChecker = {
             },
             "Partner": {
                 Read: ['getPartnersByPlatform', 'partnerLevel/getByPlatform', 'getPartnersPlayerInfo', 'getPartner', 'getChildrenPartner', 'getAllPartner', 'getPartnerActivePlayers',
-                    'getPartnerValidPlayers', 'getPartnerReferralPlayers', 'getPartnerActivePlayersForPastWeek', 'getAllGameProviders', 'getPartnerIPHistory', 'getDuplicatePhoneNumber'],
+                    'getPartnerValidPlayers', 'getPartnerReferralPlayers', 'getPartnerActivePlayersForPastWeek', 'getAllGameProviders', 'getPartnerIPHistory', 'getDuplicatePhoneNumber',
+                    'getReferralsList', 'getDailyActivePlayerCount', 'getWeeklyActivePlayerCount', 'getMonthlyActivePlayerCount', 'getValidPlayersCount', 'getTotalChildrenDeposit',
+                    'getTotalChildrenBalance'],
                 AdvancedSearch: ['getPartnersByAdvancedQuery'],
                 Create: ['createPartnerWithParent', 'createPartner', 'createPlayerLoginRecord'],
                 Delete: ['deletePartnersById', 'deletePlayerLoginRecord'],
@@ -583,7 +585,7 @@ var roleChecker = {
         },
         Report: {
             General: {
-                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes"],
+                Read: ['getPlatform', 'getProposalTypeByPlatformId', "getAllGameTypes", "getPlayerLevelByPlatformId", "getRewardEventsForPlatform", "getPromoCodeTypes", "getPlatformPartnerSettlementStatus"],
                 TOPUP_REPORT: ['topupReport', "getMerchantTypeList"],
                 PROPOSAL_REPORT: ['getProposalStaticsReport'],
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
@@ -597,6 +599,8 @@ var roleChecker = {
                 PLAYERDOMAIN_REPORT: ['getPlayerDomainReport', 'getDepartmentDetailsByPlatformObjId'],
                 WINRATE_REPORT: ['winRateReport'],
                 FEEDBACK_REPORT: [],
+                PARTNER_SETTLEMENT_HISTORY_REPORT: [],
+                REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType'],

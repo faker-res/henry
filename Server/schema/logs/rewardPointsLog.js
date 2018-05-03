@@ -44,7 +44,9 @@ let rewardPointsLog = new Schema({
     //base on constRewardPointsLogStatus
     status: {type: Number},
 
-    createTime: {type: Date, default: Date.now}
+    createTime: {type: Date, default: Date.now},
+    // platform
+    platformId: {type: Schema.ObjectId, ref: 'platform', index: true}
 });
 
 module.exports = rewardPointsLog;

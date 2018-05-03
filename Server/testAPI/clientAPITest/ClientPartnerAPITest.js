@@ -194,6 +194,24 @@
         this.partnerService.updatePhoneNumberWithSMS.once(callback);
     };
 
+    proto.updatePartnerQQ = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.updatePartnerQQ.request(data);
+        this.partnerService.updatePartnerQQ.once(callback);
+    };
+
+    proto.updatePartnerWeChat = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.updatePartnerWeChat.request(data);
+        this.partnerService.updatePartnerWeChat.once(callback);
+    };
+
+    proto.updatePartnerEmail = function (callback, requestData) {
+        var data = requestData || {};
+        this.partnerService.updatePartnerEmail.request(data);
+        this.partnerService.updatePartnerEmail.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPartnerAPITest;
     } else {

@@ -682,7 +682,8 @@ let dbRewardPoints = {
                     maxDayApplyAmount: dailyMaxPoints,
                     playerLevelName: playerLevelName,
                     remark: remarks,
-                    rewardTarget: pointEvent.target
+                    rewardTarget: pointEvent.target,
+                    platformId: pointEvent.platformObjId
                 };
 
                 let logDetailProm = Promise.resolve(logDetail);
@@ -1582,6 +1583,9 @@ let dbRewardPoints = {
                 }).populate({path: "level", model: dbConfig.collection_playerLevel}).lean().sort({index: 1});
 
                 if (playerRecord) {
+                    if(playerRecord && playerRecord.permission && !playerRecord.permission.rewardPointsTask){
+                        return Promise.reject({name: "DataError", message: "Player does not have permission for reward point task"});
+                    }
                     playerData = playerRecord;
                     rewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerRecord._id);
                     playerLevelProm = getPlayerLevelValue(playerRecord._id);

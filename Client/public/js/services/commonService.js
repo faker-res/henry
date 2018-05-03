@@ -63,64 +63,72 @@ define([], () => {
          * Check if partner has custom rate
          * @param partnerObjId
          * @param commSett
+         * @param custSett - Custom setting
          * @returns {*}
          */
-        this.applyPartnerCustomRate = (partnerObjId, commSett) => {
-            if (commSett && commSett.gameProviderGroup) {
+        this.applyPartnerCustomRate = (partnerObjId, commSett, custSett) => {
+            commSett = !commSett ? {} : commSett;
+            commSett.isCustomized = false;
+
+            if (commSett && commSett.gameProviderGroup && custSett && custSett.some(e => String(e.partner) === String(partnerObjId))) {
+                let custObjs = custSett.filter(e => String(e.partner) === String(partnerObjId));
+                commSett.isCustomized = true;
+
                 commSett.gameProviderGroup = commSett.gameProviderGroup.map(grp => {
-                    if (
-                        grp.srcConfig
-                        && grp.srcConfig.customSetting
-                        && grp.srcConfig.customSetting.length > 0
-                        && grp.srcConfig.customSetting.some(e => String(e.partner) === String(partnerObjId))
-                    ) {
-                        let customRateObjs = grp.srcConfig.customSetting.filter(e => String(e.partner) === String(partnerObjId));
+                    custObjs.forEach(e => {
+                        if (grp.showConfig && String(grp.showConfig.provider) === String(e.provider) && grp.showConfig.commissionType === e.commissionType) {
+                            grp.showConfig = e;
+                        }
+                    });
 
-                        grp.srcConfig.commissionSetting = grp.srcConfig.commissionSetting.map(e => {
-                            customRateObjs.forEach(f => {
-                                if (String(e._id) === String(f.configObjId)) {
-                                    e.commissionRate = f.commissionRate;
-                                    e.isCustomized = true;
-                                    commSett.isCustomized = true;
-                                }
-                            });
-
-                            return e;
-                        })
+                    if (grp.showConfig && grp.showConfig.commissionSetting && grp.showConfig.commissionSetting.length > 0) {
+                        grp.showConfig.commissionSetting.forEach(e => {
+                            if(grp.srcConfig && grp.srcConfig.commissionSetting && grp.srcConfig.commissionSetting.length > 0) {
+                                grp.srcConfig.commissionSetting.forEach(f => {
+                                    if (e.playerConsumptionAmountFrom === f.playerConsumptionAmountFrom
+                                        && e.playerConsumptionAmountTo === f.playerConsumptionAmountTo
+                                        && e.activePlayerValueFrom === f.activePlayerValueFrom
+                                        && e.activePlayerValueTo === f.activePlayerValueTo
+                                        && Number(e.commissionRate) !== Number(f.commissionRate)
+                                    ) {
+                                        e.isCustomized = true;
+                                    }
+                                });
+                            }
+                        });
                     }
-
-                    // Apply to showConfig
-                    grp.showConfig = JSON.parse(JSON.stringify(grp.srcConfig));
 
                     return grp;
                 });
             }
 
             // Partner platform rate setting
-            if (commSett && commSett.customRate && commSett.customRate.some(e => String(e.partner) === String(partnerObjId))) {
+            if (commSett && commSett.rateAfterRebateGameProviderGroup && custSett.some(e => String(e.partner) === String(partnerObjId))) {
+                commSett.isCustomized = true;
                 let normalRates = ['rateAfterRebatePromo', 'rateAfterRebatePlatform', 'rateAfterRebateTotalDeposit', 'rateAfterRebateTotalWithdrawal'];
-                let customRateObj = commSett.customRate.filter(e => String(e.partner) === String(partnerObjId))[0];
+                let custObj = custSett.filter(e => String(e.partner) === String(partnerObjId))[0];
 
                 normalRates.forEach(e => {
-                    if (commSett[e] != customRateObj[e]) {
-                        commSett[e] = customRateObj[e];
-                        commSett.isCustomizedField = commSett.isCustomizedField || [];
-                        commSett.isCustomizedField.push(e);
-                        commSett.isCustomized = true;
+                    if (Number(commSett[e]) !== Number(custObj[e])) {
+                        custObj.isCustomizedField = custObj.isCustomizedField || [];
+                        custObj.isCustomizedField.push(e);
                     }
-                })
+                });
 
-                if (commSett.rateAfterRebateGameProviderGroup && commSett.rateAfterRebateGameProviderGroup.length) {
-                    commSett.rateAfterRebateGameProviderGroup.forEach(e => {
-                        let customProviderRateObj = customRateObj.rateAfterRebateGameProviderGroup.filter(cust => String(e.gameProviderGroupId) === String(cust.gameProviderGroupId))[0];
+                if (commSett.rateAfterRebateGameProviderGroup && commSett.rateAfterRebateGameProviderGroup.length > 0) {
+                    commSett.rateAfterRebateGameProviderGroup = commSett.rateAfterRebateGameProviderGroup.map(e => {
+                        custObj.rateAfterRebateGameProviderGroup.forEach(f => {
+                            if (String(e.gameProviderGroupId) === String(f.gameProviderGroupId) && Number(e.rate) !== Number(f.rate)) {
+                                f.isCustomized = true;
+                                e = Object.assign({}, e, f);
+                            }
+                        });
 
-                        if (e.rate != customProviderRateObj.rate) {
-                            e.rate = customProviderRateObj.rate;
-                            e.isCustomized = true;
-                            commSett.isCustomized = true;
-                        }
+                        return e;
                     })
                 }
+
+                commSett = Object.assign({}, commSett, custObj);
             }
 
             return commSett;
