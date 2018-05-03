@@ -4257,7 +4257,6 @@ define(['js/app'], function (myApp) {
 
                 ],
                 "paging": true,
-                "scrollX": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
                 }
