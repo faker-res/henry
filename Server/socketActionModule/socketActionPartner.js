@@ -516,8 +516,8 @@ function socketActionPartner(socketIO, socket) {
 
         getPartnerSettlementHistory: function getPartnerSettlementHistory (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data.partnerName || data.commissionType && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPartner.getPartnerSettlementHistory, [data.partnerName, data.commissionType, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
+            let isValidData = Boolean(data.platformObjId && data.partnerName || data.commissionType && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerSettlementHistory, [data.platformObjId, data.partnerName, data.commissionType, data.startTime, data.endTime, data.sortCol, data.index, data.limit], actionName, isValidData);
         },
     };
 
