@@ -1506,6 +1506,14 @@ define(['js/app'], function (myApp) {
                 };
 
                 let modes = [1, 2, 3, 4, 5];
+                /* flags to disable settlement mode button after submit sucessfully*/
+                vm.partnerSettlementSubmitted = {
+                    1 : false,
+                    2 : false,
+                    3 : false,
+                    4 : false,
+                    5 : false
+                };
 
                 $scope.$socketPromise("getPlatformPartnerSettLog", {
                     platformObjId: vm.selectedPlatform.id,
@@ -1589,7 +1597,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initSettlePartnerComm = (prev) => {
-                vm.partnerSettlementSubmitted = false;
                 vm.partnerCommVar = {};
                 vm.partnerDLCommDetailTotal = {};
 
@@ -1597,7 +1604,15 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommVar.settMode = prev.settMode;
                 vm.partnerCommVar.startTime = prev.startTime;
                 vm.partnerCommVar.endTime = prev.endTime;
-
+                if (!vm.partnerSettlementSubmitted) {
+                    vm.partnerSettlementSubmitted = {
+                        1: false,
+                        2: false,
+                        3: false,
+                        4: false,
+                        5: false
+                    };
+                }
 
                 vm.selectedSettlePartnerCommPrev = prev;
 
@@ -1624,17 +1639,20 @@ define(['js/app'], function (myApp) {
                         vm.partnerCommissionLog.forEach( partner => {
                                 if (partner){
                                     partner.isAnyCustomPlatformFeeRate = false;
-                                    (partner.rawCommissions).forEach( (group, idxgroup) => {
-                                        partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
-                                        if (group.isCustomPlatformFeeRate == true){
-                                            vm.partnerCommVar.platformFeeTab = idxgroup;
-                                        }
-                                        }
-                                    );
+                                    if (partner.rawCommission && partner.rawCommission.length > 0) {
+                                        (partner.rawCommissions).forEach((group, idxgroup) => {
+                                                partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                                if (group.isCustomPlatformFeeRate == true) {
+                                                    vm.partnerCommVar.platformFeeTab = idxgroup;
+                                                }
+                                            }
+                                        );
+                                    }
                                 }
                             }
                         );
-                        $scope.safeApply();
+                        // $scope.safeApply();
+                        $('#modalPartnerCommPreview').modal();
                     }
                 )
             };
@@ -1672,8 +1690,16 @@ define(['js/app'], function (myApp) {
             /* Check for no remark entry if settleMethod is not normal settlement */
             vm.checkPartnerCommissionLogRemark = function () {
                 delete vm.partnerCommVar.checkedRemark;
+                let applyPartnerCommSettlementArray = [];
                 vm.partnerCommissionLog.forEach( partner => {
                     if (partner) {
+                        applyPartnerCommSettlementArray.push(
+                            {
+                                logId: partner._id,
+                                settleType: parseInt(partner.settleMethod),
+                                remark: partner.remarks ? partner.remarks : ""
+                            }
+                        );
                         if (partner.settleMethod != "1") {
                             if (!partner.remarks || partner.remarks == ""){
                                 vm.partnerCommVar.checkedRemark = "Please Add Remark If Not Normal Executed!";
@@ -1681,29 +1707,15 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 });
+
                 if (!vm.partnerCommVar.checkedRemark){
-                    vm.partnerSettlementSubmitted = true;
-                    vm.bulkApplyPartnerCommission();
+                    vm.partnerSettlementSubmitted[vm.partnerCommVar.settMode] = true;
+                    vm.bulkApplyPartnerCommission(applyPartnerCommSettlementArray);
                 }
             };
 
             /* Apply bulk partner commission settlement */
-            vm.bulkApplyPartnerCommission = function () {
-                let applyPartnerCommSettlementArray = [];
-                vm.partnerCommissionLog.forEach( partner => {
-                    if (partner){
-                        applyPartnerCommSettlementArray.push(
-                            {
-                                logId: partner._id,
-                                settleType: parseInt(partner.settleMethod),
-                                remark: partner.remarks ? partner.remarks : "-"
-                            }
-                        )
-                    }
-                    }
-                );
-                console.log('applyPartnerCommSettlementArray', applyPartnerCommSettlementArray);
-
+            vm.bulkApplyPartnerCommission = function (applyPartnerCommSettlementArray) {
                 let sendData = {
                     applySettlementArray: applyPartnerCommSettlementArray,
                     platformObjId: vm.selectedPlatform.data._id,
@@ -1712,7 +1724,6 @@ define(['js/app'], function (myApp) {
                     endTime: vm.partnerCommVar.endTime
                 };
 
-                console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'bulkApplyPartnerCommission', sendData, function (data) {
                     console.log('returnOutput', data);
                 });

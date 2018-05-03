@@ -177,7 +177,7 @@ p
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Create')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalCreatePartner', ng-click='vm.prepareCreatePartner()')
             text {{"CREATE" | translate}}
             img.img-create
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'SettleCommission')", ng-repeat="prev in vm.allPartnerCommSettPreview" data-toggle="modal", data-target='#modalPartnerCommPreview', ng-click='vm.initSettlePartnerComm(prev)')
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'SettleCommission') && !vm.partnerSettlementSubmitted[prev.settMode]", ng-repeat="prev in vm.allPartnerCommSettPreview", ng-click='vm.initSettlePartnerComm(prev)')
             text {{constPartnerCommissionSettlementType[prev.settMode] | translate}}
             .fa.fa-book
         //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Partner', 'Delete')",ng-disabled="vm.selectedPartnerCount==0", data-toggle="modal", data-target='#modalDeletePartner')
@@ -1026,13 +1026,13 @@ p
                     | ( {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.startTime) }} -
                     | {{ vm.dateReformat(vm.selectedSettlePartnerCommPrev.endTime) }} )
             .modal-body
-                div
+                div(ng-if="vm.partnerCommissionLog && vm.partnerCommissionLog.length > 0")
                     table.simple-table
                         thead
                             tr
                                 th {{'PARTNER_NAME' | translate}}
                                 th {{'REAL_NAME' | translate}}
-                                th(ng-repeat= "grp in vm.partnerCommissionLog[0].rawCommissions") {{grp.groupName | translate}} {{"Commission" | translate}}
+                                th(ng-repeat= "grp in vm.partnerCommissionLog[0].rawCommissions") {{grp.groupName=="noGroup" ? "" : grp.groupName | translate}} {{"Commission" | translate}}
                                 th {{'TOTAL_REWARD_FEE' | translate}}
                                 th {{'TOTAL_PLATFORM_FEE' | translate}}
                                 th {{'TOTAL_TOPUP_FEE' | translate}}
@@ -1071,17 +1071,17 @@ p
                                         option(value='1', ) {{'NORMAL_EXECUTED' | translate}}
                                         option(value='2', ) {{'RESET_THEN_EXECUTED' | translate}}
                                         option(value='3', ) {{'EXECUTED_THEN_RESET' | translate}}
-                                td
-                                    a(href='', ng-init="v.editRemark = false", ng-if="!v.editRemark", ng-click="v.editRemark = true") {{v.remarks ? v.remarks : "-"}}
+                                td(ng-init="v.editRemark = false", ng-click="v.editRemark = true")
+                                    a(href='', ng-if="!v.editRemark") {{v.remarks ? v.remarks : ""}}
                                     textarea.form-control(ng-if="v.editRemark", type="textarea", name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="v.remarks")
 
             .modal-footer
                 label.control-label.common-button(ng-if="vm.partnerCommVar.checkedRemark", style="color:red") {{vm.partnerCommVar.checkedRemark | translate}}
-                button.btn.btn-primary.common-button(ng-click="vm.checkPartnerCommissionLogRemark()" ng-if="!vm.partnerSettlementSubmitted") {{"SUBMIT_COMMISSION" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.checkPartnerCommissionLogRemark()" ng-if="!vm.partnerSettlementSubmitted[vm.partnerCommVar.settMode]") {{"SUBMIT_COMMISSION" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss="modal") {{"CLOSE" | translate}}
 
 #modalRewardFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1097,7 +1097,7 @@ p
                                 th {{'MANUAL_REWARD' | translate}}
                                 th {{'CONSUMPTION_RETURN_REWARD' | translate}}
                                 th {{'LIMITED_OFFER' | translate}}
-                                th {{'PROMO_CODE' | translate}}
+                                th {{'REWARD_CODE' | translate}}
                                 th {{'POINT_CONVERSION' | translate}}
                                 th(width="15%") {{'TOTAL_REWARD' | translate}}
                         tbody
@@ -1112,20 +1112,20 @@ p
                                 td {{v.rewardDetail.pointConversion}}
                                 td {{v.rewardDetail.total}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
-                                td {{vm.partnerDLCommDetailTotal.systemReward}}
-                                td {{vm.partnerDLCommDetailTotal.manualReward}}
-                                td {{vm.partnerDLCommDetailTotal.consumptionReturn}}
-                                td {{vm.partnerDLCommDetailTotal.limitedOffer}}
-                                td {{vm.partnerDLCommDetailTotal.promoCode}}
-                                td {{vm.partnerDLCommDetailTotal.pointConversion}}
-                                td {{vm.partnerDLCommDetailTotal.total}}
+                                td(colspan="2", style="font-weight:bold") {{'Totalsum' | translate}}
+                                td {{vm.partnerDLCommDetailTotal.systemReward ? vm.partnerDLCommDetailTotal.systemReward : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.manualReward ? vm.partnerDLCommDetailTotal.manualReward : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.consumptionReturn ? vm.partnerDLCommDetailTotal.consumptionReturn : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.limitedOffer ? vm.partnerDLCommDetailTotal.limitedOffer : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.promoCode ? vm.partnerDLCommDetailTotal.promoCode : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.pointConversion ? vm.partnerDLCommDetailTotal.pointConversion : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.total ? vm.partnerDLCommDetailTotal.total : "0"}}
                             tr
                                 td(colspan="8", style="font-weight:bold") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{':'}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromo}} {{"%)"}}
                                 td {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalRewardFee}}
 
 #modalTopUpFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1152,18 +1152,18 @@ p
                                 td {{v.topUpDetail.weChatTopUpAmount}}
                                 td {{v.topUpDetail.topUpAmount}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
-                                td {{vm.partnerDLCommDetailTotal.manualTopUpAmount}}
-                                td {{vm.partnerDLCommDetailTotal.onlineTopUpAmount}}
-                                td {{vm.partnerDLCommDetailTotal.aliPayTopUpAmount}}
-                                td {{vm.partnerDLCommDetailTotal.weChatTopUpAmount}}
-                                td {{vm.partnerDLCommDetailTotal.topUpAmount}}
+                                td(colspan="2", style="font-weight:bold") {{'Totalsum' | translate}}
+                                td {{vm.partnerDLCommDetailTotal.manualTopUpAmount ? vm.partnerDLCommDetailTotal.manualTopUpAmount : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.onlineTopUpAmount ? vm.partnerDLCommDetailTotal.onlineTopUpAmount : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.aliPayTopUpAmount ? vm.partnerDLCommDetailTotal.aliPayTopUpAmount : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.weChatTopUpAmount ? vm.partnerDLCommDetailTotal.weChatTopUpAmount : "0"}}
+                                td {{vm.partnerDLCommDetailTotal.topUpAmount ? vm.partnerDLCommDetailTotal.topUpAmount: "0"}}
                             tr
                                 td(colspan="6", style="font-weight:bold") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{':'}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDeposit}} {{"%)"}}
                                 td {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalTopUpFee}}
 
 #modalWithdrawalFeeTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1182,14 +1182,14 @@ p
                                 td {{v.realName}}
                                 td {{v.withdrawalDetail.withdrawalAmount}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Total' | translate}}
-                                td {{vm.partnerDLCommDetailTotal.withdrawalAmount}}
+                                td(colspan="2", style="font-weight:bold") {{'Totalsum' | translate}}
+                                td {{vm.partnerDLCommDetailTotal.withdrawalAmount ? vm.partnerDLCommDetailTotal.withdrawalAmount : "0"}}
                             tr
                                 td(colspan="2", style="font-weight:bold") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{':'}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal}} {{"%)"}}
                                 td {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalWithdrawalFee}}
 
 #modalActivePlayerTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1215,7 +1215,7 @@ p
                                 td {{v.consumptionDetail.validAmount}}
 
 #modalCommissionTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1234,7 +1234,7 @@ p
                             tr
                                 th {{'DOWNLINE_NAME' | translate}}
                                 th {{'REAL_NAME' | translate}}
-                                th {{'EXPENSE' | translate}} {{' ('}} {{'BONUS_AMOUNT' | translate}} {{'/'}} {{'CONSUMPTION' | translate}} {{')'}}
+                                th {{'EXPENSE' | translate}} {{' ('}} {{'BONUS_WINLOSE' | translate}} {{'/'}} {{'CONSUMPTION' | translate}} {{')'}}
                         tbody
                             tr(ng-if="vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length > 0", ng-repeat="v in vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail")
                                 td {{v.name}}
