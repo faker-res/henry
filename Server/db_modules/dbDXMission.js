@@ -1456,6 +1456,27 @@ let dbDXMission = {
 
             return Q.all(smsLogProm);
         }
+    },
+
+    updatePhoneNumberRemark: function(platform, dxMission, remarkObj) {
+
+        if(remarkObj){
+            for (var phoneNumber in remarkObj) {
+                if (remarkObj.hasOwnProperty(phoneNumber)) {
+                    var remark = remarkObj[phoneNumber];
+                    dbconfig.collection_dxPhone.findOneAndUpdate({platform: platform, dxMission: dxMission, phoneNumber: phoneNumber},{remark: remark}).then(
+                        () => {
+                            return;
+                        },error => {
+                            return Promise.reject({
+                                name: "DataError",
+                                errorMessage: "Update remark failed."
+                            });
+                        }
+                    );
+                }
+            }
+        }
     }
 };
 

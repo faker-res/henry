@@ -50,6 +50,16 @@ var partnerSchema = new Schema({
     validPlayers: {type:Number, min: 0, default: 0},
     //no of active players introduced by the partner till the date
     activePlayers: {type:Number, min: 0, default: 0},
+    //no of daily active players
+    dailyActivePlayer: {type:Number, min: 0, default: 0},
+    //no of weekly active players
+    weeklyActivePlayer: {type:Number, min: 0, default: 0},
+    //no of monthly active players
+    monthlyActivePlayer: {type:Number, min: 0, default: 0},
+    //total children deposit
+    totalChildrenDeposit: {type:Number, min: 0, default: 0},
+    //total children balance
+    totalChildrenBalance: {type:Number, min: 0, default: 0},
     //validConsumptionSum
     validConsumptionSum: {type:Number, min: 0, default: 0},
     //valid reward
