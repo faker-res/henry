@@ -67,14 +67,6 @@ define(['js/app'], function (myApp) {
             APP_AGENT: 6
         };
 
-        vm.commissionTypeList = {
-            1: "DAILY_BONUS_AMOUNT",
-            2: "WEEKLY_BONUS_AMOUNT",
-            3: "BIWEEKLY_BONUS_AMOUNT",
-            4: "MONTHLY_BONUS_AMOUNT",
-            5: "WEEKLY_CONSUMPTION",
-        };
-
         vm.newProposalNum = 0;
         var allProposalStatusClr = {
             Pending: 'colorYellow',
@@ -1005,6 +997,7 @@ define(['js/app'], function (myApp) {
             console.log("whole data", data);
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;
+
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
@@ -1070,6 +1063,19 @@ define(['js/app'], function (myApp) {
                     if (v.data.gender == false) {
                         v.data.gender = "女";
                     }
+
+                    if (v.data && v.data.rawCommissions && v.data.rawCommissions.length) {
+                        v.data.rawCommissions.map(rawCommission => {
+                            if (rawCommission.isCustomCommissionRate || rawCommission.isCustomPlatformFeeRate) {
+                                v.data.redRemark$ = true;
+                            }
+                        });
+                    }
+
+                    if (v.data.rateAfterRebatePromoIsCustom || v.data.rateAfterRebateTotalDepositIsCustom || v.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                        v.data.redRemark$ = true;
+                    }
+
                     tableData.push(v);
                 }
             });
@@ -1221,7 +1227,13 @@ define(['js/app'], function (myApp) {
                         "title": $translate('REMARK'),
                         data: "remark$",
                         sClass: "maxWidth100 wordWrap",
-                        // visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                        render: function (data, type, row) {
+                            if (row.data.redRemark$) {
+                                let $text = $('<span>').text(data).css({color: 'red'});
+                                return $text.prop('outerHTML');
+                            }
+                            return data;
+                        }
                     },
 
 
@@ -1427,6 +1439,7 @@ define(['js/app'], function (myApp) {
             console.log("whole data", data);
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;
+            
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
@@ -1479,6 +1492,19 @@ define(['js/app'], function (myApp) {
                             : v.data.alipayAccount != null
                                 ? v.data.alipayAccount
                                 : null;
+
+                    if (v.data && v.data.rawCommissions && v.data.rawCommissions.length) {
+                        v.data.rawCommissions.map(rawCommission => {
+                            if (rawCommission.isCustomCommissionRate || rawCommission.isCustomPlatformFeeRate) {
+                                v.data.redRemark$ = true;
+                            }
+                        });
+                    }
+
+                    if (v.data.rateAfterRebatePromoIsCustom || v.data.rateAfterRebateTotalDepositIsCustom || v.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                        v.data.redRemark$ = true;
+                    }
+
                     tableData.push(v);
                 }
             });
@@ -1689,7 +1715,13 @@ define(['js/app'], function (myApp) {
                         "title": $translate('REMARK'),
                         data: "remark$",
                         sClass: "maxWidth100 wordWrap",
-                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                        render: function (data, type, row) {
+                            if (row.data.redRemark$) {
+                                let $text = $('<span>').text(data).css({color: 'red'});
+                                return $text.prop('outerHTML');
+                            }
+                            return data;
+                        }
                     },
                     {
                         "title": $translate('EXPIRY_DATE'),
@@ -1948,7 +1980,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
                 proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
-                proposalDetail["COMMISSION_TYPE"] = $translate(vm.commissionTypeList[vm.selectedProposal.data.commissionType]);
+                proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
 
                 vm.selectedProposal.data.rawCommissions.map(rawCommission => {
                     grossCommission += rawCommission.amount;

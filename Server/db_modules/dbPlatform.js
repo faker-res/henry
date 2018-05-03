@@ -2887,6 +2887,35 @@ var dbPlatform = {
                 return statusList;
             }
         );
+    },
+
+    getClientData: function(platformId){
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                return platformData ? platformData.clientData : "";
+            }
+        );
+    },
+
+    saveClientData: function(platformId, clientData){
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if(platformData){
+                    return dbconfig.collection_platform.findOneAndUpdate({_id: platformData._id}, {clientData: clientData}).then(
+                        res => {
+                            return clientData;
+                        }
+                    );
+                }
+                else{
+                    return Q.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        message: "can not find platform"
+                    });
+                }
+            }
+        );
     }
 };
 

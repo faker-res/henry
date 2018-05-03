@@ -254,7 +254,9 @@ var platformSchema = new Schema({
     // manual audit if player's applyBonus permission banned
     manualAuditBanWithdrawal: {type: Boolean, default: true},
     // set the maximum duration for the unread mail to be showing up
-    unreadMailMaxDuration: {type: Number, min: 0}
+    unreadMailMaxDuration: {type: Number, min: 0},
+    //client type
+    clientData: {type: String}
 });
 
 //add platform id before save

@@ -5748,7 +5748,7 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
         {
             $group: {
                 _id: "$providerId",
-                provider: {$first: "providerId"},
+                provider: {$first: "$providerId"},
                 count: {$sum: {$cond: ["$count", "$count", 1]}},
                 validAmount: {$sum: "$validAmount"},
                 bonusAmount: {$sum: "$bonusAmount"},
