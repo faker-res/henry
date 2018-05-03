@@ -85,6 +85,16 @@ var PlatformServiceImplement = function () {
         let isValidData = Boolean(data && data.platformObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbSmsGroup.getPlatformSmsGroups, [data.platformObjId], isValidData, null, null, true);
     };
+
+    this.getClientData.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getClientData, [data.platformId], isValidData);
+    };
+
+    this.saveClientData.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.clientData && typeof data.clientData == "string");
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.saveClientData, [data.platformId, data.clientData], isValidData);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

@@ -1005,6 +1005,7 @@ define(['js/app'], function (myApp) {
             console.log("whole data", data);
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;
+
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
@@ -1070,6 +1071,19 @@ define(['js/app'], function (myApp) {
                     if (v.data.gender == false) {
                         v.data.gender = "女";
                     }
+
+                    if (v.data && v.data.rawCommissions && v.data.rawCommissions.length) {
+                        v.data.rawCommissions.map(rawCommission => {
+                            if (rawCommission.isCustomCommissionRate || rawCommission.isCustomPlatformFeeRate) {
+                                v.data.redRemark$ = true;
+                            }
+                        });
+                    }
+
+                    if (v.data.rateAfterRebatePromoIsCustom || v.data.rateAfterRebateTotalDepositIsCustom || v.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                        v.data.redRemark$ = true;
+                    }
+
                     tableData.push(v);
                 }
             });
@@ -1221,7 +1235,13 @@ define(['js/app'], function (myApp) {
                         "title": $translate('REMARK'),
                         data: "remark$",
                         sClass: "maxWidth100 wordWrap",
-                        // visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                        render: function (data, type, row) {
+                            if (row.data.redRemark$) {
+                                let $text = $('<span>').text(data).css({color: 'red'});
+                                return $text.prop('outerHTML');
+                            }
+                            return data;
+                        }
                     },
 
 
@@ -1427,6 +1447,7 @@ define(['js/app'], function (myApp) {
             console.log("whole data", data);
             vm.newProposalNum = 0;
             vm.blinkAllProposal = false;
+            
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
@@ -1479,6 +1500,19 @@ define(['js/app'], function (myApp) {
                             : v.data.alipayAccount != null
                                 ? v.data.alipayAccount
                                 : null;
+
+                    if (v.data && v.data.rawCommissions && v.data.rawCommissions.length) {
+                        v.data.rawCommissions.map(rawCommission => {
+                            if (rawCommission.isCustomCommissionRate || rawCommission.isCustomPlatformFeeRate) {
+                                v.data.redRemark$ = true;
+                            }
+                        });
+                    }
+
+                    if (v.data.rateAfterRebatePromoIsCustom || v.data.rateAfterRebateTotalDepositIsCustom || v.data.rateAfterRebateTotalWithdrawalIsCustom) {
+                        v.data.redRemark$ = true;
+                    }
+
                     tableData.push(v);
                 }
             });
@@ -1689,7 +1723,13 @@ define(['js/app'], function (myApp) {
                         "title": $translate('REMARK'),
                         data: "remark$",
                         sClass: "maxWidth100 wordWrap",
-                        visible: vm.rightPanelTitle == "APPROVAL_PROPOSAL"
+                        render: function (data, type, row) {
+                            if (row.data.redRemark$) {
+                                let $text = $('<span>').text(data).css({color: 'red'});
+                                return $text.prop('outerHTML');
+                            }
+                            return data;
+                        }
                     },
                     {
                         "title": $translate('EXPIRY_DATE'),

@@ -66,7 +66,7 @@ div(ng-if="checkViewPermission('Analysis')")
                     a  {{'DEMO_PLAYER' | translate}}
                 li(ng-if="checkViewPermission('Analysis','Analysis','ClickCount')", ng-click='vm.loadPage("CLICK_COUNT")')
                     a  {{'CLICK_COUNT' | translate}}
-                li(ng-if="checkViewPermission('Analysis','Analysis','Read')", ng-click='vm.loadPage("MANUAL_APPROVAL_PERCENTAGE")')
+                li(ng-if="checkViewPermission('Analysis','Analysis','ManualApproval')", ng-click='vm.loadPage("MANUAL_APPROVAL_PERCENTAGE")')
                     a  {{'MANUAL_APPROVAL_PERCENTAGE' | translate}}
 
 

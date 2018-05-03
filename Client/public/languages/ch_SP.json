@@ -1768,6 +1768,7 @@
   "Total_Proposal": "总提案数量（所有状态）",
   "Approved_Manual_Approval": "人工审核（执行提案）",
   "Rejected_Manual_Approval": "人工审核（失败提案）",
+  "ManualApproval": "人工审核占比",
   "Total_ManualApproval": "总计人工处理提案数量",
   "Total_AutoApproval": "总计自动处理提案数量",
   "PLAYER_BONUS_MANUAL_APPROVAL_RATE": "玩家提款人工审核占比",
