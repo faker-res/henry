@@ -12966,7 +12966,8 @@ let dbPlayerInfo = {
                                         query: query,
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
                                             return playerIdObj._id;
-                                        })
+                                        }),
+                                        isPromoteWay: true
                                     });
                                 },
                                 processResponse: function (record) {
@@ -13027,7 +13028,11 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
-                return {size: result.length, data: outputResult, total: resultSum};
+                // Output filter promote way
+                outputResult = query.csPromoteWay && query.csPromoteWay.length > 0 ? outputResult.filter(e => query.csPromoteWay.indexOf(e.csPromoteWay) >= 0) : outputResult;
+                outputResult = query.admins && query.admins.length > 0 ? outputResult.filter(e => query.admins.indexOf(e.csOfficer) >= 0) : outputResult;
+
+                return {size: outputResult.length, data: outputResult, total: resultSum};
             }
         );
     },
@@ -13209,7 +13214,7 @@ let dbPlayerInfo = {
         );
     },
 
-    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option) {
+    getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
         option = option || {};
         let proms = [];
         let proposalType = [];
@@ -13260,7 +13265,19 @@ let dbPlayerInfo = {
                         proms.push(prom);
                     }
                     else {
-                        proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
+                        if (isPromoteWay) { // for search with filter promote way
+                            prom = dbconfig.collection_players.findOne({
+                                _id: playerObjIds[p]
+                            }).then(
+                                playerData => {
+                                    return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain);
+                                }
+                            );
+                        } else {
+                            prom = getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime));
+                        }
+                        // proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
+                        proms.push(prom);
                     }
 
                 }
