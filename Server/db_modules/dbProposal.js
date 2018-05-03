@@ -3836,7 +3836,7 @@ var proposal = {
                                 else if(d._id.status == "Rejected"){
                                     holder[d._id.mainType] = [holder[d._id.mainType][0], holder[d._id.mainType][1] + d.count];
                                 }
-                                // holder[d.adminName] = [holder[d.adminName][0] + d.count_0, holder[d.adminName][1] + d.count_1, holder[d.adminName][2] + d.totalCount];
+
                             } else {
                                 if (d._id.status == "Approved"){
                                     holder[d._id.mainType] = [d.count, 0];
@@ -3875,8 +3875,6 @@ var proposal = {
                         })
                     }
 
-
-
                 return retResult;
             }));
 
@@ -3907,7 +3905,6 @@ var proposal = {
                     });
 
                     returnResult.push({successCount: successCount, rejectCount: rejectCount, manualCount: successCount + rejectCount});
-
 
                 }
                 else {
@@ -3971,7 +3968,6 @@ var proposal = {
 
                 }
 
-
                 tempDate2 = getNextDate(tempDate2);
             }
 
@@ -3979,7 +3975,7 @@ var proposal = {
 
         });
     },
-    
+
     getOnlineTopupAnalysisByPlatform: (platformId, startDate, endDate, analysisCategory) => {
         return dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_TOP_UP}).read("secondaryPreferred").lean().then(
             (onlineTopupType) => {

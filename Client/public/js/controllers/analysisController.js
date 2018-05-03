@@ -1101,8 +1101,7 @@ define(['js/app'], function (myApp) {
                         vm.updatePlayerAvgData.manualCount = vm.calculateAverageData(vm.updatePlayerData, "data", "manualCount");
 
                         vm.drawManualApprovalPieChart([{count:vm.updatePlayerAvgData.totalCount-vm.updatePlayerAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.updatePlayerAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-updatePlayerManualApproval");
-
-
+                        
                         // filter out UpdatePartner
                         vm.updatePartnerData = [];
                         vm.manualApprovalData.forEach( manualApprovalData => {
@@ -1119,7 +1118,6 @@ define(['js/app'], function (myApp) {
                         vm.updatePartnerAvgData.manualCount = vm.calculateAverageData(vm.updatePartnerData, "data", "manualCount");
 
                         vm.drawManualApprovalPieChart([{count:vm.updatePartnerAvgData.totalCount-vm.updatePartnerAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.updatePartnerAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-updatePartnerManualApproval");
-
 
                         // filter out all reward
                         vm.rewardData = [];
@@ -1138,7 +1136,6 @@ define(['js/app'], function (myApp) {
 
                         vm.drawManualApprovalPieChart([{count:vm.rewardAvgData.totalCount-vm.rewardAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.rewardAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-rewardManualApproval");
 
-
                         // filter out others
                         vm.othersData = [];
                         vm.manualApprovalData.forEach( manualApprovalData => {
@@ -1155,7 +1152,6 @@ define(['js/app'], function (myApp) {
                         vm.othersAvgData.manualCount = vm.calculateAverageData(vm.othersData, "data", "manualCount");
 
                         vm.drawManualApprovalPieChart([{count:vm.othersAvgData.totalCount-vm.othersAvgData.manualCount, label: $translate("Total_AutoApproval")}, {count: vm.othersAvgData.manualCount, label: $translate("Total_ManualApproval")}], "#pie-othersManualApproval");
-
 
                         // filter out "all"
                         vm.allAvgData.totalCount = vm.calculateAverageData(vm.allManualApprovalData, "data", "count");
@@ -1177,7 +1173,6 @@ define(['js/app'], function (myApp) {
         vm.drawManualApprovalPieChart = function (srcData, pieChartName) {
             var placeholder = pieChartName;
 
-
             var pieData = srcData.filter(function (obj) {
                 return (obj.count);
             }).map(function (obj) {
@@ -1190,9 +1185,7 @@ define(['js/app'], function (myApp) {
 
 
         vm.manualApprovalDataSort = (type , sortField) => {
-
             vm.manualApprovalSort[type] = vm.manualApprovalSort[type] === sortField ? '-'+sortField : sortField;
-
         };
         // manual approval rate end =====================================================
 
