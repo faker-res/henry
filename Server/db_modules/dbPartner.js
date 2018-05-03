@@ -731,6 +731,23 @@ let dbPartner = {
         if (query && query.phoneNumber) {
             query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), query.phoneNumber]};
         }
+        
+        if (query && query.registrationTime) {
+            if (query.registrationTime["$gte"]) {
+                query.registrationTime["$gte"] = new Date(query.registrationTime["$gte"]);
+            }
+            if (query.registrationTime["$lt"]) {
+                query.registrationTime["$lt"] = new Date(query.registrationTime["$lt"]);
+            }
+        }
+        if (query && query.lastAccessTime) {
+            if (query.lastAccessTime["$gte"]) {
+                query.lastAccessTime["$gte"] = new Date(query.lastAccessTime["$gte"]);
+            }
+            if (query.lastAccessTime["$lt"]) {
+                query.lastAccessTime["$lt"] = new Date(query.lastAccessTime["$lt"]);
+            }
+        }
 
         let count = dbconfig.collection_partner.find(query).count();
 
@@ -771,17 +788,17 @@ let dbPartner = {
                 {$match:query},
                 {$project: { childrencount: {$size: { "$ifNull": [ "$children", [] ] }}, "partnerId":1, "partnerName":1 , "realName":1, "phoneNumber":1,
                         "commissionType":1, "credits":1, "registrationTime":1, "lastAccessTime":1, "dailyActivePlayer":1, "weeklyActivePlayer":1,
-                        "monthlyActivePlayer":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "settledCommission":1, "_id":1, }},
+                        "monthlyActivePlayer":1, "validPlayers":1, "totalChildrenDeposit":1, "totalChildrenBalance":1, "commissionAmountFromChildren":1, "_id":1, }},
                 {$skip:index},
                 {$limit:limit}
             ]).then(
-            aggr => {
-                var retData = [];
-                for (var index in aggr) {
-                    var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
-                    retData.push(prom);
-                }
-                return Q.all(retData);
+                aggr => {
+                    var retData = [];
+                    for (var index in aggr) {
+                        var prom = dbPartner.getPartnerItem(aggr[index]._id , aggr[index].childrencount);
+                        retData.push(prom);
+                    }
+                    return Q.all(retData);
             }).then(
                 partners => {
                     for (let i = 0; i < partners.length; i++) {
@@ -796,8 +813,8 @@ let dbPartner = {
                     Q.reject({name: "DBError", message: "Error finding partners.", error: error});
                 }
             );
-            
         }
+
         return Q.all([count, partnerInfo]).then( function(data){
             return {size:data[0],data:data[1]}
         })
@@ -4655,7 +4672,6 @@ let dbPartner = {
         });
         return Promise.all(partnerProm).then(
             data => {
-                // console.log('RESULT===', data);
                 return data;
             }
         );
@@ -4746,6 +4762,44 @@ let dbPartner = {
                                 }
                             }).read("secondaryPreferred").then(records => {
                                 records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
+
+                                switch (period) {
+                                    case 'day':
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {dailyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                    case 'week':
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {weeklyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                    case 'month':
+                                    default:
+                                        dbconfig.collection_partner.findOneAndUpdate(
+                                            {
+                                                _id: partnerId,
+                                                platform: platformId,
+                                            },
+                                            {
+                                                $set: {monthlyActivePlayer: records.length}
+                                            }
+                                        ).exec();
+                                        break;
+                                }
+
                                 return {partnerId: partnerId, size: records.length}
                             }
                         )
@@ -4875,6 +4929,17 @@ let dbPartner = {
                                 }
                             }).read("secondaryPreferred").then(records => {
                                 records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
+
+                                dbconfig.collection_partner.findOneAndUpdate(
+                                    {
+                                        _id: partnerId,
+                                        platform: platformId,
+                                    },
+                                    {
+                                        $set: {validPlayers: records.length}
+                                    }
+                                ).exec();
+
                                 return {partnerId: partnerId, size: records.length}
                             }
                         )
@@ -4952,6 +5017,17 @@ let dbPartner = {
                         }).read("secondaryPreferred").then(records => {
                             records.map(player => totalBonusAmount += player.bonusAmount);
                             let totalCredit = (totalTopUpAmount - totalBonusAmount);
+                            totalCredit = totalCredit.toFixed(2);
+
+                            dbconfig.collection_partner.findOneAndUpdate(
+                                {
+                                    _id: partnerId,
+                                    platform: platformId,
+                                },
+                                {
+                                    $set: {totalChildrenDeposit: totalCredit}
+                                }
+                            ).exec();
 
                             return {partnerId: partnerId, size: totalCredit}
                         }
@@ -5003,6 +5079,18 @@ let dbPartner = {
                 }).read("secondaryPreferred").then(topUpRecord => {
                 if (topUpRecord) {
                     topUpRecord.map(player => totalValidCredit += player.validCredit);
+                    totalValidCredit = totalValidCredit.toFixed(2);
+
+                    dbconfig.collection_partner.findOneAndUpdate(
+                        {
+                            _id: partnerId,
+                            platform: platformId,
+                        },
+                        {
+                            $set: {totalChildrenBalance: totalValidCredit}
+                        }
+                    ).exec();
+
                     return {partnerId: partnerId, size: totalValidCredit};
                 }
             });
@@ -5489,13 +5577,20 @@ let dbPartner = {
 
                     let resetProm = Promise.resolve();
                     if (settleType === constPartnerCommissionLogStatus.RESET_THEN_EXECUTED) {
+                        remark = "结算前清空馀额：" + remark
                         resetProm = dbPartner.applyClearPartnerCredit(log.partner, log, adminInfo.name, remark);
                     }
                     return resetProm;
                 }
             ).then(
-                () => {
+                resetProposal => {
                     updateCommissionLogStatus(log, settleType, remark).catch(errorUtils.reportError);
+                    if (resetProposal && resetProposal.proposalId) {
+                        remark = "(" + resetProposal.proposalId + ") "+ remark;
+                    }
+                    if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
+                        remark = "结算后清空馀额：" + remark;
+                    }
                     return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
                 }
             ).catch(errorUtils.reportError);
@@ -6132,20 +6227,32 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                     rateConfig.rateAfterRebatePromoIsCustom = true;
                     rateConfig.rateAfterRebatePromo = customRateData.rateAfterRebatePromo;
                 }
+                else {
+                    rateConfig.rateAfterRebatePromoIsCustom = false;
+                }
 
                 if (rateConfig.rateAfterRebatePlatform !== customRateData.rateAfterRebatePlatform) {
                     rateConfig.rateAfterRebatePlatformIsCustom = true;
                     rateConfig.rateAfterRebatePlatform = customRateData.rateAfterRebatePlatform;
+                }
+                else {
+                    rateConfig.rateAfterRebatePlatformIsCustom = false;
                 }
 
                 if (rateConfig.rateAfterRebateTotalDeposit !== customRateData.rateAfterRebateTotalDeposit) {
                     rateConfig.rateAfterRebateTotalDepositIsCustom = true;
                     rateConfig.rateAfterRebateTotalDeposit = customRateData.rateAfterRebateTotalDeposit;
                 }
+                else {
+                    rateConfig.rateAfterRebateTotalDepositIsCustom = false;
+                }
 
                 if (rateConfig.rateAfterRebateTotalWithdrawal !== customRateData.rateAfterRebateTotalWithdrawal) {
                     rateConfig.rateAfterRebateTotalWithdrawalIsCustom = true;
                     rateConfig.rateAfterRebateTotalWithdrawal = customRateData.rateAfterRebateTotalWithdrawal;
+                }
+                else {
+                    rateConfig.rateAfterRebateTotalWithdrawalIsCustom = false;
                 }
 
                 rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
@@ -6155,6 +6262,9 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                         ) {
                             defaultGroup.isCustom = true;
                             defaultGroup.rate = customGroup.rate;
+                        }
+                        else {
+                            defaultGroup.isCustom = false;
                         }
                     });
                 });
@@ -6262,6 +6372,9 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                 });
             }
 
+            let commissionTypeName = getCommissionTypeName(commissionLog.commissionType);
+            let proposalRemark = commissionTypeName + ", " + remark;
+
             // create proposal data
             let proposalData = {
                 type: proposalType._id,
@@ -6292,7 +6405,7 @@ function applyPartnerCommissionSettlement(commissionLog, statusApply, adminInfo,
                     amount: commissionLog.nettCommission,
                     status: constPartnerCommissionLogStatus.PREVIEW,
                     logObjId: commissionLog._id,
-                    remark: remark
+                    remark: proposalRemark
                 },
                 entryType: constProposalEntryType.ADMIN,
                 userType: constProposalUserType.PARTNERS
@@ -6375,4 +6488,19 @@ function getPreviousThreeDetailIfExist (partnerObjId, commissionType, startTime)
             }
         }
     );
+}
+
+function getCommissionTypeName (commissionType) {
+    switch (Number(commissionType)) {
+        case 1:
+            return "1天-输赢值";
+        case 2:
+            return "7天-输赢值";
+        case 3:
+            return "半月-输赢值";
+        case 4:
+            return "1月-输赢值";
+        case 5:
+            return "7天-投注额";
+    }
 }

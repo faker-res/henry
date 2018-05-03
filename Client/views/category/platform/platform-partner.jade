@@ -159,6 +159,9 @@
                 input.form-control(ng-model='vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
                 div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenOperator === 'range'") ~
                 input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.commissionAmountFromChildrenOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+        .search-filter.col-md-3
+            label.control-label
+            button#resetPartnerQuery.btn.btn-primary.common-button-sm(style="display:block;") {{'Reset' | translate}}
 
 .col-md-12
     .pull-right.margin-top-5
@@ -166,6 +169,7 @@
         a#partnerRefreshIcon.fa.fa-refresh(ng-click='vm.getPlatformPartnersData()')
 .col-md-12
     label(ng-show='vm.platformPlayerCount') {{'Total Partner' | translate}} : {{vm.platformPartnerCount}} ({{"Search Result" | translate}} : {{vm.searchPartnerCount}})
+    #partnerLoadingIcon(style="margin-left:10px")
 
 p
 .col-md-12(style="min-height:150px;")
