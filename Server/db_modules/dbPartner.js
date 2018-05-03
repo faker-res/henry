@@ -731,6 +731,23 @@ let dbPartner = {
         if (query && query.phoneNumber) {
             query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), query.phoneNumber]};
         }
+        
+        if (query && query.registrationTime) {
+            if (query.registrationTime["$gte"]) {
+                query.registrationTime["$gte"] = new Date(query.registrationTime["$gte"]);
+            }
+            if (query.registrationTime["$lt"]) {
+                query.registrationTime["$lt"] = new Date(query.registrationTime["$lt"]);
+            }
+        }
+        if (query && query.lastAccessTime) {
+            if (query.lastAccessTime["$gte"]) {
+                query.lastAccessTime["$gte"] = new Date(query.lastAccessTime["$gte"]);
+            }
+            if (query.lastAccessTime["$lt"]) {
+                query.lastAccessTime["$lt"] = new Date(query.lastAccessTime["$lt"]);
+            }
+        }
 
         let count = dbconfig.collection_partner.find(query).count();
 
