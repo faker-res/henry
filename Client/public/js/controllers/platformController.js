@@ -16825,6 +16825,7 @@ define(['js/app'], function (myApp) {
                 vm.newPartner = {};
                 vm.newPartner.gender = "true";
                 vm.tempPassword = "";
+                vm.partnerValidity = {};
                 $(".partnerParentFalse").hide();
                 $(".partnerParentTrue").hide();
                 vm.partnerParentChange("id");

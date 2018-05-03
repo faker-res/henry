@@ -31,7 +31,7 @@ form(name="form_edit_partner", novalidate)
             label.control-label {{"Bind Player" | translate}}
             span &nbsp;{{"partnerBindPlayerText" | translate}}
             input.form-control(type="text", ng-if="!newPartner.player", placeholder="{{'playerName' | translate}}", ng-model="newPartner.playerName", ng-change='checkPartnerField("player",newPartner.playerName, form_edit_partner)')
-            span.help-block(style='color: #b94a48', ng-show='partnerValidity.player.validPlayerName===false') {{'Invalid PlayerName' | translate}}
+            span.help-block(style='color: #b94a48', ng-show='partnerValidity.player.validPlayerName===false && !partnerValidity.player.exists') {{'Invalid PlayerName' | translate}}
             span.help-block(style='color: #b94a48', ng-show='partnerValidity.player.exists===true') {{'playerName' | translate}}&nbsp;{{'existed already' | translate}}
             label.form-control(type="text", ng-if="newPartner.player", disabled) {{newPartner.player.name}}
         .form-group.col-md-6
