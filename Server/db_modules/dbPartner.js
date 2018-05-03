@@ -6210,20 +6210,32 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                     rateConfig.rateAfterRebatePromoIsCustom = true;
                     rateConfig.rateAfterRebatePromo = customRateData.rateAfterRebatePromo;
                 }
+                else {
+                    rateConfig.rateAfterRebatePromoIsCustom = false;
+                }
 
                 if (rateConfig.rateAfterRebatePlatform !== customRateData.rateAfterRebatePlatform) {
                     rateConfig.rateAfterRebatePlatformIsCustom = true;
                     rateConfig.rateAfterRebatePlatform = customRateData.rateAfterRebatePlatform;
+                }
+                else {
+                    rateConfig.rateAfterRebatePlatformIsCustom = false;
                 }
 
                 if (rateConfig.rateAfterRebateTotalDeposit !== customRateData.rateAfterRebateTotalDeposit) {
                     rateConfig.rateAfterRebateTotalDepositIsCustom = true;
                     rateConfig.rateAfterRebateTotalDeposit = customRateData.rateAfterRebateTotalDeposit;
                 }
+                else {
+                    rateConfig.rateAfterRebateTotalDepositIsCustom = false;
+                }
 
                 if (rateConfig.rateAfterRebateTotalWithdrawal !== customRateData.rateAfterRebateTotalWithdrawal) {
                     rateConfig.rateAfterRebateTotalWithdrawalIsCustom = true;
                     rateConfig.rateAfterRebateTotalWithdrawal = customRateData.rateAfterRebateTotalWithdrawal;
+                }
+                else {
+                    rateConfig.rateAfterRebateTotalWithdrawalIsCustom = false;
                 }
 
                 rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
@@ -6233,6 +6245,9 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                         ) {
                             defaultGroup.isCustom = true;
                             defaultGroup.rate = customGroup.rate;
+                        }
+                        else {
+                            defaultGroup.isCustom = false;
                         }
                     });
                 });
