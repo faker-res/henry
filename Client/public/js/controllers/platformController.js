@@ -15776,7 +15776,6 @@ define(['js/app'], function (myApp) {
                     resetQuery.pageObj = vm.advancedPartnerQueryObj.pageObj;
                     resetQuery.sortCol = vm.advancedPartnerQueryObj.sortCol;
                     vm.advancedPartnerQueryObj = resetQuery;
-                    console.log('vm.advancedPartnerQueryObj===', vm.advancedPartnerQueryObj);
                     vm.partnerAdvanceSearchQuery = {
                         creditsOperator: ">=",
                         dailyActivePlayerOperator: ">=",
@@ -15812,7 +15811,6 @@ define(['js/app'], function (myApp) {
                     if (vm.totalChildrenBalanceBoolean) {
                         vm.getTotalChildrenBalance(data.data, partner);
                     }
-                    $scope.safeApply();
                 })
             };
 
@@ -15833,7 +15831,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingDailyActivePlayer = false;
                     vm.dailyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15854,8 +15851,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingWeeklyActivePlayer = false;
                     vm.weeklyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
-                    $scope.safeApply();
                 })
             };
 
@@ -15876,7 +15871,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingMonthlyActivePlayer = false;
                     vm.monthlyActivePlayerBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15897,8 +15891,6 @@ define(['js/app'], function (myApp) {
                     vm.partnerLoadingValidPlayers = false;
                     vm.validPlayersBoolean = false;
                     vm.drawPartnerTable(partner);
-                    //end loading spinner
-                    $scope.safeApply();
                 })
             };
 
@@ -15913,13 +15905,12 @@ define(['js/app'], function (myApp) {
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
-                            partner.data[index].totalChildrenDeposit = inData.size ? inData.size : 0;
+                            partner.data[index].totalChildrenDeposit = inData.amount ? inData.amount : 0;
                         }
                     });
                     vm.partnerLoadingTotalChildrenDeposit = false;
                     vm.totalChildrenDepositBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15934,13 +15925,12 @@ define(['js/app'], function (myApp) {
                     data.data.forEach( inData => {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                         if ( index !== -1) {
-                            partner.data[index].totalChildrenBalance = inData.size ? inData.size : 0;
+                            partner.data[index].totalChildrenBalance = inData.amount ? inData.amount : 0;
                         }
                     });
                     vm.partnerLoadingTotalChildrenBalance = false;
                     vm.totalChildrenBalanceBoolean = false;
                     vm.drawPartnerTable(partner);
-                    $scope.safeApply();
                 })
             };
 
@@ -15966,7 +15956,7 @@ define(['js/app'], function (myApp) {
                     partner.validPlayers = partner.validPlayers ? partner.validPlayers : 0;
                     partner.totalChildrenDeposit = partner.totalChildrenDeposit ? partner.totalChildrenDeposit : 0;
                     partner.totalChildrenBalance = partner.totalChildrenBalance ? partner.totalChildrenBalance : 0;
-                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? partner.commissionAmountFromChildren : 0;
+                    partner.commissionAmountFromChildren = partner.commissionAmountFromChildren ? parseFloat(partner.commissionAmountFromChildren).toFixed(2) : 0;
                 });
 
                 if (!vm.partnerLoadingDailyActivePlayer && !vm.partnerLoadingWeeklyActivePlayer && !vm.partnerLoadingMonthlyActivePlayer &&
